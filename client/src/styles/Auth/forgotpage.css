@@ -1,5 +1,5 @@
-/* Register Page Styles */
-.register-page {
+/* Forgot Password Page Styles */
+.forgot-page {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -9,8 +9,8 @@
   padding: 1rem;
 }
 
-/* Register Card Container */
-.register-card {
+/* Forgot Password Card Container */
+.forgot-card {
   display: flex;
   max-width: 1000px;
   width: 100%;
@@ -22,7 +22,7 @@
 }
 
 /* Left Side - Branding */
-.register-branding {
+.forgot-branding {
   flex: 1;
   background: linear-gradient(135deg, #2c3e50 0%, #1a2632 100%);
   display: flex;
@@ -33,7 +33,7 @@
   overflow: hidden;
 }
 
-.register-branding::before {
+.forgot-branding::before {
   content: '';
   position: absolute;
   top: 0;
@@ -111,8 +111,8 @@
   display: inline-block;
 }
 
-/* Right Side - Register Form */
-.register-form-container {
+/* Right Side - Form */
+.forgot-form-container {
   flex: 1;
   display: flex;
   align-items: center;
@@ -121,7 +121,7 @@
   background-color: #ffffff;
 }
 
-.register-form-wrapper {
+.forgot-form-wrapper {
   max-width: 350px;
   width: 100%;
 }
@@ -135,19 +135,25 @@
   font-size: 1.75rem;
   font-weight: 700;
   color: #1a2632;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .form-subtitle {
   color: #7f8c8d;
   font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.form-subtitle strong {
+  color: #f39c12;
+  font-weight: 600;
 }
 
 /* Form Styles */
-.register-form {
+.forgot-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .form-group {
@@ -197,6 +203,48 @@
   background-color: #fff5f5;
 }
 
+/* Code Input Styles */
+.code-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.code-inputs {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.code-input {
+  width: 45px;
+  height: 55px;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fafafa;
+  transition: all 0.3s ease;
+}
+
+.code-input:focus {
+  outline: none;
+  border-color: #f39c12;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+}
+
+.code-input.input-error {
+  border-color: #e74c3c;
+  background-color: #fff5f5;
+}
+
+.code-error {
+  text-align: center;
+}
+
+/* Password Toggle */
 .password-toggle {
   position: absolute;
   right: 0.875rem;
@@ -215,46 +263,46 @@
   color: #f39c12;
 }
 
+/* Error Message */
 .error-message {
   color: #e74c3c;
   font-size: 0.75rem;
   margin-top: 0.125rem;
 }
 
-/* Checkbox */
-.form-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
+/* Resend Code */
+.resend-code {
+  text-align: center;
+  margin-top: -0.5rem;
 }
 
-.form-checkbox input[type="checkbox"] {
-  width: 14px;
-  height: 14px;
-  cursor: pointer;
-  accent-color: #f39c12;
-}
-
-.form-checkbox label {
+.resend-text {
   font-size: 0.8rem;
-  color: #5a6a7a;
-  cursor: pointer;
+  color: #7f8c8d;
 }
 
-.terms-link {
+.resend-link {
+  background: none;
+  border: none;
   color: #f39c12;
-  text-decoration: none;
-  font-weight: 500;
   font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
 }
 
-.terms-link:hover {
-  text-decoration: underline;
+.resend-link:hover {
+  color: #e67e22;
+}
+
+.resend-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Submit Button */
-.register-submit-btn {
+.forgot-submit-btn {
   background-color: #f39c12;
   color: white;
   border: none;
@@ -264,107 +312,129 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 0.5rem;
+  width: 100%;
 }
 
-.register-submit-btn:hover {
+.forgot-submit-btn:hover {
   background-color: #e67e22;
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
 }
 
-/* Social Login */
-.social-login {
-  margin-top: 0.5rem;
+.forgot-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.social-login-text {
-  text-align: center;
-  font-size: 0.8rem;
-  color: #95a5a6;
-  margin-bottom: 0.75rem;
+.forgot-submit-btn:disabled:hover {
+  background-color: #f39c12;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Loading State */
+.forgot-submit-btn.loading {
   position: relative;
+  color: transparent;
 }
 
-.social-login-text::before,
-.social-login-text::after {
+.forgot-submit-btn.loading::after {
   content: '';
   position: absolute;
+  width: 20px;
+  height: 20px;
   top: 50%;
-  width: 30%;
-  height: 1px;
-  background-color: #e0e0e0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid white;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
-.social-login-text::before {
-  left: 0;
+/* Success Message */
+.success-message-container {
+  text-align: center;
+  padding: 1rem 0;
 }
 
-.social-login-text::after {
-  right: 0;
-}
-
-.social-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-}
-
-.social-btn {
-  width: 42px;
-  height: 42px;
+.success-icon {
+  width: 70px;
+  height: 70px;
+  background-color: #2ecc71;
+  color: white;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #e0e0e0;
-  border-radius: 50%;
-  background: white;
-  color: #5a6a7a;
-  font-size: 1.2rem;
+  font-size: 2.5rem;
+  margin: 0 auto 1.5rem;
+  animation: scaleIn 0.3s ease-out;
+}
+
+.success-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a2632;
+  margin-bottom: 0.75rem;
+}
+
+.success-text {
+  color: #7f8c8d;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+}
+
+/* Back to Login Button */
+.back-to-login-btn {
+  display: inline-block;
+  background-color: #f39c12;
+  color: white;
+  border: none;
+  padding: 0.875rem 2rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  padding: 0;
+  text-decoration: none;
+  width: 100%;
+  max-width: 200px;
+  margin: 0 auto;
 }
 
-.social-btn:hover {
+.back-to-login-btn:hover {
+  background-color: #e67e22;
   transform: translateY(-2px);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
 }
 
-.social-btn.google:hover {
-  color: #db4437;
-  border-color: #db4437;
-}
-
-.social-btn.facebook:hover {
-  color: #4267B2;
-  border-color: #4267B2;
-}
-
-/* Login Prompt */
-.login-prompt {
+/* Sign Up Prompt */
+.signup-prompt {
   text-align: center;
-  margin-top: 0.75rem;
+  margin-top: 1.5rem;
 }
 
-.login-text {
+.signup-text {
   font-size: 0.85rem;
   color: #7f8c8d;
 }
 
-.login-link {
+.signup-link {
   color: #f39c12;
   text-decoration: none;
   font-weight: 600;
   font-size: 0.85rem;
 }
 
-.login-link:hover {
+.signup-link:hover {
   color: #e67e22;
   text-decoration: underline;
 }
 
-/* Animation */
+/* Animations */
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -376,14 +446,29 @@
   }
 }
 
+@keyframes spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
-  .register-card {
+  .forgot-card {
     flex-direction: column;
     max-width: 450px;
   }
   
-  .register-branding {
+  .forgot-branding {
     padding: 2rem 1.5rem;
   }
   
@@ -400,21 +485,27 @@
     align-items: center;
   }
   
-  .register-form-container {
+  .forgot-form-container {
     padding: 2rem 1.5rem;
+  }
+  
+  .code-input {
+    width: 40px;
+    height: 50px;
+    font-size: 1.1rem;
   }
 }
 
 @media (max-width: 480px) {
-  .register-card {
+  .forgot-card {
     border-radius: 16px;
   }
   
-  .register-branding {
+  .forgot-branding {
     padding: 1.5rem 1rem;
   }
   
-  .register-form-container {
+  .forgot-form-container {
     padding: 1.5rem 1rem;
   }
   
@@ -430,14 +521,23 @@
     font-size: 1.5rem;
   }
   
-  .social-btn {
-    width: 38px;
-    height: 38px;
+  .code-inputs {
+    gap: 0.3rem;
+  }
+  
+  .code-input {
+    width: 35px;
+    height: 45px;
     font-size: 1rem;
   }
   
-  .social-login-text::before,
-  .social-login-text::after {
-    width: 25%;
+  .success-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+  }
+  
+  .back-to-login-btn {
+    max-width: 100%;
   }
 }

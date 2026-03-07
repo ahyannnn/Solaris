@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   FaSolarPanel, 
   FaTachometerAlt, 
@@ -14,51 +15,105 @@ import {
   FaBars,
   FaTimes,
   FaChevronDown,
-  FaSearch
+  FaSearch,
+  FaClipboardList,
+  FaProjectDiagram,
+  FaFileInvoiceDollar,
+  FaClipboardCheck,
+  FaUserCog,
+  FaCalendarAlt,
+  FaFileInvoice,
+  FaChartLine,
+  FaHeadset
 } from 'react-icons/fa';
 import '../../styles/Dashboard/dashboard.css';
 
-const Dashboard = ({ children, userRole = 'admin' }) => {
+const Dashboard = () => {
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [userRole, setUserRole] = useState('admin');
+  const [userName, setUserName] = useState('Admin User');
+
+  // Get role from localStorage when dashboard loads
+  useEffect(() => {
+    const role = localStorage.getItem('userRole');
+    const name = localStorage.getItem('userName');
+    
+    if (role) {
+      setUserRole(role);
+    }
+    if (name) {
+      setUserName(name);
+    } else {
+      // If no role, redirect to login
+      navigate('/login');
+    }
+  }, [navigate]);
 
   // Mock notifications
   const notifications = [
-    { id: 1, message: 'New site data available', time: '5 min ago', read: false },
-    { id: 2, message: 'Device offline: Site A', time: '1 hour ago', read: false },
-    { id: 3, message: 'Report ready for download', time: '3 hours ago', read: true },
+    { id: 1, message: 'New site assessment scheduled', time: '5 min ago', read: false },
+    { id: 2, message: 'Payment received from Client A', time: '1 hour ago', read: false },
+    { id: 3, message: 'IoT device offline: Site B', time: '3 hours ago', read: true },
+    { id: 4, message: 'Project update: Site C - 75% complete', time: '5 hours ago', read: true },
   ];
 
-  // Role-based menu items
+  // Role-based menu items - ITO ANG MAGBABAGO BATAY SA userRole
   const menuItems = {
     admin: [
-      { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/dashboard/admin' },
-      { icon: <FaUsers />, label: 'User Management', path: '/dashboard/admin/users' },
-      { icon: <FaMapMarkerAlt />, label: 'Sites', path: '/dashboard/admin/sites' },
-      { icon: <FaMicrochip />, label: 'Devices', path: '/dashboard/admin/devices' },
-      { icon: <FaChartBar />, label: 'Analytics', path: '/dashboard/admin/analytics' },
-      { icon: <FaFileAlt />, label: 'Reports', path: '/dashboard/admin/reports' },
-      { icon: <FaCog />, label: 'Settings', path: '/dashboard/admin/settings' },
+      { icon: <FaTachometerAlt />, label: 'Dashboard', path: '#' },
+      { icon: <FaClipboardList />, label: 'Site Assessments', path: '#' },
+      { icon: <FaProjectDiagram />, label: 'Projects', path: '#' },
+      { icon: <FaFileInvoiceDollar />, label: 'Billing', path: '#' },
+      { icon: <FaMicrochip />, label: 'IoT Devices', path: '#' },
+      { icon: <FaChartBar />, label: 'Reports', path: '#' },
+      { icon: <FaUsers />, label: 'User Management', path: '#' },
+      { icon: <FaCog />, label: 'Settings', path: '#' },
     ],
+    
     engineer: [
-      { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/dashboard/engineer' },
-      { icon: <FaMapMarkerAlt />, label: 'My Sites', path: '/dashboard/engineer/sites' },
-      { icon: <FaMicrochip />, label: 'Devices', path: '/dashboard/engineer/devices' },
-      { icon: <FaChartBar />, label: 'Analysis', path: '/dashboard/engineer/analysis' },
-      { icon: <FaFileAlt />, label: 'Reports', path: '/dashboard/engineer/reports' },
+      { icon: <FaTachometerAlt />, label: 'Dashboard', path: '#' },
+      { icon: <FaClipboardCheck />, label: 'Site Assessments', path: '#' },
+      { icon: <FaProjectDiagram />, label: 'My Projects', path: '#' },
+      { icon: <FaMicrochip />, label: 'Device Data', path: '#' },
+      { icon: <FaFileAlt />, label: 'Reports', path: '#' },
+      { icon: <FaUserCog />, label: 'Profile', path: '#' },
     ],
+    
     customer: [
-      { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/dashboard/customer' },
-      { icon: <FaMapMarkerAlt />, label: 'My Sites', path: '/dashboard/customer/my-sites' },
-      { icon: <FaFileAlt />, label: 'Reports', path: '/dashboard/customer/reports' },
-      { icon: <FaCog />, label: 'Settings', path: '/dashboard/customer/profile' },
+      { icon: <FaTachometerAlt />, label: 'Dashboard', path: '#' },
+      { icon: <FaCalendarAlt />, label: 'Schedule Assessment', path: '#' },
+      { icon: <FaProjectDiagram />, label: 'My Project', path: '#' },
+      { icon: <FaFileInvoice />, label: 'Quotations & Bills', path: '#' },
+      { icon: <FaChartLine />, label: 'System Performance', path: '#' },
+      { icon: <FaFileAlt />, label: 'Reports', path: '#' },
+      { icon: <FaHeadset />, label: 'Support', path: '#' },
+      { icon: <FaUserCog />, label: 'Profile', path: '#' },
     ],
+  };
+
+  // Get user role display name
+  const getRoleDisplay = () => {
+    switch(userRole) {
+      case 'admin': return 'Administrator';
+      case 'engineer': return 'Solar Engineer';
+      case 'customer': return 'Customer';
+      default: return 'User';
+    }
   };
 
   const currentMenu = menuItems[userRole] || menuItems.admin;
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  // Logout function
+  const handleLogout = () => {
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userName');
+    navigate('/login');
+  };
 
   return (
     <div className="dashboard">
@@ -84,8 +139,8 @@ const Dashboard = ({ children, userRole = 'admin' }) => {
             <FaUserCircle />
           </div>
           <div className="user-details">
-            <span className="user-name">John Doe</span>
-            <span className="user-role">{userRole.charAt(0).toUpperCase() + userRole.slice(1)}</span>
+            <span className="user-name">{userName}</span>
+            <span className="user-role">{getRoleDisplay()}</span>
           </div>
         </div>
 
@@ -99,10 +154,10 @@ const Dashboard = ({ children, userRole = 'admin' }) => {
         </nav>
 
         <div className="sidebar-footer">
-          <a href="/logout" className="nav-item logout">
+          <button onClick={handleLogout} className="nav-item logout" style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}>
             <span className="nav-icon"><FaSignOutAlt /></span>
             <span className="nav-label">Logout</span>
-          </a>
+          </button>
         </div>
       </aside>
 
@@ -150,7 +205,7 @@ const Dashboard = ({ children, userRole = 'admin' }) => {
                     ))}
                   </div>
                   <div className="notification-footer">
-                    <a href="/notifications">View all</a>
+                    <a href="#">View all</a>
                   </div>
                 </div>
               )}
@@ -163,31 +218,134 @@ const Dashboard = ({ children, userRole = 'admin' }) => {
                 onClick={() => setProfileOpen(!profileOpen)}
               >
                 <FaUserCircle className="profile-icon" />
-                <span className="profile-name">John Doe</span>
+                <span className="profile-name">{userName}</span>
                 <FaChevronDown className={`dropdown-icon ${profileOpen ? 'open' : ''}`} />
               </button>
 
               {profileOpen && (
                 <div className="profile-dropdown">
-                  <a href="/profile" className="dropdown-item">
+                  <a href="#" className="dropdown-item">
                     <FaUserCircle /> Profile
                   </a>
-                  <a href="/settings" className="dropdown-item">
+                  <a href="#" className="dropdown-item">
                     <FaCog /> Settings
                   </a>
                   <hr />
-                  <a href="/logout" className="dropdown-item logout">
+                  <button onClick={handleLogout} className="dropdown-item logout" style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}>
                     <FaSignOutAlt /> Logout
-                  </a>
+                  </button>
                 </div>
               )}
             </div>
           </div>
         </header>
 
-        {/* Page Content */}
+        {/* Page Content - ETO ANG MAGBABAGO BATAY SA ROLE */}
         <div className="content-area">
-          {children}
+          <h1>{userRole.charAt(0).toUpperCase() + userRole.slice(1)} Dashboard</h1>
+          <p>Welcome to your dashboard! You are logged in as {userRole}.</p>
+          
+          {/* Admin Content */}
+          {userRole === 'admin' && (
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-info">
+                  <h3>Total Users</h3>
+                  <p className="stat-number">156</p>
+                </div>
+                <FaUsers className="stat-icon" />
+              </div>
+              <div className="stat-card">
+                <div className="stat-info">
+                  <h3>Active Sites</h3>
+                  <p className="stat-number">23</p>
+                </div>
+                <FaMapMarkerAlt className="stat-icon" />
+              </div>
+              <div className="stat-card">
+                <div className="stat-info">
+                  <h3>IoT Devices</h3>
+                  <p className="stat-number">45</p>
+                </div>
+                <FaMicrochip className="stat-icon" />
+              </div>
+              <div className="stat-card">
+                <div className="stat-info">
+                  <h3>Pending Bills</h3>
+                  <p className="stat-number">12</p>
+                </div>
+                <FaFileInvoiceDollar className="stat-icon" />
+              </div>
+            </div>
+          )}
+          
+          {/* Engineer Content */}
+          {userRole === 'engineer' && (
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-info">
+                  <h3>My Assessments</h3>
+                  <p className="stat-number">8</p>
+                </div>
+                <FaClipboardCheck className="stat-icon" />
+              </div>
+              <div className="stat-card">
+                <div className="stat-info">
+                  <h3>Active Projects</h3>
+                  <p className="stat-number">5</p>
+                </div>
+                <FaProjectDiagram className="stat-icon" />
+              </div>
+              <div className="stat-card">
+                <div className="stat-info">
+                  <h3>Devices Online</h3>
+                  <p className="stat-number">12</p>
+                </div>
+                <FaMicrochip className="stat-icon" />
+              </div>
+              <div className="stat-card">
+                <div className="stat-info">
+                  <h3>Reports Due</h3>
+                  <p className="stat-number">3</p>
+                </div>
+                <FaFileAlt className="stat-icon" />
+              </div>
+            </div>
+          )}
+          
+          {/* Customer Content */}
+          {userRole === 'customer' && (
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-info">
+                  <h3>My Project</h3>
+                  <p className="stat-number">In Progress</p>
+                </div>
+                <FaProjectDiagram className="stat-icon" />
+              </div>
+              <div className="stat-card">
+                <div className="stat-info">
+                  <h3>Next Bill</h3>
+                  <p className="stat-number">₱15,000</p>
+                </div>
+                <FaFileInvoice className="stat-icon" />
+              </div>
+              <div className="stat-card">
+                <div className="stat-info">
+                  <h3>System Performance</h3>
+                  <p className="stat-number">98%</p>
+                </div>
+                <FaChartLine className="stat-icon" />
+              </div>
+              <div className="stat-card">
+                <div className="stat-info">
+                  <h3>Support Tickets</h3>
+                  <p className="stat-number">1</p>
+                </div>
+                <FaHeadset className="stat-icon" />
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

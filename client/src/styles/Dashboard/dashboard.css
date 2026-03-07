@@ -35,7 +35,7 @@
   color: var(--text);
 }
 
-/* Sidebar */
+/* ========== SIDEBAR STYLES ========== */
 .sidebar {
   width: 280px;
   background: linear-gradient(135deg, var(--dark) 0%, var(--darker) 100%);
@@ -128,6 +128,24 @@
   overflow-y: auto;
 }
 
+/* Scrollbar styles for sidebar */
+.sidebar-nav::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 .nav-item {
   display: flex;
   align-items: center;
@@ -137,11 +155,19 @@
   text-decoration: none;
   transition: all 0.3s ease;
   font-size: 0.95rem;
+  border-left: 3px solid transparent;
 }
 
 .nav-item:hover {
   background-color: rgba(255, 255, 255, 0.1);
   color: white;
+  border-left-color: var(--primary);
+}
+
+.nav-item.active {
+  background-color: rgba(243, 156, 18, 0.15);
+  color: white;
+  border-left-color: var(--primary);
 }
 
 .nav-icon {
@@ -167,7 +193,7 @@
   color: var(--danger);
 }
 
-/* Main Content */
+/* ========== MAIN CONTENT ========== */
 .main-content {
   flex: 1;
   margin-left: 280px;
@@ -176,7 +202,7 @@
   flex-direction: column;
 }
 
-/* Header */
+/* ========== HEADER STYLES ========== */
 .dashboard-header {
   height: 70px;
   background: white;
@@ -198,6 +224,13 @@
   font-size: 1.25rem;
   color: var(--text);
   cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.menu-toggle:hover {
+  background-color: var(--gray-lighter);
 }
 
 .header-search {
@@ -233,13 +266,17 @@
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 
+.header-search input::placeholder {
+  color: var(--text-lighter);
+}
+
 .header-actions {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-/* Notifications */
+/* ========== NOTIFICATIONS ========== */
 .notification-wrapper {
   position: relative;
 }
@@ -252,6 +289,12 @@
   cursor: pointer;
   position: relative;
   padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.notification-btn:hover {
+  background-color: var(--gray-lighter);
 }
 
 .notification-badge {
@@ -268,6 +311,7 @@
   align-items: center;
   justify-content: center;
   padding: 0 5px;
+  font-weight: 600;
 }
 
 .notification-dropdown {
@@ -280,6 +324,18 @@
   box-shadow: var(--shadow-lg);
   margin-top: 0.5rem;
   z-index: 1000;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .notification-header {
@@ -300,6 +356,12 @@
   font-size: 0.8rem;
   color: var(--primary);
   cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.mark-read:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
 }
 
 .notification-list {
@@ -307,10 +369,25 @@
   overflow-y: auto;
 }
 
+/* Scrollbar for notifications */
+.notification-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.notification-list::-webkit-scrollbar-track {
+  background: var(--gray-lighter);
+}
+
+.notification-list::-webkit-scrollbar-thumb {
+  background: var(--gray-light);
+  border-radius: 10px;
+}
+
 .notification-item {
   padding: 1rem;
   border-bottom: 1px solid var(--border);
   transition: background-color 0.3s ease;
+  cursor: pointer;
 }
 
 .notification-item:hover {
@@ -319,6 +396,7 @@
 
 .notification-item.unread {
   background-color: rgba(243, 156, 18, 0.05);
+  border-left: 3px solid var(--primary);
 }
 
 .notification-message {
@@ -342,9 +420,16 @@
   color: var(--primary);
   text-decoration: none;
   font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
 }
 
-/* Profile */
+.notification-footer a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* ========== PROFILE DROPDOWN ========== */
 .profile-wrapper {
   position: relative;
 }
@@ -357,6 +442,12 @@
   border: none;
   cursor: pointer;
   padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.profile-btn:hover {
+  background-color: var(--gray-lighter);
 }
 
 .profile-icon {
@@ -390,6 +481,7 @@
   box-shadow: var(--shadow-lg);
   margin-top: 0.5rem;
   z-index: 1000;
+  animation: slideDown 0.2s ease-out;
 }
 
 .dropdown-item {
@@ -417,14 +509,217 @@
   border-top: 1px solid var(--border);
 }
 
-/* Content Area */
+/* ========== CONTENT AREA ========== */
 .content-area {
   flex: 1;
   padding: 2rem;
   background-color: var(--light);
 }
 
-/* Sidebar Overlay (mobile) */
+/* ========== STATS CARDS ========== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
+}
+
+.stat-info h3 {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  color: var(--primary);
+  opacity: 0.8;
+}
+
+/* ========== TABLES ========== */
+.table-container {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.table-container h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+  color: var(--text);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 1rem;
+  background-color: var(--gray-lighter);
+  color: var(--text-light);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.data-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.data-table tr:hover td {
+  background-color: var(--gray-lighter);
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.status-badge.active {
+  background-color: rgba(46, 204, 113, 0.1);
+  color: var(--success);
+}
+
+.status-badge.pending {
+  background-color: rgba(243, 156, 18, 0.1);
+  color: var(--primary);
+}
+
+.status-badge.inactive {
+  background-color: rgba(231, 76, 60, 0.1);
+  color: var(--danger);
+}
+
+/* ========== BUTTONS ========== */
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
+}
+
+.btn-secondary {
+  background-color: white;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.btn-secondary:hover {
+  background-color: var(--gray-lighter);
+  border-color: var(--primary);
+}
+
+.btn-danger {
+  background-color: var(--danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c0392b;
+}
+
+/* ========== LOADING STATES ========== */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--gray-light);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Loading state for buttons */
+.btn.loading {
+  position: relative;
+  color: transparent;
+  pointer-events: none;
+}
+
+.btn.loading::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid white;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Disabled input style */
+input:disabled,
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input:disabled:hover,
+button:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* ========== SIDEBAR OVERLAY (MOBILE) ========== */
 .sidebar-overlay {
   display: none;
   position: fixed;
@@ -434,9 +729,25 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 999;
+  animation: fadeIn 0.3s ease;
 }
 
-/* Responsive */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
@@ -475,9 +786,13 @@
     width: 300px;
     right: -50px;
   }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
   .dashboard-header {
     padding: 0 1rem;
   }
@@ -497,5 +812,33 @@
   
   .content-area {
     padding: 1rem;
+  }
+  
+  .table-container {
+    padding: 1rem;
+  }
+  
+  .data-table th,
+  .data-table td {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .notification-dropdown {
+    width: 260px;
+    right: -60px;
+  }
+  
+  .stat-card {
+    padding: 1rem;
+  }
+  
+  .stat-number {
+    font-size: 1.5rem;
+  }
+  
+  .stat-icon {
+    font-size: 2rem;
   }
 }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FaSolarPanel, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaGoogle, FaFacebook } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider, facebookProvider } from "../../firebase"; // Updated import
+import { auth, googleProvider, facebookProvider } from "../../firebase";
 import '../../styles/Auth/loginpage.css';
 
 const LoginPage = () => {
@@ -50,53 +50,50 @@ const LoginPage = () => {
   };
 
   // LOGIN SUBMIT
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  const newErrors = validateForm();
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors);
-    return;
-  }
-
-  setIsLoading(true);
-  setErrors({});
-
-  try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
-      
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      // Backend error message
-      setErrors({ general: data.message || data.error || "Login failed" });
-    } else {
-      // Store JWT and user info
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("userName", data.user.fullName);
-      localStorage.setItem("userEmail", data.user.email);
-      localStorage.setItem("userRole", data.user.role);
-      if (data.user.photoURL) {
-        localStorage.setItem("userPhotoURL", data.user.photoURL);
-      } else {
-        localStorage.removeItem("userPhotoURL");
-      }
-
-      navigate("/dashboard");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
     }
-  } catch (err) {
-    console.error("Login error:", err);
-    setErrors({ general: "Server error. Please try again later." });
-  } finally {
-    setIsLoading(false);
-  }
-};
+
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrors({ general: data.message || data.error || "Login failed" });
+      } else {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("userName", data.user.fullName);
+        localStorage.setItem("userEmail", data.user.email);
+        localStorage.setItem("userRole", data.user.role);
+        if (data.user.photoURL) {
+          localStorage.setItem("userPhotoURL", data.user.photoURL);
+        } else {
+          localStorage.removeItem("userPhotoURL");
+        }
+
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setErrors({ general: "Server error. Please try again later." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -104,59 +101,58 @@ const handleSubmit = async (e) => {
 
   // GOOGLE LOGIN
   const handleGoogleLogin = async () => {
-  try {
-    setSocialLoading('google');
+    try {
+      setSocialLoading('google');
 
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
 
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google-login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        fullName: user.displayName,
-        email: user.email,
-        googleId: user.uid,
-        photoURL: user.photoURL
-      })
-    });
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google-login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fullName: user.displayName,
+          email: user.email,
+          googleId: user.uid,
+          photoURL: user.photoURL
+        })
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      setErrors({ general: data.message || "Google login failed" });
-      return;
+      if (!response.ok) {
+        setErrors({ general: data.message || "Google login failed" });
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userName", data.user.fullName);
+      localStorage.setItem("userEmail", data.user.email);
+      localStorage.setItem("userRole", data.user.role);
+
+      if (data.user.photoURL) {
+        localStorage.setItem("userPhotoURL", data.user.photoURL);
+      } else {
+        localStorage.removeItem("userPhotoURL");
+      }
+
+      navigate("/dashboard");
+
+    } catch (error) {
+      console.error("Google login error:", error);
+
+      if (error.code === 'auth/popup-closed-by-user') {
+        setErrors({ general: 'Login popup was closed. Please try again.' });
+      } else {
+        setErrors({ general: 'Failed to login with Google. Please try again.' });
+      }
+
+    } finally {
+      setSocialLoading('');
     }
-
-    // Store backend token + user info
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("userName", data.user.fullName);
-    localStorage.setItem("userEmail", data.user.email);
-    localStorage.setItem("userRole", data.user.role);
-
-    if (data.user.photoURL) {
-      localStorage.setItem("userPhotoURL", data.user.photoURL);
-    } else {
-      localStorage.removeItem("userPhotoURL");
-    }
-
-    navigate("/dashboard");
-
-  } catch (error) {
-    console.error("Google login error:", error);
-
-    if (error.code === 'auth/popup-closed-by-user') {
-      setErrors({ general: 'Login popup was closed. Please try again.' });
-    } else {
-      setErrors({ general: 'Failed to login with Google. Please try again.' });
-    }
-
-  } finally {
-    setSocialLoading('');
-  }
-};
+  };
 
   // FACEBOOK LOGIN
   const handleFacebookLogin = async () => {
@@ -166,14 +162,11 @@ const handleSubmit = async (e) => {
       const user = result.user;
       console.log('Facebook user data:', user);
       
-      // Store user information
       localStorage.setItem("userName", user.displayName);
       localStorage.setItem("userEmail", user.email);
       localStorage.setItem("userRole", "customer");
       
-      // Handle Facebook profile picture
       if (user.photoURL) {
-        // Facebook returns a low-res image, but it works
         localStorage.setItem("userPhotoURL", user.photoURL);
       } else {
         localStorage.removeItem("userPhotoURL");
@@ -199,7 +192,7 @@ const handleSubmit = async (e) => {
   return (
     <div className="login-page">
       <div className="login-card">
-        {/* LEFT SIDE */}
+        {/* LEFT SIDE - Branding */}
         <div className="login-branding">
           <div className="branding-content">
             <div className="brand-logo">
@@ -215,7 +208,7 @@ const handleSubmit = async (e) => {
           </div>
         </div>
 
-        {/* RIGHT SIDE */}
+        {/* RIGHT SIDE - Login Form */}
         <div className="login-form-container">
           <div className="login-form-wrapper">
             <div className="form-header">
@@ -241,7 +234,7 @@ const handleSubmit = async (e) => {
             )}
 
             <form onSubmit={handleSubmit} className="login-form">
-              {/* EMAIL */}
+              {/* EMAIL FIELD */}
               <div className="form-group">
                 <label className="form-label">Email Address</label>
                 <div className="input-wrapper">
@@ -259,7 +252,7 @@ const handleSubmit = async (e) => {
                 {errors.email && <span className="error-message">{errors.email}</span>}
               </div>
 
-              {/* PASSWORD */}
+              {/* PASSWORD FIELD */}
               <div className="form-group">
                 <label className="form-label">Password</label>
                 <div className="input-wrapper">
@@ -282,6 +275,14 @@ const handleSubmit = async (e) => {
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
                 </div>
+                
+                {/* FORGOT PASSWORD LINK - Right Aligned */}
+                <div className="forgot-password-container">
+                  <Link to="/forgotpassword" className="forgot-link">
+                    Forgot password?
+                  </Link>
+                </div>
+                
                 {errors.password && <span className="error-message">{errors.password}</span>}
               </div>
 
@@ -326,11 +327,13 @@ const handleSubmit = async (e) => {
                 </div>
               </div>
 
-              {/* SIGNUP */}
+              {/* SIGN UP LINK */}
               <div className="signup-prompt">
                 <p className="signup-text">
-                  Don't have an account?
-                  <Link to="/register" className="signup-link">Sign up</Link>
+                  Don't have an account?{' '}
+                  <Link to="/register" className="signup-link">
+                    Sign up
+                  </Link>
                 </p>
               </div>
             </form>

@@ -17,6 +17,11 @@ router.post("/login", authController.login);
 */
 router.post("/google-login", authController.googleLogin);
 
-router.post("/google-register", authController.googleRegister)
+router.post("/google-register", authController.googleRegister);
+
+/*
+  Route for reset password
+*/
+router.post("/reset-password", authController.resetPassword);
 
 module.exports = router;

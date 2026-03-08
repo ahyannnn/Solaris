@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { FaSolarPanel, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { FaSolarPanel, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
 import '../../styles/Auth/forgotpage.css';
 
 const ForgotPasswordPage = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1); // 1: email, 2: code, 3: new password, 4: success
   const [email, setEmail] = useState('');
   const [code, setCode] = useState(['', '', '', '', '', '']);
@@ -34,7 +35,6 @@ const ForgotPasswordPage = () => {
   };
 
   const handleKeyDown = (index, e) => {
-    // Handle backspace to go to previous input
     if (e.key === 'Backspace' && !code[index] && index > 0) {
       const prevInput = document.getElementById(`code-${index - 1}`);
       if (prevInput) prevInput.focus();
@@ -87,68 +87,182 @@ const ForgotPasswordPage = () => {
     return newErrors;
   };
 
-  const handleEmailSubmit = (e) => {
+  // STEP 1: Send reset code
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateEmail();
     
-    if (Object.keys(newErrors).length === 0) {
-      setIsLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        console.log('Code sent to:', email);
-        setIsLoading(false);
-        setStep(2);
-      }, 1500);
-    } else {
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      return;
+    }
+
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/email/send-reset-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrors({ email: data.message || 'Failed to send reset code' });
+      } else {
+        console.log('✅ Reset code sent to:', email);
+        setStep(2);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setErrors({ email: 'Server error. Please try again.' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleCodeSubmit = (e) => {
+  // STEP 2: Verify code
+  const handleCodeSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateCode();
     
-    if (Object.keys(newErrors).length === 0) {
-      setIsLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        console.log('Code verified:', code.join(''));
-        setIsLoading(false);
-        setStep(3);
-      }, 1500);
-    } else {
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      return;
+    }
+
+    setIsLoading(true);
+    setErrors({});
+
+    const verificationCode = code.join('');
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/email/verify-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          email, 
+          code: verificationCode 
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrors({ code: data.message || 'Invalid verification code' });
+      } else {
+        console.log('✅ Code verified for:', email);
+        setStep(3);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setErrors({ code: 'Server error. Please try again.' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handlePasswordSubmit = (e) => {
+  // STEP 3: Reset password
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validatePassword();
     
-    if (Object.keys(newErrors).length === 0) {
-      setIsLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        console.log('Password reset successful');
-        setIsLoading(false);
-        setStep(4);
-      }, 1500);
-    } else {
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      return;
+    }
+
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          email, 
+          password 
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrors({ password: data.message || 'Failed to reset password' });
+      } else {
+        console.log('✅ Password reset successful for:', email);
+        
+        // Send success email (don't wait for it)
+        sendResetSuccessEmail();
+        
+        setStep(4);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setErrors({ password: 'Server error. Please try again.' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleResendCode = () => {
+  // Send reset success email
+  const sendResetSuccessEmail = async () => {
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/email/send-reset-success`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+      console.log('✅ Reset success email sent');
+    } catch (error) {
+      console.error('Reset success email error:', error);
+    }
+  };
+
+  // Resend code
+  const handleResendCode = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      console.log('Code resent to:', email);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/email/send-reset-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrors({ code: data.message || 'Failed to resend code' });
+      } else {
+        alert('✓ New verification code sent to your email!');
+        setCode(['', '', '', '', '', '']);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setErrors({ code: 'Failed to resend code' });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
+  };
+
+  const handleBackToLogin = () => {
+    navigate('/login');
   };
 
   return (
     <div className="forgot-page">
-      {/* Forgot Password Card Container */}
       <div className="forgot-card">
         {/* Left Side - Branding */}
         <div className="forgot-branding">
@@ -191,6 +305,20 @@ const ForgotPasswordPage = () => {
                   </p>
                 </div>
 
+                {errors.email && (
+                  <div className="general-error" style={{
+                    backgroundColor: '#fee2e2',
+                    color: '#dc2626',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    marginBottom: '16px',
+                    fontSize: '14px',
+                    textAlign: 'center'
+                  }}>
+                    {errors.email}
+                  </div>
+                )}
+
                 <form onSubmit={handleEmailSubmit} className="forgot-form">
                   <div className="form-group">
                     <label htmlFor="email" className="form-label">
@@ -205,9 +333,9 @@ const ForgotPasswordPage = () => {
                         placeholder="Enter your email"
                         value={email}
                         onChange={handleEmailChange}
+                        disabled={isLoading}
                       />
                     </div>
-                    {errors.email && <span className="error-message">{errors.email}</span>}
                   </div>
 
                   <button 
@@ -231,6 +359,20 @@ const ForgotPasswordPage = () => {
                   </p>
                 </div>
 
+                {errors.code && (
+                  <div className="general-error" style={{
+                    backgroundColor: '#fee2e2',
+                    color: '#dc2626',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    marginBottom: '16px',
+                    fontSize: '14px',
+                    textAlign: 'center'
+                  }}>
+                    {errors.code}
+                  </div>
+                )}
+
                 <form onSubmit={handleCodeSubmit} className="forgot-form">
                   <div className="code-input-group">
                     <div className="code-inputs">
@@ -244,10 +386,10 @@ const ForgotPasswordPage = () => {
                           value={digit}
                           onChange={(e) => handleCodeChange(index, e.target.value)}
                           onKeyDown={(e) => handleKeyDown(index, e)}
+                          disabled={isLoading}
                         />
                       ))}
                     </div>
-                    {errors.code && <span className="error-message code-error">{errors.code}</span>}
                   </div>
 
                   <button 
@@ -285,6 +427,20 @@ const ForgotPasswordPage = () => {
                   </p>
                 </div>
 
+                {errors.password && (
+                  <div className="general-error" style={{
+                    backgroundColor: '#fee2e2',
+                    color: '#dc2626',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    marginBottom: '16px',
+                    fontSize: '14px',
+                    textAlign: 'center'
+                  }}>
+                    {errors.password}
+                  </div>
+                )}
+
                 <form onSubmit={handlePasswordSubmit} className="forgot-form">
                   {/* New Password */}
                   <div className="form-group">
@@ -300,11 +456,13 @@ const ForgotPasswordPage = () => {
                         placeholder="Enter new password"
                         value={password}
                         onChange={handlePasswordChange}
+                        disabled={isLoading}
                       />
                       <button
                         type="button"
                         className="password-toggle"
                         onClick={() => setShowPassword(!showPassword)}
+                        disabled={isLoading}
                       >
                         {showPassword ? <FaEyeSlash /> : <FaEye />}
                       </button>
@@ -326,11 +484,13 @@ const ForgotPasswordPage = () => {
                         placeholder="Confirm new password"
                         value={confirmPassword}
                         onChange={handleConfirmPasswordChange}
+                        disabled={isLoading}
                       />
                       <button
                         type="button"
                         className="password-toggle"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        disabled={isLoading}
                       >
                         {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                       </button>
@@ -359,9 +519,12 @@ const ForgotPasswordPage = () => {
                     Your password has been reset successfully
                   </p>
                   
-                  <Link to="/login" className="back-to-login-btn">
+                  <button 
+                    onClick={handleBackToLogin}
+                    className="back-to-login-btn"
+                  >
                     Back to Login
-                  </Link>
+                  </button>
                 </div>
               </>
             )}

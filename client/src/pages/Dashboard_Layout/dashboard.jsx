@@ -36,19 +36,31 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [userRole, setUserRole] = useState('admin');
   const [userName, setUserName] = useState('Admin User');
+  const [userPhoto, setUserPhoto] = useState(null); // New state for profile picture
+  const [userEmail, setUserEmail] = useState(''); // New state for email
 
-  // Get role from localStorage when dashboard loads
+  // Get data from localStorage when dashboard loads
   useEffect(() => {
     const role = localStorage.getItem('userRole');
     const name = localStorage.getItem('userName');
+    const photo = localStorage.getItem('userPhotoURL');
+    const email = localStorage.getItem('userEmail');
     
     if (role) {
       setUserRole(role);
     }
     if (name) {
       setUserName(name);
-    } else {
-      // If no role, redirect to login
+    }
+    if (photo) {
+      setUserPhoto(photo);
+    }
+    if (email) {
+      setUserEmail(email);
+    }
+    
+    // If no role, redirect to login
+    if (!role) {
       navigate('/login');
     }
   }, [navigate]);
@@ -61,7 +73,7 @@ const Dashboard = () => {
     { id: 4, message: 'Project update: Site C - 75% complete', time: '5 hours ago', read: true },
   ];
 
-  // Role-based menu items - ITO ANG MAGBABAGO BATAY SA userRole
+  // Role-based menu items
   const menuItems = {
     admin: [
       { icon: <FaTachometerAlt />, label: 'Dashboard', path: '#' },
@@ -112,6 +124,8 @@ const Dashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem('userRole');
     localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userPhotoURL');
     navigate('/login');
   };
 
@@ -136,11 +150,26 @@ const Dashboard = () => {
 
         <div className="user-info">
           <div className="user-avatar">
-            <FaUserCircle />
+            {userPhoto ? (
+              <img 
+                src={userPhoto} 
+                alt={userName}
+                className="profile-image"
+                style={{
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+            ) : (
+              <FaUserCircle style={{ fontSize: '50px', color: '#4f46e5' }} />
+            )}
           </div>
           <div className="user-details">
             <span className="user-name">{userName}</span>
             <span className="user-role">{getRoleDisplay()}</span>
+            {userEmail && <span className="user-email" style={{ fontSize: '12px', color: '#94a3b8' }}>{userEmail}</span>}
           </div>
         </div>
 
@@ -217,13 +246,48 @@ const Dashboard = () => {
                 className="profile-btn"
                 onClick={() => setProfileOpen(!profileOpen)}
               >
-                <FaUserCircle className="profile-icon" />
+                {userPhoto ? (
+                  <img 
+                    src={userPhoto} 
+                    alt={userName}
+                    className="profile-icon-image"
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      marginRight: '8px'
+                    }}
+                  />
+                ) : (
+                  <FaUserCircle className="profile-icon" />
+                )}
                 <span className="profile-name">{userName}</span>
                 <FaChevronDown className={`dropdown-icon ${profileOpen ? 'open' : ''}`} />
               </button>
 
               {profileOpen && (
                 <div className="profile-dropdown">
+                  <div className="dropdown-user-info" style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }}>
+                    {userPhoto ? (
+                      <img 
+                        src={userPhoto} 
+                        alt={userName}
+                        style={{
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          marginBottom: '8px'
+                        }}
+                      />
+                    ) : (
+                      <FaUserCircle style={{ fontSize: '48px', color: '#4f46e5', marginBottom: '8px' }} />
+                    )}
+                    <p style={{ fontWeight: 'bold', margin: '0' }}>{userName}</p>
+                    <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0 0' }}>{userEmail}</p>
+                    <p style={{ fontSize: '12px', color: '#4f46e5', margin: '4px 0 0', textTransform: 'capitalize' }}>{userRole}</p>
+                  </div>
                   <a href="#" className="dropdown-item">
                     <FaUserCircle /> Profile
                   </a>
@@ -240,10 +304,10 @@ const Dashboard = () => {
           </div>
         </header>
 
-        {/* Page Content - ETO ANG MAGBABAGO BATAY SA ROLE */}
+        {/* Page Content */}
         <div className="content-area">
           <h1>{userRole.charAt(0).toUpperCase() + userRole.slice(1)} Dashboard</h1>
-          <p>Welcome to your dashboard! You are logged in as {userRole}.</p>
+          <p>Welcome back, {userName}! You are logged in as {userRole}.</p>
           
           {/* Admin Content */}
           {userRole === 'admin' && (

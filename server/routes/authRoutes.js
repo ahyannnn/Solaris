@@ -1,9 +1,20 @@
 const express = require("express");
 const router = express.Router();
+const authController = require("../controllers/authController");
 
-// test route
-router.get("/", (req, res) => {
-    res.send("Auth route working");
-});
+/*
+  Route for user registration
+*/
+router.post("/register", authController.register);
+
+/*
+  Route for email and password login
+*/
+router.post("/login", authController.login);
+
+/*
+  Route for Google authentication
+*/
+router.post("/google-login", authController.googleLogin);
 
 module.exports = router;

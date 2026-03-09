@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { FaSolarPanel, FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
+import { FaSolarPanel, FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaArrowLeft, FaGoogle, FaFacebook } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider, facebookProvider } from "../../firebase";
 import '../../styles/Auth/register.css';
 
 const RegisterPage = () => {
@@ -20,6 +22,17 @@ const RegisterPage = () => {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState(''); // 'google', 'facebook', ''
+
+  // MODAL STATE
+  const [modal, setModal] = useState({ show: false, message: '', type: '' });
+
+  const showModal = (message, type = 'error') => {
+    setModal({ show: true, message, type });
+    setTimeout(() => setModal({ show: false, message: '', type: '' }), 5000);
+  };
+
+  const closeModal = () => setModal({ show: false, message: '', type: '' });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -147,7 +160,6 @@ const RegisterPage = () => {
         }
       } else {
         console.log('✅ Email verified successfully');
-        // Now register the user in your database
         await registerUser();
       }
     } catch (error) {
@@ -176,10 +188,15 @@ const RegisterPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        setErrors({ general: data.message || 'Registration failed' });
-        setCurrentStep(2); // Go back to verification step
+        if (response.status === 409) {
+          // Conflict - account exists
+          showModal(data.message || 'This email is already registered. Please sign in instead.', 'warning');
+          setCurrentStep(1);
+        } else {
+          setErrors({ general: data.message || 'Registration failed' });
+          setCurrentStep(2);
+        }
       } else {
-        // Send welcome email
         await sendWelcomeEmail();
         setCurrentStep(3);
       }
@@ -203,7 +220,6 @@ const RegisterPage = () => {
           name: formData.fullName
         })
       });
-      // Don't wait for this, just fire and forget
     } catch (error) {
       console.error('Welcome email error:', error);
     }
@@ -229,7 +245,6 @@ const RegisterPage = () => {
         setErrors({ code: data.message || 'Failed to resend code' });
       } else {
         alert('✓ New verification code sent to your email!');
-        // Clear code inputs
         setCode(['', '', '', '', '', '']);
       }
     } catch (error) {
@@ -240,12 +255,139 @@ const RegisterPage = () => {
     }
   };
 
+  // GOOGLE REGISTER
+  const handleGoogleRegister = async () => {
+    try {
+      setSocialLoading('google');
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google-register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fullName: user.displayName,
+          email: user.email,
+          googleId: user.uid,
+          photoURL: user.photoURL
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 409) {
+          showModal(data.message || 'An account with this email already exists. Please sign in instead.', 'warning');
+        } else {
+          showModal(data.message || "Google registration failed", 'error');
+        }
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userName", data.user.fullName);
+      localStorage.setItem("userEmail", data.user.email);
+      localStorage.setItem("userRole", data.user.role);
+      if (data.user.photoURL) localStorage.setItem("userPhotoURL", data.user.photoURL);
+
+      navigate("/dashboard");
+
+    } catch (error) {
+      console.error("Google registration error:", error);
+      if (error.code === 'auth/popup-closed-by-user') {
+        showModal('Registration popup was closed. Please try again.', 'warning');
+      } else {
+        showModal('Failed to register with Google. Please try again.', 'error');
+      }
+    } finally {
+      setSocialLoading('');
+    }
+  };
+
+  // FACEBOOK REGISTER
+  const handleFacebookRegister = async () => {
+    try {
+      setSocialLoading('facebook');
+      const result = await signInWithPopup(auth, facebookProvider);
+      const user = result.user;
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/facebook-register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fullName: user.displayName,
+          email: user.email,
+          facebookId: user.uid,
+          photoURL: user.photoURL
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 409) {
+          showModal(data.message || 'An account with this email already exists. Please sign in instead.', 'warning');
+        } else {
+          showModal(data.message || "Facebook registration failed", 'error');
+        }
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userName", data.user.fullName);
+      localStorage.setItem("userEmail", data.user.email);
+      localStorage.setItem("userRole", data.user.role);
+      if (data.user.photoURL) localStorage.setItem("userPhotoURL", data.user.photoURL);
+
+      navigate("/dashboard");
+
+    } catch (error) {
+      console.error("Facebook registration error:", error);
+      if (error.code === 'auth/popup-closed-by-user') {
+        showModal('Registration popup was closed. Please try again.', 'warning');
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        showModal('An account already exists with the same email. Please sign in with Google or email.', 'warning');
+      } else {
+        showModal('Failed to register with Facebook. Please try again.', 'error');
+      }
+    } finally {
+      setSocialLoading('');
+    }
+  };
+
   const handleBackToLogin = () => {
     navigate('/login');
   };
 
   return (
     <div className="register-page">
+      {/* MODAL */}
+      {modal.show && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className={`modal-content ${modal.type}`} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="modal-icon">
+                {modal.type === 'warning' ? '⚠️' : '❌'}
+              </span>
+              <h3>{modal.type === 'warning' ? 'Account Already Exists' : 'Registration Failed'}</h3>
+            </div>
+            <div className="modal-body">
+              <p>{modal.message}</p>
+              {modal.type === 'warning' && (
+                <p style={{ marginTop: '10px', fontSize: '14px' }}>
+                  <Link to="/login" style={{ color: '#f39c12', fontWeight: '600' }}>Click here to sign in</Link>
+                </p>
+              )}
+            </div>
+            <button className="modal-close-btn" onClick={closeModal}>Got it</button>
+          </div>
+        </div>
+      )}
+
       <div className="register-card">
         {/* LEFT BRANDING */}
         <div className="register-branding">
@@ -319,7 +461,7 @@ const RegisterPage = () => {
                         placeholder="Enter your full name"
                         value={formData.fullName}
                         onChange={handleChange}
-                        disabled={isLoading}
+                        disabled={isLoading || socialLoading !== ''}
                       />
                     </div>
                     {errors.fullName && <span className="error-message">{errors.fullName}</span>}
@@ -337,7 +479,7 @@ const RegisterPage = () => {
                         placeholder="Enter your email"
                         value={formData.email}
                         onChange={handleChange}
-                        disabled={isLoading}
+                        disabled={isLoading || socialLoading !== ''}
                       />
                     </div>
                     {errors.email && <span className="error-message">{errors.email}</span>}
@@ -355,13 +497,13 @@ const RegisterPage = () => {
                         placeholder="Create a password"
                         value={formData.password}
                         onChange={handleChange}
-                        disabled={isLoading}
+                        disabled={isLoading || socialLoading !== ''}
                       />
                       <button 
                         type="button" 
                         className="password-toggle" 
                         onClick={() => setShowPassword(!showPassword)}
-                        disabled={isLoading}
+                        disabled={isLoading || socialLoading !== ''}
                       >
                         {showPassword ? <FaEyeSlash /> : <FaEye />}
                       </button>
@@ -381,13 +523,13 @@ const RegisterPage = () => {
                         placeholder="Confirm your password"
                         value={formData.confirmPassword}
                         onChange={handleChange}
-                        disabled={isLoading}
+                        disabled={isLoading || socialLoading !== ''}
                       />
                       <button 
                         type="button" 
                         className="password-toggle" 
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        disabled={isLoading}
+                        disabled={isLoading || socialLoading !== ''}
                       >
                         {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                       </button>
@@ -399,10 +541,33 @@ const RegisterPage = () => {
                   <button 
                     type="submit" 
                     className="register-submit-btn"
-                    disabled={isLoading}
+                    disabled={isLoading || socialLoading !== ''}
                   >
                     {isLoading ? 'Sending Code...' : 'Send Verification Code'}
                   </button>
+
+                  {/* SOCIAL LOGIN */}
+                  <div className="social-login">
+                    <p className="social-login-text">Or sign up with</p>
+                    <div className="social-buttons">
+                      <button
+                        type="button"
+                        className={`social-btn google ${socialLoading === 'google' ? 'loading' : ''}`}
+                        onClick={handleGoogleRegister}
+                        disabled={isLoading || socialLoading !== ''}
+                      >
+                        {socialLoading === 'google' ? '⏳' : <FaGoogle />}
+                      </button>
+                      <button
+                        type="button"
+                        className={`social-btn facebook ${socialLoading === 'facebook' ? 'loading' : ''}`}
+                        onClick={handleFacebookRegister}
+                        disabled={isLoading || socialLoading !== ''}
+                      >
+                        {socialLoading === 'facebook' ? '⏳' : <FaFacebook />}
+                      </button>
+                    </div>
+                  </div>
 
                   {/* LOGIN LINK */}
                   <div className="login-prompt">

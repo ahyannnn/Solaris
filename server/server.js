@@ -3,6 +3,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const dns = require("dns");
 require("dotenv").config();
 
 const app = express();
@@ -12,19 +13,27 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Force IPv4 DNS resolution (helps with ECONNREFUSED SRV errors)
+dns.setServers(['8.8.8.8', '8.8.4.4']); // Google DNS
+
 // MongoDB Connection
-mongoose.connect(process.env.MONGO_URI)
-.then(() => {
-    console.log("MongoDB connected successfully");
-})
-.catch((error) => {
-    console.error("MongoDB connection error:", error);
-});
+const connectMongo = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI, { family: 4 }); // force IPv4
+    console.log("✅ MongoDB connected successfully");
+  } catch (error) {
+    console.error("❌ MongoDB connection error:", error.message);
+    console.log("Attempted URI:", process.env.MONGO_URI);
+    // Optional: Exit process if DB fails
+    // process.exit(1);
+  }
+};
+connectMongo();
 
 // Routes
 const authRoutes = require("./routes/authRoutes");
 const scheduleRoutes = require("./routes/scheduleRoutes");
-const iotRoutes = require("./routes/iotRoutes");
+const iotRoutes = require("./routes/sensorRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const quotationRoutes = require("./routes/quotationRoutes");
 const installationRoutes = require("./routes/installationRoutes");
@@ -33,11 +42,11 @@ const emailRoutes = require("./routes/emailRoutes"); // Email routes
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/schedule", scheduleRoutes);
-app.use("/api/iot", iotRoutes);
+app.use("/api/sensor", iotRoutes);
 app.use("/api/report", reportRoutes);
 app.use("/api/quotation", quotationRoutes);
 app.use("/api/installation", installationRoutes);
-app.use("/api/email", emailRoutes); // Email routes
+app.use("/api/email", emailRoutes);
 
 // Test Route
 app.get("/", (req, res) => {
@@ -46,7 +55,4 @@ app.get("/", (req, res) => {
 
 // Port
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

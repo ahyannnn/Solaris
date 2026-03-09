@@ -126,7 +126,7 @@ const Dashboard = () => {
     localStorage.removeItem('userName');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userPhotoURL');
-    navigate('/login');
+    navigate('/');
   };
 
   return (

@@ -19,6 +19,8 @@ router.post("/google-login", authController.googleLogin);
 
 router.post("/google-register", authController.googleRegister);
 
+
+
 /*
   Route for reset password
 */

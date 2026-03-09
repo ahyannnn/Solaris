@@ -513,12 +513,14 @@
   border-radius: 8px;
   background-color: #fafafa;
   transition: all 0.3s ease;
+  color: #1a2632; /* dark text color */
 }
 
 .code-input:focus {
   outline: none;
   border-color: #f39c12;
   background-color: #ffffff;
+  color: #1a2632; /* dark text color */
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 

@@ -154,40 +154,7 @@ const LoginPage = () => {
     }
   };
 
-  // FACEBOOK LOGIN
-  const handleFacebookLogin = async () => {
-    try {
-      setSocialLoading('facebook');
-      const result = await signInWithPopup(auth, facebookProvider);
-      const user = result.user;
-      console.log('Facebook user data:', user);
-      
-      localStorage.setItem("userName", user.displayName);
-      localStorage.setItem("userEmail", user.email);
-      localStorage.setItem("userRole", "customer");
-      
-      if (user.photoURL) {
-        localStorage.setItem("userPhotoURL", user.photoURL);
-      } else {
-        localStorage.removeItem("userPhotoURL");
-      }
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Facebook login error:", error);
-      
-      if (error.code === 'auth/account-exists-with-different-credential') {
-        setErrors({ 
-          general: 'An account already exists with the same email address. Please sign in using Google or email/password.' 
-        });
-      } else if (error.code === 'auth/popup-closed-by-user') {
-        setErrors({ general: 'Login popup was closed. Please try again.' });
-      } else {
-        setErrors({ general: 'Failed to login with Facebook. Please try again.' });
-      }
-    } finally {
-      setSocialLoading('');
-    }
-  };
+  
 
   return (
     <div className="login-page">
@@ -312,18 +279,7 @@ const LoginPage = () => {
                     )}
                   </button>
 
-                  <button
-                    type="button"
-                    className={`social-btn facebook ${socialLoading === 'facebook' ? 'loading' : ''}`}
-                    onClick={handleFacebookLogin}
-                    disabled={isLoading || socialLoading !== ''}
-                  >
-                    {socialLoading === 'facebook' ? (
-                      <span className="loading-spinner">⏳</span>
-                    ) : (
-                      <FaFacebook />
-                    )}
-                  </button>
+                  
                 </div>
               </div>
 

@@ -306,58 +306,6 @@ const RegisterPage = () => {
     }
   };
 
-  // FACEBOOK REGISTER
-  const handleFacebookRegister = async () => {
-    try {
-      setSocialLoading('facebook');
-      const result = await signInWithPopup(auth, facebookProvider);
-      const user = result.user;
-
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/facebook-register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          fullName: user.displayName,
-          email: user.email,
-          facebookId: user.uid,
-          photoURL: user.photoURL
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 409) {
-          showModal(data.message || 'An account with this email already exists. Please sign in instead.', 'warning');
-        } else {
-          showModal(data.message || "Facebook registration failed", 'error');
-        }
-        return;
-      }
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("userName", data.user.fullName);
-      localStorage.setItem("userEmail", data.user.email);
-      localStorage.setItem("userRole", data.user.role);
-      if (data.user.photoURL) localStorage.setItem("userPhotoURL", data.user.photoURL);
-
-      navigate("/dashboard");
-
-    } catch (error) {
-      console.error("Facebook registration error:", error);
-      if (error.code === 'auth/popup-closed-by-user') {
-        showModal('Registration popup was closed. Please try again.', 'warning');
-      } else if (error.code === 'auth/account-exists-with-different-credential') {
-        showModal('An account already exists with the same email. Please sign in with Google or email.', 'warning');
-      } else {
-        showModal('Failed to register with Facebook. Please try again.', 'error');
-      }
-    } finally {
-      setSocialLoading('');
-    }
-  };
 
   const handleBackToLogin = () => {
     navigate('/login');
@@ -558,14 +506,7 @@ const RegisterPage = () => {
                       >
                         {socialLoading === 'google' ? '⏳' : <FaGoogle />}
                       </button>
-                      <button
-                        type="button"
-                        className={`social-btn facebook ${socialLoading === 'facebook' ? 'loading' : ''}`}
-                        onClick={handleFacebookRegister}
-                        disabled={isLoading || socialLoading !== ''}
-                      >
-                        {socialLoading === 'facebook' ? '⏳' : <FaFacebook />}
-                      </button>
+                      
                     </div>
                   </div>
 

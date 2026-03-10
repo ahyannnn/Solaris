@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { FaSolarPanel, FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
-import { FcGoogle } from 'react-icons/fc'; // Import colored Google icon
+import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../../firebase"; // Remove facebookProvider
+import { auth, googleProvider } from "../../firebase";
 import '../../styles/Auth/register.css';
 
 const RegisterPage = () => {
@@ -23,7 +23,7 @@ const RegisterPage = () => {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState(''); // 'google' only
+  const [socialLoading, setSocialLoading] = useState('');
 
   // MODAL STATE
   const [modal, setModal] = useState({ show: false, message: '', type: '' });
@@ -190,7 +190,6 @@ const RegisterPage = () => {
 
       if (!response.ok) {
         if (response.status === 409) {
-          // Conflict - account exists
           showModal(data.message || 'This email is already registered. Please sign in instead.', 'warning');
           setCurrentStep(1);
         } else {
@@ -505,7 +504,7 @@ const RegisterPage = () => {
                         disabled={isLoading || socialLoading !== ''}
                       >
                         {socialLoading === 'google' ? (
-                          <span className="loading-spinner">⏳</span>
+                          <span className="loading-spinner"></span>
                         ) : (
                           <FcGoogle className="google-icon" />
                         )}

@@ -152,7 +152,7 @@ const LoginPage = () => {
     } finally {
       setSocialLoading('');
     }
-  };
+  }; 
 
   return (
     <div className="login-page">

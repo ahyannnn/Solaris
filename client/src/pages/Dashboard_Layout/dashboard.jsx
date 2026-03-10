@@ -121,7 +121,7 @@ const Dashboard = () => {
     setSidebarOpen(false);
   };
 
-  // Check if menu item is active
+  // Check if menu item is active 
   const isActive = (itemPath) => {
     if (itemPath === '/dashboard') {
       return location.pathname === '/dashboard';

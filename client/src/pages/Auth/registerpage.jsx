@@ -481,7 +481,7 @@ const RegisterPage = () => {
                       >
                         {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                       </button>
-                    </div>
+                    </div> 
                     {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
                   </div>
 

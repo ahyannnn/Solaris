@@ -16,6 +16,14 @@ import Reports from './pages/Admin/reports';
 import UserManagement from './pages/Admin/usermanagement';
 import Settings from './pages/Admin/settings';
 
+// Engineer Pages
+import EngineerDashboard from './pages/Engineer/dashboard';
+import EngineerSiteAssessment from './pages/Engineer/siteassessment';
+import EngineerProject from './pages/Engineer/project';
+import EngineerIoTDevice from './pages/Engineer/iotdevice';
+import EngineerReports from './pages/Engineer/reports';
+import EngineerProfile from './pages/Engineer/profile';
+
 // Customer Pages
 import CustomerDashboard from './pages/Customer/dashboard';
 import ScheduleAssessment from './pages/Customer/scheduleassessment';
@@ -50,6 +58,14 @@ function App() {
           <Route path="reports" element={<Reports />} />
           <Route path="usermanagement" element={<UserManagement />} />
           <Route path="settings" element={<Settings />} />
+
+            {/* Engineer Routes */}
+          <Route path="engineer-dashboard" element={<EngineerDashboard />} />
+          <Route path="engineer-assessment" element={<EngineerSiteAssessment />} />
+          <Route path="engineer-project" element={<EngineerProject />} />
+          <Route path="engineer-device" element={<EngineerIoTDevice />} />
+          <Route path="engineer-reports" element={<EngineerReports />} />
+          <Route path="engineer-profile" element={<EngineerProfile />} />
           
           {/* Customer Routes */}
           <Route path="customerdashboard" element={<CustomerDashboard />} />

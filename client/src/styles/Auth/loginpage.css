@@ -89,28 +89,6 @@
   line-height: 1.5;
 }
 
-.brand-features {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.brand-feature {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.9rem;
-  color: #e0e0e0;
-}
-
-.feature-dot {
-  width: 6px;
-  height: 6px;
-  background-color: #f39c12;
-  border-radius: 50%;
-  display: inline-block;
-}
-
 /* Right Side - Login Form */
 .login-form-container {
   flex: 1;
@@ -162,7 +140,7 @@
   color: #2c3e50;
 }
 
-/* Forgot Password - Below password field */
+/* Forgot Password */
 .forgot-password-container {
   display: flex;
   justify-content: flex-end;
@@ -202,8 +180,7 @@
   font-size: 0.9rem;
   transition: all 0.3s ease;
   background-color: #fafafa;
-    color: #1a2632; /* dark text color */
-
+  color: #1a2632;
 }
 
 .form-input:focus {
@@ -211,17 +188,17 @@
   border-color: #f39c12;
   background-color: #ffffff;
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
-  color: #1a2632; /* text stays dark */
 }
 
 .form-input.input-error {
   border-color: #e74c3c;
   background-color: #fff5f5;
 }
-/* Placeholder text color */
+
 .form-input::placeholder {
-  color: #7f8c8d; /* medium grey placeholder */
+  color: #7f8c8d;
 }
+
 .form-input.input-error:focus {
   box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
 }
@@ -261,6 +238,10 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .login-submit-btn:hover {
@@ -273,7 +254,48 @@
   transform: translateY(0);
 }
 
-/* Social Login - Circle buttons with icons only */
+.login-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Loading State - FIXED: spinner stays inside button */
+.login-submit-btn.loading {
+  color: transparent;
+  pointer-events: none;
+}
+
+.login-submit-btn.loading::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: calc(50% - 10px);
+  left: calc(50% - 10px);
+  border: 2px solid white;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Loading spinner for social buttons */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: #f39c12;
+  animation: spin 0.8s linear infinite;
+}
+
+.social-btn .loading-spinner {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}
+
+/* Social Login */
 .social-login {
   margin-top: 0.5rem;
 }
@@ -319,26 +341,20 @@
   border: 1px solid #e0e0e0;
   border-radius: 50%;
   background: white;
-  color: #5a6a7a;
-  font-size: 1.25rem;
   cursor: pointer;
   transition: all 0.3s ease;
   padding: 0;
 }
 
-.social-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-}
-
 .social-btn.google:hover {
-  color: #db4437;
-  border-color: #db4437;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(66, 133, 244, 0.2);
+  border-color: #4285F4;
 }
 
-.social-btn.facebook:hover {
-  color: #4267B2;
-  border-color: #4267B2;
+.social-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Sign Up Prompt */
@@ -376,29 +392,9 @@
   }
 }
 
-/* Loading State (optional) */
-.login-submit-btn.loading {
-  position: relative;
-  color: transparent;
-}
-
-.login-submit-btn.loading::after {
-  content: '';
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border: 2px solid white;
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
 @keyframes spin {
   to {
-    transform: translate(-50%, -50%) rotate(360deg);
+    transform: rotate(360deg);
   }
 }
 
@@ -420,10 +416,6 @@
   
   .brand-logo {
     justify-content: center;
-  }
-  
-  .brand-features {
-    align-items: center;
   }
   
   .login-form-container {
@@ -463,7 +455,6 @@
   .social-btn {
     width: 42px;
     height: 42px;
-    font-size: 1.1rem;
   }
   
   .social-login-text::before,
@@ -471,48 +462,3 @@
     width: 25%;
   }
 }
-
-/* Loading spinner */
-.loading-spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(0, 0, 0, 0.1);
-  border-radius: 50%;
-  border-top-color: #f39c12;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* For social buttons */
-.social-btn .loading-spinner {
-  width: 18px;
-  height: 18px;
-  border-width: 2px;
-}
-
-/* For main submit button */
-.login-submit-btn.loading {
-  position: relative;
-  color: transparent;
-}
-
-.login-submit-btn.loading::after {
-  content: '';
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border: 2px solid white;
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-

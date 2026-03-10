@@ -89,28 +89,6 @@
   line-height: 1.5;
 }
 
-.brand-features {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.brand-feature {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.9rem;
-  color: #e0e0e0;
-}
-
-.feature-dot {
-  width: 6px;
-  height: 6px;
-  background-color: #f39c12;
-  border-radius: 50%;
-  display: inline-block;
-}
-
 /* Right Side - Register Form */
 .register-form-container {
   flex: 1;
@@ -183,7 +161,7 @@
   font-size: 0.9rem;
   transition: all 0.3s ease;
   background-color: #fafafa;
-    color: #1a2632; /* dark text color */
+  color: #1a2632;
 }
 
 .form-input:focus {
@@ -191,12 +169,11 @@
   border-color: #f39c12;
   background-color: #ffffff;
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
-    color: #1a2632; /* dark text color */
+  color: #1a2632;
 }
 
-/* Placeholder text color */
 .form-input::placeholder {
-  color: #7f8c8d; /* medium grey placeholder */
+  color: #7f8c8d;
 }
 
 .form-input.input-error {
@@ -228,38 +205,6 @@
   margin-top: 0.125rem;
 }
 
-/* Checkbox */
-.form-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
-}
-
-.form-checkbox input[type="checkbox"] {
-  width: 14px;
-  height: 14px;
-  cursor: pointer;
-  accent-color: #f39c12;
-}
-
-.form-checkbox label {
-  font-size: 0.8rem;
-  color: #5a6a7a;
-  cursor: pointer;
-}
-
-.terms-link {
-  color: #f39c12;
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 0.8rem;
-}
-
-.terms-link:hover {
-  text-decoration: underline;
-}
-
 /* Submit Button */
 .register-submit-btn {
   background-color: #f39c12;
@@ -272,12 +217,61 @@
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 0.5rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .register-submit-btn:hover {
   background-color: #e67e22;
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
+}
+
+.register-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Loading State for Submit Button */
+.register-submit-btn.loading {
+  color: transparent;
+  pointer-events: none;
+}
+
+.register-submit-btn.loading::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: calc(50% - 10px);
+  left: calc(50% - 10px);
+  border: 2px solid white;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Loading spinner for social buttons */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: #f39c12;
+  animation: spin 0.8s linear infinite;
+}
+
+.social-btn .loading-spinner {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}
+
+.social-btn.loading {
+  pointer-events: none;
 }
 
 /* Social Login */
@@ -326,26 +320,21 @@
   border: 1px solid #e0e0e0;
   border-radius: 50%;
   background: white;
-  color: #5a6a7a;
-  font-size: 1.2rem;
   cursor: pointer;
   transition: all 0.3s ease;
   padding: 0;
 }
 
-.social-btn:hover {
+.social-btn.google:hover {
+  color: #db4437;
+  border-color: #db4437;
   transform: translateY(-2px);
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
 }
 
-.social-btn.google:hover {
-  color: #db4437;
-  border-color: #db4437;
-}
-
-.social-btn.facebook:hover {
-  color: #4267B2;
-  border-color: #4267B2;
+.social-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Login Prompt */
@@ -369,84 +358,6 @@
 .login-link:hover {
   color: #e67e22;
   text-decoration: underline;
-}
-
-/* Animation */
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .register-card {
-    flex-direction: column;
-    max-width: 450px;
-  }
-  
-  .register-branding {
-    padding: 2rem 1.5rem;
-  }
-  
-  .branding-content {
-    max-width: 100%;
-    text-align: center;
-  }
-  
-  .brand-logo {
-    justify-content: center;
-  }
-  
-  .brand-features {
-    align-items: center;
-  }
-  
-  .register-form-container {
-    padding: 2rem 1.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .register-card {
-    border-radius: 16px;
-  }
-  
-  .register-branding {
-    padding: 1.5rem 1rem;
-  }
-  
-  .register-form-container {
-    padding: 1.5rem 1rem;
-  }
-  
-  .brand-name {
-    font-size: 1.75rem;
-  }
-  
-  .brand-icon {
-    font-size: 2rem;
-  }
-  
-  .form-title {
-    font-size: 1.5rem;
-  }
-  
-  .social-btn {
-    width: 38px;
-    height: 38px;
-    font-size: 1rem;
-  }
-  
-  .social-login-text::before,
-  .social-login-text::after {
-    width: 25%;
-  }
 }
 
 /* Step Indicator */
@@ -513,14 +424,14 @@
   border-radius: 8px;
   background-color: #fafafa;
   transition: all 0.3s ease;
-  color: #1a2632; /* dark text color */
+  color: #1a2632;
 }
 
 .code-input:focus {
   outline: none;
   border-color: #f39c12;
   background-color: #ffffff;
-  color: #1a2632; /* dark text color */
+  color: #1a2632;
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 
@@ -637,40 +548,16 @@
   width: 100%;
   max-width: 200px;
   margin: 0 auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .back-to-login-btn:hover {
   background-color: #e67e22;
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
-}
-
-@keyframes scaleIn {
-  from {
-    transform: scale(0);
-  }
-  to {
-    transform: scale(1);
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 480px) {
-  .code-input {
-    width: 35px;
-    height: 45px;
-    font-size: 1rem;
-  }
-  
-  .success-icon {
-    width: 60px;
-    height: 60px;
-    font-size: 2rem;
-  }
-  
-  .success-title {
-    font-size: 1.5rem;
-  }
 }
 
 /* Modal Styles */
@@ -695,7 +582,7 @@
   max-width: 400px;
   width: 90%;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  animation: slideUp 0.3s ease;
+  animation: slideUpModal 0.3s ease;
 }
 
 .modal-content.warning {
@@ -749,11 +636,7 @@
   background: #e67e22;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
+/* Animations */
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -762,5 +645,113 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes slideUpModal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .register-card {
+    flex-direction: column;
+    max-width: 450px;
+  }
+  
+  .register-branding {
+    padding: 2rem 1.5rem;
+  }
+  
+  .branding-content {
+    max-width: 100%;
+    text-align: center;
+  }
+  
+  .brand-logo {
+    justify-content: center;
+  }
+  
+  .register-form-container {
+    padding: 2rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-card {
+    border-radius: 16px;
+  }
+  
+  .register-branding {
+    padding: 1.5rem 1rem;
+  }
+  
+  .register-form-container {
+    padding: 1.5rem 1rem;
+  }
+  
+  .brand-name {
+    font-size: 1.75rem;
+  }
+  
+  .brand-icon {
+    font-size: 2rem;
+  }
+  
+  .form-title {
+    font-size: 1.5rem;
+  }
+  
+  .social-btn {
+    width: 38px;
+    height: 38px;
+  }
+  
+  .code-input {
+    width: 35px;
+    height: 45px;
+    font-size: 1rem;
+  }
+  
+  .success-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+  }
+  
+  .success-title {
+    font-size: 1.5rem;
+  }
+  
+  .social-login-text::before,
+  .social-login-text::after {
+    width: 25%;
   }
 }

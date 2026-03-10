@@ -287,11 +287,11 @@ const RegisterPage = () => {
         return;
       }
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("userName", data.user.fullName);
-      localStorage.setItem("userEmail", data.user.email);
-      localStorage.setItem("userRole", data.user.role);
-      if (data.user.photoURL) localStorage.setItem("userPhotoURL", data.user.photoURL);
+      sessionStorage.setItem("token", data.token);
+      sessionStorage.setItem("userName", data.user.fullName);
+      sessionStorage.setItem("userEmail", data.user.email);
+      sessionStorage.setItem("userRole", data.user.role);
+      if (data.user.photoURL) sessionStorage.setItem("userPhotoURL", data.user.photoURL);
 
       navigate("/dashboard");
 

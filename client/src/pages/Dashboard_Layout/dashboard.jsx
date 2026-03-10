@@ -41,10 +41,10 @@ const Dashboard = () => {
   const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
-    const role = localStorage.getItem('userRole');
-    const name = localStorage.getItem('userName');
-    const photo = localStorage.getItem('userPhotoURL');
-    const email = localStorage.getItem('userEmail');
+    const role = sessionStorage.getItem('userRole');
+    const name = sessionStorage.getItem('userName');
+    const photo = sessionStorage.getItem('userPhotoURL');
+    const email = sessionStorage.getItem('userEmail');
 
     if (role) setUserRole(role);
     if (name) setUserName(name);
@@ -84,7 +84,7 @@ const Dashboard = () => {
       { icon: <FaUserCog />, label: 'Profile', path: '/dashboard/profile' },
     ],
 
-    customer: [
+    user: [
       { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/dashboard/customerdashboard' },
       { icon: <FaCalendarAlt />, label: 'Schedule Assessment', path: '/dashboard/schedule' },
       { icon: <FaProjectDiagram />, label: 'My Project', path: '/dashboard/customerproject' },
@@ -100,7 +100,7 @@ const Dashboard = () => {
     switch (userRole) {
       case 'admin': return 'Administrator';
       case 'engineer': return 'Solar Engineer';
-      case 'customer': return 'Customer';
+      case 'user': return 'Customer';
       default: return 'User';
     }
   };
@@ -109,10 +109,10 @@ const Dashboard = () => {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const handleLogout = () => {
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userPhotoURL');
+    sessionStorage.removeItem('userRole');
+    sessionStorage.removeItem('userName');
+    sessionStorage.removeItem('userEmail');
+    sessionStorage.removeItem('userPhotoURL');
     navigate('/');
   };
 

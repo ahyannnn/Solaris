@@ -249,7 +249,7 @@ router.post("/send-verification", async (req, res) => {
     const code = generateCode();
     verificationCodes.set(email, { code, timestamp: Date.now(), type: 'verification' });
 
-    await axios.post("https://api.brevo.com/v3/smtp/email", {
+    await axios.post(process.env.POST_BREVO_URL, {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],
       subject: "Verify your email address - SOLARIS",
@@ -278,7 +278,7 @@ router.post("/send-reset-code", async (req, res) => {
     const code = generateCode();
     verificationCodes.set(email, { code, timestamp: Date.now(), type: 'reset' });
 
-    await axios.post("https://api.brevo.com/v3/smtp/email", {
+    await axios.post(process.env.POST_BREVO_URL, {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],
       subject: "Password reset code - SOLARIS",
@@ -330,7 +330,7 @@ router.post("/send-welcome", async (req, res) => {
     const { email, name } = req.body;
     if (!email || !name) return res.status(400).json({ success: false, message: "Email and name required" });
 
-    await axios.post("https://api.brevo.com/v3/smtp/email", {
+    await axios.post(process.env.POST_BREVO_URL, {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],
       subject: "Welcome to SOLARIS",
@@ -356,7 +356,7 @@ router.post("/send-reset-success", async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ success: false, message: "Email required" });
 
-    await axios.post("https://api.brevo.com/v3/smtp/email", {
+    await axios.post(process.env.POST_BREVO_URL, {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],
       subject: "Password reset successful - SOLARIS",

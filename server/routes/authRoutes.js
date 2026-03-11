@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/authControllers.js");
+const authMiddleware= require('../middleware/authMiddleware.js');
 
 /*
   Route for user registration
@@ -10,7 +11,7 @@ router.post("/register", authController.register);
 /*
   Route for email and password login
 */
-router.post("/login", authController.login);
+router.post("/login", authMiddleware.verifyToken, authController.login);
 
 /*
   Route for Google authentication

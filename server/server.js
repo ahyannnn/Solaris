@@ -38,6 +38,7 @@ const reportRoutes = require("./routes/reportRoutes");
 const quotationRoutes = require("./routes/quotationRoutes");
 const installationRoutes = require("./routes/installationRoutes");
 const emailRoutes = require("./routes/emailRoutes"); // Email routes
+const clientRoutes = require('./routes/clientRoutes');
 
 // API Routes
 app.use("/api/auth", authRoutes);
@@ -47,6 +48,7 @@ app.use("/api/report", reportRoutes);
 app.use("/api/quotation", quotationRoutes);
 app.use("/api/installation", installationRoutes);
 app.use("/api/email", emailRoutes);
+app.use('/api/clients', clientRoutes);
 
 // Test Route
 app.get("/", (req, res) => {

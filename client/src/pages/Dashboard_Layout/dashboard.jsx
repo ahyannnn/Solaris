@@ -90,7 +90,7 @@ const Dashboard = () => {
       { icon: <FaProjectDiagram />, label: 'My Project', path: '/dashboard/customerproject' },
       { icon: <FaFileInvoice />, label: 'Quotations & Bills', path: '/dashboard/customerbilling' },
       { icon: <FaChartLine />, label: 'System Performance', path: '/dashboard/performance' },
-      { icon: <FaFileAlt />, label: 'Reports', path: '/dashboard/customerreports' },
+      { icon: <FaFileAlt />, label: 'Reports', path: '/dashboard/customerreports' },  
       { icon: <FaHeadset />, label: 'Support', path: '/dashboard/support' },
       { icon: <FaUserCog />, label: 'Profile', path: '/dashboard/customerprofile' },
     ],

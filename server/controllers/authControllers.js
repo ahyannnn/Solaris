@@ -1,4 +1,5 @@
 const User = require("../models/Users.js");
+const Client = require("../models/Clients.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -9,20 +10,19 @@ REGISTER
 */
 exports.register = async (req, res) => {
   try {
-
     const { fullName, email, password } = req.body;
 
+    // Check if email exists
     const existingUser = await User.findOne({ email });
-
     if (existingUser) {
-      return res.status(400).json({
-        message: "Email is already registered"
-      });
+      return res.status(400).json({ message: "Email is already registered" });
     }
 
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
+    // Create new user
     const newUser = new User({
       fullName,
       email,
@@ -33,6 +33,18 @@ exports.register = async (req, res) => {
 
     await newUser.save();
 
+    let client = await Client.findOne({ userId: user._id });
+
+    if (!client) {
+      client = new Client({
+        userId: user._id,
+        account_setup: false
+      });
+      await client.save();
+     
+    }
+
+    // Generate JWT
     const token = jwt.sign(
       { id: newUser._id, role: newUser.role },
       process.env.JWT_SECRET,
@@ -42,18 +54,16 @@ exports.register = async (req, res) => {
     res.status(201).json({
       message: "Registration successful",
       token,
-      user: newUser
+      user: newUser,
+      client: newClient
     });
 
   } catch (error) {
-
     console.error("Register error:", error);
-
     res.status(500).json({
       message: "Server error",
       error: error.message
     });
-
   }
 };
 
@@ -156,7 +166,16 @@ exports.googleRegister = async (req, res) => {
     });
 
     await user.save();
+    let client = await Client.findOne({ userId: user._id });
 
+    if (!client) {
+      client = new Client({
+        userId: user._id,
+        account_setup: false
+      });
+      await client.save();
+    
+    }
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,

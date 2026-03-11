@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FaSolarPanel, 
-  FaUser, 
-  FaPhone, 
+import {
+  FaSolarPanel,
+  FaUser,
+  FaPhone,
   FaHome,
   FaMapMarkerAlt,
   FaCity,
@@ -21,22 +21,22 @@ const SetupAccount = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
+  const token = sessionStorage.getItem('token');
+
   // Generate years (last 100 years)
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
-  
-  // Months
+
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
-
-  // Days (1-31)
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
   // Form Data
   const [formData, setFormData] = useState({
-    // Personal Info
+    accountType: 'individual',
+    companyName: '',
     firstName: '',
     middleName: '',
     lastName: '',
@@ -44,8 +44,6 @@ const SetupAccount = () => {
     birthMonth: '',
     birthDay: '',
     birthYear: '',
-    
-    // Address Info
     houseNumber: '',
     street: '',
     barangay: '',
@@ -56,36 +54,32 @@ const SetupAccount = () => {
 
   const [errors, setErrors] = useState({});
 
+  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: '' });
-    }
+    setFormData({ ...formData, [name]: value });
+    if (errors[name]) setErrors({ ...errors, [name]: '' });
   };
 
-  // Validate Step 1 (Personal Info)
   const validateStep1 = () => {
     const newErrors = {};
+    if (!formData.accountType) newErrors.accountType = 'Account type is required';
+    if (formData.accountType === 'company' && !formData.companyName) {
+      newErrors.companyName = 'Company name is required for company accounts';
+    }
     if (!formData.firstName) newErrors.firstName = 'First name is required';
     if (!formData.lastName) newErrors.lastName = 'Last name is required';
     if (!formData.phoneNumber) newErrors.phoneNumber = 'Phone number is required';
     if (!formData.birthMonth) newErrors.birthMonth = 'Month is required';
     if (!formData.birthDay) newErrors.birthDay = 'Day is required';
     if (!formData.birthYear) newErrors.birthYear = 'Year is required';
-    
-    // Phone number validation (Philippines format)
     if (formData.phoneNumber && !/^(09|\+639)\d{9}$/.test(formData.phoneNumber.replace(/\s/g, ''))) {
       newErrors.phoneNumber = 'Enter a valid Philippine mobile number (09XXXXXXXXX or +639XXXXXXXXX)';
     }
-    
     return newErrors;
   };
 
-  // Validate Step 2 (Address Info)
   const validateStep2 = () => {
     const newErrors = {};
     if (!formData.houseNumber) newErrors.houseNumber = 'House number is required';
@@ -94,52 +88,65 @@ const SetupAccount = () => {
     if (!formData.municipality) newErrors.municipality = 'Municipality is required';
     if (!formData.province) newErrors.province = 'Province is required';
     if (!formData.zipCode) newErrors.zipCode = 'ZIP code is required';
-    
-    // ZIP code validation
-    if (formData.zipCode && !/^\d{4}$/.test(formData.zipCode)) {
-      newErrors.zipCode = 'ZIP code must be 4 digits';
-    }
-    
+    if (formData.zipCode && !/^\d{4}$/.test(formData.zipCode)) newErrors.zipCode = 'ZIP code must be 4 digits';
     return newErrors;
   };
 
   const handleNext = () => {
-    if (currentStep === 1) {
-      const stepErrors = validateStep1();
-      if (Object.keys(stepErrors).length > 0) {
-        setErrors(stepErrors);
-        return;
-      }
-      setCurrentStep(2);
+    const stepErrors = validateStep1();
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      return;
     }
+    setCurrentStep(2);
   };
 
-  const handleBack = () => {
-    setCurrentStep(1);
-  };
+  const handleBack = () => setCurrentStep(1);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (currentStep === 2) {
-      const stepErrors = validateStep2();
-      if (Object.keys(stepErrors).length > 0) {
-        setErrors(stepErrors);
-        return;
-      }
+    const stepErrors = validateStep2();
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      return;
     }
 
     setIsLoading(true);
-    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Save to localStorage or send to backend
-      localStorage.setItem('userSetupComplete', 'true');
-      
-      // Go to success step
-      setCurrentStep(3);
+      const clientUpdate = {
+        contactFirstName: formData.firstName,
+        contactMiddleName: formData.middleName,
+        contactLastName: formData.lastName,
+        contactNumber: formData.phoneNumber,
+        client_type: formData.accountType,
+        companyName: formData.companyName,
+        address: {
+          houseNumber: formData.houseNumber,
+          street: formData.street,
+          barangay: formData.barangay,
+          municipality: formData.municipality,
+          province: formData.province,
+          zipCode: formData.zipCode
+        },
+        account_setup: true // mark setup as complete
+      };
+
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/clients/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(clientUpdate)
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        sessionStorage.setItem('clientData', JSON.stringify(data.client));
+        setCurrentStep(3);
+      } else {
+        console.error(data.message);
+      }
     } catch (error) {
       console.error('Setup error:', error);
     } finally {
@@ -147,9 +154,7 @@ const SetupAccount = () => {
     }
   };
 
-  const handleContinueToDashboard = () => {
-    navigate('/dashboard');
-  };
+  const handleContinueToDashboard = () => navigate('/dashboard/customerdashboard');
 
   return (
     <div className="setup-page">
@@ -213,6 +218,37 @@ const SetupAccount = () => {
                 </div>
 
                 <form className="setup-form">
+                  {/* ACCOUNT TYPE */}
+                  <div className="setup-form-group">
+                    <label className="setup-form-label">Account Type <span className="setup-required">*</span></label>
+                    <select
+                      name="accountType"
+                      value={formData.accountType}
+                      onChange={handleChange}
+                      className={`setup-select ${errors.accountType ? 'error' : ''}`}
+                    >
+                      <option value="individual">Individual</option>
+                      <option value="company">Company</option>
+                    </select>
+                    {errors.accountType && <span className="setup-error-message">{errors.accountType}</span>}
+                  </div>
+
+                  {/* COMPANY NAME - only enabled if company is selected */}
+                  <div className="setup-form-group">
+                    <label className="setup-form-label">Company Name</label>
+                    <div className="setup-input-wrapper">
+                      <input
+                        type="text"
+                        name="companyName"
+                        value={formData.companyName}
+                        onChange={handleChange}
+                        className="setup-form-input"
+                        placeholder="Enter company name"
+                        disabled={formData.accountType !== 'company'}
+                      />
+                    </div>
+                    {errors.companyName && <span className="setup-error-message">{errors.companyName}</span>}
+                  </div>
                   {/* FIRST NAME */}
                   <div className="setup-form-group">
                     <label className="setup-form-label">First Name <span className="setup-required">*</span></label>
@@ -331,7 +367,7 @@ const SetupAccount = () => {
                   </div>
 
                   <div className="setup-form-actions">
-                    <button 
+                    <button
                       type="button"
                       onClick={handleNext}
                       className="setup-btn-next"
@@ -456,14 +492,14 @@ const SetupAccount = () => {
                   </div>
 
                   <div className="setup-form-actions">
-                    <button 
+                    <button
                       type="button"
                       onClick={handleBack}
                       className="setup-btn-back"
                     >
                       <FaArrowLeft /> Back
                     </button>
-                    <button 
+                    <button
                       type="submit"
                       className="setup-btn-submit"
                       disabled={isLoading}
@@ -485,7 +521,7 @@ const SetupAccount = () => {
                 <p className="setup-success-message">
                   Your account setup is complete.
                 </p>
-                <button 
+                <button
                   onClick={handleContinueToDashboard}
                   className="setup-btn-dashboard"
                 >

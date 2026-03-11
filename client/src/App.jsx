@@ -1,10 +1,14 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
 import SolarisLandingPage from './pages/Auth/landingpage';
 import LoginPage from './pages/Auth/loginpage';
 import RegisterPage from './pages/Auth/registerpage';
 import ForgotPage from './pages/Auth/forgotpage';
+
 import Dashboard from "./pages/Dashboard_Layout/dashboard";
-import SetupAccount from './pages/Customer/setupacc';
+import SetupAccount from "./pages/Customer/setupacc";
+
+import AccountSetupGuard from './guards/accountSetupGuard';
 
 // Admin Pages
 import AdminDashboard from './pages/Admin/dashboard';
@@ -38,18 +42,27 @@ function App() {
   return (
     <Router>
       <Routes>
+
         {/* Public Routes */}
         <Route path="/" element={<SolarisLandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgotpassword" element={<ForgotPage />} />
-        
-        {/* Setup Route - Outside Dashboard */}
+
+        {/* Setup Account */}
         <Route path="/setup" element={<SetupAccount />} />
-        
-        {/* Dashboard Layout with Nested Routes */}
-        <Route path="/dashboard" element={<Dashboard />}>
-          {/* Admin Routes */}
+
+        {/* Dashboard Layout */}
+        <Route
+          path="/dashboard"
+          element={
+            <AccountSetupGuard>
+              <Dashboard />
+            </AccountSetupGuard>
+          }
+        >
+
+          {/* Admin */}
           <Route index element={<AdminDashboard />} />
           <Route path="siteassessment" element={<SiteAssessment />} />
           <Route path="project" element={<Project />} />
@@ -59,15 +72,15 @@ function App() {
           <Route path="usermanagement" element={<UserManagement />} />
           <Route path="settings" element={<Settings />} />
 
-            {/* Engineer Routes */}
+          {/* Engineer */}
           <Route path="engineer-dashboard" element={<EngineerDashboard />} />
           <Route path="engineer-assessment" element={<EngineerSiteAssessment />} />
           <Route path="engineer-project" element={<EngineerProject />} />
           <Route path="engineer-device" element={<EngineerIoTDevice />} />
           <Route path="engineer-reports" element={<EngineerReports />} />
           <Route path="engineer-profile" element={<EngineerProfile />} />
-          
-          {/* Customer Routes */}
+
+          {/* Customer */}
           <Route path="customerdashboard" element={<CustomerDashboard />} />
           <Route path="schedule" element={<ScheduleAssessment />} />
           <Route path="customerproject" element={<MyProject />} />
@@ -76,7 +89,9 @@ function App() {
           <Route path="customerreports" element={<CustomerReports />} />
           <Route path="support" element={<Supports />} />
           <Route path="customerprofile" element={<CustomerProfile />} />
+
         </Route>
+
       </Routes>
     </Router>
   );

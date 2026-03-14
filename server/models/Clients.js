@@ -11,7 +11,7 @@ const ClientSchema = new mongoose.Schema({
   address: { type: Object, default: {} },
   createdAt: { type: Date, default: Date.now },
   account_setup: { type: Boolean, default: false },
-  client_type: { type: String, default: "", enum: ["Individual", "Company"] }
+  client_type: { type: String, default: "Individual", enum: ["Individual", "Company"] }
 });
 
 module.exports = mongoose.model("Client", ClientSchema);

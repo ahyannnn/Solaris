@@ -249,7 +249,7 @@ router.post("/send-verification", async (req, res) => {
     const code = generateCode();
     verificationCodes.set(email, { code, timestamp: Date.now(), type: 'verification' });
 
-    await axios.post(process.env.POST_BREVO_URL, {
+    await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],
       subject: "Verify your email address - SOLARIS",
@@ -278,7 +278,7 @@ router.post("/send-reset-code", async (req, res) => {
     const code = generateCode();
     verificationCodes.set(email, { code, timestamp: Date.now(), type: 'reset' });
 
-    await axios.post(process.env.POST_BREVO_URL, {
+    await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],
       subject: "Password reset code - SOLARIS",
@@ -301,22 +301,48 @@ VERIFY CODE
 */
 router.post("/verify-code", (req, res) => {
   try {
-    const { email, code } = req.body;
+
+    const email = req.body.email?.toLowerCase();
+    const { code } = req.body;
+
+ 
+
     const stored = verificationCodes.get(email);
 
-    if (!stored) return res.status(400).json({ success: false, message: "No code found" });
-    
+    if (!stored) {
+      return res.status(400).json({
+        success: false,
+        message: "No code found"
+      });
+    }
+
     if (Date.now() - stored.timestamp > 10 * 60 * 1000) {
       verificationCodes.delete(email);
-      return res.status(400).json({ success: false, message: "Code expired" });
+      return res.status(400).json({
+        success: false,
+        message: "Code expired"
+      });
     }
-    
-    if (stored.code !== code) return res.status(400).json({ success: false, message: "Invalid code" });
+
+    if (stored.code !== code) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid code"
+      });
+    }
 
     verificationCodes.delete(email);
-    res.json({ success: true, message: "Code verified" });
+
+    res.json({
+      success: true,
+      message: "Code verified"
+    });
+
   } catch (error) {
-    res.status(500).json({ success: false, message: "Verification failed" });
+    res.status(500).json({
+      success: false,
+      message: "Verification failed"
+    });
   }
 });
 
@@ -330,7 +356,7 @@ router.post("/send-welcome", async (req, res) => {
     const { email, name } = req.body;
     if (!email || !name) return res.status(400).json({ success: false, message: "Email and name required" });
 
-    await axios.post(process.env.POST_BREVO_URL, {
+    await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],
       subject: "Welcome to SOLARIS",
@@ -356,7 +382,7 @@ router.post("/send-reset-success", async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ success: false, message: "Email required" });
 
-    await axios.post(process.env.POST_BREVO_URL, {
+    await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],
       subject: "Password reset successful - SOLARIS",

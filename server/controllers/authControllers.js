@@ -33,11 +33,11 @@ exports.register = async (req, res) => {
 
     await newUser.save();
 
-    let client = await Client.findOne({ userId: user._id });
+    let client = await Client.findOne({ userId: newUser._id });
 
     if (!client) {
       client = new Client({
-        userId: user._id,
+        userId: newUser._id,
         account_setup: false
       });
       await client.save();
@@ -55,7 +55,7 @@ exports.register = async (req, res) => {
       message: "Registration successful",
       token,
       user: newUser,
-      client: newClient
+      client: client,
     });
 
   } catch (error) {
@@ -126,32 +126,40 @@ GOOGLE REGISTER
 =========================
 */
 exports.googleRegister = async (req, res) => {
-
   try {
-
     const { fullName, email, googleId, photoURL } = req.body;
 
+    // Check if user already exists
     let user = await User.findOne({ email });
 
-    // If already exists → login instead
     if (user) {
-
+      // User exists → login
       const token = jwt.sign(
         { id: user._id, role: user.role },
         process.env.JWT_SECRET,
         { expiresIn: "7d" }
       );
 
+      // Ensure client exists
+      let client = await Client.findOne({ userId: user._id });
+      if (!client) {
+        client = new Client({
+          userId: user._id,
+          account_setup: false,
+        });
+        await client.save();
+      }
+
       return res.json({
         message: "Login successful",
         token,
-        user
+        user,
+        client,
       });
-
     }
 
+    // User does not exist → register
     const randomPassword = Math.random().toString(36).slice(-10);
-
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(randomPassword, salt);
 
@@ -162,20 +170,19 @@ exports.googleRegister = async (req, res) => {
       provider: "google",
       googleId,
       photoURL,
-      role: "user"
+      role: "user",
     });
 
     await user.save();
-    let client = await Client.findOne({ userId: user._id });
 
-    if (!client) {
-      client = new Client({
-        userId: user._id,
-        account_setup: false
-      });
-      await client.save();
-    
-    }
+    // Create a new client record for this user
+    let client = new Client({
+      userId: user._id,
+      account_setup: false,
+    });
+    await client.save();
+
+    // Generate JWT
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
@@ -185,20 +192,17 @@ exports.googleRegister = async (req, res) => {
     res.status(201).json({
       message: "Google registration successful",
       token,
-      user
+      user,
+      client,
     });
 
   } catch (error) {
-
     console.error("Google register error:", error);
-
     res.status(500).json({
       message: "Server error",
-      error: error.message
+      error: error.message,
     });
-
   }
-
 };
 
 

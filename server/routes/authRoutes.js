@@ -11,7 +11,7 @@ router.post("/register", authController.register);
 /*
   Route for email and password login
 */
-router.post("/login", authMiddleware.verifyToken, authController.login);
+router.post("/login", authController.login);
 
 /*
   Route for Google authentication

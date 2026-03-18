@@ -86,13 +86,13 @@ const Dashboard = () => {
 
     user: [
       { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/dashboard/customerdashboard' },
-      { icon: <FaCalendarAlt />, label: 'Schedule Assessment', path: '/dashboard/schedule' },
-      { icon: <FaProjectDiagram />, label: 'My Project', path: '/dashboard/customerproject' },
-      { icon: <FaFileInvoice />, label: 'Quotations & Bills', path: '/dashboard/customerbilling' },
+      { icon: <FaProjectDiagram />, label: 'My Projects', path: '/dashboard/customerproject' },
+      { icon: <FaCalendarAlt />, label: 'Book Assessment', path: '/dashboard/schedule' },
+      { icon: <FaFileInvoice />, label: 'Quotations & Billing', path: '/dashboard/customerbilling' },
       { icon: <FaChartLine />, label: 'System Performance', path: '/dashboard/performance' },
-      { icon: <FaFileAlt />, label: 'Reports', path: '/dashboard/customerreports' },  
-      { icon: <FaHeadset />, label: 'Support', path: '/dashboard/support' },
-      { icon: <FaUserCog />, label: 'Profile', path: '/dashboard/customerprofile' },
+      { icon: <FaFileAlt />, label: 'Assessment Reports', path: '/dashboard/customerreports' },
+      { icon: <FaHeadset />, label: 'Support Center', path: '/dashboard/support' },
+      { icon: <FaUserCog />, label: 'Profile Settings', path: '/dashboard/customerprofile' },
     ],
   };
 

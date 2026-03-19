@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { FaSolarPanel, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
-import { FcGoogle } from 'react-icons/fc'; // Import colored Google icon
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../../firebase";
+import logo from '../../assets/Salfare_Logo.png'; // ✅ Correct logo path
 import '../../styles/Auth/loginpage.css';
 
 const LoginPage = () => {
@@ -49,9 +50,11 @@ const LoginPage = () => {
     return newErrors;
   };
 
-  // LOGIN SUBMIT
+  // LOGIN SUBMIT - FIXED VERSION
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -62,7 +65,10 @@ const LoginPage = () => {
     setErrors({});
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
+      const apiUrl = `${import.meta.env.VITE_API_URL}/api/auth/login`;
+      console.log('Attempting to login to:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -70,15 +76,46 @@ const LoginPage = () => {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
+      // First, get the response text
+      const responseText = await response.text();
+      console.log('Raw server response:', responseText);
 
+      // Check if response is OK
       if (!response.ok) {
-        setErrors({ general: data.message || data.error || "Login failed" });
-      } else {
+        // Try to parse as JSON if possible
+        let errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        
+        try {
+          if (responseText) {
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.message || errorData.error || errorMessage;
+          }
+        } catch {
+          // If JSON parsing fails, use the text response
+          if (responseText) {
+            errorMessage = responseText;
+          }
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      // Parse successful response
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        throw new Error('Invalid response format from server');
+      }
+
+      // Store user data in sessionStorage
+      if (data.token && data.user) {
         sessionStorage.setItem("token", data.token);
-        sessionStorage.setItem("userName", data.user.fullName);
-        sessionStorage.setItem("userEmail", data.user.email);
-        sessionStorage.setItem("userRole", data.user.role);
+        sessionStorage.setItem("userName", data.user.fullName || '');
+        sessionStorage.setItem("userEmail", data.user.email || '');
+        sessionStorage.setItem("userRole", data.user.role || 'user');
+        
         if (data.user.photoURL) {
           sessionStorage.setItem("userPhotoURL", data.user.photoURL);
         } else {
@@ -86,10 +123,36 @@ const LoginPage = () => {
         }
 
         navigate("/dashboard");
+      } else {
+        throw new Error('Invalid response structure from server');
       }
+      
     } catch (err) {
-      console.error("Login error:", err);
-      setErrors({ general: "Server error. Please try again later." });
+      console.error("Login error details:", {
+        message: err.message,
+        stack: err.stack
+      });
+      
+      // Provide specific error messages
+      if (err.message.includes('404')) {
+        setErrors({ 
+          general: "Login service not found. Please check:\n" +
+                  "1. If the backend server is running\n" +
+                  "2. If the API endpoint is correct\n" +
+                  "3. Your network connection"
+        });
+      } else if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+        setErrors({ 
+          general: "Cannot connect to server. Please check:\n" +
+                  "1. If the backend server is running on " + import.meta.env.VITE_API_URL + "\n" +
+                  "2. Your internet connection\n" +
+                  "3. CORS configuration on the server"
+        });
+      } else if (err.message.includes('Invalid response')) {
+        setErrors({ general: "Server returned an invalid response. Please try again." });
+      } else {
+        setErrors({ general: err.message || "Server error. Please try again later." });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -99,15 +162,20 @@ const LoginPage = () => {
     setShowPassword(!showPassword);
   };
 
-  // GOOGLE LOGIN
+  // GOOGLE LOGIN - FIXED VERSION
   const handleGoogleLogin = async () => {
     try {
       setSocialLoading('google');
 
+      // Firebase sign in
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google-login`, {
+      // Send user data to backend
+      const apiUrl = `${import.meta.env.VITE_API_URL}/api/auth/google-login`;
+      console.log('Attempting Google login to:', apiUrl);
+
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -120,39 +188,81 @@ const LoginPage = () => {
         })
       });
 
-      const data = await response.json();
+      // Get response text first
+      const responseText = await response.text();
+      console.log('Raw Google login response:', responseText);
 
+      // Check response status
       if (!response.ok) {
-        setErrors({ general: data.message || "Google login failed" });
-        return;
+        let errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        
+        try {
+          if (responseText) {
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.message || errorData.error || errorMessage;
+          }
+        } catch {
+          if (responseText) {
+            errorMessage = responseText;
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
 
-      sessionStorage.setItem("token", data.token);
-      sessionStorage.setItem("userName", data.user.fullName);
-      sessionStorage.setItem("userEmail", data.user.email);
-      sessionStorage.setItem("userRole", data.user.role);
+      // Parse successful response
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        throw new Error('Invalid response format from server');
+      }
 
-      if (data.user.photoURL) {
-        sessionStorage.setItem("userPhotoURL", data.user.photoURL);
+      // Store user data
+      if (data.token && data.user) {
+        sessionStorage.setItem("token", data.token);
+        sessionStorage.setItem("userName", data.user.fullName || '');
+        sessionStorage.setItem("userEmail", data.user.email || '');
+        sessionStorage.setItem("userRole", data.user.role || 'user');
+
+        if (data.user.photoURL) {
+          sessionStorage.setItem("userPhotoURL", data.user.photoURL);
+        } else {
+          sessionStorage.removeItem("userPhotoURL");
+        }
+
+        navigate("/dashboard");
       } else {
-        sessionStorage.removeItem("userPhotoURL");
+        throw new Error('Invalid response structure from server');
       }
-
-      navigate("/dashboard");
 
     } catch (error) {
       console.error("Google login error:", error);
 
+      // Handle specific Firebase errors
       if (error.code === 'auth/popup-closed-by-user') {
         setErrors({ general: 'Login popup was closed. Please try again.' });
+      } else if (error.code === 'auth/popup-blocked') {
+        setErrors({ general: 'Popup was blocked by your browser. Please allow popups for this site.' });
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        setErrors({ general: 'Login was cancelled. Please try again.' });
+      } else if (error.message.includes('404')) {
+        setErrors({ 
+          general: 'Google login service not found. Please check if the backend server is running.' 
+        });
+      } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        setErrors({ 
+          general: 'Cannot connect to server. Please check your internet connection.' 
+        });
       } else {
-        setErrors({ general: 'Failed to login with Google. Please try again.' });
+        setErrors({ general: error.message || 'Failed to login with Google. Please try again.' });
       }
 
     } finally {
       setSocialLoading('');
     }
-  }; 
+  };
 
   return (
     <div className="login-page">
@@ -161,15 +271,29 @@ const LoginPage = () => {
         <div className="login-branding">
           <div className="branding-content">
             <div className="brand-logo">
-              <FaSolarPanel className="brand-icon" />
-              <h1 className="brand-name">SOLARIS</h1>
+              <img src={logo} alt="Salfer Engineering" className="brand-logo-img" />
+              <h1 className="brand-name">Salfer Engineering</h1>
             </div>
             <h2 className="brand-tagline">
-              IoT-Based Solar Site Pre-Assessment System
+              Solar Technology Enterprise
             </h2>
             <p className="brand-description">
-              Collect, transmit, and review environmental data for solar installation planning
+              DTI-registered solar company providing reliable, cost-effective solar solutions for Filipino homes and businesses since 2017.
             </p>
+            <div className="brand-features">
+              <div className="brand-feature">
+                <span className="feature-dot"></span>
+                <span>Free Solar Estimate</span>
+              </div>
+              <div className="brand-feature">
+                <span className="feature-dot"></span>
+                <span>Professional Installation</span>
+              </div>
+              <div className="brand-feature">
+                <span className="feature-dot"></span>
+                <span>5-Year Warranty</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -179,7 +303,7 @@ const LoginPage = () => {
             <div className="form-header">
               <h2 className="form-title">Welcome Back</h2>
               <p className="form-subtitle">
-                Please enter your details to sign in
+                Sign in to manage your solar projects
               </p>
             </div>
 
@@ -192,7 +316,8 @@ const LoginPage = () => {
                 borderRadius: '8px',
                 marginBottom: '16px',
                 fontSize: '14px',
-                textAlign: 'center'
+                textAlign: 'center',
+                whiteSpace: 'pre-line'
               }}>
                 {errors.general}
               </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { FaSolarPanel, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
+import logo from '../../assets/Salfare_Logo.png';
 import '../../styles/Auth/forgotpage.css';
 
 const ForgotPasswordPage = () => {
@@ -268,25 +269,25 @@ const ForgotPasswordPage = () => {
         <div className="forgot-branding">
           <div className="branding-content">
             <div className="brand-logo">
-              <FaSolarPanel className="brand-icon" />
-              <h1 className="brand-name">SOLARIS</h1>
+              <img src={logo} alt="Salfer Engineering" className="brand-logo-img" />
+              <h1 className="brand-name">Salfer Engineering</h1>
             </div>
-            <h2 className="brand-tagline">IoT-Based Solar Site Pre-Assessment System</h2>
+            <h2 className="brand-tagline">Solar Technology Enterprise</h2>
             <p className="brand-description">
-              Reset your password and continue with solar site assessment
+              Reset your password to continue managing your solar projects
             </p>
             <div className="brand-features">
               <div className="brand-feature">
                 <span className="feature-dot"></span>
-                <span>Environmental Data Collection</span>
+                <span>Free Solar Estimate</span>
               </div>
               <div className="brand-feature">
                 <span className="feature-dot"></span>
-                <span>Temporary Site Deployment</span>
+                <span>Professional Installation</span>
               </div>
               <div className="brand-feature">
                 <span className="feature-dot"></span>
-                <span>Data Reference for Planning</span>
+                <span>5-Year Warranty</span>
               </div>
             </div>
           </div>

@@ -547,3 +547,42 @@
     max-width: 100%;
   }
 }
+
+/* Add these styles to your existing forgotpage.css */
+
+/* Logo image styles */
+.brand-logo-img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  filter: brightness(0) invert(1); /* Makes logo white for dark background */
+}
+
+/* Update brand-logo to accommodate image */
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Brand features */
+.brand-features {
+  margin-top: 2rem;
+}
+
+.brand-feature {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  color: #e0e0e0;
+}
+
+.feature-dot {
+  width: 6px;
+  height: 6px;
+  background-color: #f39c12;
+  border-radius: 50%;
+  display: inline-block;
+}

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { FaSolarPanel, FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../../firebase";
+import logo from '../../assets/Salfare_Logo.png';
 import '../../styles/Auth/register.css';
 
 const RegisterPage = () => {
@@ -340,32 +341,17 @@ const RegisterPage = () => {
         <div className="register-branding">
           <div className="branding-content">
             <div className="brand-logo">
-              <FaSolarPanel className="brand-icon" />
-              <h1 className="brand-name">SOLARIS</h1>
+              <img src={logo} alt="Salfer Engineering" className="brand-logo-img" />
+              <h1 className="brand-name">Salfer Engineering</h1>
             </div>
-            <h2 className="brand-tagline">IoT-Based Solar Site Pre-Assessment System</h2>
+            <h2 className="brand-tagline">Solar Technology Enterprise</h2>
             <p className="brand-description">
-              Join SOLARIS to access environmental data for solar installation planning
+              Join Salfer Engineering to access solar solutions and manage your renewable energy projects.
             </p>
             <div className="brand-features">
-              <div className="brand-feature"><span className="feature-dot"></span> Environmental Data Collection</div>
-              <div className="brand-feature"><span className="feature-dot"></span> Temporary Site Deployment</div>
-              <div className="brand-feature"><span className="feature-dot"></span> Data Reference for Planning</div>
-            </div>
-
-            {/* Step Indicator */}
-            <div className="step-indicator">
-              <div className={`step-dot ${currentStep >= 1 ? 'active' : ''}`}>
-                <span>1</span>
-              </div>
-              <div className={`step-line ${currentStep >= 2 ? 'active' : ''}`}></div>
-              <div className={`step-dot ${currentStep >= 2 ? 'active' : ''}`}>
-                <span>2</span>
-              </div>
-              <div className={`step-line ${currentStep >= 3 ? 'active' : ''}`}></div>
-              <div className={`step-dot ${currentStep >= 3 ? 'active' : ''}`}>
-                <span>3</span>
-              </div>
+              <div className="brand-feature"><span className="feature-dot"></span> Free Solar Estimate</div>
+              <div className="brand-feature"><span className="feature-dot"></span> Professional Installation</div>
+              <div className="brand-feature"><span className="feature-dot"></span> 5-Year Warranty</div>
             </div>
           </div>
         </div>
@@ -605,7 +591,7 @@ const RegisterPage = () => {
                 <div className="success-icon">✓</div>
                 <h2 className="success-title">Successfully Registered!</h2>
                 <p className="success-text">
-                  Your account has been created successfully. You can now log in to access SOLARIS.
+                  Your account has been created successfully. You can now log in to access your solar projects.
                 </p>
                 <button 
                   onClick={handleBackToLogin}

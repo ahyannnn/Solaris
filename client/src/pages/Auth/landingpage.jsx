@@ -1,11 +1,11 @@
 // pages/Auth/landingpage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FaSun, 
-  FaBolt, 
-  FaLeaf, 
-  FaHome, 
+import {
+  FaSun,
+  FaBolt,
+  FaLeaf,
+  FaHome,
   FaBuilding,
   FaClipboardCheck,
   FaCalendarAlt,
@@ -66,7 +66,7 @@ const LandingPage = () => {
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
-      
+
       const sections = ['hero', 'about', 'mission-vision', 'free-vs-paid', 'problem', 'solution', 'assessment', 'how-it-works', 'services', 'savings', 'why-us', 'solar-estimator'];
       const current = sections.find(section => {
         const element = document.getElementById(section);
@@ -99,7 +99,7 @@ const LandingPage = () => {
     const bill = parseFloat(monthlyBill) || 0;
     const estimatedSavings = Math.round(bill * 0.3);
     const estimatedSystemSize = Math.round((bill / 11.5 / 30) * 1.2);
-    
+
     setEstimateResult({
       monthlySavings: estimatedSavings,
       systemSize: estimatedSystemSize,
@@ -110,7 +110,7 @@ const LandingPage = () => {
   // Advanced Estimate Calculator
   const calculateAdvancedSavings = () => {
     setCalculating(true);
-    
+
     // Simulate calculation delay for better UX
     setTimeout(() => {
       const monthlyBill = parseFloat(advancedEstimatorData.monthlyBill) || 0;
@@ -209,7 +209,7 @@ const LandingPage = () => {
         dailyProduction: Math.round(dailyProduction * 10) / 10,
         annualSavings: Math.round(annualSavings)
       });
-      
+
       setCalculating(false);
     }, 500);
   };
@@ -253,31 +253,31 @@ const LandingPage = () => {
             </div>
 
             <nav className="desktop-nav">
-              <button 
+              <button
                 className={`nav-link ${activeSection === 'about' ? 'active' : ''}`}
                 onClick={() => scrollToSection('about')}
               >
                 About
               </button>
-              <button 
+              <button
                 className={`nav-link ${activeSection === 'free-vs-paid' ? 'active' : ''}`}
                 onClick={() => scrollToSection('free-vs-paid')}
               >
                 Services
               </button>
-              <button 
+              <button
                 className={`nav-link ${activeSection === 'how-it-works' ? 'active' : ''}`}
                 onClick={() => scrollToSection('how-it-works')}
               >
                 How It Works
               </button>
-              <button 
+              <button
                 className={`nav-link ${activeSection === 'solar-estimator' ? 'active' : ''}`}
                 onClick={() => scrollToSection('solar-estimator')}
               >
                 Estimator
               </button>
-              <button 
+              <button
                 className={`nav-link ${activeSection === 'why-us' ? 'active' : ''}`}
                 onClick={() => scrollToSection('why-us')}
               >
@@ -306,13 +306,13 @@ const LandingPage = () => {
               We design, install, and assess solar systems to help you save more and use energy efficiently.
             </p>
             <div className="hero-buttons">
-              <button 
+              <button
                 className="btn-primary"
                 onClick={() => scrollToSection('solar-estimator')}
               >
                 Get Free Solar Estimate
               </button>
-              <button 
+              <button
                 className="btn-outline light"
                 onClick={() => scrollToSection('free-vs-paid')}
               >
@@ -330,11 +330,11 @@ const LandingPage = () => {
             <div className="about-content">
               <h2 className="section-title">About the Company</h2>
               <p>
-                Salfer Engineering & Solar Technology Enterprise is a solar service provider established in 2017. 
+                Salfer Engineering & Solar Technology Enterprise is a solar service provider established in 2017.
                 The company offers solar system design, installation, and technical services for residential and commercial clients.
               </p>
               <p>
-                With years of experience in engineering and project management, the company focuses on delivering reliable 
+                With years of experience in engineering and project management, the company focuses on delivering reliable
                 and cost-effective solar solutions tailored to each client's needs.
               </p>
               <div className="stats-mini">
@@ -367,7 +367,7 @@ const LandingPage = () => {
               <FaBullseye className="mission-icon" />
               <h3>Our Mission</h3>
               <p>
-                To provide reliable, efficient, and cost-effective solar energy solutions that help clients 
+                To provide reliable, efficient, and cost-effective solar energy solutions that help clients
                 reduce electricity costs while promoting sustainable energy use.
               </p>
             </div>
@@ -375,7 +375,7 @@ const LandingPage = () => {
               <FaGlobe className="vision-icon" />
               <h3>Our Vision</h3>
               <p>
-                To become a trusted provider of solar energy solutions in the Philippines by delivering 
+                To become a trusted provider of solar energy solutions in the Philippines by delivering
                 quality service, continuous innovation, and long-term customer satisfaction.
               </p>
             </div>
@@ -400,7 +400,7 @@ const LandingPage = () => {
                 <li><FaCheckCircle /> Includes system size and payback period</li>
               </ul>
               <p className="card-note">Perfect for getting started.</p>
-              <button 
+              <button
                 className="btn-outline"
                 onClick={() => scrollToSection('solar-estimator')}
               >
@@ -419,7 +419,7 @@ const LandingPage = () => {
                 <li><FaCheckCircle /> 7-day IoT device monitoring</li>
               </ul>
               <p className="card-note">Best for accurate results and serious planning.</p>
-              <button 
+              <button
                 className="btn-primary"
                 onClick={handleSignup}
               >
@@ -431,144 +431,136 @@ const LandingPage = () => {
       </section>
 
       {/* Solar Savings Estimator Section */}
+      {/* Solar Savings Estimator Section - Simplified */}
       <section id="solar-estimator" className="estimator-section">
         <div className="container">
           <h2 className="section-title">Solar Savings Estimator</h2>
           <p className="section-subtitle">Get a personalized estimate of your potential savings</p>
 
           <div className="estimator-card">
-            <div className="estimator-grid">
-              <div className="estimator-inputs">
-                <div className="input-group">
-                  <label><FaMoneyBillWave /> Monthly Electricity Bill (₱)</label>
-                  <input
-                    type="number"
-                    name="monthlyBill"
-                    value={advancedEstimatorData.monthlyBill}
-                    onChange={handleAdvancedEstimatorChange}
-                    placeholder="e.g., 5000"
-                  />
-                </div>
-
-                <div className="input-group">
-                  <label><FaBolt /> Electricity Rate (₱/kWh)</label>
-                  <input
-                    type="number"
-                    name="electricityRate"
-                    value={advancedEstimatorData.electricityRate}
-                    onChange={handleAdvancedEstimatorChange}
-                    placeholder="e.g., 11.50"
-                    step="0.1"
-                  />
-                  <small>Meralco avg: ₱11.50/kWh</small>
-                </div>
-
-                <div className="input-group">
-                  <label><FaSun /> Average Sun Hours</label>
-                  <input
-                    type="number"
-                    name="averageSunHours"
-                    value={advancedEstimatorData.averageSunHours}
-                    onChange={handleAdvancedEstimatorChange}
-                    placeholder="e.g., 5"
-                    step="0.5"
-                  />
-                  <small>PH average: 5-6 hours</small>
-                </div>
-
-                <div className="input-group">
-                  <label><FaSolarPanel /> System Type</label>
-                  <select
-                    name="systemType"
-                    value={advancedEstimatorData.systemType}
-                    onChange={handleAdvancedEstimatorChange}
-                  >
-                    <option value="grid-tie">Grid-tie (No battery)</option>
-                    <option value="hybrid">Hybrid (With battery backup)</option>
-                    <option value="off-grid">Off-grid (Complete independence)</option>
-                  </select>
-                </div>
-
-                <div className="input-group">
-                  <label><FaClock /> Usage Pattern</label>
-                  <select
-                    name="usagePattern"
-                    value={advancedEstimatorData.usagePattern}
-                    onChange={handleAdvancedEstimatorChange}
-                  >
-                    <option value="daytime">Mostly Daytime</option>
-                    <option value="nighttime">Mostly Nighttime</option>
-                    <option value="mixed">Mixed (balanced usage)</option>
-                  </select>
-                </div>
-
-                <button
-                  onClick={calculateAdvancedSavings}
-                  disabled={!advancedEstimatorData.monthlyBill || calculating}
-                  className="btn-calculate"
-                >
-                  {calculating ? <><FaSpinner className="spinner" /> Calculating...</> : <><FaSearch /> Calculate Savings</>}
-                </button>
+            <div className="estimator-inputs">
+              <div className="input-group">
+                <label>Monthly Electricity Bill (₱)</label>
+                <input
+                  type="number"
+                  name="monthlyBill"
+                  value={advancedEstimatorData.monthlyBill}
+                  onChange={handleAdvancedEstimatorChange}
+                  placeholder="e.g., 5000"
+                />
               </div>
 
-              {advancedEstimationResult && (
-                <div className="estimator-results">
-                  <h3>Your Personalized Solar Estimate</h3>
-                  <div className="results-grid">
-                    <div className="result-item">
-                      <FaSolarPanel />
-                      <span className="result-label">Recommended System</span>
-                      <strong>{advancedEstimationResult.recommendedSize} kW</strong>
-                      <small>{advancedEstimationResult.systemDescription}</small>
-                    </div>
+              <div className="input-group">
+                <label>Electricity Rate (₱/kWh)</label>
+                <input
+                  type="number"
+                  name="electricityRate"
+                  value={advancedEstimatorData.electricityRate}
+                  onChange={handleAdvancedEstimatorChange}
+                  placeholder="e.g., 11.50"
+                  step="0.1"
+                />
+                <small>Meralco avg: ₱11.50/kWh</small>
+              </div>
 
-                    <div className="result-item highlight">
-                      <FaMoneyBillWave />
-                      <span className="result-label">Monthly Savings</span>
-                      <strong>{formatCurrency(advancedEstimationResult.estimatedMonthlySavings)}</strong>
-                    </div>
+              <div className="input-group">
+                <label>Average Sun Hours</label>
+                <input
+                  type="number"
+                  name="averageSunHours"
+                  value={advancedEstimatorData.averageSunHours}
+                  onChange={handleAdvancedEstimatorChange}
+                  placeholder="e.g., 5"
+                  step="0.5"
+                />
+                <small>PH average: 5-6 hours</small>
+              </div>
 
-                    <div className="result-item">
-                      <FaBolt />
-                      <span className="result-label">System Cost</span>
-                      <strong>{formatCurrency(advancedEstimationResult.systemCost)}</strong>
-                      <small>{advancedEstimationResult.panelsNeeded} panels • {advancedEstimationResult.roofSpaceNeeded} sqm</small>
-                    </div>
+              <div className="input-group">
+                <label>System Type</label>
+                <select
+                  name="systemType"
+                  value={advancedEstimatorData.systemType}
+                  onChange={handleAdvancedEstimatorChange}
+                >
+                  <option value="grid-tie">Grid-tie (No battery)</option>
+                  <option value="hybrid">Hybrid (With battery backup)</option>
+                  <option value="off-grid">Off-grid (Complete independence)</option>
+                </select>
+              </div>
 
-                    <div className="result-item">
-                      <FaPlug />
-                      <span className="result-label">Grid Dependency</span>
-                      <strong>{advancedEstimationResult.gridDependency}%</strong>
-                    </div>
+              <div className="input-group">
+                <label>Usage Pattern</label>
+                <select
+                  name="usagePattern"
+                  value={advancedEstimatorData.usagePattern}
+                  onChange={handleAdvancedEstimatorChange}
+                >
+                  <option value="daytime">Mostly Daytime</option>
+                  <option value="nighttime">Mostly Nighttime</option>
+                  <option value="mixed">Mixed (balanced usage)</option>
+                </select>
+              </div>
 
-                    <div className="result-item">
-                      <FaClock />
-                      <span className="result-label">Payback Period</span>
-                      <strong>{advancedEstimationResult.paybackPeriod} years</strong>
-                    </div>
-
-                    <div className="result-item">
-                      <FaLeaf />
-                      <span className="result-label">CO₂ Offset/Year</span>
-                      <strong>{formatNumber(advancedEstimationResult.co2OffsetPerYear)} kg</strong>
-                    </div>
-
-                    <div className="result-item full-width">
-                      <FaChartLine />
-                      <span className="result-label">25-Year Savings</span>
-                      <strong>{formatCurrency(advancedEstimationResult.total25YearSavings)}</strong>
-                      <small>With inflation adjustment</small>
-                    </div>
-                  </div>
-                  <p className="estimator-note">
-                    *This is a preliminary estimate. Actual savings may vary based on site conditions. 
-                    <button className="text-link" onClick={() => scrollToSection('free-vs-paid')}>
-                      Book a detailed site assessment for accurate results.
-                    </button>
-                  </p>
-                </div>
-              )}
+              <button
+                onClick={calculateAdvancedSavings}
+                disabled={!advancedEstimatorData.monthlyBill || calculating}
+                className="btn-calculate"
+              >
+                {calculating ? <><FaSpinner className="spinner" /> Calculating...</> : 'Calculate Savings'}
+              </button>
             </div>
+
+            {advancedEstimationResult && (
+              <div className="estimator-results">
+                <h3>Your Personalized Solar Estimate</h3>
+                <div className="results-grid">
+                  <div className="result-item">
+                    <span className="result-label">Recommended System</span>
+                    <strong>{advancedEstimationResult.recommendedSize} kW</strong>
+                    <small>{advancedEstimationResult.systemDescription}</small>
+                  </div>
+
+                  <div className="result-item highlight">
+                    <span className="result-label">Monthly Savings</span>
+                    <strong>{formatCurrency(advancedEstimationResult.estimatedMonthlySavings)}</strong>
+                  </div>
+
+                  <div className="result-item">
+                    <span className="result-label">System Cost</span>
+                    <strong>{formatCurrency(advancedEstimationResult.systemCost)}</strong>
+                    <small>{advancedEstimationResult.panelsNeeded} panels • {advancedEstimationResult.roofSpaceNeeded} sqm</small>
+                  </div>
+
+                  <div className="result-item">
+                    <span className="result-label">Grid Dependency</span>
+                    <strong>{advancedEstimationResult.gridDependency}%</strong>
+                  </div>
+
+                  <div className="result-item">
+                    <span className="result-label">Payback Period</span>
+                    <strong>{advancedEstimationResult.paybackPeriod} years</strong>
+                  </div>
+
+                  <div className="result-item">
+                    <span className="result-label">CO₂ Offset/Year</span>
+                    <strong>{formatNumber(advancedEstimationResult.co2OffsetPerYear)} kg</strong>
+                  </div>
+
+                  <div className="result-item full-width">
+                    <span className="result-label">25-Year Savings</span>
+                    <strong>{formatCurrency(advancedEstimationResult.total25YearSavings)}</strong>
+                    <small>With inflation adjustment</small>
+                  </div>
+                </div>
+                <p className="estimator-note">
+                  *This is a preliminary estimate. Actual savings may vary based on site conditions.
+                  <button className="text-link" onClick={() => scrollToSection('free-vs-paid')}>
+                    Book a detailed site assessment for accurate results.
+                  </button>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -655,22 +647,22 @@ const LandingPage = () => {
               <div className="step-circle">1</div>
               <h3>Request a Free Estimate</h3>
             </div>
-            
+
             <div className="howitworks-step">
               <div className="step-circle">2</div>
               <h3>Review Your Initial Results</h3>
             </div>
-            
+
             <div className="howitworks-step">
               <div className="step-circle">3</div>
               <h3>Book a Site Assessment</h3>
             </div>
-            
+
             <div className="howitworks-step">
               <div className="step-circle">4</div>
               <h3>Receive Your Solar Plan</h3>
             </div>
-            
+
             <div className="howitworks-step">
               <div className="step-circle">5</div>
               <h3>Installation & Completion</h3>
@@ -764,10 +756,10 @@ const LandingPage = () => {
             <button className="modal-close" onClick={closeModal}>
               <FaTimes />
             </button>
-            
+
             <h2>Free Solar Estimate</h2>
             <p>Enter your average monthly electricity bill</p>
-            
+
             <div className="estimate-form">
               <div className="input-group">
                 <span className="currency">₱</span>
@@ -779,7 +771,7 @@ const LandingPage = () => {
                 />
               </div>
 
-              <button 
+              <button
                 className="btn-primary"
                 onClick={calculateEstimate}
                 disabled={!monthlyBill}
@@ -806,7 +798,7 @@ const LandingPage = () => {
                 <p className="result-note">
                   *This is a rough estimate. Book a site assessment for accurate results.
                 </p>
-                <button 
+                <button
                   className="btn-primary"
                   onClick={() => {
                     closeModal();
@@ -856,7 +848,7 @@ const LandingPage = () => {
 
             <div className="footer-cta">
               <h4>Ready to save?</h4>
-              <button 
+              <button
                 className="btn-primary"
                 onClick={() => scrollToSection('solar-estimator')}
               >

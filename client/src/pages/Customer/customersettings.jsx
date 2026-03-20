@@ -175,40 +175,43 @@ const CustomerSettings = () => {
     fetchBillingHistory();
   }, []);
 
-  // Update URL when tab changes
+  // Listen for URL tab changes
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    params.set('tab', activeTab);
-    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
-  }, [activeTab, navigate, location.pathname]);
+    const tabFromUrl = params.get('tab');
+    if (tabFromUrl && ['profile', 'addresses', 'notifications', 'security', 'preferences', 'billing'].includes(tabFromUrl)) {
+      if (tabFromUrl !== activeTab) {
+        setActiveTab(tabFromUrl);
+      }
+    }
+  }, [location.search, activeTab]);
 
-  // In CustomerSettings.jsx - update the fetchUserData function
-const fetchUserData = async () => {
-  try {
-    setLoading(true);
-    const token = sessionStorage.getItem('token');
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/clients/me`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/clients/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-    const client = response.data.client;
-    setProfileData({
-      firstName: client.contactFirstName || '',
-      middleName: client.contactMiddleName || '',
-      lastName: client.contactLastName || '',
-      email: client.email || '',
-      contactNumber: client.contactNumber || '',
-      companyName: client.companyName || '',
-      client_type: client.client_type || 'Individual',
-      birthday: client.birthday || ''  // This will now get the birthday from the client
-    });
-  } catch (err) {
-    console.error('Error fetching user data:', err);
-    setError('Failed to load profile data');
-  } finally {
-    setLoading(false);
-  }
-};
+      const client = response.data.client;
+      setProfileData({
+        firstName: client.contactFirstName || '',
+        middleName: client.contactMiddleName || '',
+        lastName: client.contactLastName || '',
+        email: client.email || '',
+        contactNumber: client.contactNumber || '',
+        companyName: client.companyName || '',
+        client_type: client.client_type || 'Individual',
+        birthday: client.birthday || ''
+      });
+    } catch (err) {
+      console.error('Error fetching user data:', err);
+      setError('Failed to load profile data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchAddresses = async () => {
     try {
@@ -230,7 +233,6 @@ const fetchUserData = async () => {
   };
 
   const fetchBillingHistory = async () => {
-    // Mock billing history - replace with actual API call
     setBillingHistory([
       { id: 'INV-2024-001', date: '2024-01-15', amount: 1500, status: 'paid', description: 'Assessment Fee' },
       { id: 'INV-2024-002', date: '2024-02-10', amount: 25000, status: 'paid', description: 'Initial Payment - Solar Installation' },
@@ -408,7 +410,6 @@ const fetchUserData = async () => {
     if (!passwordData.newPassword) errors.newPassword = 'New password is required';
     if (passwordData.newPassword.length < 8) errors.newPassword = 'Password must be at least 8 characters';
     
-    // Check for at least one uppercase letter, one number, or one special character
     const hasUpperCase = /[A-Z]/.test(passwordData.newPassword);
     const hasNumber = /[0-9]/.test(passwordData.newPassword);
     const hasSpecialChar = /[^A-Za-z0-9]/.test(passwordData.newPassword);
@@ -479,7 +480,6 @@ const fetchUserData = async () => {
 
   const savePreferences = () => {
     localStorage.setItem('userPreferences', JSON.stringify(preferences));
-    // Apply theme immediately
     if (preferences.theme === 'dark') {
       document.body.classList.add('dark-mode');
     } else {
@@ -501,6 +501,554 @@ const fetchUserData = async () => {
     return parts.join(', ');
   };
 
+  // Render different content based on active tab
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'profile':
+        return (
+          <div className="profile-section">
+            <h2>Personal Information</h2>
+            
+            <div className="profile-form">
+              <div className="form-row">
+                <div className="form-group">
+                  <label><FaUser /> First Name</label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={profileData.firstName}
+                    onChange={handleProfileChange}
+                    placeholder="First name"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label><FaUser /> Middle Name</label>
+                  <input
+                    type="text"
+                    name="middleName"
+                    value={profileData.middleName}
+                    onChange={handleProfileChange}
+                    placeholder="Middle name (optional)"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label><FaUser /> Last Name</label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={profileData.lastName}
+                    onChange={handleProfileChange}
+                    placeholder="Last name"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label><FaEnvelope /> Email Address</label>
+                  <input
+                    type="email"
+                    value={profileData.email}
+                    disabled
+                    className="readonly"
+                  />
+                  <small>Email cannot be changed</small>
+                </div>
+
+                <div className="form-group">
+                  <label><FaPhone /> Contact Number</label>
+                  <input
+                    type="tel"
+                    name="contactNumber"
+                    value={profileData.contactNumber}
+                    onChange={handleProfileChange}
+                    placeholder="09XXXXXXXXX"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label><FaBuilding /> Company Name</label>
+                  <input
+                    type="text"
+                    name="companyName"
+                    value={profileData.companyName}
+                    onChange={handleProfileChange}
+                    placeholder="Company name (if applicable)"
+                    disabled={profileData.client_type === 'Individual'}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label><FaCalendarAlt /> Birthday</label>
+                  <input
+                    type="date"
+                    name="birthday"
+                    value={profileData.birthday}
+                    onChange={handleProfileChange}
+                  />
+                </div>
+              </div>
+
+              <div className="form-actions">
+                <button
+                  className="save-btn"
+                  onClick={saveProfile}
+                  disabled={saving}
+                >
+                  {saving ? <><FaSpinner className="spinner" /> Saving...</> : <><FaSave /> Save Changes</>}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'addresses':
+        return (
+          <div className="addresses-section">
+            <div className="section-header">
+              <h2>My Addresses</h2>
+              <button className="add-btn" onClick={handleAddAddress}>
+                <FaPlus /> Add New Address
+              </button>
+            </div>
+
+            {addresses.length === 0 ? (
+              <div className="empty-state">
+                <FaMapMarkerAlt className="empty-icon" />
+                <h3>No addresses yet</h3>
+                <p>Add your first address to get started</p>
+                <button className="add-first-btn" onClick={handleAddAddress}>
+                  <FaPlus /> Add Address
+                </button>
+              </div>
+            ) : (
+              <div className="addresses-grid">
+                {addresses.map(address => (
+                  <div key={address._id} className={`address-card ${address.isPrimary ? 'primary' : ''}`}>
+                    {address.isPrimary && (
+                      <div className="primary-badge">
+                        <FaStar /> Primary
+                      </div>
+                    )}
+                    
+                    <div className="address-label">
+                      <span className="label-badge">{address.label}</span>
+                    </div>
+
+                    <div className="address-details">
+                      <p><FaHashtag /> {address.houseOrBuilding}</p>
+                      <p><FaRoad /> {address.street}</p>
+                      <p><FaCity /> {address.barangay}</p>
+                      <p><FaCity /> {address.cityMunicipality}</p>
+                      <p><FaGlobe /> {address.province}</p>
+                      <p><FaMailBulk /> {address.zipCode}</p>
+                    </div>
+
+                    <div className="address-actions">
+                      {!address.isPrimary && (
+                        <button
+                          className="action-btn primary"
+                          onClick={() => setAsPrimary(address._id)}
+                        >
+                          <FaRegStar /> Set Primary
+                        </button>
+                      )}
+                      <button
+                        className="action-btn edit"
+                        onClick={() => handleEditAddress(address)}
+                      >
+                        <FaEdit /> Edit
+                      </button>
+                      <button
+                        className="action-btn delete"
+                        onClick={() => setDeleteConfirm(address)}
+                      >
+                        <FaTrash /> Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+
+      case 'notifications':
+        return (
+          <div className="notifications-section">
+            <h2>Notification Preferences</h2>
+            
+            <div className="preferences-group">
+              <h3>Communication Channels</h3>
+              <div className="checkbox-list">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="emailNotifications"
+                    checked={notificationPrefs.emailNotifications}
+                    onChange={handleNotificationChange}
+                  />
+                  <span>Email Notifications</span>
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="smsNotifications"
+                    checked={notificationPrefs.smsNotifications}
+                    onChange={handleNotificationChange}
+                  />
+                  <span>SMS Notifications</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="preferences-group">
+              <h3>Notification Types</h3>
+              <div className="checkbox-list">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="bookingUpdates"
+                    checked={notificationPrefs.bookingUpdates}
+                    onChange={handleNotificationChange}
+                  />
+                  <span>Booking Updates</span>
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="paymentConfirmations"
+                    checked={notificationPrefs.paymentConfirmations}
+                    onChange={handleNotificationChange}
+                  />
+                  <span>Payment Confirmations</span>
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="assessmentReminders"
+                    checked={notificationPrefs.assessmentReminders}
+                    onChange={handleNotificationChange}
+                  />
+                  <span>Assessment Reminders</span>
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="systemAlerts"
+                    checked={notificationPrefs.systemAlerts}
+                    onChange={handleNotificationChange}
+                  />
+                  <span>System Alerts</span>
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="promotionalEmails"
+                    checked={notificationPrefs.promotionalEmails}
+                    onChange={handleNotificationChange}
+                  />
+                  <span>Promotional Emails</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="form-actions">
+              <button className="save-btn" onClick={saveNotificationPrefs}>
+                <FaSave /> Save Preferences
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'security':
+        return (
+          <div className="security-section">
+            <h2>Security Settings</h2>
+
+            <div className="security-group">
+              <div className="group-header">
+                <h3><FaKey /> Password</h3>
+                {!showPasswordForm && (
+                  <button
+                    className="change-btn"
+                    onClick={() => setShowPasswordForm(true)}
+                  >
+                    Change Password
+                  </button>
+                )}
+              </div>
+
+              {showPasswordForm && (
+                <form onSubmit={handlePasswordChange} className="password-form">
+                  <div className="form-group">
+                    <label>Current Password</label>
+                    <div className="password-input-wrapper">
+                      <input
+                        type={showCurrentPassword ? 'text' : 'password'}
+                        value={passwordData.currentPassword}
+                        onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                        className={passwordErrors.currentPassword ? 'error' : ''}
+                        placeholder="Enter your current password"
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle-btn"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      >
+                        {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
+                    {passwordErrors.currentPassword && (
+                      <small className="error-text">{passwordErrors.currentPassword}</small>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label>New Password</label>
+                    <div className="password-input-wrapper">
+                      <input
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={passwordData.newPassword}
+                        onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                        className={passwordErrors.newPassword ? 'error' : ''}
+                        placeholder="Enter new password (min. 8 characters)"
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle-btn"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                      >
+                        {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
+                    {passwordErrors.newPassword && (
+                      <small className="error-text">{passwordErrors.newPassword}</small>
+                    )}
+                    <small className="password-hint">
+                      Password must be at least 8 characters long
+                    </small>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Confirm New Password</label>
+                    <div className="password-input-wrapper">
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={passwordData.confirmPassword}
+                        onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                        className={passwordErrors.confirmPassword ? 'error' : ''}
+                        placeholder="Confirm your new password"
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle-btn"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                        {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
+                    {passwordErrors.confirmPassword && (
+                      <small className="error-text">{passwordErrors.confirmPassword}</small>
+                    )}
+                  </div>
+
+                  {passwordData.newPassword && (
+                    <div className="password-strength">
+                      <div className="strength-meter">
+                        <div 
+                          className={`strength-bar ${getPasswordStrength(passwordData.newPassword)}`} 
+                          style={{ width: `${getPasswordStrengthPercent(passwordData.newPassword)}%` }}
+                        ></div>
+                      </div>
+                      <small className="strength-text">
+                        Password strength: {getPasswordStrengthLabel(passwordData.newPassword)}
+                      </small>
+                    </div>
+                  )}
+
+                  <div className="form-actions">
+                    <button
+                      type="button"
+                      className="cancel-btn"
+                      onClick={() => {
+                        setShowPasswordForm(false);
+                        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                        setPasswordErrors({});
+                        setShowCurrentPassword(false);
+                        setShowNewPassword(false);
+                        setShowConfirmPassword(false);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="save-btn"
+                      disabled={saving}
+                    >
+                      {saving ? <><FaSpinner className="spinner" /> Updating...</> : 'Update Password'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+
+            <div className="security-group">
+              <h3><FaShieldAlt /> Session Settings</h3>
+              <div className="info-message">
+                <p>Your session will automatically timeout after 30 minutes of inactivity.</p>
+                <small>Contact support if you need to adjust these settings.</small>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'preferences':
+        return (
+          <div className="preferences-section">
+            <h2>Account Preferences</h2>
+
+            <div className="preferences-grid">
+              <div className="preference-group">
+                <label><FaLanguage /> Language</label>
+                <select
+                  name="language"
+                  value={preferences.language}
+                  onChange={handlePreferenceChange}
+                >
+                  <option value="en">English</option>
+                  <option value="fil">Filipino</option>
+                  <option value="ceb">Cebuano</option>
+                </select>
+              </div>
+
+              <div className="preference-group">
+                <label><FaPalette /> Theme</label>
+                <div className="theme-selector">
+                  <label className={`theme-option ${preferences.theme === 'light' ? 'active' : ''}`}>
+                    <input
+                      type="radio"
+                      name="theme"
+                      value="light"
+                      checked={preferences.theme === 'light'}
+                      onChange={handlePreferenceChange}
+                    />
+                    <FaSun /> Light
+                  </label>
+                  <label className={`theme-option ${preferences.theme === 'dark' ? 'active' : ''}`}>
+                    <input
+                      type="radio"
+                      name="theme"
+                      value="dark"
+                      checked={preferences.theme === 'dark'}
+                      onChange={handlePreferenceChange}
+                    />
+                    <FaMoon /> Dark
+                  </label>
+                </div>
+              </div>
+
+              <div className="preference-group">
+                <label><FaGlobeAsia /> Timezone</label>
+                <select
+                  name="timezone"
+                  value={preferences.timezone}
+                  onChange={handlePreferenceChange}
+                >
+                  <option value="Asia/Manila">Asia/Manila (GMT+8)</option>
+                  <option value="Asia/Singapore">Asia/Singapore (GMT+8)</option>
+                  <option value="Asia/Tokyo">Asia/Tokyo (GMT+9)</option>
+                </select>
+              </div>
+
+              <div className="preference-group">
+                <label>Date Format</label>
+                <select
+                  name="dateFormat"
+                  value={preferences.dateFormat}
+                  onChange={handlePreferenceChange}
+                >
+                  <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                  <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                  <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                </select>
+              </div>
+
+              <div className="preference-group">
+                <label>Currency</label>
+                <select
+                  name="currency"
+                  value={preferences.currency}
+                  onChange={handlePreferenceChange}
+                >
+                  <option value="PHP">PHP (₱)</option>
+                  <option value="USD">USD ($)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="form-actions">
+              <button className="save-btn" onClick={savePreferences}>
+                <FaSave /> Save Preferences
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'billing':
+        return (
+          <div className="billing-section">
+            <h2>Billing History</h2>
+            
+            {billingHistory.length === 0 ? (
+              <div className="empty-state">
+                <FaFileInvoice className="empty-icon" />
+                <h3>No billing history</h3>
+                <p>Your transactions will appear here</p>
+              </div>
+            ) : (
+              <div className="billing-table">
+                 <table>
+                  <thead>
+                    <tr>
+                      <th>Invoice</th>
+                      <th>Date</th>
+                      <th>Description</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {billingHistory.map(invoice => (
+                      <tr key={invoice.id}>
+                        <td>{invoice.id}</td>
+                        <td>{invoice.date}</td>
+                        <td>{invoice.description}</td>
+                        <td>₱{invoice.amount.toLocaleString()}</td>
+                        <td>
+                          <span className={`status-badge ${invoice.status}`}>
+                            {invoice.status === 'paid' ? 'Paid' : invoice.status === 'pending' ? 'Pending' : 'Failed'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   if (loading) {
     return (
       <div className="settings-loading">
@@ -520,9 +1068,6 @@ const fetchUserData = async () => {
       <div className="customer-settings">
         {/* Header */}
         <div className="settings-header">
-          <button className="back-btn" onClick={() => navigate('/dashboard/customerdashboard')}>
-            <FaArrowLeft /> Back to Dashboard
-          </button>
           <h1>
             <FaUserCog /> Account Settings
           </h1>
@@ -543,593 +1088,9 @@ const fetchUserData = async () => {
           </div>
         )}
 
-        {/* Navigation Tabs */}
-        <div className="settings-tabs">
-          <button
-            className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
-            onClick={() => setActiveTab('profile')}
-          >
-            <FaUser /> Profile
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'addresses' ? 'active' : ''}`}
-            onClick={() => setActiveTab('addresses')}
-          >
-            <FaAddressBook /> Addresses
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'notifications' ? 'active' : ''}`}
-            onClick={() => setActiveTab('notifications')}
-          >
-            <FaBell /> Notifications
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'security' ? 'active' : ''}`}
-            onClick={() => setActiveTab('security')}
-          >
-            <FaLock /> Security
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'preferences' ? 'active' : ''}`}
-            onClick={() => setActiveTab('preferences')}
-          >
-            <FaPalette /> Preferences
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'billing' ? 'active' : ''}`}
-            onClick={() => setActiveTab('billing')}
-          >
-            <FaFileInvoice /> Billing
-          </button>
-        </div>
-
-        {/* Tab Content */}
+        {/* NO TABS - Direct content only */}
         <div className="tab-content">
-          {/* PROFILE TAB */}
-          {activeTab === 'profile' && (
-            <div className="profile-section">
-              <h2>Personal Information</h2>
-              
-              <div className="profile-form">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label><FaUser /> First Name</label>
-                    <input
-                      type="text"
-                      name="firstName"
-                      value={profileData.firstName}
-                      onChange={handleProfileChange}
-                      placeholder="First name"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label><FaUser /> Middle Name</label>
-                    <input
-                      type="text"
-                      name="middleName"
-                      value={profileData.middleName}
-                      onChange={handleProfileChange}
-                      placeholder="Middle name (optional)"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label><FaUser /> Last Name</label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={profileData.lastName}
-                      onChange={handleProfileChange}
-                      placeholder="Last name"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label><FaEnvelope /> Email Address</label>
-                    <input
-                      type="email"
-                      value={profileData.email}
-                      disabled
-                      className="readonly"
-                    />
-                    <small>Email cannot be changed</small>
-                  </div>
-
-                  <div className="form-group">
-                    <label><FaPhone /> Contact Number</label>
-                    <input
-                      type="tel"
-                      name="contactNumber"
-                      value={profileData.contactNumber}
-                      onChange={handleProfileChange}
-                      placeholder="09XXXXXXXXX"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label><FaBuilding /> Company Name</label>
-                    <input
-                      type="text"
-                      name="companyName"
-                      value={profileData.companyName}
-                      onChange={handleProfileChange}
-                      placeholder="Company name (if applicable)"
-                      disabled={profileData.client_type === 'Individual'}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label><FaCalendarAlt /> Birthday</label>
-                    <input
-                      type="date"
-                      name="birthday"
-                      value={profileData.birthday}
-                      onChange={handleProfileChange}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-actions">
-                  <button
-                    className="save-btn"
-                    onClick={saveProfile}
-                    disabled={saving}
-                  >
-                    {saving ? <><FaSpinner className="spinner" /> Saving...</> : <><FaSave /> Save Changes</>}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ADDRESSES TAB */}
-          {activeTab === 'addresses' && (
-            <div className="addresses-section">
-              <div className="section-header">
-                <h2>My Addresses</h2>
-                <button className="add-btn" onClick={handleAddAddress}>
-                  <FaPlus /> Add New Address
-                </button>
-              </div>
-
-              {addresses.length === 0 ? (
-                <div className="empty-state">
-                  <FaMapMarkerAlt className="empty-icon" />
-                  <h3>No addresses yet</h3>
-                  <p>Add your first address to get started</p>
-                  <button className="add-first-btn" onClick={handleAddAddress}>
-                    <FaPlus /> Add Address
-                  </button>
-                </div>
-              ) : (
-                <div className="addresses-grid">
-                  {addresses.map(address => (
-                    <div key={address._id} className={`address-card ${address.isPrimary ? 'primary' : ''}`}>
-                      {address.isPrimary && (
-                        <div className="primary-badge">
-                          <FaStar /> Primary
-                        </div>
-                      )}
-                      
-                      <div className="address-label">
-                        <span className="label-badge">{address.label}</span>
-                      </div>
-
-                      <div className="address-details">
-                        <p><FaHashtag /> {address.houseOrBuilding}</p>
-                        <p><FaRoad /> {address.street}</p>
-                        <p><FaCity /> {address.barangay}</p>
-                        <p><FaCity /> {address.cityMunicipality}</p>
-                        <p><FaGlobe /> {address.province}</p>
-                        <p><FaMailBulk /> {address.zipCode}</p>
-                      </div>
-
-                      <div className="address-actions">
-                        {!address.isPrimary && (
-                          <button
-                            className="action-btn primary"
-                            onClick={() => setAsPrimary(address._id)}
-                          >
-                            <FaRegStar /> Set Primary
-                          </button>
-                        )}
-                        <button
-                          className="action-btn edit"
-                          onClick={() => handleEditAddress(address)}
-                        >
-                          <FaEdit /> Edit
-                        </button>
-                        <button
-                          className="action-btn delete"
-                          onClick={() => setDeleteConfirm(address)}
-                        >
-                          <FaTrash /> Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* NOTIFICATIONS TAB */}
-          {activeTab === 'notifications' && (
-            <div className="notifications-section">
-              <h2>Notification Preferences</h2>
-              
-              <div className="preferences-group">
-                <h3>Communication Channels</h3>
-                <div className="checkbox-list">
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      name="emailNotifications"
-                      checked={notificationPrefs.emailNotifications}
-                      onChange={handleNotificationChange}
-                    />
-                    <span>Email Notifications</span>
-                  </label>
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      name="smsNotifications"
-                      checked={notificationPrefs.smsNotifications}
-                      onChange={handleNotificationChange}
-                    />
-                    <span>SMS Notifications</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="preferences-group">
-                <h3>Notification Types</h3>
-                <div className="checkbox-list">
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      name="bookingUpdates"
-                      checked={notificationPrefs.bookingUpdates}
-                      onChange={handleNotificationChange}
-                    />
-                    <span>Booking Updates</span>
-                  </label>
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      name="paymentConfirmations"
-                      checked={notificationPrefs.paymentConfirmations}
-                      onChange={handleNotificationChange}
-                    />
-                    <span>Payment Confirmations</span>
-                  </label>
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      name="assessmentReminders"
-                      checked={notificationPrefs.assessmentReminders}
-                      onChange={handleNotificationChange}
-                    />
-                    <span>Assessment Reminders</span>
-                  </label>
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      name="systemAlerts"
-                      checked={notificationPrefs.systemAlerts}
-                      onChange={handleNotificationChange}
-                    />
-                    <span>System Alerts</span>
-                  </label>
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      name="promotionalEmails"
-                      checked={notificationPrefs.promotionalEmails}
-                      onChange={handleNotificationChange}
-                    />
-                    <span>Promotional Emails</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="form-actions">
-                <button className="save-btn" onClick={saveNotificationPrefs}>
-                  <FaSave /> Save Preferences
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* SECURITY TAB */}
-          {activeTab === 'security' && (
-            <div className="security-section">
-              <h2>Security Settings</h2>
-
-              {/* Password Change */}
-              <div className="security-group">
-                <div className="group-header">
-                  <h3><FaKey /> Password</h3>
-                  {!showPasswordForm && (
-                    <button
-                      className="change-btn"
-                      onClick={() => setShowPasswordForm(true)}
-                    >
-                      Change Password
-                    </button>
-                  )}
-                </div>
-
-                {showPasswordForm && (
-                  <form onSubmit={handlePasswordChange} className="password-form">
-                    {/* Current Password Field */}
-                    <div className="form-group">
-                      <label>Current Password</label>
-                      <div className="password-input-wrapper">
-                        <input
-                          type={showCurrentPassword ? 'text' : 'password'}
-                          value={passwordData.currentPassword}
-                          onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                          className={passwordErrors.currentPassword ? 'error' : ''}
-                          placeholder="Enter your current password"
-                        />
-                        <button
-                          type="button"
-                          className="password-toggle-btn"
-                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                        >
-                          {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
-                        </button>
-                      </div>
-                      {passwordErrors.currentPassword && (
-                        <small className="error-text">{passwordErrors.currentPassword}</small>
-                      )}
-                    </div>
-
-                    {/* New Password Field */}
-                    <div className="form-group">
-                      <label>New Password</label>
-                      <div className="password-input-wrapper">
-                        <input
-                          type={showNewPassword ? 'text' : 'password'}
-                          value={passwordData.newPassword}
-                          onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                          className={passwordErrors.newPassword ? 'error' : ''}
-                          placeholder="Enter new password (min. 8 characters)"
-                        />
-                        <button
-                          type="button"
-                          className="password-toggle-btn"
-                          onClick={() => setShowNewPassword(!showNewPassword)}
-                        >
-                          {showNewPassword ? <FaEyeSlash /> : <FaEye />}
-                        </button>
-                      </div>
-                      {passwordErrors.newPassword && (
-                        <small className="error-text">{passwordErrors.newPassword}</small>
-                      )}
-                      <small className="password-hint">
-                        Password must be at least 8 characters long
-                      </small>
-                    </div>
-
-                    {/* Confirm Password Field */}
-                    <div className="form-group">
-                      <label>Confirm New Password</label>
-                      <div className="password-input-wrapper">
-                        <input
-                          type={showConfirmPassword ? 'text' : 'password'}
-                          value={passwordData.confirmPassword}
-                          onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                          className={passwordErrors.confirmPassword ? 'error' : ''}
-                          placeholder="Confirm your new password"
-                        />
-                        <button
-                          type="button"
-                          className="password-toggle-btn"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        >
-                          {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                        </button>
-                      </div>
-                      {passwordErrors.confirmPassword && (
-                        <small className="error-text">{passwordErrors.confirmPassword}</small>
-                      )}
-                    </div>
-
-                    {/* Password Strength Indicator */}
-                    {passwordData.newPassword && (
-                      <div className="password-strength">
-                        <div className="strength-meter">
-                          <div 
-                            className={`strength-bar ${getPasswordStrength(passwordData.newPassword)}`} 
-                            style={{ width: `${getPasswordStrengthPercent(passwordData.newPassword)}%` }}
-                          ></div>
-                        </div>
-                        <small className="strength-text">
-                          Password strength: {getPasswordStrengthLabel(passwordData.newPassword)}
-                        </small>
-                      </div>
-                    )}
-
-                    <div className="form-actions">
-                      <button
-                        type="button"
-                        className="cancel-btn"
-                        onClick={() => {
-                          setShowPasswordForm(false);
-                          setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-                          setPasswordErrors({});
-                          setShowCurrentPassword(false);
-                          setShowNewPassword(false);
-                          setShowConfirmPassword(false);
-                        }}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="save-btn"
-                        disabled={saving}
-                      >
-                        {saving ? <><FaSpinner className="spinner" /> Updating...</> : 'Update Password'}
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
-
-              {/* Session Settings */}
-              <div className="security-group">
-                <h3><FaShieldAlt /> Session Settings</h3>
-                <div className="info-message">
-                  <p>Your session will automatically timeout after 30 minutes of inactivity.</p>
-                  <small>Contact support if you need to adjust these settings.</small>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* PREFERENCES TAB */}
-          {activeTab === 'preferences' && (
-            <div className="preferences-section">
-              <h2>Account Preferences</h2>
-
-              <div className="preferences-grid">
-                <div className="preference-group">
-                  <label><FaLanguage /> Language</label>
-                  <select
-                    name="language"
-                    value={preferences.language}
-                    onChange={handlePreferenceChange}
-                  >
-                    <option value="en">English</option>
-                    <option value="fil">Filipino</option>
-                    <option value="ceb">Cebuano</option>
-                  </select>
-                </div>
-
-                <div className="preference-group">
-                  <label><FaPalette /> Theme</label>
-                  <div className="theme-selector">
-                    <label className={`theme-option ${preferences.theme === 'light' ? 'active' : ''}`}>
-                      <input
-                        type="radio"
-                        name="theme"
-                        value="light"
-                        checked={preferences.theme === 'light'}
-                        onChange={handlePreferenceChange}
-                      />
-                      <FaSun /> Light
-                    </label>
-                    <label className={`theme-option ${preferences.theme === 'dark' ? 'active' : ''}`}>
-                      <input
-                        type="radio"
-                        name="theme"
-                        value="dark"
-                        checked={preferences.theme === 'dark'}
-                        onChange={handlePreferenceChange}
-                      />
-                      <FaMoon /> Dark
-                    </label>
-                  </div>
-                </div>
-
-                <div className="preference-group">
-                  <label><FaGlobeAsia /> Timezone</label>
-                  <select
-                    name="timezone"
-                    value={preferences.timezone}
-                    onChange={handlePreferenceChange}
-                  >
-                    <option value="Asia/Manila">Asia/Manila (GMT+8)</option>
-                    <option value="Asia/Singapore">Asia/Singapore (GMT+8)</option>
-                    <option value="Asia/Tokyo">Asia/Tokyo (GMT+9)</option>
-                  </select>
-                </div>
-
-                <div className="preference-group">
-                  <label>Date Format</label>
-                  <select
-                    name="dateFormat"
-                    value={preferences.dateFormat}
-                    onChange={handlePreferenceChange}
-                  >
-                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                  </select>
-                </div>
-
-                <div className="preference-group">
-                  <label>Currency</label>
-                  <select
-                    name="currency"
-                    value={preferences.currency}
-                    onChange={handlePreferenceChange}
-                  >
-                    <option value="PHP">PHP (₱)</option>
-                    <option value="USD">USD ($)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-actions">
-                <button className="save-btn" onClick={savePreferences}>
-                  <FaSave /> Save Preferences
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* BILLING TAB */}
-          {activeTab === 'billing' && (
-            <div className="billing-section">
-              <h2>Billing History</h2>
-              
-              {billingHistory.length === 0 ? (
-                <div className="empty-state">
-                  <FaFileInvoice className="empty-icon" />
-                  <h3>No billing history</h3>
-                  <p>Your transactions will appear here</p>
-                </div>
-              ) : (
-                <div className="billing-table">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Invoice</th>
-                        <th>Date</th>
-                        <th>Description</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {billingHistory.map(invoice => (
-                        <tr key={invoice.id}>
-                          <td>{invoice.id}</td>
-                          <td>{invoice.date}</td>
-                          <td>{invoice.description}</td>
-                          <td>₱{invoice.amount.toLocaleString()}</td>
-                          <td>
-                            <span className={`status-badge ${invoice.status}`}>
-                              {invoice.status === 'paid' ? 'Paid' : invoice.status === 'pending' ? 'Pending' : 'Failed'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
+          {renderTabContent()}
         </div>
 
         {/* Address Modal */}

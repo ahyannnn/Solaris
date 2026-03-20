@@ -4,23 +4,24 @@ import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../../firebase";
+import { Helmet } from 'react-helmet-async'; // ✅ Add this with other imports
 import logo from '../../assets/Salfare_Logo.png';
 import '../../styles/Auth/register.css';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1); // 1: Details, 2: Verify Code, 3: Success
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
-  
+
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -104,9 +105,9 @@ const RegisterPage = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           email: formData.email,
-          name: formData.fullName 
+          name: formData.fullName
         })
       });
 
@@ -146,7 +147,7 @@ const RegisterPage = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           email: formData.email,
           code: verificationCode
         })
@@ -234,9 +235,9 @@ const RegisterPage = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           email: formData.email,
-          name: formData.fullName 
+          name: formData.fullName
         })
       });
 
@@ -312,299 +313,306 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="register-page">
-      {/* MODAL */}
-      {modal.show && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className={`modal-content ${modal.type}`} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <span className="modal-icon">
-                {modal.type === 'warning' ? '⚠️' : '❌'}
-              </span>
-              <h3>{modal.type === 'warning' ? 'Account Already Exists' : 'Registration Failed'}</h3>
+    <>
+      <Helmet>
+        <title>Create Account</title>
+        <meta name="description" content="Create a new account with Salfer Engineering to access solar solutions and manage your renewable energy projects." />
+      </Helmet>
+
+      <div className="register-page">
+        {/* MODAL */}
+        {modal.show && (
+          <div className="modal-overlay" onClick={closeModal}>
+            <div className={`modal-content ${modal.type}`} onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <span className="modal-icon">
+                  {modal.type === 'warning' ? '⚠️' : '❌'}
+                </span>
+                <h3>{modal.type === 'warning' ? 'Account Already Exists' : 'Registration Failed'}</h3>
+              </div>
+              <div className="modal-body">
+                <p>{modal.message}</p>
+                {modal.type === 'warning' && (
+                  <p style={{ marginTop: '10px', fontSize: '14px' }}>
+                    <Link to="/login" style={{ color: '#f39c12', fontWeight: '600' }}>Click here to sign in</Link>
+                  </p>
+                )}
+              </div>
+              <button className="modal-close-btn" onClick={closeModal}>Got it</button>
             </div>
-            <div className="modal-body">
-              <p>{modal.message}</p>
-              {modal.type === 'warning' && (
-                <p style={{ marginTop: '10px', fontSize: '14px' }}>
-                  <Link to="/login" style={{ color: '#f39c12', fontWeight: '600' }}>Click here to sign in</Link>
-                </p>
+          </div>
+        )}
+
+        <div className="register-card">
+          {/* LEFT BRANDING */}
+          <div className="register-branding">
+            <div className="branding-content">
+              <div className="brand-logo">
+                <img src={logo} alt="Salfer Engineering" className="brand-logo-img" />
+                <h1 className="brand-name">Salfer Engineering</h1>
+              </div>
+              <h2 className="brand-tagline">Solar Technology Enterprise</h2>
+              <p className="brand-description">
+                Join Salfer Engineering to access solar solutions and manage your renewable energy projects.
+              </p>
+              <div className="brand-features">
+                <div className="brand-feature"><span className="feature-dot"></span> Free Solar Estimate</div>
+                <div className="brand-feature"><span className="feature-dot"></span> Professional Installation</div>
+                <div className="brand-feature"><span className="feature-dot"></span> 5-Year Warranty</div>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT FORM */}
+          <div className="register-form-container">
+            <div className="register-form-wrapper">
+              {/* Step 1: Account Details */}
+              {currentStep === 1 && (
+                <>
+                  <div className="form-header">
+                    <h2 className="form-title">Create Account</h2>
+                    <p className="form-subtitle">Enter your details to get started</p>
+                  </div>
+
+                  {errors.general && (
+                    <div className="general-error" style={{
+                      backgroundColor: '#fee2e2',
+                      color: '#dc2626',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      marginBottom: '16px',
+                      fontSize: '14px',
+                      textAlign: 'center'
+                    }}>
+                      {errors.general}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleStep1Submit} className="register-form">
+                    {/* FULL NAME */}
+                    <div className="form-group">
+                      <label className="form-label">Full Name</label>
+                      <div className="input-wrapper">
+                        <FaUser className="input-icon" />
+                        <input
+                          type="text"
+                          name="fullName"
+                          className={`form-input ${errors.fullName ? 'input-error' : ''}`}
+                          placeholder="Enter your full name"
+                          value={formData.fullName}
+                          onChange={handleChange}
+                          disabled={isLoading || socialLoading !== ''}
+                        />
+                      </div>
+                      {errors.fullName && <span className="error-message">{errors.fullName}</span>}
+                    </div>
+
+                    {/* EMAIL */}
+                    <div className="form-group">
+                      <label className="form-label">Email Address</label>
+                      <div className="input-wrapper">
+                        <FaEnvelope className="input-icon" />
+                        <input
+                          type="email"
+                          name="email"
+                          className={`form-input ${errors.email ? 'input-error' : ''}`}
+                          placeholder="Enter your email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          disabled={isLoading || socialLoading !== ''}
+                        />
+                      </div>
+                      {errors.email && <span className="error-message">{errors.email}</span>}
+                    </div>
+
+                    {/* PASSWORD */}
+                    <div className="form-group">
+                      <label className="form-label">Password</label>
+                      <div className="input-wrapper">
+                        <FaLock className="input-icon" />
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          name="password"
+                          className={`form-input ${errors.password ? 'input-error' : ''}`}
+                          placeholder="Create a password"
+                          value={formData.password}
+                          onChange={handleChange}
+                          disabled={isLoading || socialLoading !== ''}
+                        />
+                        <button
+                          type="button"
+                          className="password-toggle"
+                          onClick={() => setShowPassword(!showPassword)}
+                          disabled={isLoading || socialLoading !== ''}
+                        >
+                          {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </button>
+                      </div>
+                      {errors.password && <span className="error-message">{errors.password}</span>}
+                    </div>
+
+                    {/* CONFIRM PASSWORD */}
+                    <div className="form-group">
+                      <label className="form-label">Confirm Password</label>
+                      <div className="input-wrapper">
+                        <FaLock className="input-icon" />
+                        <input
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          name="confirmPassword"
+                          className={`form-input ${errors.confirmPassword ? 'input-error' : ''}`}
+                          placeholder="Confirm your password"
+                          value={formData.confirmPassword}
+                          onChange={handleChange}
+                          disabled={isLoading || socialLoading !== ''}
+                        />
+                        <button
+                          type="button"
+                          className="password-toggle"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          disabled={isLoading || socialLoading !== ''}
+                        >
+                          {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                        </button>
+                      </div>
+                      {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+                    </div>
+
+                    {/* SUBMIT */}
+                    <button
+                      type="submit"
+                      className="register-submit-btn"
+                      disabled={isLoading || socialLoading !== ''}
+                    >
+                      {isLoading ? 'Sending Code...' : 'Send Verification Code'}
+                    </button>
+
+                    {/* SOCIAL LOGIN */}
+                    <div className="social-login">
+                      <p className="social-login-text">Or sign up with</p>
+                      <div className="social-buttons">
+                        <button
+                          type="button"
+                          className={`social-btn google ${socialLoading === 'google' ? 'loading' : ''}`}
+                          onClick={handleGoogleRegister}
+                          disabled={isLoading || socialLoading !== ''}
+                        >
+                          {socialLoading === 'google' ? (
+                            <span className="loading-spinner"></span>
+                          ) : (
+                            <FcGoogle className="google-icon" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* LOGIN LINK */}
+                    <div className="login-prompt">
+                      <p className="login-text">
+                        Already have an account? <Link to="/login" className="login-link">Sign in</Link>
+                      </p>
+                    </div>
+                  </form>
+                </>
+              )}
+
+              {/* Step 2: Verification Code */}
+              {currentStep === 2 && (
+                <>
+                  <div className="form-header">
+                    <h2 className="form-title">Verify Your Email</h2>
+                    <p className="form-subtitle">
+                      We've sent a 6-digit code to <strong>{formData.email}</strong>
+                    </p>
+                  </div>
+
+                  {errors.code && (
+                    <div className="general-error" style={{
+                      backgroundColor: '#fee2e2',
+                      color: '#dc2626',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      marginBottom: '16px',
+                      fontSize: '14px',
+                      textAlign: 'center'
+                    }}>
+                      {errors.code}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleStep2Submit} className="register-form">
+                    <div className="code-input-group">
+                      <div className="code-inputs">
+                        {code.map((digit, index) => (
+                          <input
+                            key={index}
+                            id={`code-${index}`}
+                            type="text"
+                            maxLength="1"
+                            className={`code-input ${errors.code ? 'input-error' : ''}`}
+                            value={digit}
+                            onChange={(e) => handleCodeChange(index, e.target.value)}
+                            onKeyDown={(e) => handleKeyDown(index, e)}
+                            disabled={isLoading}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="register-submit-btn"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Verifying...' : 'Verify Code'}
+                    </button>
+
+                    <div className="resend-code">
+                      <p className="resend-text">
+                        Didn't receive code?{' '}
+                        <button
+                          type="button"
+                          className="resend-link"
+                          onClick={handleResendCode}
+                          disabled={isLoading}
+                        >
+                          Resend
+                        </button>
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="back-button"
+                      onClick={() => setCurrentStep(1)}
+                      disabled={isLoading}
+                    >
+                      <FaArrowLeft /> Back to Registration
+                    </button>
+                  </form>
+                </>
+              )}
+
+              {/* Step 3: Success */}
+              {currentStep === 3 && (
+                <div className="success-container">
+                  <div className="success-icon">✓</div>
+                  <h2 className="success-title">Successfully Registered!</h2>
+                  <p className="success-text">
+                    Your account has been created successfully. You can now log in to access your solar projects.
+                  </p>
+                  <button
+                    onClick={handleBackToLogin}
+                    className="back-to-login-btn"
+                  >
+                    Back to Login
+                  </button>
+                </div>
               )}
             </div>
-            <button className="modal-close-btn" onClick={closeModal}>Got it</button>
-          </div>
-        </div>
-      )}
-
-      <div className="register-card">
-        {/* LEFT BRANDING */}
-        <div className="register-branding">
-          <div className="branding-content">
-            <div className="brand-logo">
-              <img src={logo} alt="Salfer Engineering" className="brand-logo-img" />
-              <h1 className="brand-name">Salfer Engineering</h1>
-            </div>
-            <h2 className="brand-tagline">Solar Technology Enterprise</h2>
-            <p className="brand-description">
-              Join Salfer Engineering to access solar solutions and manage your renewable energy projects.
-            </p>
-            <div className="brand-features">
-              <div className="brand-feature"><span className="feature-dot"></span> Free Solar Estimate</div>
-              <div className="brand-feature"><span className="feature-dot"></span> Professional Installation</div>
-              <div className="brand-feature"><span className="feature-dot"></span> 5-Year Warranty</div>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT FORM */}
-        <div className="register-form-container">
-          <div className="register-form-wrapper">
-            {/* Step 1: Account Details */}
-            {currentStep === 1 && (
-              <>
-                <div className="form-header">
-                  <h2 className="form-title">Create Account</h2>
-                  <p className="form-subtitle">Enter your details to get started</p>
-                </div>
-
-                {errors.general && (
-                  <div className="general-error" style={{
-                    backgroundColor: '#fee2e2',
-                    color: '#dc2626',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    marginBottom: '16px',
-                    fontSize: '14px',
-                    textAlign: 'center'
-                  }}>
-                    {errors.general}
-                  </div>
-                )}
-
-                <form onSubmit={handleStep1Submit} className="register-form">
-                  {/* FULL NAME */}
-                  <div className="form-group">
-                    <label className="form-label">Full Name</label>
-                    <div className="input-wrapper">
-                      <FaUser className="input-icon" />
-                      <input
-                        type="text"
-                        name="fullName"
-                        className={`form-input ${errors.fullName ? 'input-error' : ''}`}
-                        placeholder="Enter your full name"
-                        value={formData.fullName}
-                        onChange={handleChange}
-                        disabled={isLoading || socialLoading !== ''}
-                      />
-                    </div>
-                    {errors.fullName && <span className="error-message">{errors.fullName}</span>}
-                  </div>
-
-                  {/* EMAIL */}
-                  <div className="form-group">
-                    <label className="form-label">Email Address</label>
-                    <div className="input-wrapper">
-                      <FaEnvelope className="input-icon" />
-                      <input
-                        type="email"
-                        name="email"
-                        className={`form-input ${errors.email ? 'input-error' : ''}`}
-                        placeholder="Enter your email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        disabled={isLoading || socialLoading !== ''}
-                      />
-                    </div>
-                    {errors.email && <span className="error-message">{errors.email}</span>}
-                  </div>
-
-                  {/* PASSWORD */}
-                  <div className="form-group">
-                    <label className="form-label">Password</label>
-                    <div className="input-wrapper">
-                      <FaLock className="input-icon" />
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        name="password"
-                        className={`form-input ${errors.password ? 'input-error' : ''}`}
-                        placeholder="Create a password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        disabled={isLoading || socialLoading !== ''}
-                      />
-                      <button 
-                        type="button" 
-                        className="password-toggle" 
-                        onClick={() => setShowPassword(!showPassword)}
-                        disabled={isLoading || socialLoading !== ''}
-                      >
-                        {showPassword ? <FaEyeSlash /> : <FaEye />}
-                      </button>
-                    </div>
-                    {errors.password && <span className="error-message">{errors.password}</span>}
-                  </div>
-
-                  {/* CONFIRM PASSWORD */}
-                  <div className="form-group">
-                    <label className="form-label">Confirm Password</label>
-                    <div className="input-wrapper">
-                      <FaLock className="input-icon" />
-                      <input
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        name="confirmPassword"
-                        className={`form-input ${errors.confirmPassword ? 'input-error' : ''}`}
-                        placeholder="Confirm your password"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        disabled={isLoading || socialLoading !== ''}
-                      />
-                      <button 
-                        type="button" 
-                        className="password-toggle" 
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        disabled={isLoading || socialLoading !== ''}
-                      >
-                        {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                      </button>
-                    </div> 
-                    {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
-                  </div>
-
-                  {/* SUBMIT */}
-                  <button 
-                    type="submit" 
-                    className="register-submit-btn"
-                    disabled={isLoading || socialLoading !== ''}
-                  >
-                    {isLoading ? 'Sending Code...' : 'Send Verification Code'}
-                  </button>
-
-                  {/* SOCIAL LOGIN */}
-                  <div className="social-login">
-                    <p className="social-login-text">Or sign up with</p>
-                    <div className="social-buttons">
-                      <button
-                        type="button"
-                        className={`social-btn google ${socialLoading === 'google' ? 'loading' : ''}`}
-                        onClick={handleGoogleRegister}
-                        disabled={isLoading || socialLoading !== ''}
-                      >
-                        {socialLoading === 'google' ? (
-                          <span className="loading-spinner"></span>
-                        ) : (
-                          <FcGoogle className="google-icon" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* LOGIN LINK */}
-                  <div className="login-prompt">
-                    <p className="login-text">
-                      Already have an account? <Link to="/login" className="login-link">Sign in</Link>
-                    </p>
-                  </div>
-                </form>
-              </>
-            )}
-
-            {/* Step 2: Verification Code */}
-            {currentStep === 2 && (
-              <>
-                <div className="form-header">
-                  <h2 className="form-title">Verify Your Email</h2>
-                  <p className="form-subtitle">
-                    We've sent a 6-digit code to <strong>{formData.email}</strong>
-                  </p>
-                </div>
-
-                {errors.code && (
-                  <div className="general-error" style={{
-                    backgroundColor: '#fee2e2',
-                    color: '#dc2626',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    marginBottom: '16px',
-                    fontSize: '14px',
-                    textAlign: 'center'
-                  }}>
-                    {errors.code}
-                  </div>
-                )}
-
-                <form onSubmit={handleStep2Submit} className="register-form">
-                  <div className="code-input-group">
-                    <div className="code-inputs">
-                      {code.map((digit, index) => (
-                        <input
-                          key={index}
-                          id={`code-${index}`}
-                          type="text"
-                          maxLength="1"
-                          className={`code-input ${errors.code ? 'input-error' : ''}`}
-                          value={digit}
-                          onChange={(e) => handleCodeChange(index, e.target.value)}
-                          onKeyDown={(e) => handleKeyDown(index, e)}
-                          disabled={isLoading}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <button 
-                    type="submit" 
-                    className="register-submit-btn"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Verifying...' : 'Verify Code'}
-                  </button>
-
-                  <div className="resend-code">
-                    <p className="resend-text">
-                      Didn't receive code?{' '}
-                      <button 
-                        type="button"
-                        className="resend-link"
-                        onClick={handleResendCode}
-                        disabled={isLoading}
-                      >
-                        Resend
-                      </button>
-                    </p>
-                  </div>
-
-                  <button 
-                    type="button"
-                    className="back-button"
-                    onClick={() => setCurrentStep(1)}
-                    disabled={isLoading}
-                  >
-                    <FaArrowLeft /> Back to Registration
-                  </button>
-                </form>
-              </>
-            )}
-
-            {/* Step 3: Success */}
-            {currentStep === 3 && (
-              <div className="success-container">
-                <div className="success-icon">✓</div>
-                <h2 className="success-title">Successfully Registered!</h2>
-                <p className="success-text">
-                  Your account has been created successfully. You can now log in to access your solar projects.
-                </p>
-                <button 
-                  onClick={handleBackToLogin}
-                  className="back-to-login-btn"
-                >
-                  Back to Login
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

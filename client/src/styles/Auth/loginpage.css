@@ -51,6 +51,7 @@
   z-index: 1;
 }
 
+/* Brand logo with image */
 .brand-logo {
   display: flex;
   align-items: center;
@@ -58,10 +59,11 @@
   margin-bottom: 1.5rem;
 }
 
-.brand-icon {
-  font-size: 2.5rem;
-  color: #f39c12;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+.brand-logo-img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  filter: brightness(0) invert(1); /* Makes logo white to match the dark background */
 }
 
 .brand-name {
@@ -87,6 +89,30 @@
   color: #b0bec5;
   margin-bottom: 1.5rem;
   line-height: 1.5;
+}
+
+/* Brand features */
+.brand-features {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.brand-feature {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+}
+
+.feature-dot {
+  width: 6px;
+  height: 6px;
+  background-color: #f39c12;
+  border-radius: 50%;
+  display: inline-block;
 }
 
 /* Right Side - Login Form */
@@ -125,7 +151,7 @@
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem; /* Reduced from 1.25rem */
 }
 
 .form-group {
@@ -138,25 +164,6 @@
   font-size: 0.85rem;
   font-weight: 500;
   color: #2c3e50;
-}
-
-/* Forgot Password */
-.forgot-password-container {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 0.25rem;
-}
-
-.forgot-link {
-  font-size: 0.8rem;
-  color: #f39c12;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.forgot-link:hover {
-  color: #e67e22;
-  text-decoration: underline;
 }
 
 .input-wrapper {
@@ -227,6 +234,47 @@
   margin-top: 0.125rem;
 }
 
+/* Row Actions - Remember Me and Forgot Password (closer to text field) */
+.row-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.25rem; /* Reduced from 0.5rem */
+  margin-bottom: 0.5rem; /* Reduced from 1rem */
+}
+
+.remember-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem; /* Slightly smaller */
+  color: #4a5568;
+}
+
+.remember-checkbox {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: #f39c12;
+}
+
+.remember-label:hover {
+  color: #f39c12;
+}
+
+.forgot-link {
+  font-size: 0.85rem; /* Match remember me size */
+  color: #f39c12;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.forgot-link:hover {
+  color: #e67e22;
+  text-decoration: underline;
+}
+
 /* Submit Button */
 .login-submit-btn {
   background-color: #f39c12;
@@ -242,6 +290,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 0.5rem; /* Added small top margin */
 }
 
 .login-submit-btn:hover {
@@ -259,7 +308,7 @@
   cursor: not-allowed;
 }
 
-/* Loading State - FIXED: spinner stays inside button */
+/* Loading State */
 .login-submit-btn.loading {
   color: transparent;
   pointer-events: none;
@@ -304,7 +353,7 @@
   text-align: center;
   font-size: 0.8rem;
   color: #95a5a6;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem; /* Reduced from 1rem */
   position: relative;
 }
 
@@ -360,7 +409,7 @@
 /* Sign Up Prompt */
 .signup-prompt {
   text-align: center;
-  margin-top: 1rem;
+  margin-top: 0.75rem; /* Reduced from 1rem */
 }
 
 .signup-text {
@@ -444,10 +493,6 @@
     font-size: 1.75rem;
   }
   
-  .brand-icon {
-    font-size: 2rem;
-  }
-  
   .form-title {
     font-size: 1.5rem;
   }
@@ -461,46 +506,74 @@
   .social-login-text::after {
     width: 25%;
   }
+  
+  /* Mobile adjustments for row actions */
+  .row-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
 }
 
-/* Add these to your existing loginpage.css */
+/* Add/Update these in your loginpage.css */
 
-/* Logo image styles */
-.brand-logo-img {
-  width: 50px;
-  height: 50px;
-  object-fit: contain;
-  filter: brightness(0) invert(1); /* Makes logo white to match the dark background */
-}
-
-/* Update brand-logo to accommodate image */
-.brand-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-/* Brand features (new) */
-.brand-features {
-  margin-top: 2rem;
+/* Make form more compact */
+.login-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem; /* Reduced from 1rem */
 }
 
-.brand-feature {
+/* Reduce space below password field */
+.form-group:last-of-type {
+  margin-bottom: 0; /* Remove extra margin */
+}
+
+/* Row Actions - Ultra close to password field */
+.row-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.1rem;  /* Halos dikit na */
+  margin-bottom: 0.25rem; /* Minimal space before button */
+}
+
+/* Make checkbox and text smaller */
+.remember-label {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  color: #e0e0e0;
-  font-size: 0.95rem;
+  gap: 0.35rem;
+  cursor: pointer;
+  font-size: 0.8rem; /* Smaller text */
+  color: #4a5568;
 }
 
-.feature-dot {
-  width: 8px;
-  height: 8px;
-  background-color: #f39c12;
-  border-radius: 50%;
-  display: inline-block;
+.remember-checkbox {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: #f39c12;
+  margin: 0; /* Remove default margins */
+}
+
+/* Forgot link same size */
+.forgot-link {
+  font-size: 0.8rem;
+  color: #f39c12;
+  text-decoration: none;
+  transition: color 0.2s;
+  line-height: 1; /* Tighter line height */
+}
+
+/* Reduce space before submit button */
+.login-submit-btn {
+  margin-top: 0.25rem; /* Minimal space */
+}
+
+/* Error message smaller and closer */
+.error-message {
+  color: #e74c3c;
+  font-size: 0.7rem; /* Smaller error text */
+  margin-top: 0.1rem; /* Closer to input */
+  margin-bottom: 0; /* Remove bottom margin */
 }

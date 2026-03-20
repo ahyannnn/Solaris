@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Helmet } from 'react-helmet-async';
 import { 
   FaSun, 
   FaBolt, 
@@ -528,624 +529,645 @@ const ScheduleAssessment = () => {
   // Step 1: Booking Form
   if (currentStep === 'form') {
     return (
-      <div className="schedule-container">
-        <h1 className="schedule-title">Book Your Free Assessment</h1>
+      <>
+        <Helmet>
+          <title>Schedule Free Assessment | Salfer Engineering</title>
+          <meta name="description" content="Book a free site assessment for your solar panel installation. Get personalized savings estimates and schedule your consultation with Salfer Engineering." />
+        </Helmet>
 
-        {/* Confirmation Dialog Modal */}
-        {showConfirmDialog && (
-          <div className="schedule-modal-overlay">
-            <div className="schedule-modal">
-              <h2 className="schedule-modal-title">Confirm Booking</h2>
+        <div className="schedule-container">
+          <h1 className="schedule-title">Book Your Free Assessment</h1>
 
-              <div className="schedule-modal-content">
-                <p><strong>Are you sure you want to proceed with this booking?</strong></p>
-                <p>Please review your details:</p>
-                <ul className="schedule-details-list">
-                  <li><FaUser /> <strong>Name:</strong> {getFullName() || 'Not provided'}</li>
-                  <li><FaEnvelope /> <strong>Email:</strong> {formData.email || 'Not provided'}</li>
-                  <li><FaPhone /> <strong>Contact:</strong> {formData.contactNumber || 'Not provided'}</li>
-                  <li><FaMapMarkerAlt /> <strong>Address:</strong> {getFullAddress() || 'Not provided'}</li>
-                  <li><FaHome /> <strong>Property Type:</strong> {formData.propertyType || 'Not provided'}</li>
-                  <li><FaCalendarAlt /> <strong>Preferred Date:</strong> {formData.preferredDate || 'Not provided'}</li>
-                  <li><FaMoneyBillWave /> <strong>Assessment Fee:</strong> ₱1,500.00</li>
-                </ul>
+          {/* Confirmation Dialog Modal */}
+          {showConfirmDialog && (
+            <div className="schedule-modal-overlay">
+              <div className="schedule-modal">
+                <h2 className="schedule-modal-title">Confirm Booking</h2>
+
+                <div className="schedule-modal-content">
+                  <p><strong>Are you sure you want to proceed with this booking?</strong></p>
+                  <p>Please review your details:</p>
+                  <ul className="schedule-details-list">
+                    <li><FaUser /> <strong>Name:</strong> {getFullName() || 'Not provided'}</li>
+                    <li><FaEnvelope /> <strong>Email:</strong> {formData.email || 'Not provided'}</li>
+                    <li><FaPhone /> <strong>Contact:</strong> {formData.contactNumber || 'Not provided'}</li>
+                    <li><FaMapMarkerAlt /> <strong>Address:</strong> {getFullAddress() || 'Not provided'}</li>
+                    <li><FaHome /> <strong>Property Type:</strong> {formData.propertyType || 'Not provided'}</li>
+                    <li><FaCalendarAlt /> <strong>Preferred Date:</strong> {formData.preferredDate || 'Not provided'}</li>
+                    <li><FaMoneyBillWave /> <strong>Assessment Fee:</strong> ₱1,500.00</li>
+                  </ul>
+                </div>
+
+                <div className="schedule-modal-checkbox">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={termsAccepted}
+                      onChange={(e) => setTermsAccepted(e.target.checked)}
+                    />
+                    <span>
+                      I have read and agree to the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms and Conditions</a> and
+                      <a href="/privacy" target="_blank" rel="noopener noreferrer"> Privacy Policy</a>
+                    </span>
+                  </label>
+                </div>
+
+                <div className="schedule-modal-actions">
+                  <button onClick={handleCancelConfirm} className="schedule-btn-secondary">
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmBooking}
+                    disabled={!termsAccepted || isSubmitting}
+                    className="schedule-btn-success"
+                  >
+                    {isSubmitting ? <><FaSpinner className="schedule-spinner-small" /> Processing...</> : 'Confirm Booking'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Quick Savings Estimator */}
+          <div className="schedule-estimator-card">
+            <h3><FaChartLine /> Solar Savings Estimator</h3>
+            <p className="schedule-estimator-subtitle">Enter your details below for a personalized estimate</p>
+
+            <div className="schedule-estimator-grid">
+              <div className="schedule-form-group">
+                <label><FaMoneyBillWave /> Monthly Electricity Bill (₱)</label>
+                <input
+                  type="number"
+                  name="monthlyBill"
+                  value={estimatorData.monthlyBill}
+                  onChange={handleEstimatorChange}
+                  placeholder="e.g., 5000"
+                  className="schedule-input"
+                />
               </div>
 
-              <div className="schedule-modal-checkbox">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                  />
-                  <span>
-                    I have read and agree to the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms and Conditions</a> and
-                    <a href="/privacy" target="_blank" rel="noopener noreferrer"> Privacy Policy</a>
-                  </span>
-                </label>
+              <div className="schedule-form-group">
+                <label><FaBolt /> Electricity Rate (₱/kWh)</label>
+                <input
+                  type="number"
+                  name="electricityRate"
+                  value={estimatorData.electricityRate}
+                  onChange={handleEstimatorChange}
+                  placeholder="e.g., 11.50"
+                  step="0.1"
+                  className="schedule-input"
+                />
+                <small>Meralco avg: ₱11.50/kWh</small>
               </div>
 
-              <div className="schedule-modal-actions">
-                <button onClick={handleCancelConfirm} className="schedule-btn-secondary">
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmBooking}
-                  disabled={!termsAccepted || isSubmitting}
-                  className="schedule-btn-success"
+              <div className="schedule-form-group">
+                <label><FaSun /> Average Sun Hours</label>
+                <input
+                  type="number"
+                  name="averageSunHours"
+                  value={estimatorData.averageSunHours}
+                  onChange={handleEstimatorChange}
+                  placeholder="e.g., 5"
+                  step="0.5"
+                  className="schedule-input"
+                />
+                <small>PH average: 5-6 hours</small>
+              </div>
+
+              <div className="schedule-form-group">
+                <label><FaSolarPanel /> System Type</label>
+                <select
+                  name="systemType"
+                  value={estimatorData.systemType}
+                  onChange={handleEstimatorChange}
+                  className="schedule-select"
                 >
-                  {isSubmitting ? <><FaSpinner className="schedule-spinner-small" /> Processing...</> : 'Confirm Booking'}
+                  <option value="grid-tie">Grid-tie (No battery)</option>
+                  <option value="hybrid">Hybrid (With battery backup)</option>
+                  <option value="off-grid">Off-grid (Complete independence)</option>
+                </select>
+              </div>
+
+              <div className="schedule-form-group">
+                <label><FaClock /> Usage Pattern</label>
+                <select
+                  name="usagePattern"
+                  value={estimatorData.usagePattern}
+                  onChange={handleEstimatorChange}
+                  className="schedule-select"
+                >
+                  <option value="daytime">Mostly Daytime</option>
+                  <option value="nighttime">Mostly Nighttime</option>
+                  <option value="mixed">Mixed (balanced usage)</option>
+                </select>
+              </div>
+
+              <div className="schedule-form-group schedule-button-group">
+                <button
+                  onClick={calculateSavings}
+                  disabled={!estimatorData.monthlyBill}
+                  className="schedule-btn-calculate"
+                >
+                  <FaSearch /> Calculate Savings
                 </button>
               </div>
             </div>
-          </div>
-        )}
 
-        {/* Quick Savings Estimator */}
-        <div className="schedule-estimator-card">
-          <h3><FaChartLine /> Solar Savings Estimator</h3>
-          <p className="schedule-estimator-subtitle">Enter your details below for a personalized estimate</p>
+            {/* Estimation Results */}
+            {estimationResult && (
+              <div className="schedule-results-card">
+                <h4><FaChartLine /> Your Personalized Solar Estimate</h4>
 
-          <div className="schedule-estimator-grid">
-            <div className="schedule-form-group">
-              <label><FaMoneyBillWave /> Monthly Electricity Bill (₱)</label>
-              <input
-                type="number"
-                name="monthlyBill"
-                value={estimatorData.monthlyBill}
-                onChange={handleEstimatorChange}
-                placeholder="e.g., 5000"
-                className="schedule-input"
-              />
-            </div>
+                <div className="schedule-results-grid">
+                  <div className="schedule-result-item">
+                    <FaSolarPanel className="schedule-result-icon" />
+                    <span className="schedule-result-label">Recommended System</span>
+                    <span className="schedule-result-value">{estimationResult.recommendedSize} kW</span>
+                    <small>{estimationResult.systemDescription}</small>
+                  </div>
 
-            <div className="schedule-form-group">
-              <label><FaBolt /> Electricity Rate (₱/kWh)</label>
-              <input
-                type="number"
-                name="electricityRate"
-                value={estimatorData.electricityRate}
-                onChange={handleEstimatorChange}
-                placeholder="e.g., 11.50"
-                step="0.1"
-                className="schedule-input"
-              />
-              <small>Meralco avg: ₱11.50/kWh</small>
-            </div>
+                  <div className="schedule-result-item">
+                    <FaMoneyBillWave className="schedule-result-icon" />
+                    <span className="schedule-result-label">Monthly Savings</span>
+                    <span className="schedule-result-value highlight">
+                      {formatCurrency(estimationResult.estimatedMonthlySavings)}
+                    </span>
+                  </div>
 
-            <div className="schedule-form-group">
-              <label><FaSun /> Average Sun Hours</label>
-              <input
-                type="number"
-                name="averageSunHours"
-                value={estimatorData.averageSunHours}
-                onChange={handleEstimatorChange}
-                placeholder="e.g., 5"
-                step="0.5"
-                className="schedule-input"
-              />
-              <small>PH average: 5-6 hours</small>
-            </div>
+                  <div className="schedule-result-item">
+                    <FaBolt className="schedule-result-icon" />
+                    <span className="schedule-result-label">System Cost</span>
+                    <span className="schedule-result-value">{formatCurrency(estimationResult.systemCost)}</span>
+                    <small>{estimationResult.panelsNeeded} panels • {estimationResult.roofSpaceNeeded} sqm</small>
+                  </div>
 
-            <div className="schedule-form-group">
-              <label><FaSolarPanel /> System Type</label>
-              <select
-                name="systemType"
-                value={estimatorData.systemType}
-                onChange={handleEstimatorChange}
-                className="schedule-select"
-              >
-                <option value="grid-tie">Grid-tie (No battery)</option>
-                <option value="hybrid">Hybrid (With battery backup)</option>
-                <option value="off-grid">Off-grid (Complete independence)</option>
-              </select>
-            </div>
+                  <div className="schedule-result-item">
+                    <FaPlug className="schedule-result-icon" />
+                    <span className="schedule-result-label">Grid Dependency</span>
+                    <span className="schedule-result-value">{estimationResult.gridDependency}%</span>
+                  </div>
 
-            <div className="schedule-form-group">
-              <label><FaClock /> Usage Pattern</label>
-              <select
-                name="usagePattern"
-                value={estimatorData.usagePattern}
-                onChange={handleEstimatorChange}
-                className="schedule-select"
-              >
-                <option value="daytime">Mostly Daytime</option>
-                <option value="nighttime">Mostly Nighttime</option>
-                <option value="mixed">Mixed (balanced usage)</option>
-              </select>
-            </div>
+                  <div className="schedule-result-item">
+                    <FaClock className="schedule-result-icon" />
+                    <span className="schedule-result-label">Payback Period</span>
+                    <span className="schedule-result-value">{estimationResult.paybackPeriod} years</span>
+                  </div>
 
-            <div className="schedule-form-group schedule-button-group">
-              <button
-                onClick={calculateSavings}
-                disabled={!estimatorData.monthlyBill}
-                className="schedule-btn-calculate"
-              >
-                <FaSearch /> Calculate Savings
-              </button>
-            </div>
-          </div>
-
-          {/* Estimation Results */}
-          {estimationResult && (
-            <div className="schedule-results-card">
-              <h4><FaChartLine /> Your Personalized Solar Estimate</h4>
-
-              <div className="schedule-results-grid">
-                <div className="schedule-result-item">
-                  <FaSolarPanel className="schedule-result-icon" />
-                  <span className="schedule-result-label">Recommended System</span>
-                  <span className="schedule-result-value">{estimationResult.recommendedSize} kW</span>
-                  <small>{estimationResult.systemDescription}</small>
+                  <div className="schedule-result-item">
+                    <FaLeaf className="schedule-result-icon" />
+                    <span className="schedule-result-label">CO₂ Offset/Year</span>
+                    <span className="schedule-result-value">{formatNumber(estimationResult.co2OffsetPerYear)} kg</span>
+                  </div>
                 </div>
 
-                <div className="schedule-result-item">
-                  <FaMoneyBillWave className="schedule-result-icon" />
-                  <span className="schedule-result-label">Monthly Savings</span>
-                  <span className="schedule-result-value highlight">
-                    {formatCurrency(estimationResult.estimatedMonthlySavings)}
-                  </span>
-                </div>
-
-                <div className="schedule-result-item">
-                  <FaBolt className="schedule-result-icon" />
-                  <span className="schedule-result-label">System Cost</span>
-                  <span className="schedule-result-value">{formatCurrency(estimationResult.systemCost)}</span>
-                  <small>{estimationResult.panelsNeeded} panels • {estimationResult.roofSpaceNeeded} sqm</small>
-                </div>
-
-                <div className="schedule-result-item">
-                  <FaPlug className="schedule-result-icon" />
-                  <span className="schedule-result-label">Grid Dependency</span>
-                  <span className="schedule-result-value">{estimationResult.gridDependency}%</span>
-                </div>
-
-                <div className="schedule-result-item">
-                  <FaClock className="schedule-result-icon" />
-                  <span className="schedule-result-label">Payback Period</span>
-                  <span className="schedule-result-value">{estimationResult.paybackPeriod} years</span>
-                </div>
-
-                <div className="schedule-result-item">
-                  <FaLeaf className="schedule-result-icon" />
-                  <span className="schedule-result-label">CO₂ Offset/Year</span>
-                  <span className="schedule-result-value">{formatNumber(estimationResult.co2OffsetPerYear)} kg</span>
-                </div>
+                <p className="schedule-disclaimer">
+                  *This is a preliminary estimate. Actual savings may vary based on site conditions.
+                </p>
               </div>
-
-              <p className="schedule-disclaimer">
-                *This is a preliminary estimate. Actual savings may vary based on site conditions.
-              </p>
-            </div>
-          )}
-        </div>
-
-        <h2 className="schedule-subtitle">Book Your Site Assessment</h2>
-        
-        <form onSubmit={handleSubmitClick} className="schedule-form">
-          <h3 className="schedule-section-title"><FaUser /> Personal Information</h3>
-          <div className="schedule-form-grid">
-            <div className="schedule-form-group">
-              <label htmlFor="firstName"><FaUser /> First Name *</label>
-              <input
-                type="text"
-                id="firstName"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleInputChange}
-                className={`schedule-input ${validationErrors.firstName ? 'error' : ''}`}
-              />
-              {validationErrors.firstName && <small className="schedule-error-text">{validationErrors.firstName}</small>}
-            </div>
-
-            <div className="schedule-form-group">
-              <label htmlFor="middleName"><FaUser /> Middle Name</label>
-              <input
-                type="text"
-                id="middleName"
-                name="middleName"
-                value={formData.middleName}
-                onChange={handleInputChange}
-                className="schedule-input"
-              />
-            </div>
-
-            <div className="schedule-form-group">
-              <label htmlFor="lastName"><FaUser /> Last Name *</label>
-              <input
-                type="text"
-                id="lastName"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                className={`schedule-input ${validationErrors.lastName ? 'error' : ''}`}
-              />
-              {validationErrors.lastName && <small className="schedule-error-text">{validationErrors.lastName}</small>}
-            </div>
-
-            <div className="schedule-form-group">
-              <label htmlFor="email"><FaEnvelope /> Email Address *</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className={`schedule-input ${validationErrors.email ? 'error' : ''}`}
-              />
-              {validationErrors.email && <small className="schedule-error-text">{validationErrors.email}</small>}
-            </div>
-
-            <div className="schedule-form-group">
-              <label htmlFor="contactNumber"><FaPhone /> Contact Number *</label>
-              <input
-                type="tel"
-                id="contactNumber"
-                name="contactNumber"
-                value={formData.contactNumber}
-                onChange={handleInputChange}
-                className={`schedule-input ${validationErrors.contactNumber ? 'error' : ''}`}
-                placeholder="0917xxxxxxx"
-              />
-              {validationErrors.contactNumber && <small className="schedule-error-text">{validationErrors.contactNumber}</small>}
-            </div>
+            )}
           </div>
 
-          <h3 className="schedule-section-title"><FaMapMarkerAlt /> Address Details</h3>
+          <h2 className="schedule-subtitle">Book Your Site Assessment</h2>
           
-          {/* Address Selection Dropdown */}
-          {addresses.length > 0 && (
-            <div className="schedule-form-group schedule-full-width">
-              <label htmlFor="addressSelect"><FaHome /> Select Saved Address</label>
-              <select
-                id="addressSelect"
-                value={selectedAddressId}
-                onChange={handleAddressChange}
-                className="schedule-select"
-              >
-                <option value="">-- Select an address --</option>
-                {addresses.map(addr => (
-                  <option key={addr._id} value={addr._id}>
-                    {addr.houseOrBuilding} {addr.street}, {addr.barangay}, {addr.cityMunicipality} {addr.isPrimary ? '(Primary)' : ''}
-                  </option>
-                ))}
-              </select>
-              <small>Select a saved address or fill in the fields below</small>
-            </div>
-          )}
+          <form onSubmit={handleSubmitClick} className="schedule-form">
+            <h3 className="schedule-section-title"><FaUser /> Personal Information</h3>
+            <div className="schedule-form-grid">
+              <div className="schedule-form-group">
+                <label htmlFor="firstName"><FaUser /> First Name *</label>
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  className={`schedule-input ${validationErrors.firstName ? 'error' : ''}`}
+                />
+                {validationErrors.firstName && <small className="schedule-error-text">{validationErrors.firstName}</small>}
+              </div>
 
-          <div className="schedule-form-grid">
-            <div className="schedule-form-group">
-              <label htmlFor="houseOrBuilding"><FaHashtag /> House/Bldg. No. *</label>
-              <input
-                type="text"
-                id="houseOrBuilding"
-                name="houseOrBuilding"
-                value={formData.houseOrBuilding}
-                onChange={handleInputChange}
-                className={`schedule-input ${validationErrors.houseOrBuilding ? 'error' : ''}`}
-                placeholder="123"
-              />
-              {validationErrors.houseOrBuilding && <small className="schedule-error-text">{validationErrors.houseOrBuilding}</small>}
-            </div>
+              <div className="schedule-form-group">
+                <label htmlFor="middleName"><FaUser /> Middle Name</label>
+                <input
+                  type="text"
+                  id="middleName"
+                  name="middleName"
+                  value={formData.middleName}
+                  onChange={handleInputChange}
+                  className="schedule-input"
+                />
+              </div>
 
-            <div className="schedule-form-group">
-              <label htmlFor="street"><FaRoad /> Street *</label>
-              <input
-                type="text"
-                id="street"
-                name="street"
-                value={formData.street}
-                onChange={handleInputChange}
-                className={`schedule-input ${validationErrors.street ? 'error' : ''}`}
-                placeholder="Rizal Street"
-              />
-              {validationErrors.street && <small className="schedule-error-text">{validationErrors.street}</small>}
-            </div>
+              <div className="schedule-form-group">
+                <label htmlFor="lastName"><FaUser /> Last Name *</label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  className={`schedule-input ${validationErrors.lastName ? 'error' : ''}`}
+                />
+                {validationErrors.lastName && <small className="schedule-error-text">{validationErrors.lastName}</small>}
+              </div>
 
-            <div className="schedule-form-group">
-              <label htmlFor="barangay"><FaBuilding /> Barangay *</label>
-              <input
-                type="text"
-                id="barangay"
-                name="barangay"
-                value={formData.barangay}
-                onChange={handleInputChange}
-                className={`schedule-input ${validationErrors.barangay ? 'error' : ''}`}
-                placeholder="Barangay San Jose"
-              />
-              {validationErrors.barangay && <small className="schedule-error-text">{validationErrors.barangay}</small>}
-            </div>
+              <div className="schedule-form-group">
+                <label htmlFor="email"><FaEnvelope /> Email Address *</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className={`schedule-input ${validationErrors.email ? 'error' : ''}`}
+                />
+                {validationErrors.email && <small className="schedule-error-text">{validationErrors.email}</small>}
+              </div>
 
-            <div className="schedule-form-group">
-              <label htmlFor="cityMunicipality"><FaCity /> City/Municipality *</label>
-              <input
-                type="text"
-                id="cityMunicipality"
-                name="cityMunicipality"
-                value={formData.cityMunicipality}
-                onChange={handleInputChange}
-                className={`schedule-input ${validationErrors.cityMunicipality ? 'error' : ''}`}
-                placeholder="Manila"
-              />
-              {validationErrors.cityMunicipality && <small className="schedule-error-text">{validationErrors.cityMunicipality}</small>}
-            </div>
-
-            <div className="schedule-form-group">
-              <label htmlFor="province"><FaGlobe /> Province *</label>
-              <input
-                type="text"
-                id="province"
-                name="province"
-                value={formData.province}
-                onChange={handleInputChange}
-                className={`schedule-input ${validationErrors.province ? 'error' : ''}`}
-                placeholder="Metro Manila"
-              />
-              {validationErrors.province && <small className="schedule-error-text">{validationErrors.province}</small>}
-            </div>
-
-            <div className="schedule-form-group">
-              <label htmlFor="zipCode"><FaMailBulk /> Zip Code *</label>
-              <input
-                type="text"
-                id="zipCode"
-                name="zipCode"
-                value={formData.zipCode}
-                onChange={handleInputChange}
-                className={`schedule-input ${validationErrors.zipCode ? 'error' : ''}`}
-                placeholder="1000"
-                maxLength="4"
-              />
-              {validationErrors.zipCode && <small className="schedule-error-text">{validationErrors.zipCode}</small>}
-            </div>
-          </div>
-
-          <h3 className="schedule-section-title"><FaHome /> Property Details</h3>
-          <div className="schedule-form-grid">
-            <div className="schedule-form-group">
-              <label htmlFor="propertyType"><FaHome /> Property Type *</label>
-              <select
-                id="propertyType"
-                name="propertyType"
-                value={formData.propertyType}
-                onChange={handleInputChange}
-                className={`schedule-select ${validationErrors.propertyType ? 'error' : ''}`}
-              >
-                <option value="residential">Residential</option>
-                <option value="commercial">Commercial</option>
-              </select>
-              {validationErrors.propertyType && <small className="schedule-error-text">{validationErrors.propertyType}</small>}
-            </div>
-
-            <div className="schedule-form-group">
-              <label htmlFor="desiredCapacity"><FaRuler /> Desired Capacity (kW)</label>
-              <input
-                type="text"
-                id="desiredCapacity"
-                name="desiredCapacity"
-                value={formData.desiredCapacity}
-                onChange={handleInputChange}
-                className="schedule-input"
-                placeholder="e.g., 5kW"
-              />
-            </div>
-
-            <div className="schedule-form-group">
-              <label htmlFor="roofType"><FaBuilding /> Roof Type</label>
-              <select
-                id="roofType"
-                name="roofType"
-                value={formData.roofType}
-                onChange={handleInputChange}
-                className="schedule-select"
-              >
-                <option value="">Select roof type</option>
-                <option value="concrete">Concrete</option>
-                <option value="metal">Metal</option>
-                <option value="tile">Tile</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-
-            <div className="schedule-form-group">
-              <label htmlFor="preferredDate"><FaCalendarAlt /> Preferred Start Date *</label>
-              <input
-                type="date"
-                id="preferredDate"
-                name="preferredDate"
-                value={formData.preferredDate}
-                onChange={handleInputChange}
-                className={`schedule-input ${validationErrors.preferredDate ? 'error' : ''}`}
-                min={new Date().toISOString().split('T')[0]}
-              />
-              {validationErrors.preferredDate && <small className="schedule-error-text">{validationErrors.preferredDate}</small>}
-            </div>
-          </div>
-
-          <div className="schedule-fee-card">
-            <div className="schedule-fee-info">
-              <FaMoneyBillWave className="schedule-fee-icon" />
-              <div>
-                <strong>Assessment Fee: ₱1,500.00</strong>
-                <p>Non-refundable fee for 7-day monitoring</p>
+              <div className="schedule-form-group">
+                <label htmlFor="contactNumber"><FaPhone /> Contact Number *</label>
+                <input
+                  type="tel"
+                  id="contactNumber"
+                  name="contactNumber"
+                  value={formData.contactNumber}
+                  onChange={handleInputChange}
+                  className={`schedule-input ${validationErrors.contactNumber ? 'error' : ''}`}
+                  placeholder="0917xxxxxxx"
+                />
+                {validationErrors.contactNumber && <small className="schedule-error-text">{validationErrors.contactNumber}</small>}
               </div>
             </div>
-          </div>
 
-          <button type="submit" className="schedule-btn-submit">
-            <FaCalendarAlt /> Submit Booking Request
-          </button>
-        </form>
-      </div>
+            <h3 className="schedule-section-title"><FaMapMarkerAlt /> Address Details</h3>
+            
+            {/* Address Selection Dropdown */}
+            {addresses.length > 0 && (
+              <div className="schedule-form-group schedule-full-width">
+                <label htmlFor="addressSelect"><FaHome /> Select Saved Address</label>
+                <select
+                  id="addressSelect"
+                  value={selectedAddressId}
+                  onChange={handleAddressChange}
+                  className="schedule-select"
+                >
+                  <option value="">-- Select an address --</option>
+                  {addresses.map(addr => (
+                    <option key={addr._id} value={addr._id}>
+                      {addr.houseOrBuilding} {addr.street}, {addr.barangay}, {addr.cityMunicipality} {addr.isPrimary ? '(Primary)' : ''}
+                    </option>
+                  ))}
+                </select>
+                <small>Select a saved address or fill in the fields below</small>
+              </div>
+            )}
+
+            <div className="schedule-form-grid">
+              <div className="schedule-form-group">
+                <label htmlFor="houseOrBuilding"><FaHashtag /> House/Bldg. No. *</label>
+                <input
+                  type="text"
+                  id="houseOrBuilding"
+                  name="houseOrBuilding"
+                  value={formData.houseOrBuilding}
+                  onChange={handleInputChange}
+                  className={`schedule-input ${validationErrors.houseOrBuilding ? 'error' : ''}`}
+                  placeholder="123"
+                />
+                {validationErrors.houseOrBuilding && <small className="schedule-error-text">{validationErrors.houseOrBuilding}</small>}
+              </div>
+
+              <div className="schedule-form-group">
+                <label htmlFor="street"><FaRoad /> Street *</label>
+                <input
+                  type="text"
+                  id="street"
+                  name="street"
+                  value={formData.street}
+                  onChange={handleInputChange}
+                  className={`schedule-input ${validationErrors.street ? 'error' : ''}`}
+                  placeholder="Rizal Street"
+                />
+                {validationErrors.street && <small className="schedule-error-text">{validationErrors.street}</small>}
+              </div>
+
+              <div className="schedule-form-group">
+                <label htmlFor="barangay"><FaBuilding /> Barangay *</label>
+                <input
+                  type="text"
+                  id="barangay"
+                  name="barangay"
+                  value={formData.barangay}
+                  onChange={handleInputChange}
+                  className={`schedule-input ${validationErrors.barangay ? 'error' : ''}`}
+                  placeholder="Barangay San Jose"
+                />
+                {validationErrors.barangay && <small className="schedule-error-text">{validationErrors.barangay}</small>}
+              </div>
+
+              <div className="schedule-form-group">
+                <label htmlFor="cityMunicipality"><FaCity /> City/Municipality *</label>
+                <input
+                  type="text"
+                  id="cityMunicipality"
+                  name="cityMunicipality"
+                  value={formData.cityMunicipality}
+                  onChange={handleInputChange}
+                  className={`schedule-input ${validationErrors.cityMunicipality ? 'error' : ''}`}
+                  placeholder="Manila"
+                />
+                {validationErrors.cityMunicipality && <small className="schedule-error-text">{validationErrors.cityMunicipality}</small>}
+              </div>
+
+              <div className="schedule-form-group">
+                <label htmlFor="province"><FaGlobe /> Province *</label>
+                <input
+                  type="text"
+                  id="province"
+                  name="province"
+                  value={formData.province}
+                  onChange={handleInputChange}
+                  className={`schedule-input ${validationErrors.province ? 'error' : ''}`}
+                  placeholder="Metro Manila"
+                />
+                {validationErrors.province && <small className="schedule-error-text">{validationErrors.province}</small>}
+              </div>
+
+              <div className="schedule-form-group">
+                <label htmlFor="zipCode"><FaMailBulk /> Zip Code *</label>
+                <input
+                  type="text"
+                  id="zipCode"
+                  name="zipCode"
+                  value={formData.zipCode}
+                  onChange={handleInputChange}
+                  className={`schedule-input ${validationErrors.zipCode ? 'error' : ''}`}
+                  placeholder="1000"
+                  maxLength="4"
+                />
+                {validationErrors.zipCode && <small className="schedule-error-text">{validationErrors.zipCode}</small>}
+              </div>
+            </div>
+
+            <h3 className="schedule-section-title"><FaHome /> Property Details</h3>
+            <div className="schedule-form-grid">
+              <div className="schedule-form-group">
+                <label htmlFor="propertyType"><FaHome /> Property Type *</label>
+                <select
+                  id="propertyType"
+                  name="propertyType"
+                  value={formData.propertyType}
+                  onChange={handleInputChange}
+                  className={`schedule-select ${validationErrors.propertyType ? 'error' : ''}`}
+                >
+                  <option value="residential">Residential</option>
+                  <option value="commercial">Commercial</option>
+                </select>
+                {validationErrors.propertyType && <small className="schedule-error-text">{validationErrors.propertyType}</small>}
+              </div>
+
+              <div className="schedule-form-group">
+                <label htmlFor="desiredCapacity"><FaRuler /> Desired Capacity (kW)</label>
+                <input
+                  type="text"
+                  id="desiredCapacity"
+                  name="desiredCapacity"
+                  value={formData.desiredCapacity}
+                  onChange={handleInputChange}
+                  className="schedule-input"
+                  placeholder="e.g., 5kW"
+                />
+              </div>
+
+              <div className="schedule-form-group">
+                <label htmlFor="roofType"><FaBuilding /> Roof Type</label>
+                <select
+                  id="roofType"
+                  name="roofType"
+                  value={formData.roofType}
+                  onChange={handleInputChange}
+                  className="schedule-select"
+                >
+                  <option value="">Select roof type</option>
+                  <option value="concrete">Concrete</option>
+                  <option value="metal">Metal</option>
+                  <option value="tile">Tile</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div className="schedule-form-group">
+                <label htmlFor="preferredDate"><FaCalendarAlt /> Preferred Start Date *</label>
+                <input
+                  type="date"
+                  id="preferredDate"
+                  name="preferredDate"
+                  value={formData.preferredDate}
+                  onChange={handleInputChange}
+                  className={`schedule-input ${validationErrors.preferredDate ? 'error' : ''}`}
+                  min={new Date().toISOString().split('T')[0]}
+                />
+                {validationErrors.preferredDate && <small className="schedule-error-text">{validationErrors.preferredDate}</small>}
+              </div>
+            </div>
+
+            <div className="schedule-fee-card">
+              <div className="schedule-fee-info">
+                <FaMoneyBillWave className="schedule-fee-icon" />
+                <div>
+                  <strong>Assessment Fee: ₱1,500.00</strong>
+                  <p>Non-refundable fee for 7-day monitoring</p>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" className="schedule-btn-submit">
+              <FaCalendarAlt /> Submit Booking Request
+            </button>
+          </form>
+        </div>
+      </>
     );
   }
 
   // Step 2: Payment Processing
   if (currentStep === 'payment') {
     return (
-      <div className="schedule-container">
-        <h1 className="schedule-title">Complete Your Payment</h1>
+      <>
+        <Helmet>
+          <title>Complete Payment | Salfer Engineering</title>
+          <meta name="description" content="Complete your payment to confirm your solar site assessment booking with Salfer Engineering." />
+        </Helmet>
 
-        <div className="schedule-summary-card">
-          <h3><FaFileInvoice /> Booking Summary</h3>
-          <div className="schedule-summary-details">
-            <p><strong>Booking ID:</strong> {bookingData.bookingId}</p>
-            <p><strong>Invoice:</strong> {bookingData.invoiceNumber}</p>
-            <p><strong>Amount Due:</strong> <span className="schedule-amount">₱{bookingData.assessmentFee}.00</span></p>
-            <p><strong>Status:</strong> <span className="schedule-status-pending">Pending Payment</span></p>
+        <div className="schedule-container">
+          <h1 className="schedule-title">Complete Your Payment</h1>
+
+          <div className="schedule-summary-card">
+            <h3><FaFileInvoice /> Booking Summary</h3>
+            <div className="schedule-summary-details">
+              <p><strong>Booking ID:</strong> {bookingData.bookingId}</p>
+              <p><strong>Invoice:</strong> {bookingData.invoiceNumber}</p>
+              <p><strong>Amount Due:</strong> <span className="schedule-amount">₱{bookingData.assessmentFee}.00</span></p>
+              <p><strong>Status:</strong> <span className="schedule-status-pending">Pending Payment</span></p>
+            </div>
+          </div>
+
+          <h3 className="schedule-payment-title">Select Payment Method</h3>
+
+          <div className="schedule-payment-options">
+            {/* GCash Option */}
+            <div className={`schedule-payment-card ${paymentMethod === 'gcash' ? 'selected' : ''}`}>
+              <label className="schedule-radio-label">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="gcash"
+                  checked={paymentMethod === 'gcash'}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                />
+                <div className="schedule-payment-header">
+                  <FaQrcode className="schedule-payment-icon" />
+                  <span>GCash</span>
+                </div>
+              </label>
+
+              {paymentMethod === 'gcash' && (
+                <div className="schedule-gcash-details">
+                  <div className="schedule-payment-info">
+                    <p><strong>GCash Payment Details:</strong></p>
+                    <p>Number: 0917XXXXXXX</p>
+                    <p>Name: SOLARIS CORP</p>
+                    <p>Amount: <span className="schedule-amount">₱{bookingData.assessmentFee}.00</span></p>
+                  </div>
+
+                  <div className="schedule-upload-group">
+                    <label htmlFor="proof">Upload Payment Screenshot/Reference *</label>
+                    <input
+                      type="file"
+                      id="proof"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="schedule-file-input"
+                    />
+                    {paymentProof && <p className="schedule-file-name">Selected: {paymentProof.name}</p>}
+                  </div>
+
+                  <button
+                    onClick={handlePaymentSubmit}
+                    disabled={!paymentProof}
+                    className="schedule-btn-payment"
+                  >
+                    Submit Proof of Payment
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Cash Option */}
+            <div className={`schedule-payment-card ${paymentMethod === 'cash' ? 'selected' : ''}`}>
+              <label className="schedule-radio-label">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="cash"
+                  checked={paymentMethod === 'cash'}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                />
+                <div className="schedule-payment-header">
+                  <FaMoneyBillWave className="schedule-payment-icon" />
+                  <span>Cash (Walk-in Payment)</span>
+                </div>
+              </label>
+
+              {paymentMethod === 'cash' && (
+                <div className="schedule-cash-details">
+                  <p>Please visit our office to pay the assessment fee:</p>
+                  <div className="schedule-office-info">
+                    <p><strong>Address:</strong> SOLARIS Office, Unit 123, Building Name, City</p>
+                    <p><strong>Office Hours:</strong> Mon-Fri, 9AM-6PM</p>
+                    <p><strong>Amount to Pay:</strong> <span className="schedule-amount">₱{bookingData.assessmentFee}.00</span></p>
+                  </div>
+                  <p className="schedule-note">Your booking will be confirmed once payment is received.</p>
+
+                  <button onClick={handleCashPayment} className="schedule-btn-payment">
+                    I Understand, Proceed
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-
-        <h3 className="schedule-payment-title">Select Payment Method</h3>
-
-        <div className="schedule-payment-options">
-          {/* GCash Option */}
-          <div className={`schedule-payment-card ${paymentMethod === 'gcash' ? 'selected' : ''}`}>
-            <label className="schedule-radio-label">
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="gcash"
-                checked={paymentMethod === 'gcash'}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-              />
-              <div className="schedule-payment-header">
-                <FaQrcode className="schedule-payment-icon" />
-                <span>GCash</span>
-              </div>
-            </label>
-
-            {paymentMethod === 'gcash' && (
-              <div className="schedule-gcash-details">
-                <div className="schedule-payment-info">
-                  <p><strong>GCash Payment Details:</strong></p>
-                  <p>Number: 0917XXXXXXX</p>
-                  <p>Name: SOLARIS CORP</p>
-                  <p>Amount: <span className="schedule-amount">₱{bookingData.assessmentFee}.00</span></p>
-                </div>
-
-                <div className="schedule-upload-group">
-                  <label htmlFor="proof">Upload Payment Screenshot/Reference *</label>
-                  <input
-                    type="file"
-                    id="proof"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="schedule-file-input"
-                  />
-                  {paymentProof && <p className="schedule-file-name">Selected: {paymentProof.name}</p>}
-                </div>
-
-                <button
-                  onClick={handlePaymentSubmit}
-                  disabled={!paymentProof}
-                  className="schedule-btn-payment"
-                >
-                  Submit Proof of Payment
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Cash Option */}
-          <div className={`schedule-payment-card ${paymentMethod === 'cash' ? 'selected' : ''}`}>
-            <label className="schedule-radio-label">
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="cash"
-                checked={paymentMethod === 'cash'}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-              />
-              <div className="schedule-payment-header">
-                <FaMoneyBillWave className="schedule-payment-icon" />
-                <span>Cash (Walk-in Payment)</span>
-              </div>
-            </label>
-
-            {paymentMethod === 'cash' && (
-              <div className="schedule-cash-details">
-                <p>Please visit our office to pay the assessment fee:</p>
-                <div className="schedule-office-info">
-                  <p><strong>Address:</strong> SOLARIS Office, Unit 123, Building Name, City</p>
-                  <p><strong>Office Hours:</strong> Mon-Fri, 9AM-6PM</p>
-                  <p><strong>Amount to Pay:</strong> <span className="schedule-amount">₱{bookingData.assessmentFee}.00</span></p>
-                </div>
-                <p className="schedule-note">Your booking will be confirmed once payment is received.</p>
-
-                <button onClick={handleCashPayment} className="schedule-btn-payment">
-                  I Understand, Proceed
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      </>
     );
   }
 
   // Step 3: Confirmation
   if (currentStep === 'confirmation') {
     return (
-      <div className="schedule-container">
-        <div className="schedule-confirmation-card">
-          <FaCheckCircle className="schedule-confirmation-icon" />
-          
-          <h1 className="schedule-title">
-            Booking {paymentStatus === 'paid' ? 'Confirmed!' : 'Received!'}
-          </h1>
+      <>
+        <Helmet>
+          <title>Booking Confirmed | Salfer Engineering</title>
+          <meta name="description" content="Your solar site assessment booking has been confirmed. Next steps for your solar panel installation with Salfer Engineering." />
+        </Helmet>
 
-          <div className="schedule-booking-details">
-            <p><strong>Booking ID:</strong> {bookingData.bookingId}</p>
-            <p><strong>Invoice:</strong> {bookingData.invoiceNumber}</p>
+        <div className="schedule-container">
+          <div className="schedule-confirmation-card">
+            <FaCheckCircle className="schedule-confirmation-icon" />
+            
+            <h1 className="schedule-title">
+              Booking {paymentStatus === 'paid' ? 'Confirmed!' : 'Received!'}
+            </h1>
 
-            {paymentMethod === 'gcash' && paymentStatus === 'forVerification' && (
-              <div className="schedule-status-info">
-                <FaClock className="schedule-status-icon" />
-                <div>
-                  <p><strong>Payment Status:</strong> <span className="schedule-status-pending">For Verification</span></p>
-                  <p>Your proof of payment is being verified. You'll receive a confirmation email once verified.</p>
+            <div className="schedule-booking-details">
+              <p><strong>Booking ID:</strong> {bookingData.bookingId}</p>
+              <p><strong>Invoice:</strong> {bookingData.invoiceNumber}</p>
+
+              {paymentMethod === 'gcash' && paymentStatus === 'forVerification' && (
+                <div className="schedule-status-info">
+                  <FaClock className="schedule-status-icon" />
+                  <div>
+                    <p><strong>Payment Status:</strong> <span className="schedule-status-pending">For Verification</span></p>
+                    <p>Your proof of payment is being verified. You'll receive a confirmation email once verified.</p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {paymentMethod === 'cash' && (
-              <div className="schedule-status-info">
-                <FaExclamationTriangle className="schedule-status-icon warning" />
-                <div>
-                  <p><strong>Payment Status:</strong> <span className="schedule-status-pending">Pending Cash Payment</span></p>
-                  <p>Please visit our office to complete your payment.</p>
+              {paymentMethod === 'cash' && (
+                <div className="schedule-status-info">
+                  <FaExclamationTriangle className="schedule-status-icon warning" />
+                  <div>
+                    <p><strong>Payment Status:</strong> <span className="schedule-status-pending">Pending Cash Payment</span></p>
+                    <p>Please visit our office to complete your payment.</p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {paymentStatus === 'paid' && (
-              <div className="schedule-status-info">
-                <FaCheckCircle className="schedule-status-icon success" />
-                <div>
-                  <p><strong>Payment Status:</strong> <span className="schedule-status-paid">Paid</span></p>
-                  <p><strong>Booking Status:</strong> <span className="schedule-status-confirmed">Confirmed</span></p>
-                  <p>Your 7-day assessment is scheduled to start on {formData.preferredDate}.</p>
+              {paymentStatus === 'paid' && (
+                <div className="schedule-status-info">
+                  <FaCheckCircle className="schedule-status-icon success" />
+                  <div>
+                    <p><strong>Payment Status:</strong> <span className="schedule-status-paid">Paid</span></p>
+                    <p><strong>Booking Status:</strong> <span className="schedule-status-confirmed">Confirmed</span></p>
+                    <p>Your 7-day assessment is scheduled to start on {formData.preferredDate}.</p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+
+            <div className="schedule-next-steps">
+              <h3>Next Steps:</h3>
+              <ul>
+                <li><FaUser /> An engineer will be assigned to your site</li>
+                <li><FaSolarPanel /> IoT device will be deployed for 7-day monitoring</li>
+                <li><FaEnvelope /> You'll receive updates via email/SMS</li>
+              </ul>
+            </div>
+
+            <button onClick={() => setCurrentStep('form')} className="schedule-btn-secondary">
+              <FaCalendarAlt /> Book Another Assessment
+            </button>
           </div>
-
-          <div className="schedule-next-steps">
-            <h3>Next Steps:</h3>
-            <ul>
-              <li><FaUser /> An engineer will be assigned to your site</li>
-              <li><FaSolarPanel /> IoT device will be deployed for 7-day monitoring</li>
-              <li><FaEnvelope /> You'll receive updates via email/SMS</li>
-            </ul>
-          </div>
-
-          <button onClick={() => setCurrentStep('form')} className="schedule-btn-secondary">
-            <FaCalendarAlt /> Book Another Assessment
-          </button>
         </div>
-      </div>
+      </>
     );
   }
 };

@@ -25,10 +25,15 @@ import {
   FaFileInvoice,
   FaChartLine,
   FaHeadset,
+  FaHome,
+  FaCreditCard,
+  FaQuestionCircle,
+  FaBell as FaBellSolid,
   FaAddressBook,
   FaLock,
-  FaBell as FaBellSolid
+  FaShieldAlt
 } from 'react-icons/fa';
+import logo from '../../assets/Salfare_Logo.png'; // Import logo
 import '../../styles/Dashboard/dashboard.css';
 
 const Dashboard = () => {
@@ -43,8 +48,8 @@ const Dashboard = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [userRole, setUserRole] = useState('admin');
-  const [userName, setUserName] = useState('Admin User');
+  const [userRole, setUserRole] = useState('user');
+  const [userName, setUserName] = useState('Customer User');
   const [userPhoto, setUserPhoto] = useState(null);
   const [userEmail, setUserEmail] = useState('');
 
@@ -122,22 +127,22 @@ const Dashboard = () => {
     engineer: [
       { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/dashboard/engineerdashboard' },
       { icon: <FaClipboardCheck />, label: 'Site Assessments', path: '/dashboard/siteassessment' },
-      { icon: <FaProjectDiagram />, label: 'My Projects', path: '/dashboard/project' },
+      { icon: <FaProjectDiagram />, label: 'My Projects', path: '/dashboard/engineerproject' },
       { icon: <FaMicrochip />, label: 'Device Data', path: '/dashboard/iotdevice' },
-      { icon: <FaFileAlt />, label: 'Reports', path: '/dashboard/reports' },
+      { icon: <FaFileAlt />, label: 'Reports', path: '/dashboard/engineerreports' },
       { icon: <FaUserCog />, label: 'Profile', path: '/dashboard/engineerprofile' },
       { icon: <FaCog />, label: 'Settings', path: '/dashboard/engineersettings' },
     ],
 
     user: [
-      { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/dashboard/customerdashboard' },
-      { icon: <FaProjectDiagram />, label: 'My Projects', path: '/dashboard/customerproject' },
+      { icon: <FaHome />, label: 'Dashboard', path: '/dashboard/customerdashboard' },
+      { icon: <FaSolarPanel />, label: 'My Project', path: '/dashboard/customerproject' },
       { icon: <FaCalendarAlt />, label: 'Book Assessment', path: '/dashboard/schedule' },
-      { icon: <FaFileInvoice />, label: 'Quotations & Billing', path: '/dashboard/customerbilling' },
-      { icon: <FaChartLine />, label: 'System Performance', path: '/dashboard/performance' },
-      { icon: <FaFileAlt />, label: 'Assessment Reports', path: '/dashboard/customerreports' },
-      { icon: <FaHeadset />, label: 'Support Center', path: '/dashboard/support' },
-      { icon: <FaUserCog />, label: 'Settings', path: '/dashboard/customersettings' },
+      { icon: <FaFileInvoice />, label: 'Billing', path: '/dashboard/customerbilling' },
+      { icon: <FaChartLine />, label: 'Performance', path: '/dashboard/performance' },
+      { icon: <FaFileAlt />, label: 'Reports', path: '/dashboard/customerreports' },
+      { icon: <FaHeadset />, label: 'Support', path: '/dashboard/support' },
+      { icon: <FaUserCog />, label: 'Settings', path: '/dashboard/customersettings' }, // Changed to customersettings
     ],
   };
 
@@ -155,7 +160,7 @@ const Dashboard = () => {
     switch (userRole) {
       case 'admin': return '/dashboard/settings';
       case 'engineer': return '/dashboard/engineersettings';
-      case 'user': return '/dashboard/customerprofile'; // Users have Profile Settings instead of separate Settings
+      case 'user': return '/dashboard/customersettings'; // Changed to customersettings
       default: return '/dashboard/settings';
     }
   };
@@ -165,13 +170,14 @@ const Dashboard = () => {
     switch (userRole) {
       case 'admin': return '/dashboard/profile';
       case 'engineer': return '/dashboard/engineerprofile';
-      case 'user': return '/dashboard/customerprofile';
+      case 'user': return '/dashboard/customersettings'; // Users go to settings for profile
       default: return '/dashboard/profile';
     }
   };
 
   const currentMenu = menuItems[userRole] || menuItems.admin;
   const unreadCount = notifications.filter(n => !n.read).length;
+  const isCustomer = userRole === 'user';
 
   const handleLogout = () => {
     sessionStorage.removeItem('userRole');
@@ -209,14 +215,151 @@ const Dashboard = () => {
     ));
   };
 
-  // Check if menu item is active 
   const isActive = (itemPath) => {
-    if (itemPath === '/dashboard') {
-      return location.pathname === '/dashboard';
+    if (itemPath === '/dashboard' || itemPath === '/dashboard/customerdashboard' || itemPath === '/dashboard/engineerdashboard') {
+      return location.pathname === itemPath;
     }
     return location.pathname.startsWith(itemPath);
   };
 
+  // ========== CUSTOMER LAYOUT (NO SIDEBAR) ==========
+  if (isCustomer) {
+    return (
+      <div className="dashboard customer-dashboard">
+        <main className="customer-main-content">
+          {/* Simple Header for Customer */}
+          <header className="customer-header">
+            <div className="customer-header-left">
+              <div className="customer-logo">
+                <img src={logo} alt="Salfer Engineering" className="customer-logo-img" />
+                <span className="customer-logo-text">Salfer Engineering</span>
+              </div>
+            </div>
+
+            <div className="customer-header-right">
+              {/* Notifications */}
+              <div className="notification-wrapper" ref={notificationsRef}>
+                <button
+                  className="notification-btn"
+                  onClick={() => setNotificationsOpen(!notificationsOpen)}
+                >
+                  <FaBell />
+                  {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
+                </button>
+
+                {notificationsOpen && (
+                  <div className="notification-dropdown">
+                    <div className="notification-header">
+                      <h3>Notifications</h3>
+                      {unreadCount > 0 && (
+                        <span className="mark-read" onClick={markAllAsRead}>
+                          Mark all as read
+                        </span>
+                      )}
+                    </div>
+                    <div className="notification-list">
+                      {notifications.length > 0 ? (
+                        notifications.map(notif => (
+                          <div 
+                            key={notif.id} 
+                            className={`notification-item ${!notif.read ? 'unread' : ''}`}
+                            onClick={() => markAsRead(notif.id)}
+                          >
+                            <p className="notification-message">{notif.message}</p>
+                            <span className="notification-time">{notif.time}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="notification-empty">
+                          <FaBellSolid className="empty-icon" />
+                          <p>No notifications</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="notification-footer">
+                      <button onClick={() => handleNavigation('/dashboard/notifications')}>
+                        View all
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Profile */}
+              <div className="profile-wrapper" ref={profileRef}>
+                <button
+                  className="profile-btn"
+                  onClick={() => setProfileOpen(!profileOpen)}
+                >
+                  {userPhoto ? (
+                    <img
+                      src={userPhoto}
+                      alt={userName}
+                      className="customer-profile-img"
+                    />
+                  ) : (
+                    <FaUserCircle className="profile-icon" />
+                  )}
+                  <span className="profile-name">{userName}</span>
+                  <FaChevronDown className={`dropdown-icon ${profileOpen ? 'open' : ''}`} />
+                </button>
+
+                {profileOpen && (
+                  <div className="profile-dropdown">
+                    
+                    
+                    <div className="profile-menu">
+                      <button 
+                        onClick={() => handleProfileNavigation('/dashboard/customersettings')} 
+                        className="dropdown-item"
+                      >
+                        <FaUserCircle /> My Profile
+                      </button>
+                      
+                      <button 
+                        onClick={() => handleProfileNavigation('/dashboard/customersettings')} 
+                        className="dropdown-item"
+                      >
+                        <FaCog /> Settings
+                      </button>
+          
+                      
+                      <hr />
+                      
+                      <button onClick={handleLogout} className="dropdown-item logout">
+                        <FaSignOutAlt /> Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
+
+          {/* Customer Navigation Tabs */}
+          <nav className="customer-nav">
+            {currentMenu.map((item, index) => (
+              <button
+                key={index}
+                onClick={() => handleNavigation(item.path)}
+                className={`customer-nav-item ${isActive(item.path) ? 'active' : ''}`}
+              >
+                <span className="customer-nav-icon">{item.icon}</span>
+                <span className="customer-nav-label">{item.label}</span>
+              </button>
+            ))}
+          </nav>
+
+          {/* Content Area */}
+          <div className="customer-content-area">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // ========== ADMIN/ENGINEER LAYOUT (WITH SIDEBAR) ==========
   return (
     <div className="dashboard">
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
@@ -225,9 +368,9 @@ const Dashboard = () => {
         <div className="sidebar-header">
           <div className="logo-container">
             <div className="logo-icon">
-              <FaSolarPanel />
+              <img src={logo} alt="Salfer Engineering" className="sidebar-logo-img" />
             </div>
-            <h1 className="logo-text">SOLARIS</h1>
+            <h1 className="logo-text">Salfer Engineering</h1>
           </div>
           <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>
             <FaTimes />
@@ -333,22 +476,8 @@ const Dashboard = () => {
 
             {/* Profile Dropdown */}
             <div className="profile-wrapper" ref={profileRef}>
-              <button
-                className="profile-btn"
-                onClick={() => setProfileOpen(!profileOpen)}
-              >
-                {userPhoto ? (
-                  <img
-                    src={userPhoto}
-                    alt={userName}
-                    style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', marginRight: '8px' }}
-                  />
-                ) : (
-                  <FaUserCircle className="profile-icon" />
-                )}
-                <span className="profile-name">{userName}</span>
-                <FaChevronDown className={`dropdown-icon ${profileOpen ? 'open' : ''}`} />
-              </button>
+              
+                
 
               {profileOpen && (
                 <div className="profile-dropdown">
@@ -368,9 +497,6 @@ const Dashboard = () => {
                     >
                       <FaCog /> Settings
                     </button>
-                    
-                   
-                    
                     
                     
                     <hr />

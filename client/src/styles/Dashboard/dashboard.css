@@ -634,3 +634,481 @@ button:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
+
+/* ========== CUSTOMER DASHBOARD STYLES ========== */
+.customer-dashboard {
+  background-color: var(--light);
+}
+
+.customer-main-content {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Customer Header */
+.customer-header {
+  background: white;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+ 
+}
+
+.customer-header-left {
+  display: flex;
+  align-items: center;
+}
+
+.customer-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.customer-logo-icon {
+  font-size: 1.5rem;
+  color: var(--primary);
+}
+
+.customer-logo-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.customer-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.customer-profile-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 8px;
+}
+
+/* Customer Navigation Tabs */
+.customer-nav {
+  background: white;
+  padding: 0.5rem 2rem;
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.customer-nav::-webkit-scrollbar {
+  height: 3px;
+}
+
+.customer-nav::-webkit-scrollbar-track {
+  background: var(--gray-lighter);
+}
+
+.customer-nav::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
+}
+
+.customer-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.customer-nav-item:hover {
+  background-color: var(--gray-lighter);
+  color: var(--primary);
+}
+
+.customer-nav-item.active {
+  background-color: var(--primary);
+  color: white;
+}
+
+.customer-nav-icon {
+  font-size: 1rem;
+}
+
+.customer-nav-label {
+  font-weight: 500;
+}
+
+/* Customer Content Area */
+.customer-content-area {
+  flex: 1;
+  padding: 2rem;
+  background-color: var(--light);
+}
+
+/* Responsive for Customer */
+@media (max-width: 768px) {
+  .customer-header {
+    padding: 1rem;
+  }
+  
+  .customer-logo-text {
+    display: none;
+  }
+  
+  .customer-nav {
+    padding: 0.5rem 1rem;
+  }
+  
+  .customer-nav-item {
+    padding: 0.5rem 1rem;
+  }
+  
+  .customer-nav-label {
+    display: none;
+  }
+  
+  .customer-nav-item {
+    justify-content: center;
+  }
+  
+  .customer-nav-icon {
+    font-size: 1.25rem;
+  }
+  
+  .customer-content-area {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .profile-name {
+    display: none;
+  }
+}
+
+/* ========== CUSTOMER DASHBOARD STYLES ========== */
+.customer-dashboard {
+  background-color: var(--light);
+  width: 100%;
+}
+
+.customer-main-content {
+  width: 100%;
+  min-height: 100vh;
+  display: block; /* Change from flex to block */
+}
+
+/* Customer Header */
+.customer-header {
+  background: white;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+}
+
+.customer-header-left {
+  display: flex;
+  align-items: center;
+}
+
+.customer-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.customer-logo-icon {
+  font-size: 1.5rem;
+  color: var(--primary);
+}
+
+.customer-logo-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.customer-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.customer-profile-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 8px;
+}
+
+/* Customer Navigation Tabs */
+.customer-nav {
+  background: white;
+  padding: 0.5rem 2rem;
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: thin;
+  width: 100%;
+}
+
+.customer-nav::-webkit-scrollbar {
+  height: 3px;
+}
+
+.customer-nav::-webkit-scrollbar-track {
+  background: var(--gray-lighter);
+}
+
+.customer-nav::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
+}
+
+.customer-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.customer-nav-item:hover {
+  background-color: var(--gray-lighter);
+  color: var(--primary);
+}
+
+.customer-nav-item.active {
+  background-color: var(--primary);
+  color: white;
+}
+
+.customer-nav-icon {
+  font-size: 1rem;
+}
+
+.customer-nav-label {
+  font-weight: 500;
+}
+
+/* Customer Content Area */
+.customer-content-area {
+  width: 100%;
+  padding: 2rem;
+  background-color: var(--light);
+}
+
+/* Customer Dashboard Content */
+.customer-dashboard-content {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .customer-header {
+    padding: 1rem;
+  }
+  
+  .customer-logo-text {
+    display: none;
+  }
+  
+  .customer-nav {
+    padding: 0.5rem 1rem;
+  }
+  
+  .customer-nav-item {
+    padding: 0.5rem 1rem;
+  }
+  
+  .customer-nav-label {
+    display: none;
+  }
+  
+  .customer-nav-item {
+    justify-content: center;
+  }
+  
+  .customer-nav-icon {
+    font-size: 1.25rem;
+  }
+  
+  .customer-content-area {
+    padding: 1rem;
+  }
+}
+
+/* Customer Navigation Tabs - Fixed */
+.customer-nav {
+  background: white;
+  padding: 0.5rem 2rem;
+  display: flex;
+  justify-content: space-between; /* Changed from flex-start to space-between */
+  gap: 0; /* Remove gap */
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: thin;
+  width: 100%;
+}
+
+.customer-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center the content */
+  gap: 0.5rem;
+  padding: 0.75rem 0; /* Remove horizontal padding, let flex handle it */
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  flex: 1; /* Make each item take equal space */
+  text-align: center;
+  margin: 0 0.25rem; /* Add small margin between items */
+}
+
+/* Optional: Remove margin from first and last items */
+.customer-nav-item:first-child {
+  margin-left: 0;
+}
+
+.customer-nav-item:last-child {
+  margin-right: 0;
+}
+
+.customer-nav-item:hover {
+  background-color: var(--gray-lighter);
+  color: var(--primary);
+}
+
+.customer-nav-item.active {
+  background-color: var(--primary);
+  color: white;
+}
+
+.customer-nav-icon {
+  font-size: 1rem;
+}
+
+.customer-nav-label {
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .customer-nav {
+    padding: 0.5rem 1rem;
+  }
+  
+  .customer-nav-item {
+    padding: 0.5rem 0;
+    margin: 0 0.15rem;
+  }
+  
+  .customer-nav-label {
+    display: none; /* Hide text on mobile, show only icons */
+  }
+  
+  .customer-nav-icon {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .customer-nav-item {
+    margin: 0 0.1rem;
+  }
+}
+
+/* Update logo styles */
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.logo-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Customer logo styles */
+.customer-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.customer-logo-img {
+  height: 35px;
+  width: auto;
+  object-fit: contain;
+}
+
+.customer-logo-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+@media (max-width: 768px) {
+  .customer-logo-text {
+    display: none;
+  }
+}

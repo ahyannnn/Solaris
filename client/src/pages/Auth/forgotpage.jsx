@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '../../assets/Salfare_Logo.png';
+import { Helmet } from 'react-helmet-async';
 import '../../styles/Auth/forgotpage.css';
 
 const ForgotPasswordPage = () => {
@@ -72,7 +73,7 @@ const ForgotPasswordPage = () => {
 
   const validatePassword = () => {
     const newErrors = {};
-    
+
     if (!password) {
       newErrors.password = 'Password is required';
     } else if (password.length < 8) {
@@ -80,11 +81,11 @@ const ForgotPasswordPage = () => {
     } else if (!/(?=.*[0-9])/.test(password)) {
       newErrors.password = 'Password must contain at least one number';
     }
-    
+
     if (password !== confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
-    
+
     return newErrors;
   };
 
@@ -92,7 +93,7 @@ const ForgotPasswordPage = () => {
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateEmail();
-    
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -130,7 +131,7 @@ const ForgotPasswordPage = () => {
   const handleCodeSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateCode();
-    
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -147,9 +148,9 @@ const ForgotPasswordPage = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 
-          email, 
-          code: verificationCode 
+        body: JSON.stringify({
+          email,
+          code: verificationCode
         })
       });
 
@@ -173,7 +174,7 @@ const ForgotPasswordPage = () => {
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validatePassword();
-    
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -188,9 +189,9 @@ const ForgotPasswordPage = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 
-          email, 
-          password 
+        body: JSON.stringify({
+          email,
+          password
         })
       });
 
@@ -200,10 +201,10 @@ const ForgotPasswordPage = () => {
         setErrors({ password: data.message || 'Failed to reset password' });
       } else {
         console.log('✅ Password reset successful for:', email);
-        
+
         // Send success email (don't wait for it)
         sendResetSuccessEmail();
-        
+
         setStep(4);
       }
     } catch (error) {
@@ -263,288 +264,295 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="forgot-page">
-      <div className="forgot-card">
-        {/* Left Side - Branding */}
-        <div className="forgot-branding">
-          <div className="branding-content">
-            <div className="brand-logo">
-              <img src={logo} alt="Salfer Engineering" className="brand-logo-img" />
-              <h1 className="brand-name">Salfer Engineering</h1>
-            </div>
-            <h2 className="brand-tagline">Solar Technology Enterprise</h2>
-            <p className="brand-description">
-              Reset your password to continue managing your solar projects
-            </p>
-            <div className="brand-features">
-              <div className="brand-feature">
-                <span className="feature-dot"></span>
-                <span>Free Solar Estimate</span>
+    <>
+      <Helmet>
+        <title>Forgot Password</title>
+        <meta name="description" content="Reset your password for your Salfer Engineering account to continue managing your solar projects." />
+      </Helmet>
+
+      <div className="forgot-page">
+        <div className="forgot-card">
+          {/* Left Side - Branding */}
+          <div className="forgot-branding">
+            <div className="branding-content">
+              <div className="brand-logo">
+                <img src={logo} alt="Salfer Engineering" className="brand-logo-img" />
+                <h1 className="brand-name">Salfer Engineering</h1>
               </div>
-              <div className="brand-feature">
-                <span className="feature-dot"></span>
-                <span>Professional Installation</span>
-              </div>
-              <div className="brand-feature">
-                <span className="feature-dot"></span>
-                <span>5-Year Warranty</span>
+              <h2 className="brand-tagline">Solar Technology Enterprise</h2>
+              <p className="brand-description">
+                Reset your password to continue managing your solar projects
+              </p>
+              <div className="brand-features">
+                <div className="brand-feature">
+                  <span className="feature-dot"></span>
+                  <span>Free Solar Estimate</span>
+                </div>
+                <div className="brand-feature">
+                  <span className="feature-dot"></span>
+                  <span>Professional Installation</span>
+                </div>
+                <div className="brand-feature">
+                  <span className="feature-dot"></span>
+                  <span>5-Year Warranty</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Right Side - Form */}
-        <div className="forgot-form-container">
-          <div className="forgot-form-wrapper">
-            {/* Step 1: Email */}
-            {step === 1 && (
-              <>
-                <div className="form-header">
-                  <h2 className="form-title">Forgot Password?</h2>
-                  <p className="form-subtitle">
-                    Enter your email and we'll send you a 6-digit code
-                  </p>
-                </div>
-
-                {errors.email && (
-                  <div className="general-error" style={{
-                    backgroundColor: '#fee2e2',
-                    color: '#dc2626',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    marginBottom: '16px',
-                    fontSize: '14px',
-                    textAlign: 'center'
-                  }}>
-                    {errors.email}
-                  </div>
-                )}
-
-                <form onSubmit={handleEmailSubmit} className="forgot-form">
-                  <div className="form-group">
-                    <label htmlFor="email" className="form-label">
-                      Email Address
-                    </label>
-                    <div className="input-wrapper">
-                      <FaEnvelope className="input-icon" />
-                      <input
-                        type="email"
-                        id="email"
-                        className={`form-input ${errors.email ? 'input-error' : ''}`}
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={handleEmailChange}
-                        disabled={isLoading}
-                      />
-                    </div>
-                  </div>
-
-                  <button 
-                    type="submit" 
-                    className={`forgot-submit-btn ${isLoading ? 'loading' : ''}`}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Sending...' : 'Send Code'}
-                  </button>
-                </form>
-              </>
-            )}
-
-            {/* Step 2: 6-digit Code */}
-            {step === 2 && (
-              <>
-                <div className="form-header">
-                  <h2 className="form-title">Enter Code</h2>
-                  <p className="form-subtitle">
-                    We've sent a 6-digit code to <strong>{email}</strong>
-                  </p>
-                </div>
-
-                {errors.code && (
-                  <div className="general-error" style={{
-                    backgroundColor: '#fee2e2',
-                    color: '#dc2626',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    marginBottom: '16px',
-                    fontSize: '14px',
-                    textAlign: 'center'
-                  }}>
-                    {errors.code}
-                  </div>
-                )}
-
-                <form onSubmit={handleCodeSubmit} className="forgot-form">
-                  <div className="code-input-group">
-                    <div className="code-inputs">
-                      {code.map((digit, index) => (
-                        <input
-                          key={index}
-                          id={`code-${index}`}
-                          type="text"
-                          maxLength="1"
-                          className={`code-input ${errors.code ? 'input-error' : ''}`}
-                          value={digit}
-                          onChange={(e) => handleCodeChange(index, e.target.value)}
-                          onKeyDown={(e) => handleKeyDown(index, e)}
-                          disabled={isLoading}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <button 
-                    type="submit" 
-                    className={`forgot-submit-btn ${isLoading ? 'loading' : ''}`}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Verifying...' : 'Verify Code'}
-                  </button>
-
-                  <div className="resend-code">
-                    <p className="resend-text">
-                      Didn't receive code?{' '}
-                      <button 
-                        type="button"
-                        className="resend-link"
-                        onClick={handleResendCode}
-                        disabled={isLoading}
-                      >
-                        Resend
-                      </button>
+          {/* Right Side - Form */}
+          <div className="forgot-form-container">
+            <div className="forgot-form-wrapper">
+              {/* Step 1: Email */}
+              {step === 1 && (
+                <>
+                  <div className="form-header">
+                    <h2 className="form-title">Forgot Password?</h2>
+                    <p className="form-subtitle">
+                      Enter your email and we'll send you a 6-digit code
                     </p>
                   </div>
-                </form>
-              </>
-            )}
 
-            {/* Step 3: New Password & Confirm Password */}
-            {step === 3 && (
-              <>
-                <div className="form-header">
-                  <h2 className="form-title">Reset Password</h2>
-                  <p className="form-subtitle">
-                    Enter your new password
+                  {errors.email && (
+                    <div className="general-error" style={{
+                      backgroundColor: '#fee2e2',
+                      color: '#dc2626',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      marginBottom: '16px',
+                      fontSize: '14px',
+                      textAlign: 'center'
+                    }}>
+                      {errors.email}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleEmailSubmit} className="forgot-form">
+                    <div className="form-group">
+                      <label htmlFor="email" className="form-label">
+                        Email Address
+                      </label>
+                      <div className="input-wrapper">
+                        <FaEnvelope className="input-icon" />
+                        <input
+                          type="email"
+                          id="email"
+                          className={`form-input ${errors.email ? 'input-error' : ''}`}
+                          placeholder="Enter your email"
+                          value={email}
+                          onChange={handleEmailChange}
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className={`forgot-submit-btn ${isLoading ? 'loading' : ''}`}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Sending...' : 'Send Code'}
+                    </button>
+                  </form>
+                </>
+              )}
+
+              {/* Step 2: 6-digit Code */}
+              {step === 2 && (
+                <>
+                  <div className="form-header">
+                    <h2 className="form-title">Enter Code</h2>
+                    <p className="form-subtitle">
+                      We've sent a 6-digit code to <strong>{email}</strong>
+                    </p>
+                  </div>
+
+                  {errors.code && (
+                    <div className="general-error" style={{
+                      backgroundColor: '#fee2e2',
+                      color: '#dc2626',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      marginBottom: '16px',
+                      fontSize: '14px',
+                      textAlign: 'center'
+                    }}>
+                      {errors.code}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleCodeSubmit} className="forgot-form">
+                    <div className="code-input-group">
+                      <div className="code-inputs">
+                        {code.map((digit, index) => (
+                          <input
+                            key={index}
+                            id={`code-${index}`}
+                            type="text"
+                            maxLength="1"
+                            className={`code-input ${errors.code ? 'input-error' : ''}`}
+                            value={digit}
+                            onChange={(e) => handleCodeChange(index, e.target.value)}
+                            onKeyDown={(e) => handleKeyDown(index, e)}
+                            disabled={isLoading}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className={`forgot-submit-btn ${isLoading ? 'loading' : ''}`}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Verifying...' : 'Verify Code'}
+                    </button>
+
+                    <div className="resend-code">
+                      <p className="resend-text">
+                        Didn't receive code?{' '}
+                        <button
+                          type="button"
+                          className="resend-link"
+                          onClick={handleResendCode}
+                          disabled={isLoading}
+                        >
+                          Resend
+                        </button>
+                      </p>
+                    </div>
+                  </form>
+                </>
+              )}
+
+              {/* Step 3: New Password & Confirm Password */}
+              {step === 3 && (
+                <>
+                  <div className="form-header">
+                    <h2 className="form-title">Reset Password</h2>
+                    <p className="form-subtitle">
+                      Enter your new password
+                    </p>
+                  </div>
+
+                  {errors.password && (
+                    <div className="general-error" style={{
+                      backgroundColor: '#fee2e2',
+                      color: '#dc2626',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      marginBottom: '16px',
+                      fontSize: '14px',
+                      textAlign: 'center'
+                    }}>
+                      {errors.password}
+                    </div>
+                  )}
+
+                  <form onSubmit={handlePasswordSubmit} className="forgot-form">
+                    {/* New Password */}
+                    <div className="form-group">
+                      <label htmlFor="newPassword" className="form-label">
+                        New Password
+                      </label>
+                      <div className="input-wrapper">
+                        <FaLock className="input-icon" />
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          id="newPassword"
+                          className={`form-input ${errors.password ? 'input-error' : ''}`}
+                          placeholder="Enter new password"
+                          value={password}
+                          onChange={handlePasswordChange}
+                          disabled={isLoading}
+                        />
+                        <button
+                          type="button"
+                          className="password-toggle"
+                          onClick={() => setShowPassword(!showPassword)}
+                          disabled={isLoading}
+                        >
+                          {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </button>
+                      </div>
+                      {errors.password && <span className="error-message">{errors.password}</span>}
+                    </div>
+
+                    {/* Confirm Password */}
+                    <div className="form-group">
+                      <label htmlFor="confirmPassword" className="form-label">
+                        Confirm Password
+                      </label>
+                      <div className="input-wrapper">
+                        <FaLock className="input-icon" />
+                        <input
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          id="confirmPassword"
+                          className={`form-input ${errors.confirmPassword ? 'input-error' : ''}`}
+                          placeholder="Confirm new password"
+                          value={confirmPassword}
+                          onChange={handleConfirmPasswordChange}
+                          disabled={isLoading}
+                        />
+                        <button
+                          type="button"
+                          className="password-toggle"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          disabled={isLoading}
+                        >
+                          {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                        </button>
+                      </div>
+                      {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+                    </div>
+
+                    <button
+                      type="submit"
+                      className={`forgot-submit-btn ${isLoading ? 'loading' : ''}`}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Resetting...' : 'Reset Password'}
+                    </button>
+                  </form>
+                </>
+              )}
+
+              {/* Step 4: Success */}
+              {step === 4 && (
+                <>
+                  <div className="success-message-container">
+                    <div className="success-icon">✓</div>
+                    <h3 className="success-title">Password Changed!</h3>
+                    <p className="success-text">
+                      Your password has been reset successfully
+                    </p>
+
+                    <button
+                      onClick={handleBackToLogin}
+                      className="back-to-login-btn"
+                    >
+                      Back to Login
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Sign Up Link - show on steps 1-3 only */}
+              {step !== 4 && (
+                <div className="signup-prompt">
+                  <p className="signup-text">
+                    Don't have an account?{' '}
+                    <Link to="/register" className="signup-link">
+                      Sign up
+                    </Link>
                   </p>
                 </div>
-
-                {errors.password && (
-                  <div className="general-error" style={{
-                    backgroundColor: '#fee2e2',
-                    color: '#dc2626',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    marginBottom: '16px',
-                    fontSize: '14px',
-                    textAlign: 'center'
-                  }}>
-                    {errors.password}
-                  </div>
-                )}
-
-                <form onSubmit={handlePasswordSubmit} className="forgot-form">
-                  {/* New Password */}
-                  <div className="form-group">
-                    <label htmlFor="newPassword" className="form-label">
-                      New Password
-                    </label>
-                    <div className="input-wrapper">
-                      <FaLock className="input-icon" />
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        id="newPassword"
-                        className={`form-input ${errors.password ? 'input-error' : ''}`}
-                        placeholder="Enter new password"
-                        value={password}
-                        onChange={handlePasswordChange}
-                        disabled={isLoading}
-                      />
-                      <button
-                        type="button"
-                        className="password-toggle"
-                        onClick={() => setShowPassword(!showPassword)}
-                        disabled={isLoading}
-                      >
-                        {showPassword ? <FaEyeSlash /> : <FaEye />}
-                      </button>
-                    </div>
-                    {errors.password && <span className="error-message">{errors.password}</span>}
-                  </div>
-
-                  {/* Confirm Password */}
-                  <div className="form-group">
-                    <label htmlFor="confirmPassword" className="form-label">
-                      Confirm Password
-                    </label>
-                    <div className="input-wrapper">
-                      <FaLock className="input-icon" />
-                      <input
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        id="confirmPassword"
-                        className={`form-input ${errors.confirmPassword ? 'input-error' : ''}`}
-                        placeholder="Confirm new password"
-                        value={confirmPassword}
-                        onChange={handleConfirmPasswordChange}
-                        disabled={isLoading}
-                      />
-                      <button
-                        type="button"
-                        className="password-toggle"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        disabled={isLoading}
-                      >
-                        {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                      </button>
-                    </div>
-                    {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
-                  </div>
-
-                  <button 
-                    type="submit" 
-                    className={`forgot-submit-btn ${isLoading ? 'loading' : ''}`}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Resetting...' : 'Reset Password'}
-                  </button>
-                </form>
-              </>
-            )}
-
-            {/* Step 4: Success */}
-            {step === 4 && (
-              <>
-                <div className="success-message-container">
-                  <div className="success-icon">✓</div>
-                  <h3 className="success-title">Password Changed!</h3>
-                  <p className="success-text">
-                    Your password has been reset successfully
-                  </p>
-                  
-                  <button 
-                    onClick={handleBackToLogin}
-                    className="back-to-login-btn"
-                  >
-                    Back to Login
-                  </button>
-                </div>
-              </>
-            )}
-
-            {/* Sign Up Link - show on steps 1-3 only */}
-            {step !== 4 && (
-              <div className="signup-prompt">
-                <p className="signup-text">
-                  Don't have an account?{' '}
-                  <Link to="/register" className="signup-link">
-                    Sign up
-                  </Link>
-                </p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

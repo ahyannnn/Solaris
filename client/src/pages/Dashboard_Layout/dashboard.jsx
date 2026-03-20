@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   FaSolarPanel,
@@ -24,13 +24,21 @@ import {
   FaCalendarAlt,
   FaFileInvoice,
   FaChartLine,
-  FaHeadset
+  FaHeadset,
+  FaAddressBook,
+  FaLock,
+  FaBell as FaBellSolid
 } from 'react-icons/fa';
 import '../../styles/Dashboard/dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Refs for click outside detection
+  const profileRef = useRef(null);
+  const notificationsRef = useRef(null);
+  
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -39,6 +47,29 @@ const Dashboard = () => {
   const [userName, setUserName] = useState('Admin User');
   const [userPhoto, setUserPhoto] = useState(null);
   const [userEmail, setUserEmail] = useState('');
+
+  // Handle click outside for profile dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Close profile dropdown if click is outside
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setProfileOpen(false);
+      }
+      
+      // Close notifications dropdown if click is outside
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setNotificationsOpen(false);
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const role = sessionStorage.getItem('userRole');
@@ -51,16 +82,29 @@ const Dashboard = () => {
     if (photo) setUserPhoto(photo);
     if (email) setUserEmail(email);
 
-    if (!role) navigate('/login');
-  }, [navigate]);
+    if (!role) {
+      navigate('/login');
+      return;
+    }
+
+    // Redirect based on role when at the base dashboard path
+    if (location.pathname === '/dashboard') {
+      if (role === 'user') {
+        navigate('/dashboard/customerdashboard');
+      } else if (role === 'engineer') {
+        navigate('/dashboard/engineerdashboard');
+      }
+      // Admin stays at /dashboard
+    }
+  }, [navigate, location.pathname]);
 
   // Mock notifications
-  const notifications = [
+  const [notifications, setNotifications] = useState([
     { id: 1, message: 'New site assessment scheduled', time: '5 min ago', read: false },
     { id: 2, message: 'Payment received from Client A', time: '1 hour ago', read: false },
     { id: 3, message: 'IoT device offline: Site B', time: '3 hours ago', read: true },
     { id: 4, message: 'Project update: Site C - 75% complete', time: '5 hours ago', read: true },
-  ];
+  ]);
 
   // Role-based menu items
   const menuItems = {
@@ -76,12 +120,13 @@ const Dashboard = () => {
     ],
 
     engineer: [
-      { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/dashboard' },
+      { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/dashboard/engineerdashboard' },
       { icon: <FaClipboardCheck />, label: 'Site Assessments', path: '/dashboard/siteassessment' },
       { icon: <FaProjectDiagram />, label: 'My Projects', path: '/dashboard/project' },
       { icon: <FaMicrochip />, label: 'Device Data', path: '/dashboard/iotdevice' },
       { icon: <FaFileAlt />, label: 'Reports', path: '/dashboard/reports' },
-      { icon: <FaUserCog />, label: 'Profile', path: '/dashboard/profile' },
+      { icon: <FaUserCog />, label: 'Profile', path: '/dashboard/engineerprofile' },
+      { icon: <FaCog />, label: 'Settings', path: '/dashboard/engineersettings' },
     ],
 
     user: [
@@ -92,7 +137,7 @@ const Dashboard = () => {
       { icon: <FaChartLine />, label: 'System Performance', path: '/dashboard/performance' },
       { icon: <FaFileAlt />, label: 'Assessment Reports', path: '/dashboard/customerreports' },
       { icon: <FaHeadset />, label: 'Support Center', path: '/dashboard/support' },
-      { icon: <FaUserCog />, label: 'Profile Settings', path: '/dashboard/customerprofile' },
+      { icon: <FaUserCog />, label: 'Settings', path: '/dashboard/customersettings' },
     ],
   };
 
@@ -105,6 +150,26 @@ const Dashboard = () => {
     }
   };
 
+  // Get settings path based on user role
+  const getSettingsPath = () => {
+    switch (userRole) {
+      case 'admin': return '/dashboard/settings';
+      case 'engineer': return '/dashboard/engineersettings';
+      case 'user': return '/dashboard/customerprofile'; // Users have Profile Settings instead of separate Settings
+      default: return '/dashboard/settings';
+    }
+  };
+
+  // Get profile path based on user role
+  const getProfilePath = () => {
+    switch (userRole) {
+      case 'admin': return '/dashboard/profile';
+      case 'engineer': return '/dashboard/engineerprofile';
+      case 'user': return '/dashboard/customerprofile';
+      default: return '/dashboard/profile';
+    }
+  };
+
   const currentMenu = menuItems[userRole] || menuItems.admin;
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -113,12 +178,35 @@ const Dashboard = () => {
     sessionStorage.removeItem('userName');
     sessionStorage.removeItem('userEmail');
     sessionStorage.removeItem('userPhotoURL');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('clientData');
     navigate('/');
   };
 
   const handleNavigation = (path) => {
     navigate(path);
     setSidebarOpen(false);
+    // Close dropdowns when navigating
+    setProfileOpen(false);
+    setNotificationsOpen(false);
+  };
+
+  // Handle profile dropdown navigation
+  const handleProfileNavigation = (path) => {
+    navigate(path);
+    setProfileOpen(false);
+  };
+
+  // Mark all notifications as read
+  const markAllAsRead = () => {
+    setNotifications(notifications.map(notif => ({ ...notif, read: true })));
+  };
+
+  // Mark single notification as read
+  const markAsRead = (id) => {
+    setNotifications(notifications.map(notif => 
+      notif.id === id ? { ...notif, read: true } : notif
+    ));
   };
 
   // Check if menu item is active 
@@ -176,8 +264,6 @@ const Dashboard = () => {
             </button>
           ))}
         </nav>
-
-        {/* REMOVED: sidebar-footer with logout button */}
       </aside>
 
       <main className="main-content">
@@ -197,7 +283,8 @@ const Dashboard = () => {
           </div>
 
           <div className="header-actions">
-            <div className="notification-wrapper">
+            {/* Notifications Dropdown */}
+            <div className="notification-wrapper" ref={notificationsRef}>
               <button
                 className="notification-btn"
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
@@ -210,24 +297,42 @@ const Dashboard = () => {
                 <div className="notification-dropdown">
                   <div className="notification-header">
                     <h3>Notifications</h3>
-                    <span className="mark-read">Mark all as read</span>
+                    {unreadCount > 0 && (
+                      <span className="mark-read" onClick={markAllAsRead}>
+                        Mark all as read
+                      </span>
+                    )}
                   </div>
                   <div className="notification-list">
-                    {notifications.map(notif => (
-                      <div key={notif.id} className={`notification-item ${!notif.read ? 'unread' : ''}`}>
-                        <p className="notification-message">{notif.message}</p>
-                        <span className="notification-time">{notif.time}</span>
+                    {notifications.length > 0 ? (
+                      notifications.map(notif => (
+                        <div 
+                          key={notif.id} 
+                          className={`notification-item ${!notif.read ? 'unread' : ''}`}
+                          onClick={() => markAsRead(notif.id)}
+                        >
+                          <p className="notification-message">{notif.message}</p>
+                          <span className="notification-time">{notif.time}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="notification-empty">
+                        <FaBellSolid className="empty-icon" />
+                        <p>No notifications</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                   <div className="notification-footer">
-                    <a href="#">View all</a>
+                    <button onClick={() => handleNavigation('/dashboard/notifications')}>
+                      View all notifications
+                    </button>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="profile-wrapper">
+            {/* Profile Dropdown */}
+            <div className="profile-wrapper" ref={profileRef}>
               <button
                 className="profile-btn"
                 onClick={() => setProfileOpen(!profileOpen)}
@@ -247,16 +352,33 @@ const Dashboard = () => {
 
               {profileOpen && (
                 <div className="profile-dropdown">
-                  <button onClick={() => navigate('/dashboard/profile')} className="dropdown-item">
-                    <FaUserCircle /> Profile
-                  </button>
-                  <button onClick={() => navigate('/dashboard/settings')} className="dropdown-item">
-                    <FaCog /> Settings
-                  </button>
-                  <hr />
-                  <button onClick={handleLogout} className="dropdown-item logout">
-                    <FaSignOutAlt /> Logout
-                  </button>
+                  
+                  
+                  <div className="profile-menu">
+                    <button 
+                      onClick={() => handleProfileNavigation(getProfilePath())} 
+                      className="dropdown-item"
+                    >
+                      <FaUserCircle /> My Profile
+                    </button>
+                    
+                    <button 
+                      onClick={() => handleProfileNavigation(getSettingsPath())} 
+                      className="dropdown-item"
+                    >
+                      <FaCog /> Settings
+                    </button>
+                    
+                   
+                    
+                    
+                    
+                    <hr />
+                    
+                    <button onClick={handleLogout} className="dropdown-item logout">
+                      <FaSignOutAlt /> Logout
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

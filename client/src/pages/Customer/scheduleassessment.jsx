@@ -26,7 +26,13 @@ import {
   FaChartLine,
   FaBatteryFull,
   FaPlug,
-  FaSolarPanel
+  FaSolarPanel,
+  FaRoad,
+  FaCity,
+  FaGlobe,
+  FaMailBulk,
+  FaHashtag,
+  FaHome as FaHouse
 } from 'react-icons/fa';
 import '../../styles/Customer/scheduleassessment.css';
 
@@ -38,6 +44,8 @@ const ScheduleAssessment = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('');
 
   // Estimator state
   const [estimatorData, setEstimatorData] = useState({
@@ -50,12 +58,24 @@ const ScheduleAssessment = () => {
 
   const [estimationResult, setEstimationResult] = useState(null);
 
-  // Booking form state
+  // Booking form state - DISSECTED FIELDS
   const [formData, setFormData] = useState({
-    fullName: '',
+    // Name fields
+    firstName: '',
+    middleName: '',
+    lastName: '',
     email: '',
     contactNumber: '',
-    address: '',
+    
+    // Address fields - Updated to match Address table
+    houseOrBuilding: '',
+    street: '',
+    barangay: '',
+    cityMunicipality: '',
+    province: '',
+    zipCode: '',
+    
+    // Property fields
     propertyType: 'residential',
     desiredCapacity: '',
     roofType: '',
@@ -79,9 +99,13 @@ const ScheduleAssessment = () => {
     invoiceNumber: null
   });
 
+  // Validation errors
+  const [validationErrors, setValidationErrors] = useState({});
+
   // Fetch client data on component mount
   useEffect(() => {
     fetchClientData();
+    fetchClientAddresses();
   }, []);
 
   const fetchClientData = async () => {
@@ -110,43 +134,21 @@ const ScheduleAssessment = () => {
       
       setUser(clientData);
 
-      // Safely extract name fields with fallbacks
+      // Extract name fields
       const firstName = clientData?.contactFirstName || '';
       const middleName = clientData?.contactMiddleName || '';
       const lastName = clientData?.contactLastName || '';
-      
-      const fullName = [firstName, middleName, lastName]
-        .filter(part => part && part.trim() !== '')
-        .join(' ');
-
       const email = clientData?.email || '';
+      const contactNumber = clientData?.contactNumber || '';
 
-      // Handle address - could be string or object
-      let addressString = '';
-      if (clientData?.address) {
-        if (typeof clientData.address === 'string') {
-          addressString = clientData.address;
-        } else if (typeof clientData.address === 'object') {
-          const addr = clientData.address;
-          const addressParts = [];
-          
-          if (addr.street) addressParts.push(addr.street);
-          if (addr.barangay) addressParts.push(addr.barangay);
-          if (addr.city) addressParts.push(addr.city);
-          if (addr.province) addressParts.push(addr.province);
-          if (addr.zipCode) addressParts.push(addr.zipCode);
-          
-          addressString = addressParts.filter(Boolean).join(', ');
-        }
-      }
-
-      // Pre-fill form with client data
+      // Pre-fill form with client data (name fields only, address will come from addresses)
       setFormData(prev => ({
         ...prev,
-        fullName: fullName || prev.fullName,
+        firstName: firstName || prev.firstName,
+        middleName: middleName || prev.middleName,
+        lastName: lastName || prev.lastName,
         email: email || prev.email,
-        contactNumber: clientData?.contactNumber || prev.contactNumber,
-        address: addressString || prev.address
+        contactNumber: contactNumber || prev.contactNumber
       }));
 
     } catch (err) {
@@ -161,6 +163,56 @@ const ScheduleAssessment = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchClientAddresses = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/clients/me/addresses`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const fetchedAddresses = response.data?.addresses || [];
+      setAddresses(fetchedAddresses);
+
+      // If there's a primary address, select it and populate form
+      if (fetchedAddresses.length > 0) {
+        const primaryAddress = fetchedAddresses.find(addr => addr.isPrimary) || fetchedAddresses[0];
+        setSelectedAddressId(primaryAddress._id);
+        
+        // Populate address fields in form
+        setFormData(prev => ({
+          ...prev,
+          houseOrBuilding: primaryAddress.houseOrBuilding || '',
+          street: primaryAddress.street || '',
+          barangay: primaryAddress.barangay || '',
+          cityMunicipality: primaryAddress.cityMunicipality || '',
+          province: primaryAddress.province || '',
+          zipCode: primaryAddress.zipCode || ''
+        }));
+      }
+    } catch (err) {
+      console.error('Error fetching addresses:', err);
+      // Don't show error for addresses, just log it
+    }
+  };
+
+  const handleAddressChange = (e) => {
+    const addressId = e.target.value;
+    setSelectedAddressId(addressId);
+    
+    const selectedAddress = addresses.find(addr => addr._id === addressId);
+    if (selectedAddress) {
+      setFormData(prev => ({
+        ...prev,
+        houseOrBuilding: selectedAddress.houseOrBuilding || '',
+        street: selectedAddress.street || '',
+        barangay: selectedAddress.barangay || '',
+        cityMunicipality: selectedAddress.cityMunicipality || '',
+        province: selectedAddress.province || '',
+        zipCode: selectedAddress.zipCode || ''
+      }));
     }
   };
 
@@ -271,11 +323,77 @@ const ScheduleAssessment = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear validation error for this field
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    
+    // Validate name fields
+    if (!formData.firstName.trim()) errors.firstName = 'First name is required';
+    if (!formData.lastName.trim()) errors.lastName = 'Last name is required';
+    if (!formData.email.trim()) errors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Email is invalid';
+    
+    if (!formData.contactNumber.trim()) errors.contactNumber = 'Contact number is required';
+    
+    // Validate address fields
+    if (!formData.houseOrBuilding.trim()) errors.houseOrBuilding = 'House/Building number is required';
+    if (!formData.street.trim()) errors.street = 'Street is required';
+    if (!formData.barangay.trim()) errors.barangay = 'Barangay is required';
+    if (!formData.cityMunicipality.trim()) errors.cityMunicipality = 'City/Municipality is required';
+    if (!formData.province.trim()) errors.province = 'Province is required';
+    if (!formData.zipCode.trim()) errors.zipCode = 'Zip code is required';
+    
+    // Validate property fields
+    if (!formData.propertyType) errors.propertyType = 'Property type is required';
+    if (!formData.preferredDate) errors.preferredDate = 'Preferred date is required';
+    
+    return errors;
   };
 
   const handleSubmitClick = (e) => {
     e.preventDefault();
+    
+    // Validate form
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      
+      // Scroll to first error
+      const firstErrorField = Object.keys(errors)[0];
+      const element = document.getElementById(firstErrorField);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.focus();
+      }
+      return;
+    }
+    
     setShowConfirmDialog(true);
+  };
+
+  const getFullName = () => {
+    return [formData.firstName, formData.middleName, formData.lastName]
+      .filter(part => part && part.trim() !== '')
+      .join(' ');
+  };
+
+  const getFullAddress = () => {
+    const parts = [
+      formData.houseOrBuilding,
+      formData.street,
+      formData.barangay,
+      formData.cityMunicipality,
+      formData.province,
+      formData.zipCode
+    ].filter(part => part && part.trim() !== '');
+    
+    return parts.join(', ');
   };
 
   const handleConfirmBooking = async () => {
@@ -289,21 +407,53 @@ const ScheduleAssessment = () => {
     try {
       const token = sessionStorage.getItem('token');
 
+      // Construct full name and address for backward compatibility
+      const fullName = getFullName();
+      const fullAddress = getFullAddress();
+
       const bookingPayload = {
-        ...formData,
+        // Individual fields
+        firstName: formData.firstName,
+        middleName: formData.middleName,
+        lastName: formData.lastName,
+        email: formData.email,
+        contactNumber: formData.contactNumber,
+        
+        // Address fields - using updated names
+        houseOrBuilding: formData.houseOrBuilding,
+        street: formData.street,
+        barangay: formData.barangay,
+        cityMunicipality: formData.cityMunicipality,
+        province: formData.province,
+        zipCode: formData.zipCode,
+        
+        // Property fields
+        propertyType: formData.propertyType,
+        desiredCapacity: formData.desiredCapacity,
+        roofType: formData.roofType,
+        preferredDate: formData.preferredDate,
+        
+        // For backward compatibility
+        fullName,
+        fullAddress,
+        
+        // Estimator data
         estimatorData,
         estimationResult,
-        userId: user?.userId || user?._id
+        
+        userId: user?.userId || user?._id,
+        clientId: user?._id,
+        addressId: selectedAddressId || null // Include selected address ID if any
       };
 
-      const response = await axios.post('/api/bookings', bookingPayload, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/bookings`, bookingPayload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       setBookingData({
-        bookingId: response.data.bookingId || 'BK-2024-001',
+        bookingId: response.data.booking?.bookingReference || response.data.bookingId || 'BK-2024-001',
         assessmentFee: 1500,
-        invoiceNumber: response.data.invoiceNumber || 'INV-2024-001'
+        invoiceNumber: response.data.booking?.invoiceNumber || response.data.invoiceNumber || 'INV-2024-001'
       });
 
       setShowConfirmDialog(false);
@@ -391,9 +541,11 @@ const ScheduleAssessment = () => {
                 <p><strong>Are you sure you want to proceed with this booking?</strong></p>
                 <p>Please review your details:</p>
                 <ul className="schedule-details-list">
-                  <li><FaUser /> <strong>Name:</strong> {formData.fullName || 'Not provided'}</li>
+                  <li><FaUser /> <strong>Name:</strong> {getFullName() || 'Not provided'}</li>
                   <li><FaEnvelope /> <strong>Email:</strong> {formData.email || 'Not provided'}</li>
                   <li><FaPhone /> <strong>Contact:</strong> {formData.contactNumber || 'Not provided'}</li>
+                  <li><FaMapMarkerAlt /> <strong>Address:</strong> {getFullAddress() || 'Not provided'}</li>
+                  <li><FaHome /> <strong>Property Type:</strong> {formData.propertyType || 'Not provided'}</li>
                   <li><FaCalendarAlt /> <strong>Preferred Date:</strong> {formData.preferredDate || 'Not provided'}</li>
                   <li><FaMoneyBillWave /> <strong>Assessment Fee:</strong> ₱1,500.00</li>
                 </ul>
@@ -571,18 +723,44 @@ const ScheduleAssessment = () => {
         <h2 className="schedule-subtitle">Book Your Site Assessment</h2>
         
         <form onSubmit={handleSubmitClick} className="schedule-form">
+          <h3 className="schedule-section-title"><FaUser /> Personal Information</h3>
           <div className="schedule-form-grid">
             <div className="schedule-form-group">
-              <label htmlFor="fullName"><FaUser /> Full Name *</label>
+              <label htmlFor="firstName"><FaUser /> First Name *</label>
               <input
                 type="text"
-                id="fullName"
-                name="fullName"
-                value={formData.fullName}
+                id="firstName"
+                name="firstName"
+                value={formData.firstName}
                 onChange={handleInputChange}
-                required
+                className={`schedule-input ${validationErrors.firstName ? 'error' : ''}`}
+              />
+              {validationErrors.firstName && <small className="schedule-error-text">{validationErrors.firstName}</small>}
+            </div>
+
+            <div className="schedule-form-group">
+              <label htmlFor="middleName"><FaUser /> Middle Name</label>
+              <input
+                type="text"
+                id="middleName"
+                name="middleName"
+                value={formData.middleName}
+                onChange={handleInputChange}
                 className="schedule-input"
               />
+            </div>
+
+            <div className="schedule-form-group">
+              <label htmlFor="lastName"><FaUser /> Last Name *</label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleInputChange}
+                className={`schedule-input ${validationErrors.lastName ? 'error' : ''}`}
+              />
+              {validationErrors.lastName && <small className="schedule-error-text">{validationErrors.lastName}</small>}
             </div>
 
             <div className="schedule-form-group">
@@ -593,9 +771,9 @@ const ScheduleAssessment = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                required
-                className="schedule-input"
+                className={`schedule-input ${validationErrors.email ? 'error' : ''}`}
               />
+              {validationErrors.email && <small className="schedule-error-text">{validationErrors.email}</small>}
             </div>
 
             <div className="schedule-form-group">
@@ -606,25 +784,125 @@ const ScheduleAssessment = () => {
                 name="contactNumber"
                 value={formData.contactNumber}
                 onChange={handleInputChange}
-                required
-                className="schedule-input"
+                className={`schedule-input ${validationErrors.contactNumber ? 'error' : ''}`}
                 placeholder="0917xxxxxxx"
               />
+              {validationErrors.contactNumber && <small className="schedule-error-text">{validationErrors.contactNumber}</small>}
             </div>
+          </div>
 
+          <h3 className="schedule-section-title"><FaMapMarkerAlt /> Address Details</h3>
+          
+          {/* Address Selection Dropdown */}
+          {addresses.length > 0 && (
             <div className="schedule-form-group schedule-full-width">
-              <label htmlFor="address"><FaMapMarkerAlt /> Complete Address *</label>
-              <textarea
-                id="address"
-                name="address"
-                value={formData.address}
+              <label htmlFor="addressSelect"><FaHome /> Select Saved Address</label>
+              <select
+                id="addressSelect"
+                value={selectedAddressId}
+                onChange={handleAddressChange}
+                className="schedule-select"
+              >
+                <option value="">-- Select an address --</option>
+                {addresses.map(addr => (
+                  <option key={addr._id} value={addr._id}>
+                    {addr.houseOrBuilding} {addr.street}, {addr.barangay}, {addr.cityMunicipality} {addr.isPrimary ? '(Primary)' : ''}
+                  </option>
+                ))}
+              </select>
+              <small>Select a saved address or fill in the fields below</small>
+            </div>
+          )}
+
+          <div className="schedule-form-grid">
+            <div className="schedule-form-group">
+              <label htmlFor="houseOrBuilding"><FaHashtag /> House/Bldg. No. *</label>
+              <input
+                type="text"
+                id="houseOrBuilding"
+                name="houseOrBuilding"
+                value={formData.houseOrBuilding}
                 onChange={handleInputChange}
-                required
-                className="schedule-textarea"
-                rows="3"
+                className={`schedule-input ${validationErrors.houseOrBuilding ? 'error' : ''}`}
+                placeholder="123"
               />
+              {validationErrors.houseOrBuilding && <small className="schedule-error-text">{validationErrors.houseOrBuilding}</small>}
             </div>
 
+            <div className="schedule-form-group">
+              <label htmlFor="street"><FaRoad /> Street *</label>
+              <input
+                type="text"
+                id="street"
+                name="street"
+                value={formData.street}
+                onChange={handleInputChange}
+                className={`schedule-input ${validationErrors.street ? 'error' : ''}`}
+                placeholder="Rizal Street"
+              />
+              {validationErrors.street && <small className="schedule-error-text">{validationErrors.street}</small>}
+            </div>
+
+            <div className="schedule-form-group">
+              <label htmlFor="barangay"><FaBuilding /> Barangay *</label>
+              <input
+                type="text"
+                id="barangay"
+                name="barangay"
+                value={formData.barangay}
+                onChange={handleInputChange}
+                className={`schedule-input ${validationErrors.barangay ? 'error' : ''}`}
+                placeholder="Barangay San Jose"
+              />
+              {validationErrors.barangay && <small className="schedule-error-text">{validationErrors.barangay}</small>}
+            </div>
+
+            <div className="schedule-form-group">
+              <label htmlFor="cityMunicipality"><FaCity /> City/Municipality *</label>
+              <input
+                type="text"
+                id="cityMunicipality"
+                name="cityMunicipality"
+                value={formData.cityMunicipality}
+                onChange={handleInputChange}
+                className={`schedule-input ${validationErrors.cityMunicipality ? 'error' : ''}`}
+                placeholder="Manila"
+              />
+              {validationErrors.cityMunicipality && <small className="schedule-error-text">{validationErrors.cityMunicipality}</small>}
+            </div>
+
+            <div className="schedule-form-group">
+              <label htmlFor="province"><FaGlobe /> Province *</label>
+              <input
+                type="text"
+                id="province"
+                name="province"
+                value={formData.province}
+                onChange={handleInputChange}
+                className={`schedule-input ${validationErrors.province ? 'error' : ''}`}
+                placeholder="Metro Manila"
+              />
+              {validationErrors.province && <small className="schedule-error-text">{validationErrors.province}</small>}
+            </div>
+
+            <div className="schedule-form-group">
+              <label htmlFor="zipCode"><FaMailBulk /> Zip Code *</label>
+              <input
+                type="text"
+                id="zipCode"
+                name="zipCode"
+                value={formData.zipCode}
+                onChange={handleInputChange}
+                className={`schedule-input ${validationErrors.zipCode ? 'error' : ''}`}
+                placeholder="1000"
+                maxLength="4"
+              />
+              {validationErrors.zipCode && <small className="schedule-error-text">{validationErrors.zipCode}</small>}
+            </div>
+          </div>
+
+          <h3 className="schedule-section-title"><FaHome /> Property Details</h3>
+          <div className="schedule-form-grid">
             <div className="schedule-form-group">
               <label htmlFor="propertyType"><FaHome /> Property Type *</label>
               <select
@@ -632,11 +910,12 @@ const ScheduleAssessment = () => {
                 name="propertyType"
                 value={formData.propertyType}
                 onChange={handleInputChange}
-                className="schedule-select"
+                className={`schedule-select ${validationErrors.propertyType ? 'error' : ''}`}
               >
                 <option value="residential">Residential</option>
                 <option value="commercial">Commercial</option>
               </select>
+              {validationErrors.propertyType && <small className="schedule-error-text">{validationErrors.propertyType}</small>}
             </div>
 
             <div className="schedule-form-group">
@@ -677,9 +956,10 @@ const ScheduleAssessment = () => {
                 name="preferredDate"
                 value={formData.preferredDate}
                 onChange={handleInputChange}
-                required
-                className="schedule-input"
+                className={`schedule-input ${validationErrors.preferredDate ? 'error' : ''}`}
+                min={new Date().toISOString().split('T')[0]}
               />
+              {validationErrors.preferredDate && <small className="schedule-error-text">{validationErrors.preferredDate}</small>}
             </div>
           </div>
 

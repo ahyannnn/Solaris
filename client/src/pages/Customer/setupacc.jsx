@@ -20,6 +20,7 @@ const SetupAccount = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
 
   const token = sessionStorage.getItem('token');
 
@@ -33,7 +34,7 @@ const SetupAccount = () => {
   ];
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
-  // Form Data
+  // Form Data - Updated field names to match database schema
   const [formData, setFormData] = useState({
     accountType: 'individual',
     companyName: '',
@@ -44,22 +45,22 @@ const SetupAccount = () => {
     birthMonth: '',
     birthDay: '',
     birthYear: '',
-    houseNumber: '',
+    // Address fields - updated to match Address model
+    houseOrBuilding: '',  // Changed from houseNumber
     street: '',
     barangay: '',
-    municipality: '',
+    cityMunicipality: '', // Changed from municipality
     province: '',
     zipCode: ''
   });
 
   const [errors, setErrors] = useState({});
 
-  
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     if (errors[name]) setErrors({ ...errors, [name]: '' });
+    if (apiError) setApiError('');
   };
 
   const validateStep1 = () => {
@@ -74,21 +75,28 @@ const SetupAccount = () => {
     if (!formData.birthMonth) newErrors.birthMonth = 'Month is required';
     if (!formData.birthDay) newErrors.birthDay = 'Day is required';
     if (!formData.birthYear) newErrors.birthYear = 'Year is required';
-    if (formData.phoneNumber && !/^(09|\+639)\d{9}$/.test(formData.phoneNumber.replace(/\s/g, ''))) {
-      newErrors.phoneNumber = 'Enter a valid Philippine mobile number (09XXXXXXXXX or +639XXXXXXXXX)';
+    
+    // Validate phone number
+    if (formData.phoneNumber) {
+      const phoneRegex = /^(09|\+639)\d{9}$/;
+      if (!phoneRegex.test(formData.phoneNumber.replace(/\s/g, ''))) {
+        newErrors.phoneNumber = 'Enter a valid Philippine mobile number (09XXXXXXXXX or +639XXXXXXXXX)';
+      }
     }
     return newErrors;
   };
 
   const validateStep2 = () => {
     const newErrors = {};
-    if (!formData.houseNumber) newErrors.houseNumber = 'House number is required';
+    if (!formData.houseOrBuilding) newErrors.houseOrBuilding = 'House/Building number is required';
     if (!formData.street) newErrors.street = 'Street is required';
     if (!formData.barangay) newErrors.barangay = 'Barangay is required';
-    if (!formData.municipality) newErrors.municipality = 'Municipality is required';
+    if (!formData.cityMunicipality) newErrors.cityMunicipality = 'City/Municipality is required';
     if (!formData.province) newErrors.province = 'Province is required';
     if (!formData.zipCode) newErrors.zipCode = 'ZIP code is required';
-    if (formData.zipCode && !/^\d{4}$/.test(formData.zipCode)) newErrors.zipCode = 'ZIP code must be 4 digits';
+    if (formData.zipCode && !/^\d{4}$/.test(formData.zipCode)) {
+      newErrors.zipCode = 'ZIP code must be 4 digits';
+    }
     return newErrors;
   };
 
@@ -112,26 +120,29 @@ const SetupAccount = () => {
     }
 
     setIsLoading(true);
+    setApiError('');
+
     try {
+      // Format birthday as proper date
+      const birthday = formData.birthYear && formData.birthMonth && formData.birthDay
+        ? `${formData.birthYear}-${String(formData.birthMonth).padStart(2, '0')}-${String(formData.birthDay).padStart(2, '0')}`
+        : null;
+
+      // STEP 1: Update Client Info (Personal Information)
       const clientUpdate = {
         contactFirstName: formData.firstName,
         contactMiddleName: formData.middleName,
         contactLastName: formData.lastName,
         contactNumber: formData.phoneNumber,
-        client_type: formData.accountType,
-        companyName: formData.companyName,
-        address: {
-          houseNumber: formData.houseNumber,
-          street: formData.street,
-          barangay: formData.barangay,
-          municipality: formData.municipality,
-          province: formData.province,
-          zipCode: formData.zipCode
-        },
-        account_setup: true // mark setup as complete
+        client_type: formData.accountType === 'individual' ? 'Individual' : 'Company',
+        companyName: formData.accountType === 'company' ? formData.companyName : '',
+        birthday: birthday,
+        account_setup: true
       };
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/clients/update`, {
+      console.log('Updating client with:', clientUpdate);
+
+      const clientRes = await fetch(`${import.meta.env.VITE_API_URL}/api/clients/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -140,15 +151,55 @@ const SetupAccount = () => {
         body: JSON.stringify(clientUpdate)
       });
 
-      const data = await res.json();
-      if (res.ok) {
-        sessionStorage.setItem('clientData', JSON.stringify(data.client));
-        setCurrentStep(3);
-      } else {
-        console.error(data.message);
+      const clientData = await clientRes.json();
+      
+      if (!clientRes.ok) {
+        throw new Error(clientData.message || 'Failed to update client information');
       }
+
+      console.log('Client updated successfully:', clientData);
+
+      // STEP 2: Add Address to Address Table
+      const addressData = {
+        houseOrBuilding: formData.houseOrBuilding,
+        street: formData.street,
+        barangay: formData.barangay,
+        cityMunicipality: formData.cityMunicipality,
+        province: formData.province,
+        zipCode: formData.zipCode,
+        label: 'Primary',
+        isPrimary: true // This will be the primary address
+      };
+
+      console.log('Adding address with:', addressData);
+
+      const addressRes = await fetch(`${import.meta.env.VITE_API_URL}/api/clients/me/addresses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(addressData)
+      });
+
+      const addressResult = await addressRes.json();
+
+      if (!addressRes.ok) {
+        throw new Error(addressResult.message || 'Failed to save address');
+      }
+
+      console.log('Address added successfully:', addressResult);
+
+      // Store combined data in sessionStorage
+      sessionStorage.setItem('clientData', JSON.stringify({
+        ...clientData.client,
+        primaryAddress: addressResult.address
+      }));
+      
+      setCurrentStep(3);
     } catch (error) {
       console.error('Setup error:', error);
+      setApiError(error.message || 'Failed to complete setup. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -249,6 +300,7 @@ const SetupAccount = () => {
                     </div>
                     {errors.companyName && <span className="setup-error-message">{errors.companyName}</span>}
                   </div>
+
                   {/* FIRST NAME */}
                   <div className="setup-form-group">
                     <label className="setup-form-label">First Name <span className="setup-required">*</span></label>
@@ -363,7 +415,9 @@ const SetupAccount = () => {
                         </select>
                       </div>
                     </div>
-                    {errors.birthMonth && <span className="setup-error-message">{errors.birthMonth}</span>}
+                    {(errors.birthMonth || errors.birthDay || errors.birthYear) && 
+                      <span className="setup-error-message">Complete birthday is required</span>
+                    }
                   </div>
 
                   <div className="setup-form-actions">
@@ -387,22 +441,28 @@ const SetupAccount = () => {
                   <p className="setup-form-subtitle">Where are you located?</p>
                 </div>
 
+                {apiError && (
+                  <div className="setup-api-error">
+                    <span className="setup-error-message">{apiError}</span>
+                  </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="setup-form">
-                  {/* HOUSE NUMBER */}
+                  {/* HOUSE/BUILDING NUMBER */}
                   <div className="setup-form-group">
-                    <label className="setup-form-label">House/Unit No. <span className="setup-required">*</span></label>
+                    <label className="setup-form-label">House/Building No. <span className="setup-required">*</span></label>
                     <div className="setup-input-wrapper">
                       <FaHome className="setup-input-icon" />
                       <input
                         type="text"
-                        name="houseNumber"
-                        value={formData.houseNumber}
+                        name="houseOrBuilding"
+                        value={formData.houseOrBuilding}
                         onChange={handleChange}
-                        className={`setup-form-input ${errors.houseNumber ? 'error' : ''}`}
-                        placeholder="Enter house/unit number"
+                        className={`setup-form-input ${errors.houseOrBuilding ? 'error' : ''}`}
+                        placeholder="Enter house/building number"
                       />
                     </div>
-                    {errors.houseNumber && <span className="setup-error-message">{errors.houseNumber}</span>}
+                    {errors.houseOrBuilding && <span className="setup-error-message">{errors.houseOrBuilding}</span>}
                   </div>
 
                   {/* STREET */}
@@ -439,21 +499,21 @@ const SetupAccount = () => {
                     {errors.barangay && <span className="setup-error-message">{errors.barangay}</span>}
                   </div>
 
-                  {/* MUNICIPALITY/CITY */}
+                  {/* CITY/MUNICIPALITY */}
                   <div className="setup-form-group">
-                    <label className="setup-form-label">Municipality/City <span className="setup-required">*</span></label>
+                    <label className="setup-form-label">City/Municipality <span className="setup-required">*</span></label>
                     <div className="setup-input-wrapper">
                       <FaCity className="setup-input-icon" />
                       <input
                         type="text"
-                        name="municipality"
-                        value={formData.municipality}
+                        name="cityMunicipality"
+                        value={formData.cityMunicipality}
                         onChange={handleChange}
-                        className={`setup-form-input ${errors.municipality ? 'error' : ''}`}
-                        placeholder="Enter municipality/city"
+                        className={`setup-form-input ${errors.cityMunicipality ? 'error' : ''}`}
+                        placeholder="Enter city/municipality"
                       />
                     </div>
-                    {errors.municipality && <span className="setup-error-message">{errors.municipality}</span>}
+                    {errors.cityMunicipality && <span className="setup-error-message">{errors.cityMunicipality}</span>}
                   </div>
 
                   {/* PROVINCE */}

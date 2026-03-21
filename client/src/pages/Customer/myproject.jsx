@@ -12,7 +12,8 @@ import {
   FaFileInvoice,
   FaDownload,
   FaArrowRight,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaMapMarkerAlt
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/Customer/myproject.css';
@@ -29,7 +30,7 @@ const MyProject = () => {
         id: 'PRJ-2024-001',
         name: 'Residential Solar Installation',
         address: '123 Rizal St., Barangay San Jose, Manila',
-        status: 'in-progress', // pending, assessment, in-progress, completed
+        status: 'in-progress',
         progress: 65,
         startDate: '2024-04-01',
         estimatedCompletion: '2024-06-30',
@@ -53,7 +54,7 @@ const MyProject = () => {
         ]
       });
       setLoading(false);
-    }, 1000);
+    }, 1500);
   }, []);
 
   const getStatusBadge = (status) => {
@@ -82,12 +83,92 @@ const MyProject = () => {
     }
   };
 
+  // Skeleton Loader Component
+  const SkeletonLoader = () => (
+    <div className="project-container">
+      <div className="project-header">
+        <div className="skeleton-line large"></div>
+        <div className="skeleton-line small"></div>
+      </div>
+
+      {/* Overview Skeleton */}
+      <div className="project-overview skeleton-card">
+        <div className="skeleton-line medium"></div>
+        <div className="skeleton-line small"></div>
+        <div className="skeleton-details-grid">
+          <div className="skeleton-line"></div>
+          <div className="skeleton-line"></div>
+          <div className="skeleton-line"></div>
+          <div className="skeleton-line"></div>
+        </div>
+        <div className="skeleton-progress"></div>
+      </div>
+
+      {/* Address Skeleton */}
+      <div className="address-card skeleton-card">
+        <div className="skeleton-line medium"></div>
+        <div className="skeleton-line"></div>
+      </div>
+
+      {/* System Details Skeleton */}
+      <div className="system-details skeleton-card">
+        <div className="skeleton-line medium"></div>
+        <div className="skeleton-details-grid">
+          <div className="skeleton-box"></div>
+          <div className="skeleton-box"></div>
+          <div className="skeleton-box"></div>
+        </div>
+      </div>
+
+      {/* Milestones Skeleton */}
+      <div className="milestones-section skeleton-card">
+        <div className="skeleton-line medium"></div>
+        <div className="skeleton-timeline">
+          {[1, 2, 3, 4, 5, 6].map((item) => (
+            <div key={item} className="skeleton-timeline-item">
+              <div className="skeleton-icon"></div>
+              <div className="skeleton-content">
+                <div className="skeleton-line small"></div>
+                <div className="skeleton-line tiny"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Documents Skeleton */}
+      <div className="documents-section skeleton-card">
+        <div className="skeleton-line medium"></div>
+        <div className="skeleton-documents">
+          {[1, 2, 3].map((item) => (
+            <div key={item} className="skeleton-document-item">
+              <div className="skeleton-icon"></div>
+              <div className="skeleton-content">
+                <div className="skeleton-line small"></div>
+                <div className="skeleton-line tiny"></div>
+              </div>
+              <div className="skeleton-button-small"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Actions Skeleton */}
+      <div className="quick-actions">
+        <div className="skeleton-button"></div>
+        <div className="skeleton-button"></div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="project-loading">
-        <div className="spinner"></div>
-        <p>Loading your project...</p>
-      </div>
+      <>
+        <Helmet>
+          <title>My Project | Salfer Engineering</title>
+        </Helmet>
+        <SkeletonLoader />
+      </>
     );
   }
 
@@ -108,7 +189,6 @@ const MyProject = () => {
     <>
       <Helmet>
         <title>My Project | Salfer Engineering</title>
-        <meta name="description" content="Track your solar panel installation project status, view milestones, and monitor progress on your Salfer Engineering project." />
       </Helmet>
       
       <div className="project-container">
@@ -123,7 +203,7 @@ const MyProject = () => {
           <div className="overview-header">
             <div>
               <h2>{project.name}</h2>
-              <p className="project-id">ID: {project.id}</p>
+              <p className="project-id">{project.id}</p>
             </div>
             {getStatusBadge(project.status)}
           </div>
@@ -160,8 +240,11 @@ const MyProject = () => {
 
         {/* Project Address */}
         <div className="address-card">
-          <h3>Installation Address</h3>
-          <p>{project.address}</p>
+          <FaMapMarkerAlt className="address-icon" />
+          <div>
+            <h3>Installation Address</h3>
+            <p>{project.address}</p>
+          </div>
         </div>
 
         {/* System Details */}

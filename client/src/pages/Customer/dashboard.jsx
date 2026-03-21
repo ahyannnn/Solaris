@@ -5,11 +5,11 @@ import {
   FaBolt,
   FaLeaf,
   FaCalendarAlt,
-  FaCheckCircle,
   FaArrowRight,
   FaFileInvoice,
   FaHeadset,
-  FaUserCog
+  FaUserCog,
+  FaSpinner
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/Customer/dashboard.css';
@@ -17,10 +17,19 @@ import '../../styles/Customer/dashboard.css';
 const CustomerDashboard = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const name = sessionStorage.getItem('userName');
-    if (name) setUserName(name);
+    // Simulate loading data
+    const loadData = async () => {
+      setTimeout(() => {
+        const name = sessionStorage.getItem('userName');
+        if (name) setUserName(name);
+        setLoading(false);
+      }, 1000);
+    };
+    
+    loadData();
   }, []);
 
   const getGreeting = () => {
@@ -42,33 +51,87 @@ const CustomerDashboard = () => {
 
   // Stats Cards
   const stats = [
-    { title: 'Total Savings', value: '₱14,320', change: '+12%', icon: FaLeaf, color: '#10b981' },
-    { title: 'Energy Produced', value: '1,245 kWh', change: '+8%', icon: FaBolt, color: '#f59e0b' },
-    { title: 'CO₂ Offset', value: '872 kg', change: '-', icon: FaLeaf, color: '#3b82f6' }
+    { title: 'Total Savings', value: '₱14,320', change: '+12%', icon: FaLeaf },
+    { title: 'Energy Produced', value: '1,245 kWh', change: '+8%', icon: FaBolt }
   ];
-
-  // Recent Activities
-  const activities = [
-    { id: 1, activity: 'Assessment scheduled', date: 'May 10, 2024' },
-    { id: 2, activity: 'Payment received', date: 'May 8, 2024' },
-    { id: 3, activity: 'Booking confirmed', date: 'May 5, 2024' }
-  ];
-
-  // Upcoming Schedule
-  const schedule = {
-    type: 'Site Assessment',
-    date: 'May 15, 2024',
-    time: '9:00 AM - 12:00 PM',
-    location: '123 Rizal St., Barangay San Jose, Manila'
-  };
 
   // Quick Actions
   const quickActions = [
-    { icon: FaCalendarAlt, label: 'Book Assessment', path: '/dashboard/schedule', color: '#f59e0b' },
-    { icon: FaFileInvoice, label: 'View Bills', path: '/dashboard/customerbilling', color: '#10b981' },
-    { icon: FaHeadset, label: 'Support', path: '/dashboard/support', color: '#3b82f6' },
-    { icon: FaUserCog, label: 'Profile', path: '/dashboard/customersettings?tab=profile', color: '#8b5cf6' }
+    { icon: FaCalendarAlt, label: 'Book Assessment', path: '/dashboard/schedule' },
+    { icon: FaFileInvoice, label: 'View Bills', path: '/dashboard/customerbilling' },
+    { icon: FaHeadset, label: 'Support', path: '/dashboard/support' },
+    { icon: FaUserCog, label: 'Profile', path: '/dashboard/customersettings?tab=profile' }
   ];
+
+  // Skeleton Loader Component
+  const SkeletonLoader = () => (
+    <>
+      {/* Header Skeleton */}
+      <div className="skeleton-header">
+        <div className="skeleton-line large"></div>
+        <div className="skeleton-line small"></div>
+      </div>
+
+      {/* Stats Skeleton */}
+      <div className="stats-grid">
+        {[1, 2].map((item) => (
+          <div key={item} className="skeleton-card">
+            <div className="skeleton-icon"></div>
+            <div className="skeleton-content">
+              <div className="skeleton-line"></div>
+              <div className="skeleton-line medium"></div>
+              <div className="skeleton-line small"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Project Card Skeleton */}
+      <div className="skeleton-project-card">
+        <div className="skeleton-line medium"></div>
+        <div className="skeleton-line large"></div>
+        <div className="skeleton-progress"></div>
+        <div className="skeleton-details">
+          <div className="skeleton-line"></div>
+          <div className="skeleton-line"></div>
+          <div className="skeleton-line"></div>
+        </div>
+        <div className="skeleton-button"></div>
+      </div>
+
+      {/* Schedule Card Skeleton */}
+      <div className="skeleton-schedule-card">
+        <div className="skeleton-line medium"></div>
+        <div className="skeleton-line"></div>
+        <div className="skeleton-line"></div>
+        <div className="skeleton-line small"></div>
+        <div className="skeleton-button"></div>
+      </div>
+
+      {/* Quick Actions Skeleton */}
+      <div className="skeleton-quick-actions">
+        <div className="skeleton-line medium"></div>
+        <div className="actions-grid">
+          {[1, 2, 3, 4].map((item) => (
+            <div key={item} className="skeleton-action-btn"></div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+
+  if (loading) {
+    return (
+      <>
+        <Helmet>
+          <title>Dashboard | Salfer Engineering</title>
+        </Helmet>
+        <div className="customer-dashboard">
+          <SkeletonLoader />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -79,33 +142,36 @@ const CustomerDashboard = () => {
       <div className="customer-dashboard">
         {/* Header */}
         <div className="dashboard-header">
-          <h1>{getGreeting()}, {userName || 'Customer'}! </h1>
-          <p>Track your solar project progress</p>
+          <h1>{getGreeting()}, {userName || 'Customer'}! 👋</h1>
+          <p>Welcome back to your solar dashboard</p>
         </div>
 
         {/* Stats Cards */}
         <div className="stats-grid">
           {stats.map((stat, index) => (
             <div key={index} className="stat-card">
-              <div className="stat-icon" style={{ backgroundColor: `${stat.color}15`, color: stat.color }}>
+              <div className="stat-icon">
                 <stat.icon />
               </div>
               <div className="stat-content">
                 <span className="stat-title">{stat.title}</span>
                 <strong className="stat-value">{stat.value}</strong>
-                {stat.change !== '-' && <span className="stat-change">{stat.change}</span>}
+                <span className="stat-change">{stat.change}</span>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Project Status */}
+        {/* Project Card */}
         <div className="project-card">
           <div className="project-header">
-            <h3>Current Project</h3>
-            <span className="status-badge in-progress">In Progress</span>
+            <div>
+              <h3>Current Project</h3>
+              <p className="project-name">{projectData.name}</p>
+            </div>
+            <span className="status-badge">In Progress</span>
           </div>
-          <p className="project-name">{projectData.name}</p>
+          
           <div className="progress-section">
             <div className="progress-label">
               <span>Overall Progress</span>
@@ -115,6 +181,7 @@ const CustomerDashboard = () => {
               <div className="progress-fill" style={{ width: `${projectData.progress}%` }}></div>
             </div>
           </div>
+          
           <div className="project-details">
             <div>
               <span>Next Step</span>
@@ -129,48 +196,27 @@ const CustomerDashboard = () => {
               <strong>{projectData.estimatedCompletion}</strong>
             </div>
           </div>
+          
           <button className="view-btn" onClick={() => navigate('/dashboard/customerproject')}>
-            View Details <FaArrowRight />
+            View Project Details <FaArrowRight />
           </button>
         </div>
 
-        {/* Two Column Layout */}
-        <div className="two-columns">
-          {/* Recent Activities */}
-          <div className="activities-card">
-            <div className="card-header">
-              <h3>Recent Activities</h3>
-              <button className="view-all">View All</button>
-            </div>
-            <div className="activities-list">
-              {activities.map(activity => (
-                <div key={activity.id} className="activity-item">
-                  <FaCheckCircle className="activity-icon" />
-                  <div>
-                    <span className="activity-name">{activity.activity}</span>
-                    <span className="activity-date">{activity.date}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Upcoming Schedule Card */}
+        <div className="schedule-card">
+          <div className="schedule-header">
+            <h3>Upcoming Schedule</h3>
+            <FaCalendarAlt />
           </div>
-
-          {/* Upcoming Schedule */}
-          <div className="schedule-card">
-            <div className="card-header">
-              <h3>Upcoming Schedule</h3>
-              <FaCalendarAlt className="schedule-icon" />
-            </div>
-            <div className="schedule-content">
-              <div className="schedule-type">{schedule.type}</div>
-              <div className="schedule-date">{schedule.date}</div>
-              <div className="schedule-time">{schedule.time}</div>
-              <div className="schedule-location">{schedule.location}</div>
-            </div>
-            <button className="manage-btn" onClick={() => navigate('/dashboard/appointment')}>
-              Manage Schedule
-            </button>
+          <div className="schedule-content">
+            <div className="schedule-type">Site Assessment</div>
+            <div className="schedule-date">May 15, 2024</div>
+            <div className="schedule-time">9:00 AM - 12:00 PM</div>
+            <div className="schedule-location">123 Rizal St., Barangay San Jose, Manila</div>
           </div>
+          <button className="manage-btn" onClick={() => navigate('/dashboard/appointment')}>
+            Manage Schedule
+          </button>
         </div>
 
         {/* Quick Actions */}
@@ -183,7 +229,7 @@ const CustomerDashboard = () => {
                 className="action-btn"
                 onClick={() => navigate(action.path)}
               >
-                <action.icon style={{ color: action.color }} />
+                <action.icon />
                 <span>{action.label}</span>
               </button>
             ))}

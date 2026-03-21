@@ -3,11 +3,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
-import { 
-  FaUser, 
-  FaMapMarkerAlt, 
-  FaHome, 
-  FaCalendarAlt, 
+import {
+  FaUser,
+  FaMapMarkerAlt,
+  FaHome,
+  FaCalendarAlt,
   FaMoneyBillWave,
   FaClock,
   FaCheckCircle,
@@ -47,7 +47,7 @@ const ScheduleAssessment = () => {
   const [activeCard, setActiveCard] = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [submittedData, setSubmittedData] = useState(null);
-  
+
   // Free quotation state
   const [freeQuoteData, setFreeQuoteData] = useState({
     monthlyBill: '',
@@ -74,7 +74,7 @@ const ScheduleAssessment = () => {
   const [paymentProof, setPaymentProof] = useState(null);
   const [paymentReference, setPaymentReference] = useState('');
   const [paymentStatus, setPaymentStatus] = useState('pending');
-  
+
   const [validationErrors, setValidationErrors] = useState({});
   const [cardErrors, setCardErrors] = useState({});
 
@@ -83,8 +83,11 @@ const ScheduleAssessment = () => {
   const card3Ref = useRef(null);
 
   useEffect(() => {
-    fetchClientData();
-    fetchClientAddresses();
+    // Simulate loading
+    setTimeout(() => {
+      fetchClientData();
+      fetchClientAddresses();
+    }, 1000);
   }, []);
 
   useEffect(() => {
@@ -101,7 +104,7 @@ const ScheduleAssessment = () => {
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token');
-      
+
       if (!token) {
         setError('Please log in to continue');
         setLoading(false);
@@ -113,13 +116,13 @@ const ScheduleAssessment = () => {
       });
 
       const clientData = response.data?.client;
-      
+
       if (clientData) {
         setUser(clientData);
         let propertyType = 'residential';
         if (clientData.client_type === 'Company') propertyType = 'commercial';
         if (clientData.client_type === 'Industrial') propertyType = 'industrial';
-        
+
         setFormData(prev => ({
           ...prev,
           firstName: clientData?.contactFirstName || '',
@@ -187,11 +190,11 @@ const ScheduleAssessment = () => {
 
   const getSelectedAddressDisplay = () => {
     if (!selectedAddress) return null;
-    
+
     const name = `${formData.firstName} ${formData.lastName}`;
     const contact = formData.contactNumber;
     const address = `${selectedAddress.houseOrBuilding} ${selectedAddress.street}, ${selectedAddress.barangay}, ${selectedAddress.cityMunicipality}, ${selectedAddress.province} ${selectedAddress.zipCode}`;
-    
+
     return { name, contact, address };
   };
 
@@ -204,49 +207,36 @@ const ScheduleAssessment = () => {
     setShowFreeQuoteConfirm(true);
   };
 
-  // In scheduleassessment.jsx - check the confirmFreeQuote function
-const confirmFreeQuote = async () => {
-  setIsSubmitting(true);
-  
-  try {
-    const token = sessionStorage.getItem('token');
-    
-    console.log('Submitting free quote with:', {
-      clientId: user?._id,
-      addressId: selectedAddress?._id || null,
-      monthlyBill: freeQuoteData.monthlyBill,
-      propertyType: freeQuoteData.propertyType,
-      desiredCapacity: freeQuoteData.desiredCapacity
-    });
-    
-    const quotePayload = {
-      clientId: user?._id,
-      addressId: selectedAddress?._id || null,
-      monthlyBill: freeQuoteData.monthlyBill,
-      propertyType: freeQuoteData.propertyType,
-      desiredCapacity: freeQuoteData.desiredCapacity
-    };
-    
-    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/free-quotes`, quotePayload, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    
-    console.log('Response:', response.data);
-    
-    setSubmittedData({
-      reference: response.data.quote.quotationReference,
-      type: 'free-quote'
-    });
-    setSubmitted(true);
-    setShowFreeQuoteConfirm(false);
-  } catch (err) {
-    console.error('Error submitting free quote:', err);
-    console.error('Error response:', err.response?.data);
-    alert(err.response?.data?.message || 'Failed to submit quote request. Please try again.');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  const confirmFreeQuote = async () => {
+    setIsSubmitting(true);
+
+    try {
+      const token = sessionStorage.getItem('token');
+
+      const quotePayload = {
+        clientId: user?._id,
+        addressId: selectedAddress?._id || null,
+        monthlyBill: freeQuoteData.monthlyBill,
+        propertyType: freeQuoteData.propertyType,
+        desiredCapacity: freeQuoteData.desiredCapacity
+      };
+
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/free-quotes`, quotePayload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setSubmittedData({
+        reference: response.data.quote.quotationReference,
+        type: 'free-quote'
+      });
+      setSubmitted(true);
+      setShowFreeQuoteConfirm(false);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to submit quote request. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // PRE ASSESSMENT VALIDATION
   const validateCard1 = () => {
@@ -272,7 +262,7 @@ const confirmFreeQuote = async () => {
 
   const handleNext = () => {
     let isValid = false;
-    
+
     if (activeCard === 1) {
       const errors = validateCard1();
       if (Object.keys(errors).length === 0) {
@@ -298,7 +288,7 @@ const confirmFreeQuote = async () => {
         setCardErrors(prev => ({ ...prev, [3]: 'Please complete all required fields' }));
       }
     }
-    
+
     if (isValid && activeCard < 3) {
       setActiveCard(activeCard + 1);
       setValidationErrors({});
@@ -317,10 +307,10 @@ const confirmFreeQuote = async () => {
     const errors1 = validateCard1();
     const errors2 = validateCard2();
     const errors3 = validateCard3();
-    
-    if (Object.keys(errors1).length === 0 && 
-        Object.keys(errors2).length === 0 && 
-        Object.keys(errors3).length === 0) {
+
+    if (Object.keys(errors1).length === 0 &&
+      Object.keys(errors2).length === 0 &&
+      Object.keys(errors3).length === 0) {
       setShowConfirmDialog(true);
     } else {
       alert('Please complete all sections before submitting');
@@ -361,7 +351,6 @@ const confirmFreeQuote = async () => {
       setTermsAccepted(false);
       setCurrentStep('payment');
     } catch (err) {
-      console.error('Error submitting pre-assessment:', err);
       alert(err.response?.data?.message || 'Failed to submit pre-assessment. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -373,7 +362,7 @@ const confirmFreeQuote = async () => {
       alert('Please upload payment proof');
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
@@ -382,15 +371,14 @@ const confirmFreeQuote = async () => {
       formDataPayment.append('paymentMethod', paymentMethod);
       formDataPayment.append('paymentProof', paymentProof);
       if (paymentReference) formDataPayment.append('paymentReference', paymentReference);
-      
+
       await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/payment`, formDataPayment, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
-      
+
       setPaymentStatus('forVerification');
       setCurrentStep('confirmation');
     } catch (err) {
-      console.error('Error submitting payment:', err);
       alert('Failed to submit payment. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -406,10 +394,9 @@ const confirmFreeQuote = async () => {
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       setCurrentStep('confirmation');
     } catch (err) {
-      console.error('Error processing cash payment:', err);
       alert('Failed to process cash payment.');
     } finally {
       setIsSubmitting(false);
@@ -427,12 +414,43 @@ const confirmFreeQuote = async () => {
 
   const selectedAddressDisplay = getSelectedAddressDisplay();
 
+  // Skeleton Loader Component
+  const SkeletonLoader = () => (
+    <div className="schedule-container">
+      <div className="schedule-header-skeleton">
+        <div className="skeleton-line large"></div>
+        <div className="skeleton-line small"></div>
+      </div>
+
+      <div className="service-selection-grid">
+        {[1, 2].map((item) => (
+          <div key={item} className="skeleton-service-card">
+            <div className="skeleton-icon"></div>
+            <div className="skeleton-line medium"></div>
+            <div className="skeleton-line small"></div>
+            <div className="skeleton-form-group">
+              <div className="skeleton-line"></div>
+              <div className="skeleton-input"></div>
+            </div>
+            <div className="skeleton-form-group">
+              <div className="skeleton-line"></div>
+              <div className="skeleton-input"></div>
+            </div>
+            <div className="skeleton-button"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="schedule-loading-container">
-        <FaSpinner className="schedule-spinner" />
-        <p>Loading your information...</p>
-      </div>
+      <>
+        <Helmet>
+          <title>Get Solar Service | Salfer Engineering</title>
+        </Helmet>
+        <SkeletonLoader />
+      </>
     );
   }
 
@@ -477,25 +495,27 @@ const confirmFreeQuote = async () => {
               <p className="service-description">
                 Request a quotation for your solar system. Our team will review your request and provide a detailed quotation.
               </p>
-              
+
               <div className="quote-form">
-                <div className="form-group">
-                  <label><FaMoneyBillWave /> Monthly Electricity Bill (₱) *</label>
+                <div className="schedule-form-group">
+                  <label>Monthly Electricity Bill (₱) *</label>
                   <input
                     type="number"
                     name="monthlyBill"
                     value={freeQuoteData.monthlyBill}
                     onChange={handleInputChange}
                     placeholder="e.g., 5000"
+                    className="schedule-form-input"
                   />
                 </div>
-                
-                <div className="form-group">
-                  <label><FaHome /> Property Type *</label>
+
+                <div className="schedule-form-group">
+                  <label>Property Type *</label>
                   <select
                     name="propertyType"
                     value={freeQuoteData.propertyType}
                     onChange={handleInputChange}
+                    className="schedule-form-select"
                   >
                     <option value="residential">Residential</option>
                     <option value="commercial">Commercial</option>
@@ -503,18 +523,19 @@ const confirmFreeQuote = async () => {
                   </select>
                 </div>
 
-                <div className="form-group">
-                  <label><FaSolarPanel /> Desired Capacity (kW)</label>
+                <div className="schedule-form-group">
+                  <label>Desired Capacity (kW)</label>
                   <input
                     type="text"
                     name="desiredCapacity"
                     value={freeQuoteData.desiredCapacity}
                     onChange={handleInputChange}
                     placeholder="e.g., 5kW (optional)"
+                    className="schedule-form-input"
                   />
                 </div>
-                
-                <button 
+
+                <button
                   className="btn-get-quote"
                   onClick={handleFreeQuoteSubmit}
                   disabled={!freeQuoteData.monthlyBill}
@@ -541,7 +562,7 @@ const confirmFreeQuote = async () => {
                 <li><FaCheckCircle /> Detailed assessment report</li>
                 <li><FaCheckCircle /> Professional engineer consultation</li>
               </ul>
-              <button 
+              <button
                 className="btn-paid-assessment"
                 onClick={() => {
                   setCurrentStep('form');
@@ -559,7 +580,7 @@ const confirmFreeQuote = async () => {
               <div className="schedule-modal">
                 <h2>Request Quotation</h2>
                 <p>Please review your request details:</p>
-                
+
                 <div className="quote-summary">
                   <div className="quote-item">
                     <span>Monthly Bill:</span>
@@ -584,8 +605,8 @@ const confirmFreeQuote = async () => {
                 <p className="quote-note">Our team will review your request and send a detailed quotation via email within 2-3 business days.</p>
 
                 <div className="schedule-modal-actions">
-                  <button 
-                    onClick={() => setShowFreeQuoteConfirm(false)} 
+                  <button
+                    onClick={() => setShowFreeQuoteConfirm(false)}
                     className="schedule-btn-secondary"
                   >
                     Cancel
@@ -612,9 +633,9 @@ const confirmFreeQuote = async () => {
       <div className="schedule-container">
         <div className="schedule-confirmation-card">
           <FaCheckCircle className="schedule-confirmation-icon" />
-          
+
           <h1>Request Submitted!</h1>
-          
+
           {submittedData.type === 'free-quote' && (
             <>
               <p>Your quotation request has been received.</p>
@@ -625,27 +646,27 @@ const confirmFreeQuote = async () => {
               <div className="schedule-next-steps">
                 <h3>What's Next?</h3>
                 <ul>
-                  <li><FaClock /> Our team will review your request within 2-3 business days</li>
-                  <li><FaEnvelope /> You'll receive a detailed quotation via email</li>
-                  <li><FaPhone /> Our engineer may contact you for additional information</li>
+                  <li>Our team will review your request within 2-3 business days</li>
+                  <li>You'll receive a detailed quotation via email</li>
+                  <li>Our engineer may contact you for additional information</li>
                 </ul>
               </div>
             </>
           )}
-          
+
           <div className="quote-actions">
-            <button 
+            <button
               onClick={() => {
                 setSubmitted(false);
                 setCurrentStep('service-selection');
                 setFreeQuoteData({ monthlyBill: '', propertyType: 'residential', desiredCapacity: '' });
-              }} 
+              }}
               className="schedule-btn-secondary"
             >
               Request Another
             </button>
-            <button 
-              onClick={() => navigate('/dashboard/customerdashboard')} 
+            <button
+              onClick={() => navigate('/dashboard/customerdashboard')}
               className="schedule-btn-primary"
             >
               Go to Dashboard
@@ -656,225 +677,217 @@ const confirmFreeQuote = async () => {
     );
   }
 
-  // pages/Customer/scheduleassessment.jsx - Updated Pre Assessment Form section
+  // ==================== PRE ASSESSMENT FORM ====================
+  if (currentStep === 'form') {
+    return (
+      <>
+        <Helmet>
+          <title>Book Pre Assessment | Salfer Engineering</title>
+        </Helmet>
 
-// ==================== PRE ASSESSMENT FORM ====================
-if (currentStep === 'form') {
-  return (
-    <>
-      <Helmet>
-        <title>Book Pre Assessment | Salfer Engineering</title>
-      </Helmet>
+        <div className="schedule-container">
+          <h1 className="schedule-title">Book Pre Assessment</h1>
+          <p className="schedule-subtitle">Complete the form below to schedule your professional pre-assessment (₱1,500)</p>
 
-      <div className="schedule-container">
-        <div className="back-button-container">
-          <button onClick={() => setCurrentStep('service-selection')} className="back-to-services">
-            <FaChevronRight /> Back to Services
-          </button>
-        </div>
-        
-        <h1 className="schedule-title">Book Pre Assessment</h1>
-        <p className="schedule-subtitle">Complete the form below to schedule your professional pre-assessment (₱1,500)</p>
+          <div className="pre-assessment-form-wrapper">
+            {/* Personal & Address Info Section */}
+            <div className="schedule-info-section">
+              <h3 className="schedule-section-title">Contact & Address Information</h3>
 
-        <div className="pre-assessment-form-wrapper">
-          {/* Personal & Address Info Section - Combined */}
-          <div className="info-section">
-            <h3 className="section-title">Contact & Address Information</h3>
-            
-            {/* Personal Info Card */}
-            <div className="info-card">
-              <div className="info-card-header">
-                <FaUser className="info-icon" />
-                <h4>Personal Information</h4>
-              </div>
-              <div className="info-card-content">
-                <div className="info-row">
-                  <div className="info-field">
-                    <label>Name</label>
-                    <p>{getFullName() || 'Not provided'}</p>
-                  </div>
-                  <div className="info-field">
-                    <label>Contact Number</label>
-                    <p>{formData.contactNumber || 'Not provided'}</p>
-                  </div>
+              {/* Personal Info Card */}
+              <div className="schedule-info-card">
+                <div className="schedule-info-card-header">
+                  <FaUser className="schedule-info-icon" />
+                  <h4>Personal Information</h4>
                 </div>
-                <div className="info-note">
-                  <FaEdit className="note-icon" />
-                  <small>Personal information is managed in your <button className="text-link" onClick={() => navigate('/dashboard/customersettings')}>Account Settings</button></small>
-                </div>
-              </div>
-            </div>
-
-            {/* Address Card */}
-            <div className="info-card">
-              <div className="info-card-header">
-                <FaMapMarkerAlt className="info-icon" />
-                <h4>Address</h4>
-              </div>
-              <div className="info-card-content">
-                {selectedAddressDisplay ? (
-                  <>
-                    <div className="address-display">
-                      <div className="address-name">{selectedAddressDisplay.name}</div>
-                      <div className="address-contact">{selectedAddressDisplay.contact}</div>
-                      <div className="address-detail">{selectedAddressDisplay.address}</div>
+                <div className="schedule-info-card-content">
+                  <div className="schedule-info-row">
+                    <div className="schedule-info-field">
+                      <label>Name</label>
+                      <p>{getFullName() || 'Not provided'}</p>
                     </div>
-                    <div className="address-actions">
-                      <button className="change-address-btn" onClick={handleAddressClick}>
-                        <FaEdit /> Change Address
+                    <div className="schedule-info-field">
+                      <label>Contact Number</label>
+                      <p>{formData.contactNumber || 'Not provided'}</p>
+                    </div>
+                  </div>
+                  <div className="schedule-info-note">
+                    <FaEdit className="schedule-note-icon" />
+                    <small>Personal information is managed in your <button className="schedule-text-link" onClick={() => navigate('/dashboard/customersettings')}>Account Settings</button></small>
+                  </div>
+                </div>
+              </div>
+
+              {/* Address Card */}
+              <div className="schedule-info-card">
+                <div className="schedule-info-card-header">
+                  <FaMapMarkerAlt className="schedule-info-icon" />
+                  <h4>Address</h4>
+                </div>
+                <div className="schedule-info-card-content">
+                  {selectedAddressDisplay ? (
+                    <>
+                      <div className="schedule-address-display">
+                        <div className="schedule-address-name">{selectedAddressDisplay.name}</div>
+                        <div className="schedule-address-contact">{selectedAddressDisplay.contact}</div>
+                        <div className="schedule-address-detail">{selectedAddressDisplay.address}</div>
+                      </div>
+                      <div className="address-actions">
+                        <button className="schedule-change-address-btn" onClick={handleAddressClick}>
+                          <FaEdit /> Change Address
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="schedule-no-address-warning">
+                      <FaExclamationTriangle />
+                      <p>No address found. Please add an address in settings first.</p>
+                      <button onClick={handleAddressClick} className="schedule-add-address-btn">
+                        Add Address
                       </button>
                     </div>
-                  </>
-                ) : (
-                  <div className="no-address-warning">
-                    <FaExclamationTriangle />
-                    <p>No address found. Please add an address in settings first.</p>
-                    <button onClick={handleAddressClick} className="add-address-btn">
-                      Add Address
-                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Assessment Details Section */}
+            <div className="schedule-assessment-details-section">
+              <h3 className="schedule-section-title">Assessment Details</h3>
+
+              <div className="schedule-assessment-form">
+                <div className="schedule-form-grid">
+                  <div className="schedule-form-group">
+                    <label>Property Type *</label>
+                    <select
+                      name="propertyType"
+                      value={formData.propertyType}
+                      onChange={handleInputChange}
+                      className={`schedule-form-select ${validationErrors.propertyType ? 'error' : ''}`}
+                    >
+                      <option value="residential">Residential</option>
+                      <option value="commercial">Commercial</option>
+                      <option value="industrial">Industrial</option>
+                    </select>
+                    {validationErrors.propertyType && <small className="schedule-error-text">{validationErrors.propertyType}</small>}
                   </div>
-                )}
+
+                  <div className="schedule-form-group">
+                    <label>Desired Capacity (kW)</label>
+                    <input
+                      type="text"
+                      name="desiredCapacity"
+                      value={formData.desiredCapacity}
+                      onChange={handleInputChange}
+                      className="schedule-form-input"
+                      placeholder="e.g., 5kW (optional)"
+                    />
+                  </div>
+
+                  <div className="schedule-form-group">
+                    <label>Roof Type</label>
+                    <select
+                      name="roofType"
+                      value={formData.roofType}
+                      onChange={handleInputChange}
+                      className="schedule-form-select"
+                    >
+                      <option value="">Select roof type</option>
+                      <option value="concrete">Concrete</option>
+                      <option value="metal">Metal</option>
+                      <option value="tile">Tile</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="schedule-form-group">
+                    <label>Preferred Start Date *</label>
+                    <input
+                      type="date"
+                      name="preferredDate"
+                      value={formData.preferredDate}
+                      onChange={handleInputChange}
+                      className={`schedule-form-input ${validationErrors.preferredDate ? 'error' : ''}`}
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                    {validationErrors.preferredDate && <small className="schedule-error-text">{validationErrors.preferredDate}</small>}
+                  </div>
+                </div>
+
+                <div className="schedule-fee-card">
+                  <div className="schedule-fee-info">
+                    <FaMoneyBillWave className="schedule-fee-icon" />
+                    <div>
+                      <strong>Pre Assessment Fee: ₱1,500.00</strong>
+                      <p>Non-refundable fee for 7-day IoT device monitoring and detailed report</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-actions">
+                  <button onClick={handleSubmitClick} className="schedule-btn-submit">
+                    Review & Confirm
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Assessment Details Section */}
-          <div className="assessment-details-section">
-            <h3 className="section-title">Assessment Details</h3>
-            
-            <div className="assessment-form">
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>Property Type *</label>
-                  <select
-                    name="propertyType"
-                    value={formData.propertyType}
-                    onChange={handleInputChange}
-                    className={`form-select ${validationErrors.propertyType ? 'error' : ''}`}
-                  >
-                    <option value="residential">Residential</option>
-                    <option value="commercial">Commercial</option>
-                    <option value="industrial">Industrial</option>
-                  </select>
-                  {validationErrors.propertyType && <small className="error-text">{validationErrors.propertyType}</small>}
-                </div>
-
-                <div className="form-group">
-                  <label>Desired Capacity (kW)</label>
-                  <input
-                    type="text"
-                    name="desiredCapacity"
-                    value={formData.desiredCapacity}
-                    onChange={handleInputChange}
-                    className="form-input"
-                    placeholder="e.g., 5kW (optional)"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Roof Type</label>
-                  <select
-                    name="roofType"
-                    value={formData.roofType}
-                    onChange={handleInputChange}
-                    className="form-select"
-                  >
-                    <option value="">Select roof type</option>
-                    <option value="concrete">Concrete</option>
-                    <option value="metal">Metal</option>
-                    <option value="tile">Tile</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Preferred Start Date *</label>
-                  <input
-                    type="date"
-                    name="preferredDate"
-                    value={formData.preferredDate}
-                    onChange={handleInputChange}
-                    className={`form-input ${validationErrors.preferredDate ? 'error' : ''}`}
-                    min={new Date().toISOString().split('T')[0]}
-                  />
-                  {validationErrors.preferredDate && <small className="error-text">{validationErrors.preferredDate}</small>}
-                </div>
-              </div>
-
-              <div className="fee-card">
-                <div className="fee-info">
-                  <FaMoneyBillWave className="fee-icon" />
-                  <div>
-                    <strong>Pre Assessment Fee: ₱1,500.00</strong>
-                    <p>Non-refundable fee for 7-day IoT device monitoring and detailed report</p>
+          {/* Confirmation Modal */}
+          {showConfirmDialog && (
+            <div className="schedule-modal-overlay">
+              <div className="schedule-modal">
+                <h2>Confirm Pre Assessment</h2>
+                <div className="schedule-modal-summary">
+                  <div className="schedule-summary-section">
+                    <h4>Contact Information</h4>
+                    <p><strong>Name:</strong> {getFullName()}</p>
+                    <p><strong>Contact:</strong> {formData.contactNumber}</p>
+                  </div>
+                  <div className="schedule-summary-section">
+                    <h4>Address</h4>
+                    <p>{getFullAddress()}</p>
+                  </div>
+                  <div className="schedule-summary-section">
+                    <h4>Assessment Details</h4>
+                    <p><strong>Property Type:</strong> {formData.propertyType}</p>
+                    <p><strong>Desired Capacity:</strong> {formData.desiredCapacity || 'Not specified'}</p>
+                    <p><strong>Roof Type:</strong> {formData.roofType || 'Not specified'}</p>
+                    <p><strong>Preferred Date:</strong> {formData.preferredDate}</p>
+                    <p><strong>Pre Assessment Fee:</strong> ₱1,500.00</p>
                   </div>
                 </div>
-              </div>
 
-              <div className="form-actions">
-                <button onClick={handleSubmitClick} className="btn-submit">
-                  Review & Confirm
-                </button>
+                <div className="schedule-modal-checkbox">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={termsAccepted}
+                      onChange={(e) => setTermsAccepted(e.target.checked)}
+                    />
+                    <span>I agree to the Terms and Conditions</span>
+                  </label>
+                </div>
+
+                <div className="schedule-modal-actions">
+                  <button onClick={() => setShowConfirmDialog(false)} className="schedule-btn-secondary">
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmBooking}
+                    disabled={!termsAccepted || isSubmitting}
+                    className="schedule-btn-success"
+                  >
+                    {isSubmitting ? 'Processing...' : 'Confirm Booking'}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
-
-        {/* Confirmation Modal for Pre Assessment */}
-        {showConfirmDialog && (
-          <div className="schedule-modal-overlay">
-            <div className="schedule-modal">
-              <h2>Confirm Pre Assessment</h2>
-              <div className="modal-summary">
-                <div className="summary-section">
-                  <h4>Contact Information</h4>
-                  <p><strong>Name:</strong> {getFullName()}</p>
-                  <p><strong>Contact:</strong> {formData.contactNumber}</p>
-                </div>
-                <div className="summary-section">
-                  <h4>Address</h4>
-                  <p>{getFullAddress()}</p>
-                </div>
-                <div className="summary-section">
-                  <h4>Assessment Details</h4>
-                  <p><strong>Property Type:</strong> {formData.propertyType}</p>
-                  <p><strong>Desired Capacity:</strong> {formData.desiredCapacity || 'Not specified'}</p>
-                  <p><strong>Roof Type:</strong> {formData.roofType || 'Not specified'}</p>
-                  <p><strong>Preferred Date:</strong> {formData.preferredDate}</p>
-                  <p><strong>Pre Assessment Fee:</strong> ₱1,500.00</p>
-                </div>
-              </div>
-
-              <div className="schedule-modal-checkbox">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                  />
-                  <span>I agree to the Terms and Conditions</span>
-                </label>
-              </div>
-
-              <div className="schedule-modal-actions">
-                <button onClick={() => setShowConfirmDialog(false)} className="btn-secondary">
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmBooking}
-                  disabled={!termsAccepted || isSubmitting}
-                  className="btn-success"
-                >
-                  {isSubmitting ? 'Processing...' : 'Confirm Booking'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </>
-  );
-}
+      </>
+    );
+  }
 
   // ==================== PAYMENT SCREEN ====================
   if (currentStep === 'payment') {
@@ -915,7 +928,7 @@ if (currentStep === 'form') {
                   <p><strong>Name:</strong> SALFER ENGINEERING CORP</p>
                   <p><strong>Amount:</strong> ₱{bookingData?.assessmentFee}.00</p>
                 </div>
-                
+
                 <div className="schedule-upload-group">
                   <label>Reference Number *</label>
                   <input
@@ -923,6 +936,7 @@ if (currentStep === 'form') {
                     value={paymentReference}
                     onChange={(e) => setPaymentReference(e.target.value)}
                     placeholder="Enter GCash reference number"
+                    className="schedule-form-input"
                   />
                 </div>
 
@@ -958,7 +972,6 @@ if (currentStep === 'form') {
                 onChange={(e) => setPaymentMethod(e.target.value)}
               />
               <div className="schedule-payment-header">
-                <FaMoneyBillWave />
                 <span>Cash (Walk-in Payment)</span>
               </div>
             </label>
@@ -988,7 +1001,7 @@ if (currentStep === 'form') {
       <div className="schedule-container">
         <div className="schedule-confirmation-card">
           <FaCheckCircle className="schedule-confirmation-icon" />
-          
+
           <h1>Pre Assessment {paymentStatus === 'paid' ? 'Confirmed!' : 'Booked!'}</h1>
 
           <div className="schedule-booking-details">
@@ -1030,10 +1043,10 @@ if (currentStep === 'form') {
           <div className="schedule-next-steps">
             <h3>What's Next?</h3>
             <ul>
-              <li><FaUser /> An engineer will be assigned to your site</li>
-              <li><FaSolarPanel /> IoT device will be deployed for 7-day monitoring</li>
-              <li><FaEnvelope /> You'll receive updates via email/SMS</li>
-              <li><FaFileInvoice /> A detailed report will be provided after data collection</li>
+              <li>An engineer will be assigned to your site</li>
+              <li>IoT device will be deployed for 7-day monitoring</li>
+              <li>You'll receive updates via email/SMS</li>
+              <li>A detailed report will be provided after data collection</li>
             </ul>
           </div>
 

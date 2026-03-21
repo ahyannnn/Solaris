@@ -1,4 +1,4 @@
-// models/Client.js
+// models/Clients.js
 const mongoose = require("mongoose");
 
 const ClientSchema = new mongoose.Schema({
@@ -8,13 +8,13 @@ const ClientSchema = new mongoose.Schema({
   contactMiddleName: { type: String, default: "" },
   contactLastName: { type: String, default: "" },
   contactNumber: { type: String, default: "" },
-  birthday: { type: Date, default: null }, // Added birthday field
+  birthday: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now },
   account_setup: { type: Boolean, default: false },
   client_type: { 
     type: String, 
-    default: "Individual", 
-    enum: ["Individual", "Company"] 
+    default: "Residential", 
+    enum: ["Residential", "Company", "Industrial"]  // Changed from "Individual" to "Residential"
   }
 }, {
   toJSON: { virtuals: true },

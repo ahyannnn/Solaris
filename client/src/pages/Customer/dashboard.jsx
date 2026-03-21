@@ -79,7 +79,7 @@ const CustomerDashboard = () => {
       <div className="customer-dashboard">
         {/* Header */}
         <div className="dashboard-header">
-          <h1>{getGreeting()}, {userName || 'Customer'}! 👋</h1>
+          <h1>{getGreeting()}, {userName || 'Customer'}! </h1>
           <p>Track your solar project progress</p>
         </div>
 

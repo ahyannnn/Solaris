@@ -10,7 +10,6 @@ import {
   FaMoneyBillWave,
   FaCreditCard,
   FaQrcode,
-  FaArrowRight,
   FaPrint,
   FaEnvelope
 } from 'react-icons/fa';
@@ -19,7 +18,7 @@ import '../../styles/Customer/quotation.css';
 
 const Quotation = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('quotations'); // quotations, bills, payments
+  const [activeTab, setActiveTab] = useState('quotations');
   const [loading, setLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -89,19 +88,19 @@ const Quotation = () => {
   ]);
 
   useEffect(() => {
-    setTimeout(() => setLoading(false), 500);
+    setTimeout(() => setLoading(false), 1000);
   }, []);
 
   const getStatusBadge = (status) => {
     switch(status) {
       case 'pending':
-        return <span className="status-badge pending"><FaClock /> Pending</span>;
+        return <span className="status-badge pending">Pending</span>;
       case 'paid':
-        return <span className="status-badge paid"><FaCheckCircle /> Paid</span>;
+        return <span className="status-badge paid">Paid</span>;
       case 'expired':
-        return <span className="status-badge expired"><FaExclamationTriangle /> Expired</span>;
+        return <span className="status-badge expired">Expired</span>;
       case 'completed':
-        return <span className="status-badge completed"><FaCheckCircle /> Completed</span>;
+        return <span className="status-badge completed">Completed</span>;
       default:
         return <span className="status-badge">{status}</span>;
     }
@@ -130,12 +129,46 @@ const Quotation = () => {
     setSelectedInvoice(null);
   };
 
+  // Skeleton Loader Component
+  const SkeletonLoader = () => (
+    <div className="billing-container">
+      <div className="billing-header">
+        <div className="skeleton-line large"></div>
+        <div className="skeleton-line small"></div>
+      </div>
+
+      <div className="billing-tabs">
+        {[1, 2, 3].map((item) => (
+          <div key={item} className="skeleton-tab"></div>
+        ))}
+      </div>
+
+      <div className="skeleton-list">
+        {[1, 2].map((item) => (
+          <div key={item} className="skeleton-card">
+            <div className="skeleton-header">
+              <div className="skeleton-line medium"></div>
+              <div className="skeleton-badge"></div>
+            </div>
+            <div className="skeleton-amount"></div>
+            <div className="skeleton-actions">
+              <div className="skeleton-button"></div>
+              <div className="skeleton-button"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="billing-loading">
-        <div className="spinner"></div>
-        <p>Loading...</p>
-      </div>
+      <>
+        <Helmet>
+          <title>Quotations & Bills | Salfer Engineering</title>
+        </Helmet>
+        <SkeletonLoader />
+      </>
     );
   }
 
@@ -143,7 +176,6 @@ const Quotation = () => {
     <>
       <Helmet>
         <title>Quotations & Bills | Salfer Engineering</title>
-        <meta name="description" content="View and manage your solar project quotations, billing statements, and payment history on Salfer Engineering." />
       </Helmet>
       
       <div className="billing-container">
@@ -275,7 +307,6 @@ const Quotation = () => {
                     <tr>
                       <th>Date</th>
                       <th>Invoice</th>
-                      <th>Description</th>
                       <th>Amount</th>
                       <th>Method</th>
                       <th>Status</th>
@@ -286,7 +317,6 @@ const Quotation = () => {
                       <tr key={payment.id}>
                         <td>{new Date(payment.date).toLocaleDateString()}</td>
                         <td>{payment.invoiceId}</td>
-                        <td>-</td>
                         <td className="amount">{formatCurrency(payment.amount)}</td>
                         <td>{payment.method}</td>
                         <td>{getStatusBadge(payment.status)}</td>

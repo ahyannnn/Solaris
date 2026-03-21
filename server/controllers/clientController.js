@@ -9,16 +9,23 @@ exports.updateClient = async (req, res) => {
     const userId = req.user.id;
     const updateData = req.body;
 
-    // Fix enum casing
+    // Fix enum casing and map to valid values
     if (updateData.client_type) {
-      updateData.client_type =
-        updateData.client_type.charAt(0).toUpperCase() +
-        updateData.client_type.slice(1).toLowerCase();
+      const clientTypeMap = {
+        'residential': 'Residential',
+        'company': 'Company',
+        'industrial': 'Industrial',
+        'Residential': 'Residential',
+        'Company': 'Company',
+        'Industrial': 'Industrial'
+      };
+      
+      const normalizedType = updateData.client_type.toLowerCase();
+      updateData.client_type = clientTypeMap[normalizedType] || 'Residential';
     }
 
     // Format birthday if provided
     if (updateData.birthday) {
-      // If birthday is a string, convert to Date
       updateData.birthday = new Date(updateData.birthday);
     }
 

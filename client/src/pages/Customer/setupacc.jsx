@@ -1,3 +1,4 @@
+// pages/Customer/setupacc.jsx (Updated with Residential instead of Individual)
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -16,7 +17,9 @@ import {
   FaCalendarAlt,
   FaBuilding,
   FaRoad,
-  FaHashtag
+  FaHashtag,
+  FaIndustry,
+  FaHome as FaHouse
 } from 'react-icons/fa';
 import '../../styles/Customer/setupacc.css';
 
@@ -40,7 +43,7 @@ const SetupAccount = () => {
 
   // Form Data - Updated field names to match database schema
   const [formData, setFormData] = useState({
-    accountType: 'individual',
+    accountType: 'residential',  // Changed from 'individual' to 'residential'
     companyName: '',
     firstName: '',
     middleName: '',
@@ -70,8 +73,8 @@ const SetupAccount = () => {
   const validateStep1 = () => {
     const newErrors = {};
     if (!formData.accountType) newErrors.accountType = 'Account type is required';
-    if (formData.accountType === 'company' && !formData.companyName) {
-      newErrors.companyName = 'Company name is required for company accounts';
+    if ((formData.accountType === 'company' || formData.accountType === 'industrial') && !formData.companyName) {
+      newErrors.companyName = `${formData.accountType === 'company' ? 'Company' : 'Business/Organization'} name is required`;
     }
     if (!formData.firstName) newErrors.firstName = 'First name is required';
     if (!formData.lastName) newErrors.lastName = 'Last name is required';
@@ -79,7 +82,7 @@ const SetupAccount = () => {
     if (!formData.birthMonth) newErrors.birthMonth = 'Month is required';
     if (!formData.birthDay) newErrors.birthDay = 'Day is required';
     if (!formData.birthYear) newErrors.birthYear = 'Year is required';
-    
+
     // Validate phone number
     if (formData.phoneNumber) {
       const phoneRegex = /^(09|\+639)\d{9}$/;
@@ -138,8 +141,9 @@ const SetupAccount = () => {
         contactMiddleName: formData.middleName,
         contactLastName: formData.lastName,
         contactNumber: formData.phoneNumber,
-        client_type: formData.accountType === 'individual' ? 'Individual' : 'Company',
-        companyName: formData.accountType === 'company' ? formData.companyName : '',
+        client_type: formData.accountType === 'residential' ? 'Residential' :
+                     formData.accountType === 'company' ? 'Company' : 'Industrial',
+        companyName: (formData.accountType === 'company' || formData.accountType === 'industrial') ? formData.companyName : '',
         birthday: birthday,
         account_setup: true
       };
@@ -154,7 +158,7 @@ const SetupAccount = () => {
       });
 
       const clientData = await clientRes.json();
-      
+
       if (!clientRes.ok) {
         throw new Error(clientData.message || 'Failed to update client information');
       }
@@ -191,7 +195,7 @@ const SetupAccount = () => {
         ...clientData.client,
         primaryAddress: addressResult.address
       }));
-      
+
       setCurrentStep(3);
     } catch (error) {
       console.error('Setup error:', error);
@@ -202,6 +206,33 @@ const SetupAccount = () => {
   };
 
   const handleContinueToDashboard = () => navigate('/dashboard/customerdashboard');
+
+  const getBusinessLabel = () => {
+    if (formData.accountType === 'company') {
+      return 'Company Name';
+    } else if (formData.accountType === 'industrial') {
+      return 'Business/Organization Name';
+    }
+    return '';
+  };
+
+  const getBusinessPlaceholder = () => {
+    if (formData.accountType === 'company') {
+      return 'Enter company name';
+    } else if (formData.accountType === 'industrial') {
+      return 'Enter business/organization name';
+    }
+    return '';
+  };
+
+  const getBusinessIcon = () => {
+    if (formData.accountType === 'company') {
+      return <FaBuilding className="setup-input-icon" />;
+    } else if (formData.accountType === 'industrial') {
+      return <FaIndustry className="setup-input-icon" />;
+    }
+    return null;
+  };
 
   return (
     <>
@@ -280,25 +311,26 @@ const SetupAccount = () => {
                         onChange={handleChange}
                         className={`setup-select ${errors.accountType ? 'error' : ''}`}
                       >
-                        <option value="individual">Individual</option>
+                        <option value="residential">Residential</option>
                         <option value="company">Company</option>
+                        <option value="industrial">Industrial</option>
                       </select>
                       {errors.accountType && <span className="setup-error-message">{errors.accountType}</span>}
                     </div>
 
-                    {/* COMPANY NAME - only enabled if company is selected */}
-                    {formData.accountType === 'company' && (
+                    {/* BUSINESS/COMPANY NAME - shown for company and industrial accounts */}
+                    {(formData.accountType === 'company' || formData.accountType === 'industrial') && (
                       <div className="setup-form-group">
-                        <label className="setup-form-label">Company Name <span className="setup-required">*</span></label>
+                        <label className="setup-form-label">{getBusinessLabel()} <span className="setup-required">*</span></label>
                         <div className="setup-input-wrapper">
-                          <FaBuilding className="setup-input-icon" />
+                          {getBusinessIcon()}
                           <input
                             type="text"
                             name="companyName"
                             value={formData.companyName}
                             onChange={handleChange}
                             className={`setup-form-input ${errors.companyName ? 'error' : ''}`}
-                            placeholder="Enter company name"
+                            placeholder={getBusinessPlaceholder()}
                           />
                         </div>
                         {errors.companyName && <span className="setup-error-message">{errors.companyName}</span>}

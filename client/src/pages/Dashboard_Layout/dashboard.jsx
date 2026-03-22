@@ -41,12 +41,12 @@ import '../../styles/Dashboard/dashboard.css';
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const profileRef = useRef(null);
   const notificationsRef = useRef(null);
   const settingsDropdownRef = useRef(null);
   const supportDropdownRef = useRef(null);
-  
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -81,6 +81,22 @@ const Dashboard = () => {
     };
   }, []);
 
+  // Handle window resize for sidebar
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Handle user authentication and initial redirect
   useEffect(() => {
     const role = sessionStorage.getItem('userRole');
     const name = sessionStorage.getItem('userName');
@@ -97,11 +113,20 @@ const Dashboard = () => {
       return;
     }
 
-    if (location.pathname === '/dashboard') {
+    // Set initial sidebar state based on screen size
+    if (window.innerWidth <= 768) {
+      setSidebarOpen(false);
+    } else {
+      setSidebarOpen(true);
+    }
+
+    if (location.pathname === '/app') {
       if (role === 'user') {
-        navigate('/dashboard/customerdashboard');
+        navigate('/app/customer');
       } else if (role === 'engineer') {
-        navigate('/dashboard/engineerdashboard');
+        navigate('/app/engineer');
+      } else if (role === 'admin') {
+        navigate('/app/admin');
       }
     }
   }, [navigate, location.pathname]);
@@ -115,54 +140,56 @@ const Dashboard = () => {
 
   const menuItems = {
     admin: [
-      { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/dashboard' },
-      { icon: <FaClipboardList />, label: 'Site Assessments', path: '/dashboard/siteassessment' },
-      { icon: <FaProjectDiagram />, label: 'Projects', path: '/dashboard/project' },
-      { icon: <FaFileInvoiceDollar />, label: 'Billing', path: '/dashboard/billing' },
-      { icon: <FaMicrochip />, label: 'IoT Devices', path: '/dashboard/iotdevice' },
-      { icon: <FaChartBar />, label: 'Reports', path: '/dashboard/reports' },
-      { icon: <FaUsers />, label: 'User Management', path: '/dashboard/usermanagement' },
-      { icon: <FaCog />, label: 'Settings', path: '/dashboard/settings' },
+      { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/app/admin' },
+      { icon: <FaClipboardList />, label: 'Free Quotes', path: '/app/admin/freequotes' },
+      { icon: <FaClipboardList />, label: 'Pre-Assessments', path: '/app/admin/preassessments' },
+      { icon: <FaClipboardList />, label: 'Site Assessments', path: '/app/admin/siteassessment' },
+      { icon: <FaProjectDiagram />, label: 'Projects', path: '/app/admin/project' },
+      { icon: <FaFileInvoiceDollar />, label: 'Billing', path: '/app/admin/billing' },
+      { icon: <FaFileInvoice />, label: 'Solar Invoices', path: '/app/admin/solarinvoices' },
+      { icon: <FaMicrochip />, label: 'IoT Devices', path: '/app/admin/iotdevice' },
+      { icon: <FaChartBar />, label: 'Reports', path: '/app/admin/reports' },
+      { icon: <FaClipboardList />, label: 'Schedule', path: '/app/admin/schedule' },
+      { icon: <FaUsers />, label: 'User Management', path: '/app/admin/usermanagement' },
+      { icon: <FaCog />, label: 'Settings', path: '/app/admin/settings' },
     ],
 
     engineer: [
-      { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/dashboard/engineerdashboard' },
-      { icon: <FaClipboardCheck />, label: 'Site Assessments', path: '/dashboard/siteassessment' },
-      { icon: <FaProjectDiagram />, label: 'My Projects', path: '/dashboard/engineerproject' },
-      { icon: <FaMicrochip />, label: 'Device Data', path: '/dashboard/iotdevice' },
-      { icon: <FaFileAlt />, label: 'Reports', path: '/dashboard/engineerreports' },
-      { icon: <FaUserCog />, label: 'Profile', path: '/dashboard/engineerprofile' },
-      { icon: <FaCog />, label: 'Settings', path: '/dashboard/engineersettings' },
+      { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/app/engineer' },
+      { icon: <FaClipboardCheck />, label: 'My Assessments', path: '/app/engineer/assessment' },
+      { icon: <FaProjectDiagram />, label: 'My Projects', path: '/app/engineer/project' },
+      { icon: <FaMicrochip />, label: 'Device Data', path: '/app/engineer/device' },
+      { icon: <FaClipboardList />, label: 'Quotations', path: '/app/engineer/quotation' },
+      { icon: <FaFileAlt />, label: 'Reports', path: '/app/engineer/reports' },
+      { icon: <FaClipboardList />, label: 'Schedule', path: '/app/engineer/schedule' },
+      { icon: <FaUserCog />, label: 'Profile', path: '/app/engineer/profile' },
     ],
 
     user: [
-      { label: 'Dashboard', path: '/dashboard/customerdashboard' },
-      { label: 'My Project', path: '/dashboard/customerproject' },
-      { label: 'Book Assessment', path: '/dashboard/schedule' },
-      { label: 'Billing', path: '/dashboard/customerbilling' },
-      { label: 'Performance', path: '/dashboard/performance' },
-      { label: 'Reports', path: '/dashboard/customerreports' },
-      // Support is handled by dropdown, not in this list
+      { label: 'Dashboard', path: '/app/customer' },
+      { label: 'My Project', path: '/app/customer/project' },
+      { label: 'Book Assessment', path: '/app/customer/book-assessment' },
+      { label: 'Billing', path: '/app/customer/billing' },
+      { label: 'Performance', path: '/app/customer/performance' },
+      { label: 'Reports', path: '/app/customer/reports' },
     ],
   };
 
-  // Settings submenu items for customer
   const settingsSubmenu = [
-    { label: 'Profile', path: '/dashboard/customersettings?tab=profile' },
-    { label: 'Addresses', path: '/dashboard/customersettings?tab=addresses' },
-    { label: 'Notifications', path: '/dashboard/customersettings?tab=notifications' },
-    { label: 'Security', path: '/dashboard/customersettings?tab=security' },
-    { label: 'Preferences', path: '/dashboard/customersettings?tab=preferences' },
-    { label: 'Billing', path: '/dashboard/customersettings?tab=billing' },
+    { label: 'Profile', path: '/app/customersettings?tab=profile' },
+    { label: 'Addresses', path: '/app/customersettings?tab=addresses' },
+    { label: 'Notifications', path: '/app/customersettings?tab=notifications' },
+    { label: 'Security', path: '/app/customersettings?tab=security' },
+    { label: 'Preferences', path: '/app/customersettings?tab=preferences' },
+    { label: 'Billing', path: '/app/customersettings?tab=billing' },
   ];
 
-  // Support submenu items for customer
   const supportSubmenu = [
-    { label: 'FAQ', path: '/dashboard/support?tab=faq' },
-    { label: 'Contact Form', path: '/dashboard/support?tab=contact' },
-    { label: 'Contact Info', path: '/dashboard/support?tab=info' },
-    { label: 'Ticket System', path: '/dashboard/support?tab=tickets' },
-    { label: 'User Guides', path: '/dashboard/support?tab=guides' },
+    { label: 'FAQ', path: '/app/support?tab=faq' },
+    { label: 'Contact Form', path: '/app/support?tab=contact' },
+    { label: 'Contact Info', path: '/app/support?tab=info' },
+    { label: 'Ticket System', path: '/app/support?tab=tickets' },
+    { label: 'User Guides', path: '/app/support?tab=guides' },
   ];
 
   const getRoleDisplay = () => {
@@ -176,19 +203,19 @@ const Dashboard = () => {
 
   const getSettingsPath = () => {
     switch (userRole) {
-      case 'admin': return '/dashboard/settings';
-      case 'engineer': return '/dashboard/engineersettings';
-      case 'user': return '/dashboard/customersettings?tab=profile';
-      default: return '/dashboard/settings';
+      case 'admin': return '/app/settings';
+      case 'engineer': return '/app/engineersettings';
+      case 'user': return '/app/customersettings?tab=profile';
+      default: return '/app/settings';
     }
   };
 
   const getProfilePath = () => {
     switch (userRole) {
-      case 'admin': return '/dashboard/profile';
-      case 'engineer': return '/dashboard/engineerprofile';
-      case 'user': return '/dashboard/customersettings?tab=profile';
-      default: return '/dashboard/profile';
+      case 'admin': return '/app/profile';
+      case 'engineer': return '/app/engineerprofile';
+      case 'user': return '/app/customersettings?tab=profile';
+      default: return '/app/profile';
     }
   };
 
@@ -196,25 +223,21 @@ const Dashboard = () => {
   const unreadCount = notifications.filter(n => !n.read).length;
   const isCustomer = userRole === 'user';
 
-  // Check if any settings submenu is active
   const isSettingsActive = () => {
-    return location.pathname === '/dashboard/customersettings' || 
-           location.pathname.startsWith('/dashboard/customersettings');
+    return location.pathname === '/app/customersettings' ||
+      location.pathname.startsWith('/app/customersettings');
   };
 
-  // Check if any support submenu is active
   const isSupportActive = () => {
-    return location.pathname === '/dashboard/support' || 
-           location.pathname.startsWith('/dashboard/support');
+    return location.pathname === '/app/support' ||
+      location.pathname.startsWith('/app/support');
   };
 
-  // Handle settings dropdown navigation
   const handleSettingsNavigation = (path) => {
     navigate(path);
     setSettingsDropdownOpen(false);
   };
 
-  // Handle support dropdown navigation
   const handleSupportNavigation = (path) => {
     navigate(path);
     setSupportDropdownOpen(false);
@@ -230,9 +253,13 @@ const Dashboard = () => {
     navigate('/');
   };
 
+  // FIXED: Only close sidebar on mobile devices
   const handleNavigation = (path) => {
     navigate(path);
-    setSidebarOpen(false);
+    // Only close sidebar on mobile devices (screen width <= 768px)
+    if (window.innerWidth <= 768) {
+      setSidebarOpen(false);
+    }
     setProfileOpen(false);
     setNotificationsOpen(false);
     setSettingsDropdownOpen(false);
@@ -249,24 +276,23 @@ const Dashboard = () => {
   };
 
   const markAsRead = (id) => {
-    setNotifications(notifications.map(notif => 
+    setNotifications(notifications.map(notif =>
       notif.id === id ? { ...notif, read: true } : notif
     ));
   };
 
   const isActive = (itemPath) => {
-    if (itemPath === '/dashboard' || itemPath === '/dashboard/customerdashboard' || itemPath === '/dashboard/engineerdashboard') {
+    if (itemPath === '/app' || itemPath === '/app/customerdashboard' || itemPath === '/app/engineerdashboard') {
       return location.pathname === itemPath;
     }
     return location.pathname.startsWith(itemPath);
   };
 
-  // ========== CUSTOMER LAYOUT (WITH DROPDOWN SETTINGS AND SUPPORT) ==========
+  // ========== CUSTOMER LAYOUT ==========
   if (isCustomer) {
     return (
       <div className="dashboard customer-dashboard">
         <main className="customer-main-content">
-          {/* Header with Logo and Navigation Links */}
           <header className="customer-header">
             <div className="customer-header-left">
               <div className="customer-logo">
@@ -274,7 +300,6 @@ const Dashboard = () => {
                 <span className="customer-logo-text">Salfer Engineering</span>
               </div>
 
-              {/* Navigation Links */}
               <nav className="customer-nav-links">
                 {currentMenu.map((item, index) => (
                   <button
@@ -285,8 +310,7 @@ const Dashboard = () => {
                     <span className="customer-nav-link-label">{item.label}</span>
                   </button>
                 ))}
-                
-                {/* Support Dropdown Button */}
+
                 <div className="settings-dropdown-wrapper" ref={supportDropdownRef}>
                   <button
                     onClick={() => setSupportDropdownOpen(!supportDropdownOpen)}
@@ -295,7 +319,7 @@ const Dashboard = () => {
                     <span className="customer-nav-link-label">Support</span>
                     <FaChevronDown className={`dropdown-arrow ${supportDropdownOpen ? 'open' : ''}`} />
                   </button>
-                  
+
                   {supportDropdownOpen && (
                     <div className="settings-dropdown-menu">
                       {supportSubmenu.map((item, index) => (
@@ -310,8 +334,7 @@ const Dashboard = () => {
                     </div>
                   )}
                 </div>
-                
-                {/* Settings Dropdown Button */}
+
                 <div className="settings-dropdown-wrapper" ref={settingsDropdownRef}>
                   <button
                     onClick={() => setSettingsDropdownOpen(!settingsDropdownOpen)}
@@ -320,7 +343,7 @@ const Dashboard = () => {
                     <span className="customer-nav-link-label">Settings</span>
                     <FaChevronDown className={`dropdown-arrow ${settingsDropdownOpen ? 'open' : ''}`} />
                   </button>
-                  
+
                   {settingsDropdownOpen && (
                     <div className="settings-dropdown-menu">
                       {settingsSubmenu.map((item, index) => (
@@ -339,7 +362,6 @@ const Dashboard = () => {
             </div>
 
             <div className="customer-header-right">
-              {/* Notifications */}
               <div className="notification-wrapper" ref={notificationsRef}>
                 <button
                   className="notification-btn"
@@ -362,8 +384,8 @@ const Dashboard = () => {
                     <div className="notification-list">
                       {notifications.length > 0 ? (
                         notifications.map(notif => (
-                          <div 
-                            key={notif.id} 
+                          <div
+                            key={notif.id}
                             className={`notification-item ${!notif.read ? 'unread' : ''}`}
                             onClick={() => markAsRead(notif.id)}
                           >
@@ -379,7 +401,7 @@ const Dashboard = () => {
                       )}
                     </div>
                     <div className="notification-footer">
-                      <button onClick={() => handleNavigation('/dashboard/notifications')}>
+                      <button onClick={() => handleNavigation('/app/notifications')}>
                         View all
                       </button>
                     </div>
@@ -387,7 +409,6 @@ const Dashboard = () => {
                 )}
               </div>
 
-              {/* Profile */}
               <div className="profile-wrapper" ref={profileRef}>
                 <button
                   className="profile-btn"
@@ -409,22 +430,19 @@ const Dashboard = () => {
                 {profileOpen && (
                   <div className="profile-dropdown">
                     <div className="profile-menu">
-                      <button 
-                        onClick={() => handleProfileNavigation('/dashboard/customersettings?tab=profile')} 
+                      <button
+                        onClick={() => handleProfileNavigation('/app/customersettings?tab=profile')}
                         className="dropdown-item"
                       >
                         <FaUserCircle /> My Profile
                       </button>
-                      
-                      <button 
-                        onClick={() => handleProfileNavigation('/dashboard/customersettings?tab=preferences')} 
+                      <button
+                        onClick={() => handleProfileNavigation('/app/customersettings?tab=preferences')}
                         className="dropdown-item"
                       >
                         <FaCog /> Settings
                       </button>
-          
                       <hr />
-                      
                       <button onClick={handleLogout} className="dropdown-item logout">
                         <FaSignOutAlt /> Logout
                       </button>
@@ -435,7 +453,6 @@ const Dashboard = () => {
             </div>
           </header>
 
-          {/* Content Area */}
           <div className="customer-content-area">
             <Outlet />
           </div>
@@ -444,7 +461,7 @@ const Dashboard = () => {
     );
   }
 
-  // ========== ADMIN/ENGINEER LAYOUT (WITH SIDEBAR) ==========
+  // ========== ADMIN/ENGINEER LAYOUT ==========
   return (
     <div className="dashboard">
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
@@ -532,8 +549,8 @@ const Dashboard = () => {
                   </div>
                   <div className="notification-list">
                     {notifications.map(notif => (
-                      <div 
-                        key={notif.id} 
+                      <div
+                        key={notif.id}
                         className={`notification-item ${!notif.read ? 'unread' : ''}`}
                         onClick={() => markAsRead(notif.id)}
                       >
@@ -543,7 +560,7 @@ const Dashboard = () => {
                     ))}
                   </div>
                   <div className="notification-footer">
-                    <button onClick={() => handleNavigation('/dashboard/notifications')}>
+                    <button onClick={() => handleNavigation('/app/notifications')}>
                       View all notifications
                     </button>
                   </div>
@@ -572,22 +589,19 @@ const Dashboard = () => {
               {profileOpen && (
                 <div className="profile-dropdown">
                   <div className="profile-menu">
-                    <button 
-                      onClick={() => handleProfileNavigation(getProfilePath())} 
+                    <button
+                      onClick={() => handleProfileNavigation(getProfilePath())}
                       className="dropdown-item"
                     >
                       <FaUserCircle /> My Profile
                     </button>
-                    
-                    <button 
-                      onClick={() => handleProfileNavigation(getSettingsPath())} 
+                    <button
+                      onClick={() => handleProfileNavigation(getSettingsPath())}
                       className="dropdown-item"
                     >
                       <FaCog /> Settings
                     </button>
-                    
                     <hr />
-                    
                     <button onClick={handleLogout} className="dropdown-item logout">
                       <FaSignOutAlt /> Logout
                     </button>

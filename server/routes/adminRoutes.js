@@ -12,11 +12,7 @@ const revenueControllers = require('../controllers/revenueControllers');
 // Get verifyToken from authMiddleware
 const { verifyToken } = authMiddleware;
 
-// Debug - check if middleware exists
-console.log('=== Admin Routes Debug ===');
-console.log('verifyToken exists:', typeof verifyToken === 'function');
-console.log('admin exists:', typeof admin === 'function');
-console.log('===========================');
+
 
 // Apply admin middleware to all routes
 router.use(verifyToken, admin);

@@ -12,7 +12,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+// server/server.js - Add this middleware
+app.use((req, res, next) => {
+  // Disable COOP for development to allow popup interactions
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+  next();
+});
 // Force IPv4 DNS resolution (helps with ECONNREFUSED SRV errors)
 dns.setServers(['8.8.8.8', '8.8.4.4']); // Google DNS
 
@@ -37,6 +43,7 @@ const quotationRoutes = require("./routes/quotationRoutes");
 const installationRoutes = require("./routes/installationRoutes");
 const emailRoutes = require("./routes/emailRoutes");
 const clientRoutes = require('./routes/clientRoutes');
+const solarInvoiceRoutes = require('./routes/solarInvoiceRoutes');
 
 // Admin Routes
 const adminRoutes = require('./routes/adminRoutes');
@@ -57,6 +64,7 @@ app.use('/api/clients', clientRoutes);
 app.use('/api/free-quotes', freeQuoteRoutes);
 app.use('/api/pre-assessments', preAssessmentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/solar-invoices', solarInvoiceRoutes);
 
 // Test Route
 app.get("/", (req, res) => {

@@ -4,10 +4,7 @@ const Client = require('../models/Clients'); // <-- THIS IS THE IMPORT - MUST BE
 const Address = require('../models/Address');
 const mongoose = require('mongoose');
 
-console.log('=== FREE QUOTE CONTROLLER LOADED ===');
-console.log('Client model type:', typeof Client);
-console.log('Client model methods:', Object.keys(Client));
-console.log('===================================');
+
 
 // @desc    Create a new free quote request
 // @route   POST /api/free-quotes

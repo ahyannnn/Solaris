@@ -109,7 +109,7 @@ const LoginPage = () => {
         }
 
         // Redirect to dashboard
-        navigate("/dashboard");
+        navigate("/app");
       }
       
     } catch (err) {
@@ -186,7 +186,7 @@ const LoginPage = () => {
         }
 
         // Redirect to dashboard
-        navigate("/dashboard");
+        navigate("/app");
       }
 
     } catch (error) {

@@ -294,7 +294,7 @@ const RegisterPage = () => {
       sessionStorage.setItem("userRole", data.user.role);
       if (data.user.photoURL) sessionStorage.setItem("userPhotoURL", data.user.photoURL);
 
-      navigate("/dashboard");
+      navigate("/app");
 
     } catch (error) {
       console.error("Google registration error:", error);

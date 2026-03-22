@@ -130,7 +130,46 @@ exports.submitPaymentProof = async (req, res) => {
     res.status(500).json({ message: 'Failed to submit payment', error: error.message });
   }
 };
+// controllers/preAssessmentControllers.js - Add this new function
 
+// @desc    Get payment history for customer
+// @route   GET /api/pre-assessments/payments
+// @access  Private (Customer)
+exports.getPaymentHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    const client = await Client.findOne({ userId });
+    if (!client) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    // Get all paid pre-assessments
+    const assessments = await PreAssessment.find({ 
+      clientId: client._id,
+      paymentStatus: { $in: ['paid', 'for_verification'] }
+    }).sort({ confirmedAt: -1 });
+
+    // Transform to payment history format
+    const payments = assessments.map(assessment => ({
+      id: assessment._id,
+      date: assessment.confirmedAt || assessment.bookedAt,
+      amount: assessment.assessmentFee,
+      method: assessment.paymentMethod || 'Cash',
+      invoiceId: assessment.invoiceNumber,
+      status: assessment.paymentStatus === 'paid' ? 'completed' : 'pending'
+    }));
+
+    res.json({
+      success: true,
+      payments
+    });
+
+  } catch (error) {
+    console.error('Get payment history error:', error);
+    res.status(500).json({ message: 'Failed to fetch payment history', error: error.message });
+  }
+};
 // @desc    Cash payment selection
 // @route   POST /api/pre-assessments/cash-payment
 // @access  Private (Customer)
@@ -209,7 +248,78 @@ exports.verifyPayment = async (req, res) => {
     res.status(500).json({ message: 'Failed to verify payment', error: error.message });
   }
 };
+// controllers/preAssessmentControllers.js - Add this function
 
+// @desc    Get pre-assessment stats for admin dashboard
+// @route   GET /api/pre-assessments/stats
+// @access  Private (Admin)
+exports.getPreAssessmentStats = async (req, res) => {
+  try {
+    const total = await PreAssessment.countDocuments();
+    const pending = await PreAssessment.countDocuments({ paymentStatus: 'pending' });
+    const forVerification = await PreAssessment.countDocuments({ paymentStatus: 'for_verification' });
+    const paid = await PreAssessment.countDocuments({ paymentStatus: 'paid' });
+    const failed = await PreAssessment.countDocuments({ paymentStatus: 'failed' });
+    
+    // Get monthly stats for the last 6 months
+    const currentDate = new Date();
+    const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 5, 1);
+    
+    const monthlyStats = await PreAssessment.aggregate([
+      {
+        $match: {
+          bookedAt: { $gte: startDate }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m', date: '$bookedAt' } },
+          total: { $sum: 1 },
+          paid: {
+            $sum: { $cond: [{ $eq: ['$paymentStatus', 'paid'] }, 1, 0] }
+          },
+          pending: {
+            $sum: { $cond: [{ $eq: ['$paymentStatus', 'pending'] }, 1, 0] }
+          },
+          forVerification: {
+            $sum: { $cond: [{ $eq: ['$paymentStatus', 'for_verification'] }, 1, 0] }
+          }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Calculate revenue from paid assessments
+    const revenueResult = await PreAssessment.aggregate([
+      { $match: { paymentStatus: 'paid' } },
+      { $group: { _id: null, total: { $sum: '$assessmentFee' } } }
+    ]);
+    const totalRevenue = revenueResult[0]?.total || 0;
+
+    // Calculate pending revenue
+    const pendingResult = await PreAssessment.aggregate([
+      { $match: { paymentStatus: { $in: ['pending', 'for_verification'] } } },
+      { $group: { _id: null, total: { $sum: '$assessmentFee' } } }
+    ]);
+    const pendingRevenue = pendingResult[0]?.total || 0;
+
+    res.json({
+      success: true,
+      total,
+      pending,
+      forVerification,
+      paid,
+      failed,
+      totalRevenue,
+      pendingRevenue,
+      monthlyStats
+    });
+
+  } catch (error) {
+    console.error('Get pre-assessment stats error:', error);
+    res.status(500).json({ message: 'Failed to fetch stats', error: error.message });
+  }
+};
 // @desc    Get all pre-assessments (Admin/Engineer)
 // @route   GET /api/pre-assessments
 // @access  Private (Admin, Engineer)

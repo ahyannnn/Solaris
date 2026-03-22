@@ -24,7 +24,18 @@
   padding: 0;
   box-sizing: border-box;
 }
+/* Update sidebar overlay to only show on mobile */
+@media (max-width: 768px) {
+  .sidebar-overlay {
+    display: block;
+  }
+}
 
+@media (min-width: 769px) {
+  .sidebar-overlay {
+    display: none !important;
+  }
+}
 .dashboard {
   display: flex;
   min-height: 100vh;

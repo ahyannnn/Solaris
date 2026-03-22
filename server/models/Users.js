@@ -1,3 +1,4 @@
+// models/Users.js
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
@@ -29,8 +30,19 @@ const userSchema = new mongoose.Schema({
 
   role: {
     type: String,
-    enum: ["user", "admin", "technician"],
+    enum: ["user", "admin", "engineer"],
     default: "user"
+  },
+
+  // Add these two fields for admin features
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+
+  lastLogin: {
+    type: Date,
+    default: null
   }
 
 }, { timestamps: true });

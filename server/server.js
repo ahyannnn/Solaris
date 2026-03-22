@@ -38,6 +38,9 @@ const installationRoutes = require("./routes/installationRoutes");
 const emailRoutes = require("./routes/emailRoutes");
 const clientRoutes = require('./routes/clientRoutes');
 
+// Admin Routes
+const adminRoutes = require('./routes/adminRoutes');
+
 // New Routes
 const freeQuoteRoutes = require('./routes/freeQuoteRoutes');
 const preAssessmentRoutes = require('./routes/preAssessmentRoutes');
@@ -53,6 +56,7 @@ app.use("/api/email", emailRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/free-quotes', freeQuoteRoutes);
 app.use('/api/pre-assessments', preAssessmentRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Test Route
 app.get("/", (req, res) => {

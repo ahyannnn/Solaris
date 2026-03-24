@@ -49,11 +49,11 @@ import CustomerSettings from './pages/Customer/customerSettings';
 // Role-based route guard
 const RoleRouteGuard = ({ children, allowedRoles }) => {
   const userRole = sessionStorage.getItem('userRole');
-  
+
   if (!userRole) {
     return <Navigate to="/login" replace />;
   }
-  
+
   if (!allowedRoles.includes(userRole)) {
     // Redirect to appropriate dashboard based on role
     if (userRole === 'admin') return <Navigate to="/app/admin" replace />;
@@ -61,7 +61,7 @@ const RoleRouteGuard = ({ children, allowedRoles }) => {
     if (userRole === 'user') return <Navigate to="/app/customer" replace />;
     return <Navigate to="/login" replace />;
   }
-  
+
   return children;
 };
 
@@ -155,7 +155,7 @@ function App() {
 
         {/* Catch all - redirect based on role */}
         <Route path="/app" element={<Navigate to={`/app/${userRole === 'admin' ? 'admin' : userRole === 'engineer' ? 'engineer' : 'customer'}`} replace />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+      
       </Routes>
     </Router>
   );

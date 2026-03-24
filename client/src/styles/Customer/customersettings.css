@@ -1,730 +1,636 @@
-/* Customer Settings Styles */
-.customer-settings {
-  width: 100%;
-  padding: 0;
+/* customersettings.css - Minimalistic Version */
+
+/* Base */
+.customer-settings-cusset {
+  padding: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #fff;
+  min-height: 100vh;
+}
+
+/* Loading */
+.settings-loading-cusset {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+  color: #666;
+}
+
+.spinner-cusset {
+  animation: spin-cusset 1s linear infinite;
+  font-size: 2rem;
+}
+
+@keyframes spin-cusset {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Header */
-.settings-header {
-  margin-bottom: 1.5rem;
+.settings-header-cusset {
+  margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-/* Selected Address Button Styles */
-.selected-address-container {
-  margin-bottom: 24px;
+  border-bottom: 1px solid #eaeaea;
 }
 
-.selected-address-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-
-.selected-address-btn {
-  width: 100%;
-  background: #f8f9fa;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: left;
-}
-
-.selected-address-btn:hover {
-  background: #fff;
-  border-color: #f39c12;
-  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.1);
-}
-
-.address-info {
-  flex: 1;
-}
-
-.address-name {
-  font-weight: 600;
-  color: #333;
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-
-.address-detail {
-  font-size: 13px;
-  color: #666;
-  line-height: 1.4;
-}
-
-.address-arrow {
-  color: #f39c12;
-  font-size: 14px;
-  margin-left: 12px;
-}
-
-.address-note {
-  margin-top: 8px;
-  font-size: 12px;
-  color: #999;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.edit-icon {
-  font-size: 10px;
-  color: #f39c12;
-}
-.settings-header h1 {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #111827;
-}
-
-.settings-header h1 svg {
-  font-size: 1.5rem;
-  color: #6b7280;
+.settings-header-cusset h1 {
+  font-size: 1.75rem;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin: 0;
 }
 
 /* Messages */
-.settings-success,
-.settings-error {
+.settings-success-cusset,
+.settings-error-cusset {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem;
-  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
   margin-bottom: 1.5rem;
   font-size: 0.875rem;
 }
 
-.settings-success {
-  background-color: #f0fdf4;
-  color: #166534;
-  border: 1px solid #bbf7d0;
+.settings-success-cusset {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
 }
 
-.settings-error {
-  background-color: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
+.settings-error-cusset {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
 }
 
-/* Profile Section */
-.profile-section-settings,
-.addresses-section-settings,
-.notifications-section-settings,
-.security-section-settings,
-.preferences-section-settings,
-.billing-section-settings {
-  background: white;
-  border-radius: 0;
-  padding: 1.5rem;
-  margin-bottom: 0;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.profile-section-settings:last-child,
-.addresses-section-settings:last-child,
-.notifications-section-settings:last-child,
-.security-section-settings:last-child,
-.preferences-section-settings:last-child,
-.billing-section-settings:last-child {
-  border-bottom: none;
-}
-
-.profile-section-settings h2,
-.addresses-section-settings h2,
-.notifications-section-settings h2,
-.security-section-settings h2,
-.preferences-section-settings h2,
-.billing-section-settings h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-/* Form Styles */
-.profile-form-settings {
+/* Tabs */
+.settings-tabs-cusset {
   display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.form-row-settings {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-.form-group-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-
-.form-group-settings label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.form-group-settings label svg {
-  font-size: 0.875rem;
-  color: #9ca3af;
-}
-
-.form-group-settings input,
-.form-group-settings select,
-.form-group-settings textarea {
-  padding: 0.625rem 0.875rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  color: #111827;
-  transition: all 0.2s;
-  background-color: white;
-}
-
-.form-group-settings input:focus,
-.form-group-settings select:focus,
-.form-group-settings textarea:focus {
-  outline: none;
-  border-color: #9ca3af;
-  box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
-}
-
-.form-group-settings input.readonly-settings {
-  background-color: #f9fafb;
-  color: #6b7280;
-  cursor: not-allowed;
-}
-
-.form-group-settings input.error-settings {
-  border-color: #ef4444;
-}
-
-.form-group-settings small {
-  font-size: 0.75rem;
-  color: #6b7280;
-}
-
-.error-text-settings {
-  color: #ef4444;
-  font-size: 0.75rem;
-  margin-top: 0.25rem;
-}
-
-.password-hint-settings {
-  color: #6b7280;
-  font-size: 0.75rem;
-  margin-top: 0.25rem;
-}
-
-/* Password Input Wrapper */
-.password-input-wrapper-settings {
-  position: relative;
-}
-
-.password-input-wrapper-settings input {
-  width: 100%;
-  padding-right: 2.5rem;
-}
-
-.password-toggle-btn-settings {
-  position: absolute;
-  right: 0.625rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #9ca3af;
-  padding: 0.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.password-toggle-btn-settings:hover {
-  color: #6b7280;
-}
-
-/* Password Strength */
-.password-strength-settings {
-  margin-top: 0.5rem;
-}
-
-.strength-meter-settings {
-  height: 0.25rem;
-  background-color: #e5e7eb;
-  border-radius: 0.25rem;
-  overflow: hidden;
-  margin-bottom: 0.375rem;
-}
-
-.strength-bar-settings {
-  height: 100%;
-  transition: width 0.3s ease;
-  border-radius: 0.25rem;
-}
-
-.strength-bar-settings.weak-settings {
-  background-color: #ef4444;
-}
-
-.strength-bar-settings.medium-settings {
-  background-color: #f59e0b;
-}
-
-.strength-bar-settings.strong-settings {
-  background-color: #10b981;
-}
-
-.strength-bar-settings.very-strong-settings {
-  background-color: #10b981;
-}
-
-.strength-text-settings {
-  font-size: 0.75rem;
-  color: #6b7280;
-}
-
-/* Form Actions */
-.form-actions-settings {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
-}
-
-.save-btn-settings,
-.cancel-btn-settings,
-.change-btn-settings,
-.add-btn-settings,
-.add-first-btn-settings {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-}
-
-.save-btn-settings {
-  background-color: #111827;
-  color: white;
-}
-
-.save-btn-settings:hover:not(:disabled) {
-  background-color: #1f2937;
-}
-
-.save-btn-settings:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.cancel-btn-settings {
-  background-color: #f3f4f6;
-  color: #374151;
-}
-
-.cancel-btn-settings:hover:not(:disabled) {
-  background-color: #e5e7eb;
-}
-
-.change-btn-settings {
-  background-color: #f3f4f6;
-  color: #374151;
-  padding: 0.375rem 0.875rem;
-  font-size: 0.8125rem;
-}
-
-.change-btn-settings:hover {
-  background-color: #e5e7eb;
-}
-
-/* Addresses Section */
-.section-header-settings {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.add-btn-settings {
-  background-color: #111827;
-  color: white;
-  padding: 0.5rem 1rem;
-}
-
-.add-btn-settings:hover {
-  background-color: #1f2937;
-}
-
-.add-first-btn-settings {
-  background-color: #111827;
-  color: white;
-  margin-top: 1rem;
-}
-
-.add-first-btn-settings:hover {
-  background-color: #1f2937;
-}
-
-/* Addresses Grid */
-.addresses-grid-settings {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 1rem;
-}
-
-.address-card-settings {
-  background-color: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  padding: 1rem;
-  position: relative;
-  transition: all 0.2s;
-}
-
-.address-card-settings:hover {
-  border-color: #d1d5db;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.address-card-settings.primary-settings {
-  border-color: #d1d5db;
-  background-color: #fefce8;
-}
-
-.primary-badge-settings {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  display: flex;
-  align-items: center;
   gap: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #854d0e;
-  background-color: #fef9c3;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.375rem;
-}
-
-.address-label-settings {
-  margin-bottom: 0.75rem;
-}
-
-.label-badge-settings {
-  display: inline-block;
-  padding: 0.25rem 0.625rem;
-  background-color: #e5e7eb;
-  color: #374151;
-  font-size: 0.75rem;
-  font-weight: 500;
-  border-radius: 0.375rem;
-}
-
-.address-details-settings {
-  margin-bottom: 1rem;
-}
-
-.address-details-settings p {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: #374151;
-  margin-bottom: 0.375rem;
-}
-
-.address-details-settings p svg {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  min-width: 1rem;
-}
-
-.address-actions-settings {
-  display: flex;
-  gap: 0.5rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #e5e7eb;
-}
-
-.action-btn-settings {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  background-color: white;
-  border: 1px solid #e5e7eb;
-  color: #374151;
-}
-
-.action-btn-settings:hover {
-  background-color: #f3f4f6;
-  border-color: #d1d5db;
-}
-
-.action-btn-settings.primary-settings:hover {
-  background-color: #fef9c3;
-  border-color: #eab308;
-  color: #854d0e;
-}
-
-.action-btn-settings.delete-settings:hover {
-  background-color: #fef2f2;
-  border-color: #fecaca;
-  color: #dc2626;
-}
-
-/* Empty State */
-.empty-state-settings {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: #6b7280;
-}
-
-.empty-icon-settings {
-  font-size: 3rem;
-  color: #d1d5db;
-  margin-bottom: 1rem;
-}
-
-.empty-state-settings h3 {
-  font-size: 1rem;
-  font-weight: 500;
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-.empty-state-settings p {
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-}
-
-/* Notifications Section */
-.preferences-group-settings {
-  margin-bottom: 1.5rem;
-}
-
-.preferences-group-settings h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 0.75rem;
-}
-
-.checkbox-list-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.checkbox-label-settings {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  color: #374151;
-}
-
-.checkbox-label-settings input[type="checkbox"] {
-  width: 1rem;
-  height: 1rem;
-  cursor: pointer;
-  accent-color: #111827;
-}
-
-/* Security Section */
-.security-group-settings {
+  border-bottom: 1px solid #eaeaea;
   margin-bottom: 2rem;
-}
-
-.group-header-settings {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.group-header-settings h3 {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #111827;
-}
-
-.info-message-settings {
-  background-color: #f9fafb;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid #e5e7eb;
-}
-
-.info-message-settings p {
-  font-size: 0.875rem;
-  color: #374151;
-  margin-bottom: 0.25rem;
-}
-
-.info-message-settings small {
-  font-size: 0.75rem;
-  color: #6b7280;
-}
-
-/* Preferences Section */
-.preferences-grid-settings {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.25rem;
-  margin-bottom: 1.5rem;
-}
-
-.preference-group-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.preference-group-settings label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.preference-group-settings select {
-  padding: 0.625rem 0.875rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  background-color: white;
-}
-
-.theme-selector-settings {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.theme-option-settings {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: all 0.2s;
-}
-
-.theme-option-settings.active-settings {
-  border-color: #111827;
-  background-color: #f9fafb;
-}
-
-.theme-option-settings input {
-  display: none;
-}
-
-/* Billing Section */
-.billing-table-settings {
   overflow-x: auto;
 }
 
-.billing-table-settings table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.billing-table-settings th,
-.billing-table-settings td {
-  padding: 0.75rem 1rem;
-  text-align: left;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.billing-table-settings th {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #6b7280;
-  background-color: #f9fafb;
-}
-
-.billing-table-settings td {
+.tab-btn-cusset {
+  padding: 0.75rem 1.5rem;
+  background: none;
+  border: none;
   font-size: 0.875rem;
-  color: #374151;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
 }
 
-.status-badge-settings {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.375rem;
+.tab-btn-cusset:hover {
+  color: #1a1a1a;
+  background: #f5f5f5;
+}
+
+.tab-btn-cusset.active-cusset {
+  color: #000;
+  border-bottom: 2px solid #000;
+}
+
+/* Forms */
+.form-row-cusset {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-group-cusset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.form-group-cusset label {
   font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #666;
+}
+
+.form-group-cusset input,
+.form-group-cusset select {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.form-group-cusset input:focus,
+.form-group-cusset select:focus {
+  outline: none;
+  border-color: #999;
+}
+
+.form-group-cusset input.readonly-cusset {
+  background: #f5f5f5;
+  color: #999;
+}
+
+.form-group-cusset small {
+  font-size: 0.7rem;
+  color: #999;
+}
+
+.error-cusset {
+  border-color: #dc3545 !important;
+}
+
+.error-text-cusset {
+  color: #dc3545 !important;
+  font-size: 0.7rem;
+}
+
+.form-actions-cusset {
+  margin-top: 1.5rem;
+}
+
+/* Buttons */
+.save-btn-cusset,
+.cancel-btn-cusset,
+.delete-btn-cusset,
+.add-btn-cusset,
+.change-btn-cusset {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.save-btn-cusset {
+  background: #000;
+  color: #fff;
+}
+
+.save-btn-cusset:hover:not(:disabled) {
+  background: #333;
+}
+
+.save-btn-cusset:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancel-btn-cusset {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.cancel-btn-cusset:hover {
+  background: #eaeaea;
+}
+
+.delete-btn-cusset {
+  background: #dc3545;
+  color: #fff;
+}
+
+.delete-btn-cusset:hover {
+  background: #c82333;
+}
+
+.add-btn-cusset,
+.change-btn-cusset {
+  background: none;
+  border: 1px solid #ddd;
+  color: #666;
+}
+
+.add-btn-cusset:hover,
+.change-btn-cusset:hover {
+  border-color: #999;
+  color: #000;
+}
+
+/* Addresses Section */
+.addresses-section-cusset h2,
+.notifications-section-cusset h2,
+.security-section-cusset h2,
+.preferences-section-cusset h2,
+.billing-section-cusset h2,
+.profile-section-cusset h2 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 0 0 1.5rem 0;
+  color: #1a1a1a;
+}
+
+.section-header-cusset {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.section-header-cusset h2 {
+  margin: 0;
+}
+
+/* Address Grid */
+.addresses-grid-cusset {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.address-card-cusset {
+  border: 1px solid #eaeaea;
+  border-radius: 6px;
+  padding: 1rem;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.address-card-cusset:hover {
+  border-color: #ddd;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.address-card-cusset.primary-cusset {
+  border-color: #000;
+  background: #fafafa;
+}
+
+.primary-badge-cusset {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  background: #000;
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0 4px 0 4px;
   font-weight: 500;
 }
 
-.status-badge-settings.paid-settings {
-  background-color: #f0fdf4;
-  color: #166534;
+.address-label-cusset {
+  margin-bottom: 0.75rem;
 }
 
-.status-badge-settings.pending-settings {
-  background-color: #fef9c3;
-  color: #854d0e;
+.label-badge-cusset {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #666;
 }
 
-.status-badge-settings.failed-settings {
-  background-color: #fef2f2;
-  color: #991b1b;
+.address-details-cusset {
+  margin-bottom: 1rem;
 }
 
-/* Modal Overlay */
-.modal-overlay-settings {
+.address-details-cusset p {
+  margin: 0.25rem 0;
+  font-size: 0.8125rem;
+  color: #333;
+  line-height: 1.4;
+}
+
+.address-actions-cusset {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #eaeaea;
+}
+
+.action-btn-cusset {
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  transition: color 0.2s;
+}
+
+.action-btn-cusset:hover {
+  color: #000;
+}
+
+.action-btn-cusset.delete-cusset:hover {
+  color: #dc3545;
+}
+
+/* Empty State */
+.empty-state-cusset {
+  text-align: center;
+  padding: 3rem;
+  color: #999;
+}
+
+.empty-state-cusset h3 {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+  color: #666;
+}
+
+.empty-state-cusset p {
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+}
+
+.add-first-btn-cusset {
+  background: none;
+  border: 1px solid #ddd;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: #666;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.add-first-btn-cusset:hover {
+  border-color: #999;
+  color: #000;
+}
+
+/* Checkbox List */
+.checkbox-list-cusset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.checkbox-label-cusset {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.checkbox-label-cusset input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+/* Preferences Group */
+.preferences-group-cusset {
+  margin-bottom: 2rem;
+}
+
+.preferences-group-cusset h3 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0 0 0.75rem 0;
+  color: #333;
+}
+
+/* Security Group */
+.security-group-cusset {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.security-group-cusset:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.group-header-cusset {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.group-header-cusset h3 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+  color: #333;
+}
+
+/* Password Form */
+.password-form-cusset {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eaeaea;
+}
+
+.password-input-wrapper-cusset {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper-cusset input {
+  flex: 1;
+  padding-right: 2.5rem;
+}
+
+.password-toggle-btn-cusset {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+}
+
+.password-toggle-btn-cusset:hover {
+  color: #666;
+}
+
+.password-strength-cusset {
+  margin-top: 0.5rem;
+}
+
+.strength-meter-cusset {
+  height: 2px;
+  background: #eaeaea;
+  border-radius: 1px;
+  overflow: hidden;
+  margin-bottom: 0.25rem;
+}
+
+.strength-bar-cusset {
+  height: 100%;
+  transition: width 0.2s;
+}
+
+.strength-bar-cusset.weak-cusset {
+  background: #dc3545;
+  width: 25%;
+}
+
+.strength-bar-cusset.medium-cusset {
+  background: #ffc107;
+  width: 50%;
+}
+
+.strength-bar-cusset.strong-cusset {
+  background: #28a745;
+  width: 75%;
+}
+
+.strength-bar-cusset.very-strong-cusset {
+  background: #28a745;
+  width: 100%;
+}
+
+.strength-text-cusset {
+  font-size: 0.7rem;
+  color: #999;
+}
+
+/* Preferences Grid */
+.preferences-grid-cusset {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.preference-group-cusset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.preference-group-cusset label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #666;
+}
+
+.preference-group-cusset select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  background: #fff;
+}
+
+.theme-selector-cusset {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.theme-option-cusset {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.theme-option-cusset input {
+  display: none;
+}
+
+.theme-option-cusset.active-cusset {
+  border-color: #000;
+  background: #f5f5f5;
+}
+
+/* Billing Table */
+.billing-table-cusset {
+  overflow-x: auto;
+}
+
+.billing-table-cusset table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.billing-table-cusset th,
+.billing-table-cusset td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.billing-table-cusset th {
+  font-weight: 500;
+  color: #666;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge-cusset {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-badge-cusset.paid-cusset {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge-cusset.pending-cusset {
+  background: #fff3e0;
+  color: #ed6c02;
+}
+
+/* Info Message */
+.info-message-cusset {
+  background: #f5f5f5;
+  padding: 1rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.info-message-cusset p {
+  margin: 0;
+}
+
+/* Modals */
+.modal-overlay-cusset {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -732,149 +638,291 @@
   padding: 1rem;
 }
 
-.modal-content-settings {
-  background-color: white;
-  border-radius: 0.75rem;
-  width: 100%;
+.modal-content-cusset {
+  background: #fff;
+  border-radius: 8px;
   max-width: 500px;
+  width: 100%;
   max-height: 90vh;
   overflow-y: auto;
   padding: 1.5rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
-.modal-content-settings h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 1.25rem;
+.modal-content-cusset h3 {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin: 0 0 1rem 0;
+  color: #1a1a1a;
 }
 
-.modal-form-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.modal-form-cusset {
   margin-bottom: 1.5rem;
 }
 
-.modal-actions-settings {
+.modal-actions-cusset {
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
+  margin-top: 1rem;
 }
 
-.confirm-modal-settings {
+.confirm-modal-cusset {
   text-align: center;
 }
 
-.confirm-icon-settings {
+.confirm-icon-cusset {
   font-size: 2rem;
-  color: #f59e0b;
-  margin-bottom: 1rem;
-}
-
-.confirm-modal-settings h3 {
+  color: #ffc107;
   margin-bottom: 0.5rem;
 }
 
-.confirm-modal-settings p {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin-bottom: 1rem;
-}
-
-.address-preview-settings {
-  background-color: #f9fafb;
+.address-preview-cusset {
+  background: #f5f5f5;
   padding: 0.75rem;
-  border-radius: 0.5rem;
+  border-radius: 4px;
+  margin: 1rem 0;
   font-size: 0.875rem;
-  color: #374151;
-  margin-bottom: 1.5rem;
-  border: 1px solid #e5e7eb;
+  color: #666;
+  word-break: break-word;
 }
 
-.delete-btn-settings {
-  background-color: #dc2626;
-  color: white;
-}
-
-.delete-btn-settings:hover {
-  background-color: #b91c1c;
-}
-
-/* Loading State */
-.settings-loading-settings {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 50vh;
-  gap: 1rem;
-  color: #6b7280;
-}
-
-.spinner-settings {
-  animation: spin 1s linear infinite;
-  font-size: 2rem;
-  color: #9ca3af;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Checkbox Group */
+.checkbox-group-cusset {
+  justify-content: flex-end;
+  padding-top: 1.5rem;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .profile-section-settings,
-  .addresses-section-settings,
-  .notifications-section-settings,
-  .security-section-settings,
-  .preferences-section-settings,
-  .billing-section-settings {
+  .customer-settings-cusset {
     padding: 1rem;
   }
   
-  .addresses-grid-settings {
+  .settings-tabs-cusset {
+    gap: 0;
+  }
+  
+  .tab-btn-cusset {
+    padding: 0.625rem 1rem;
+    font-size: 0.75rem;
+  }
+  
+  .addresses-grid-cusset {
     grid-template-columns: 1fr;
   }
   
-  .form-row-settings {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .preferences-grid-settings {
+  .preferences-grid-cusset {
     grid-template-columns: 1fr;
   }
   
-  .section-header-settings {
-    flex-direction: column;
-    align-items: flex-start;
+  .form-row-cusset {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
   
-  .modal-content-settings {
+  .modal-content-cusset {
     margin: 1rem;
-    padding: 1rem;
   }
 }
 
-@media (max-width: 480px) {
-  .address-actions-settings {
-    flex-wrap: wrap;
+/* Dark Mode Support */
+.dark-mode-cusset .customer-settings-cusset {
+  background: #1a1a1a;
+  color: #eaeaea;
+}
+
+.dark-mode-cusset .settings-header-cusset {
+  border-bottom-color: #333;
+}
+
+.dark-mode-cusset .settings-header-cusset h1 {
+  color: #fff;
+}
+
+.dark-mode-cusset .tab-btn-cusset {
+  color: #999;
+}
+
+.dark-mode-cusset .tab-btn-cusset:hover {
+  color: #fff;
+  background: #333;
+}
+
+.dark-mode-cusset .tab-btn-cusset.active-cusset {
+  color: #fff;
+  border-bottom-color: #fff;
+}
+
+.dark-mode-cusset .form-group-cusset input,
+.dark-mode-cusset .form-group-cusset select {
+  background: #333;
+  border-color: #444;
+  color: #fff;
+}
+
+.dark-mode-cusset .form-group-cusset input.readonly-cusset {
+  background: #2a2a2a;
+}
+
+.dark-mode-cusset .address-card-cusset {
+  border-color: #333;
+}
+
+.dark-mode-cusset .address-card-cusset.primary-cusset {
+  border-color: #666;
+  background: #2a2a2a;
+}
+
+.dark-mode-cusset .address-actions-cusset {
+  border-top-color: #333;
+}
+
+.dark-mode-cusset .info-message-cusset {
+  background: #2a2a2a;
+}
+
+.dark-mode-cusset .modal-content-cusset {
+  background: #2a2a2a;
+}
+
+.dark-mode-cusset .address-preview-cusset {
+  background: #333;
+}
+
+/* Add to customersettings.css */
+
+/* Skeleton Base */
+.skeleton-line-cusset {
+  background: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse-cusset 1.5s ease-in-out infinite;
+}
+
+.skeleton-line-cusset.large-cusset {
+  height: 32px;
+  width: 200px;
+}
+
+.skeleton-line-cusset.medium-cusset {
+  height: 24px;
+  width: 150px;
+}
+
+.skeleton-line-cusset.small-cusset {
+  height: 20px;
+  width: 120px;
+}
+
+.skeleton-line-cusset.tiny-cusset {
+  height: 16px;
+  width: 80px;
+}
+
+.skeleton-input-cusset {
+  height: 38px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse-cusset 1.5s ease-in-out infinite;
+}
+
+.skeleton-button-cusset {
+  height: 38px;
+  width: 120px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse-cusset 1.5s ease-in-out infinite;
+}
+
+.skeleton-button-cusset.small-cusset {
+  width: 100px;
+  height: 32px;
+}
+
+.skeleton-button-cusset.tiny-cusset {
+  width: 80px;
+  height: 28px;
+}
+
+.skeleton-badge-cusset {
+  width: 60px;
+  height: 24px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse-cusset 1.5s ease-in-out infinite;
+}
+
+.skeleton-badge-cusset.small-cusset {
+  width: 50px;
+  height: 20px;
+}
+
+.skeleton-checkbox-cusset {
+  height: 20px;
+  width: 150px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  margin: 8px 0;
+  animation: pulse-cusset 1.5s ease-in-out infinite;
+}
+
+.skeleton-card-cusset {
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.skeleton-table-cusset {
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.skeleton-table-header-cusset {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #eaeaea;
+  margin-bottom: 0.75rem;
+}
+
+.skeleton-table-row-cusset {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.skeleton-table-row-cusset:last-child {
+  border-bottom: none;
+}
+
+@keyframes pulse-cusset {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Tab Loading State */
+.tab-content-cusset {
+  transition: opacity 0.2s ease;
+}
+
+/* Responsive Skeleton */
+@media (max-width: 768px) {
+  .skeleton-table-header-cusset,
+  .skeleton-table-row-cusset {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
   }
   
-  .action-btn-settings {
-    flex: 1;
-    justify-content: center;
-  }
-  
-  .billing-table-settings th,
-  .billing-table-settings td {
-    padding: 0.5rem;
+  .skeleton-button-cusset {
+    width: 100px;
   }
 }

@@ -1,4 +1,4 @@
-// pages/Customer/Support.jsx
+// pages/Customer/supports.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -21,7 +21,7 @@ import {
 } from 'react-icons/fa';
 import '../../styles/Customer/supports.css';
 
-const Support = () => {
+const Supports = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -102,13 +102,6 @@ const Support = () => {
     }
   ];
 
-  // Update URL when tab changes
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    params.set('tab', activeTab);
-    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
-  }, [activeTab, navigate, location.pathname]);
-
   // Listen for URL tab changes
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -134,6 +127,7 @@ const Support = () => {
     e.preventDefault();
     setSubmitting(true);
     
+    // Simulate API call
     setTimeout(() => {
       setSubmitting(false);
       setSubmitSuccess(true);
@@ -402,6 +396,9 @@ const Support = () => {
         <h1 className="support-title">Support Center</h1>
         <p className="support-subtitle">How can we help you today?</p>
 
+        {/* Tab Navigation Buttons - REMOVED! Navigation now handled by header */}
+        {/* The content below will change based on the active tab from URL */}
+        
         <div className="support-content">
           {renderTabContent()}
         </div>
@@ -461,4 +458,4 @@ const Support = () => {
   );
 };
 
-export default Support;
+export default Supports;

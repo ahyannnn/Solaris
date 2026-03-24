@@ -1,0 +1,665 @@
+.performance-container-cusset {
+  padding: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #ffffff;
+  min-height: 100vh;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.performance-header-cusset {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eaeaea;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.performance-header-cusset h1 {
+  font-size: 1.75rem;
+  font-weight: 500;
+  margin: 0 0 0.25rem 0;
+  color: #1a1a1a;
+}
+
+.performance-header-cusset p {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
+}
+
+.system-select-cusset {
+  padding: 0.5rem 1rem;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+/* ============================================
+   ASSESSMENT INFO BAR
+   ============================================ */
+.assessment-info-bar-cusset {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  background: #f8f9fa;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .assessment-info-bar-cusset {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.info-item-cusset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-label-cusset {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #999;
+}
+
+.info-item-cusset strong {
+  font-size: 0.875rem;
+  color: #1a1a1a;
+}
+
+.info-sub-cusset {
+  font-size: 0.65rem;
+  color: #999;
+}
+
+/* ============================================
+   DEVICE STATUS BAR
+   ============================================ */
+.device-status-bar-cusset {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .device-status-bar-cusset {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.status-item-cusset {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.battery-bar-cusset {
+  width: 60px;
+  height: 6px;
+  background: #eaeaea;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.battery-fill-cusset {
+  height: 100%;
+  background: #2e7d32;
+  border-radius: 3px;
+}
+
+.status-badge-cusset {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.status-badge-cusset.good-cusset {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge-cusset.warning-cusset {
+  background: #fff3e0;
+  color: #ed6c02;
+}
+
+/* ============================================
+   STATS GRID
+   ============================================ */
+.stats-grid-cusset {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .stats-grid-cusset {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.stat-card-cusset {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.stat-card-cusset:hover {
+  border-color: #dddddd;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stat-label-cusset {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #999;
+  margin-bottom: 0.5rem;
+}
+
+.stat-value-cusset {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-bottom: 0.25rem;
+}
+
+.stat-value-cusset.excellent-cusset {
+  color: #2e7d32;
+}
+
+.stat-value-cusset.good-cusset {
+  color: #1976d2;
+}
+
+.stat-value-cusset.fair-cusset {
+  color: #ed6c02;
+}
+
+.stat-value-cusset.poor-cusset {
+  color: #dc3545;
+}
+
+.stat-trend-cusset {
+  display: block;
+  font-size: 0.7rem;
+  color: #666;
+}
+
+/* ============================================
+   SECTION HEADERS
+   ============================================ */
+.daily-data-section-cusset,
+.hourly-section-cusset,
+.chart-section-cusset,
+.location-section-cusset,
+.shading-section-cusset,
+.notes-section-cusset,
+.recommendation-section-cusset {
+  margin-bottom: 2rem;
+}
+
+h2 {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0 0 0.25rem 0;
+  color: #1a1a1a;
+}
+
+.section-desc-cusset {
+  font-size: 0.75rem;
+  color: #999;
+  margin: 0 0 1rem 0;
+}
+
+/* ============================================
+   DAILY DATA TABLE
+   ============================================ */
+.daily-table-cusset {
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table-header-cusset {
+  display: grid;
+  grid-template-columns: 80px 100px 1fr 100px 80px 100px;
+  background: #f8f9fa;
+  padding: 0.75rem 1rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #666;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.table-row-cusset {
+  display: grid;
+  grid-template-columns: 80px 100px 1fr 100px 80px 100px;
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.table-row-cusset:hover {
+  background: #fafafa;
+}
+
+.table-row-cusset.selected-cusset {
+  background: #e3f2fd;
+  border-left: 3px solid #1976d2;
+}
+
+.irradiance-value-cusset.high-cusset {
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.irradiance-value-cusset.medium-cusset {
+  color: #ed6c02;
+}
+
+.irradiance-value-cusset.low-cusset {
+  color: #dc3545;
+}
+
+@media (max-width: 768px) {
+  .table-header-cusset,
+  .table-row-cusset {
+    grid-template-columns: 60px 80px 1fr 70px 60px 80px;
+    gap: 0.25rem;
+    font-size: 0.7rem;
+  }
+}
+
+/* ============================================
+   HOURLY GRID
+   ============================================ */
+.hourly-grid-cusset {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.5rem;
+}
+
+.hour-card-cusset {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 6px;
+  padding: 0.5rem;
+  text-align: center;
+}
+
+.hour-time-cusset {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.hour-irradiance-cusset,
+.hour-temp-cusset,
+.hour-humidity-cusset {
+  font-size: 0.65rem;
+  margin: 0.25rem 0;
+}
+
+.label-cusset {
+  color: #999;
+  margin-right: 0.25rem;
+}
+
+.hour-irradiance-cusset strong {
+  color: #f39c12;
+}
+
+/* ============================================
+   IRRADIANCE CHART
+   ============================================ */
+.irradiance-chart-cusset {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.25rem;
+  height: 200px;
+  padding: 1rem;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.chart-bar-container-cusset {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 50px;
+}
+
+.chart-label-cusset {
+  font-size: 0.6rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
+
+.chart-bar-wrapper-cusset {
+  width: 30px;
+  height: 150px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.chart-bar-cusset {
+  width: 100%;
+  transition: height 0.3s ease;
+}
+
+.chart-value-cusset {
+  font-size: 0.6rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+/* ============================================
+   LOCATION GRID
+   ============================================ */
+.location-grid-cusset {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .location-grid-cusset {
+    grid-template-columns: 1fr;
+  }
+}
+
+.location-card-cusset {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.location-card-cusset h3 {
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+  color: #1a1a1a;
+}
+
+.location-card-cusset p {
+  font-size: 0.75rem;
+  margin: 0.25rem 0;
+  color: #666;
+}
+
+.location-card-cusset strong {
+  color: #1a1a1a;
+}
+
+/* ============================================
+   SHADING TABLE
+   ============================================ */
+.shading-table-cusset {
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.shading-table-cusset .table-header-cusset {
+  grid-template-columns: 100px 1fr 120px;
+}
+
+.shading-table-cusset .table-row-cusset {
+  grid-template-columns: 100px 1fr 120px;
+}
+
+.shading-status-cusset {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+}
+
+.shading-status-cusset.clear {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.shading-status-cusset.partial {
+  background: #fff3e0;
+  color: #ed6c02;
+}
+
+.shading-status-cusset.shaded {
+  background: #ffebee;
+  color: #dc3545;
+}
+
+.loss-cusset {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+/* ============================================
+   NOTES CARD
+   ============================================ */
+.notes-card-cusset {
+  background: #f8f9fa;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.notes-card-cusset ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.notes-card-cusset li {
+  font-size: 0.75rem;
+  color: #666;
+  margin: 0.5rem 0;
+  line-height: 1.5;
+}
+
+/* ============================================
+   RECOMMENDATION CARD
+   ============================================ */
+.recommendation-card-cusset {
+  background: #e3f2fd;
+  border: 1px solid #1976d2;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.recommendation-content-cusset h3 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+  color: #1976d2;
+}
+
+.recommendation-desc-cusset {
+  font-size: 0.75rem;
+  color: #333;
+  margin: 0 0 0.5rem 0;
+}
+
+.recommendation-note-cusset {
+  font-size: 0.7rem;
+  color: #666;
+  margin: 0;
+}
+
+/* ============================================
+   ACTION BUTTONS
+   ============================================ */
+.performance-actions-cusset {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eaeaea;
+}
+
+.action-btn-cusset {
+  padding: 0.625rem 1.25rem;
+  background: #f5f5f5;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn-cusset:hover {
+  background: #eaeaea;
+  border-color: #dddddd;
+  color: #1a1a1a;
+}
+
+.action-btn-cusset.primary-cusset {
+  background: #1a1a1a;
+  color: #ffffff;
+  border-color: #1a1a1a;
+}
+
+.action-btn-cusset.primary-cusset:hover {
+  background: #333;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.performance-empty-cusset {
+  text-align: center;
+  padding: 4rem 2rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.performance-empty-cusset h2 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+  color: #1a1a1a;
+}
+
+.performance-empty-cusset p {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0 0 1.5rem 0;
+}
+
+.btn-primary-cusset {
+  padding: 0.625rem 1.25rem;
+  background: #1a1a1a;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+/* ============================================
+   SKELETON LOADER
+   ============================================ */
+.skeleton-line-cusset {
+  background: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse-cusset 1.5s ease-in-out infinite;
+}
+
+.skeleton-line-cusset.large-cusset {
+  height: 32px;
+  width: 250px;
+}
+
+.skeleton-line-cusset.medium-cusset {
+  height: 24px;
+  width: 180px;
+}
+
+.skeleton-line-cusset.small-cusset {
+  height: 16px;
+  width: 120px;
+}
+
+.skeleton-line-cusset.tiny-cusset {
+  height: 12px;
+  width: 80px;
+}
+
+.skeleton-card-cusset {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.skeleton-chart-cusset {
+  height: 200px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse-cusset 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-cusset {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .performance-container-cusset {
+    padding: 1rem;
+  }
+  
+  .performance-actions-cusset {
+    flex-direction: column;
+  }
+  
+  .action-btn-cusset {
+    width: 100%;
+    text-align: center;
+  }
+}

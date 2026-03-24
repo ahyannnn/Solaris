@@ -1,36 +1,8 @@
 // pages/Customer/scheduleassessment.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
-import {
-  FaUser,
-  FaMapMarkerAlt,
-  FaHome,
-  FaCalendarAlt,
-  FaMoneyBillWave,
-  FaClock,
-  FaCheckCircle,
-  FaExclamationTriangle,
-  FaSpinner,
-  FaSolarPanel,
-  FaPhone,
-  FaEnvelope,
-  FaChevronRight,
-  FaEdit,
-  FaFileInvoice,
-  FaIndustry,
-  FaBuilding,
-  FaRegFileAlt,
-  FaPaperPlane,
-  FaClipboardList,
-  FaTimes,
-  FaArrowLeft,
-  FaArrowRight,
-  FaBolt,
-  FaPlug,
-  FaLeaf
-} from 'react-icons/fa';
 import '../../styles/Customer/scheduleassessment.css';
 
 const ScheduleAssessment = () => {
@@ -64,10 +36,8 @@ const ScheduleAssessment = () => {
     roofType: '',
     preferredDate: ''
   });
-  const [bookingData, setBookingData] = useState(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
-
   const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
@@ -254,12 +224,6 @@ const ScheduleAssessment = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setBookingData({
-        bookingReference: response.data.booking.bookingReference,
-        invoiceNumber: response.data.booking.invoiceNumber,
-        assessmentFee: response.data.booking.assessmentFee
-      });
-
       setShowConfirmDialog(false);
       setTermsAccepted(false);
       // After successful booking, navigate to billing page to make payment
@@ -292,27 +256,27 @@ const ScheduleAssessment = () => {
 
   // Skeleton Loader Component
   const SkeletonLoader = () => (
-    <div className="schedule-container">
-      <div className="schedule-header-skeleton">
-        <div className="skeleton-line large"></div>
-        <div className="skeleton-line small"></div>
+    <div className="schedule-container-cusset">
+      <div className="schedule-header-skeleton-cusset">
+        <div className="skeleton-line-cusset large-cusset"></div>
+        <div className="skeleton-line-cusset small-cusset"></div>
       </div>
 
-      <div className="service-selection-grid">
+      <div className="service-selection-grid-cusset">
         {[1, 2].map((item) => (
-          <div key={item} className="skeleton-service-card">
-            <div className="skeleton-icon"></div>
-            <div className="skeleton-line medium"></div>
-            <div className="skeleton-line small"></div>
-            <div className="skeleton-form-group">
-              <div className="skeleton-line"></div>
-              <div className="skeleton-input"></div>
+          <div key={item} className="skeleton-service-card-cusset">
+            <div className="skeleton-icon-cusset"></div>
+            <div className="skeleton-line-cusset medium-cusset"></div>
+            <div className="skeleton-line-cusset small-cusset"></div>
+            <div className="skeleton-form-group-cusset">
+              <div className="skeleton-line-cusset"></div>
+              <div className="skeleton-input-cusset"></div>
             </div>
-            <div className="skeleton-form-group">
-              <div className="skeleton-line"></div>
-              <div className="skeleton-input"></div>
+            <div className="skeleton-form-group-cusset">
+              <div className="skeleton-line-cusset"></div>
+              <div className="skeleton-input-cusset"></div>
             </div>
-            <div className="skeleton-button"></div>
+            <div className="skeleton-button-cusset"></div>
           </div>
         ))}
       </div>
@@ -332,15 +296,14 @@ const ScheduleAssessment = () => {
 
   if (error) {
     return (
-      <div className="schedule-error-container">
-        <FaExclamationTriangle className="schedule-error-icon" />
-        <h2>Oops! Something went wrong</h2>
+      <div className="schedule-error-container-cusset">
+        <h2>Something went wrong</h2>
         <p>{error}</p>
-        <div className="schedule-error-actions">
-          <button onClick={fetchClientData} className="schedule-btn-primary">
+        <div className="schedule-error-actions-cusset">
+          <button onClick={fetchClientData} className="schedule-btn-primary-cusset">
             Try Again
           </button>
-          <button onClick={() => window.location.href = '/login'} className="schedule-btn-secondary">
+          <button onClick={() => window.location.href = '/login'} className="schedule-btn-secondary-cusset">
             Go to Login
           </button>
         </div>
@@ -356,42 +319,41 @@ const ScheduleAssessment = () => {
           <title>Get Solar Service | Salfer Engineering</title>
         </Helmet>
 
-        <div className="schedule-container">
-          <h1 className="schedule-title">Get Your Solar Solution</h1>
-          <p className="schedule-subtitle">Choose how you want to proceed with your solar journey</p>
+        <div className="schedule-container-cusset">
+          <h1 className="schedule-title-cusset">Get Your Solar Solution</h1>
+          <p className="schedule-subtitle-cusset">Choose how you want to proceed with your solar journey</p>
 
-          <div className="service-selection-grid">
+          <div className="service-selection-grid-cusset">
             {/* Free Quote Request Card */}
-            <div className="service-card">
-              <div className="service-card-header">
-                <FaRegFileAlt className="service-icon" />
+            <div className="service-card-cusset">
+              <div className="service-card-header-cusset">
                 <h2>Free Quotation Request</h2>
-                <span className="service-badge free">Free</span>
+                <span className="service-badge-cusset free-cusset">Free</span>
               </div>
-              <p className="service-description">
+              <p className="service-description-cusset">
                 Request a quotation for your solar system. Our team will review your request and provide a detailed quotation.
               </p>
 
-              <div className="quote-form">
-                <div className="schedule-form-group">
-                  <label>Monthly Electricity Bill (₱) *</label>
+              <div className="quote-form-cusset">
+                <div className="schedule-form-group-cusset">
+                  <label>Monthly Electricity Bill (₱)</label>
                   <input
                     type="number"
                     name="monthlyBill"
                     value={freeQuoteData.monthlyBill}
                     onChange={handleInputChange}
                     placeholder="e.g., 5000"
-                    className="schedule-form-input"
+                    className="schedule-form-input-cusset"
                   />
                 </div>
 
-                <div className="schedule-form-group">
-                  <label>Property Type *</label>
+                <div className="schedule-form-group-cusset">
+                  <label>Property Type</label>
                   <select
                     name="propertyType"
                     value={freeQuoteData.propertyType}
                     onChange={handleInputChange}
-                    className="schedule-form-select"
+                    className="schedule-form-select-cusset"
                   >
                     <option value="residential">Residential</option>
                     <option value="commercial">Commercial</option>
@@ -399,7 +361,7 @@ const ScheduleAssessment = () => {
                   </select>
                 </div>
 
-                <div className="schedule-form-group">
+                <div className="schedule-form-group-cusset">
                   <label>Desired Capacity (kW)</label>
                   <input
                     type="text"
@@ -407,89 +369,95 @@ const ScheduleAssessment = () => {
                     value={freeQuoteData.desiredCapacity}
                     onChange={handleInputChange}
                     placeholder="e.g., 5kW (optional)"
-                    className="schedule-form-input"
+                    className="schedule-form-input-cusset"
                   />
                 </div>
+              </div>
 
+              {/* Button inside card */}
+              <div className="card-button-container-cusset">
                 <button
-                  className="btn-get-quote"
+                  className="btn-get-quote-cusset"
                   onClick={handleFreeQuoteSubmit}
                   disabled={!freeQuoteData.monthlyBill}
                 >
-                  <FaPaperPlane /> Request Quotation
+                  Request Quotation
                 </button>
               </div>
             </div>
 
             {/* Pre Assessment Card */}
-            <div className="service-card paid">
-              <div className="service-card-header">
-                <FaClipboardList className="service-icon" />
+            <div className="service-card-cusset paid-cusset">
+              <div className="service-card-header-cusset">
                 <h2>Pre Assessment</h2>
-                <span className="service-badge paid">₱1,500</span>
+                <span className="service-badge-cusset paid-cusset">₱1,500</span>
               </div>
-              <p className="service-description">
+              <p className="service-description-cusset">
                 Book a professional on-site pre-assessment with 7-day IoT device monitoring for accurate data collection and detailed report.
               </p>
-              <ul className="service-features">
-                <li><FaCheckCircle /> On-site visit with monitoring device</li>
-                <li><FaCheckCircle /> 7-day actual environmental data collection</li>
-                <li><FaCheckCircle /> Accurate system size recommendation</li>
-                <li><FaCheckCircle /> Detailed assessment report</li>
-                <li><FaCheckCircle /> Professional engineer consultation</li>
+              <ul className="service-features-cusset">
+                <li>On-site visit with monitoring device</li>
+                <li>7-day actual environmental data collection</li>
+                <li>Accurate system size recommendation</li>
+                <li>Detailed assessment report</li>
+                <li>Professional engineer consultation</li>
               </ul>
-              <button
-                className="btn-paid-assessment"
-                onClick={() => {
-                  setCurrentStep('form');
-                }}
-              >
-                Book Pre Assessment
-              </button>
+
+              {/* Button inside card */}
+              <div className="card-button-container-cusset">
+                <button
+                  className="btn-paid-assessment-cusset"
+                  onClick={() => {
+                    setCurrentStep('form');
+                  }}
+                >
+                  Book Pre Assessment
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Free Quote Confirmation Modal */}
           {showFreeQuoteConfirm && (
-            <div className="schedule-modal-overlay">
-              <div className="schedule-modal">
+            <div className="schedule-modal-overlay-cusset">
+              <div className="schedule-modal-cusset">
                 <h2>Request Quotation</h2>
                 <p>Please review your request details:</p>
 
-                <div className="quote-summary">
-                  <div className="quote-item">
+                <div className="quote-summary-cusset">
+                  <div className="quote-item-cusset">
                     <span>Monthly Bill:</span>
                     <strong>{formatCurrency(freeQuoteData.monthlyBill)}</strong>
                   </div>
-                  <div className="quote-item">
+                  <div className="quote-item-cusset">
                     <span>Property Type:</span>
                     <strong>{freeQuoteData.propertyType}</strong>
                   </div>
                   {freeQuoteData.desiredCapacity && (
-                    <div className="quote-item">
+                    <div className="quote-item-cusset">
                       <span>Desired Capacity:</span>
                       <strong>{freeQuoteData.desiredCapacity}</strong>
                     </div>
                   )}
-                  <div className="quote-item">
+                  <div className="quote-item-cusset">
                     <span>Address:</span>
                     <strong>{getFullAddress()}</strong>
                   </div>
                 </div>
 
-                <p className="quote-note">Our team will review your request and send a detailed quotation via email within 2-3 business days.</p>
+                <p className="quote-note-cusset">Our team will review your request and send a detailed quotation via email within 2-3 business days.</p>
 
-                <div className="schedule-modal-actions">
+                <div className="schedule-modal-actions-cusset">
                   <button
                     onClick={() => setShowFreeQuoteConfirm(false)}
-                    className="schedule-btn-secondary"
+                    className="schedule-btn-secondary-cusset"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={confirmFreeQuote}
                     disabled={isSubmitting}
-                    className="schedule-btn-success"
+                    className="schedule-btn-success-cusset"
                   >
                     {isSubmitting ? 'Submitting...' : 'Submit Request'}
                   </button>
@@ -505,20 +473,18 @@ const ScheduleAssessment = () => {
   // ==================== SUCCESS SCREEN ====================
   if (submitted) {
     return (
-      <div className="schedule-container">
-        <div className="schedule-confirmation-card">
-          <FaCheckCircle className="schedule-confirmation-icon" />
-
+      <div className="schedule-container-cusset">
+        <div className="schedule-confirmation-card-cusset">
           <h1>Request Submitted!</h1>
 
           {submittedData.type === 'free-quote' && (
             <>
               <p>Your quotation request has been received.</p>
-              <div className="schedule-booking-details">
+              <div className="schedule-booking-details-cusset">
                 <p><strong>Reference Number:</strong> {submittedData.reference}</p>
                 <p><strong>Status:</strong> Pending Review</p>
               </div>
-              <div className="schedule-next-steps">
+              <div className="schedule-next-steps-cusset">
                 <h3>What's Next?</h3>
                 <ul>
                   <li>Our team will review your request within 2-3 business days</li>
@@ -529,20 +495,20 @@ const ScheduleAssessment = () => {
             </>
           )}
 
-          <div className="quote-actions">
+          <div className="quote-actions-cusset">
             <button
               onClick={() => {
                 setSubmitted(false);
                 setCurrentStep('service-selection');
                 setFreeQuoteData({ monthlyBill: '', propertyType: 'residential', desiredCapacity: '' });
               }}
-              className="schedule-btn-secondary"
+              className="schedule-btn-secondary-cusset"
             >
               Request Another
             </button>
             <button
               onClick={() => navigate('/dashboard/customerdashboard')}
-              className="schedule-btn-primary"
+              className="schedule-btn-primary-cusset"
             >
               Go to Dashboard
             </button>
@@ -560,119 +526,115 @@ const ScheduleAssessment = () => {
           <title>Book Pre Assessment | Salfer Engineering</title>
         </Helmet>
 
-        <div className="schedule-container">
-          <div className="back-button-container">
-            <button onClick={() => setCurrentStep('service-selection')} className="back-to-services">
-              <FaChevronRight /> Back to Services
+        <div className="schedule-container-cusset">
+          <div className="back-button-container-cusset">
+            <button onClick={() => setCurrentStep('service-selection')} className="back-to-services-cusset">
+              Back to Services
             </button>
           </div>
 
-          <h1 className="schedule-title">Book Pre Assessment</h1>
-          <p className="schedule-subtitle">Complete the form below to schedule your professional pre-assessment (₱1,500)</p>
+          <h1 className="schedule-title-cusset">Book Pre Assessment</h1>
+          <p className="schedule-subtitle-cusset">Complete the form below to schedule your professional pre-assessment (₱1,500)</p>
 
-          <div className="pre-assessment-form-wrapper">
+          <div className="pre-assessment-form-wrapper-cusset">
             {/* Personal & Address Info Section */}
-            <div className="schedule-info-section">
-              <h3 className="schedule-section-title">Contact & Address Information</h3>
+            <div className="schedule-info-section-cusset">
+              <h3 className="schedule-section-title-cusset">Contact & Address Information</h3>
 
               {/* Personal Info Card */}
-              <div className="schedule-info-card">
-                <div className="schedule-info-card-header">
-                  <FaUser className="schedule-info-icon" />
+              <div className="schedule-info-card-cusset">
+                <div className="schedule-info-card-header-cusset">
                   <h4>Personal Information</h4>
                 </div>
-                <div className="schedule-info-card-content">
-                  <div className="schedule-info-row">
-                    <div className="schedule-info-field">
+                <div className="schedule-info-card-content-cusset">
+                  <div className="schedule-info-row-cusset">
+                    <div className="schedule-info-field-cusset">
                       <label>Name</label>
                       <p>{getFullName() || 'Not provided'}</p>
                     </div>
-                    <div className="schedule-info-field">
+                    <div className="schedule-info-field-cusset">
                       <label>Contact Number</label>
                       <p>{formData.contactNumber || 'Not provided'}</p>
                     </div>
                   </div>
-                  <div className="schedule-info-note">
-                    <FaEdit className="schedule-note-icon" />
-                    <small>Personal information is managed in your <button className="schedule-text-link" onClick={() => navigate('/dashboard/customersettings')}>Account Settings</button></small>
+                  <div className="schedule-info-note-cusset">
+                    <small>Personal information is managed in your <button className="schedule-text-link-cusset" onClick={() => navigate('/dashboard/customersettings')}>Account Settings</button></small>
                   </div>
                 </div>
               </div>
 
               {/* Address Card */}
-              <div className="schedule-info-card">
-                <div className="schedule-info-card-header">
-                  <FaMapMarkerAlt className="schedule-info-icon" />
+              <div className="schedule-info-card-cusset">
+                <div className="schedule-info-card-header-cusset">
                   <h4>Address</h4>
                 </div>
-                <div className="schedule-info-card-content">
+                <div className="schedule-info-card-content-cusset">
                   {selectedAddressDisplay ? (
                     <>
-                      <div className="schedule-address-display">
-                        <div className="schedule-address-name">{selectedAddressDisplay.name}</div>
-                        <div className="schedule-address-contact">{selectedAddressDisplay.contact}</div>
-                        <div className="schedule-address-detail">{selectedAddressDisplay.address}</div>
+                      <div className="schedule-address-display-cusset">
+                        <div className="schedule-address-name-cusset">{selectedAddressDisplay.name}</div>
+                        <div className="schedule-address-contact-cusset">{selectedAddressDisplay.contact}</div>
+                        <div className="schedule-address-detail-cusset">{selectedAddressDisplay.address}</div>
                       </div>
-                      <div className="address-actions">
-                        <button className="schedule-change-address-btn" onClick={handleAddressClick}>
-                          <FaEdit /> Change Address
+                      <div className="address-actions-cusset">
+                        <button className="schedule-change-address-btn-cusset" onClick={handleAddressClick}>
+                          Change Address
                         </button>
                       </div>
                     </>
                   ) : (
-                    <div className="schedule-no-address-warning">
-                      <FaExclamationTriangle />
+                    <div className="schedule-no-address-warning-cusset">
                       <p>No address found. Please add an address in settings first.</p>
-                      <button onClick={handleAddressClick} className="schedule-add-address-btn">
+                      <button onClick={handleAddressClick} className="schedule-add-address-btn-cusset">
                         Add Address
                       </button>
                     </div>
                   )}
-                  {validationErrors.address && <small className="schedule-error-text">{validationErrors.address}</small>}
+                  {validationErrors.address && <small className="schedule-error-text-cusset">{validationErrors.address}</small>}
                 </div>
               </div>
             </div>
 
             {/* Assessment Details Section */}
-            <div className="schedule-assessment-details-section">
-              <h3 className="schedule-section-title">Assessment Details</h3>
+            <div className="schedule-assessment-details-section-cusset">
+              <h3 className="schedule-section-title-cusset">Assessment Details</h3>
 
-              <div className="schedule-assessment-form">
-                <div className="schedule-form-grid">
-                  <div className="schedule-form-group">
+              <div className="schedule-assessment-form-cusset">
+                <div className="schedule-form-grid-cusset">
+                  <div className="schedule-form-group-cusset">
                     <label>Property Type *</label>
                     <select
                       name="propertyType"
                       value={formData.propertyType}
                       onChange={handleInputChange}
-                      className={`schedule-form-select ${validationErrors.propertyType ? 'error' : ''}`}
+                      className={`schedule-form-select-cusset ${validationErrors.propertyType ? 'error-cusset' : ''}`}
                     >
                       <option value="residential">Residential</option>
                       <option value="commercial">Commercial</option>
                       <option value="industrial">Industrial</option>
                     </select>
-                    {validationErrors.propertyType && <small className="schedule-error-text">{validationErrors.propertyType}</small>}
+                    {validationErrors.propertyType && <small className="schedule-error-text-cusset">{validationErrors.propertyType}</small>}
                   </div>
 
-                  <div className="schedule-form-group">
+                  <div className="schedule-form-group-cusset">
                     <label>Desired Capacity (kW)</label>
                     <input
                       type="text"
                       name="desiredCapacity"
                       value={formData.desiredCapacity}
                       onChange={handleInputChange}
-                      className="schedule-form-input"
+                      className="schedule-form-input-cusset"
                       placeholder="e.g., 5kW (optional)"
                     />
                   </div>
 
-                  <div className="schedule-form-group">
+                  <div className="schedule-form-group-cusset">
                     <label>Roof Type</label>
                     <select
                       name="roofType"
                       value={formData.roofType}
                       onChange={handleInputChange}
-                      className="schedule-form-select"
+                      className="schedule-form-select-cusset"
                     >
                       <option value="">Select roof type</option>
                       <option value="concrete">Concrete</option>
@@ -682,23 +644,22 @@ const ScheduleAssessment = () => {
                     </select>
                   </div>
 
-                  <div className="schedule-form-group">
+                  <div className="schedule-form-group-cusset">
                     <label>Preferred Start Date *</label>
                     <input
                       type="date"
                       name="preferredDate"
                       value={formData.preferredDate}
                       onChange={handleInputChange}
-                      className={`schedule-form-input ${validationErrors.preferredDate ? 'error' : ''}`}
+                      className={`schedule-form-input-cusset ${validationErrors.preferredDate ? 'error-cusset' : ''}`}
                       min={new Date().toISOString().split('T')[0]}
                     />
-                    {validationErrors.preferredDate && <small className="schedule-error-text">{validationErrors.preferredDate}</small>}
+                    {validationErrors.preferredDate && <small className="schedule-error-text-cusset">{validationErrors.preferredDate}</small>}
                   </div>
                 </div>
 
-                <div className="schedule-fee-card">
-                  <div className="schedule-fee-info">
-                    <FaMoneyBillWave className="schedule-fee-icon" />
+                <div className="schedule-fee-card-cusset">
+                  <div className="schedule-fee-info-cusset">
                     <div>
                       <strong>Pre Assessment Fee: ₱1,500.00</strong>
                       <p>You will be redirected to the billing page to complete payment after booking.</p>
@@ -706,8 +667,8 @@ const ScheduleAssessment = () => {
                   </div>
                 </div>
 
-                <div className="form-actions">
-                  <button onClick={handleSubmitClick} className="schedule-btn-submit">
+                <div className="form-actions-cusset">
+                  <button onClick={handleSubmitClick} className="schedule-btn-submit-cusset">
                     Continue to Payment
                   </button>
                 </div>
@@ -717,20 +678,20 @@ const ScheduleAssessment = () => {
 
           {/* Confirmation Modal */}
           {showConfirmDialog && (
-            <div className="schedule-modal-overlay">
-              <div className="schedule-modal">
+            <div className="schedule-modal-overlay-cusset">
+              <div className="schedule-modal-cusset">
                 <h2>Confirm Pre Assessment</h2>
-                <div className="schedule-modal-summary">
-                  <div className="schedule-summary-section">
+                <div className="schedule-modal-summary-cusset">
+                  <div className="schedule-summary-section-cusset">
                     <h4>Contact Information</h4>
                     <p><strong>Name:</strong> {getFullName()}</p>
                     <p><strong>Contact:</strong> {formData.contactNumber}</p>
                   </div>
-                  <div className="schedule-summary-section">
+                  <div className="schedule-summary-section-cusset">
                     <h4>Address</h4>
                     <p>{getFullAddress()}</p>
                   </div>
-                  <div className="schedule-summary-section">
+                  <div className="schedule-summary-section-cusset">
                     <h4>Assessment Details</h4>
                     <p><strong>Property Type:</strong> {formData.propertyType}</p>
                     <p><strong>Desired Capacity:</strong> {formData.desiredCapacity || 'Not specified'}</p>
@@ -740,7 +701,7 @@ const ScheduleAssessment = () => {
                   </div>
                 </div>
 
-                <div className="schedule-modal-checkbox">
+                <div className="schedule-modal-checkbox-cusset">
                   <label>
                     <input
                       type="checkbox"
@@ -751,14 +712,14 @@ const ScheduleAssessment = () => {
                   </label>
                 </div>
 
-                <div className="schedule-modal-actions">
-                  <button onClick={() => setShowConfirmDialog(false)} className="schedule-btn-secondary">
+                <div className="schedule-modal-actions-cusset">
+                  <button onClick={() => setShowConfirmDialog(false)} className="schedule-btn-secondary-cusset">
                     Cancel
                   </button>
                   <button
                     onClick={handleConfirmBooking}
                     disabled={!termsAccepted || isSubmitting}
-                    className="schedule-btn-success"
+                    className="schedule-btn-success-cusset"
                   >
                     {isSubmitting ? 'Processing...' : 'Confirm & Proceed to Payment'}
                   </button>

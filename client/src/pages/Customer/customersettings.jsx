@@ -3,46 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
-import {
-  FaUser,
-  FaMapMarkerAlt,
-  FaHome,
-  FaRoad,
-  FaCity,
-  FaGlobe,
-  FaMailBulk,
-  FaHashtag,
-  FaPlus,
-  FaEdit,
-  FaTrash,
-  FaCheckCircle,
-  FaExclamationTriangle,
-  FaStar,
-  FaRegStar,
-  FaArrowLeft,
-  FaSave,
-  FaSpinner,
-  FaAddressBook,
-  FaPhone,
-  FaEnvelope,
-  FaBuilding,
-  FaBell,
-  FaLock,
-  FaShieldAlt,
-  FaLanguage,
-  FaPalette,
-  FaMoon,
-  FaSun,
-  FaGlobe as FaGlobeAsia,
-  FaUserCog,
-  FaKey,
-  FaCreditCard,
-  FaHistory,
-  FaFileInvoice,
-  FaCalendarAlt,
-  FaEye,
-  FaEyeSlash
-} from 'react-icons/fa';
 import '../../styles/Customer/customersettings.css';
 
 const CustomerSettings = () => {
@@ -58,6 +18,7 @@ const CustomerSettings = () => {
 
   const [activeTab, setActiveTab] = useState(getInitialTab());
   const [loading, setLoading] = useState(true);
+  const [tabLoading, setTabLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -159,20 +120,17 @@ const CustomerSettings = () => {
   const getPasswordStrengthLabel = (password) => {
     const strength = getPasswordStrength(password);
     const labels = {
-      'weak': 'Weak - Add uppercase, numbers, or symbols',
-      'medium': 'Medium - Could be stronger',
-      'strong': 'Strong - Good password',
-      'very-strong': 'Very Strong - Excellent!'
+      'weak': 'Weak',
+      'medium': 'Medium',
+      'strong': 'Strong',
+      'very-strong': 'Very Strong'
     };
     return labels[strength];
   };
 
   // Fetch data on mount
   useEffect(() => {
-    fetchUserData();
-    fetchAddresses();
-    fetchPreferences();
-    fetchBillingHistory();
+    fetchAllData();
   }, []);
 
   // Listen for URL tab changes
@@ -181,14 +139,37 @@ const CustomerSettings = () => {
     const tabFromUrl = params.get('tab');
     if (tabFromUrl && ['profile', 'addresses', 'notifications', 'security', 'preferences', 'billing'].includes(tabFromUrl)) {
       if (tabFromUrl !== activeTab) {
-        setActiveTab(tabFromUrl);
+        handleTabChange(tabFromUrl);
       }
     }
-  }, [location.search, activeTab]);
+  }, [location.search]);
+
+  const handleTabChange = (newTab) => {
+    setTabLoading(true);
+    setActiveTab(newTab);
+    // Simulate loading for tab switch
+    setTimeout(() => {
+      setTabLoading(false);
+    }, 500);
+  };
+
+  const fetchAllData = async () => {
+    try {
+      setLoading(true);
+      await Promise.all([
+        fetchUserData(),
+        fetchAddresses(),
+        fetchPreferences(),
+        fetchBillingHistory()
+      ]);
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+    }
+  };
 
   const fetchUserData = async () => {
     try {
-      setLoading(true);
       const token = sessionStorage.getItem('token');
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/clients/me`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -208,8 +189,6 @@ const CustomerSettings = () => {
     } catch (err) {
       console.error('Error fetching user data:', err);
       setError('Failed to load profile data');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -317,14 +296,14 @@ const CustomerSettings = () => {
 
   const validateAddressForm = () => {
     const errors = {};
-    if (!addressForm.houseOrBuilding.trim()) errors.houseOrBuilding = 'House/Building number is required';
-    if (!addressForm.street.trim()) errors.street = 'Street is required';
-    if (!addressForm.barangay.trim()) errors.barangay = 'Barangay is required';
-    if (!addressForm.cityMunicipality.trim()) errors.cityMunicipality = 'City/Municipality is required';
-    if (!addressForm.province.trim()) errors.province = 'Province is required';
-    if (!addressForm.zipCode.trim()) errors.zipCode = 'Zip code is required';
+    if (!addressForm.houseOrBuilding.trim()) errors.houseOrBuilding = 'Required';
+    if (!addressForm.street.trim()) errors.street = 'Required';
+    if (!addressForm.barangay.trim()) errors.barangay = 'Required';
+    if (!addressForm.cityMunicipality.trim()) errors.cityMunicipality = 'Required';
+    if (!addressForm.province.trim()) errors.province = 'Required';
+    if (!addressForm.zipCode.trim()) errors.zipCode = 'Required';
     if (addressForm.zipCode && !/^\d{4}$/.test(addressForm.zipCode)) {
-      errors.zipCode = 'ZIP code must be 4 digits';
+      errors.zipCode = 'Must be 4 digits';
     }
     return errors;
   };
@@ -348,14 +327,14 @@ const CustomerSettings = () => {
           addressForm,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setSuccess('Address updated successfully');
+        setSuccess('Address updated');
       } else {
         await axios.post(
           `${import.meta.env.VITE_API_URL}/api/clients/me/addresses`,
           addressForm,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setSuccess('Address added successfully');
+        setSuccess('Address added');
       }
 
       setTimeout(() => setSuccess(null), 3000);
@@ -393,7 +372,7 @@ const CustomerSettings = () => {
         `${import.meta.env.VITE_API_URL}/api/clients/me/addresses/${addressId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSuccess('Address deleted successfully');
+      setSuccess('Address deleted');
       setTimeout(() => setSuccess(null), 3000);
       fetchAddresses();
       setDeleteConfirm(null);
@@ -406,17 +385,9 @@ const CustomerSettings = () => {
   // Password handlers
   const validatePassword = () => {
     const errors = {};
-    if (!passwordData.currentPassword) errors.currentPassword = 'Current password is required';
-    if (!passwordData.newPassword) errors.newPassword = 'New password is required';
-    if (passwordData.newPassword.length < 8) errors.newPassword = 'Password must be at least 8 characters';
-    
-    const hasUpperCase = /[A-Z]/.test(passwordData.newPassword);
-    const hasNumber = /[0-9]/.test(passwordData.newPassword);
-    const hasSpecialChar = /[^A-Za-z0-9]/.test(passwordData.newPassword);
-    
-    if (passwordData.newPassword && !(hasUpperCase || hasNumber || hasSpecialChar)) {
-      errors.newPassword = 'Password should contain at least one uppercase letter, number, or special character';
-    }
+    if (!passwordData.currentPassword) errors.currentPassword = 'Required';
+    if (!passwordData.newPassword) errors.newPassword = 'Required';
+    if (passwordData.newPassword.length < 8) errors.newPassword = 'Minimum 8 characters';
     
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       errors.confirmPassword = 'Passwords do not match';
@@ -441,7 +412,7 @@ const CustomerSettings = () => {
         passwordData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSuccess('Password changed successfully');
+      setSuccess('Password changed');
       setTimeout(() => setSuccess(null), 3000);
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setShowPasswordForm(false);
@@ -464,7 +435,7 @@ const CustomerSettings = () => {
 
   const saveNotificationPrefs = () => {
     localStorage.setItem('notificationPrefs', JSON.stringify(notificationPrefs));
-    setSuccess('Notification preferences saved');
+    setSuccess('Preferences saved');
     setTimeout(() => setSuccess(null), 3000);
   };
 
@@ -481,9 +452,9 @@ const CustomerSettings = () => {
   const savePreferences = () => {
     localStorage.setItem('userPreferences', JSON.stringify(preferences));
     if (preferences.theme === 'dark') {
-      document.body.classList.add('dark-mode');
+      document.body.classList.add('dark-mode-cusset');
     } else {
-      document.body.classList.remove('dark-mode');
+      document.body.classList.remove('dark-mode-cusset');
     }
     setSuccess('Preferences saved');
     setTimeout(() => setSuccess(null), 3000);
@@ -501,18 +472,164 @@ const CustomerSettings = () => {
     return parts.join(', ');
   };
 
-  // Render different content based on active tab
+  // Skeleton Components
+  const ProfileSkeleton = () => (
+    <div className="profile-section-cusset">
+      <div className="skeleton-line-cusset large-cusset"></div>
+      <div className="profile-form-cusset">
+        <div className="form-row-cusset">
+          <div className="form-group-cusset"><div className="skeleton-input-cusset"></div></div>
+          <div className="form-group-cusset"><div className="skeleton-input-cusset"></div></div>
+          <div className="form-group-cusset"><div className="skeleton-input-cusset"></div></div>
+        </div>
+        <div className="form-row-cusset">
+          <div className="form-group-cusset"><div className="skeleton-input-cusset"></div></div>
+          <div className="form-group-cusset"><div className="skeleton-input-cusset"></div></div>
+        </div>
+        <div className="form-row-cusset">
+          <div className="form-group-cusset"><div className="skeleton-input-cusset"></div></div>
+          <div className="form-group-cusset"><div className="skeleton-input-cusset"></div></div>
+        </div>
+        <div className="skeleton-button-cusset"></div>
+      </div>
+    </div>
+  );
+
+  const AddressesSkeleton = () => (
+    <div className="addresses-section-cusset">
+      <div className="section-header-cusset">
+        <div className="skeleton-line-cusset medium-cusset"></div>
+        <div className="skeleton-button-cusset small-cusset"></div>
+      </div>
+      <div className="addresses-grid-cusset">
+        {[1, 2, 3].map((item) => (
+          <div key={item} className="address-card-cusset skeleton-card-cusset">
+            <div className="skeleton-badge-cusset"></div>
+            <div className="skeleton-line-cusset small-cusset"></div>
+            <div className="skeleton-line-cusset tiny-cusset"></div>
+            <div className="skeleton-line-cusset tiny-cusset"></div>
+            <div className="skeleton-line-cusset tiny-cusset"></div>
+            <div className="address-actions-cusset">
+              <div className="skeleton-button-cusset tiny-cusset"></div>
+              <div className="skeleton-button-cusset tiny-cusset"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const NotificationsSkeleton = () => (
+    <div className="notifications-section-cusset">
+      <div className="skeleton-line-cusset large-cusset"></div>
+      <div className="preferences-group-cusset">
+        <div className="skeleton-line-cusset medium-cusset"></div>
+        <div className="checkbox-list-cusset">
+          <div className="skeleton-checkbox-cusset"></div>
+          <div className="skeleton-checkbox-cusset"></div>
+        </div>
+      </div>
+      <div className="preferences-group-cusset">
+        <div className="skeleton-line-cusset medium-cusset"></div>
+        <div className="checkbox-list-cusset">
+          <div className="skeleton-checkbox-cusset"></div>
+          <div className="skeleton-checkbox-cusset"></div>
+          <div className="skeleton-checkbox-cusset"></div>
+          <div className="skeleton-checkbox-cusset"></div>
+          <div className="skeleton-checkbox-cusset"></div>
+        </div>
+      </div>
+      <div className="skeleton-button-cusset"></div>
+    </div>
+  );
+
+  const SecuritySkeleton = () => (
+    <div className="security-section-cusset">
+      <div className="skeleton-line-cusset large-cusset"></div>
+      <div className="security-group-cusset">
+        <div className="group-header-cusset">
+          <div className="skeleton-line-cusset medium-cusset"></div>
+          <div className="skeleton-button-cusset small-cusset"></div>
+        </div>
+      </div>
+      <div className="security-group-cusset">
+        <div className="skeleton-line-cusset medium-cusset"></div>
+        <div className="skeleton-line-cusset small-cusset"></div>
+      </div>
+    </div>
+  );
+
+  const PreferencesSkeleton = () => (
+    <div className="preferences-section-cusset">
+      <div className="skeleton-line-cusset large-cusset"></div>
+      <div className="preferences-grid-cusset">
+        {[1, 2, 3, 4, 5].map((item) => (
+          <div key={item} className="preference-group-cusset">
+            <div className="skeleton-line-cusset small-cusset"></div>
+            <div className="skeleton-input-cusset"></div>
+          </div>
+        ))}
+      </div>
+      <div className="skeleton-button-cusset"></div>
+    </div>
+  );
+
+  const BillingSkeleton = () => (
+    <div className="billing-section-cusset">
+      <div className="skeleton-line-cusset large-cusset"></div>
+      <div className="billing-table-cusset">
+        <div className="skeleton-table-cusset">
+          <div className="skeleton-table-header-cusset">
+            <div className="skeleton-line-cusset small-cusset"></div>
+            <div className="skeleton-line-cusset small-cusset"></div>
+            <div className="skeleton-line-cusset small-cusset"></div>
+            <div className="skeleton-line-cusset small-cusset"></div>
+            <div className="skeleton-line-cusset small-cusset"></div>
+          </div>
+          {[1, 2, 3].map((item) => (
+            <div key={item} className="skeleton-table-row-cusset">
+              <div className="skeleton-line-cusset tiny-cusset"></div>
+              <div className="skeleton-line-cusset tiny-cusset"></div>
+              <div className="skeleton-line-cusset tiny-cusset"></div>
+              <div className="skeleton-line-cusset tiny-cusset"></div>
+              <div className="skeleton-badge-cusset small-cusset"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   const renderTabContent = () => {
+    if (tabLoading) {
+      switch (activeTab) {
+        case 'profile':
+          return <ProfileSkeleton />;
+        case 'addresses':
+          return <AddressesSkeleton />;
+        case 'notifications':
+          return <NotificationsSkeleton />;
+        case 'security':
+          return <SecuritySkeleton />;
+        case 'preferences':
+          return <PreferencesSkeleton />;
+        case 'billing':
+          return <BillingSkeleton />;
+        default:
+          return <ProfileSkeleton />;
+      }
+    }
+
     switch (activeTab) {
       case 'profile':
         return (
-          <div className="profile-section-settings">
+          <div className="profile-section-cusset">
             <h2>Personal Information</h2>
             
-            <div className="profile-form-settings">
-              <div className="form-row-settings">
-                <div className="form-group-settings">
-                  <label><FaUser /> First Name</label>
+            <div className="profile-form-cusset">
+              <div className="form-row-cusset">
+                <div className="form-group-cusset">
+                  <label>First Name</label>
                   <input
                     type="text"
                     name="firstName"
@@ -522,19 +639,19 @@ const CustomerSettings = () => {
                   />
                 </div>
 
-                <div className="form-group-settings">
-                  <label><FaUser /> Middle Name</label>
+                <div className="form-group-cusset">
+                  <label>Middle Name</label>
                   <input
                     type="text"
                     name="middleName"
                     value={profileData.middleName}
                     onChange={handleProfileChange}
-                    placeholder="Middle name (optional)"
+                    placeholder="Middle name"
                   />
                 </div>
 
-                <div className="form-group-settings">
-                  <label><FaUser /> Last Name</label>
+                <div className="form-group-cusset">
+                  <label>Last Name</label>
                   <input
                     type="text"
                     name="lastName"
@@ -545,20 +662,20 @@ const CustomerSettings = () => {
                 </div>
               </div>
 
-              <div className="form-row-settings">
-                <div className="form-group-settings">
-                  <label><FaEnvelope /> Email Address</label>
+              <div className="form-row-cusset">
+                <div className="form-group-cusset">
+                  <label>Email Address</label>
                   <input
                     type="email"
                     value={profileData.email}
                     disabled
-                    className="readonly-settings"
+                    className="readonly-cusset"
                   />
                   <small>Email cannot be changed</small>
                 </div>
 
-                <div className="form-group-settings">
-                  <label><FaPhone /> Contact Number</label>
+                <div className="form-group-cusset">
+                  <label>Contact Number</label>
                   <input
                     type="tel"
                     name="contactNumber"
@@ -569,21 +686,21 @@ const CustomerSettings = () => {
                 </div>
               </div>
 
-              <div className="form-row-settings">
-                <div className="form-group-settings">
-                  <label><FaBuilding /> Company Name</label>
+              <div className="form-row-cusset">
+                <div className="form-group-cusset">
+                  <label>Company Name</label>
                   <input
                     type="text"
                     name="companyName"
                     value={profileData.companyName}
                     onChange={handleProfileChange}
-                    placeholder="Company name (if applicable)"
+                    placeholder="Company name"
                     disabled={profileData.client_type === 'Individual'}
                   />
                 </div>
 
-                <div className="form-group-settings">
-                  <label><FaCalendarAlt /> Birthday</label>
+                <div className="form-group-cusset">
+                  <label>Birthday</label>
                   <input
                     type="date"
                     name="birthday"
@@ -593,13 +710,13 @@ const CustomerSettings = () => {
                 </div>
               </div>
 
-              <div className="form-actions-settings">
+              <div className="form-actions-cusset">
                 <button
-                  className="save-btn-settings"
+                  className="save-btn-cusset"
                   onClick={saveProfile}
                   disabled={saving}
                 >
-                  {saving ? <><FaSpinner className="spinner-settings" /> Saving...</> : <><FaSave /> Save Changes</>}
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </div>
@@ -608,66 +725,65 @@ const CustomerSettings = () => {
 
       case 'addresses':
         return (
-          <div className="addresses-section-settings">
-            <div className="section-header-settings">
+          <div className="addresses-section-cusset">
+            <div className="section-header-cusset">
               <h2>My Addresses</h2>
-              <button className="add-btn-settings" onClick={handleAddAddress}>
-                <FaPlus /> Add New Address
+              <button className="add-btn-cusset" onClick={handleAddAddress}>
+                Add New Address
               </button>
             </div>
 
             {addresses.length === 0 ? (
-              <div className="empty-state-settings">
-                <FaMapMarkerAlt className="empty-icon-settings" />
+              <div className="empty-state-cusset">
                 <h3>No addresses yet</h3>
                 <p>Add your first address to get started</p>
-                <button className="add-first-btn-settings" onClick={handleAddAddress}>
-                  <FaPlus /> Add Address
+                <button className="add-first-btn-cusset" onClick={handleAddAddress}>
+                  Add Address
                 </button>
               </div>
             ) : (
-              <div className="addresses-grid-settings">
+              <div className="addresses-grid-cusset">
                 {addresses.map(address => (
-                  <div key={address._id} className={`address-card-settings ${address.isPrimary ? 'primary-settings' : ''}`}>
+                  <div key={address._id} className={`address-card-cusset ${address.isPrimary ? 'primary-cusset' : ''}`}>
                     {address.isPrimary && (
-                      <div className="primary-badge-settings">
-                        <FaStar /> Primary
+                      <div className="primary-badge-cusset">
+                        Primary
                       </div>
                     )}
                     
-                    <div className="address-label-settings">
-                      <span className="label-badge-settings">{address.label}</span>
+                    <div className="address-label-cusset">
+                      <span className="label-badge-cusset">{address.label}</span>
                     </div>
 
-                    <div className="address-details-settings">
-                      <p><FaHashtag /> {address.houseOrBuilding}</p>
-                      <p><FaRoad /> {address.street}</p>
-                      <p><FaCity /> {address.barangay}</p>
-                      <p><FaCity /> {address.cityMunicipality}</p>
-                      <p><FaGlobe /> {address.province}</p>
-                      <p><FaMailBulk /> {address.zipCode}</p>
+                    <div className="address-details-cusset">
+                      <p>{address.houseOrBuilding}</p>
+                      <p>{address.street}</p>
+                      <p>{address.barangay}</p>
+                      <p>{address.cityMunicipality}</p>
+                      <p>{address.province}</p>
+                      <p>{address.zipCode}</p>
                     </div>
 
-                    <div className="address-actions-settings">
+                    <div className="address-actions-cusset">
                       {!address.isPrimary && (
                         <button
-                          className="action-btn-settings primary-settings"
+                          className="action-btn-cusset primary-cusset"
                           onClick={() => setAsPrimary(address._id)}
                         >
-                          <FaRegStar /> Set Primary
+                          Set Primary
                         </button>
                       )}
                       <button
-                        className="action-btn-settings edit-settings"
+                        className="action-btn-cusset edit-cusset"
                         onClick={() => handleEditAddress(address)}
                       >
-                        <FaEdit /> Edit
+                        Edit
                       </button>
                       <button
-                        className="action-btn-settings delete-settings"
+                        className="action-btn-cusset delete-cusset"
                         onClick={() => setDeleteConfirm(address)}
                       >
-                        <FaTrash /> Delete
+                        Delete
                       </button>
                     </div>
                   </div>
@@ -679,13 +795,13 @@ const CustomerSettings = () => {
 
       case 'notifications':
         return (
-          <div className="notifications-section-settings">
+          <div className="notifications-section-cusset">
             <h2>Notification Preferences</h2>
             
-            <div className="preferences-group-settings">
+            <div className="preferences-group-cusset">
               <h3>Communication Channels</h3>
-              <div className="checkbox-list-settings">
-                <label className="checkbox-label-settings">
+              <div className="checkbox-list-cusset">
+                <label className="checkbox-label-cusset">
                   <input
                     type="checkbox"
                     name="emailNotifications"
@@ -694,7 +810,7 @@ const CustomerSettings = () => {
                   />
                   <span>Email Notifications</span>
                 </label>
-                <label className="checkbox-label-settings">
+                <label className="checkbox-label-cusset">
                   <input
                     type="checkbox"
                     name="smsNotifications"
@@ -706,10 +822,10 @@ const CustomerSettings = () => {
               </div>
             </div>
 
-            <div className="preferences-group-settings">
+            <div className="preferences-group-cusset">
               <h3>Notification Types</h3>
-              <div className="checkbox-list-settings">
-                <label className="checkbox-label-settings">
+              <div className="checkbox-list-cusset">
+                <label className="checkbox-label-cusset">
                   <input
                     type="checkbox"
                     name="bookingUpdates"
@@ -718,7 +834,7 @@ const CustomerSettings = () => {
                   />
                   <span>Booking Updates</span>
                 </label>
-                <label className="checkbox-label-settings">
+                <label className="checkbox-label-cusset">
                   <input
                     type="checkbox"
                     name="paymentConfirmations"
@@ -727,7 +843,7 @@ const CustomerSettings = () => {
                   />
                   <span>Payment Confirmations</span>
                 </label>
-                <label className="checkbox-label-settings">
+                <label className="checkbox-label-cusset">
                   <input
                     type="checkbox"
                     name="assessmentReminders"
@@ -736,7 +852,7 @@ const CustomerSettings = () => {
                   />
                   <span>Assessment Reminders</span>
                 </label>
-                <label className="checkbox-label-settings">
+                <label className="checkbox-label-cusset">
                   <input
                     type="checkbox"
                     name="systemAlerts"
@@ -745,7 +861,7 @@ const CustomerSettings = () => {
                   />
                   <span>System Alerts</span>
                 </label>
-                <label className="checkbox-label-settings">
+                <label className="checkbox-label-cusset">
                   <input
                     type="checkbox"
                     name="promotionalEmails"
@@ -757,9 +873,9 @@ const CustomerSettings = () => {
               </div>
             </div>
 
-            <div className="form-actions-settings">
-              <button className="save-btn-settings" onClick={saveNotificationPrefs}>
-                <FaSave /> Save Preferences
+            <div className="form-actions-cusset">
+              <button className="save-btn-cusset" onClick={saveNotificationPrefs}>
+                Save Preferences
               </button>
             </div>
           </div>
@@ -767,15 +883,15 @@ const CustomerSettings = () => {
 
       case 'security':
         return (
-          <div className="security-section-settings">
+          <div className="security-section-cusset">
             <h2>Security Settings</h2>
 
-            <div className="security-group-settings">
-              <div className="group-header-settings">
-                <h3><FaKey /> Password</h3>
+            <div className="security-group-cusset">
+              <div className="group-header-cusset">
+                <h3>Password</h3>
                 {!showPasswordForm && (
                   <button
-                    className="change-btn-settings"
+                    className="change-btn-cusset"
                     onClick={() => setShowPasswordForm(true)}
                   >
                     Change Password
@@ -784,97 +900,94 @@ const CustomerSettings = () => {
               </div>
 
               {showPasswordForm && (
-                <form onSubmit={handlePasswordChange} className="password-form-settings">
-                  <div className="form-group-settings">
+                <form onSubmit={handlePasswordChange} className="password-form-cusset">
+                  <div className="form-group-cusset">
                     <label>Current Password</label>
-                    <div className="password-input-wrapper-settings">
+                    <div className="password-input-wrapper-cusset">
                       <input
                         type={showCurrentPassword ? 'text' : 'password'}
                         value={passwordData.currentPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                        className={passwordErrors.currentPassword ? 'error-settings' : ''}
-                        placeholder="Enter your current password"
+                        className={passwordErrors.currentPassword ? 'error-cusset' : ''}
+                        placeholder="Current password"
                       />
                       <button
                         type="button"
-                        className="password-toggle-btn-settings"
+                        className="password-toggle-btn-cusset"
                         onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                       >
-                        {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
+                        {showCurrentPassword ? 'Hide' : 'Show'}
                       </button>
                     </div>
                     {passwordErrors.currentPassword && (
-                      <small className="error-text-settings">{passwordErrors.currentPassword}</small>
+                      <small className="error-text-cusset">{passwordErrors.currentPassword}</small>
                     )}
                   </div>
 
-                  <div className="form-group-settings">
+                  <div className="form-group-cusset">
                     <label>New Password</label>
-                    <div className="password-input-wrapper-settings">
+                    <div className="password-input-wrapper-cusset">
                       <input
                         type={showNewPassword ? 'text' : 'password'}
                         value={passwordData.newPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                        className={passwordErrors.newPassword ? 'error-settings' : ''}
-                        placeholder="Enter new password (min. 8 characters)"
+                        className={passwordErrors.newPassword ? 'error-cusset' : ''}
+                        placeholder="New password"
                       />
                       <button
                         type="button"
-                        className="password-toggle-btn-settings"
+                        className="password-toggle-btn-cusset"
                         onClick={() => setShowNewPassword(!showNewPassword)}
                       >
-                        {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                        {showNewPassword ? 'Hide' : 'Show'}
                       </button>
                     </div>
                     {passwordErrors.newPassword && (
-                      <small className="error-text-settings">{passwordErrors.newPassword}</small>
+                      <small className="error-text-cusset">{passwordErrors.newPassword}</small>
                     )}
-                    <small className="password-hint-settings">
-                      Password must be at least 8 characters long
-                    </small>
                   </div>
 
-                  <div className="form-group-settings">
+                  <div className="form-group-cusset">
                     <label>Confirm New Password</label>
-                    <div className="password-input-wrapper-settings">
+                    <div className="password-input-wrapper-cusset">
                       <input
                         type={showConfirmPassword ? 'text' : 'password'}
                         value={passwordData.confirmPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                        className={passwordErrors.confirmPassword ? 'error-settings' : ''}
-                        placeholder="Confirm your new password"
+                        className={passwordErrors.confirmPassword ? 'error-cusset' : ''}
+                        placeholder="Confirm password"
                       />
                       <button
                         type="button"
-                        className="password-toggle-btn-settings"
+                        className="password-toggle-btn-cusset"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       >
-                        {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                        {showConfirmPassword ? 'Hide' : 'Show'}
                       </button>
                     </div>
                     {passwordErrors.confirmPassword && (
-                      <small className="error-text-settings">{passwordErrors.confirmPassword}</small>
+                      <small className="error-text-cusset">{passwordErrors.confirmPassword}</small>
                     )}
                   </div>
 
                   {passwordData.newPassword && (
-                    <div className="password-strength-settings">
-                      <div className="strength-meter-settings">
+                    <div className="password-strength-cusset">
+                      <div className="strength-meter-cusset">
                         <div 
-                          className={`strength-bar-settings ${getPasswordStrength(passwordData.newPassword)}-settings`} 
+                          className={`strength-bar-cusset ${getPasswordStrength(passwordData.newPassword)}-cusset`} 
                           style={{ width: `${getPasswordStrengthPercent(passwordData.newPassword)}%` }}
                         ></div>
                       </div>
-                      <small className="strength-text-settings">
-                        Password strength: {getPasswordStrengthLabel(passwordData.newPassword)}
+                      <small className="strength-text-cusset">
+                        Strength: {getPasswordStrengthLabel(passwordData.newPassword)}
                       </small>
                     </div>
                   )}
 
-                  <div className="form-actions-settings">
+                  <div className="form-actions-cusset">
                     <button
                       type="button"
-                      className="cancel-btn-settings"
+                      className="cancel-btn-cusset"
                       onClick={() => {
                         setShowPasswordForm(false);
                         setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -888,21 +1001,20 @@ const CustomerSettings = () => {
                     </button>
                     <button
                       type="submit"
-                      className="save-btn-settings"
+                      className="save-btn-cusset"
                       disabled={saving}
                     >
-                      {saving ? <><FaSpinner className="spinner-settings" /> Updating...</> : 'Update Password'}
+                      {saving ? 'Updating...' : 'Update Password'}
                     </button>
                   </div>
                 </form>
               )}
             </div>
 
-            <div className="security-group-settings">
-              <h3><FaShieldAlt /> Session Settings</h3>
-              <div className="info-message-settings">
-                <p>Your session will automatically timeout after 30 minutes of inactivity.</p>
-                <small>Contact support if you need to adjust these settings.</small>
+            <div className="security-group-cusset">
+              <h3>Session Settings</h3>
+              <div className="info-message-cusset">
+                <p>Your session will timeout after 30 minutes of inactivity.</p>
               </div>
             </div>
           </div>
@@ -910,12 +1022,12 @@ const CustomerSettings = () => {
 
       case 'preferences':
         return (
-          <div className="preferences-section-settings">
+          <div className="preferences-section-cusset">
             <h2>Account Preferences</h2>
 
-            <div className="preferences-grid-settings">
-              <div className="preference-group-settings">
-                <label><FaLanguage /> Language</label>
+            <div className="preferences-grid-cusset">
+              <div className="preference-group-cusset">
+                <label>Language</label>
                 <select
                   name="language"
                   value={preferences.language}
@@ -927,10 +1039,10 @@ const CustomerSettings = () => {
                 </select>
               </div>
 
-              <div className="preference-group-settings">
-                <label><FaPalette /> Theme</label>
-                <div className="theme-selector-settings">
-                  <label className={`theme-option-settings ${preferences.theme === 'light' ? 'active-settings' : ''}`}>
+              <div className="preference-group-cusset">
+                <label>Theme</label>
+                <div className="theme-selector-cusset">
+                  <label className={`theme-option-cusset ${preferences.theme === 'light' ? 'active-cusset' : ''}`}>
                     <input
                       type="radio"
                       name="theme"
@@ -938,9 +1050,9 @@ const CustomerSettings = () => {
                       checked={preferences.theme === 'light'}
                       onChange={handlePreferenceChange}
                     />
-                    <FaSun /> Light
+                    Light
                   </label>
-                  <label className={`theme-option-settings ${preferences.theme === 'dark' ? 'active-settings' : ''}`}>
+                  <label className={`theme-option-cusset ${preferences.theme === 'dark' ? 'active-cusset' : ''}`}>
                     <input
                       type="radio"
                       name="theme"
@@ -948,13 +1060,13 @@ const CustomerSettings = () => {
                       checked={preferences.theme === 'dark'}
                       onChange={handlePreferenceChange}
                     />
-                    <FaMoon /> Dark
+                    Dark
                   </label>
                 </div>
               </div>
 
-              <div className="preference-group-settings">
-                <label><FaGlobeAsia /> Timezone</label>
+              <div className="preference-group-cusset">
+                <label>Timezone</label>
                 <select
                   name="timezone"
                   value={preferences.timezone}
@@ -966,7 +1078,7 @@ const CustomerSettings = () => {
                 </select>
               </div>
 
-              <div className="preference-group-settings">
+              <div className="preference-group-cusset">
                 <label>Date Format</label>
                 <select
                   name="dateFormat"
@@ -979,7 +1091,7 @@ const CustomerSettings = () => {
                 </select>
               </div>
 
-              <div className="preference-group-settings">
+              <div className="preference-group-cusset">
                 <label>Currency</label>
                 <select
                   name="currency"
@@ -992,9 +1104,9 @@ const CustomerSettings = () => {
               </div>
             </div>
 
-            <div className="form-actions-settings">
-              <button className="save-btn-settings" onClick={savePreferences}>
-                <FaSave /> Save Preferences
+            <div className="form-actions-cusset">
+              <button className="save-btn-cusset" onClick={savePreferences}>
+                Save Preferences
               </button>
             </div>
           </div>
@@ -1002,18 +1114,17 @@ const CustomerSettings = () => {
 
       case 'billing':
         return (
-          <div className="billing-section-settings">
+          <div className="billing-section-cusset">
             <h2>Billing History</h2>
             
             {billingHistory.length === 0 ? (
-              <div className="empty-state-settings">
-                <FaFileInvoice className="empty-icon-settings" />
+              <div className="empty-state-cusset">
                 <h3>No billing history</h3>
                 <p>Your transactions will appear here</p>
               </div>
             ) : (
-              <div className="billing-table-settings">
-                <table>
+              <div className="billing-table-cusset">
+                 <table>
                   <thead>
                     <tr>
                       <th>Invoice</th>
@@ -1031,8 +1142,8 @@ const CustomerSettings = () => {
                         <td>{invoice.description}</td>
                         <td>₱{invoice.amount.toLocaleString()}</td>
                         <td>
-                          <span className={`status-badge-settings ${invoice.status}-settings`}>
-                            {invoice.status === 'paid' ? 'Paid' : invoice.status === 'pending' ? 'Pending' : 'Failed'}
+                          <span className={`status-badge-cusset ${invoice.status}-cusset`}>
+                            {invoice.status === 'paid' ? 'Paid' : 'Pending'}
                           </span>
                         </td>
                       </tr>
@@ -1049,60 +1160,69 @@ const CustomerSettings = () => {
     }
   };
 
+  // Initial Loading Skeleton
+  const InitialLoadingSkeleton = () => (
+    <div className="customer-settings-cusset">
+      <div className="settings-header-cusset">
+        <div className="skeleton-line-cusset large-cusset"></div>
+      </div>
+      <div className="tab-content-cusset">
+        <ProfileSkeleton />
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="settings-loading-settings">
-        <FaSpinner className="spinner-settings" />
-        <p>Loading your settings...</p>
-      </div>
+      <>
+        <Helmet>
+          <title>Settings | Salfer Engineering</title>
+        </Helmet>
+        <InitialLoadingSkeleton />
+      </>
     );
   }
 
   return (
     <>
       <Helmet>
-        <title>My Settings | Salfer Engineering</title>
-        <meta name="description" content="Manage your account information, update personal details, configure address book, notification preferences, and security settings." />
+        <title>Settings | Salfer Engineering</title>
       </Helmet>
 
-      <div className="customer-settings">
+      <div className="customer-settings-cusset">
         {/* Header */}
-        <div className="settings-header">
-          <h1>
-            <FaUserCog /> Account Settings
-          </h1>
+        <div className="settings-header-cusset">
+          <h1>Account Settings</h1>
         </div>
 
         {/* Messages */}
         {success && (
-          <div className="settings-success">
-            <FaCheckCircle />
+          <div className="settings-success-cusset">
             <span>{success}</span>
           </div>
         )}
         
         {error && (
-          <div className="settings-error">
-            <FaExclamationTriangle />
+          <div className="settings-error-cusset">
             <span>{error}</span>
           </div>
         )}
 
-        {/* NO TABS - Direct content only */}
-        <div className="tab-content-settings">
+        {/* Tab Content - No tab bar */}
+        <div className="tab-content-cusset">
           {renderTabContent()}
         </div>
 
         {/* Address Modal */}
         {showAddressModal && (
-          <div className="modal-overlay-settings" onClick={() => setShowAddressModal(false)}>
-            <div className="modal-content-settings" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-cusset" onClick={() => setShowAddressModal(false)}>
+            <div className="modal-content-cusset" onClick={e => e.stopPropagation()}>
               <h3>{editingAddress ? 'Edit Address' : 'Add New Address'}</h3>
               
               <form onSubmit={handleAddressSubmit}>
-                <div className="modal-form-settings">
-                  <div className="form-row-settings">
-                    <div className="form-group-settings">
+                <div className="modal-form-cusset">
+                  <div className="form-row-cusset">
+                    <div className="form-group-cusset">
                       <label>Label</label>
                       <select
                         name="label"
@@ -1115,105 +1235,105 @@ const CustomerSettings = () => {
                       </select>
                     </div>
 
-                    <div className="form-group-settings checkbox-group-settings">
-                      <label className="checkbox-label-settings">
+                    <div className="form-group-cusset checkbox-group-cusset">
+                      <label className="checkbox-label-cusset">
                         <input
                           type="checkbox"
                           name="isPrimary"
                           checked={addressForm.isPrimary}
                           onChange={handleAddressFormChange}
                         />
-                        <span>Set as primary address</span>
+                        <span>Set as primary</span>
                       </label>
                     </div>
                   </div>
 
-                  <div className="form-row-settings">
-                    <div className="form-group-settings">
-                      <label>House/Building No. *</label>
+                  <div className="form-row-cusset">
+                    <div className="form-group-cusset">
+                      <label>House/Building No.</label>
                       <input
                         type="text"
                         name="houseOrBuilding"
                         value={addressForm.houseOrBuilding}
                         onChange={handleAddressFormChange}
-                        className={formErrors.houseOrBuilding ? 'error-settings' : ''}
+                        className={formErrors.houseOrBuilding ? 'error-cusset' : ''}
                       />
-                      {formErrors.houseOrBuilding && <small className="error-text-settings">{formErrors.houseOrBuilding}</small>}
+                      {formErrors.houseOrBuilding && <small className="error-text-cusset">{formErrors.houseOrBuilding}</small>}
                     </div>
 
-                    <div className="form-group-settings">
-                      <label>Street *</label>
+                    <div className="form-group-cusset">
+                      <label>Street</label>
                       <input
                         type="text"
                         name="street"
                         value={addressForm.street}
                         onChange={handleAddressFormChange}
-                        className={formErrors.street ? 'error-settings' : ''}
+                        className={formErrors.street ? 'error-cusset' : ''}
                       />
-                      {formErrors.street && <small className="error-text-settings">{formErrors.street}</small>}
+                      {formErrors.street && <small className="error-text-cusset">{formErrors.street}</small>}
                     </div>
                   </div>
 
-                  <div className="form-row-settings">
-                    <div className="form-group-settings">
-                      <label>Barangay *</label>
+                  <div className="form-row-cusset">
+                    <div className="form-group-cusset">
+                      <label>Barangay</label>
                       <input
                         type="text"
                         name="barangay"
                         value={addressForm.barangay}
                         onChange={handleAddressFormChange}
-                        className={formErrors.barangay ? 'error-settings' : ''}
+                        className={formErrors.barangay ? 'error-cusset' : ''}
                       />
-                      {formErrors.barangay && <small className="error-text-settings">{formErrors.barangay}</small>}
+                      {formErrors.barangay && <small className="error-text-cusset">{formErrors.barangay}</small>}
                     </div>
 
-                    <div className="form-group-settings">
-                      <label>City/Municipality *</label>
+                    <div className="form-group-cusset">
+                      <label>City/Municipality</label>
                       <input
                         type="text"
                         name="cityMunicipality"
                         value={addressForm.cityMunicipality}
                         onChange={handleAddressFormChange}
-                        className={formErrors.cityMunicipality ? 'error-settings' : ''}
+                        className={formErrors.cityMunicipality ? 'error-cusset' : ''}
                       />
-                      {formErrors.cityMunicipality && <small className="error-text-settings">{formErrors.cityMunicipality}</small>}
+                      {formErrors.cityMunicipality && <small className="error-text-cusset">{formErrors.cityMunicipality}</small>}
                     </div>
                   </div>
 
-                  <div className="form-row-settings">
-                    <div className="form-group-settings">
-                      <label>Province *</label>
+                  <div className="form-row-cusset">
+                    <div className="form-group-cusset">
+                      <label>Province</label>
                       <input
                         type="text"
                         name="province"
                         value={addressForm.province}
                         onChange={handleAddressFormChange}
-                        className={formErrors.province ? 'error-settings' : ''}
+                        className={formErrors.province ? 'error-cusset' : ''}
                       />
-                      {formErrors.province && <small className="error-text-settings">{formErrors.province}</small>}
+                      {formErrors.province && <small className="error-text-cusset">{formErrors.province}</small>}
                     </div>
 
-                    <div className="form-group-settings">
-                      <label>ZIP Code *</label>
+                    <div className="form-group-cusset">
+                      <label>ZIP Code</label>
                       <input
                         type="text"
                         name="zipCode"
                         value={addressForm.zipCode}
                         onChange={handleAddressFormChange}
-                        className={formErrors.zipCode ? 'error-settings' : ''}
+                        className={formErrors.zipCode ? 'error-cusset' : ''}
                         maxLength="4"
                       />
-                      {formErrors.zipCode && <small className="error-text-settings">{formErrors.zipCode}</small>}
+                      {formErrors.zipCode && <small className="error-text-cusset">{formErrors.zipCode}</small>}
                     </div>
                   </div>
                 </div>
 
-                <div className="modal-actions-settings">
-                  <button type="button" className="cancel-btn-settings" onClick={() => setShowAddressModal(false)}>
+                <div className="modal-actions-cusset">
+                  <button type="button" className="cancel-btn-cusset" onClick={() => setShowAddressModal(false)}>
                     Cancel
                   </button>
-                  <button type="submit" className="save-btn-settings" disabled={saving}>
-                    {saving ? <><FaSpinner className="spinner-settings" /> Saving...</> : <><FaSave /> Save Address</>}
+                  <button type="submit" className="save-btn-cusset" disabled={saving}>
+                    {saving ? 'Saving...' : 'Save Address'}
                   </button>
                 </div>
               </form>
@@ -1223,20 +1343,19 @@ const CustomerSettings = () => {
 
         {/* Delete Confirmation Modal */}
         {deleteConfirm && (
-          <div className="modal-overlay-settings" onClick={() => setDeleteConfirm(null)}>
-            <div className="modal-content-settings confirm-modal-settings" onClick={e => e.stopPropagation()}>
-              <FaExclamationTriangle className="confirm-icon-settings" />
+          <div className="modal-overlay-cusset" onClick={() => setDeleteConfirm(null)}>
+            <div className="modal-content-cusset confirm-modal-cusset" onClick={e => e.stopPropagation()}>
               <h3>Delete Address</h3>
               <p>Are you sure you want to delete this address?</p>
-              <div className="address-preview-settings">
+              <div className="address-preview-cusset">
                 {getFullAddress(deleteConfirm)}
               </div>
-              <div className="modal-actions-settings">
-                <button className="cancel-btn-settings" onClick={() => setDeleteConfirm(null)}>
+              <div className="modal-actions-cusset">
+                <button className="cancel-btn-cusset" onClick={() => setDeleteConfirm(null)}>
                   Cancel
                 </button>
-                <button className="delete-btn-settings" onClick={() => deleteAddress(deleteConfirm._id)}>
-                  <FaTrash /> Delete
+                <button className="delete-btn-cusset" onClick={() => deleteAddress(deleteConfirm._id)}>
+                  Delete
                 </button>
               </div>
             </div>

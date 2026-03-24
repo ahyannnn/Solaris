@@ -1,0 +1,588 @@
+/* reports.css - SOLARIS Reports Styles */
+
+/* ============================================
+   BASE CONTAINER
+   ============================================ */
+.reports-container-cusset {
+  padding: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #ffffff;
+  min-height: 100vh;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.reports-header-cusset {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eaeaea;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.reports-header-cusset h1 {
+  font-size: 1.75rem;
+  font-weight: 500;
+  margin: 0 0 0.25rem 0;
+  color: #1a1a1a;
+}
+
+.reports-header-cusset p {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
+}
+
+.generate-btn-cusset {
+  padding: 0.625rem 1.25rem;
+  background: #1a1a1a;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.generate-btn-cusset:hover:not(:disabled) {
+  background: #333;
+}
+
+.generate-btn-cusset:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   REPORT TYPE FILTERS
+   ============================================ */
+.report-type-filters-cusset {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 0.5rem;
+}
+
+.filter-btn-cusset {
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.filter-btn-cusset:hover {
+  background: #f5f5f5;
+  color: #1a1a1a;
+}
+
+.filter-btn-cusset.active-cusset {
+  color: #1a1a1a;
+  font-weight: 500;
+  background: #f5f5f5;
+}
+
+/* ============================================
+   STATS SUMMARY
+   ============================================ */
+.stats-summary-cusset {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .stats-summary-cusset {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.stat-summary-card-cusset {
+  background: #f8f9fa;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.stat-summary-label-cusset {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #999;
+  margin-bottom: 0.5rem;
+}
+
+.stat-summary-value-cusset {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+/* ============================================
+   REPORTS GRID
+   ============================================ */
+.reports-grid-cusset {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .reports-grid-cusset {
+    grid-template-columns: 1fr;
+  }
+}
+
+.report-card-cusset {
+  display: flex;
+  gap: 1rem;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.report-card-cusset:hover {
+  border-color: #dddddd;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.report-icon-cusset {
+  font-size: 2rem;
+  min-width: 50px;
+  text-align: center;
+}
+
+.report-content-cusset {
+  flex: 1;
+}
+
+.report-content-cusset h3 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+  color: #1a1a1a;
+}
+
+.report-meta-cusset {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.report-type-cusset {
+  font-size: 0.65rem;
+  padding: 0.2rem 0.5rem;
+  background: #f5f5f5;
+  border-radius: 4px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.report-date-cusset {
+  font-size: 0.65rem;
+  color: #999;
+}
+
+.report-description-cusset {
+  font-size: 0.75rem;
+  color: #666;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.5;
+}
+
+.report-footer-cusset {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-size: 0.65rem;
+  color: #999;
+}
+
+.report-author-cusset {
+  font-style: italic;
+}
+
+.report-reference-cusset {
+  font-family: monospace;
+}
+
+.download-btn-cusset {
+  width: 100%;
+  padding: 0.5rem;
+  background: #f5f5f5;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.download-btn-cusset:hover:not(:disabled) {
+  background: #eaeaea;
+  color: #1a1a1a;
+}
+
+.download-btn-cusset:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   REPORT TYPES INFO
+   ============================================ */
+.report-types-info-cusset {
+  margin-bottom: 2rem;
+}
+
+.report-types-info-cusset h2 {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0 0 1rem 0;
+  color: #1a1a1a;
+}
+
+.report-types-grid-cusset {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .report-types-grid-cusset {
+    grid-template-columns: 1fr;
+  }
+}
+
+.report-type-card-cusset {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.report-type-card-cusset:hover {
+  border-color: #dddddd;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.type-icon-cusset {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.report-type-card-cusset h3 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+  color: #1a1a1a;
+}
+
+.report-type-card-cusset p {
+  font-size: 0.7rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ============================================
+   EXPORT OPTIONS
+   ============================================ */
+.export-options-cusset {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+}
+
+.export-options-cusset h2 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0 0 1rem 0;
+  color: #1a1a1a;
+}
+
+.export-buttons-cusset {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.export-btn-cusset {
+  padding: 0.5rem 1rem;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.export-btn-cusset:hover {
+  background: #eaeaea;
+  border-color: #dddddd;
+  color: #1a1a1a;
+}
+
+/* ============================================
+   DISCLAIMER
+   ============================================ */
+.disclaimer-cusset {
+  padding: 1rem;
+  background: #fff9e6;
+  border-left: 3px solid #ed6c02;
+  border-radius: 4px;
+}
+
+.disclaimer-cusset p {
+  font-size: 0.7rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.disclaimer-cusset strong {
+  color: #ed6c02;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.empty-state-cusset {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  grid-column: 1 / -1;
+}
+
+.empty-icon-cusset {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state-cusset h3 {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+  color: #666;
+}
+
+.empty-state-cusset p {
+  font-size: 0.75rem;
+  color: #999;
+  margin: 0 0 1rem 0;
+}
+
+.btn-primary-cusset {
+  padding: 0.625rem 1.25rem;
+  background: #1a1a1a;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-primary-cusset:hover {
+  background: #333;
+}
+
+/* ============================================
+   SKELETON LOADER
+   ============================================ */
+.skeleton-line-cusset {
+  background: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse-cusset 1.5s ease-in-out infinite;
+}
+
+.skeleton-line-cusset.large-cusset {
+  height: 32px;
+  width: 250px;
+}
+
+.skeleton-line-cusset.medium-cusset {
+  height: 24px;
+  width: 180px;
+}
+
+.skeleton-line-cusset.small-cusset {
+  height: 16px;
+  width: 120px;
+}
+
+.skeleton-line-cusset.tiny-cusset {
+  height: 12px;
+  width: 80px;
+}
+
+.skeleton-button-cusset {
+  height: 36px;
+  width: 100px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse-cusset 1.5s ease-in-out infinite;
+}
+
+.skeleton-card-cusset {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+@keyframes pulse-cusset {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .reports-container-cusset {
+    padding: 1rem;
+  }
+  
+  .reports-header-cusset {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .generate-btn-cusset {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .report-type-filters-cusset {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.5rem;
+  }
+  
+  .filter-btn-cusset {
+    white-space: nowrap;
+  }
+  
+  .export-buttons-cusset {
+    flex-direction: column;
+  }
+  
+  .export-btn-cusset {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ============================================
+   DARK MODE SUPPORT
+   ============================================ */
+.dark-mode-cusset .reports-container-cusset {
+  background: #1a1a1a;
+}
+
+.dark-mode-cusset .reports-header-cusset {
+  border-bottom-color: #333;
+}
+
+.dark-mode-cusset .reports-header-cusset h1 {
+  color: #ffffff;
+}
+
+.dark-mode-cusset .reports-header-cusset p {
+  color: #999;
+}
+
+.dark-mode-cusset .stat-summary-card-cusset {
+  background: #2a2a2a;
+  border-color: #333;
+}
+
+.dark-mode-cusset .stat-summary-label-cusset {
+  color: #999;
+}
+
+.dark-mode-cusset .stat-summary-value-cusset {
+  color: #ffffff;
+}
+
+.dark-mode-cusset .report-card-cusset {
+  background: #2a2a2a;
+  border-color: #333;
+}
+
+.dark-mode-cusset .report-content-cusset h3 {
+  color: #ffffff;
+}
+
+.dark-mode-cusset .report-description-cusset {
+  color: #999;
+}
+
+.dark-mode-cusset .report-type-cusset {
+  background: #333;
+  color: #999;
+}
+
+.dark-mode-cusset .download-btn-cusset {
+  background: #333;
+  border-color: #444;
+  color: #999;
+}
+
+.dark-mode-cusset .download-btn-cusset:hover {
+  background: #444;
+  color: #ffffff;
+}
+
+.dark-mode-cusset .export-options-cusset {
+  background: #2a2a2a;
+  border-color: #333;
+}
+
+.dark-mode-cusset .export-btn-cusset {
+  background: #333;
+  border-color: #444;
+  color: #999;
+}
+
+.dark-mode-cusset .disclaimer-cusset {
+  background: #2a2a2a;
+  border-left-color: #ed6c02;
+}
+
+.dark-mode-cusset .disclaimer-cusset p {
+  color: #999;
+}

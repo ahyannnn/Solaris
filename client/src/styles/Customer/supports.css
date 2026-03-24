@@ -1,5 +1,6 @@
 /* Support Page Styles */
 .support-container {
+  padding: 1rem;
   width: 100%;
   background-color: #f9fafb;
   min-height: 100vh;

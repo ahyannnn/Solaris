@@ -146,7 +146,7 @@ const Dashboard = () => {
       { icon: <FaClipboardList />, label: 'Site Assessments', path: '/app/admin/siteassessment' },
       { icon: <FaProjectDiagram />, label: 'Projects', path: '/app/admin/project' },
       { icon: <FaFileInvoiceDollar />, label: 'Billing', path: '/app/admin/billing' },
-      { icon: <FaFileInvoice />, label: 'Solar Invoices', path: '/app/admin/solarinvoices' },
+      //{ icon: <FaFileInvoice />, label: 'Solar Invoices', path: '/app/admin/solarinvoices' },
       { icon: <FaMicrochip />, label: 'IoT Devices', path: '/app/admin/iotdevice' },
       { icon: <FaChartBar />, label: 'Reports', path: '/app/admin/reports' },
       { icon: <FaClipboardList />, label: 'Schedule', path: '/app/admin/schedule' },

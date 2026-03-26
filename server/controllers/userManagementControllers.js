@@ -1,7 +1,7 @@
-// controllers/userManagementControllers.js
 const User = require('../models/Users');
 const Client = require('../models/Clients');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs'); // ✅ ADDED FOR PASSWORD HASHING
 
 // @desc    Get all users
 // @route   GET /api/admin/users
@@ -90,7 +90,7 @@ exports.getUserById = async (req, res) => {
 // @desc    Create new user
 // @route   POST /api/admin/users
 // @access  Private (Admin)
-// controllers/userManagementControllers.js - Fixed createUser function
+// ✅ FIXED: Now hashes password before saving
 exports.createUser = async (req, res) => {
   try {
     const { email, password, role, fullName, firstName, lastName, contactNumber } = req.body;
@@ -101,11 +101,15 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create user
+    // ✅ HASH THE PASSWORD BEFORE SAVING
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    // Create user with hashed password
     const user = new User({
       fullName: fullName || `${firstName || ''} ${lastName || ''}`.trim(),
       email,
-      passwordHash: password,
+      passwordHash, // ✅ NOW USING HASHED PASSWORD
       provider: 'local',
       role: role || 'user'
     });
@@ -151,8 +155,6 @@ exports.createUser = async (req, res) => {
 // @desc    Update user
 // @route   PUT /api/admin/users/:id
 // @access  Private (Admin)
-// controllers/userManagementControllers.js - Update updateUser function
-// controllers/userManagementControllers.js - Fixed updateUser function
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -279,7 +281,6 @@ exports.updateUserRole = async (req, res) => {
 // @desc    Toggle user status (soft delete / activate)
 // @route   PUT /api/admin/users/:id/toggle-status
 // @access  Private (Admin)
-// controllers/userManagementControllers.js - Update toggleUserStatus
 exports.toggleUserStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -304,6 +305,7 @@ exports.toggleUserStatus = async (req, res) => {
     res.status(500).json({ message: 'Failed to toggle user status', error: error.message });
   }
 };
+
 // @desc    Delete user
 // @route   DELETE /api/admin/users/:id
 // @access  Private (Admin)
@@ -333,7 +335,6 @@ exports.deleteUser = async (req, res) => {
 // @desc    Get dashboard user stats
 // @route   GET /api/admin/users/stats
 // @access  Private (Admin)
-// controllers/userManagementControllers.js - Update getUserStats
 exports.getUserStats = async (req, res) => {
   try {
     const currentDate = new Date();

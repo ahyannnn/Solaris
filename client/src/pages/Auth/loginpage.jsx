@@ -22,6 +22,13 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState('');
 
+  // Helper to clean token
+  const cleanToken = (token) => {
+    if (!token) return null;
+    // Remove any quotes and whitespace
+    return token.replace(/^["']|["']$/g, '').trim();
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -98,9 +105,11 @@ const LoginPage = () => {
       const data = JSON.parse(responseText);
 
       if (data.token && data.user) {
-        const storage = rememberMe ? sessionStorage : sessionStorage;
+        const storage = rememberMe ? localStorage : sessionStorage;
         
-        storage.setItem("token", data.token);
+        // Clean token before storing
+        const cleanedToken = cleanToken(data.token);
+        storage.setItem("token", cleanedToken);
         storage.setItem("userName", data.user.fullName || '');
         storage.setItem("userEmail", data.user.email || '');
         storage.setItem("userRole", data.user.role || 'user');
@@ -123,8 +132,10 @@ const LoginPage = () => {
     setShowPassword(!showPassword);
   };
 
-  // GOOGLE LOGIN - Popup version
+  // GOOGLE LOGIN
   const handleGoogleLogin = async () => {
+    if (socialLoading === 'google') return;
+    
     try {
       setSocialLoading('google');
       setErrors({});
@@ -172,9 +183,11 @@ const LoginPage = () => {
       const data = JSON.parse(responseText);
 
       if (data.token && data.user) {
-        const storage = rememberMe ? sessionStorage : sessionStorage;
+        const storage = rememberMe ? localStorage : sessionStorage;
         
-        storage.setItem("token", data.token);
+        // Clean token before storing
+        const cleanedToken = cleanToken(data.token);
+        storage.setItem("token", cleanedToken);
         storage.setItem("userName", data.user.fullName || '');
         storage.setItem("userEmail", data.user.email || '');
         storage.setItem("userRole", data.user.role || 'user');
@@ -190,9 +203,13 @@ const LoginPage = () => {
       console.error("Google login error:", error);
       
       if (error.code === 'auth/popup-closed-by-user') {
-        setErrors({ general: 'Login popup was closed. Please try again.' });
+        setErrors({ general: 'Login cancelled. Please try again.' });
       } else if (error.code === 'auth/popup-blocked') {
-        setErrors({ general: 'Popup was blocked by your browser. Please allow popups.' });
+        setErrors({ general: 'Popup was blocked by your browser. Please allow popups and try again.' });
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        setErrors({ general: 'Login was cancelled. Please try again.' });
+      } else if (error.code === 'auth/network-request-failed') {
+        setErrors({ general: 'Network error. Please check your internet connection.' });
       } else {
         setErrors({ general: error.message || 'Failed to login with Google.' });
       }

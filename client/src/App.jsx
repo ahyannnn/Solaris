@@ -1,3 +1,4 @@
+// App.jsx - Update the PublicRouteGuard
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
@@ -46,16 +47,26 @@ import Supports from './pages/Customer/supports';
 import CustomerProfile from './pages/Customer/profile';
 import CustomerSettings from './pages/Customer/customerSettings';
 
+// Helper function to get user data from storage (checks both localStorage and sessionStorage)
+const getUserData = () => {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  const role = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
+  const name = localStorage.getItem('userName') || sessionStorage.getItem('userName');
+  const email = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail');
+  const photo = localStorage.getItem('userPhotoURL') || sessionStorage.getItem('userPhotoURL');
+  
+  return { token, role, name, email, photo };
+};
+
 // Role-based route guard
 const RoleRouteGuard = ({ children, allowedRoles }) => {
-  const userRole = sessionStorage.getItem('userRole');
+  const { role: userRole, token } = getUserData();
 
-  if (!userRole) {
+  if (!token || !userRole) {
     return <Navigate to="/login" replace />;
   }
 
   if (!allowedRoles.includes(userRole)) {
-    // Redirect to appropriate dashboard based on role
     if (userRole === 'admin') return <Navigate to="/app/admin" replace />;
     if (userRole === 'engineer') return <Navigate to="/app/engineer" replace />;
     if (userRole === 'user') return <Navigate to="/app/customer" replace />;
@@ -65,22 +76,75 @@ const RoleRouteGuard = ({ children, allowedRoles }) => {
   return children;
 };
 
+// Auth Guard for public routes - redirects to dashboard if already logged in
+const PublicRouteGuard = ({ children }) => {
+  // Check BOTH localStorage and sessionStorage
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  const role = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
+  
+  // Debug log to see what's happening
+  console.log('PublicRouteGuard - Token:', token ? 'exists' : 'none');
+  console.log('PublicRouteGuard - Role:', role);
+  
+  if (token && role) {
+    console.log('Redirecting to dashboard based on role:', role);
+    if (role === 'admin') return <Navigate to="/app/admin" replace />;
+    if (role === 'engineer') return <Navigate to="/app/engineer" replace />;
+    if (role === 'user') return <Navigate to="/app/customer" replace />;
+  }
+  
+  return children;
+};
+
 function App() {
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    const role = sessionStorage.getItem('userRole');
+    const role = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
     setUserRole(role);
+    
+    // Debug log
+    console.log('App mounted - User role from storage:', role);
+    console.log('sessionStorage items:', sessionStorage);
+    console.log('localStorage items:', localStorage);
   }, []);
 
   return (
     <Router>
       <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<SolarisLandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forgotpassword" element={<ForgotPage />} />
+        {/* Public Routes - Redirect to dashboard if already logged in */}
+        <Route 
+          path="/" 
+          element={
+            <PublicRouteGuard>
+              <SolarisLandingPage />
+            </PublicRouteGuard>
+          } 
+        />
+        <Route 
+          path="/login" 
+          element={
+            <PublicRouteGuard>
+              <LoginPage />
+            </PublicRouteGuard>
+          } 
+        />
+        <Route 
+          path="/register" 
+          element={
+            <PublicRouteGuard>
+              <RegisterPage />
+            </PublicRouteGuard>
+          } 
+        />
+        <Route 
+          path="/forgotpassword" 
+          element={
+            <PublicRouteGuard>
+              <ForgotPage />
+            </PublicRouteGuard>
+          } 
+        />
 
         {/* Setup Account */}
         <Route path="/setup" element={<SetupAccount />} />
@@ -154,8 +218,15 @@ function App() {
         </Route>
 
         {/* Catch all - redirect based on role */}
-        <Route path="/app" element={<Navigate to={`/app/${userRole === 'admin' ? 'admin' : userRole === 'engineer' ? 'engineer' : 'customer'}`} replace />} />
-      
+        <Route 
+          path="/app" 
+          element={
+            <Navigate 
+              to={`/app/${userRole === 'admin' ? 'admin' : userRole === 'engineer' ? 'engineer' : 'customer'}`} 
+              replace 
+            />
+          } 
+        />
       </Routes>
     </Router>
   );

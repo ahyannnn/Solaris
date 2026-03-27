@@ -1,4 +1,4 @@
-/* landingpage.css - Minimalistic Landing Page Styles */
+/* landingpage.css - Complete Landing Page Styles */
 
 /* ============================================
    BASE & RESET
@@ -672,71 +672,132 @@ section {
 }
 
 /* ============================================
-   SERVICES SECTION
+   SERVICES SECTION - Equal Height
    ============================================ */
 .services-section-land {
-  background: #fafafa;
+  background: #ffffff;
+  padding: 5rem 0;
 }
 
 .services-grid-land {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 1rem;
-  max-width: 900px;
-  margin: 0 auto;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
 }
 
-.service-card-land {
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 1rem;
-  text-align: center;
-  border: 1px solid #eaeaea;
-  transition: all 0.2s;
+.services-image-land {
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
-.service-card-land:hover {
-  border-color: #f39c12;
+.services-image-land img {
+  width: 100%;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  object-fit: cover;
+  height: auto;
+  min-height: 400px;
 }
 
-.service-card-land h3 {
-  font-size: 0.75rem;
-  color: #1a1a1a;
-  font-weight: 500;
+.services-content-land {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}
+
+.services-content-land .section-title-land {
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.services-list-land {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.services-list-land li {
+  padding: 0.75rem 0;
+  font-size: 1rem;
+  color: #4a5568;
+  position: relative;
+  padding-left: 1.75rem;
+}
+
+.services-list-land li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #f39c12;
+  font-weight: bold;
+  font-size: 1rem;
 }
 
 /* ============================================
-   WHY US SECTION
+   WHY CHOOSE US SECTION - 4 Cards
    ============================================ */
 .whyus-section-land {
-  background: #ffffff;
+  background: #f8fafc;
+  padding: 5rem 0;
 }
 
 .whyus-grid-land {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
-  max-width: 900px;
+  gap: 2rem;
+  max-width: 1100px;
   margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+  .whyus-grid-land {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .whyus-grid-land {
+    grid-template-columns: 1fr;
+  }
 }
 
 .whyus-card-land {
   text-align: center;
-  padding: 1.5rem;
+  padding: 2rem 1.5rem;
   background: #ffffff;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid #eaeaea;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
 .whyus-card-land:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
   border-color: #f39c12;
 }
 
+.whyus-icon-land {
+  font-size: 2rem;
+  color: #f39c12;
+  margin-bottom: 1rem;
+  display: inline-block;
+}
+
 .whyus-card-land h3 {
-  font-size: 0.875rem;
+  font-size: 1rem;
+  font-weight: 600;
   color: #1a1a1a;
-  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.whyus-card-land p {
+  font-size: 0.8rem;
+  color: #718096;
+  margin: 0;
 }
 
 /* ============================================
@@ -894,7 +955,6 @@ section {
   width: 40px;
   height: 40px;
   object-fit: contain;
-  filter: brightness(0) invert(1);
 }
 
 .footer-logo-land h3 {
@@ -984,7 +1044,7 @@ section {
   }
   
   .services-grid-land {
-    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
   }
   
   .footer-grid-land {
@@ -1038,11 +1098,25 @@ section {
   }
   
   .services-grid-land {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
+    gap: 2rem;
   }
   
-  .whyus-grid-land {
-    grid-template-columns: repeat(2, 1fr);
+  .services-content-land .section-title-land {
+    text-align: center;
+  }
+  
+  .services-list-land li {
+    text-align: center;
+    padding-left: 0;
+  }
+  
+  .services-list-land li::before {
+    display: none;
+  }
+  
+  .services-image-land img {
+    min-height: auto;
   }
   
   .footer-grid-land {
@@ -1086,14 +1160,6 @@ section {
     flex-direction: column;
     gap: 0.75rem;
     align-items: center;
-  }
-  
-  .services-grid-land {
-    grid-template-columns: 1fr;
-  }
-  
-  .whyus-grid-land {
-    grid-template-columns: 1fr;
   }
   
   .modal-content-land {

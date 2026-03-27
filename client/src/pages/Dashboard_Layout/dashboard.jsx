@@ -1,3 +1,4 @@
+// pages/Dashboard_Layout/dashboard.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
@@ -98,17 +99,20 @@ const Dashboard = () => {
 
   // Handle user authentication and initial redirect
   useEffect(() => {
-    const role = sessionStorage.getItem('userRole');
-    const name = sessionStorage.getItem('userName');
-    const photo = sessionStorage.getItem('userPhotoURL');
-    const email = sessionStorage.getItem('userEmail');
+    // Simple check - read from both storages
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const role = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
+    const name = localStorage.getItem('userName') || sessionStorage.getItem('userName');
+    const photo = localStorage.getItem('userPhotoURL') || sessionStorage.getItem('userPhotoURL');
+    const email = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail');
 
     if (role) setUserRole(role);
     if (name) setUserName(name);
     if (photo) setUserPhoto(photo);
     if (email) setUserEmail(email);
 
-    if (!role) {
+    // If no token or role found, redirect to login
+    if (!token || !role) {
       navigate('/login');
       return;
     }
@@ -120,6 +124,7 @@ const Dashboard = () => {
       setSidebarOpen(true);
     }
 
+    // Redirect based on role if at root /app path
     if (location.pathname === '/app') {
       if (role === 'user') {
         navigate('/app/customer');
@@ -156,7 +161,6 @@ const Dashboard = () => {
       { icon: <FaClipboardCheck />, label: 'My Assessments', path: '/app/engineer/assessment' },
       { icon: <FaProjectDiagram />, label: 'My Projects', path: '/app/engineer/project' },
       { icon: <FaMicrochip />, label: 'Device Data', path: '/app/engineer/device' },
-     // { icon: <FaClipboardList />, label: 'Quotations', path: '/app/engineer/quotation' },
       { icon: <FaFileAlt />, label: 'Reports', path: '/app/engineer/reports' },
       { icon: <FaClipboardList />, label: 'Schedule', path: '/app/engineer/schedule' },
       { icon: <FaUserCog />, label: 'Profile', path: '/app/engineer/profile' },
@@ -270,12 +274,21 @@ const Dashboard = () => {
   };
 
   const handleLogout = () => {
+    // Clear both storages
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userPhotoURL');
+    localStorage.removeItem('token');
+    localStorage.removeItem('clientData');
+    
     sessionStorage.removeItem('userRole');
     sessionStorage.removeItem('userName');
     sessionStorage.removeItem('userEmail');
     sessionStorage.removeItem('userPhotoURL');
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('clientData');
+    
     navigate('/');
   };
 
@@ -478,7 +491,7 @@ const Dashboard = () => {
     );
   }
 
-  // ========== ADMIN/ENGINEER LAYOUT (Dark Blue Sidebar, No Hamburger) ==========
+  // ========== ADMIN/ENGINEER LAYOUT (Dark Blue Sidebar) ==========
   return (
     <div className="dashboard-layout-dashboard">
       {sidebarOpen && <div className="sidebar-overlay-layout-dashboard" onClick={() => setSidebarOpen(false)} />}
@@ -530,8 +543,6 @@ const Dashboard = () => {
 
       <main className="main-content-layout-dashboard">
         <header className="dashboard-header-layout-dashboard">
-          {/* Hamburger button removed */}
-
           <div className="header-search-layout-dashboard">
             <FaSearch className="search-icon-layout-dashboard" />
             <input

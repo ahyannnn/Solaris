@@ -1,0 +1,245 @@
+/* components/termsModal.css */
+.modal-overlay-terms {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+.modal-content-terms {
+  background: #ffffff;
+  border-radius: 12px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.modal-header-terms {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #eaeaea;
+  background: #ffffff;
+}
+
+.modal-header-terms h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+.modal-close-terms {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #999;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
+
+.modal-close-terms:hover {
+  color: #e74c3c;
+  background: #fafafa;
+}
+
+.modal-body-terms {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.modal-body-terms.registration-mode {
+  max-height: 50vh;
+}
+
+.terms-scroll-terms {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #333;
+  line-height: 1.6;
+}
+
+.terms-scroll-terms h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.terms-section-terms {
+  margin-bottom: 1rem;
+}
+
+.terms-section-terms h4 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #f39c12;
+  margin: 0 0 0.5rem 0;
+}
+
+.terms-section-terms p {
+  font-size: 0.75rem;
+  color: #666;
+  margin: 0.5rem 0;
+  line-height: 1.5;
+}
+
+.terms-section-terms ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.terms-section-terms li {
+  font-size: 0.75rem;
+  color: #666;
+  margin: 0.25rem 0;
+  line-height: 1.5;
+}
+
+.terms-table-terms {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 0.7rem;
+}
+
+.terms-table-terms th,
+.terms-table-terms td {
+  border: 1px solid #eaeaea;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.terms-table-terms th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.modal-footer-terms {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #eaeaea;
+  background: #fafafa;
+}
+
+.terms-checkbox-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.terms-checkbox-wrapper input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.terms-checkbox-wrapper input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.terms-checkbox-wrapper label {
+  font-size: 0.8rem;
+  color: #666;
+  cursor: pointer;
+}
+
+.terms-checkbox-wrapper input:disabled + label {
+  cursor: not-allowed;
+  color: #999;
+}
+
+.btn-accept-terms {
+  padding: 0.5rem 1rem;
+  background: #f39c12;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-accept-terms:hover:not(:disabled) {
+  background: #e67e22;
+}
+
+.btn-accept-terms:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-close-terms {
+  padding: 0.5rem 1rem;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #666;
+}
+
+.btn-close-terms:hover {
+  background: #f5f5f5;
+  border-color: #ddd;
+}
+
+@media (max-width: 768px) {
+  .modal-content-terms {
+    max-width: 95%;
+    max-height: 95vh;
+  }
+  
+  .modal-header-terms {
+    padding: 0.75rem 1rem;
+  }
+  
+  .modal-header-terms h2 {
+    font-size: 1rem;
+  }
+  
+  .modal-body-terms {
+    padding: 1rem;
+  }
+  
+  .modal-footer-terms {
+    flex-direction: column;
+    padding: 0.75rem 1rem;
+  }
+  
+  .terms-checkbox-wrapper {
+    order: 2;
+  }
+  
+  .btn-accept-terms {
+    order: 1;
+    width: 100%;
+  }
+}

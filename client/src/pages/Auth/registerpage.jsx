@@ -1,19 +1,25 @@
-import React, { useState } from 'react';
+// pages/Auth/RegisterPage.jsx
+import React, { useState, useEffect } from 'react';
 import { FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../../firebase";
-import { Helmet } from 'react-helmet-async'; // ✅ Add this with other imports
+import { Helmet } from 'react-helmet-async';
+import TermsModal from '../../assets/termsandconditions';
 import logo from '../../assets/Salfare_Logo.png';
 import '../../styles/Auth/register.css';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(1); // 1: Details, 2: Verify Code, 3: Success
-
+  const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [verifiedCode, setVerifiedCode] = useState(null);
+
+  const [cooldown, setCooldown] = useState(0);
+  const [isCooldownActive, setIsCooldownActive] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -26,9 +32,19 @@ const RegisterPage = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState('');
-
-  // MODAL STATE
   const [modal, setModal] = useState({ show: false, message: '', type: '' });
+
+  useEffect(() => {
+    let timer;
+    if (isCooldownActive && cooldown > 0) {
+      timer = setTimeout(() => {
+        setCooldown(prev => prev - 1);
+      }, 1000);
+    } else if (cooldown === 0) {
+      setIsCooldownActive(false);
+    }
+    return () => clearTimeout(timer);
+  }, [cooldown, isCooldownActive]);
 
   const showModal = (message, type = 'error') => {
     setModal({ show: true, message, type });
@@ -39,10 +55,7 @@ const RegisterPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    setFormData({ ...formData, [name]: value });
     if (errors[name]) setErrors({ ...errors, [name]: '' });
   };
 
@@ -51,8 +64,6 @@ const RegisterPage = () => {
       const newCode = [...code];
       newCode[index] = value;
       setCode(newCode);
-
-      // Auto-focus next input
       if (value && index < 5) {
         const nextInput = document.getElementById(`code-${index + 1}`);
         if (nextInput) nextInput.focus();
@@ -87,9 +98,7 @@ const RegisterPage = () => {
     return newErrors;
   };
 
-  // STEP 1: Send verification code
-  const handleStep1Submit = async (e) => {
-    e.preventDefault();
+  const handleSendVerification = async () => {
     const newErrors = validateStep1();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -102,9 +111,7 @@ const RegisterPage = () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/email/send-verification`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: formData.email,
           name: formData.fullName
@@ -116,8 +123,9 @@ const RegisterPage = () => {
       if (!response.ok) {
         setErrors({ general: data.message || 'Failed to send verification code' });
       } else {
-        console.log('✅ Verification code sent');
         setCurrentStep(2);
+        setCooldown(60);
+        setIsCooldownActive(true);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -127,8 +135,7 @@ const RegisterPage = () => {
     }
   };
 
-  // STEP 2: Verify code
-  const handleStep2Submit = async (e) => {
+  const handleVerifyCode = async (e) => {
     e.preventDefault();
     const newErrors = validateStep2();
     if (Object.keys(newErrors).length > 0) {
@@ -144,9 +151,7 @@ const RegisterPage = () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/email/verify-code`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: formData.email,
           code: verificationCode
@@ -162,8 +167,11 @@ const RegisterPage = () => {
           setErrors({ code: data.message || 'Invalid verification code' });
         }
       } else {
-        console.log('✅ Email verified successfully');
-        await registerUser();
+        setVerifiedCode({
+          email: formData.email,
+          code: verificationCode
+        });
+        setShowTermsModal(true);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -173,17 +181,29 @@ const RegisterPage = () => {
     }
   };
 
-  // Register user after verification
+  const handleTermsAccept = () => {
+    setShowTermsModal(false);
+    registerUser();
+  };
+
+  const handleTermsDecline = () => {
+    setShowTermsModal(false);
+    setVerifiedCode(null);
+    setCode(['', '', '', '', '', '']);
+  };
+
   const registerUser = async () => {
+    if (!verifiedCode) return;
+
+    setIsLoading(true);
+
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fullName: formData.fullName,
-          email: formData.email,
+          email: verifiedCode.email,
           password: formData.password
         })
       });
@@ -196,7 +216,6 @@ const RegisterPage = () => {
           setCurrentStep(1);
         } else {
           setErrors({ general: data.message || 'Registration failed' });
-          setCurrentStep(2);
         }
       } else {
         await sendWelcomeEmail();
@@ -205,18 +224,17 @@ const RegisterPage = () => {
     } catch (error) {
       console.error('Registration error:', error);
       setErrors({ general: 'Failed to create account' });
-      setCurrentStep(2);
+    } finally {
+      setIsLoading(false);
+      setVerifiedCode(null);
     }
   };
 
-  // Send welcome email
   const sendWelcomeEmail = async () => {
     try {
       await fetch(`${import.meta.env.VITE_API_URL}/api/email/send-welcome`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: formData.email,
           name: formData.fullName
@@ -228,13 +246,13 @@ const RegisterPage = () => {
   };
 
   const handleResendCode = async () => {
+    if (isCooldownActive) return;
+
     setIsLoading(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/email/resend-code`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: formData.email,
           name: formData.fullName
@@ -248,6 +266,8 @@ const RegisterPage = () => {
       } else {
         alert('✓ New verification code sent to your email!');
         setCode(['', '', '', '', '', '']);
+        setCooldown(60);
+        setIsCooldownActive(true);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -257,23 +277,71 @@ const RegisterPage = () => {
     }
   };
 
-  // GOOGLE REGISTER
+  // GOOGLE REGISTER - Show Terms Modal first
   const handleGoogleRegister = async () => {
+    setSocialLoading('google');
+    
     try {
-      setSocialLoading('google');
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google-register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
+      // Store Google user data temporarily
+      setVerifiedCode({
+        email: user.email,
+        isGoogle: true,
+        googleData: {
           fullName: user.displayName,
           email: user.email,
           googleId: user.uid,
           photoURL: user.photoURL
+        }
+      });
+      
+      // Show Terms Modal before proceeding with Google registration
+      setShowTermsModal(true);
+      
+    } catch (error) {
+      console.error("Google registration error:", error);
+      if (error.code === 'auth/popup-closed-by-user') {
+        showModal('Registration popup was closed. Please try again.', 'warning');
+      } else {
+        showModal('Failed to register with Google. Please try again.', 'error');
+      }
+    } finally {
+      setSocialLoading('');
+    }
+  };
+
+  // Modified Terms Accept for Google registration
+  const handleTermsAcceptForGoogle = () => {
+    setShowTermsModal(false);
+    
+    if (verifiedCode?.isGoogle) {
+      // Proceed with Google registration
+      registerWithGoogle();
+    } else {
+      // Normal email registration
+      registerUser();
+    }
+  };
+
+  // Register with Google after terms accepted
+  const registerWithGoogle = async () => {
+    if (!verifiedCode?.googleData) return;
+
+    setIsLoading(true);
+
+    try {
+      const { fullName, email, googleId, photoURL } = verifiedCode.googleData;
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google-register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName,
+          email,
+          googleId,
+          photoURL
         })
       });
 
@@ -298,13 +366,19 @@ const RegisterPage = () => {
 
     } catch (error) {
       console.error("Google registration error:", error);
-      if (error.code === 'auth/popup-closed-by-user') {
-        showModal('Registration popup was closed. Please try again.', 'warning');
-      } else {
-        showModal('Failed to register with Google. Please try again.', 'error');
-      }
+      showModal('Failed to register with Google. Please try again.', 'error');
     } finally {
-      setSocialLoading('');
+      setIsLoading(false);
+      setVerifiedCode(null);
+    }
+  };
+
+  // Updated terms accept handler
+  const handleTermsAcceptWrapper = () => {
+    if (verifiedCode?.isGoogle) {
+      handleTermsAcceptForGoogle();
+    } else {
+      handleTermsAccept();
     }
   };
 
@@ -312,128 +386,133 @@ const RegisterPage = () => {
     navigate('/login');
   };
 
+  const formatCooldown = () => {
+    const minutes = Math.floor(cooldown / 60);
+    const seconds = cooldown % 60;
+    if (minutes > 0) {
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+    return `${seconds}s`;
+  };
+
   return (
     <>
       <Helmet>
-        <title>Create Account</title>
+        <title>Create Account | Salfer Engineering</title>
         <meta name="description" content="Create a new account with Salfer Engineering to access solar solutions and manage your renewable energy projects." />
       </Helmet>
 
-      <div className="register-page">
-        {/* MODAL */}
+      <div className="register-page-reg">
+        {/* Error Modal */}
         {modal.show && (
-          <div className="modal-overlay" onClick={closeModal}>
-            <div className={`modal-content ${modal.type}`} onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <span className="modal-icon">
-                  {modal.type === 'warning' ? '⚠️' : '❌'}
-                </span>
+          <div className="modal-overlay-reg" onClick={closeModal}>
+            <div className={`modal-content-reg ${modal.type}`} onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header-reg">
+                <span className="modal-icon-reg">{modal.type === 'warning' ? '⚠️' : '❌'}</span>
                 <h3>{modal.type === 'warning' ? 'Account Already Exists' : 'Registration Failed'}</h3>
               </div>
-              <div className="modal-body">
+              <div className="modal-body-reg">
                 <p>{modal.message}</p>
                 {modal.type === 'warning' && (
                   <p style={{ marginTop: '10px', fontSize: '14px' }}>
-                    <Link to="/login" style={{ color: '#f39c12', fontWeight: '600' }}>Click here to sign in</Link>
+                    <Link to="/login" className="login-link-reg">Click here to sign in</Link>
                   </p>
                 )}
               </div>
-              <button className="modal-close-btn" onClick={closeModal}>Got it</button>
+              <button className="modal-close-btn-reg" onClick={closeModal}>Got it</button>
             </div>
           </div>
         )}
 
-        <div className="register-card">
+        {/* Terms Modal */}
+        <TermsModal
+          isOpen={showTermsModal}
+          onClose={handleTermsDecline}
+          mode="registration"
+          onAccept={handleTermsAcceptWrapper}
+          title="Terms and Conditions"
+        />
+
+        <div className="register-card-reg">
           {/* LEFT BRANDING */}
-          <div className="register-branding">
-            <div className="branding-content">
-              <div className="brand-logo">
-                <img src={logo} alt="Salfer Engineering" className="brand-logo-img" />
-                <h1 className="brand-name">Salfer Engineering</h1>
+          <div className="register-branding-reg">
+            <div className="branding-content-reg">
+              <div className="brand-logo-reg">
+                <img src={logo} alt="Salfer Engineering" className="brand-logo-img-reg" />
+                <h1 className="brand-name-reg">Salfer Engineering</h1>
               </div>
-              <h2 className="brand-tagline">Solar Technology Enterprise</h2>
-              <p className="brand-description">
+              <h2 className="brand-tagline-reg">Solar Technology Enterprise</h2>
+              <p className="brand-description-reg">
                 Join Salfer Engineering to access solar solutions and manage your renewable energy projects.
               </p>
-              <div className="brand-features">
-                <div className="brand-feature"><span className="feature-dot"></span> Free Solar Estimate</div>
-                <div className="brand-feature"><span className="feature-dot"></span> Professional Installation</div>
-                <div className="brand-feature"><span className="feature-dot"></span> 5-Year Warranty</div>
+              <div className="brand-features-reg">
+                <div className="brand-feature-reg"><span className="feature-dot-reg"></span> Free Solar Estimate</div>
+                <div className="brand-feature-reg"><span className="feature-dot-reg"></span> Professional Installation</div>
+                <div className="brand-feature-reg"><span className="feature-dot-reg"></span> 5-Year Warranty</div>
               </div>
             </div>
           </div>
 
           {/* RIGHT FORM */}
-          <div className="register-form-container">
-            <div className="register-form-wrapper">
+          <div className="register-form-container-reg">
+            <div className="register-form-wrapper-reg">
               {/* Step 1: Account Details */}
               {currentStep === 1 && (
                 <>
-                  <div className="form-header">
-                    <h2 className="form-title">Create Account</h2>
-                    <p className="form-subtitle">Enter your details to get started</p>
+                  <div className="form-header-reg">
+                    <h2 className="form-title-reg">Create Account</h2>
+                    <p className="form-subtitle-reg">Enter your details to get started</p>
                   </div>
 
                   {errors.general && (
-                    <div className="general-error" style={{
-                      backgroundColor: '#fee2e2',
-                      color: '#dc2626',
-                      padding: '12px',
-                      borderRadius: '8px',
-                      marginBottom: '16px',
-                      fontSize: '14px',
-                      textAlign: 'center'
-                    }}>
+                    <div className="general-error-reg">
                       {errors.general}
                     </div>
                   )}
 
-                  <form onSubmit={handleStep1Submit} className="register-form">
-                    {/* FULL NAME */}
-                    <div className="form-group">
-                      <label className="form-label">Full Name</label>
-                      <div className="input-wrapper">
-                        <FaUser className="input-icon" />
+                  <form onSubmit={(e) => { e.preventDefault(); handleSendVerification(); }} className="register-form-reg">
+                    <div className="form-group-reg">
+                      <label className="form-label-reg">Full Name</label>
+                      <div className="input-wrapper-reg">
+                        <FaUser className="input-icon-reg" />
                         <input
                           type="text"
                           name="fullName"
-                          className={`form-input ${errors.fullName ? 'input-error' : ''}`}
+                          className={`form-input-reg ${errors.fullName ? 'input-error-reg' : ''}`}
                           placeholder="Enter your full name"
                           value={formData.fullName}
                           onChange={handleChange}
                           disabled={isLoading || socialLoading !== ''}
                         />
                       </div>
-                      {errors.fullName && <span className="error-message">{errors.fullName}</span>}
+                      {errors.fullName && <span className="error-message-reg">{errors.fullName}</span>}
                     </div>
 
-                    {/* EMAIL */}
-                    <div className="form-group">
-                      <label className="form-label">Email Address</label>
-                      <div className="input-wrapper">
-                        <FaEnvelope className="input-icon" />
+                    <div className="form-group-reg">
+                      <label className="form-label-reg">Email Address</label>
+                      <div className="input-wrapper-reg">
+                        <FaEnvelope className="input-icon-reg" />
                         <input
                           type="email"
                           name="email"
-                          className={`form-input ${errors.email ? 'input-error' : ''}`}
+                          className={`form-input-reg ${errors.email ? 'input-error-reg' : ''}`}
                           placeholder="Enter your email"
                           value={formData.email}
                           onChange={handleChange}
                           disabled={isLoading || socialLoading !== ''}
                         />
                       </div>
-                      {errors.email && <span className="error-message">{errors.email}</span>}
+                      {errors.email && <span className="error-message-reg">{errors.email}</span>}
                     </div>
 
-                    {/* PASSWORD */}
-                    <div className="form-group">
-                      <label className="form-label">Password</label>
-                      <div className="input-wrapper">
-                        <FaLock className="input-icon" />
+                    <div className="form-group-reg">
+                      <label className="form-label-reg">Password</label>
+                      <div className="input-wrapper-reg">
+                        <FaLock className="input-icon-reg" />
                         <input
                           type={showPassword ? 'text' : 'password'}
                           name="password"
-                          className={`form-input ${errors.password ? 'input-error' : ''}`}
+                          className={`form-input-reg ${errors.password ? 'input-error-reg' : ''}`}
                           placeholder="Create a password"
                           value={formData.password}
                           onChange={handleChange}
@@ -441,25 +520,24 @@ const RegisterPage = () => {
                         />
                         <button
                           type="button"
-                          className="password-toggle"
+                          className="password-toggle-reg"
                           onClick={() => setShowPassword(!showPassword)}
                           disabled={isLoading || socialLoading !== ''}
                         >
                           {showPassword ? <FaEyeSlash /> : <FaEye />}
                         </button>
                       </div>
-                      {errors.password && <span className="error-message">{errors.password}</span>}
+                      {errors.password && <span className="error-message-reg">{errors.password}</span>}
                     </div>
 
-                    {/* CONFIRM PASSWORD */}
-                    <div className="form-group">
-                      <label className="form-label">Confirm Password</label>
-                      <div className="input-wrapper">
-                        <FaLock className="input-icon" />
+                    <div className="form-group-reg">
+                      <label className="form-label-reg">Confirm Password</label>
+                      <div className="input-wrapper-reg">
+                        <FaLock className="input-icon-reg" />
                         <input
                           type={showConfirmPassword ? 'text' : 'password'}
                           name="confirmPassword"
-                          className={`form-input ${errors.confirmPassword ? 'input-error' : ''}`}
+                          className={`form-input-reg ${errors.confirmPassword ? 'input-error-reg' : ''}`}
                           placeholder="Confirm your password"
                           value={formData.confirmPassword}
                           onChange={handleChange}
@@ -467,48 +545,46 @@ const RegisterPage = () => {
                         />
                         <button
                           type="button"
-                          className="password-toggle"
+                          className="password-toggle-reg"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           disabled={isLoading || socialLoading !== ''}
                         >
                           {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                         </button>
                       </div>
-                      {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+                      {errors.confirmPassword && <span className="error-message-reg">{errors.confirmPassword}</span>}
                     </div>
 
-                    {/* SUBMIT */}
                     <button
                       type="submit"
-                      className="register-submit-btn"
+                      className="register-submit-btn-reg"
                       disabled={isLoading || socialLoading !== ''}
                     >
                       {isLoading ? 'Sending Code...' : 'Send Verification Code'}
                     </button>
 
-                    {/* SOCIAL LOGIN */}
-                    <div className="social-login">
-                      <p className="social-login-text">Or sign up with</p>
-                      <div className="social-buttons">
+                    <div className="social-login-reg">
+                      <p className="social-login-text-reg">Or sign up with</p>
+                      <div className="social-buttons-reg">
                         <button
                           type="button"
-                          className={`social-btn google ${socialLoading === 'google' ? 'loading' : ''}`}
+                          className={`social-btn-reg google-reg ${socialLoading === 'google' ? 'loading-reg' : ''}`}
                           onClick={handleGoogleRegister}
                           disabled={isLoading || socialLoading !== ''}
                         >
                           {socialLoading === 'google' ? (
-                            <span className="loading-spinner"></span>
+                            <span className="loading-spinner-reg"></span>
                           ) : (
-                            <FcGoogle className="google-icon" />
+                            <FcGoogle className="google-icon-reg" />
                           )}
+                          <span className="google-text-reg">Continue with Google</span>
                         </button>
                       </div>
                     </div>
 
-                    {/* LOGIN LINK */}
-                    <div className="login-prompt">
-                      <p className="login-text">
-                        Already have an account? <Link to="/login" className="login-link">Sign in</Link>
+                    <div className="login-prompt-reg">
+                      <p className="login-text-reg">
+                        Already have an account? <Link to="/login" className="login-link-reg">Sign in</Link>
                       </p>
                     </div>
                   </form>
@@ -518,37 +594,29 @@ const RegisterPage = () => {
               {/* Step 2: Verification Code */}
               {currentStep === 2 && (
                 <>
-                  <div className="form-header">
-                    <h2 className="form-title">Verify Your Email</h2>
-                    <p className="form-subtitle">
+                  <div className="form-header-reg">
+                    <h2 className="form-title-reg">Verify Your Email</h2>
+                    <p className="form-subtitle-reg">
                       We've sent a 6-digit code to <strong>{formData.email}</strong>
                     </p>
                   </div>
 
                   {errors.code && (
-                    <div className="general-error" style={{
-                      backgroundColor: '#fee2e2',
-                      color: '#dc2626',
-                      padding: '12px',
-                      borderRadius: '8px',
-                      marginBottom: '16px',
-                      fontSize: '14px',
-                      textAlign: 'center'
-                    }}>
+                    <div className="general-error-reg">
                       {errors.code}
                     </div>
                   )}
 
-                  <form onSubmit={handleStep2Submit} className="register-form">
-                    <div className="code-input-group">
-                      <div className="code-inputs">
+                  <form onSubmit={handleVerifyCode} className="register-form-reg">
+                    <div className="code-input-group-reg">
+                      <div className="code-inputs-reg">
                         {code.map((digit, index) => (
                           <input
                             key={index}
                             id={`code-${index}`}
                             type="text"
                             maxLength="1"
-                            className={`code-input ${errors.code ? 'input-error' : ''}`}
+                            className={`code-input-reg ${errors.code ? 'input-error-reg' : ''}`}
                             value={digit}
                             onChange={(e) => handleCodeChange(index, e.target.value)}
                             onKeyDown={(e) => handleKeyDown(index, e)}
@@ -560,29 +628,29 @@ const RegisterPage = () => {
 
                     <button
                       type="submit"
-                      className="register-submit-btn"
+                      className="register-submit-btn-reg"
                       disabled={isLoading}
                     >
                       {isLoading ? 'Verifying...' : 'Verify Code'}
                     </button>
 
-                    <div className="resend-code">
-                      <p className="resend-text">
+                    <div className="resend-code-reg">
+                      <p className="resend-text-reg">
                         Didn't receive code?{' '}
                         <button
                           type="button"
-                          className="resend-link"
+                          className="resend-link-reg"
                           onClick={handleResendCode}
-                          disabled={isLoading}
+                          disabled={isCooldownActive}
                         >
-                          Resend
+                          {isCooldownActive ? `Resend (${formatCooldown()})` : 'Resend'}
                         </button>
                       </p>
                     </div>
 
                     <button
                       type="button"
-                      className="back-button"
+                      className="back-button-reg"
                       onClick={() => setCurrentStep(1)}
                       disabled={isLoading}
                     >
@@ -594,15 +662,15 @@ const RegisterPage = () => {
 
               {/* Step 3: Success */}
               {currentStep === 3 && (
-                <div className="success-container">
-                  <div className="success-icon">✓</div>
-                  <h2 className="success-title">Successfully Registered!</h2>
-                  <p className="success-text">
+                <div className="success-container-reg">
+                  <div className="success-icon-reg">✓</div>
+                  <h2 className="success-title-reg">Successfully Registered!</h2>
+                  <p className="success-text-reg">
                     Your account has been created successfully. You can now log in to access your solar projects.
                   </p>
                   <button
                     onClick={handleBackToLogin}
-                    className="back-to-login-btn"
+                    className="back-to-login-btn-reg"
                   >
                     Back to Login
                   </button>

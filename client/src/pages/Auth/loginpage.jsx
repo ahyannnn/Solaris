@@ -1,3 +1,4 @@
+// pages/Auth/LoginPage.jsx
 import React, { useState } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
@@ -108,7 +109,6 @@ const LoginPage = () => {
           storage.setItem("userPhotoURL", data.user.photoURL);
         }
 
-        // Redirect to dashboard
         navigate("/app");
       }
       
@@ -123,17 +123,15 @@ const LoginPage = () => {
     setShowPassword(!showPassword);
   };
 
-  // GOOGLE LOGIN - Popup version (siguradong gagana)
+  // GOOGLE LOGIN - Popup version
   const handleGoogleLogin = async () => {
     try {
       setSocialLoading('google');
       setErrors({});
 
-      // Popup - walang redirect, modal lang
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      // Check if Gmail
       if (!user.email.endsWith('@gmail.com')) {
         setErrors({ general: 'Please use a Gmail account to sign in.' });
         setSocialLoading('');
@@ -185,7 +183,6 @@ const LoginPage = () => {
           storage.setItem("userPhotoURL", data.user.photoURL);
         }
 
-        // Redirect to dashboard
         navigate("/app");
       }
 
@@ -210,32 +207,32 @@ const LoginPage = () => {
         <title>Sign In | Salfer Engineering</title>
       </Helmet>
       
-      <div className="login-page">
-        <div className="login-card">
+      <div className="login-page-login">
+        <div className="login-card-login">
           {/* LEFT SIDE - Branding */}
-          <div className="login-branding">
-            <div className="branding-content">
-              <div className="brand-logo">
-                <img src={logo} alt="Salfer Engineering" className="brand-logo-img" />
-                <h1 className="brand-name">Salfer Engineering</h1>
+          <div className="login-branding-login">
+            <div className="branding-content-login">
+              <div className="brand-logo-login">
+                <img src={logo} alt="Salfer Engineering" className="brand-logo-img-login" />
+                <h1 className="brand-name-login">Salfer Engineering</h1>
               </div>
-              <h2 className="brand-tagline">
+              <h2 className="brand-tagline-login">
                 Solar Technology Enterprise
               </h2>
-              <p className="brand-description">
+              <p className="brand-description-login">
                 DTI-registered solar company providing reliable, cost-effective solar solutions for Filipino homes and businesses since 2017.
               </p>
-              <div className="brand-features">
-                <div className="brand-feature">
-                  <span className="feature-dot"></span>
+              <div className="brand-features-login">
+                <div className="brand-feature-login">
+                  <span className="feature-dot-login"></span>
                   <span>Free Solar Estimate</span>
                 </div>
-                <div className="brand-feature">
-                  <span className="feature-dot"></span>
+                <div className="brand-feature-login">
+                  <span className="feature-dot-login"></span>
                   <span>Professional Installation</span>
                 </div>
-                <div className="brand-feature">
-                  <span className="feature-dot"></span>
+                <div className="brand-feature-login">
+                  <span className="feature-dot-login"></span>
                   <span>5-Year Warranty</span>
                 </div>
               </div>
@@ -243,58 +240,50 @@ const LoginPage = () => {
           </div>
 
           {/* RIGHT SIDE - Login Form */}
-          <div className="login-form-container">
-            <div className="login-form-wrapper">
-              <div className="form-header">
-                <h2 className="form-title">Welcome Back</h2>
-                <p className="form-subtitle">
+          <div className="login-form-container-login">
+            <div className="login-form-wrapper-login">
+              <div className="form-header-login">
+                <h2 className="form-title-login">Welcome Back</h2>
+                <p className="form-subtitle-login">
                   Sign in to manage your solar projects
                 </p>
               </div>
 
               {/* Error Message */}
               {errors.general && (
-                <div className="general-error" style={{
-                  backgroundColor: '#fee2e2',
-                  color: '#dc2626',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  marginBottom: '16px',
-                  fontSize: '14px',
-                  textAlign: 'center'
-                }}>
+                <div className="general-error-login">
                   {errors.general}
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="login-form">
+              <form onSubmit={handleSubmit} className="login-form-login">
                 {/* EMAIL FIELD */}
-                <div className="form-group">
-                  <label className="form-label">Email Address</label>
-                  <div className="input-wrapper">
-                    <FaEnvelope className="input-icon" />
+                <div className="form-group-login">
+                  <label className="form-label-login">Email Address</label>
+                  <div className="input-wrapper-login">
+                    <FaEnvelope className="input-icon-login" />
                     <input
                       type="email"
                       name="email"
-                      className={`form-input ${errors.email ? 'input-error' : ''}`}
+                      className={`form-input-login ${errors.email ? 'input-error-login' : ''}`}
                       placeholder="Enter your email"
                       value={formData.email}
                       onChange={handleChange}
                       disabled={isLoading || socialLoading !== ''}
                     />
                   </div>
-                  {errors.email && <span className="error-message">{errors.email}</span>}
+                  {errors.email && <span className="error-message-login">{errors.email}</span>}
                 </div>
 
                 {/* PASSWORD FIELD */}
-                <div className="form-group">
-                  <label className="form-label">Password</label>
-                  <div className="input-wrapper">
-                    <FaLock className="input-icon" />
+                <div className="form-group-login">
+                  <label className="form-label-login">Password</label>
+                  <div className="input-wrapper-login">
+                    <FaLock className="input-icon-login" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       name="password"
-                      className={`form-input ${errors.password ? 'input-error' : ''}`}
+                      className={`form-input-login ${errors.password ? 'input-error-login' : ''}`}
                       placeholder="Enter your password"
                       value={formData.password}
                       onChange={handleChange}
@@ -302,30 +291,30 @@ const LoginPage = () => {
                     />
                     <button
                       type="button"
-                      className="password-toggle"
+                      className="password-toggle-login"
                       onClick={togglePasswordVisibility}
                       disabled={isLoading || socialLoading !== ''}
                     >
                       {showPassword ? <FaEyeSlash /> : <FaEye />}
                     </button>
                   </div>
-                  {errors.password && <span className="error-message">{errors.password}</span>}
+                  {errors.password && <span className="error-message-login">{errors.password}</span>}
                 </div>
 
                 {/* REMEMBER ME & FORGOT PASSWORD */}
-                <div className="row-actions">
-                  <label className="remember-label">
+                <div className="row-actions-login">
+                  <label className="remember-label-login">
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="remember-checkbox"
+                      className="remember-checkbox-login"
                       disabled={isLoading || socialLoading !== ''}
                     />
                     <span>Remember me</span>
                   </label>
                   
-                  <Link to="/forgotpassword" className="forgot-link">
+                  <Link to="/forgotpassword" className="forgot-link-login">
                     Forgot password?
                   </Link>
                 </div>
@@ -333,36 +322,39 @@ const LoginPage = () => {
                 {/* LOGIN BUTTON */}
                 <button
                   type="submit"
-                  className={`login-submit-btn ${isLoading ? 'loading' : ''}`}
+                  className={`login-submit-btn-login ${isLoading ? 'loading-login' : ''}`}
                   disabled={isLoading || socialLoading !== ''}
                 >
                   {isLoading ? 'Signing in...' : 'Sign In'}
                 </button>
 
                 {/* SOCIAL LOGIN */}
-                <div className="social-login">
-                  <p className="social-login-text">Or continue with</p>
-                  <div className="social-buttons">
+                <div className="social-login-login">
+                  <p className="social-login-text-login">Or continue with</p>
+                  <div className="social-buttons-login">
                     <button
                       type="button"
-                      className={`social-btn google ${socialLoading === 'google' ? 'loading' : ''}`}
+                      className={`social-btn-login google-login ${socialLoading === 'google' ? 'loading-login' : ''}`}
                       onClick={handleGoogleLogin}
                       disabled={isLoading || socialLoading !== ''}
                     >
                       {socialLoading === 'google' ? (
-                        <span className="loading-spinner"></span>
+                        <span className="loading-spinner-login"></span>
                       ) : (
-                        <FcGoogle className="google-icon" />
+                        <>
+                          <FcGoogle className="google-icon-login" />
+                          <span className="google-text-login">Continue with Google</span>
+                        </>
                       )}
                     </button>
                   </div>
                 </div>
 
                 {/* SIGN UP LINK */}
-                <div className="signup-prompt">
-                  <p className="signup-text">
+                <div className="signup-prompt-login">
+                  <p className="signup-text-login">
                     Don't have an account?{' '}
-                    <Link to="/register" className="signup-link">
+                    <Link to="/register" className="signup-link-login">
                       Sign up
                     </Link>
                   </p>

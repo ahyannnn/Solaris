@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// pages/Auth/ForgotPasswordPage.jsx
+import React, { useState, useEffect } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '../../assets/Salfare_Logo.png';
@@ -7,7 +8,7 @@ import '../../styles/Auth/forgotpage.css';
 
 const ForgotPasswordPage = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1); // 1: email, 2: code, 3: new password, 4: success
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [password, setPassword] = useState('');
@@ -16,6 +17,23 @@ const ForgotPasswordPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Cooldown state
+  const [cooldown, setCooldown] = useState(0);
+  const [isCooldownActive, setIsCooldownActive] = useState(false);
+
+  // Cooldown timer effect
+  useEffect(() => {
+    let timer;
+    if (isCooldownActive && cooldown > 0) {
+      timer = setTimeout(() => {
+        setCooldown(prev => prev - 1);
+      }, 1000);
+    } else if (cooldown === 0) {
+      setIsCooldownActive(false);
+    }
+    return () => clearTimeout(timer);
+  }, [cooldown, isCooldownActive]);
 
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
@@ -28,7 +46,6 @@ const ForgotPasswordPage = () => {
       newCode[index] = value;
       setCode(newCode);
 
-      // Auto-focus next input
       if (value && index < 5) {
         const nextInput = document.getElementById(`code-${index + 1}`);
         if (nextInput) nextInput.focus();
@@ -89,6 +106,16 @@ const ForgotPasswordPage = () => {
     return newErrors;
   };
 
+  // Format cooldown time
+  const formatCooldown = () => {
+    const minutes = Math.floor(cooldown / 60);
+    const seconds = cooldown % 60;
+    if (minutes > 0) {
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+    return `${seconds}s`;
+  };
+
   // STEP 1: Send reset code
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
@@ -116,8 +143,10 @@ const ForgotPasswordPage = () => {
       if (!response.ok) {
         setErrors({ email: data.message || 'Failed to send reset code' });
       } else {
-        console.log('✅ Reset code sent to:', email);
         setStep(2);
+        // Start cooldown for resend button
+        setCooldown(60);
+        setIsCooldownActive(true);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -159,7 +188,6 @@ const ForgotPasswordPage = () => {
       if (!response.ok) {
         setErrors({ code: data.message || 'Invalid verification code' });
       } else {
-        console.log('✅ Code verified for:', email);
         setStep(3);
       }
     } catch (error) {
@@ -200,11 +228,7 @@ const ForgotPasswordPage = () => {
       if (!response.ok) {
         setErrors({ password: data.message || 'Failed to reset password' });
       } else {
-        console.log('✅ Password reset successful for:', email);
-
-        // Send success email (don't wait for it)
         sendResetSuccessEmail();
-
         setStep(4);
       }
     } catch (error) {
@@ -225,14 +249,15 @@ const ForgotPasswordPage = () => {
         },
         body: JSON.stringify({ email })
       });
-      console.log('✅ Reset success email sent');
     } catch (error) {
       console.error('Reset success email error:', error);
     }
   };
 
-  // Resend code
+  // Resend code with cooldown
   const handleResendCode = async () => {
+    if (isCooldownActive) return;
+    
     setIsLoading(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/email/send-reset-code`, {
@@ -250,6 +275,8 @@ const ForgotPasswordPage = () => {
       } else {
         alert('✓ New verification code sent to your email!');
         setCode(['', '', '', '', '', '']);
+        setCooldown(60);
+        setIsCooldownActive(true);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -266,34 +293,34 @@ const ForgotPasswordPage = () => {
   return (
     <>
       <Helmet>
-        <title>Forgot Password</title>
+        <title>Forgot Password | Salfer Engineering</title>
         <meta name="description" content="Reset your password for your Salfer Engineering account to continue managing your solar projects." />
       </Helmet>
 
-      <div className="forgot-page">
-        <div className="forgot-card">
+      <div className="forgot-page-forgot">
+        <div className="forgot-card-forgot">
           {/* Left Side - Branding */}
-          <div className="forgot-branding">
-            <div className="branding-content">
-              <div className="brand-logo">
-                <img src={logo} alt="Salfer Engineering" className="brand-logo-img" />
-                <h1 className="brand-name">Salfer Engineering</h1>
+          <div className="forgot-branding-forgot">
+            <div className="branding-content-forgot">
+              <div className="brand-logo-forgot">
+                <img src={logo} alt="Salfer Engineering" className="brand-logo-img-forgot" />
+                <h1 className="brand-name-forgot">Salfer Engineering</h1>
               </div>
-              <h2 className="brand-tagline">Solar Technology Enterprise</h2>
-              <p className="brand-description">
+              <h2 className="brand-tagline-forgot">Solar Technology Enterprise</h2>
+              <p className="brand-description-forgot">
                 Reset your password to continue managing your solar projects
               </p>
-              <div className="brand-features">
-                <div className="brand-feature">
-                  <span className="feature-dot"></span>
+              <div className="brand-features-forgot">
+                <div className="brand-feature-forgot">
+                  <span className="feature-dot-forgot"></span>
                   <span>Free Solar Estimate</span>
                 </div>
-                <div className="brand-feature">
-                  <span className="feature-dot"></span>
+                <div className="brand-feature-forgot">
+                  <span className="feature-dot-forgot"></span>
                   <span>Professional Installation</span>
                 </div>
-                <div className="brand-feature">
-                  <span className="feature-dot"></span>
+                <div className="brand-feature-forgot">
+                  <span className="feature-dot-forgot"></span>
                   <span>5-Year Warranty</span>
                 </div>
               </div>
@@ -301,43 +328,35 @@ const ForgotPasswordPage = () => {
           </div>
 
           {/* Right Side - Form */}
-          <div className="forgot-form-container">
-            <div className="forgot-form-wrapper">
+          <div className="forgot-form-container-forgot">
+            <div className="forgot-form-wrapper-forgot">
               {/* Step 1: Email */}
               {step === 1 && (
                 <>
-                  <div className="form-header">
-                    <h2 className="form-title">Forgot Password?</h2>
-                    <p className="form-subtitle">
+                  <div className="form-header-forgot">
+                    <h2 className="form-title-forgot">Forgot Password?</h2>
+                    <p className="form-subtitle-forgot">
                       Enter your email and we'll send you a 6-digit code
                     </p>
                   </div>
 
                   {errors.email && (
-                    <div className="general-error" style={{
-                      backgroundColor: '#fee2e2',
-                      color: '#dc2626',
-                      padding: '12px',
-                      borderRadius: '8px',
-                      marginBottom: '16px',
-                      fontSize: '14px',
-                      textAlign: 'center'
-                    }}>
+                    <div className="general-error-forgot">
                       {errors.email}
                     </div>
                   )}
 
-                  <form onSubmit={handleEmailSubmit} className="forgot-form">
-                    <div className="form-group">
-                      <label htmlFor="email" className="form-label">
+                  <form onSubmit={handleEmailSubmit} className="forgot-form-forgot">
+                    <div className="form-group-forgot">
+                      <label htmlFor="email" className="form-label-forgot">
                         Email Address
                       </label>
-                      <div className="input-wrapper">
-                        <FaEnvelope className="input-icon" />
+                      <div className="input-wrapper-forgot">
+                        <FaEnvelope className="input-icon-forgot" />
                         <input
                           type="email"
                           id="email"
-                          className={`form-input ${errors.email ? 'input-error' : ''}`}
+                          className={`form-input-forgot ${errors.email ? 'input-error-forgot' : ''}`}
                           placeholder="Enter your email"
                           value={email}
                           onChange={handleEmailChange}
@@ -348,7 +367,7 @@ const ForgotPasswordPage = () => {
 
                     <button
                       type="submit"
-                      className={`forgot-submit-btn ${isLoading ? 'loading' : ''}`}
+                      className={`forgot-submit-btn-forgot ${isLoading ? 'loading-forgot' : ''}`}
                       disabled={isLoading}
                     >
                       {isLoading ? 'Sending...' : 'Send Code'}
@@ -360,37 +379,29 @@ const ForgotPasswordPage = () => {
               {/* Step 2: 6-digit Code */}
               {step === 2 && (
                 <>
-                  <div className="form-header">
-                    <h2 className="form-title">Enter Code</h2>
-                    <p className="form-subtitle">
+                  <div className="form-header-forgot">
+                    <h2 className="form-title-forgot">Enter Code</h2>
+                    <p className="form-subtitle-forgot">
                       We've sent a 6-digit code to <strong>{email}</strong>
                     </p>
                   </div>
 
                   {errors.code && (
-                    <div className="general-error" style={{
-                      backgroundColor: '#fee2e2',
-                      color: '#dc2626',
-                      padding: '12px',
-                      borderRadius: '8px',
-                      marginBottom: '16px',
-                      fontSize: '14px',
-                      textAlign: 'center'
-                    }}>
+                    <div className="general-error-forgot">
                       {errors.code}
                     </div>
                   )}
 
-                  <form onSubmit={handleCodeSubmit} className="forgot-form">
-                    <div className="code-input-group">
-                      <div className="code-inputs">
+                  <form onSubmit={handleCodeSubmit} className="forgot-form-forgot">
+                    <div className="code-input-group-forgot">
+                      <div className="code-inputs-forgot">
                         {code.map((digit, index) => (
                           <input
                             key={index}
                             id={`code-${index}`}
                             type="text"
                             maxLength="1"
-                            className={`code-input ${errors.code ? 'input-error' : ''}`}
+                            className={`code-input-forgot ${errors.code ? 'input-error-forgot' : ''}`}
                             value={digit}
                             onChange={(e) => handleCodeChange(index, e.target.value)}
                             onKeyDown={(e) => handleKeyDown(index, e)}
@@ -402,22 +413,22 @@ const ForgotPasswordPage = () => {
 
                     <button
                       type="submit"
-                      className={`forgot-submit-btn ${isLoading ? 'loading' : ''}`}
+                      className={`forgot-submit-btn-forgot ${isLoading ? 'loading-forgot' : ''}`}
                       disabled={isLoading}
                     >
                       {isLoading ? 'Verifying...' : 'Verify Code'}
                     </button>
 
-                    <div className="resend-code">
-                      <p className="resend-text">
+                    <div className="resend-code-forgot">
+                      <p className="resend-text-forgot">
                         Didn't receive code?{' '}
                         <button
                           type="button"
-                          className="resend-link"
+                          className="resend-link-forgot"
                           onClick={handleResendCode}
-                          disabled={isLoading}
+                          disabled={isCooldownActive}
                         >
-                          Resend
+                          {isCooldownActive ? `Resend (${formatCooldown()})` : 'Resend'}
                         </button>
                       </p>
                     </div>
@@ -428,39 +439,31 @@ const ForgotPasswordPage = () => {
               {/* Step 3: New Password & Confirm Password */}
               {step === 3 && (
                 <>
-                  <div className="form-header">
-                    <h2 className="form-title">Reset Password</h2>
-                    <p className="form-subtitle">
+                  <div className="form-header-forgot">
+                    <h2 className="form-title-forgot">Reset Password</h2>
+                    <p className="form-subtitle-forgot">
                       Enter your new password
                     </p>
                   </div>
 
                   {errors.password && (
-                    <div className="general-error" style={{
-                      backgroundColor: '#fee2e2',
-                      color: '#dc2626',
-                      padding: '12px',
-                      borderRadius: '8px',
-                      marginBottom: '16px',
-                      fontSize: '14px',
-                      textAlign: 'center'
-                    }}>
+                    <div className="general-error-forgot">
                       {errors.password}
                     </div>
                   )}
 
-                  <form onSubmit={handlePasswordSubmit} className="forgot-form">
+                  <form onSubmit={handlePasswordSubmit} className="forgot-form-forgot">
                     {/* New Password */}
-                    <div className="form-group">
-                      <label htmlFor="newPassword" className="form-label">
+                    <div className="form-group-forgot">
+                      <label htmlFor="newPassword" className="form-label-forgot">
                         New Password
                       </label>
-                      <div className="input-wrapper">
-                        <FaLock className="input-icon" />
+                      <div className="input-wrapper-forgot">
+                        <FaLock className="input-icon-forgot" />
                         <input
                           type={showPassword ? 'text' : 'password'}
                           id="newPassword"
-                          className={`form-input ${errors.password ? 'input-error' : ''}`}
+                          className={`form-input-forgot ${errors.password ? 'input-error-forgot' : ''}`}
                           placeholder="Enter new password"
                           value={password}
                           onChange={handlePasswordChange}
@@ -468,27 +471,27 @@ const ForgotPasswordPage = () => {
                         />
                         <button
                           type="button"
-                          className="password-toggle"
+                          className="password-toggle-forgot"
                           onClick={() => setShowPassword(!showPassword)}
                           disabled={isLoading}
                         >
                           {showPassword ? <FaEyeSlash /> : <FaEye />}
                         </button>
                       </div>
-                      {errors.password && <span className="error-message">{errors.password}</span>}
+                      {errors.password && <span className="error-message-forgot">{errors.password}</span>}
                     </div>
 
                     {/* Confirm Password */}
-                    <div className="form-group">
-                      <label htmlFor="confirmPassword" className="form-label">
+                    <div className="form-group-forgot">
+                      <label htmlFor="confirmPassword" className="form-label-forgot">
                         Confirm Password
                       </label>
-                      <div className="input-wrapper">
-                        <FaLock className="input-icon" />
+                      <div className="input-wrapper-forgot">
+                        <FaLock className="input-icon-forgot" />
                         <input
                           type={showConfirmPassword ? 'text' : 'password'}
                           id="confirmPassword"
-                          className={`form-input ${errors.confirmPassword ? 'input-error' : ''}`}
+                          className={`form-input-forgot ${errors.confirmPassword ? 'input-error-forgot' : ''}`}
                           placeholder="Confirm new password"
                           value={confirmPassword}
                           onChange={handleConfirmPasswordChange}
@@ -496,19 +499,19 @@ const ForgotPasswordPage = () => {
                         />
                         <button
                           type="button"
-                          className="password-toggle"
+                          className="password-toggle-forgot"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           disabled={isLoading}
                         >
                           {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                         </button>
                       </div>
-                      {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+                      {errors.confirmPassword && <span className="error-message-forgot">{errors.confirmPassword}</span>}
                     </div>
 
                     <button
                       type="submit"
-                      className={`forgot-submit-btn ${isLoading ? 'loading' : ''}`}
+                      className={`forgot-submit-btn-forgot ${isLoading ? 'loading-forgot' : ''}`}
                       disabled={isLoading}
                     >
                       {isLoading ? 'Resetting...' : 'Reset Password'}
@@ -520,16 +523,16 @@ const ForgotPasswordPage = () => {
               {/* Step 4: Success */}
               {step === 4 && (
                 <>
-                  <div className="success-message-container">
-                    <div className="success-icon">✓</div>
-                    <h3 className="success-title">Password Changed!</h3>
-                    <p className="success-text">
+                  <div className="success-message-container-forgot">
+                    <div className="success-icon-forgot">✓</div>
+                    <h3 className="success-title-forgot">Password Changed!</h3>
+                    <p className="success-text-forgot">
                       Your password has been reset successfully
                     </p>
 
                     <button
                       onClick={handleBackToLogin}
-                      className="back-to-login-btn"
+                      className="back-to-login-btn-forgot"
                     >
                       Back to Login
                     </button>
@@ -539,10 +542,10 @@ const ForgotPasswordPage = () => {
 
               {/* Sign Up Link - show on steps 1-3 only */}
               {step !== 4 && (
-                <div className="signup-prompt">
-                  <p className="signup-text">
+                <div className="signup-prompt-forgot">
+                  <p className="signup-text-forgot">
                     Don't have an account?{' '}
-                    <Link to="/register" className="signup-link">
+                    <Link to="/register" className="signup-link-forgot">
                       Sign up
                     </Link>
                   </p>

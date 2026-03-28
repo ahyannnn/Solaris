@@ -31,10 +31,12 @@ import {
   FaUsers,
   FaCalendarCheck
 } from 'react-icons/fa';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/myproject.css';
 
 const MyProject = () => {
   const navigate = useNavigate();
+  const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
@@ -64,6 +66,7 @@ const MyProject = () => {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching projects:', error);
+      showToast('Failed to load projects', 'error');
       setLoading(false);
     }
   };
@@ -97,18 +100,13 @@ const MyProject = () => {
     const badges = {
       'quoted': <span className="status-badge quoted">Quoted</span>,
       'approved': <span className="status-badge approved">Approved</span>,
-      'initial_paid': <span className="status-badge initial-paid">Initial Payment Received</span>,
-      'in_progress': <span className="status-badge in-progress">Installation In Progress</span>,
-      'progress_paid': <span className="status-badge progress-paid">Progress Payment Received</span>,
+      'initial_paid': <span className="status-badge initial-paid">Initial Payment</span>,
+      'in_progress': <span className="status-badge in-progress">In Progress</span>,
+      'progress_paid': <span className="status-badge progress-paid">Progress Payment</span>,
       'completed': <span className="status-badge completed">Completed</span>,
       'cancelled': <span className="status-badge cancelled">Cancelled</span>
     };
     return badges[status] || <span className="status-badge">{status}</span>;
-  };
-
-  const getProgressPercentage = (project) => {
-    if (!project.totalCost || project.totalCost === 0) return 0;
-    return Math.round((project.amountPaid / project.totalCost) * 100);
   };
 
   const getProjectProgress = (project) => {
@@ -173,9 +171,6 @@ const MyProject = () => {
 
   const getGanttData = (project) => {
     const startDate = project.startDate ? new Date(project.startDate) : new Date();
-    const estimatedEnd = project.estimatedCompletionDate ? new Date(project.estimatedCompletionDate) : new Date(startDate);
-    const actualEnd = project.actualCompletionDate ? new Date(project.actualCompletionDate) : null;
-    
     const tasks = [
       { name: 'Project Approval', start: project.approvedAt || startDate, end: project.approvedAt || startDate, completed: !!project.approvedAt },
       { name: 'Site Preparation', start: startDate, end: new Date(startDate.getTime() + 2 * 24 * 60 * 60 * 1000), completed: project.status !== 'quoted' },
@@ -186,15 +181,20 @@ const MyProject = () => {
       { name: 'System Testing', start: new Date(startDate.getTime() + 12 * 24 * 60 * 60 * 1000), end: new Date(startDate.getTime() + 16 * 24 * 60 * 60 * 1000), completed: project.status === 'completed' },
       { name: 'Final Inspection', start: new Date(startDate.getTime() + 14 * 24 * 60 * 60 * 1000), end: new Date(startDate.getTime() + 18 * 24 * 60 * 60 * 1000), completed: project.status === 'completed' }
     ];
-    
     return tasks;
+  };
+
+  const handleDownload = (docName) => {
+    showToast(`Downloading ${docName}...`, 'success');
   };
 
   if (loading) {
     return (
-      <div className="myproject-loading">
-        <FaSpinner className="spinner" />
-        <p>Loading your projects...</p>
+      <div className="myproject-container">
+        <div className="loading-container">
+          <FaSpinner className="spinner" />
+          <p>Loading your projects...</p>
+        </div>
       </div>
     );
   }
@@ -205,13 +205,15 @@ const MyProject = () => {
         <Helmet>
           <title>My Projects | Salfer Engineering</title>
         </Helmet>
-        <div className="myproject-empty">
-          <FaProjectDiagram className="empty-icon" />
-          <h2>No Projects Yet</h2>
-          <p>You haven't started any solar installation projects yet.</p>
-          <button className="btn-primary" onClick={() => navigate('/app/customer/book-assessment')}>
-            Book an Assessment
-          </button>
+        <div className="myproject-container">
+          <div className="empty-state">
+            <FaProjectDiagram className="empty-icon" />
+            <h2>No Projects Yet</h2>
+            <p>You haven't started any solar installation projects yet.</p>
+            <button className="btn-primary" onClick={() => navigate('/app/customer/book-assessment')}>
+              Book an Assessment
+            </button>
+          </div>
         </div>
       </>
     );
@@ -225,7 +227,7 @@ const MyProject = () => {
 
       <div className="myproject-container">
         <div className="myproject-header">
-          <h1><FaProjectDiagram /> My Solar Projects</h1>
+          <h1>My Solar Projects</h1>
           <p>Track your solar installation projects, view progress, and manage documents</p>
         </div>
 
@@ -254,7 +256,7 @@ const MyProject = () => {
               <div className="overview-header">
                 <div>
                   <h2>{selectedProject.projectName}</h2>
-                  <p className="project-ref">Reference: {selectedProject.projectReference}</p>
+                  <p className="project-ref">Ref: {selectedProject.projectReference}</p>
                 </div>
                 {getStatusBadge(selectedProject.status)}
               </div>
@@ -294,7 +296,7 @@ const MyProject = () => {
             <div className="progress-card">
               <div className="progress-header">
                 <h3>Project Progress</h3>
-                <span className="progress-percent">{getProjectProgress(selectedProject)}% Complete</span>
+                <span className="progress-percent">{getProjectProgress(selectedProject)}%</span>
               </div>
               <div className="progress-bar-container">
                 <div className="progress-bar" style={{ width: `${getProjectProgress(selectedProject)}%` }}></div>
@@ -338,38 +340,6 @@ const MyProject = () => {
                       </div>
                     ))}
                   </div>
-
-                  {/* Gantt Chart */}
-                  <div className="gantt-chart">
-                    <h4>Installation Schedule</h4>
-                    <div className="gantt-container">
-                      <div className="gantt-header">
-                        <div className="gantt-task-label">Tasks</div>
-                        <div className="gantt-timeline">
-                          {[...Array(20)].map((_, i) => (
-                            <div key={i} className="gantt-day">{i + 1}</div>
-                          ))}
-                        </div>
-                      </div>
-                      {getGanttData(selectedProject).map((task, idx) => {
-                        const start = task.start.getDate();
-                        const duration = Math.ceil((task.end - task.start) / (1000 * 60 * 60 * 24));
-                        return (
-                          <div key={idx} className="gantt-row">
-                            <div className="gantt-task-label">{task.name}</div>
-                            <div className="gantt-bars">
-                              <div 
-                                className={`gantt-bar ${task.completed ? 'completed' : ''}`}
-                                style={{ left: `${(start - 1) * 30}px`, width: `${duration * 30 - 4}px` }}
-                              >
-                                <span className="bar-label">{duration} days</span>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
@@ -383,7 +353,7 @@ const MyProject = () => {
               {expandedSections.personnel && (
                 <div className="section-content">
                   <div className="personnel-grid">
-                    <div className="personnel-card engineer">
+                    <div className="personnel-card">
                       <div className="personnel-avatar">
                         {selectedProject.assignedEngineerId?.firstName ? (
                           <div className="avatar-initials">
@@ -402,7 +372,7 @@ const MyProject = () => {
                         )}
                       </div>
                     </div>
-                    <div className="personnel-card support">
+                    <div className="personnel-card">
                       <div className="personnel-avatar">
                         <FaUserCog />
                       </div>
@@ -438,9 +408,9 @@ const MyProject = () => {
                         </div>
                         <div className="payment-status">
                           {payment.status === 'paid' ? (
-                            <span className="paid-badge"><FaCheckCircle /> Paid on {formatDate(payment.paidAt)}</span>
+                            <span className="paid-badge">Paid on {formatDate(payment.paidAt)}</span>
                           ) : payment.status === 'overdue' ? (
-                            <span className="overdue-badge"><FaExclamationTriangle /> Overdue</span>
+                            <span className="overdue-badge">Overdue</span>
                           ) : (
                             <span className="pending-badge">Pending</span>
                           )}
@@ -467,7 +437,7 @@ const MyProject = () => {
                         <h4>Quotation</h4>
                         <p>Detailed quotation for your solar system</p>
                       </div>
-                      <button className="download-btn"><FaDownload /> Download</button>
+                      <button className="download-btn" onClick={() => handleDownload('Quotation')}><FaDownload /> Download</button>
                     </div>
                     <div className="document-item">
                       <FaFileAlt />
@@ -475,7 +445,7 @@ const MyProject = () => {
                         <h4>Contract</h4>
                         <p>Signed installation contract</p>
                       </div>
-                      <button className="download-btn"><FaDownload /> Download</button>
+                      <button className="download-btn" onClick={() => handleDownload('Contract')}><FaDownload /> Download</button>
                     </div>
                     <div className="document-item">
                       <FaHistory />
@@ -483,7 +453,7 @@ const MyProject = () => {
                         <h4>Permits</h4>
                         <p>Required permits and certifications</p>
                       </div>
-                      <button className="download-btn"><FaDownload /> Download</button>
+                      <button className="download-btn" onClick={() => handleDownload('Permits')}><FaDownload /> Download</button>
                     </div>
                     <div className="document-item">
                       <FaCheckCircle />
@@ -491,7 +461,7 @@ const MyProject = () => {
                         <h4>Completion Certificate</h4>
                         <p>Certificate of completion</p>
                       </div>
-                      <button className="download-btn"><FaDownload /> Download</button>
+                      <button className="download-btn" onClick={() => handleDownload('Completion Certificate')}><FaDownload /> Download</button>
                     </div>
                   </div>
                 </div>
@@ -503,15 +473,19 @@ const MyProject = () => {
               <button className="btn-primary" onClick={() => navigate('/app/customer/billing')}>
                 <FaMoneyBillWave /> Make Payment
               </button>
-              <button className="btn-secondary" onClick={() => navigate('/dashboard/support')}>
+              <button className="btn-secondary" onClick={() => navigate('/app/customer/support')}>
                 <FaEnvelope /> Contact Support
-              </button>
-              <button className="btn-secondary" onClick={() => window.print()}>
-                <FaDownload /> Download Summary
               </button>
             </div>
           </div>
         )}
+
+        <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
       </div>
     </>
   );

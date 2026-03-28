@@ -3,10 +3,20 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { 
+  FaFileInvoice, 
+  FaClock, 
+  FaCalendarAlt,
+  FaChartLine,
+  FaHome,
+  FaUser
+} from 'react-icons/fa';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { toast, showToast, hideToast } = useToast();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState(null);
@@ -28,42 +38,49 @@ const Dashboard = () => {
         return;
       }
 
-      // Fetch user data
       const userRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/clients/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUser(userRes.data.client);
 
-      // Fetch active project
       const projectsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/my-projects`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const activeProject = projectsRes.data.projects?.find(p => p.status !== 'completed');
       setProject(activeProject || null);
 
-      // Fetch recent free quotes
+      // Get quotes and sort by date (newest first) then take first 3
       const quotesRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes/my-quotes`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setRecentQuotes(quotesRes.data.quotes?.slice(0, 3) || []);
+      const sortedQuotes = (quotesRes.data.quotes || [])
+        .sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt))
+        .slice(0, 3);
+      setRecentQuotes(sortedQuotes);
 
-      // Fetch pending payments
+      // Get pre-assessments and filter for pending payments
       const preAssessmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-bookings`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const pending = preAssessmentsRes.data.assessments?.filter(a => a.paymentStatus === 'pending') || [];
+      
+      // Filter pending payments and sort by date (newest first) then take first 3
+      const pending = (preAssessmentsRes.data.assessments || [])
+        .filter(a => a.paymentStatus === 'pending')
+        .sort((a, b) => new Date(b.createdAt || b.preferredDate) - new Date(a.createdAt || a.preferredDate))
+        .slice(0, 3);
       setPendingPayments(pending);
 
-      // Fetch upcoming appointments
-      const appointmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-bookings`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const upcoming = appointmentsRes.data.assessments?.filter(a => new Date(a.preferredDate) > new Date()) || [];
-      setUpcomingAppointments(upcoming.slice(0, 3));
+      // Filter upcoming appointments and sort by date (soonest first) then take first 3
+      const upcoming = (preAssessmentsRes.data.assessments || [])
+        .filter(a => new Date(a.preferredDate) > new Date())
+        .sort((a, b) => new Date(a.preferredDate) - new Date(b.preferredDate))
+        .slice(0, 3);
+      setUpcomingAppointments(upcoming);
 
       setLoading(false);
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
+      showToast('Failed to load dashboard data', 'error');
       setLoading(false);
     }
   };
@@ -144,15 +161,7 @@ const Dashboard = () => {
     </div>
   );
 
-  const QuickActionsSkeleton = () => (
-    <div className="quick-actions-dash">
-      {[1, 2, 3].map((item) => (
-        <div key={item} className="skeleton-button-dash large-dash"></div>
-      ))}
-    </div>
-  );
-
-  const QuotesSkeleton = () => (
+  const InfoCardSkeleton = () => (
     <div className="info-card-dash skeleton-card-dash">
       <div className="skeleton-line-dash medium-dash"></div>
       <div className="info-list-dash">
@@ -164,38 +173,6 @@ const Dashboard = () => {
           </div>
         ))}
       </div>
-      <div className="skeleton-line-dash tiny-dash"></div>
-    </div>
-  );
-
-  const PaymentsSkeleton = () => (
-    <div className="info-card-dash skeleton-card-dash">
-      <div className="skeleton-line-dash medium-dash"></div>
-      <div className="info-list-dash">
-        {[1, 2].map((item) => (
-          <div key={item} className="info-item-dash">
-            <div className="skeleton-line-dash small-dash"></div>
-            <div className="skeleton-line-dash tiny-dash"></div>
-            <div className="skeleton-badge-dash small-dash"></div>
-          </div>
-        ))}
-      </div>
-      <div className="skeleton-line-dash tiny-dash"></div>
-    </div>
-  );
-
-  const AppointmentsSkeleton = () => (
-    <div className="info-card-dash skeleton-card-dash">
-      <div className="skeleton-line-dash medium-dash"></div>
-      <div className="info-list-dash">
-        {[1, 2].map((item) => (
-          <div key={item} className="info-item-dash">
-            <div className="skeleton-line-dash small-dash"></div>
-            <div className="skeleton-line-dash tiny-dash"></div>
-          </div>
-        ))}
-      </div>
-      <div className="skeleton-line-dash tiny-dash"></div>
     </div>
   );
 
@@ -214,17 +191,12 @@ const Dashboard = () => {
               <div className="skeleton-line-dash medium-dash"></div>
             </div>
             <ProjectSkeleton />
-            
-            <div className="section-header-dash">
-              <div className="skeleton-line-dash medium-dash"></div>
-            </div>
-            <QuickActionsSkeleton />
           </div>
           
           <div className="info-grid-dash">
-            <QuotesSkeleton />
-            <PaymentsSkeleton />
-            <AppointmentsSkeleton />
+            <InfoCardSkeleton />
+            <InfoCardSkeleton />
+            <InfoCardSkeleton />
           </div>
         </div>
       </>
@@ -245,38 +217,50 @@ const Dashboard = () => {
             <p>Track your solar journey and manage your projects</p>
           </div>
           <div className="welcome-actions-dash">
-            <Link to="/dashboard/schedule" className="btn-primary-dash">
+            <Link to="book-assessment" className="btn-primary-dash">
               Book Assessment
             </Link>
-            <Link to="/dashboard/quotation" className="btn-secondary-dash">
+            <Link to="book-assessment" className="btn-secondary-dash">
               Request Quote
             </Link>
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - With Minimal Icons */}
         <div className="stats-grid-dash">
           <div className="stat-card-dash">
-            <span className="stat-label-dash">Active Projects</span>
-            <span className="stat-value-dash">{project ? 1 : 0}</span>
-            <span className="stat-trend-dash">
-              {project ? `${getProjectProgress()}% Complete` : 'No active projects'}
-            </span>
+            <FaHome className="stat-icon-dash" />
+            <div className="stat-content-dash">
+              <span className="stat-label-dash">Active Projects</span>
+              <span className="stat-value-dash">{project ? 1 : 0}</span>
+              <span className="stat-trend-dash">
+                {project ? `${getProjectProgress()}% Complete` : 'No active projects'}
+              </span>
+            </div>
           </div>
           <div className="stat-card-dash">
-            <span className="stat-label-dash">Free Quotes</span>
-            <span className="stat-value-dash">{recentQuotes.length}</span>
-            <span className="stat-trend-dash">Requests submitted</span>
+            <FaFileInvoice className="stat-icon-dash" />
+            <div className="stat-content-dash">
+              <span className="stat-label-dash">Free Quotes</span>
+              <span className="stat-value-dash">{recentQuotes.length}</span>
+              <span className="stat-trend-dash">Recent requests</span>
+            </div>
           </div>
           <div className="stat-card-dash">
-            <span className="stat-label-dash">Pending Payments</span>
-            <span className="stat-value-dash">{pendingPayments.length}</span>
-            <span className="stat-trend-dash">Awaiting payment</span>
+            <FaClock className="stat-icon-dash" />
+            <div className="stat-content-dash">
+              <span className="stat-label-dash">Pending Payments</span>
+              <span className="stat-value-dash">{pendingPayments.length}</span>
+              <span className="stat-trend-dash">Awaiting payment</span>
+            </div>
           </div>
           <div className="stat-card-dash">
-            <span className="stat-label-dash">Upcoming Appointments</span>
-            <span className="stat-value-dash">{upcomingAppointments.length}</span>
-            <span className="stat-trend-dash">Scheduled assessments</span>
+            <FaCalendarAlt className="stat-icon-dash" />
+            <div className="stat-content-dash">
+              <span className="stat-label-dash">Upcoming Appointments</span>
+              <span className="stat-value-dash">{upcomingAppointments.length}</span>
+              <span className="stat-trend-dash">Scheduled assessments</span>
+            </div>
           </div>
         </div>
 
@@ -317,39 +301,22 @@ const Dashboard = () => {
             <div className="empty-state-dash">
               <h3>No active projects</h3>
               <p>Start your solar journey today</p>
-              <Link to="/dashboard/schedule" className="btn-primary-dash small-dash">
+              <Link to="book-assessment" className="btn-primary-dash small-dash">
                 Get Started
               </Link>
             </div>
           )}
-
-          {/* Quick Actions */}
-          <div className="section-header-dash">
-            <h2>Quick Actions</h2>
-          </div>
-          <div className="quick-actions-dash">
-            <Link to="/dashboard/schedule" className="action-card-dash">
-              <span>Book Assessment</span>
-              <span className="action-desc-dash">Schedule pre-assessment</span>
-            </Link>
-            <Link to="/dashboard/quotation" className="action-card-dash">
-              <span>Request Quote</span>
-              <span className="action-desc-dash">Get free quotation</span>
-            </Link>
-            <Link to="/dashboard/customersettings?tab=addresses" className="action-card-dash">
-              <span>Manage Addresses</span>
-              <span className="action-desc-dash">Update your location</span>
-            </Link>
-          </div>
         </div>
 
         {/* Recent Quotes, Pending Payments, Upcoming Appointments - All in One Row */}
         <div className="info-grid-dash">
-          {/* Recent Quotes */}
+          {/* Recent Quotes - Now shows exactly 3 most recent */}
           <div className="info-card-dash">
             <div className="info-card-header-dash">
               <h3>Recent Quotes</h3>
-              <Link to="/dashboard/quotation?tab=free-quotes" className="view-all-dash">View All</Link>
+              {recentQuotes.length > 0 && (
+                <Link to="book-assessment" className="view-all-dash">View All</Link>
+              )}
             </div>
             
             <div className="info-list-dash">
@@ -358,43 +325,47 @@ const Dashboard = () => {
                   <div key={quote._id} className="info-item-dash">
                     <div className="info-item-content-dash">
                       <span className="info-item-title-dash">{quote.quotationReference}</span>
-                      <span className="info-item-date-dash">{new Date(quote.requestedAt).toLocaleDateString()}</span>
+                      <span className="info-item-date-dash">
+                        {new Date(quote.requestedAt).toLocaleDateString('en-PH', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </span>
                     </div>
-                    <div className="info-item-action-dash">
+                    <div className="info-item-status-dash">
                       {getStatusBadge(quote.status)}
-                      <Link to={`/dashboard/quotation?tab=free-quotes&id=${quote._id}`} className="view-link-dash">
-                        View
-                      </Link>
                     </div>
                   </div>
                 ))
               ) : (
                 <div className="empty-small-dash">
                   <p>No quotes yet</p>
-                  <Link to="/dashboard/schedule" className="link-dash">Request a quote</Link>
+                  <Link to="book-assessment" className="link-dash">Request a quote</Link>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Pending Payments */}
+          {/* Pending Payments - Now shows exactly 3 most recent pending payments */}
           <div className="info-card-dash">
             <div className="info-card-header-dash">
               <h3>Pending Payments</h3>
-              <Link to="/dashboard/quotation?tab=pre-assessments" className="view-all-dash">View All</Link>
+              {pendingPayments.length > 0 && (
+                <Link to="billing" className="view-all-dash">View All</Link>
+              )}
             </div>
             
             <div className="info-list-dash">
               {pendingPayments.length > 0 ? (
                 pendingPayments.map(payment => (
-                  <div key={payment.id} className="info-item-dash">
+                  <div key={payment._id || payment.id} className="info-item-dash">
                     <div className="info-item-content-dash">
-                      <span className="info-item-title-dash">{payment.invoiceNumber}</span>
+                      <span className="info-item-title-dash">{payment.invoiceNumber || payment._id}</span>
                       <span className="info-item-amount-dash">{formatCurrency(payment.assessmentFee)}</span>
                     </div>
-                    <div className="info-item-action-dash">
-                      {getStatusBadge(payment.paymentStatus)}
-                      <Link to={`/dashboard/quotation?tab=pre-assessments`} className="pay-link-dash">
+                    <div className="info-item-actions-dash">
+                      <Link to="billing" className="pay-link-dash">
                         Pay Now
                       </Link>
                     </div>
@@ -409,20 +380,28 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Upcoming Appointments */}
+          {/* Upcoming Appointments - Now shows exactly 3 soonest appointments */}
           <div className="info-card-dash">
             <div className="info-card-header-dash">
               <h3>Upcoming Appointments</h3>
-              <Link to="/dashboard/quotation?tab=pre-assessments" className="view-all-dash">View All</Link>
+              {upcomingAppointments.length > 0 && (
+                <Link to="book-assessment" className="view-all-dash">View All</Link>
+              )}
             </div>
             
             <div className="info-list-dash">
               {upcomingAppointments.length > 0 ? (
                 upcomingAppointments.map(appointment => (
-                  <div key={appointment.id} className="info-item-dash">
+                  <div key={appointment._id || appointment.id} className="info-item-dash">
                     <div className="info-item-content-dash">
                       <span className="info-item-title-dash">Pre-Assessment</span>
-                      <span className="info-item-date-dash">{new Date(appointment.preferredDate).toLocaleDateString()}</span>
+                      <span className="info-item-date-dash">
+                        {new Date(appointment.preferredDate).toLocaleDateString('en-PH', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </span>
                     </div>
                     <div className="info-item-status-dash">
                       <span className={`appointment-status-dash ${appointment.paymentStatus === 'paid' ? 'confirmed-dash' : 'pending-dash'}`}>
@@ -434,12 +413,20 @@ const Dashboard = () => {
               ) : (
                 <div className="empty-small-dash">
                   <p>No upcoming appointments</p>
-                  <Link to="/dashboard/schedule" className="link-dash">Book an assessment</Link>
+                  <Link to="book-assessment" className="link-dash">Book an assessment</Link>
                 </div>
               )}
             </div>
           </div>
         </div>
+
+        {/* Toast Notification */}
+        <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
       </div>
     </>
   );

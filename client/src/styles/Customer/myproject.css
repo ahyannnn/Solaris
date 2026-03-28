@@ -1,579 +1,741 @@
-/* myproject.css - Minimalistic Version */
+/* myproject.css - Minimalistic Customer My Project Styles */
 
-/* Base Container */
-.project-container-cusset {
-  margin: 0 auto;
+/* ============================================
+   BASE CONTAINER
+   ============================================ */
+.myproject-container {
   padding: 1rem;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #fff;
+  background: #ffffff;
   min-height: 100vh;
 }
 
-/* Typography */
-.project-header-cusset {
+/* ============================================
+   HEADER
+   ============================================ */
+.myproject-header {
   margin-bottom: 2rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid #eaeaea;
 }
 
-.project-header-cusset h1 {
+.myproject-header h1 {
   font-size: 1.75rem;
   font-weight: 500;
   margin: 0 0 0.25rem 0;
   color: #1a1a1a;
 }
 
-.project-header-cusset p {
+.myproject-header p {
   font-size: 0.875rem;
   color: #666;
   margin: 0;
 }
 
-/* Project Overview Card */
-.project-overview-cusset {
-  background: #fff;
+/* ============================================
+   EMPTY STATE (Centered)
+   ============================================ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 60vh;
+  padding: 2rem;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.empty-state h2 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+  color: #666;
+}
+
+.empty-state p {
+  font-size: 0.875rem;
+  color: #999;
+  margin: 0 0 1.5rem 0;
+}
+
+/* ============================================
+   LOADING
+   ============================================ */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1rem;
+  color: #666;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  font-size: 2rem;
+  color: #f39c12;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   PROJECT SELECTOR
+   ============================================ */
+.project-selector {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.project-selector label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #666;
+}
+
+.project-selector-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.project-select-btn {
+  padding: 0.5rem 1rem;
+  background: #f5f5f5;
   border: 1px solid #eaeaea;
-  border-radius: 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #666;
+}
+
+.project-select-btn:hover {
+  background: #eaeaea;
+}
+
+.project-select-btn.active {
+  background: #1a1a1a;
+  color: #ffffff;
+  border-color: #1a1a1a;
+}
+
+/* ============================================
+   OVERVIEW CARD
+   ============================================ */
+.overview-card {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
 }
 
-.overview-header-cusset {
+.overview-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   flex-wrap: wrap;
   gap: 1rem;
 }
 
-.overview-header-cusset h2 {
+.overview-header h2 {
   font-size: 1.125rem;
   font-weight: 500;
   margin: 0 0 0.25rem 0;
   color: #1a1a1a;
 }
 
-.project-id-cusset {
-  font-size: 0.75rem;
+.project-ref {
+  font-size: 0.7rem;
   color: #999;
   margin: 0;
 }
 
-/* Status Badges */
-.status-badge-cusset {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.status-badge-cusset.pending-cusset {
-  background: #fff3e0;
-  color: #ed6c02;
-}
-
-.status-badge-cusset.assessment-cusset {
-  background: #e3f2fd;
-  color: #1976d2;
-}
-
-.status-badge-cusset.in-progress-cusset {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.status-badge-cusset.completed-cusset {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-/* Overview Details */
-.overview-details-cusset {
+.overview-details {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-@media (max-width: 640px) {
-  .overview-details-cusset {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-}
-
-.detail-item-cusset {
-  font-size: 0.875rem;
-  color: #666;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Progress Section */
-.progress-section-cusset {
+  gap: 1rem;
   margin-top: 1rem;
 }
 
-.progress-label-cusset {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #666;
-  margin-bottom: 0.5rem;
+@media (max-width: 640px) {
+  .overview-details {
+    grid-template-columns: 1fr;
+  }
 }
 
-.progress-bar-cusset {
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.detail-item svg {
+  font-size: 1.25rem;
+  color: #999;
+}
+
+.detail-item div {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-item span {
+  font-size: 0.65rem;
+  color: #999;
+}
+
+.detail-item strong {
+  font-size: 0.875rem;
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+/* ============================================
+   PROGRESS CARD
+   ============================================ */
+.progress-card {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.progress-header h3 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+.progress-percent {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #f39c12;
+}
+
+.progress-bar-container {
   height: 4px;
   background: #eaeaea;
   border-radius: 2px;
   overflow: hidden;
+  margin-bottom: 1rem;
 }
 
-.progress-fill-cusset {
+.progress-bar {
   height: 100%;
-  background: #1a1a1a;
+  background: #f39c12;
   border-radius: 2px;
   transition: width 0.3s ease;
 }
 
-/* Address Card */
-.address-card-cusset {
-  background: #fff;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
-  padding: 1.25rem;
-  margin-bottom: 1.5rem;
-}
-
-.address-card-cusset h3 {
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #999;
-  margin: 0 0 0.5rem 0;
-}
-
-.address-card-cusset p {
-  font-size: 0.875rem;
-  color: #333;
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* System Details */
-.system-details-cusset {
-  background: #fff;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.system-details-cusset h3 {
-  font-size: 1rem;
-  font-weight: 500;
-  margin: 0 0 1rem 0;
-  color: #1a1a1a;
-}
-
-.details-grid-cusset {
+.progress-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eaeaea;
 }
 
-@media (max-width: 640px) {
-  .details-grid-cusset {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-}
-
-.detail-box-cusset {
-  background: #fafafa;
-  border: 1px solid #eaeaea;
-  border-radius: 6px;
-  padding: 0.75rem;
+.stat {
+  display: flex;
+  flex-direction: column;
   text-align: center;
 }
 
-.detail-box-cusset span {
-  display: block;
-  font-size: 0.7rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.stat span {
+  font-size: 0.65rem;
   color: #999;
   margin-bottom: 0.25rem;
 }
 
-.detail-box-cusset strong {
-  display: block;
-  font-size: 1rem;
+.stat strong {
+  font-size: 0.875rem;
   color: #1a1a1a;
-}
-
-/* Milestones Section */
-.milestones-section-cusset {
-  background: #fff;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.milestones-section-cusset h3 {
-  font-size: 1rem;
   font-weight: 500;
-  margin: 0 0 1.5rem 0;
+}
+
+/* ============================================
+   SECTION CARD
+   ============================================ */
+.section-card {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.section-header:hover {
+  background: #fafafa;
+}
+
+.section-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
   color: #1a1a1a;
 }
 
-/* Timeline */
-.timeline-cusset {
-  position: relative;
+.chevron {
+  font-size: 0.75rem;
+  color: #999;
+  transition: transform 0.2s;
 }
 
-.timeline-item-cusset {
+.chevron.expanded {
+  transform: rotate(180deg);
+}
+
+.section-content {
+  padding: 1rem 1.25rem 1.5rem;
+  border-top: 1px solid #eaeaea;
+}
+
+/* ============================================
+   MILESTONE TIMELINE
+   ============================================ */
+.milestone-timeline {
   position: relative;
   padding-left: 2rem;
+}
+
+.milestone {
+  position: relative;
   padding-bottom: 1.5rem;
 }
 
-.timeline-item-cusset:last-child {
+.milestone:last-child {
   padding-bottom: 0;
 }
 
-.timeline-marker-cusset {
+.milestone-marker {
   position: absolute;
-  left: 0;
+  left: -2rem;
   top: 0;
   width: 1.5rem;
   text-align: center;
 }
 
-.milestone-status-cusset {
-  display: inline-block;
-  font-size: 0.875rem;
+.milestone-marker svg {
+  font-size: 1rem;
+  color: #2ecc71;
 }
 
-.milestone-status-cusset.completed-cusset {
-  color: #2e7d32;
+.marker-dot {
+  width: 8px;
+  height: 8px;
+  background: #ccc;
+  border-radius: 50%;
+  margin: 0 auto;
 }
 
-.milestone-status-cusset.in-progress-cusset {
-  color: #ed6c02;
+.milestone-line {
+  position: absolute;
+  left: -1.25rem;
+  top: 1.5rem;
+  bottom: -0.5rem;
+  width: 1px;
+  background: #eaeaea;
 }
 
-.milestone-status-cusset.pending-cusset {
-  color: #999;
+.milestone:last-child .milestone-line {
+  display: none;
 }
 
-.timeline-content-cusset h4 {
+.milestone-content h4 {
   font-size: 0.875rem;
   font-weight: 500;
   margin: 0 0 0.25rem 0;
   color: #1a1a1a;
 }
 
-.timeline-content-cusset p {
+.milestone-content p {
   font-size: 0.75rem;
+  color: #666;
+  margin: 0 0 0.25rem 0;
+}
+
+.milestone-date {
+  font-size: 0.65rem;
   color: #999;
-  margin: 0;
 }
 
-.timeline-line-cusset {
-  position: absolute;
-  left: 0.7rem;
-  top: 1.25rem;
-  bottom: -0.75rem;
-  width: 1px;
-  background: #eaeaea;
+.milestone.completed .milestone-content h4 {
+  color: #2ecc71;
 }
 
-.timeline-item-cusset:last-child .timeline-line-cusset {
-  display: none;
+/* ============================================
+   PERSONNEL GRID
+   ============================================ */
+.personnel-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
 }
 
-/* Documents Section */
-.documents-section-cusset {
-  background: #fff;
-  border: 1px solid #eaeaea;
+@media (max-width: 640px) {
+  .personnel-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.personnel-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #fafafa;
   border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
 }
 
-.documents-section-cusset h3 {
+.personnel-avatar {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  color: #999;
+}
+
+.avatar-initials {
   font-size: 1rem;
   font-weight: 500;
-  margin: 0 0 1rem 0;
   color: #1a1a1a;
 }
 
-.documents-list-cusset {
+.personnel-info {
+  flex: 1;
+}
+
+.personnel-info h4 {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #999;
+  margin: 0 0 0.25rem 0;
+}
+
+.personnel-info strong {
+  font-size: 0.875rem;
+  color: #1a1a1a;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.personnel-info p {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  color: #666;
+  margin: 0.25rem 0;
+}
+
+/* ============================================
+   PAYMENT SCHEDULE
+   ============================================ */
+.payment-schedule {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.document-item-cusset {
+.payment-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   padding: 0.75rem;
   background: #fafafa;
-  border: 1px solid #eaeaea;
-  border-radius: 6px;
-  transition: all 0.2s;
+  border-radius: 8px;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
-.document-item-cusset:hover {
-  border-color: #ddd;
-  background: #fff;
+.payment-type .type-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: #ffffff;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  color: #666;
 }
 
-.doc-info-cusset {
+.payment-details {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  gap: 1rem;
+  align-items: baseline;
 }
 
-.doc-name-cusset {
+.amount {
   font-size: 0.875rem;
   font-weight: 500;
   color: #1a1a1a;
 }
 
-.doc-meta-cusset {
+.due-date {
   font-size: 0.7rem;
   color: #999;
 }
 
-.download-btn-cusset {
-  background: none;
-  border: 1px solid #ddd;
-  padding: 0.375rem 0.75rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  cursor: pointer;
-  color: #666;
-  transition: all 0.2s;
+.paid-badge {
+  font-size: 0.7rem;
+  color: #2ecc71;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
-.download-btn-cusset:hover {
-  border-color: #999;
-  color: #000;
-  background: #f5f5f5;
+.overdue-badge {
+  font-size: 0.7rem;
+  color: #e74c3c;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
-/* Quick Actions */
-.quick-actions-cusset {
-  display: flex;
+.pending-badge {
+  font-size: 0.7rem;
+  color: #f39c12;
+}
+
+.payment-item.paid {
+  background: #e8f5e9;
+}
+
+.payment-item.overdue {
+  background: #ffebee;
+}
+
+/* ============================================
+   DOCUMENTS GRID
+   ============================================ */
+.documents-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
-  justify-content: center;
-  margin-top: 1rem;
 }
 
-.action-btn-cusset {
+@media (max-width: 640px) {
+  .documents-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.document-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.document-item svg {
+  font-size: 1.25rem;
+  color: #999;
+}
+
+.document-item div {
   flex: 1;
-  max-width: 200px;
-  padding: 0.75rem 1.5rem;
-  background: #f5f5f5;
-  border: 1px solid #eaeaea;
-  border-radius: 4px;
+}
+
+.document-item h4 {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.2s;
+  margin: 0 0 0.25rem 0;
+  color: #1a1a1a;
 }
 
-.action-btn-cusset:hover {
-  background: #eaeaea;
+.document-item p {
+  font-size: 0.65rem;
+  color: #999;
+  margin: 0;
+}
+
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #666;
+}
+
+.download-btn:hover {
+  background: #f5f5f5;
   border-color: #ddd;
   color: #1a1a1a;
 }
 
-/* Empty State */
-.project-empty-cusset {
-  text-align: center;
-  padding: 4rem 2rem;
-  max-width: 500px;
-  margin: 0 auto;
+/* ============================================
+   ACTION BUTTONS
+   ============================================ */
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
-.project-empty-cusset h2 {
-  font-size: 1.25rem;
-  font-weight: 500;
-  margin: 0 0 0.5rem 0;
-  color: #1a1a1a;
-}
-
-.project-empty-cusset p {
-  font-size: 0.875rem;
-  color: #666;
-  margin: 0 0 1.5rem 0;
-}
-
-.book-btn-cusset {
-  padding: 0.75rem 1.5rem;
+.btn-primary {
+  padding: 0.625rem 1.25rem;
   background: #1a1a1a;
-  color: #fff;
+  color: #ffffff;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.book-btn-cusset:hover {
+.btn-primary:hover {
   background: #333;
 }
 
-/* Skeleton Loader */
-.skeleton-line-cusset {
-  background: #f0f0f0;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-  animation: pulse-cusset 1.5s ease-in-out infinite;
-}
-
-.skeleton-line-cusset.large-cusset {
-  height: 32px;
-  width: 200px;
-}
-
-.skeleton-line-cusset.medium-cusset {
-  height: 24px;
-  width: 150px;
-}
-
-.skeleton-line-cusset.small-cusset {
-  height: 16px;
-  width: 120px;
-}
-
-.skeleton-line-cusset.tiny-cusset {
-  height: 12px;
-  width: 80px;
-}
-
-.skeleton-card-cusset {
-  background: #fff;
+.btn-secondary {
+  padding: 0.625rem 1.25rem;
+  background: #f5f5f5;
   border: 1px solid #eaeaea;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.skeleton-details-grid-cusset {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
-  margin: 1rem 0;
-}
-
-.skeleton-progress-cusset {
-  height: 4px;
-  background: #eaeaea;
-  border-radius: 2px;
-  margin-top: 1rem;
-}
-
-.skeleton-box-cusset {
-  background: #f0f0f0;
   border-radius: 6px;
-  height: 80px;
-  animation: pulse-cusset 1.5s ease-in-out infinite;
-}
-
-.skeleton-timeline-cusset {
-  margin-top: 1rem;
-}
-
-.skeleton-timeline-item-cusset {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.skeleton-icon-cusset {
-  width: 24px;
-  height: 24px;
-  background: #f0f0f0;
-  border-radius: 50%;
-  animation: pulse-cusset 1.5s ease-in-out infinite;
-}
-
-.skeleton-content-cusset {
-  flex: 1;
-}
-
-.skeleton-documents-cusset {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-
-.skeleton-document-item-cusset {
-  display: flex;
-  gap: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #666;
+  display: inline-flex;
   align-items: center;
-  padding: 0.75rem;
-  background: #fafafa;
-  border: 1px solid #eaeaea;
-  border-radius: 6px;
+  gap: 0.5rem;
 }
 
-.skeleton-button-cusset {
-  height: 36px;
-  background: #f0f0f0;
-  border-radius: 4px;
-  flex: 1;
-  max-width: 200px;
-  animation: pulse-cusset 1.5s ease-in-out infinite;
+.btn-secondary:hover {
+  background: #eaeaea;
+  color: #1a1a1a;
 }
 
-.skeleton-button-small-cusset {
-  width: 80px;
-  height: 28px;
-  background: #f0f0f0;
-  border-radius: 4px;
-  animation: pulse-cusset 1.5s ease-in-out infinite;
+/* ============================================
+   STATUS BADGES
+   ============================================ */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 500;
 }
 
-@keyframes pulse-cusset {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+.status-badge.quoted {
+  background: #e3f2fd;
+  color: #1976d2;
 }
 
-/* Responsive */
+.status-badge.approved {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge.initial-paid {
+  background: #fff3e0;
+  color: #ed6c02;
+}
+
+.status-badge.in-progress {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-badge.progress-paid {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge.completed {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge.cancelled {
+  background: #ffebee;
+  color: #c62828;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
 @media (max-width: 768px) {
-  .project-container-cusset {
+  .myproject-container {
     padding: 1rem;
   }
   
-  .quick-actions-cusset {
+  .project-selector {
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
   }
   
-  .action-btn-cusset {
-    max-width: 100%;
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
     width: 100%;
+    justify-content: center;
+  }
+  
+  .payment-item {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

@@ -142,6 +142,45 @@ const ScheduleAssessment = () => {
     return { name, contact, address };
   };
 
+  // Send email function
+  const sendQuoteConfirmationEmail = async (quoteReference, monthlyBill, propertyType, desiredCapacity, address) => {
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/email/send-free-quote-confirmation`, {
+        email: user.email,
+        name: getFullName(),
+        quoteReference: quoteReference,
+        monthlyBill: monthlyBill,
+        propertyType: propertyType,
+        desiredCapacity: desiredCapacity,
+        address: address
+      });
+      console.log('Quote confirmation email sent successfully');
+    } catch (emailError) {
+      console.error('Failed to send quote confirmation email:', emailError);
+      // Don't show error to user, just log it
+    }
+  };
+
+  const sendPreAssessmentConfirmationEmail = async (invoiceNumber, amount, propertyType, desiredCapacity, roofType, preferredDate, address) => {
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/email/send-pre-assessment-confirmation`, {
+        email: user.email,
+        name: getFullName(),
+        invoiceNumber: invoiceNumber,
+        amount: amount,
+        propertyType: propertyType,
+        desiredCapacity: desiredCapacity,
+        roofType: roofType,
+        preferredDate: preferredDate,
+        address: address
+      });
+      console.log('Pre-assessment confirmation email sent successfully');
+    } catch (emailError) {
+      console.error('Failed to send pre-assessment confirmation email:', emailError);
+      // Don't show error to user, just log it
+    }
+  };
+
   // FREE QUOTE SUBMISSION
   const handleFreeQuoteSubmit = () => {
     if (!freeQuoteData.monthlyBill) {
@@ -169,16 +208,35 @@ const ScheduleAssessment = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
+      // Send email confirmation after successful submission
+      await sendQuoteConfirmationEmail(
+        response.data.quote.quotationReference,
+        freeQuoteData.monthlyBill,
+        freeQuoteData.propertyType,
+        freeQuoteData.desiredCapacity,
+        getFullAddress()
+      );
+
+      // Close modal and set submitted data
+      setShowFreeQuoteConfirm(false);
       setSubmittedData({
         reference: response.data.quote.quotationReference,
         type: 'free-quote'
       });
+      
+      // Force reset the current step and set submitted to true
+      setCurrentStep('service-selection');
       setSubmitted(true);
-      setShowFreeQuoteConfirm(false);
-      showToast('Quote request submitted successfully!', 'success');
+      
+      // Show success toast
+      showToast('Quote request submitted successfully! A confirmation email has been sent to your email address.', 'success');
+      
+      // Reset submitting state
+      setIsSubmitting(false);
+      
     } catch (err) {
+      console.error('Error submitting quote:', err);
       showToast(err.response?.data?.message || 'Failed to submit quote request. Please try again.', 'error');
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -227,9 +285,20 @@ const ScheduleAssessment = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
+      // Send email confirmation after successful booking
+      await sendPreAssessmentConfirmationEmail(
+        response.data.booking.invoiceNumber,
+        response.data.booking.assessmentFee,
+        formData.propertyType,
+        formData.desiredCapacity,
+        formData.roofType,
+        formData.preferredDate,
+        getFullAddress()
+      );
+
       setShowConfirmDialog(false);
       setTermsAccepted(false);
-      showToast('Pre-assessment booked successfully! Redirecting to payment...', 'success');
+      showToast('Pre-assessment booked successfully! A confirmation email has been sent. Redirecting to payment...', 'success');
       
       setTimeout(() => {
         navigate('/app/customer/billing', { 
@@ -317,6 +386,65 @@ const ScheduleAssessment = () => {
     );
   }
 
+  // ==================== SUCCESS SCREEN ====================
+  if (submitted) {
+    return (
+      <div className="schedule-container-cusset">
+        <div className="schedule-confirmation-card-cusset">
+          <h1>Request Submitted!</h1>
+
+          {submittedData?.type === 'free-quote' && (
+            <>
+              <p>Your quotation request has been received.</p>
+              <div className="schedule-booking-details-cusset">
+                <p><strong>Reference Number:</strong> {submittedData.reference}</p>
+                <p><strong>Status:</strong> Pending Review</p>
+              </div>
+              <div className="schedule-next-steps-cusset">
+                <h3>What's Next?</h3>
+                <ul>
+                  <li>Our team will review your request within 2-3 business days</li>
+                  <li>You'll receive a detailed quotation via email</li>
+                  <li>Our engineer may contact you for additional information</li>
+                </ul>
+              </div>
+              <div className="schedule-email-notice-cusset">
+                <p><small>✓ A confirmation email has been sent to your registered email address.</small></p>
+              </div>
+            </>
+          )}
+
+          <div className="quote-actions-cusset">
+            <button
+              onClick={() => {
+                setSubmitted(false);
+                setCurrentStep('service-selection');
+                setFreeQuoteData({ monthlyBill: '', propertyType: 'residential', desiredCapacity: '' });
+                setSubmittedData(null);
+              }}
+              className="schedule-btn-secondary-cusset"
+            >
+              Request Another
+            </button>
+            <button
+              onClick={() => navigate('/app/customer')}
+              className="schedule-btn-primary-cusset"
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+
+        <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      </div>
+    );
+  }
+
   // ==================== SERVICE SELECTION SCREEN ====================
   if (currentStep === 'service-selection') {
     return (
@@ -380,7 +508,6 @@ const ScheduleAssessment = () => {
                 </div>
               </div>
 
-              {/* Button inside card */}
               <div className="card-button-container-cusset">
                 <button
                   className="btn-get-quote-cusset"
@@ -409,7 +536,6 @@ const ScheduleAssessment = () => {
                 <li>Professional engineer consultation</li>
               </ul>
 
-              {/* Button inside card */}
               <div className="card-button-container-cusset">
                 <button
                   className="btn-paid-assessment-cusset"
@@ -452,6 +578,7 @@ const ScheduleAssessment = () => {
                 </div>
 
                 <p className="quote-note-cusset">Our team will review your request and send a detailed quotation via email within 2-3 business days.</p>
+                <p className="quote-note-cusset" style={{ color: '#2ecc71' }}>✓ A confirmation email will be sent to your registered email address.</p>
 
                 <div className="schedule-modal-actions-cusset">
                   <button
@@ -480,61 +607,6 @@ const ScheduleAssessment = () => {
           />
         </div>
       </>
-    );
-  }
-
-  // ==================== SUCCESS SCREEN ====================
-  if (submitted) {
-    return (
-      <div className="schedule-container-cusset">
-        <div className="schedule-confirmation-card-cusset">
-          <h1>Request Submitted!</h1>
-
-          {submittedData.type === 'free-quote' && (
-            <>
-              <p>Your quotation request has been received.</p>
-              <div className="schedule-booking-details-cusset">
-                <p><strong>Reference Number:</strong> {submittedData.reference}</p>
-                <p><strong>Status:</strong> Pending Review</p>
-              </div>
-              <div className="schedule-next-steps-cusset">
-                <h3>What's Next?</h3>
-                <ul>
-                  <li>Our team will review your request within 2-3 business days</li>
-                  <li>You'll receive a detailed quotation via email</li>
-                  <li>Our engineer may contact you for additional information</li>
-                </ul>
-              </div>
-            </>
-          )}
-
-          <div className="quote-actions-cusset">
-            <button
-              onClick={() => {
-                setSubmitted(false);
-                setCurrentStep('service-selection');
-                setFreeQuoteData({ monthlyBill: '', propertyType: 'residential', desiredCapacity: '' });
-              }}
-              className="schedule-btn-secondary-cusset"
-            >
-              Request Another
-            </button>
-            <button
-              onClick={() => navigate('/app/customer')}
-              className="schedule-btn-primary-cusset"
-            >
-              Go to Dashboard
-            </button>
-          </div>
-        </div>
-
-        <ToastNotification
-          show={toast.show}
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-        />
-      </div>
     );
   }
 
@@ -683,6 +755,7 @@ const ScheduleAssessment = () => {
                     <div>
                       <strong>Pre Assessment Fee: ₱1,500.00</strong>
                       <p>You will be redirected to the billing page to complete payment after booking.</p>
+                      <p style={{ color: '#2ecc71', fontSize: '12px', marginTop: '8px' }}>✓ A confirmation email will be sent to your registered email address.</p>
                     </div>
                   </div>
                 </div>

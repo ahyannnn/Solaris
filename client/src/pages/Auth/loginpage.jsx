@@ -11,6 +11,7 @@ import '../../styles/Auth/loginpage.css';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -25,7 +26,6 @@ const LoginPage = () => {
   // Helper to clean token
   const cleanToken = (token) => {
     if (!token) return null;
-    // Remove any quotes and whitespace
     return token.replace(/^["']|["']$/g, '').trim();
   };
 
@@ -59,9 +59,17 @@ const LoginPage = () => {
     return newErrors;
   };
 
+  // Clear all storage before new login
+  const clearAllStorage = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+  };
+
   // EMAIL/PASSWORD LOGIN
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (isNavigating) return;
     
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
@@ -105,6 +113,9 @@ const LoginPage = () => {
       const data = JSON.parse(responseText);
 
       if (data.token && data.user) {
+        // Clear all existing storage first to prevent conflicts
+        clearAllStorage();
+        
         const storage = rememberMe ? localStorage : sessionStorage;
         
         // Clean token before storing
@@ -117,12 +128,19 @@ const LoginPage = () => {
         if (data.user.photoURL) {
           storage.setItem("userPhotoURL", data.user.photoURL);
         }
-
-        navigate("/app");
+        
+        // Prevent multiple navigations
+        setIsNavigating(true);
+        
+        // Use setTimeout to ensure storage is set before navigation
+        setTimeout(() => {
+          navigate("/app");
+        }, 100);
       }
       
     } catch (err) {
       setErrors({ general: err.message });
+      setIsNavigating(false);
     } finally {
       setIsLoading(false);
     }
@@ -134,7 +152,7 @@ const LoginPage = () => {
 
   // GOOGLE LOGIN
   const handleGoogleLogin = async () => {
-    if (socialLoading === 'google') return;
+    if (socialLoading === 'google' || isNavigating) return;
     
     try {
       setSocialLoading('google');
@@ -183,6 +201,9 @@ const LoginPage = () => {
       const data = JSON.parse(responseText);
 
       if (data.token && data.user) {
+        // Clear all existing storage first to prevent conflicts
+        clearAllStorage();
+        
         const storage = rememberMe ? localStorage : sessionStorage;
         
         // Clean token before storing
@@ -195,8 +216,14 @@ const LoginPage = () => {
         if (data.user.photoURL) {
           storage.setItem("userPhotoURL", data.user.photoURL);
         }
-
-        navigate("/app");
+        
+        // Prevent multiple navigations
+        setIsNavigating(true);
+        
+        // Use setTimeout to ensure storage is set before navigation
+        setTimeout(() => {
+          navigate("/app");
+        }, 100);
       }
 
     } catch (error) {
@@ -286,7 +313,7 @@ const LoginPage = () => {
                       placeholder="Enter your email"
                       value={formData.email}
                       onChange={handleChange}
-                      disabled={isLoading || socialLoading !== ''}
+                      disabled={isLoading || socialLoading !== '' || isNavigating}
                     />
                   </div>
                   {errors.email && <span className="error-message-login">{errors.email}</span>}
@@ -304,13 +331,13 @@ const LoginPage = () => {
                       placeholder="Enter your password"
                       value={formData.password}
                       onChange={handleChange}
-                      disabled={isLoading || socialLoading !== ''}
+                      disabled={isLoading || socialLoading !== '' || isNavigating}
                     />
                     <button
                       type="button"
                       className="password-toggle-login"
                       onClick={togglePasswordVisibility}
-                      disabled={isLoading || socialLoading !== ''}
+                      disabled={isLoading || socialLoading !== '' || isNavigating}
                     >
                       {showPassword ? <FaEyeSlash /> : <FaEye />}
                     </button>
@@ -326,7 +353,7 @@ const LoginPage = () => {
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
                       className="remember-checkbox-login"
-                      disabled={isLoading || socialLoading !== ''}
+                      disabled={isLoading || socialLoading !== '' || isNavigating}
                     />
                     <span>Remember me</span>
                   </label>
@@ -340,7 +367,7 @@ const LoginPage = () => {
                 <button
                   type="submit"
                   className={`login-submit-btn-login ${isLoading ? 'loading-login' : ''}`}
-                  disabled={isLoading || socialLoading !== ''}
+                  disabled={isLoading || socialLoading !== '' || isNavigating}
                 >
                   {isLoading ? 'Signing in...' : 'Sign In'}
                 </button>
@@ -353,7 +380,7 @@ const LoginPage = () => {
                       type="button"
                       className={`social-btn-login google-login ${socialLoading === 'google' ? 'loading-login' : ''}`}
                       onClick={handleGoogleLogin}
-                      disabled={isLoading || socialLoading !== ''}
+                      disabled={isLoading || socialLoading !== '' || isNavigating}
                     >
                       {socialLoading === 'google' ? (
                         <span className="loading-spinner-login"></span>

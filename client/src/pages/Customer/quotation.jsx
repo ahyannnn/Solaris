@@ -3,18 +3,23 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
+import { FaClock, FaCheckCircle, FaBuilding, FaExclamationTriangle } from 'react-icons/fa';
 import '../../styles/Customer/quotation.css';
 
 const Quotation = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast, showToast, hideToast } = useToast();
+  const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('projects');
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [detailsItem, setDetailsItem] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('');
   const [paymentProof, setPaymentProof] = useState(null);
   const [paymentReference, setPaymentReference] = useState('');
   
@@ -34,27 +39,47 @@ const Quotation = () => {
   const [payments, setPayments] = useState([]);
 
   useEffect(() => {
+    fetchUserData();
     fetchData();
   }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/clients/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setUser(response.data.client);
+    } catch (err) {
+      console.error('Error fetching user data:', err);
+    }
+  };
+
+  const getFullName = () => {
+    if (!user) return '';
+    return [user.contactFirstName, user.contactMiddleName, user.contactLastName]
+      .filter(n => n)
+      .join(' ');
+  };
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const token = sessionStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       
-      // Fetch free quotes
       const freeQuotesRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes/my-quotes`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFreeQuotes(freeQuotesRes.data.quotes || []);
       
-      // Fetch projects
       const projectsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/my-projects`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setProjects(projectsRes.data.projects || []);
       
-      // Fetch pre-assessments
       const preAssessmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-bookings`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -67,12 +92,17 @@ const Quotation = () => {
         status: assessment.paymentStatus === 'paid' ? 'paid' : 'pending',
         description: 'Pre Assessment Fee',
         bookingReference: assessment.bookingReference,
-        paymentStatus: assessment.paymentStatus
+        paymentStatus: assessment.paymentStatus,
+        propertyType: assessment.propertyType,
+        desiredCapacity: assessment.desiredCapacity,
+        roofType: assessment.roofType,
+        preferredDate: assessment.preferredDate,
+        address: assessment.address,
+        bookedAt: assessment.bookedAt
       })) || [];
       
       setPreAssessments(transformedBills);
       
-      // Fetch payments
       const paymentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/payments`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -81,6 +111,7 @@ const Quotation = () => {
       setLoading(false);
     } catch (err) {
       console.error('Error fetching data:', err);
+      showToast('Failed to load data', 'error');
       setLoading(false);
     }
   };
@@ -105,7 +136,7 @@ const Quotation = () => {
     setIsSubmitting(true);
     
     try {
-      const token = sessionStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/projects/request`, 
         {
@@ -117,7 +148,7 @@ const Quotation = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      alert('Solar installation request submitted successfully! Our team will contact you within 2-3 business days.');
+      showToast('Solar installation request submitted successfully! Our team will contact you within 2-3 business days.', 'success');
       setShowRequestModal(false);
       setSolarRequest({ systemSize: '', propertyType: 'residential', systemType: 'grid-tie', notes: '' });
       
@@ -125,7 +156,7 @@ const Quotation = () => {
       
     } catch (err) {
       console.error('Error submitting solar request:', err);
-      alert(err.response?.data?.message || 'Failed to submit request. Please try again.');
+      showToast(err.response?.data?.message || 'Failed to submit request. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -133,66 +164,74 @@ const Quotation = () => {
 
   const handlePayNow = (preAssessment) => {
     setSelectedItem(preAssessment);
-    setPaymentMethod('');
     setPaymentProof(null);
     setPaymentReference('');
     setShowPaymentModal(true);
   };
 
+  const handleViewDetails = (item, type) => {
+    setDetailsItem(item);
+    setShowDetailsModal(true);
+  };
+
   const handlePaymentSubmit = async () => {
-    if (!paymentMethod) {
-      alert('Please select a payment method');
+    if (!paymentProof) {
+      showToast('Please upload payment proof', 'warning');
       return;
     }
     
-    if (paymentMethod === 'gcash' && !paymentProof) {
-      alert('Please upload payment proof');
-      return;
-    }
-    
-    if (paymentMethod === 'gcash' && !paymentReference) {
-      alert('Please enter GCash reference number');
+    if (!paymentReference) {
+      showToast('Please enter GCash reference number', 'warning');
       return;
     }
 
     setIsSubmitting(true);
     
     try {
-      const token = sessionStorage.getItem('token');
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       
-      if (paymentMethod === 'gcash') {
-        const formData = new FormData();
-        formData.append('bookingReference', selectedItem.bookingReference);
-        formData.append('paymentMethod', 'gcash');
-        formData.append('paymentReference', paymentReference);
-        formData.append('paymentProof', paymentProof);
-        
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem.id}/submit-payment-proof`, formData, {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-      } else if (paymentMethod === 'cash') {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem.id}/cash-payment`, {
-          bookingReference: selectedItem.bookingReference
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+      const formData = new FormData();
+      formData.append('bookingReference', selectedItem.bookingReference);
+      formData.append('paymentMethod', 'gcash');
+      formData.append('paymentReference', paymentReference);
+      formData.append('paymentProof', paymentProof);
+      
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem.id}/submit-payment-proof`, formData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      if (user && user.email) {
+        try {
+          await axios.post(`${import.meta.env.VITE_API_URL}/api/email/send-payment-confirmation`, {
+            email: user.email,
+            name: getFullName(),
+            invoiceNumber: selectedItem.id,
+            amount: selectedItem.amount,
+            referenceNumber: paymentReference,
+            propertyType: selectedItem.propertyType || 'Not specified',
+            preferredDate: selectedItem.preferredDate || new Date().toISOString()
+          });
+          console.log('Payment confirmation email sent successfully');
+        } catch (emailError) {
+          console.error('Failed to send payment confirmation email:', emailError);
+        }
       }
       
       setPreAssessments(prev => prev.map(item => 
         item.id === selectedItem.id 
-          ? { ...item, status: paymentMethod === 'gcash' ? 'for_verification' : 'pending', paymentStatus: paymentMethod === 'gcash' ? 'for_verification' : 'pending' }
+          ? { ...item, status: 'for_verification', paymentStatus: 'for_verification' }
           : item
       ));
       
-      alert('Payment submitted successfully!');
+      showToast('Payment submitted successfully! A confirmation email has been sent. Our team will verify your payment within 24-48 hours.', 'success');
       closeModal();
       fetchData();
     } catch (err) {
       console.error('Payment error:', err);
-      alert(err.response?.data?.message || 'Failed to submit payment. Please try again.');
+      showToast(err.response?.data?.message || 'Failed to submit payment. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -201,7 +240,6 @@ const Quotation = () => {
   const closeModal = () => {
     setShowPaymentModal(false);
     setSelectedItem(null);
-    setPaymentMethod('');
     setPaymentProof(null);
     setPaymentReference('');
   };
@@ -470,7 +508,7 @@ const Quotation = () => {
                   </div>
 
                   <div className="project-actions-quotation">
-                    <button className="action-btn-quotation view-quotation">
+                    <button className="action-btn-quotation view-quotation" onClick={() => handleViewDetails(project, 'project')}>
                       View Details
                     </button>
                     <button className="action-btn-quotation download-quotation">
@@ -511,7 +549,9 @@ const Quotation = () => {
                     {getStatusBadge(quote.status)}
                   </div>
                   <div className="card-actions-quotation">
-                    <button className="action-btn-quotation view-quotation">View Details</button>
+                    <button className="action-btn-quotation view-quotation" onClick={() => handleViewDetails(quote, 'quote')}>
+                      View Details
+                    </button>
                     <button className="action-btn-quotation download-quotation">Download PDF</button>
                   </div>
                 </div>
@@ -547,16 +587,34 @@ const Quotation = () => {
                     <strong>{formatCurrency(assessment.amount)}</strong>
                   </div>
                   <div className="card-actions-quotation">
-                    {(assessment.status === 'pending' || assessment.paymentStatus === 'pending') && (
+                    {(assessment.status === 'pending' && assessment.paymentStatus !== 'for_verification') && (
                       <button className="action-btn-quotation pay-quotation" onClick={() => handlePayNow(assessment)}>
-                        Pay Now
+                        Pay via GCash
                       </button>
                     )}
+                    
                     {assessment.paymentStatus === 'for_verification' && (
-                      <span className="payment-status-quotation">Payment Pending Verification</span>
+                      <span className="payment-status-quotation">
+                        <FaClock style={{ marginRight: '4px' }} /> Payment Pending Verification
+                      </span>
                     )}
-                    <button className="action-btn-quotation view-quotation">View Details</button>
+                    
+                    {assessment.paymentStatus === 'paid' && (
+                      <span className="payment-status-quotation paid-status-quotation">
+                        <FaCheckCircle style={{ marginRight: '4px' }} /> Payment Completed
+                      </span>
+                    )}
+                    
+                    <button className="action-btn-quotation view-quotation" onClick={() => handleViewDetails(assessment, 'assessment')}>
+                      View Details
+                    </button>
                   </div>
+                  
+                  {(assessment.status === 'pending' && assessment.paymentStatus !== 'for_verification' && assessment.paymentStatus !== 'paid') && (
+                    <div className="walkin-note-quotation">
+                      <small><FaBuilding style={{ marginRight: '4px' }} /> For walk-in payment, please visit our office at Purok 2, Masaya, San Jose, Camarines Sur</small>
+                    </div>
+                  )}
                 </div>
               ))
             )}
@@ -600,11 +658,12 @@ const Quotation = () => {
           </div>
         )}
 
-        {/* Payment Modal */}
+        {/* Payment Modal - GCash Only */}
         {showPaymentModal && selectedItem && (
           <div className="modal-overlay-quotation" onClick={closeModal}>
             <div className="modal-content-quotation" onClick={e => e.stopPropagation()}>
-              <h3>Pay Pre-Assessment Fee</h3>
+              <button className="modal-close-quotation" onClick={closeModal}>×</button>
+              <h3>Pay via GCash</h3>
               <div className="modal-body-quotation">
                 <div className="invoice-summary-quotation">
                   <p><strong>Invoice:</strong> {selectedItem.id}</p>
@@ -612,50 +671,36 @@ const Quotation = () => {
                   <p><strong>Due Date:</strong> {selectedItem.dueDate}</p>
                 </div>
 
-                <div className="payment-methods-quotation">
-                  <h4>Select Payment Method</h4>
-                  <div className="payment-options-quotation">
-                    <label className={`payment-option-quotation ${paymentMethod === 'gcash' ? 'selected-quotation' : ''}`}>
-                      <input type="radio" name="paymentMethod" value="gcash" checked={paymentMethod === 'gcash'} onChange={(e) => setPaymentMethod(e.target.value)} />
-                      GCash
-                    </label>
-                    <label className={`payment-option-quotation ${paymentMethod === 'cash' ? 'selected-quotation' : ''}`}>
-                      <input type="radio" name="paymentMethod" value="cash" checked={paymentMethod === 'cash'} onChange={(e) => setPaymentMethod(e.target.value)} />
-                      Cash (Walk-in)
-                    </label>
-                  </div>
+                <div className="gcash-details-quotation">
+                  <h4>GCash Details</h4>
+                  <p>Number: <strong>0917XXXXXXX</strong></p>
+                  <p>Name: <strong>SALFER ENGINEERING CORP</strong></p>
+                  <p>Amount: <strong>{formatCurrency(selectedItem.amount)}</strong></p>
+                </div>
+                
+                <div className="upload-section-quotation">
+                  <label>Reference Number *</label>
+                  <input 
+                    type="text" 
+                    value={paymentReference} 
+                    onChange={(e) => setPaymentReference(e.target.value)} 
+                    placeholder="Enter GCash reference number" 
+                  />
+                </div>
+                
+                <div className="upload-section-quotation">
+                  <label>Upload Payment Screenshot *</label>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={(e) => setPaymentProof(e.target.files[0])} 
+                  />
+                  {paymentProof && <small>Selected: {paymentProof.name}</small>}
                 </div>
 
-                {paymentMethod === 'gcash' && (
-                  <>
-                    <div className="gcash-details-quotation">
-                      <h4>GCash Details</h4>
-                      <p>Number: <strong>0917XXXXXXX</strong></p>
-                      <p>Name: <strong>SALFER ENGINEERING CORP</strong></p>
-                      <p>Amount: <strong>{formatCurrency(selectedItem.amount)}</strong></p>
-                    </div>
-                    <div className="upload-section-quotation">
-                      <label>Reference Number *</label>
-                      <input type="text" value={paymentReference} onChange={(e) => setPaymentReference(e.target.value)} placeholder="Enter GCash reference number" />
-                    </div>
-                    <div className="upload-section-quotation">
-                      <label>Upload Payment Screenshot *</label>
-                      <input type="file" accept="image/*" onChange={(e) => setPaymentProof(e.target.files[0])} />
-                      {paymentProof && <small>Selected: {paymentProof.name}</small>}
-                    </div>
-                  </>
-                )}
-
-                {paymentMethod === 'cash' && (
-                  <div className="cash-details-quotation">
-                    <p>Please visit our office to pay the amount:</p>
-                    <div className="office-info-quotation">
-                      <p><strong>Address:</strong> Purok 2, Masaya, San Jose, Camarines Sur</p>
-                      <p><strong>Office Hours:</strong> Mon-Fri, 9AM-6PM</p>
-                      <p><strong>Amount:</strong> {formatCurrency(selectedItem.amount)}</p>
-                    </div>
-                  </div>
-                )}
+                <div className="walkin-note-quotation" style={{ marginTop: '1rem' }}>
+                  <small><FaExclamationTriangle style={{ marginRight: '4px' }} /> Payment will be verified within 24-48 hours. You will receive a confirmation email once verified.</small>
+                </div>
               </div>
 
               <div className="modal-actions-quotation">
@@ -663,6 +708,92 @@ const Quotation = () => {
                 <button className="submit-btn-quotation" onClick={handlePaymentSubmit} disabled={isSubmitting}>
                   {isSubmitting ? 'Processing...' : 'Submit Payment'}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Details Modal */}
+        {showDetailsModal && detailsItem && (
+          <div className="modal-overlay-quotation" onClick={() => setShowDetailsModal(false)}>
+            <div className="modal-content-quotation details-modal-quotation" onClick={e => e.stopPropagation()}>
+              <button className="modal-close-quotation" onClick={() => setShowDetailsModal(false)}>×</button>
+              <h3>Details Information</h3>
+              
+              <div className="details-content-quotation">
+                {detailsItem.quotationReference ? (
+                  <>
+                    <div className="details-section-quotation">
+                      <h4>Quote Information</h4>
+                      <p><strong>Reference Number:</strong> {detailsItem.quotationReference}</p>
+                      <p><strong>Request Date:</strong> {new Date(detailsItem.requestedAt).toLocaleDateString()}</p>
+                      <p><strong>Status:</strong> {detailsItem.status}</p>
+                    </div>
+                    <div className="details-section-quotation">
+                      <h4>Details</h4>
+                      <p><strong>Property Type:</strong> {detailsItem.propertyType}</p>
+                      <p><strong>Monthly Bill:</strong> {formatCurrency(detailsItem.monthlyBill)}</p>
+                      <p><strong>Desired Capacity:</strong> {detailsItem.desiredCapacity || 'Not specified'}</p>
+                    </div>
+                    <div className="details-section-quotation">
+                      <h4>Address</h4>
+                      <p>{detailsItem.address?.houseOrBuilding} {detailsItem.address?.street}</p>
+                      <p>{detailsItem.address?.barangay}, {detailsItem.address?.cityMunicipality}</p>
+                      <p>{detailsItem.address?.province} {detailsItem.address?.zipCode}</p>
+                    </div>
+                  </>
+                ) : detailsItem.bookingReference ? (
+                  <>
+                    <div className="details-section-quotation">
+                      <h4>Booking Information</h4>
+                      <p><strong>Invoice Number:</strong> {detailsItem.id}</p>
+                      <p><strong>Booking Reference:</strong> {detailsItem.bookingReference}</p>
+                      <p><strong>Booked Date:</strong> {new Date(detailsItem.bookedAt).toLocaleDateString()}</p>
+                      <p><strong>Status:</strong> {
+                        detailsItem.paymentStatus === 'paid' ? 'Paid' : 
+                        detailsItem.paymentStatus === 'for_verification' ? 'For Verification' : 
+                        'Pending'
+                      }</p>
+                    </div>
+                    <div className="details-section-quotation">
+                      <h4>Assessment Details</h4>
+                      <p><strong>Property Type:</strong> {detailsItem.propertyType}</p>
+                      <p><strong>Desired Capacity:</strong> {detailsItem.desiredCapacity || 'Not specified'}</p>
+                      <p><strong>Roof Type:</strong> {detailsItem.roofType || 'Not specified'}</p>
+                      <p><strong>Preferred Date:</strong> {new Date(detailsItem.preferredDate).toLocaleDateString()}</p>
+                      <p><strong>Amount:</strong> {formatCurrency(detailsItem.amount)}</p>
+                    </div>
+                    <div className="details-section-quotation">
+                      <h4>Address</h4>
+                      <p>{detailsItem.address}</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="details-section-quotation">
+                      <h4>Project Information</h4>
+                      <p><strong>Project Name:</strong> {detailsItem.projectName || detailsItem.projectReference}</p>
+                      <p><strong>Project Reference:</strong> {detailsItem.projectReference}</p>
+                      <p><strong>Status:</strong> {detailsItem.status}</p>
+                    </div>
+                    <div className="details-section-quotation">
+                      <h4>System Details</h4>
+                      <p><strong>System Size:</strong> {detailsItem.systemSize}</p>
+                      <p><strong>System Type:</strong> {detailsItem.systemType}</p>
+                      <p><strong>Property Type:</strong> {detailsItem.propertyType}</p>
+                    </div>
+                    <div className="details-section-quotation">
+                      <h4>Financial</h4>
+                      <p><strong>Total Cost:</strong> {formatCurrency(detailsItem.totalCost)}</p>
+                      <p><strong>Amount Paid:</strong> {formatCurrency(detailsItem.amountPaid)}</p>
+                      <p><strong>Balance:</strong> {formatCurrency(detailsItem.totalCost - detailsItem.amountPaid)}</p>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="modal-actions-quotation">
+                <button className="cancel-btn-quotation" onClick={() => setShowDetailsModal(false)}>Close</button>
               </div>
             </div>
           </div>
@@ -728,6 +859,14 @@ const Quotation = () => {
             </div>
           </div>
         )}
+
+        {/* Toast Notification */}
+        <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
       </div>
     </>
   );

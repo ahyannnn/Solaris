@@ -1,4 +1,4 @@
-/* quotation.css - Minimalistic Version */
+/* quotation.css - Complete Updated Version */
 
 .billing-container-quotation {
   margin: 0 auto;
@@ -381,6 +381,40 @@
   align-items: center;
 }
 
+/* Payment Status Messages */
+.payment-status-quotation {
+  font-size: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.payment-status-quotation:not(.paid-status-quotation) {
+  background: #fff3e0;
+  color: #ed6c02;
+}
+
+.paid-status-quotation {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* Walk-in Note */
+.walkin-note-quotation {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed #eaeaea;
+}
+
+.walkin-note-quotation small {
+  font-size: 0.7rem;
+  color: #ed6c02;
+  display: block;
+  text-align: center;
+}
+
 /* Action Buttons */
 .action-btn-quotation {
   padding: 0.5rem 1rem;
@@ -410,9 +444,9 @@
   background: #333;
 }
 
-.payment-status-quotation {
-  font-size: 0.75rem;
-  color: #ed6c02;
+.action-btn-quotation:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Payments Table */
@@ -464,19 +498,32 @@
 .modal-content-quotation {
   background: #fff;
   border-radius: 8px;
-  max-width: 500px;
+  max-width: 550px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
   padding: 1.5rem;
   position: relative;
+  animation: modalFadeIn-quotation 0.3s ease;
+}
+
+@keyframes modalFadeIn-quotation {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .modal-content-quotation h3 {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 500;
   margin: 0 0 0.5rem 0;
   color: #1a1a1a;
+  padding-right: 2rem;
 }
 
 .modal-close-quotation {
@@ -485,28 +532,75 @@
   right: 1rem;
   background: none;
   border: none;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   cursor: pointer;
   color: #999;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
 }
 
 .modal-close-quotation:hover {
+  background: #f5f5f5;
   color: #666;
 }
 
 .modal-subtitle-quotation {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: #666;
-  margin: 0 0 1rem 0;
+  margin: 0 0 1.5rem 0;
 }
 
 .modal-body-quotation {
   margin: 1rem 0;
+}
+
+/* Details Modal Specific */
+.details-modal-quotation {
+  max-width: 600px;
+}
+
+.details-content-quotation {
+  margin: 1rem 0;
+}
+
+.details-section-quotation {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.details-section-quotation:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.details-section-quotation h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #666;
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.details-section-quotation p {
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+  color: #1a1a1a;
+  line-height: 1.5;
+}
+
+.details-section-quotation p strong {
+  font-weight: 500;
+  color: #666;
+  min-width: 140px;
+  display: inline-block;
 }
 
 /* Invoice Summary */
@@ -518,49 +612,12 @@
 }
 
 .invoice-summary-quotation p {
-  margin: 0.25rem 0;
+  margin: 0.5rem 0;
   font-size: 0.875rem;
-}
-
-/* Payment Methods */
-.payment-methods-quotation h4 {
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin: 0 0 0.75rem 0;
-  color: #1a1a1a;
-}
-
-.payment-options-quotation {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-
-.payment-option-quotation {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border: 1px solid #eaeaea;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.875rem;
-}
-
-.payment-option-quotation.selected-quotation {
-  border-color: #1a1a1a;
-  background: #f5f5f5;
-}
-
-.payment-option-quotation input {
-  margin: 0;
 }
 
 /* GCash Details */
-.gcash-details-quotation,
-.cash-details-quotation {
+.gcash-details-quotation {
   background: #fafafa;
   padding: 1rem;
   border-radius: 6px;
@@ -568,23 +625,16 @@
 }
 
 .gcash-details-quotation h4 {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.75rem 0;
   color: #1a1a1a;
 }
 
-.gcash-details-quotation p,
-.cash-details-quotation p {
-  font-size: 0.8125rem;
-  margin: 0.25rem 0;
+.gcash-details-quotation p {
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
   color: #666;
-}
-
-.office-info-quotation {
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid #ddd;
 }
 
 /* Upload Section */
@@ -594,18 +644,26 @@
 
 .upload-section-quotation label {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
   color: #666;
 }
 
-.upload-section-quotation input {
+.upload-section-quotation input[type="text"],
+.upload-section-quotation input[type="file"] {
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.625rem;
   border: 1px solid #eaeaea;
   border-radius: 4px;
   font-size: 0.875rem;
+  font-family: inherit;
+}
+
+.upload-section-quotation input[type="text"]:focus,
+.upload-section-quotation input[type="file"]:focus {
+  outline: none;
+  border-color: #999;
 }
 
 .upload-section-quotation small {
@@ -617,14 +675,14 @@
 
 /* Form Group */
 .form-group-quotation {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-group-quotation label {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
   color: #666;
 }
 
@@ -637,6 +695,7 @@
   border-radius: 4px;
   font-size: 0.875rem;
   font-family: inherit;
+  transition: border-color 0.2s;
 }
 
 .form-group-quotation select:focus,
@@ -647,7 +706,7 @@
 }
 
 .error-text-quotation {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #dc3545;
   display: block;
   margin-top: 0.25rem;
@@ -655,23 +714,25 @@
 
 /* Info Box */
 .info-box-quotation {
-  display: flex;
-  gap: 0.75rem;
-  background: #f5f5f5;
+  background: #f8f9fa;
   padding: 1rem;
   border-radius: 6px;
   margin-top: 1rem;
+  border-left: 3px solid #1a1a1a;
 }
 
 .info-box-quotation strong {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: #1a1a1a;
+  display: block;
+  margin-bottom: 0.5rem;
 }
 
 .info-box-quotation p {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: #666;
-  margin: 0.25rem 0 0 0;
+  margin: 0;
+  line-height: 1.4;
 }
 
 /* Modal Actions */
@@ -679,21 +740,26 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eaeaea;
 }
 
 .cancel-btn-quotation {
   padding: 0.625rem 1.25rem;
-  background: #f5f5f5;
+  background: #fff;
   border: 1px solid #eaeaea;
   border-radius: 4px;
   font-size: 0.875rem;
   cursor: pointer;
   color: #666;
+  transition: all 0.2s;
 }
 
 .cancel-btn-quotation:hover {
-  background: #eaeaea;
+  background: #f5f5f5;
+  border-color: #ddd;
+  color: #1a1a1a;
 }
 
 .submit-btn-quotation {
@@ -704,6 +770,7 @@
   border-radius: 4px;
   font-size: 0.875rem;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .submit-btn-quotation:hover:not(:disabled) {
@@ -739,48 +806,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .billing-container-quotation {
-    padding: 1rem;
-  }
-  
-  .billing-header-quotation {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .billing-tabs-quotation {
-    gap: 0;
-  }
-  
-  .tab-btn-quotation {
-    padding: 0.625rem 1rem;
-    font-size: 0.75rem;
-  }
-  
-  .project-actions-quotation,
-  .card-actions-quotation {
-    flex-direction: column;
-  }
-  
-  .action-btn-quotation {
-    width: 100%;
-    text-align: center;
-  }
-  
-  .payment-options-quotation {
-    flex-direction: column;
-  }
-  
-  .modal-content-quotation {
-    margin: 1rem;
-  }
-}
-
-/* Add these skeleton styles to your existing quotation.css */
-
-/* Skeleton Base */
+/* Skeleton Styles */
 .skeleton-line-quotation {
   background: #f0f0f0;
   border-radius: 4px;
@@ -893,8 +919,46 @@
   }
 }
 
-/* Responsive skeleton */
+/* Responsive */
 @media (max-width: 768px) {
+  .billing-container-quotation {
+    padding: 1rem;
+  }
+  
+  .billing-header-quotation {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .billing-tabs-quotation {
+    gap: 0;
+  }
+  
+  .tab-btn-quotation {
+    padding: 0.625rem 1rem;
+    font-size: 0.75rem;
+  }
+  
+  .project-actions-quotation,
+  .card-actions-quotation {
+    flex-direction: column;
+  }
+  
+  .action-btn-quotation {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .modal-content-quotation {
+    margin: 1rem;
+    padding: 1rem;
+  }
+  
+  .details-section-quotation p strong {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+  
   .skeleton-table-header-quotation,
   .skeleton-table-row-quotation {
     grid-template-columns: repeat(3, 1fr);

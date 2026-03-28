@@ -45,7 +45,7 @@ import SystemPerformance from './pages/Customer/systemperformance';
 import CustomerReports from './pages/Customer/reports';
 import Supports from './pages/Customer/supports';
 import CustomerProfile from './pages/Customer/profile';
-import CustomerSettings from './pages/Customer/customerSettings';
+import CustomerSettings from './pages/Customer/customersettings';
 
 // Helper function to get user data from storage (checks both localStorage and sessionStorage)
 const getUserData = () => {

@@ -42,6 +42,8 @@ import '../../styles/Dashboard/dashboard.css';
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [initialized, setInitialized] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const profileRef = useRef(null);
   const notificationsRef = useRef(null);
@@ -97,9 +99,12 @@ const Dashboard = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Handle user authentication and initial redirect
+  // Handle user authentication and initial redirect - FIXED
   useEffect(() => {
-    // Simple check - read from both storages
+    // Prevent multiple initializations and navigation attempts
+    if (initialized || isNavigating) return;
+    
+    // Read from both storages (prioritize localStorage for remember me)
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const role = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
     const name = localStorage.getItem('userName') || sessionStorage.getItem('userName');
@@ -113,6 +118,7 @@ const Dashboard = () => {
 
     // If no token or role found, redirect to login
     if (!token || !role) {
+      setIsNavigating(true);
       navigate('/login');
       return;
     }
@@ -124,17 +130,24 @@ const Dashboard = () => {
       setSidebarOpen(true);
     }
 
-    // Redirect based on role if at root /app path
-    if (location.pathname === '/app') {
-      if (role === 'user') {
-        navigate('/app/customer');
-      } else if (role === 'engineer') {
-        navigate('/app/engineer');
-      } else if (role === 'admin') {
-        navigate('/app/admin');
-      }
+    // Only redirect once on initial load, not on every path change
+    if (!initialized && location.pathname === '/app') {
+      setInitialized(true);
+      
+      // Use setTimeout to prevent navigation conflicts
+      setTimeout(() => {
+        if (role === 'user') {
+          navigate('/app/customer');
+        } else if (role === 'engineer') {
+          navigate('/app/engineer');
+        } else if (role === 'admin') {
+          navigate('/app/admin');
+        }
+      }, 0);
+    } else {
+      setInitialized(true);
     }
-  }, [navigate, location.pathname]);
+  }, [navigate, location.pathname, initialized, isNavigating]);
 
   const [notifications, setNotifications] = useState([
     { id: 1, message: 'New site assessment scheduled', time: '5 min ago', read: false },
@@ -264,35 +277,39 @@ const Dashboard = () => {
   };
 
   const handleSettingsNavigation = (path) => {
+    if (isNavigating) return;
+    setIsNavigating(true);
     navigate(path);
     setSettingsDropdownOpen(false);
+    setTimeout(() => setIsNavigating(false), 500);
   };
 
   const handleSupportNavigation = (path) => {
+    if (isNavigating) return;
+    setIsNavigating(true);
     navigate(path);
     setSupportDropdownOpen(false);
+    setTimeout(() => setIsNavigating(false), 500);
   };
 
   const handleLogout = () => {
+    if (isNavigating) return;
+    setIsNavigating(true);
+    
     // Clear both storages
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userPhotoURL');
-    localStorage.removeItem('token');
-    localStorage.removeItem('clientData');
+    localStorage.clear();
+    sessionStorage.clear();
     
-    sessionStorage.removeItem('userRole');
-    sessionStorage.removeItem('userName');
-    sessionStorage.removeItem('userEmail');
-    sessionStorage.removeItem('userPhotoURL');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('clientData');
-    
-    navigate('/');
+    // Navigate to home
+    setTimeout(() => {
+      navigate('/');
+    }, 100);
   };
 
   const handleNavigation = (path) => {
+    if (isNavigating) return;
+    setIsNavigating(true);
+    
     navigate(path);
     if (window.innerWidth <= 768) {
       setSidebarOpen(false);
@@ -301,11 +318,16 @@ const Dashboard = () => {
     setNotificationsOpen(false);
     setSettingsDropdownOpen(false);
     setSupportDropdownOpen(false);
+    
+    setTimeout(() => setIsNavigating(false), 500);
   };
 
   const handleProfileNavigation = (path) => {
+    if (isNavigating) return;
+    setIsNavigating(true);
     navigate(path);
     setProfileOpen(false);
+    setTimeout(() => setIsNavigating(false), 500);
   };
 
   const markAllAsRead = () => {
@@ -336,6 +358,7 @@ const Dashboard = () => {
                     key={index}
                     onClick={() => handleNavigation(item.path)}
                     className={`customer-nav-link-layout-dashboard ${isActive(item.path) ? 'active-layout-dashboard' : ''}`}
+                    disabled={isNavigating}
                   >
                     <span className="customer-nav-link-label-layout-dashboard">{item.label}</span>
                   </button>
@@ -345,6 +368,7 @@ const Dashboard = () => {
                   <button
                     onClick={() => setSupportDropdownOpen(!supportDropdownOpen)}
                     className={`customer-nav-link-layout-dashboard settings-dropdown-btn-layout-dashboard ${isSupportActive() ? 'active-layout-dashboard' : ''}`}
+                    disabled={isNavigating}
                   >
                     <span className="customer-nav-link-label-layout-dashboard">Support</span>
                     <FaChevronDown className={`dropdown-arrow-layout-dashboard ${supportDropdownOpen ? 'open-layout-dashboard' : ''}`} />
@@ -357,6 +381,7 @@ const Dashboard = () => {
                           key={index}
                           onClick={() => handleSupportNavigation(item.path)}
                           className="settings-dropdown-item-layout-dashboard"
+                          disabled={isNavigating}
                         >
                           <span className="dropdown-item-label-layout-dashboard">{item.label}</span>
                         </button>
@@ -369,6 +394,7 @@ const Dashboard = () => {
                   <button
                     onClick={() => setSettingsDropdownOpen(!settingsDropdownOpen)}
                     className={`customer-nav-link-layout-dashboard settings-dropdown-btn-layout-dashboard ${isSettingsActive() ? 'active-layout-dashboard' : ''}`}
+                    disabled={isNavigating}
                   >
                     <span className="customer-nav-link-label-layout-dashboard">Settings</span>
                     <FaChevronDown className={`dropdown-arrow-layout-dashboard ${settingsDropdownOpen ? 'open-layout-dashboard' : ''}`} />
@@ -381,6 +407,7 @@ const Dashboard = () => {
                           key={index}
                           onClick={() => handleSettingsNavigation(item.path)}
                           className="settings-dropdown-item-layout-dashboard"
+                          disabled={isNavigating}
                         >
                           <span className="dropdown-item-label-layout-dashboard">{item.label}</span>
                         </button>
@@ -396,6 +423,7 @@ const Dashboard = () => {
                 <button
                   className="notification-btn-layout-dashboard"
                   onClick={() => setNotificationsOpen(!notificationsOpen)}
+                  disabled={isNavigating}
                 >
                   <FaBell />
                   {unreadCount > 0 && <span className="notification-badge-layout-dashboard">{unreadCount}</span>}
@@ -431,7 +459,7 @@ const Dashboard = () => {
                       )}
                     </div>
                     <div className="notification-footer-layout-dashboard">
-                      <button onClick={() => handleNavigation('/app/notifications')}>
+                      <button onClick={() => handleNavigation('/app/notifications')} disabled={isNavigating}>
                         View all
                       </button>
                     </div>
@@ -443,6 +471,7 @@ const Dashboard = () => {
                 <button
                   className="profile-btn-layout-dashboard"
                   onClick={() => setProfileOpen(!profileOpen)}
+                  disabled={isNavigating}
                 >
                   {userPhoto ? (
                     <img
@@ -463,17 +492,19 @@ const Dashboard = () => {
                       <button
                         onClick={() => handleProfileNavigation('/app/customer/settings?tab=profile')}
                         className="dropdown-item-layout-dashboard"
+                        disabled={isNavigating}
                       >
                         <FaUserCircle /> My Profile
                       </button>
                       <button
                         onClick={() => handleProfileNavigation('/app/customer/settings?tab=preferences')}
                         className="dropdown-item-layout-dashboard"
+                        disabled={isNavigating}
                       >
                         <FaCog /> Settings
                       </button>
                       <hr />
-                      <button onClick={handleLogout} className="dropdown-item-layout-dashboard logout-layout-dashboard">
+                      <button onClick={handleLogout} className="dropdown-item-layout-dashboard logout-layout-dashboard" disabled={isNavigating}>
                         <FaSignOutAlt /> Logout
                       </button>
                     </div>
@@ -533,6 +564,7 @@ const Dashboard = () => {
               key={index}
               onClick={() => handleNavigation(item.path)}
               className={`nav-item-layout-dashboard ${isActive(item.path) ? 'active-layout-dashboard' : ''}`}
+              disabled={isNavigating}
             >
               <span className="nav-icon-layout-dashboard">{item.icon}</span>
               <span className="nav-label-layout-dashboard">{item.label}</span>
@@ -543,6 +575,14 @@ const Dashboard = () => {
 
       <main className="main-content-layout-dashboard">
         <header className="dashboard-header-layout-dashboard">
+          <button 
+            className="sidebar-toggle-layout-dashboard" 
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            disabled={isNavigating}
+          >
+            <FaBars />
+          </button>
+
           <div className="header-search-layout-dashboard">
             <FaSearch className="search-icon-layout-dashboard" />
             <input
@@ -550,6 +590,7 @@ const Dashboard = () => {
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              disabled={isNavigating}
             />
           </div>
 
@@ -558,6 +599,7 @@ const Dashboard = () => {
               <button
                 className="notification-btn-layout-dashboard"
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
+                disabled={isNavigating}
               >
                 <FaBell />
                 {unreadCount > 0 && <span className="notification-badge-layout-dashboard">{unreadCount}</span>}
@@ -586,7 +628,7 @@ const Dashboard = () => {
                     ))}
                   </div>
                   <div className="notification-footer-layout-dashboard">
-                    <button onClick={() => handleNavigation('/app/notifications')}>
+                    <button onClick={() => handleNavigation('/app/notifications')} disabled={isNavigating}>
                       View all notifications
                     </button>
                   </div>
@@ -598,6 +640,7 @@ const Dashboard = () => {
               <button
                 className="profile-btn-layout-dashboard"
                 onClick={() => setProfileOpen(!profileOpen)}
+                disabled={isNavigating}
               >
                 {userPhoto ? (
                   <img
@@ -618,17 +661,19 @@ const Dashboard = () => {
                     <button
                       onClick={() => handleProfileNavigation(getProfilePath())}
                       className="dropdown-item-layout-dashboard"
+                      disabled={isNavigating}
                     >
                       <FaUserCircle /> My Profile
                     </button>
                     <button
                       onClick={() => handleProfileNavigation(getSettingsPath())}
                       className="dropdown-item-layout-dashboard"
+                      disabled={isNavigating}
                     >
                       <FaCog /> Settings
                     </button>
                     <hr />
-                    <button onClick={handleLogout} className="dropdown-item-layout-dashboard logout-layout-dashboard">
+                    <button onClick={handleLogout} className="dropdown-item-layout-dashboard logout-layout-dashboard" disabled={isNavigating}>
                       <FaSignOutAlt /> Logout
                     </button>
                   </div>

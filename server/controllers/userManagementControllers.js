@@ -1,7 +1,8 @@
+// controllers/userManagementControllers.js
 const User = require('../models/Users');
 const Client = require('../models/Clients');
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs'); // ✅ ADDED FOR PASSWORD HASHING
+const bcrypt = require('bcryptjs');
 
 // @desc    Get all users
 // @route   GET /api/admin/users
@@ -29,9 +30,12 @@ exports.getAllUsers = async (req, res) => {
         clientInfo: client ? {
           firstName: client.contactFirstName,
           lastName: client.contactLastName,
+          middleName: client.contactMiddleName,
           contactNumber: client.contactNumber,
-          account_setup: client.account_setup,
-          client_type: client.client_type
+          birthday: client.birthday,
+          companyName: client.companyName,
+          client_type: client.client_type,
+          account_setup: client.account_setup
         } : null
       };
     }));
@@ -90,7 +94,6 @@ exports.getUserById = async (req, res) => {
 // @desc    Create new user
 // @route   POST /api/admin/users
 // @access  Private (Admin)
-// ✅ FIXED: Now hashes password before saving
 exports.createUser = async (req, res) => {
   try {
     const { email, password, role, fullName, firstName, lastName, contactNumber } = req.body;
@@ -101,7 +104,7 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // ✅ HASH THE PASSWORD BEFORE SAVING
+    // Hash the password before saving
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
@@ -109,7 +112,7 @@ exports.createUser = async (req, res) => {
     const user = new User({
       fullName: fullName || `${firstName || ''} ${lastName || ''}`.trim(),
       email,
-      passwordHash, // ✅ NOW USING HASHED PASSWORD
+      passwordHash,
       provider: 'local',
       role: role || 'user'
     });
@@ -123,7 +126,7 @@ exports.createUser = async (req, res) => {
         contactFirstName: firstName || '',
         contactLastName: lastName || '',
         contactNumber: contactNumber || '',
-        client_type: 'Residential', // Default for new customers
+        client_type: 'Residential',
         account_setup: false
       });
       await client.save();
@@ -158,7 +161,7 @@ exports.createUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { role, fullName, firstName, lastName, contactNumber } = req.body;
+    const { fullName, firstName, lastName, contactNumber } = req.body;
 
     const user = await User.findById(id);
     if (!user) {
@@ -166,12 +169,10 @@ exports.updateUser = async (req, res) => {
     }
 
     // Update user fields
-    if (role) user.role = role;
     if (fullName) user.fullName = fullName;
     await user.save();
 
     // Only update client info for users with role 'user' (customers)
-    // Admin and Engineer don't have client records
     if (user.role === 'user') {
       const client = await Client.findOne({ userId: user._id });
       if (client) {
@@ -190,20 +191,16 @@ exports.updateUser = async (req, res) => {
           needsSave = true;
         }
         
-        // IMPORTANT: NEVER update client_type here
-        // client_type should only be set during initial client creation
-        
         if (needsSave) {
           await client.save();
         }
       } else if (firstName || lastName || contactNumber) {
-        // Create client if it doesn't exist (for existing users being updated to customer)
         const newClient = new Client({
           userId: user._id,
           contactFirstName: firstName || '',
           contactLastName: lastName || '',
           contactNumber: contactNumber || '',
-          client_type: 'Residential', // Default for new customers
+          client_type: 'Residential',
           account_setup: false
         });
         await newClient.save();
@@ -290,7 +287,6 @@ exports.toggleUserStatus = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Toggle the isActive status
     user.isActive = !user.isActive;
     await user.save();
 
@@ -303,6 +299,54 @@ exports.toggleUserStatus = async (req, res) => {
   } catch (error) {
     console.error('Toggle user status error:', error);
     res.status(500).json({ message: 'Failed to toggle user status', error: error.message });
+  }
+};
+
+// @desc    Reset user password (Admin only)
+// @route   PUT /api/admin/users/:id/reset-password
+// @access  Private (Admin)
+exports.resetUserPassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    // Validate password
+    if (!password || password.length < 6) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Password must be at least 6 characters long' 
+      });
+    }
+
+    // Find user
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
+    }
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    // Update password
+    user.passwordHash = passwordHash;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully'
+    });
+
+  } catch (error) {
+    console.error('Reset user password error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to reset password', 
+      error: error.message 
+    });
   }
 };
 
@@ -351,7 +395,6 @@ exports.getUserStats = async (req, res) => {
       { $group: { _id: '$role', count: { $sum: 1 } } }
     ]);
 
-    // Count users with completed setup
     const clientsWithSetup = await Client.countDocuments({ account_setup: true });
     const usersWithSetup = clientsWithSetup;
 

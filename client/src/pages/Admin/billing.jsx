@@ -14,7 +14,10 @@ import {
   FaPlus,
   FaMoneyBillWave,
   FaEnvelope,
-  FaTrash
+  FaTrash,
+  FaEdit,
+  FaSave,
+  FaTimes
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/billing.css';
@@ -27,6 +30,11 @@ const AdminBilling = () => {
   const [assessments, setAssessments] = useState([]);
   const [selectedAssessment, setSelectedAssessment] = useState(null);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [showEditStatusModal, setShowEditStatusModal] = useState(false);
+  const [editStatusData, setEditStatusData] = useState({
+    paymentStatus: '',
+    notes: ''
+  });
   const [verificationNote, setVerificationNote] = useState('');
   
   const [solarInvoices, setSolarInvoices] = useState([]);
@@ -246,6 +254,52 @@ const AdminBilling = () => {
     } catch (error) {
       console.error('Error verifying payment:', error);
       showToast('Failed to verify payment', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // NEW: Handle editing payment status for cash payments
+  const handleEditPaymentStatus = async () => {
+    if (!selectedAssessment) return;
+
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      
+      // Determine the new status and assessment status
+      let newPaymentStatus = editStatusData.paymentStatus;
+      let newAssessmentStatus = selectedAssessment.assessmentStatus;
+      
+      if (newPaymentStatus === 'paid') {
+        newAssessmentStatus = 'scheduled';
+      } else if (newPaymentStatus === 'pending') {
+        newAssessmentStatus = 'pending_payment';
+      } else if (newPaymentStatus === 'failed') {
+        newAssessmentStatus = 'cancelled';
+      }
+      
+      // Update payment status
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedAssessment._id}/update-payment-status`,
+        { 
+          paymentStatus: newPaymentStatus,
+          assessmentStatus: newAssessmentStatus,
+          notes: editStatusData.notes,
+          updatedBy: 'admin'
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      fetchPreAssessments();
+      fetchStats();
+      setShowEditStatusModal(false);
+      setSelectedAssessment(null);
+      setEditStatusData({ paymentStatus: '', notes: '' });
+      showToast(`Payment status updated to ${newPaymentStatus.toUpperCase()}`, 'success');
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      showToast('Failed to update payment status', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -508,7 +562,7 @@ const AdminBilling = () => {
           )}
         </div>
 
-        {/* Stats Cards - No Icons */}
+        {/* Stats Cards */}
         <div className="stats-cards-adminbilling">
           <div className="stat-card-adminbilling revenue-adminbilling">
             <div className="stat-info-adminbilling">
@@ -646,7 +700,8 @@ const AdminBilling = () => {
                       <td>{getPaymentStatusBadge(assessment.paymentStatus)}</td>
                       <td>{getAssessmentStatusBadge(assessment.assessmentStatus)}</td>
                       <td className="actions-adminbilling">
-                        {assessment.paymentStatus === 'for_verification' && (
+                        {/* For GCash payments - needs verification */}
+                        {assessment.paymentMethod === 'gcash' && assessment.paymentStatus === 'for_verification' && (
                           <>
                             <button 
                               className="action-btn-adminbilling view-proof-adminbilling"
@@ -669,9 +724,31 @@ const AdminBilling = () => {
                             </button>
                           </>
                         )}
-                        {assessment.paymentStatus === 'pending' && (
+                        
+                        {/* For Cash payments - can edit status directly */}
+                        {assessment.paymentMethod === 'cash' && assessment.paymentStatus !== 'paid' && (
+                          <button 
+                            className="action-btn-adminbilling edit-status-adminbilling"
+                            onClick={() => {
+                              setSelectedAssessment(assessment);
+                              setEditStatusData({
+                                paymentStatus: assessment.paymentStatus,
+                                notes: ''
+                              });
+                              setShowEditStatusModal(true);
+                            }}
+                            title="Edit Payment Status"
+                          >
+                            <FaEdit />
+                          </button>
+                        )}
+                        
+                        {/* For pending cash payments */}
+                        {assessment.paymentMethod === 'cash' && assessment.paymentStatus === 'pending' && (
                           <span className="no-action-adminbilling">Awaiting Payment</span>
                         )}
+                        
+                        {/* For paid status */}
                         {assessment.paymentStatus === 'paid' && (
                           <span className="verified-badge-adminbilling">Verified</span>
                         )}
@@ -833,7 +910,7 @@ const AdminBilling = () => {
           </div>
         )}
 
-        {/* Verify Payment Modal */}
+        {/* Verify Payment Modal (for GCash) */}
         {showVerifyModal && selectedAssessment && (
           <div className="modal-overlay-adminbilling" onClick={() => setShowVerifyModal(false)}>
             <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
@@ -870,6 +947,63 @@ const AdminBilling = () => {
                 <button className="btn-cancel-adminbilling" onClick={() => setShowVerifyModal(false)}>Cancel</button>
                 <button className="btn-reject-adminbilling" onClick={() => handleVerifyPayment(false)}><FaTimesCircle /> Reject Payment</button>
                 <button className="btn-verify-adminbilling" onClick={() => handleVerifyPayment(true)}><FaCheckCircle /> Verify & Confirm</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Payment Status Modal (for Cash payments) - NEW */}
+        {showEditStatusModal && selectedAssessment && (
+          <div className="modal-overlay-adminbilling" onClick={() => setShowEditStatusModal(false)}>
+            <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
+              <h3>Edit Payment Status</h3>
+              
+              <div className="modal-body-adminbilling">
+                <div className="payment-details-adminbilling">
+                  <div className="detail-row-adminbilling"><span>Booking Reference:</span><strong>{selectedAssessment.bookingReference}</strong></div>
+                  <div className="detail-row-adminbilling"><span>Client:</span><strong>{selectedAssessment.clientId?.contactFirstName} {selectedAssessment.clientId?.contactLastName}</strong></div>
+                  <div className="detail-row-adminbilling"><span>Amount:</span><strong className="amount-adminbilling">{formatCurrency(selectedAssessment.assessmentFee)}</strong></div>
+                  <div className="detail-row-adminbilling"><span>Current Status:</span>
+                    <strong>{getPaymentStatusBadge(selectedAssessment.paymentStatus)}</strong>
+                  </div>
+                </div>
+
+                <div className="form-group-adminbilling">
+                  <label>New Payment Status</label>
+                  <select 
+                    value={editStatusData.paymentStatus} 
+                    onChange={(e) => setEditStatusData({ ...editStatusData, paymentStatus: e.target.value })}
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                  <small className="help-text-adminbilling">Changing status to "Paid" will mark the assessment as scheduled.</small>
+                </div>
+
+                <div className="verification-notes-adminbilling">
+                  <label>Notes (Optional):</label>
+                  <textarea 
+                    rows="3" 
+                    value={editStatusData.notes} 
+                    onChange={(e) => setEditStatusData({ ...editStatusData, notes: e.target.value })} 
+                    placeholder="Add notes about this status change..." 
+                  />
+                </div>
+              </div>
+
+              <div className="modal-actions-adminbilling">
+                <button className="btn-cancel-adminbilling" onClick={() => setShowEditStatusModal(false)}>
+                  <FaTimes /> Cancel
+                </button>
+                <button 
+                  className="btn-save-adminbilling" 
+                  onClick={handleEditPaymentStatus} 
+                  disabled={!editStatusData.paymentStatus || isSubmitting}
+                >
+                  {isSubmitting ? <FaSpinner className="spinning" /> : <FaSave />} 
+                  Save Changes
+                </button>
               </div>
             </div>
           </div>

@@ -164,7 +164,7 @@ exports.getMyFreeQuotes = async (req, res) => {
 
 // @desc    Get free quote by ID
 // @route   GET /api/free-quotes/:id
-// @access  Private (Customer or Admin)
+// @access  Private (Customer, Admin, or Assigned Engineer)
 exports.getFreeQuoteById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -174,7 +174,7 @@ exports.getFreeQuoteById = async (req, res) => {
     const quote = await FreeQuote.findById(id)
       .populate('clientId', 'contactFirstName contactLastName contactNumber')
       .populate('addressId')
-      .populate('assignedEngineerId', 'fullName email')  // Now this will work
+      .populate('assignedEngineerId', 'fullName email')
       .populate({
         path: 'clientId',
         populate: { path: 'userId', select: 'email' }
@@ -187,14 +187,24 @@ exports.getFreeQuoteById = async (req, res) => {
 
     // Check authorization
     const client = await Client.findOne({ userId });
-    if (userRole !== 'admin' && quote.clientId._id.toString() !== client?._id.toString()) {
-      return res.status(403).json({ message: 'Unauthorized' });
+    
+    // Admin can access any quote
+    if (userRole === 'admin') {
+      return res.json({ success: true, quote });
     }
-
-    res.json({
-      success: true,
-      quote
-    });
+    
+    // Customer can access their own quotes
+    if (client && quote.clientId._id.toString() === client._id.toString()) {
+      return res.json({ success: true, quote });
+    }
+    
+    // Engineer can access quotes assigned to them
+    if (userRole === 'engineer' && quote.assignedEngineerId && quote.assignedEngineerId._id.toString() === userId) {
+      return res.json({ success: true, quote });
+    }
+    
+    // Otherwise, unauthorized
+    return res.status(403).json({ message: 'Unauthorized' });
 
   } catch (error) {
     console.error('Get free quote error:', error);
@@ -423,6 +433,7 @@ exports.getEngineerFreeQuotes = async (req, res) => {
     const quotes = await FreeQuote.find(query)
       .populate('clientId', 'contactFirstName contactLastName contactNumber email')
       .populate('addressId')
+      .populate('assignedEngineerId', 'fullName email')  // Make sure this is populated
       .populate({
         path: 'clientId',
         populate: { path: 'userId', select: 'email' }

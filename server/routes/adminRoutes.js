@@ -2,17 +2,14 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
-const { admin } = require('../middleware/roleMiddleware'); // Import admin from roleMiddleware
+const { admin } = require('../middleware/roleMiddleware');
 
 // User Management Controllers
 const userControllers = require('../controllers/userManagementControllers');
 const deviceControllers = require('../controllers/deviceControllers');
 const revenueControllers = require('../controllers/revenueControllers');
 
-// Get verifyToken from authMiddleware
 const { verifyToken } = authMiddleware;
-
-
 
 // Apply admin middleware to all routes
 router.use(verifyToken, admin);
@@ -25,6 +22,7 @@ router.post('/users', userControllers.createUser);
 router.put('/users/:id', userControllers.updateUser);
 router.put('/users/:id/role', userControllers.updateUserRole);
 router.put('/users/:id/toggle-status', userControllers.toggleUserStatus);
+router.put('/users/:id/reset-password', userControllers.resetUserPassword); // ADD THIS LINE
 router.delete('/users/:id', userControllers.deleteUser);
 
 // ============ DEVICE MANAGEMENT ============

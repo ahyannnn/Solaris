@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
+import { 
+  FaMoneyBillWave,
+} from 'react-icons/fa';
 import '../../styles/Customer/scheduleassessment.css';
 
 const ScheduleAssessment = () => {
@@ -36,7 +39,8 @@ const ScheduleAssessment = () => {
     propertyType: 'residential',
     desiredCapacity: '',
     roofType: '',
-    preferredDate: ''
+    preferredDate: '',
+    paymentMethod: 'gcash' // Add payment method field
   });
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -157,11 +161,10 @@ const ScheduleAssessment = () => {
       console.log('Quote confirmation email sent successfully');
     } catch (emailError) {
       console.error('Failed to send quote confirmation email:', emailError);
-      // Don't show error to user, just log it
     }
   };
 
-  const sendPreAssessmentConfirmationEmail = async (invoiceNumber, amount, propertyType, desiredCapacity, roofType, preferredDate, address) => {
+  const sendPreAssessmentConfirmationEmail = async (invoiceNumber, amount, propertyType, desiredCapacity, roofType, preferredDate, address, paymentMethod) => {
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/email/send-pre-assessment-confirmation`, {
         email: user.email,
@@ -172,12 +175,12 @@ const ScheduleAssessment = () => {
         desiredCapacity: desiredCapacity,
         roofType: roofType,
         preferredDate: preferredDate,
-        address: address
+        address: address,
+        paymentMethod: paymentMethod
       });
       console.log('Pre-assessment confirmation email sent successfully');
     } catch (emailError) {
       console.error('Failed to send pre-assessment confirmation email:', emailError);
-      // Don't show error to user, just log it
     }
   };
 
@@ -208,7 +211,6 @@ const ScheduleAssessment = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Send email confirmation after successful submission
       await sendQuoteConfirmationEmail(
         response.data.quote.quotationReference,
         freeQuoteData.monthlyBill,
@@ -217,21 +219,17 @@ const ScheduleAssessment = () => {
         getFullAddress()
       );
 
-      // Close modal and set submitted data
       setShowFreeQuoteConfirm(false);
       setSubmittedData({
         reference: response.data.quote.quotationReference,
         type: 'free-quote'
       });
       
-      // Force reset the current step and set submitted to true
       setCurrentStep('service-selection');
       setSubmitted(true);
       
-      // Show success toast
       showToast('Quote request submitted successfully! A confirmation email has been sent to your email address.', 'success');
       
-      // Reset submitting state
       setIsSubmitting(false);
       
     } catch (err) {
@@ -247,6 +245,7 @@ const ScheduleAssessment = () => {
     if (!formData.propertyType) errors.propertyType = 'Property type is required';
     if (!formData.preferredDate) errors.preferredDate = 'Preferred date is required';
     if (!selectedAddress) errors.address = 'Please select an address';
+    if (!formData.paymentMethod) errors.paymentMethod = 'Please select a payment method';
     return errors;
   };
 
@@ -278,14 +277,14 @@ const ScheduleAssessment = () => {
         propertyType: formData.propertyType,
         desiredCapacity: formData.desiredCapacity,
         roofType: formData.roofType,
-        preferredDate: formData.preferredDate
+        preferredDate: formData.preferredDate,
+        paymentMethod: formData.paymentMethod // Include payment method in payload
       };
 
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, bookingPayload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Send email confirmation after successful booking
       await sendPreAssessmentConfirmationEmail(
         response.data.booking.invoiceNumber,
         response.data.booking.assessmentFee,
@@ -293,12 +292,16 @@ const ScheduleAssessment = () => {
         formData.desiredCapacity,
         formData.roofType,
         formData.preferredDate,
-        getFullAddress()
+        getFullAddress(),
+        formData.paymentMethod
       );
 
       setShowConfirmDialog(false);
       setTermsAccepted(false);
-      showToast('Pre-assessment booked successfully! A confirmation email has been sent. Redirecting to payment...', 'success');
+      
+      // If payment method is cash, redirect to billing page
+      // If GCash, they will upload proof after booking
+      showToast('Pre-assessment booked successfully! A confirmation email has been sent.', 'success');
       
       setTimeout(() => {
         navigate('/app/customer/billing', { 
@@ -306,7 +309,8 @@ const ScheduleAssessment = () => {
             newInvoice: {
               id: response.data.booking.invoiceNumber,
               amount: response.data.booking.assessmentFee,
-              description: 'Pre Assessment Fee'
+              description: 'Pre Assessment Fee',
+              paymentMethod: formData.paymentMethod
             }
           }
         });
@@ -748,13 +752,75 @@ const ScheduleAssessment = () => {
                     />
                     {validationErrors.preferredDate && <small className="schedule-error-text-cusset">{validationErrors.preferredDate}</small>}
                   </div>
+
+                  {/* PAYMENT METHOD SELECTION - NEW */}
+                  <div className="schedule-form-group-cusset full-width-cusset">
+                    <label>Payment Method *</label>
+                    <div className="payment-methods-grid-cusset">
+                      <div 
+                        className={`payment-method-option-cusset ${formData.paymentMethod === 'gcash' ? 'selected-cusset' : ''}`}
+                        onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'gcash' }))}
+                      >
+                        <div className="payment-method-radio-cusset">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="gcash"
+                            checked={formData.paymentMethod === 'gcash'}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+                        <div className="payment-method-icon-cusset">
+                          <img src="/images/gcash-logo.png" alt="GCash" className="payment-icon-cusset" />
+                        </div>
+                        <div className="payment-method-info-cusset">
+                          <strong>GCash</strong>
+                          <small>Pay via GCash mobile wallet</small>
+                        </div>
+                        <div className="payment-method-desc-cusset">
+                          <p>You will be asked to upload payment proof after booking.</p>
+                        </div>
+                      </div>
+
+                      <div 
+                        className={`payment-method-option-cusset ${formData.paymentMethod === 'cash' ? 'selected-cusset' : ''}`}
+                        onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'cash' }))}
+                      >
+                        <div className="payment-method-radio-cusset">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="cash"
+                            checked={formData.paymentMethod === 'cash'}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+                        <div className="payment-method-icon-cusset">
+                          <FaMoneyBillWave size={32} color="#2ecc71" />
+                        </div>
+                        <div className="payment-method-info-cusset">
+                          <strong>Cash</strong>
+                          <small>Pay in cash at our office</small>
+                        </div>
+                        <div className="payment-method-desc-cusset">
+                          <p>Visit our office to complete payment. The assessment will be scheduled upon payment.</p>
+                        </div>
+                      </div>
+                    </div>
+                    {validationErrors.paymentMethod && <small className="schedule-error-text-cusset">{validationErrors.paymentMethod}</small>}
+                  </div>
                 </div>
 
                 <div className="schedule-fee-card-cusset">
                   <div className="schedule-fee-info-cusset">
                     <div>
                       <strong>Pre Assessment Fee: ₱1,500.00</strong>
-                      <p>You will be redirected to the billing page to complete payment after booking.</p>
+                      <p>
+                        {formData.paymentMethod === 'gcash' 
+                          ? 'You will be redirected to the billing page to upload your GCash payment proof after booking.'
+                          : 'Please visit our office to complete payment. The assessment will be scheduled upon payment confirmation.'
+                        }
+                      </p>
                       <p style={{ color: '#2ecc71', fontSize: '12px', marginTop: '8px' }}>✓ A confirmation email will be sent to your registered email address.</p>
                     </div>
                   </div>
@@ -762,7 +828,7 @@ const ScheduleAssessment = () => {
 
                 <div className="form-actions-cusset">
                   <button onClick={handleSubmitClick} className="schedule-btn-submit-cusset">
-                    Continue to Payment
+                    Continue to Confirmation
                   </button>
                 </div>
               </div>
@@ -790,6 +856,7 @@ const ScheduleAssessment = () => {
                     <p><strong>Desired Capacity:</strong> {formData.desiredCapacity || 'Not specified'}</p>
                     <p><strong>Roof Type:</strong> {formData.roofType || 'Not specified'}</p>
                     <p><strong>Preferred Date:</strong> {formData.preferredDate}</p>
+                    <p><strong>Payment Method:</strong> {formData.paymentMethod === 'gcash' ? 'GCash' : 'Cash'}</p>
                     <p><strong>Pre Assessment Fee:</strong> ₱1,500.00</p>
                   </div>
                 </div>
@@ -814,7 +881,7 @@ const ScheduleAssessment = () => {
                     disabled={!termsAccepted || isSubmitting}
                     className="schedule-btn-success-cusset"
                   >
-                    {isSubmitting ? 'Processing...' : 'Confirm & Proceed to Payment'}
+                    {isSubmitting ? 'Processing...' : 'Confirm Booking'}
                   </button>
                 </div>
               </div>

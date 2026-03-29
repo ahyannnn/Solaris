@@ -1,3 +1,4 @@
+// routes/preAssessmentRoutes.js
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
@@ -27,14 +28,12 @@ const {
   getAssessmentComments,
   getIoTData,
   // Admin functions
-  deployDevice,     // Admin only
-  retrieveDevice    // Admin only
+  deployDevice,
+  retrieveDevice,
+  updatePaymentStatus  // ADD THIS IMPORT
 } = require('../controllers/preAssessmentControllers');
 
 // ============ CUSTOMER ROUTES ============
-
-router.post('/:id/submit-payment-proof', verifyToken, upload.single('paymentProof'), submitPaymentProof);
-router.post('/:id/cash-payment', verifyToken, cashPayment);
 router.get('/payments', verifyToken, getPaymentHistory);
 router.get('/my-bookings', verifyToken, getMyPreAssessments);
 
@@ -43,33 +42,18 @@ router.get('/stats', verifyToken, admin, getPreAssessmentStats);
 router.get('/', verifyToken, admin, getAllPreAssessments);
 router.put('/:id/verify-payment', verifyToken, admin, verifyPayment);
 router.put('/:id/assign-engineer', verifyToken, admin, assignEngineer);
+router.put('/:id/update-payment-status', verifyToken, admin, updatePaymentStatus);  // ADD THIS ROUTE
 
 // ============ ENGINEER DEVICE FUNCTIONS ============
-// Engineer deploys device on site
 router.post('/:id/deploy-device', verifyToken, engineer, deployDevice);
-
-// Engineer retrieves device after 7 days
 router.post('/:id/retrieve-device', verifyToken, engineer, retrieveDevice);
-
-// Engineer views IoT data
 router.get('/:id/iot-data', verifyToken, engineer, getIoTData);
 
-// ============ ENGINEER FUNCTIONS (Read-only for IoT data) ============
-// Engineer views assigned assessments
+// ============ ENGINEER FUNCTIONS ============
 router.get('/engineer/my-assessments', verifyToken, engineer, getEngineerAssessments);
-
-
-
-// Engineer updates site assessment notes
 router.put('/:id/update-assessment', verifyToken, engineer, updateSiteAssessment);
-
-// Engineer uploads quotation
 router.post('/:id/upload-quotation', verifyToken, engineer, upload.single('quotation'), uploadQuotationPDF);
-
-// Engineer views documents
 router.get('/:id/documents', verifyToken, getAssessmentDocuments);
-
-// Engineer adds comments
 router.post('/:id/add-comment', verifyToken, engineer, addEngineerComment);
 router.get('/:id/comments', verifyToken, getAssessmentComments);
 

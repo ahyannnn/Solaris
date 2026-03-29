@@ -102,9 +102,9 @@ function App() {
     setUserRole(role);
     
     // Debug log
-    console.log('App mounted - User role from storage:', role);
-    console.log('sessionStorage items:', sessionStorage);
-    console.log('localStorage items:', localStorage);
+   // console.log('App mounted - User role from storage:', role);
+    //console.log('sessionStorage items:', sessionStorage);
+   // console.log('localStorage items:', localStorage);
   }, []);
 
   return (

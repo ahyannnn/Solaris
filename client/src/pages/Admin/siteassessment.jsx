@@ -49,6 +49,8 @@ const SiteAssessment = () => {
   const [showAssignEngineerModal, setShowAssignEngineerModal] = useState(false);
   const [showAssignDeviceModal, setShowAssignDeviceModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [approveNotes, setApproveNotes] = useState('');
   const [verificationNote, setVerificationNote] = useState('');
   const [engineerId, setEngineerId] = useState('');
   const [deviceId, setDeviceId] = useState('');
@@ -64,7 +66,7 @@ const SiteAssessment = () => {
   const [devices, setDevices] = useState([]);
   const [stats, setStats] = useState({
     freeQuotes: { total: 0, pending: 0, assigned: 0, processing: 0, completed: 0 },
-    preAssessments: { total: 0, pending: 0, forVerification: 0, paid: 0, scheduled: 0, completed: 0 }
+    preAssessments: { total: 0, pendingReview: 0, pendingPayment: 0, forVerification: 0, paid: 0, scheduled: 0, completed: 0 }
   });
 
   useEffect(() => {
@@ -151,7 +153,8 @@ const SiteAssessment = () => {
         },
         preAssessments: {
           total: assessments.length,
-          pending: assessments.filter(a => a.paymentStatus === 'pending').length,
+          pendingReview: assessments.filter(a => a.assessmentStatus === 'pending_review').length,
+          pendingPayment: assessments.filter(a => a.assessmentStatus === 'pending_payment').length,
           forVerification: assessments.filter(a => a.paymentStatus === 'for_verification').length,
           paid: assessments.filter(a => a.paymentStatus === 'paid').length,
           scheduled: assessments.filter(a => a.assessmentStatus === 'scheduled').length,
@@ -180,6 +183,29 @@ const SiteAssessment = () => {
     }
   };
 
+  const handleApproveBooking = async (approved) => {
+    if (!selectedItem) return;
+
+    try {
+      const token = sessionStorage.getItem('token');
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}/approve-booking`,
+        { approved, notes: approveNotes },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert(approved ? 'Booking approved! Invoice generated.' : 'Booking rejected.');
+      setShowApproveModal(false);
+      setSelectedItem(null);
+      setApproveNotes('');
+      fetchData();
+      fetchStats();
+    } catch (error) {
+      console.error('Error approving booking:', error);
+      alert('Failed to process booking');
+    }
+  };
+
   const handleVerifyPayment = async (verified) => {
     if (!selectedItem) return;
 
@@ -203,44 +229,41 @@ const SiteAssessment = () => {
     }
   };
 
-  // Update the handleAssignEngineer function
-const handleAssignEngineer = async () => {
-  if (!selectedItem || !engineerId) return;
+  const handleAssignEngineer = async () => {
+    if (!selectedItem || !engineerId) return;
 
-  try {
-    const token = sessionStorage.getItem('token');
+    try {
+      const token = sessionStorage.getItem('token');
 
-    if (activeTab === 'free-quotes') {
-      // For free quotes, call the combined endpoint that assigns engineer AND updates status
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/free-quotes/${selectedItem._id}/assign-engineer`,
-        { engineerId, notes: siteVisitNotes },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      alert('Engineer assigned to free quote successfully');
-    } else {
-      // For pre-assessments
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}/assign-engineer`,
-        { engineerId, siteVisitDate, notes: siteVisitNotes },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      alert('Engineer assigned successfully');
+      if (activeTab === 'free-quotes') {
+        await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/free-quotes/${selectedItem._id}/assign-engineer`,
+          { engineerId, notes: siteVisitNotes },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        alert('Engineer assigned to free quote successfully');
+      } else {
+        await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}/assign-engineer`,
+          { engineerId, siteVisitDate, notes: siteVisitNotes },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        alert('Engineer assigned successfully');
+      }
+
+      setShowAssignEngineerModal(false);
+      setSelectedItem(null);
+      setEngineerId('');
+      setSiteVisitDate('');
+      setSiteVisitNotes('');
+      fetchData();
+      fetchStats();
+    } catch (error) {
+      console.error('Error assigning engineer:', error);
+      console.error('Error response:', error.response?.data);
+      alert(error.response?.data?.message || 'Failed to assign engineer');
     }
-
-    setShowAssignEngineerModal(false);
-    setSelectedItem(null);
-    setEngineerId('');
-    setSiteVisitDate('');
-    setSiteVisitNotes('');
-    fetchData();
-    fetchStats();
-  } catch (error) {
-    console.error('Error assigning engineer:', error);
-    console.error('Error response:', error.response?.data);
-    alert(error.response?.data?.message || 'Failed to assign engineer');
-  }
-};
+  };
 
   const handleAssignDevice = async () => {
     if (!selectedItem || !deviceId) return;
@@ -263,7 +286,6 @@ const handleAssignEngineer = async () => {
       setSelectedItem(null);
       setDeviceId('');
 
-      // Refresh all data
       await fetchData();
       await fetchStats();
       await fetchDevices();
@@ -331,6 +353,7 @@ const handleAssignEngineer = async () => {
         'cancelled': <span className="status-badge-siteassesad cancelled-siteassesad">Cancelled</span>
       },
       'pre-assessment': {
+        'pending_review': <span className="status-badge-siteassesad pending-review-siteassesad">Pending Review</span>,
         'pending_payment': <span className="status-badge-siteassesad pending-siteassesad">Pending Payment</span>,
         'pending': <span className="status-badge-siteassesad pending-siteassesad">Pending</span>,
         'for_verification': <span className="status-badge-siteassesad for-verification-siteassesad">For Verification</span>,
@@ -345,15 +368,18 @@ const handleAssignEngineer = async () => {
     return badges[type]?.[status] || <span className="status-badge-siteassesad">{status}</span>;
   };
 
-  // Helper function to determine the correct status for display
   const getDisplayStatus = (item) => {
     if (activeTab === 'pre-assessments') {
+      // Show "Pending Review" for new bookings waiting for admin approval
+      if (item.assessmentStatus === 'pending_review') {
+        return 'pending_review';
+      }
+      
       // If payment is not verified yet, show payment status
-      if (item.paymentStatus !== 'paid') {
+      if (item.paymentStatus !== 'paid' && item.paymentStatus !== 'pending' && item.assessmentStatus !== 'pending_payment') {
         return item.paymentStatus;
       }
 
-      // If the assessment is already in a later stage, show the actual status
       if (item.assessmentStatus === 'device_deployed' ||
         item.assessmentStatus === 'data_collecting' ||
         item.assessmentStatus === 'data_analyzing' ||
@@ -362,23 +388,17 @@ const handleAssignEngineer = async () => {
         return item.assessmentStatus;
       }
 
-      // Check if device is assigned (either through assignedDeviceId, iotDeviceId, or assignedDevice)
       const hasDeviceAssigned = item.assignedDeviceId || item.iotDeviceId || item.assignedDevice;
-
-      // Check if engineer is assigned
       const hasEngineerAssigned = item.assignedEngineerId;
 
-      // If both engineer and device are assigned, show "Site Visit Ongoing"
       if (hasEngineerAssigned && hasDeviceAssigned) {
         return 'site_visit_ongoing';
       }
 
-      // If only engineer assigned but no device, show "Scheduled"
       if (hasEngineerAssigned && !hasDeviceAssigned) {
         return 'scheduled';
       }
 
-      // Otherwise use the regular status
       return item.assessmentStatus || 'scheduled';
     }
     return item.status;
@@ -392,7 +412,6 @@ const handleAssignEngineer = async () => {
       (activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference)?.toLowerCase().includes(searchLower);
   });
 
-  // Helper function to get engineer name safely
   const getEngineerName = (engineer) => {
     if (!engineer) return 'Not assigned';
     if (typeof engineer === 'object') {
@@ -401,7 +420,6 @@ const handleAssignEngineer = async () => {
     return engineer;
   };
 
-  // Helper function to get device ID safely
   const getDeviceId = (device) => {
     if (!device) return 'Not assigned';
     if (typeof device === 'object') {
@@ -410,12 +428,10 @@ const handleAssignEngineer = async () => {
     return device;
   };
 
-  // Helper function to check if device is assigned
   const hasDeviceAssigned = (item) => {
     return item.assignedDeviceId || item.iotDeviceId || item.assignedDevice;
   };
 
-  // Skeleton Loader
   const SkeletonLoader = () => (
     <div className="site-assessment-siteassesad">
       <div className="assessment-header-siteassesad">
@@ -456,13 +472,11 @@ const handleAssignEngineer = async () => {
       </Helmet>
 
       <div className="site-assessment-siteassesad">
-        {/* Header */}
         <div className="assessment-header-siteassesad">
           <h1>Site Assessment Management</h1>
           <p>Manage free quote requests and pre-assessment bookings</p>
         </div>
 
-        {/* Stats Summary */}
         <div className="assessment-stats-siteassesad">
           <div className="stat-card-siteassesad free-quote-siteassesad">
             <div className="stat-info-siteassesad">
@@ -481,7 +495,7 @@ const handleAssignEngineer = async () => {
               <span className="stat-value-siteassesad">{stats.preAssessments.total}</span>
               <span className="stat-label-siteassesad">Pre-Assessments</span>
               <div className="stat-detail-siteassesad">
-                <span>Pending: {stats.preAssessments.pending}</span>
+                <span>Pending Review: {stats.preAssessments.pendingReview}</span>
                 <span>For Verification: {stats.preAssessments.forVerification}</span>
                 <span>Completed: {stats.preAssessments.completed}</span>
               </div>
@@ -489,7 +503,6 @@ const handleAssignEngineer = async () => {
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="assessment-tabs-siteassesad">
           <button
             className={`tab-btn-siteassesad ${activeTab === 'free-quotes' ? 'active-siteassesad' : ''}`}
@@ -505,7 +518,6 @@ const handleAssignEngineer = async () => {
           </button>
         </div>
 
-        {/* Filters */}
         <div className="assessment-filters-siteassesad">
           <div className="filter-group-siteassesad">
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
@@ -519,6 +531,7 @@ const handleAssignEngineer = async () => {
                 </>
               ) : (
                 <>
+                  <option value="pending_review">Pending Review</option>
                   <option value="pending_payment">Pending Payment</option>
                   <option value="for_verification">For Verification</option>
                   <option value="paid">Paid</option>
@@ -541,7 +554,6 @@ const handleAssignEngineer = async () => {
           </div>
         </div>
 
-        {/* Table */}
         <div className="assessment-table-container-siteassesad">
           <table className="assessment-table-siteassesad">
             <thead>
@@ -598,6 +610,26 @@ const handleAssignEngineer = async () => {
                         <FaEye />
                       </button>
 
+                      {/* Admin Approve/Reject for Pending Review Bookings */}
+                      {activeTab === 'pre-assessments' && item.assessmentStatus === 'pending_review' && (
+                        <>
+                          <button
+                            className="action-btn-siteassesad approve-booking-siteassesad"
+                            onClick={() => { setSelectedItem(item); setShowApproveModal(true); }}
+                            title="Approve Booking"
+                          >
+                            <FaCheckCircle />
+                          </button>
+                          <button
+                            className="action-btn-siteassesad reject-booking-siteassesad"
+                            onClick={() => handleApproveBooking(false)}
+                            title="Reject Booking"
+                          >
+                            <FaTimesCircle />
+                          </button>
+                        </>
+                      )}
+
                       {/* Free Quote Actions */}
                       {activeTab === 'free-quotes' && item.status === 'pending' && (
                         <button
@@ -609,7 +641,6 @@ const handleAssignEngineer = async () => {
                         </button>
                       )}
 
-                      {/* Free Quote Actions - When assigned, can mark as processing */}
                       {activeTab === 'free-quotes' && item.status === 'assigned' && (
                         <button
                           className="action-btn-siteassesad process-siteassesad"
@@ -620,7 +651,6 @@ const handleAssignEngineer = async () => {
                         </button>
                       )}
 
-                      {/* Free Quote Actions - When processing, can mark as completed */}
                       {activeTab === 'free-quotes' && item.status === 'processing' && (
                         <button
                           className="action-btn-siteassesad complete-siteassesad"
@@ -631,7 +661,7 @@ const handleAssignEngineer = async () => {
                         </button>
                       )}
 
-                      {/* Pre-Assessment Actions - Verify Payment */}
+                      {/* Pre-Assessment Actions - Verify Payment (after invoice generated) */}
                       {activeTab === 'pre-assessments' && item.paymentStatus === 'for_verification' && (
                         <>
                           <button
@@ -665,7 +695,7 @@ const handleAssignEngineer = async () => {
                           </button>
                         )}
 
-                      {/* Pre-Assessment Actions - Assign Device (after engineer assigned, before device assigned) */}
+                      {/* Pre-Assessment Actions - Assign Device (after engineer assigned) */}
                       {activeTab === 'pre-assessments' &&
                         item.paymentStatus === 'paid' &&
                         item.assignedEngineerId &&
@@ -686,7 +716,6 @@ const handleAssignEngineer = async () => {
           </table>
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="pagination-siteassesad">
             <button
@@ -704,6 +733,47 @@ const handleAssignEngineer = async () => {
             >
               Next <FaChevronRight />
             </button>
+          </div>
+        )}
+
+        {/* Approve Booking Modal */}
+        {showApproveModal && selectedItem && (
+          <div className="modal-overlay-siteassesad" onClick={() => setShowApproveModal(false)}>
+            <div className="modal-content-siteassesad" onClick={e => e.stopPropagation()}>
+              <h3>Approve Pre-Assessment Booking</h3>
+              
+              <div className="modal-body-siteassesad">
+                <div className="booking-details-siteassesad">
+                  <div className="detail-row-siteassesad"><span>Booking Reference:</span><strong>{selectedItem.bookingReference}</strong></div>
+                  <div className="detail-row-siteassesad"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
+                  <div className="detail-row-siteassesad"><span>Property Type:</span><strong>{selectedItem.propertyType}</strong></div>
+                  <div className="detail-row-siteassesad"><span>Preferred Date:</span><strong>{formatDate(selectedItem.preferredDate)}</strong></div>
+                  <div className="detail-row-siteassesad"><span>Assessment Fee:</span><strong>{formatCurrency(selectedItem.assessmentFee)}</strong></div>
+                  <div className="detail-row-siteassesad"><span>Address:</span><strong>{selectedItem.addressId?.houseOrBuilding} {selectedItem.addressId?.street}, {selectedItem.addressId?.barangay}, {selectedItem.addressId?.cityMunicipality}</strong></div>
+                </div>
+
+                <div className="form-group-siteassesad">
+                  <label>Notes (Optional)</label>
+                  <textarea
+                    rows="3"
+                    value={approveNotes}
+                    onChange={(e) => setApproveNotes(e.target.value)}
+                    placeholder="Add any notes about this approval..."
+                  />
+                </div>
+
+                <div className="info-box-siteassesad">
+                  <FaInfoCircle />
+                  <small>Approving this booking will generate an invoice for the customer.</small>
+                </div>
+              </div>
+
+              <div className="modal-actions-siteassesad">
+                <button className="cancel-btn-siteassesad" onClick={() => setShowApproveModal(false)}>Cancel</button>
+                <button className="reject-btn-siteassesad" onClick={() => handleApproveBooking(false)}>Reject</button>
+                <button className="approve-btn-siteassesad" onClick={() => handleApproveBooking(true)}>Approve & Generate Invoice</button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -736,7 +806,7 @@ const handleAssignEngineer = async () => {
                 <div className="detail-section-siteassesad">
                   <h4>Assessment Details</h4>
                   <p><strong>Reference:</strong> {selectedItem.bookingReference}</p>
-                  <p><strong>Invoice:</strong> {selectedItem.invoiceNumber}</p>
+                  <p><strong>Invoice:</strong> {selectedItem.invoiceNumber || 'Not yet generated'}</p>
                   <p><strong>Property Type:</strong> {selectedItem.propertyType}</p>
                   <p><strong>Roof Type:</strong> {selectedItem.roofType || 'Not specified'}</p>
                   <p><strong>Preferred Date:</strong> {formatDate(selectedItem.preferredDate)}</p>

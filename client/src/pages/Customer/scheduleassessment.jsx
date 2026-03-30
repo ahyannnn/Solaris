@@ -278,7 +278,6 @@ const ScheduleAssessment = () => {
         desiredCapacity: formData.desiredCapacity,
         roofType: formData.roofType,
         preferredDate: formData.preferredDate,
-        paymentMethod: formData.paymentMethod // Include payment method in payload
       };
 
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, bookingPayload, {
@@ -654,7 +653,7 @@ const ScheduleAssessment = () => {
                     </div>
                   </div>
                   <div className="schedule-info-note-cusset">
-                    <small>Personal information is managed in your <button className="schedule-text-link-cusset" onClick={() => navigate('/app/customer/customer-settings')}>Account Settings</button></small>
+                    <small>Personal information is managed in your <button className="schedule-text-link-cusset" onClick={() => navigate('/app/customer/settings?tab=profile')}>Account Settings</button></small>
                   </div>
                 </div>
               </div>
@@ -753,62 +752,7 @@ const ScheduleAssessment = () => {
                     {validationErrors.preferredDate && <small className="schedule-error-text-cusset">{validationErrors.preferredDate}</small>}
                   </div>
 
-                  {/* PAYMENT METHOD SELECTION - NEW */}
-                  <div className="schedule-form-group-cusset full-width-cusset">
-                    <label>Payment Method *</label>
-                    <div className="payment-methods-grid-cusset">
-                      <div 
-                        className={`payment-method-option-cusset ${formData.paymentMethod === 'gcash' ? 'selected-cusset' : ''}`}
-                        onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'gcash' }))}
-                      >
-                        <div className="payment-method-radio-cusset">
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            value="gcash"
-                            checked={formData.paymentMethod === 'gcash'}
-                            onChange={handleInputChange}
-                          />
-                        </div>
-                        <div className="payment-method-icon-cusset">
-                          <img src="/images/gcash-logo.png" alt="GCash" className="payment-icon-cusset" />
-                        </div>
-                        <div className="payment-method-info-cusset">
-                          <strong>GCash</strong>
-                          <small>Pay via GCash mobile wallet</small>
-                        </div>
-                        <div className="payment-method-desc-cusset">
-                          <p>You will be asked to upload payment proof after booking.</p>
-                        </div>
-                      </div>
-
-                      <div 
-                        className={`payment-method-option-cusset ${formData.paymentMethod === 'cash' ? 'selected-cusset' : ''}`}
-                        onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'cash' }))}
-                      >
-                        <div className="payment-method-radio-cusset">
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            value="cash"
-                            checked={formData.paymentMethod === 'cash'}
-                            onChange={handleInputChange}
-                          />
-                        </div>
-                        <div className="payment-method-icon-cusset">
-                          <FaMoneyBillWave size={32} color="#2ecc71" />
-                        </div>
-                        <div className="payment-method-info-cusset">
-                          <strong>Cash</strong>
-                          <small>Pay in cash at our office</small>
-                        </div>
-                        <div className="payment-method-desc-cusset">
-                          <p>Visit our office to complete payment. The assessment will be scheduled upon payment.</p>
-                        </div>
-                      </div>
-                    </div>
-                    {validationErrors.paymentMethod && <small className="schedule-error-text-cusset">{validationErrors.paymentMethod}</small>}
-                  </div>
+                  
                 </div>
 
                 <div className="schedule-fee-card-cusset">

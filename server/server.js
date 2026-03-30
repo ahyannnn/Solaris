@@ -36,11 +36,9 @@ connectMongo();
 
 // Routes
 const authRoutes = require("./routes/authRoutes");
-const scheduleRoutes = require("./routes/scheduleRoutes");
+
 const iotRoutes = require("./routes/sensorRoutes");
-const reportRoutes = require("./routes/reportRoutes");
-const quotationRoutes = require("./routes/quotationRoutes");
-const installationRoutes = require("./routes/installationRoutes");
+
 const emailRoutes = require("./routes/emailRoutes");
 const clientRoutes = require('./routes/clientRoutes');
 const solarInvoiceRoutes = require('./routes/solarInvoiceRoutes');
@@ -53,14 +51,14 @@ const adminRoutes = require('./routes/adminRoutes');
 // New Routes
 const freeQuoteRoutes = require('./routes/freeQuoteRoutes');
 const preAssessmentRoutes = require('./routes/preAssessmentRoutes');
+const iotDataRoutes = require('./routes/iotDataRoutes');
 
 // API Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/schedule", scheduleRoutes);
+
 app.use("/api/sensor", iotRoutes);
-app.use("/api/report", reportRoutes);
-app.use("/api/quotation", quotationRoutes);
-app.use("/api/installation", installationRoutes);
+app.use("/api/iot-data", iotDataRoutes);
+
 app.use("/api/email", emailRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/free-quotes', freeQuoteRoutes);

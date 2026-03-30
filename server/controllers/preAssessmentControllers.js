@@ -12,10 +12,75 @@ const mongoose = require('mongoose');
 // @access  Private (Customer)
 // controllers/preAssessmentControllers.js
 
+// controllers/preAssessmentControllers.js
+// controllers/preAssessmentControllers.js
+
+// @desc    Approve or reject booking (Admin only)
+// @route   PUT /api/pre-assessments/:id/approve-booking
+// @access  Private (Admin)
+// controllers/preAssessmentControllers.js
+
+// @desc    Approve or reject booking (Admin only)
+// @route   PUT /api/pre-assessments/:id/approve-booking
+// @access  Private (Admin)
+exports.approveBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approved, notes } = req.body;
+    
+    const assessment = await PreAssessment.findById(id);
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+    
+    // Check if booking is pending review
+    if (assessment.assessmentStatus !== 'pending_review') {
+      return res.status(400).json({ message: 'Booking already processed' });
+    }
+    
+    if (approved) {
+      // Generate invoice number only when approved
+      const date = new Date();
+      const year = date.getFullYear().toString().slice(-2);
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      const invoiceNumber = `INV-${year}${month}${day}-${random}`;
+      
+      assessment.invoiceNumber = invoiceNumber;
+      assessment.paymentStatus = 'pending';
+      assessment.assessmentStatus = 'pending_payment'; // After approval, goes to pending payment
+      assessment.adminRemarks = notes || 'Booking approved';
+    } else {
+      assessment.assessmentStatus = 'cancelled';
+      assessment.adminRemarks = notes || 'Booking rejected by admin';
+    }
+    
+    await assessment.save();
+    
+    res.json({
+      success: true,
+      message: approved ? 'Booking approved. Invoice generated.' : 'Booking rejected.',
+      assessment: {
+        _id: assessment._id,
+        bookingReference: assessment.bookingReference,
+        invoiceNumber: assessment.invoiceNumber,
+        assessmentStatus: assessment.assessmentStatus,
+        paymentStatus: assessment.paymentStatus
+      }
+    });
+    
+  } catch (error) {
+    console.error('Approve booking error:', error);
+    res.status(500).json({ message: 'Failed to process booking' });
+  }
+};
+// controllers/preAssessmentControllers.js
+
 exports.createPreAssessment = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { clientId, addressId, propertyType, desiredCapacity, roofType, preferredDate, paymentMethod } = req.body;
+    const { clientId, addressId, propertyType, desiredCapacity, roofType, preferredDate } = req.body;
 
     const client = await Client.findOne({ userId });
     if (!client) {
@@ -37,22 +102,6 @@ exports.createPreAssessment = async (req, res) => {
     const day = String(date.getDate()).padStart(2, '0');
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     const bookingReference = `PA-${year}${month}${day}-${random}`;
-    const invoiceNumber = `INV-${year}${month}${day}-${random}`;
-
-    // Determine payment status based on payment method
-    let paymentStatus = 'pending';
-    let assessmentStatus = 'pending_payment';
-    
-    // If payment method is cash, we set it as pending (admin will update later)
-    // If payment method is GCash, we set as pending and customer will upload proof
-    // Both start as pending payment
-    if (paymentMethod === 'cash') {
-      paymentStatus = 'pending';
-      assessmentStatus = 'pending_payment';
-    } else if (paymentMethod === 'gcash') {
-      paymentStatus = 'pending';
-      assessmentStatus = 'pending_payment';
-    }
 
     const preAssessment = new PreAssessment({
       clientId: client._id,
@@ -61,27 +110,23 @@ exports.createPreAssessment = async (req, res) => {
       desiredCapacity: desiredCapacity || '',
       roofType: roofType || '',
       preferredDate: new Date(preferredDate),
-      paymentStatus: paymentStatus,
-      assessmentStatus: assessmentStatus,
+      paymentStatus: 'pending',
+      assessmentStatus: 'pending_review',  // Changed from pending_payment to pending_review
       bookingReference,
-      invoiceNumber,
-      paymentMethod: paymentMethod || 'cash',  // Store the selected payment method
     });
 
     await preAssessment.save();
 
     res.status(201).json({
       success: true,
-      message: 'Pre-assessment booked successfully',
+      message: 'Pre-assessment booking submitted for admin approval',
       booking: {
         _id: preAssessment._id,
         bookingReference: preAssessment.bookingReference,
-        invoiceNumber: preAssessment.invoiceNumber,
         assessmentFee: preAssessment.assessmentFee,
         preferredDate: preAssessment.preferredDate,
         assessmentStatus: preAssessment.assessmentStatus,
         paymentStatus: preAssessment.paymentStatus,
-        paymentMethod: preAssessment.paymentMethod  // Include payment method in response
       }
     });
 
@@ -90,7 +135,82 @@ exports.createPreAssessment = async (req, res) => {
     res.status(500).json({ message: 'Failed to book pre-assessment', error: error.message });
   }
 };
+// @desc    Submit GCash payment with proof
+// @route   POST /api/pre-assessments/submit-payment
+// @access  Private (Customer)
+exports.submitPayment = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { invoiceNumber, paymentMethod, paymentReference } = req.body;
+    
+    if (!req.file && paymentMethod === 'gcash') {
+      return res.status(400).json({ message: 'Payment proof is required' });
+    }
 
+    const client = await Client.findOne({ userId });
+    if (!client) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    const preAssessment = await PreAssessment.findOne({ 
+      invoiceNumber, 
+      clientId: client._id 
+    });
+
+    if (!preAssessment) {
+      return res.status(404).json({ message: 'Invoice not found' });
+    }
+
+    if (paymentMethod === 'gcash') {
+      // Process payment proof upload
+      const processedFile = await processUpload(req, req.file, 'payment-proofs', `payment_${invoiceNumber}_${Date.now()}`);
+      const fileUrl = getFileUrl(req, processedFile);
+
+      const fileRecord = new File({
+        filename: processedFile.filename,
+        originalName: processedFile.originalName,
+        fileType: 'payment_proof',
+        mimeType: processedFile.mimeType,
+        size: processedFile.size,
+        url: fileUrl,
+        publicId: processedFile.publicId,
+        uploadedBy: userId,
+        userRole: 'customer',
+        relatedTo: 'pre_assessment',
+        relatedId: preAssessment._id,
+        metadata: {
+          invoiceNumber,
+          paymentMethod,
+          paymentReference,
+          storageType: processedFile.storageType
+        }
+      });
+
+      await fileRecord.save();
+
+      preAssessment.paymentMethod = paymentMethod;
+      preAssessment.paymentReference = paymentReference;
+      preAssessment.paymentProof = fileUrl;
+      preAssessment.paymentProofFileId = fileRecord._id;
+      preAssessment.paymentStatus = 'for_verification';
+      
+    } else if (paymentMethod === 'cash') {
+      preAssessment.paymentMethod = 'cash';
+      preAssessment.paymentStatus = 'pending';
+    }
+
+    await preAssessment.save();
+
+    res.json({
+      success: true,
+      message: paymentMethod === 'gcash' ? 'Payment submitted for verification' : 'Cash payment selected'
+    });
+
+  } catch (error) {
+    console.error('Submit payment error:', error);
+    res.status(500).json({ message: 'Failed to submit payment' });
+  }
+};
 // @desc    Submit payment proof (GCash) with Cloudinary storage
 // @route   POST /api/pre-assessments/payment
 // @access  Private (Customer)
@@ -240,6 +360,11 @@ exports.cashPayment = async (req, res) => {
 // @desc    Verify payment (Admin only)
 // @route   PUT /api/pre-assessments/:id/verify-payment
 // @access  Private (Admin)
+// controllers/preAssessmentControllers.js
+
+// @desc    Verify payment (Admin only)
+// @route   PUT /api/pre-assessments/:id/verify-payment
+// @access  Private (Admin)
 exports.verifyPayment = async (req, res) => {
   try {
     const { id } = req.params;
@@ -252,6 +377,7 @@ exports.verifyPayment = async (req, res) => {
 
     if (verified) {
       preAssessment.paymentStatus = 'paid';
+      preAssessment.assessmentStatus = 'scheduled'; // Set assessment status to scheduled when payment is verified
       preAssessment.confirmedAt = new Date();
       
       if (preAssessment.paymentProofFileId) {
@@ -264,7 +390,7 @@ exports.verifyPayment = async (req, res) => {
       }
     } else {
       preAssessment.paymentStatus = 'failed';
-      preAssessment.assessmentStatus = 'cancelled';
+      preAssessment.assessmentStatus = 'cancelled'; // Set assessment status to cancelled when payment is rejected
       
       if (preAssessment.paymentProofFileId) {
         const fileRecord = await File.findById(preAssessment.paymentProofFileId);
@@ -281,7 +407,13 @@ exports.verifyPayment = async (req, res) => {
     res.json({
       success: true,
       message: verified ? 'Payment verified successfully' : 'Payment verification failed',
-      booking: preAssessment
+      booking: {
+        _id: preAssessment._id,
+        bookingReference: preAssessment.bookingReference,
+        invoiceNumber: preAssessment.invoiceNumber,
+        paymentStatus: preAssessment.paymentStatus,
+        assessmentStatus: preAssessment.assessmentStatus // Include assessment status in response
+      }
     });
 
   } catch (error) {
@@ -289,7 +421,6 @@ exports.verifyPayment = async (req, res) => {
     res.status(500).json({ message: 'Failed to verify payment', error: error.message });
   }
 };
-
 // ============ ENGINEER ASSESSMENT FUNCTIONS ============
 
 // In preAssessmentControllers.js, update the getEngineerAssessments function:
@@ -892,6 +1023,8 @@ exports.getAllPreAssessments = async (req, res) => {
   }
 };
 
+// controllers/preAssessmentControllers.js
+
 // @desc    Get client's pre-assessments
 // @route   GET /api/pre-assessments/my-bookings
 // @access  Private (Customer)
@@ -909,9 +1042,29 @@ exports.getMyPreAssessments = async (req, res) => {
       .populate('iotDeviceId')
       .sort({ bookedAt: -1 });
 
+    // Format the response to include all necessary fields
+    const formattedAssessments = assessments.map(assessment => ({
+      _id: assessment._id,
+      bookingReference: assessment.bookingReference,
+      invoiceNumber: assessment.invoiceNumber, // Include invoice number
+      assessmentStatus: assessment.assessmentStatus,
+      paymentStatus: assessment.paymentStatus,
+      assessmentFee: assessment.assessmentFee,
+      propertyType: assessment.propertyType,
+      desiredCapacity: assessment.desiredCapacity,
+      roofType: assessment.roofType,
+      preferredDate: assessment.preferredDate,
+      bookedAt: assessment.bookedAt,
+      address: assessment.addressId,
+      iotDeviceId: assessment.iotDeviceId,
+      paymentMethod: assessment.paymentMethod,
+      paymentProof: assessment.paymentProof,
+      paymentReference: assessment.paymentReference
+    }));
+
     res.json({
       success: true,
-      assessments
+      assessments: formattedAssessments
     });
 
   } catch (error) {

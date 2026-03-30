@@ -22,6 +22,7 @@ const {
   getEngineerAssessments,
   updateSiteAssessment,
   uploadQuotationPDF,
+  submitPayment,
   submitAssessmentReport,
   getAssessmentDocuments,
   addEngineerComment,
@@ -30,12 +31,16 @@ const {
   // Admin functions
   deployDevice,
   retrieveDevice,
-  updatePaymentStatus  // ADD THIS IMPORT
+  updatePaymentStatus,  // ADD THIS IMPORT
+  approveBooking
 } = require('../controllers/preAssessmentControllers');
 
 // ============ CUSTOMER ROUTES ============
 router.get('/payments', verifyToken, getPaymentHistory);
 router.get('/my-bookings', verifyToken, getMyPreAssessments);
+// Payment routes
+router.post('/submit-payment', verifyToken, upload.single('paymentProof'), submitPayment);
+router.post('/cash-payment', verifyToken, cashPayment);
 
 // ============ ADMIN ROUTES ============
 router.get('/stats', verifyToken, admin, getPreAssessmentStats);
@@ -43,6 +48,7 @@ router.get('/', verifyToken, admin, getAllPreAssessments);
 router.put('/:id/verify-payment', verifyToken, admin, verifyPayment);
 router.put('/:id/assign-engineer', verifyToken, admin, assignEngineer);
 router.put('/:id/update-payment-status', verifyToken, admin, updatePaymentStatus);  // ADD THIS ROUTE
+router.put('/:id/approve-booking', verifyToken, admin, approveBooking);
 
 // ============ ENGINEER DEVICE FUNCTIONS ============
 router.post('/:id/deploy-device', verifyToken, engineer, deployDevice);

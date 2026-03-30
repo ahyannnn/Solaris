@@ -18,7 +18,11 @@ const iotDeviceSchema = new mongoose.Schema({
     default: 'available',
     index: true
   },
-  
+  // Add sensor data reference
+  latestSensorData: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SensorData'
+  },
   // Assignment Information (Admin assigns to engineer)
   assignedToEngineerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   assignedToPreAssessmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'PreAssessment' },

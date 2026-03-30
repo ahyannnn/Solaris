@@ -14,7 +14,7 @@ const preAssessmentSchema = new mongoose.Schema({
   assessmentFee: { type: Number, default: 1500 },
   bookingReference: { type: String, unique: true },
   invoiceNumber: { type: String, unique: true },
-  paymentMethod: { type: String, enum: ['gcash', 'cash'], default: 'cash' },
+  paymentMethod: { type: String, enum: ['gcash', 'cash'], default: null },
   paymentProof: { type: String },
   paymentProofFileId: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
   paymentReference: { type: String },
@@ -28,8 +28,8 @@ const preAssessmentSchema = new mongoose.Schema({
   // Find the assessmentStatus enum and add 'device_deployed'
 assessmentStatus: {
   type: String,
-  enum: ['pending_payment', 'scheduled', 'site_visit_ongoing', 'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft', 'completed', 'cancelled'],
-  default: 'pending_payment'
+  enum: ['pending_review', 'pending_payment', 'scheduled', 'site_visit_ongoing', 'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft', 'completed', 'cancelled'],
+  default: 'pending_review'
 },
   
   // IoT Device Integration

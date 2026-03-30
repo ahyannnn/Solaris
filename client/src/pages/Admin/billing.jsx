@@ -106,7 +106,12 @@ const AdminBilling = () => {
         }
       });
       
-      setAssessments(response.data.assessments || []);
+      // Filter to only show assessments that have an invoice number (issued invoices)
+      const assessmentsWithInvoice = (response.data.assessments || []).filter(
+        assessment => assessment.invoiceNumber && assessment.invoiceNumber !== null && assessment.invoiceNumber !== ''
+      );
+      
+      setAssessments(assessmentsWithInvoice);
       setTotalPages(response.data.totalPages || 1);
     } catch (error) {
       console.error('Error fetching pre-assessments:', error);
@@ -154,8 +159,9 @@ const AdminBilling = () => {
         })
       ]);
       
-      const prePayments = preRes.data.assessments
-        .filter(a => a.paymentStatus === 'paid' || a.paymentStatus === 'for_verification')
+      // Only include pre-assessments with invoice numbers
+      const prePayments = (preRes.data.assessments || [])
+        .filter(a => a.invoiceNumber && (a.paymentStatus === 'paid' || a.paymentStatus === 'for_verification'))
         .map(a => ({
           id: a._id,
           type: 'Pre-Assessment',
@@ -259,7 +265,6 @@ const AdminBilling = () => {
     }
   };
 
-  // NEW: Handle editing payment status for cash payments
   const handleEditPaymentStatus = async () => {
     if (!selectedAssessment) return;
 
@@ -267,7 +272,6 @@ const AdminBilling = () => {
     try {
       const token = sessionStorage.getItem('token');
       
-      // Determine the new status and assessment status
       let newPaymentStatus = editStatusData.paymentStatus;
       let newAssessmentStatus = selectedAssessment.assessmentStatus;
       
@@ -279,7 +283,6 @@ const AdminBilling = () => {
         newAssessmentStatus = 'cancelled';
       }
       
-      // Update payment status
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedAssessment._id}/update-payment-status`,
         { 
@@ -503,7 +506,6 @@ const AdminBilling = () => {
     }
   });
 
-  // Skeleton Loader
   const SkeletonLoader = () => (
     <div className="admin-billing-adminbilling">
       <div className="billing-header-adminbilling">
@@ -653,7 +655,7 @@ const AdminBilling = () => {
           </div>
         </div>
 
-        {/* Pre-Assessments Table */}
+        {/* Pre-Assessments Table - Only shows assessments with invoices */}
         {activeTab === 'pre-assessments' && (
           <div className="payments-table-container-adminbilling">
             <table className="payments-table-adminbilling">
@@ -668,13 +670,13 @@ const AdminBilling = () => {
                   <th>Payment Status</th>
                   <th>Assessment Status</th>
                   <th>Actions</th>
-                </tr>
+                 </tr>
               </thead>
               <tbody>
                 {filteredItems.length === 0 ? (
                   <tr>
                     <td colSpan="9" className="empty-state-adminbilling">
-                      <p>No pre-assessments found</p>
+                      <p>No pre-assessments with issued invoices found</p>
                     </td>
                   </tr>
                 ) : (
@@ -726,7 +728,7 @@ const AdminBilling = () => {
                         )}
                         
                         {/* For Cash payments - can edit status directly */}
-                        {assessment.paymentMethod === 'cash' && assessment.paymentStatus !== 'paid' && (
+                        {assessment.paymentMethod === 'cash' && assessment.paymentStatus !== 'paid' && assessment.paymentStatus !== 'for_verification' && (
                           <button 
                             className="action-btn-adminbilling edit-status-adminbilling"
                             onClick={() => {
@@ -952,7 +954,7 @@ const AdminBilling = () => {
           </div>
         )}
 
-        {/* Edit Payment Status Modal (for Cash payments) - NEW */}
+        {/* Edit Payment Status Modal (for Cash payments) */}
         {showEditStatusModal && selectedAssessment && (
           <div className="modal-overlay-adminbilling" onClick={() => setShowEditStatusModal(false)}>
             <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
@@ -1113,7 +1115,7 @@ const AdminBilling = () => {
                     <div className="detail-section-adminbilling"><h4>Items</h4>
                       <table className="items-table-adminbilling">
                         <thead>
-                          <tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Total</th> </tr>
+                          <tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Total</th>  </tr>
                         </thead>
                         <tbody>
                           {selectedInvoice.items?.map((item, idx) => (

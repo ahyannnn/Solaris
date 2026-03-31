@@ -5,7 +5,10 @@ import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import { 
-  FaMoneyBillWave,
+  FaTimes,
+  FaCheck,
+  FaEdit,
+  FaPlus
 } from 'react-icons/fa';
 import '../../styles/Customer/scheduleassessment.css';
 
@@ -17,6 +20,7 @@ const ScheduleAssessment = () => {
   const [error, setError] = useState(null);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
+  const [showAddressSelector, setShowAddressSelector] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState('service-selection');
   const [submitted, setSubmitted] = useState(false);
@@ -39,8 +43,7 @@ const ScheduleAssessment = () => {
     propertyType: 'residential',
     desiredCapacity: '',
     roofType: '',
-    preferredDate: '',
-    paymentMethod: 'gcash' // Add payment method field
+    preferredDate: ''
   });
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -113,6 +116,14 @@ const ScheduleAssessment = () => {
     navigate('/app/customer/settings?tab=addresses');
   };
 
+  const handleAddressSelect = (address) => {
+    setSelectedAddress(address);
+    setShowAddressSelector(false);
+    if (validationErrors.address) {
+      setValidationErrors(prev => ({ ...prev, address: '' }));
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (currentStep === 'service-selection') {
@@ -146,7 +157,6 @@ const ScheduleAssessment = () => {
     return { name, contact, address };
   };
 
-  // Send email function
   const sendQuoteConfirmationEmail = async (quoteReference, monthlyBill, propertyType, desiredCapacity, address) => {
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/email/send-free-quote-confirmation`, {
@@ -164,7 +174,7 @@ const ScheduleAssessment = () => {
     }
   };
 
-  const sendPreAssessmentConfirmationEmail = async (invoiceNumber, amount, propertyType, desiredCapacity, roofType, preferredDate, address, paymentMethod) => {
+  const sendPreAssessmentConfirmationEmail = async (invoiceNumber, amount, propertyType, desiredCapacity, roofType, preferredDate, address) => {
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/email/send-pre-assessment-confirmation`, {
         email: user.email,
@@ -175,8 +185,7 @@ const ScheduleAssessment = () => {
         desiredCapacity: desiredCapacity,
         roofType: roofType,
         preferredDate: preferredDate,
-        address: address,
-        paymentMethod: paymentMethod
+        address: address
       });
       console.log('Pre-assessment confirmation email sent successfully');
     } catch (emailError) {
@@ -184,7 +193,6 @@ const ScheduleAssessment = () => {
     }
   };
 
-  // FREE QUOTE SUBMISSION
   const handleFreeQuoteSubmit = () => {
     if (!freeQuoteData.monthlyBill) {
       showToast('Please enter your monthly electricity bill', 'warning');
@@ -228,7 +236,7 @@ const ScheduleAssessment = () => {
       setCurrentStep('service-selection');
       setSubmitted(true);
       
-      showToast('Quote request submitted successfully! A confirmation email has been sent to your email address.', 'success');
+      showToast('Quote request submitted successfully!', 'success');
       
       setIsSubmitting(false);
       
@@ -239,17 +247,14 @@ const ScheduleAssessment = () => {
     }
   };
 
-  // PRE ASSESSMENT VALIDATION
   const validateForm = () => {
     const errors = {};
     if (!formData.propertyType) errors.propertyType = 'Property type is required';
     if (!formData.preferredDate) errors.preferredDate = 'Preferred date is required';
     if (!selectedAddress) errors.address = 'Please select an address';
-    if (!formData.paymentMethod) errors.paymentMethod = 'Please select a payment method';
     return errors;
   };
 
-  // PRE ASSESSMENT SUBMISSION
   const handleSubmitClick = () => {
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
@@ -291,16 +296,13 @@ const ScheduleAssessment = () => {
         formData.desiredCapacity,
         formData.roofType,
         formData.preferredDate,
-        getFullAddress(),
-        formData.paymentMethod
+        getFullAddress()
       );
 
       setShowConfirmDialog(false);
       setTermsAccepted(false);
       
-      // If payment method is cash, redirect to billing page
-      // If GCash, they will upload proof after booking
-      showToast('Pre-assessment booked successfully! A confirmation email has been sent.', 'success');
+      showToast('Pre-assessment booked successfully!', 'success');
       
       setTimeout(() => {
         navigate('/app/customer/billing', { 
@@ -308,8 +310,7 @@ const ScheduleAssessment = () => {
             newInvoice: {
               id: response.data.booking.invoiceNumber,
               amount: response.data.booking.assessmentFee,
-              description: 'Pre Assessment Fee',
-              paymentMethod: formData.paymentMethod
+              description: 'Pre Assessment Fee'
             }
           }
         });
@@ -332,7 +333,6 @@ const ScheduleAssessment = () => {
 
   const selectedAddressDisplay = getSelectedAddressDisplay();
 
-  // Skeleton Loader Component
   const SkeletonLoader = () => (
     <div className="schedule-container-cusset">
       <div className="schedule-header-skeleton-cusset">
@@ -389,7 +389,6 @@ const ScheduleAssessment = () => {
     );
   }
 
-  // ==================== SUCCESS SCREEN ====================
   if (submitted) {
     return (
       <div className="schedule-container-cusset">
@@ -410,9 +409,6 @@ const ScheduleAssessment = () => {
                   <li>You'll receive a detailed quotation via email</li>
                   <li>Our engineer may contact you for additional information</li>
                 </ul>
-              </div>
-              <div className="schedule-email-notice-cusset">
-                <p><small>✓ A confirmation email has been sent to your registered email address.</small></p>
               </div>
             </>
           )}
@@ -448,7 +444,6 @@ const ScheduleAssessment = () => {
     );
   }
 
-  // ==================== SERVICE SELECTION SCREEN ====================
   if (currentStep === 'service-selection') {
     return (
       <>
@@ -461,7 +456,6 @@ const ScheduleAssessment = () => {
           <p className="schedule-subtitle-cusset">Choose how you want to proceed with your solar journey</p>
 
           <div className="service-selection-grid-cusset">
-            {/* Free Quote Request Card */}
             <div className="service-card-cusset">
               <div className="service-card-header-cusset">
                 <h2>Free Quotation Request</h2>
@@ -522,7 +516,6 @@ const ScheduleAssessment = () => {
               </div>
             </div>
 
-            {/* Pre Assessment Card */}
             <div className="service-card-cusset paid-cusset">
               <div className="service-card-header-cusset">
                 <h2>Pre Assessment</h2>
@@ -542,9 +535,7 @@ const ScheduleAssessment = () => {
               <div className="card-button-container-cusset">
                 <button
                   className="btn-paid-assessment-cusset"
-                  onClick={() => {
-                    setCurrentStep('form');
-                  }}
+                  onClick={() => setCurrentStep('form')}
                 >
                   Book Pre Assessment
                 </button>
@@ -552,10 +543,12 @@ const ScheduleAssessment = () => {
             </div>
           </div>
 
-          {/* Free Quote Confirmation Modal */}
           {showFreeQuoteConfirm && (
             <div className="schedule-modal-overlay-cusset">
               <div className="schedule-modal-cusset">
+                <button className="modal-close-btn-cusset" onClick={() => setShowFreeQuoteConfirm(false)}>
+                  <FaTimes />
+                </button>
                 <h2>Request Quotation</h2>
                 <p>Please review your request details:</p>
 
@@ -581,7 +574,6 @@ const ScheduleAssessment = () => {
                 </div>
 
                 <p className="quote-note-cusset">Our team will review your request and send a detailed quotation via email within 2-3 business days.</p>
-                <p className="quote-note-cusset" style={{ color: '#2ecc71' }}>✓ A confirmation email will be sent to your registered email address.</p>
 
                 <div className="schedule-modal-actions-cusset">
                   <button
@@ -613,7 +605,6 @@ const ScheduleAssessment = () => {
     );
   }
 
-  // ==================== PRE ASSESSMENT FORM ====================
   if (currentStep === 'form') {
     return (
       <>
@@ -624,7 +615,7 @@ const ScheduleAssessment = () => {
         <div className="schedule-container-cusset">
           <div className="back-button-container-cusset">
             <button onClick={() => setCurrentStep('service-selection')} className="back-to-services-cusset">
-              Back to Services
+              ← Back to Services
             </button>
           </div>
 
@@ -632,11 +623,9 @@ const ScheduleAssessment = () => {
           <p className="schedule-subtitle-cusset">Complete the form below to schedule your professional pre-assessment (₱1,500)</p>
 
           <div className="pre-assessment-form-wrapper-cusset">
-            {/* Personal & Address Info Section */}
             <div className="schedule-info-section-cusset">
               <h3 className="schedule-section-title-cusset">Contact & Address Information</h3>
 
-              {/* Personal Info Card */}
               <div className="schedule-info-card-cusset">
                 <div className="schedule-info-card-header-cusset">
                   <h4>Personal Information</h4>
@@ -658,7 +647,6 @@ const ScheduleAssessment = () => {
                 </div>
               </div>
 
-              {/* Address Card */}
               <div className="schedule-info-card-cusset">
                 <div className="schedule-info-card-header-cusset">
                   <h4>Address</h4>
@@ -672,8 +660,11 @@ const ScheduleAssessment = () => {
                         <div className="schedule-address-detail-cusset">{selectedAddressDisplay.address}</div>
                       </div>
                       <div className="address-actions-cusset">
-                        <button className="schedule-change-address-btn-cusset" onClick={handleAddressClick}>
-                          Change Address
+                        <button className="schedule-change-address-btn-cusset" onClick={() => setShowAddressSelector(true)}>
+                          <FaEdit /> Change Address
+                        </button>
+                        <button className="schedule-add-address-btn-cusset" onClick={handleAddressClick}>
+                          <FaPlus /> Add New
                         </button>
                       </div>
                     </>
@@ -690,7 +681,48 @@ const ScheduleAssessment = () => {
               </div>
             </div>
 
-            {/* Assessment Details Section */}
+            {/* Address Selector Modal */}
+            {showAddressSelector && addresses.length > 0 && (
+              <div className="schedule-modal-overlay-cusset" onClick={() => setShowAddressSelector(false)}>
+                <div className="schedule-modal-cusset address-selector-modal-cusset" onClick={e => e.stopPropagation()}>
+                  <button className="modal-close-btn-cusset" onClick={() => setShowAddressSelector(false)}>
+                    <FaTimes />
+                  </button>
+                  <h2>Select Address</h2>
+                  <div className="address-list-cusset">
+                    {addresses.map(address => (
+                      <div 
+                        key={address._id} 
+                        className={`address-item-cusset ${selectedAddress?._id === address._id ? 'selected-cusset' : ''}`}
+                        onClick={() => handleAddressSelect(address)}
+                      >
+                        <div className="address-item-content-cusset">
+                          <div className="address-item-label-cusset">{address.label}</div>
+                          <div className="address-item-detail-cusset">
+                            {address.houseOrBuilding} {address.street}, {address.barangay}
+                          </div>
+                          <div className="address-item-detail-cusset">
+                            {address.cityMunicipality}, {address.province} {address.zipCode}
+                          </div>
+                          {address.isPrimary && <span className="address-primary-badge-cusset">Primary</span>}
+                        </div>
+                        {selectedAddress?._id === address._id && (
+                          <div className="address-check-cusset">
+                            <FaCheck />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="schedule-modal-actions-cusset">
+                    <button onClick={() => setShowAddressSelector(false)} className="schedule-btn-secondary-cusset">
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="schedule-assessment-details-section-cusset">
               <h3 className="schedule-section-title-cusset">Assessment Details</h3>
 
@@ -751,21 +783,13 @@ const ScheduleAssessment = () => {
                     />
                     {validationErrors.preferredDate && <small className="schedule-error-text-cusset">{validationErrors.preferredDate}</small>}
                   </div>
-
-                  
                 </div>
 
                 <div className="schedule-fee-card-cusset">
                   <div className="schedule-fee-info-cusset">
                     <div>
                       <strong>Pre Assessment Fee: ₱1,500.00</strong>
-                      <p>
-                        {formData.paymentMethod === 'gcash' 
-                          ? 'You will be redirected to the billing page to upload your GCash payment proof after booking.'
-                          : 'Please visit our office to complete payment. The assessment will be scheduled upon payment confirmation.'
-                        }
-                      </p>
-                      <p style={{ color: '#2ecc71', fontSize: '12px', marginTop: '8px' }}>✓ A confirmation email will be sent to your registered email address.</p>
+                      <p>You will be redirected to the billing page to complete payment after booking.</p>
                     </div>
                   </div>
                 </div>
@@ -779,10 +803,12 @@ const ScheduleAssessment = () => {
             </div>
           </div>
 
-          {/* Confirmation Modal */}
           {showConfirmDialog && (
             <div className="schedule-modal-overlay-cusset">
               <div className="schedule-modal-cusset">
+                <button className="modal-close-btn-cusset" onClick={() => setShowConfirmDialog(false)}>
+                  <FaTimes />
+                </button>
                 <h2>Confirm Pre Assessment</h2>
                 <div className="schedule-modal-summary-cusset">
                   <div className="schedule-summary-section-cusset">
@@ -800,7 +826,6 @@ const ScheduleAssessment = () => {
                     <p><strong>Desired Capacity:</strong> {formData.desiredCapacity || 'Not specified'}</p>
                     <p><strong>Roof Type:</strong> {formData.roofType || 'Not specified'}</p>
                     <p><strong>Preferred Date:</strong> {formData.preferredDate}</p>
-                    <p><strong>Payment Method:</strong> {formData.paymentMethod === 'gcash' ? 'GCash' : 'Cash'}</p>
                     <p><strong>Pre Assessment Fee:</strong> ₱1,500.00</p>
                   </div>
                 </div>

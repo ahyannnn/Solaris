@@ -41,7 +41,16 @@ import {
   FaBoxes,
   FaTools,
   FaWifi,
-  FaServer
+  FaServer,
+  FaRulerCombined,
+  FaArrowsAltH,
+  FaArrowsAltV,
+  FaSolarPanel,
+  FaChartArea,
+  FaSun,
+  FaThermometerHalf,
+  FaTint,
+  FaChartBar
 } from 'react-icons/fa';
 import '../../styles/Engineer/siteassessment.css';
 
@@ -64,6 +73,10 @@ const MyAssessments = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
   const [deployNotes, setDeployNotes] = useState('');
+  const [generatingPDF, setGeneratingPDF] = useState(false);
+  const [includeIoTData, setIncludeIoTData] = useState(true);
+  const [analyzingData, setAnalyzingData] = useState(false);
+  const [iotAnalysis, setIotAnalysis] = useState(null);
 
   // Free Quote Form State
   const [freeQuoteForm, setFreeQuoteForm] = useState({
@@ -79,7 +92,9 @@ const MyAssessments = () => {
     totalCost: 0,
     paymentTerms: '',
     warrantyYears: 10,
-    remarks: ''
+    remarks: '',
+    roofLength: '',
+    roofWidth: ''
   });
 
   // Pre-Assessment Form State
@@ -129,6 +144,7 @@ const MyAssessments = () => {
 
   const FREE_QUOTE_STATUS = {
     pending: { label: 'Pending', color: 'pending-enad', icon: FaClock },
+    assigned: { label: 'Assigned', color: 'processing-enad', icon: FaUser },
     processing: { label: 'Processing', color: 'processing-enad', icon: FaTools },
     completed: { label: 'Completed', color: 'completed-enad', icon: FaCheckCircle },
     cancelled: { label: 'Cancelled', color: 'cancelled-enad', icon: FaTimes }
@@ -161,9 +177,9 @@ const MyAssessments = () => {
   ];
 
   const SYSTEM_TYPES = [
-    { value: 'grid-tie', label: 'Grid-Tie System' },
-    { value: 'hybrid', label: 'Hybrid System' },
-    { value: 'off-grid', label: 'Off-Grid System' }
+    { value: 'grid-tie', label: 'Grid-Tie System', description: 'Connected to utility grid, no batteries' },
+    { value: 'hybrid', label: 'Hybrid System', description: 'Grid-tie with battery backup' },
+    { value: 'off-grid', label: 'Off-Grid System', description: 'Standalone with batteries, not connected to grid' }
   ];
 
   const hasDeviceAssigned = (item) => {
@@ -178,6 +194,19 @@ const MyAssessments = () => {
       year: 'numeric', 
       month: 'short', 
       day: 'numeric' 
+    });
+  };
+
+  const formatDateTime = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+    return date.toLocaleString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -199,6 +228,11 @@ const MyAssessments = () => {
       return parts.join(', ') || 'Address not specified';
     }
     return 'Address not specified';
+  };
+
+  const getSystemTypeLabel = (value) => {
+    const type = SYSTEM_TYPES.find(t => t.value === value);
+    return type ? type.label : 'Not specified';
   };
 
   const getStatusConfig = (item) => {
@@ -247,7 +281,10 @@ const MyAssessments = () => {
         preferredDate: quote.requestedAt,
         propertyType: quote.propertyType,
         desiredCapacity: quote.desiredCapacity,
-        monthlyBill: quote.monthlyBill
+        systemType: quote.systemType,
+        monthlyBill: quote.monthlyBill,
+        roofLength: quote.roofLength,
+        roofWidth: quote.roofWidth
       }));
       
       const formattedPreAssessments = (preAssessmentsRes.data.assessments || []).map(assessment => ({
@@ -265,11 +302,18 @@ const MyAssessments = () => {
         preferredDate: assessment.preferredDate,
         propertyType: assessment.propertyType,
         desiredCapacity: assessment.desiredCapacity,
+        systemType: assessment.systemType,
+        roofType: assessment.roofType,
+        roofLength: assessment.roofLength,
+        roofWidth: assessment.roofWidth,
         assignedDevice: assessment.assignedDevice,
         assignedDeviceId: assessment.assignedDeviceId,
         iotDeviceId: assessment.iotDeviceId,
         deviceDeployedAt: assessment.deviceDeployedAt,
-        deviceDeployedBy: assessment.deviceDeployedBy
+        deviceDeployedBy: assessment.deviceDeployedBy,
+        dataCollectionStart: assessment.dataCollectionStart,
+        dataCollectionEnd: assessment.dataCollectionEnd,
+        totalReadings: assessment.totalReadings
       }));
       
       setFreeQuotes(formattedFreeQuotes);
@@ -292,13 +336,32 @@ const MyAssessments = () => {
       });
       const quote = response.data.quote;
       
+      let addressData = null;
+      
+      if (selectedItem && selectedItem.address) {
+        addressData = selectedItem.address;
+      } else if (quote.addressId && typeof quote.addressId === 'object') {
+        addressData = quote.addressId;
+      } else if (quote.address && typeof quote.address === 'object') {
+        addressData = quote.address;
+      } else if (quote.addressId && typeof quote.addressId === 'string') {
+        const foundQuote = freeQuotes.find(fq => fq.id === quoteId);
+        if (foundQuote && foundQuote.address) {
+          addressData = foundQuote.address;
+        }
+      }
+      
       const formattedQuote = {
         ...quote,
         clientName: quote.clientId?.contactFirstName || '',
         clientLastName: quote.clientId?.contactLastName || '',
         clientEmail: quote.clientId?.userId?.email || '',
         clientPhone: quote.clientId?.contactNumber || '',
-        clientType: quote.clientId?.client_type || 'Residential'
+        clientType: quote.clientId?.client_type || 'Residential',
+        address: addressData,
+        systemType: quote.systemType,
+        roofLength: quote.roofLength,
+        roofWidth: quote.roofWidth
       };
       
       setSelectedItem(formattedQuote);
@@ -308,7 +371,7 @@ const MyAssessments = () => {
         quotationNumber: formattedQuote.quotationReference || '',
         quotationExpiryDate: '',
         systemSize: '',
-        systemType: 'grid-tie',
+        systemType: formattedQuote.systemType || 'grid-tie',
         panelsNeeded: '',
         inverterType: '',
         batteryType: '',
@@ -317,7 +380,9 @@ const MyAssessments = () => {
         totalCost: 0,
         paymentTerms: '',
         warrantyYears: 10,
-        remarks: formattedQuote.adminRemarks || ''
+        remarks: formattedQuote.adminRemarks || '',
+        roofLength: formattedQuote.roofLength || '',
+        roofWidth: formattedQuote.roofWidth || ''
       });
     } catch (err) {
       console.error('Error fetching free quote details:', err);
@@ -333,6 +398,21 @@ const MyAssessments = () => {
       });
       const assessment = response.data.assessment;
       
+      let addressData = null;
+      
+      if (selectedItem && selectedItem.address) {
+        addressData = selectedItem.address;
+      } else if (assessment.addressId && typeof assessment.addressId === 'object') {
+        addressData = assessment.addressId;
+      } else if (assessment.address && typeof assessment.address === 'object') {
+        addressData = assessment.address;
+      } else if (assessment.addressId && typeof assessment.addressId === 'string') {
+        const foundAssessment = preAssessments.find(pa => pa.id === assessmentId);
+        if (foundAssessment && foundAssessment.address) {
+          addressData = foundAssessment.address;
+        }
+      }
+      
       const formattedAssessment = {
         ...assessment,
         clientName: assessment.clientId?.contactFirstName || '',
@@ -344,7 +424,15 @@ const MyAssessments = () => {
         assignedDeviceId: assessment.assignedDeviceId,
         iotDeviceId: assessment.iotDeviceId,
         deviceDeployedAt: assessment.deviceDeployedAt,
-        deviceDeployedBy: assessment.deviceDeployedBy
+        deviceDeployedBy: assessment.deviceDeployedBy,
+        address: addressData,
+        systemType: assessment.systemType,
+        roofType: assessment.roofType,
+        roofLength: assessment.roofLength,
+        roofWidth: assessment.roofWidth,
+        dataCollectionStart: assessment.dataCollectionStart,
+        dataCollectionEnd: assessment.dataCollectionEnd,
+        totalReadings: assessment.totalReadings
       };
       
       setSelectedItem(formattedAssessment);
@@ -353,13 +441,24 @@ const MyAssessments = () => {
       if (assessment.engineerAssessment) {
         setAssessmentForm({
           roofCondition: assessment.engineerAssessment.roofCondition || '',
-          roofLength: assessment.engineerAssessment.roofLength || '',
-          roofWidth: assessment.engineerAssessment.roofWidth || '',
+          roofLength: assessment.engineerAssessment.roofLength || formattedAssessment.roofLength || '',
+          roofWidth: assessment.engineerAssessment.roofWidth || formattedAssessment.roofWidth || '',
           structuralIntegrity: assessment.engineerAssessment.structuralIntegrity || '',
           estimatedInstallationTime: assessment.engineerAssessment.estimatedInstallationTime || '',
           recommendations: assessment.engineerAssessment.recommendations || '',
           technicalFindings: assessment.technicalFindings || '',
           siteVisitNotes: assessment.engineerAssessment.inspectionNotes || ''
+        });
+      } else {
+        setAssessmentForm({
+          roofCondition: '',
+          roofLength: formattedAssessment.roofLength || '',
+          roofWidth: formattedAssessment.roofWidth || '',
+          structuralIntegrity: '',
+          estimatedInstallationTime: '',
+          recommendations: '',
+          technicalFindings: '',
+          siteVisitNotes: ''
         });
       }
       
@@ -368,7 +467,7 @@ const MyAssessments = () => {
           quotationNumber: assessment.quotation.quotationNumber || '',
           quotationExpiryDate: assessment.quotation.quotationExpiryDate?.split('T')[0] || '',
           systemSize: assessment.quotation.systemDetails.systemSize || '',
-          systemType: assessment.quotation.systemDetails.systemType || 'grid-tie',
+          systemType: assessment.quotation.systemDetails.systemType || formattedAssessment.systemType || 'grid-tie',
           panelsNeeded: assessment.quotation.systemDetails.panelsNeeded || '',
           inverterType: assessment.quotation.systemDetails.inverterType || '',
           batteryType: assessment.quotation.systemDetails.batteryType || '',
@@ -378,6 +477,15 @@ const MyAssessments = () => {
           paymentTerms: assessment.quotation.systemDetails.paymentTerms || '',
           warrantyYears: assessment.quotation.systemDetails.warrantyYears || 10
         });
+      } else if (formattedAssessment.systemType) {
+        setQuotationForm(prev => ({
+          ...prev,
+          systemType: formattedAssessment.systemType
+        }));
+      }
+      
+      if (assessment.assessmentResults) {
+        setIotAnalysis(assessment.assessmentResults);
       }
       
       if (assessment.sitePhotos) {
@@ -386,6 +494,106 @@ const MyAssessments = () => {
     } catch (err) {
       console.error('Error fetching pre-assessment details:', err);
       showNotification('Failed to load assessment details', 'error');
+    }
+  };
+
+  const analyzeIoTData = async () => {
+    if (!selectedItem || selectedType !== 'pre_assessment') return;
+    
+    setAnalyzingData(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.post(
+        `/api/pre-assessments/${selectedItem._id}/analyze-iot-data`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      setIotAnalysis(response.data.analysis);
+      showNotification('IoT data analysis completed successfully!', 'success');
+      
+      // Refresh to show updated data
+      fetchPreAssessmentDetails(selectedItem._id);
+    } catch (err) {
+      console.error('Error analyzing IoT data:', err);
+      showNotification(err.response?.data?.message || 'Failed to analyze IoT data', 'error');
+    } finally {
+      setAnalyzingData(false);
+    }
+  };
+
+  const generateQuotationPDF = async () => {
+    // Fix validation - check if systemSize exists and is greater than 0
+    const systemSize = selectedType === 'free_quote' ? freeQuoteForm.systemSize : quotationForm.systemSize;
+    const totalCost = selectedType === 'free_quote' ? freeQuoteForm.totalCost : quotationForm.totalCost;
+    
+    if (!systemSize || parseFloat(systemSize) <= 0) {
+      showNotification('Please enter a valid system size (greater than 0)', 'warning');
+      return;
+    }
+    
+    if (!totalCost || parseFloat(totalCost) <= 0) {
+      showNotification('Please enter a valid total cost (greater than 0)', 'warning');
+      return;
+    }
+    
+    setGeneratingPDF(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const endpoint = selectedType === 'free_quote' 
+        ? `/api/free-quotes/${selectedItem._id}/generate-quotation`
+        : `/api/pre-assessments/${selectedItem._id}/generate-quotation`;
+      
+      const payload = selectedType === 'free_quote' ? {
+        quotationNumber: freeQuoteForm.quotationNumber,
+        quotationExpiryDate: freeQuoteForm.quotationExpiryDate,
+        systemSize: parseFloat(freeQuoteForm.systemSize),
+        systemType: freeQuoteForm.systemType,
+        panelsNeeded: freeQuoteForm.panelsNeeded ? parseInt(freeQuoteForm.panelsNeeded) : 0,
+        inverterType: freeQuoteForm.inverterType,
+        batteryType: freeQuoteForm.batteryType,
+        installationCost: parseFloat(freeQuoteForm.installationCost) || 0,
+        equipmentCost: parseFloat(freeQuoteForm.equipmentCost) || 0,
+        totalCost: parseFloat(freeQuoteForm.totalCost),
+        paymentTerms: freeQuoteForm.paymentTerms,
+        warrantyYears: parseInt(freeQuoteForm.warrantyYears) || 10,
+        remarks: freeQuoteForm.remarks,
+        includeIoTData: false
+      } : {
+        quotationNumber: quotationForm.quotationNumber,
+        quotationExpiryDate: quotationForm.quotationExpiryDate,
+        systemSize: parseFloat(quotationForm.systemSize),
+        systemType: quotationForm.systemType,
+        panelsNeeded: quotationForm.panelsNeeded ? parseInt(quotationForm.panelsNeeded) : 0,
+        inverterType: quotationForm.inverterType,
+        batteryType: quotationForm.batteryType,
+        installationCost: parseFloat(quotationForm.installationCost) || 0,
+        equipmentCost: parseFloat(quotationForm.equipmentCost) || 0,
+        totalCost: parseFloat(quotationForm.totalCost),
+        paymentTerms: quotationForm.paymentTerms,
+        warrantyYears: parseInt(quotationForm.warrantyYears) || 10,
+        includeIoTData: includeIoTData
+      };
+      
+      const response = await axios.post(
+        endpoint,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      showNotification('Quotation PDF generated and uploaded successfully!', 'success');
+      
+      // Refresh to show the new quotation
+      if (selectedType === 'free_quote') {
+        fetchFreeQuoteDetails(selectedItem._id);
+      } else {
+        fetchPreAssessmentDetails(selectedItem._id);
+      }
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      showNotification(err.response?.data?.message || 'Failed to generate PDF', 'error');
+    } finally {
+      setGeneratingPDF(false);
     }
   };
 
@@ -447,81 +655,8 @@ const MyAssessments = () => {
     }
   };
 
-  const uploadFreeQuoteQuotation = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    setUploading(true);
-    const formData = new FormData();
-    formData.append('quotation', file);
-    
-    Object.entries(freeQuoteForm).forEach(([key, value]) => {
-      if (value) formData.append(key, value);
-    });
-    
-    try {
-      const token = sessionStorage.getItem('token');
-      await axios.post(
-        `/api/free-quotes/${selectedItem._id}/upload-quotation`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-      showNotification('Quotation uploaded successfully');
-      await axios.put(
-        `/api/free-quotes/${selectedItem._id}/status`,
-        { status: 'completed' },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      fetchFreeQuoteDetails(selectedItem._id);
-    } catch (err) {
-      console.error('Error uploading quotation:', err);
-      showNotification('Failed to upload quotation', 'error');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const uploadPreAssessmentQuotation = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    setUploading(true);
-    const formData = new FormData();
-    formData.append('quotation', file);
-    
-    Object.entries(quotationForm).forEach(([key, value]) => {
-      if (value) formData.append(key, value);
-    });
-    
-    try {
-      const token = sessionStorage.getItem('token');
-      await axios.post(
-        `/api/pre-assessments/${selectedItem._id}/upload-quotation`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-      showNotification('Quotation uploaded successfully');
-      fetchPreAssessmentDetails(selectedItem._id);
-    } catch (err) {
-      console.error('Error uploading quotation:', err);
-      showNotification('Failed to upload quotation', 'error');
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const deployDevice = async () => {
-    if (!window.confirm('Are you sure you want to deploy the device on site? This will start data collection.')) {
+    if (!window.confirm('Are you sure you want to deploy the device on site? This will start 7-day data collection.')) {
       return;
     }
     
@@ -533,7 +668,7 @@ const MyAssessments = () => {
         { notes: deployNotes },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      showNotification(response.data.message || 'Device deployed successfully');
+      showNotification(response.data.message || 'Device deployed successfully. Data collection started!');
       setDeployNotes('');
       fetchPreAssessmentDetails(selectedItem._id);
     } catch (err) {
@@ -699,33 +834,6 @@ const MyAssessments = () => {
     </div>
   );
 
-  const SkeletonDetail = () => (
-    <div className="my-assessments-enad">
-      <div className="detail-view-enad">
-        <div className="detail-content-enad">
-          <div className="skeleton-button-enad back-enad"></div>
-          <div className="detail-header-enad">
-            <div>
-              <div className="skeleton-line-enad medium-enad"></div>
-              <div className="skeleton-line-enad small-enad"></div>
-            </div>
-            <div className="skeleton-badge-enad"></div>
-          </div>
-          <div className="tabs-enad">
-            {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="skeleton-tab-enad"></div>
-            ))}
-          </div>
-          <div className="info-grid-enad">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="skeleton-info-item-enad"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   if (loading && allAssessments.length === 0) {
     return <SkeletonList />;
   }
@@ -851,6 +959,18 @@ const MyAssessments = () => {
                           <FaHome className="detail-icon-enad" />
                           <span className="capitalize">{item.propertyType || 'N/A'}</span>
                         </div>
+                        {item.systemType && (
+                          <div className="detail-item-enad">
+                            <FaSolarPanel className="detail-icon-enad" />
+                            <span>System: {getSystemTypeLabel(item.systemType)}</span>
+                          </div>
+                        )}
+                        {(item.roofLength || item.roofWidth) && (
+                          <div className="detail-item-enad">
+                            <FaRulerCombined className="detail-icon-enad" />
+                            <span>Roof: {item.roofLength || '?'}m x {item.roofWidth || '?'}m</span>
+                          </div>
+                        )}
                         {item.type === 'free_quote' && item.monthlyBill && (
                           <div className="detail-item-enad">
                             <FaDollarSign className="detail-icon-enad" />
@@ -863,6 +983,12 @@ const MyAssessments = () => {
                             <span className="badge-small-enad">Device Assigned</span>
                           </div>
                         )}
+                        {item.type === 'pre_assessment' && item.dataCollectionStart && (
+                          <div className="detail-item-enad">
+                            <FaChartLine className="detail-icon-enad" />
+                            <span>Data Collection: {formatDate(item.dataCollectionStart)} - {formatDate(item.dataCollectionEnd) || 'Ongoing'}</span>
+                          </div>
+                        )}
                       </div>
                       
                       <div className="card-footer-enad">
@@ -870,6 +996,11 @@ const MyAssessments = () => {
                           {item.type === 'pre_assessment' && item.sitePhotos?.length > 0 && (
                             <span className="badge-small-enad photos-enad">
                               <FaCamera /> {item.sitePhotos.length} Photos
+                            </span>
+                          )}
+                          {item.type === 'pre_assessment' && item.totalReadings > 0 && (
+                            <span className="badge-small-enad data-enad">
+                              <FaChartLine /> {item.totalReadings} Readings
                             </span>
                           )}
                           {item.type === 'free_quote' && item.quotationFile && (
@@ -962,6 +1093,24 @@ const MyAssessments = () => {
                   <span className="info-label-enad">Desired Capacity</span>
                   <span className="info-value-enad">{selectedItem.desiredCapacity || 'Not specified'}</span>
                 </div>
+                {selectedItem.systemType && (
+                  <div className="info-item-enad">
+                    <span className="info-label-enad">Preferred System Type</span>
+                    <span className="info-value-enad">
+                      <FaSolarPanel className="inline-icon" />
+                      {getSystemTypeLabel(selectedItem.systemType)}
+                    </span>
+                  </div>
+                )}
+                {(selectedItem.roofLength || selectedItem.roofWidth) && (
+                  <div className="info-item-enad">
+                    <span className="info-label-enad">Roof Dimensions</span>
+                    <span className="info-value-enad">
+                      <FaRulerCombined className="inline-icon" /> 
+                      {selectedItem.roofLength ? `${selectedItem.roofLength}m` : '?'} x {selectedItem.roofWidth ? `${selectedItem.roofWidth}m` : '?'}
+                    </span>
+                  </div>
+                )}
                 <div className="info-item-enad">
                   <span className="info-label-enad">Requested Date</span>
                   <span className="info-value-enad">{formatDate(selectedItem.requestedAt)}</span>
@@ -996,7 +1145,9 @@ const MyAssessments = () => {
                     />
                   </div>
                   <div className="form-group-enad">
-                    <label className="form-label-enad">System Type</label>
+                    <label className="form-label-enad">
+                      <FaSolarPanel className="inline-icon" /> Recommended System Type
+                    </label>
                     <select
                       value={freeQuoteForm.systemType}
                       onChange={(e) => handleFreeQuoteFormChange('systemType', e.target.value)}
@@ -1006,15 +1157,21 @@ const MyAssessments = () => {
                         <option key={type.value} value={type.value}>{type.label}</option>
                       ))}
                     </select>
+                    {freeQuoteForm.systemType && (
+                      <small className="form-hint-enad">
+                        {SYSTEM_TYPES.find(t => t.value === freeQuoteForm.systemType)?.description}
+                      </small>
+                    )}
                   </div>
                   <div className="form-group-enad">
-                    <label className="form-label-enad">System Size (kWp)</label>
+                    <label className="form-label-enad">System Size (kWp) *</label>
                     <input
                       type="number"
                       step="0.1"
                       value={freeQuoteForm.systemSize}
-                      onChange={(e) => handleFreeQuoteFormChange('systemSize', parseFloat(e.target.value))}
+                      onChange={(e) => handleFreeQuoteFormChange('systemSize', e.target.value)}
                       className="form-input-enad"
+                      placeholder="e.g., 5.0"
                     />
                   </div>
                   <div className="form-group-enad">
@@ -1022,8 +1179,9 @@ const MyAssessments = () => {
                     <input
                       type="number"
                       value={freeQuoteForm.panelsNeeded}
-                      onChange={(e) => handleFreeQuoteFormChange('panelsNeeded', parseInt(e.target.value))}
+                      onChange={(e) => handleFreeQuoteFormChange('panelsNeeded', e.target.value)}
                       className="form-input-enad"
+                      placeholder="Number of panels"
                     />
                   </div>
                   <div className="form-group-enad">
@@ -1049,7 +1207,7 @@ const MyAssessments = () => {
                     <input
                       type="number"
                       value={freeQuoteForm.warrantyYears}
-                      onChange={(e) => handleFreeQuoteFormChange('warrantyYears', parseInt(e.target.value))}
+                      onChange={(e) => handleFreeQuoteFormChange('warrantyYears', e.target.value)}
                       className="form-input-enad"
                     />
                   </div>
@@ -1075,7 +1233,7 @@ const MyAssessments = () => {
                 
                 <div className="cost-summary-enad">
                   <div className="cost-row-enad">
-                    <span className="cost-label-enad">Total Cost:</span>
+                    <span className="cost-label-enad">Total Cost *:</span>
                     <span className="cost-value-enad total-cost-enad">{formatCurrency(freeQuoteForm.totalCost)}</span>
                   </div>
                 </div>
@@ -1100,31 +1258,14 @@ const MyAssessments = () => {
                   />
                 </div>
                 
-                <div className="file-upload-enad">
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={uploadFreeQuoteQuotation}
-                    className="file-upload-input-enad"
-                    id="free-quote-file-input"
-                  />
-                  <label htmlFor="free-quote-file-input" className="file-upload-label-enad">
-                    <FaFilePdf className="upload-icon-enad" />
-                    <span className="upload-text-enad">Click to upload quotation PDF</span>
-                  </label>
-                  {uploading && (
-                    <div className="uploading-enad">
-                      <FaSpinner className="spinner-enad" /> Uploading...
-                    </div>
-                  )}
-                  {selectedItem.quotationFile && (
-                    <div className="uploaded-file-enad">
-                      <span>Quotation PDF uploaded</span>
-                      <a href={selectedItem.quotationFile} target="_blank" rel="noopener noreferrer">
-                        <FaDownload />
-                      </a>
-                    </div>
-                  )}
+                <div className="action-buttons-enad" style={{ marginTop: '20px' }}>
+                  <button
+                    onClick={generateQuotationPDF}
+                    disabled={generatingPDF || !freeQuoteForm.systemSize || !freeQuoteForm.totalCost}
+                    className="btn-primary-enad"
+                  >
+                    {generatingPDF ? <FaSpinner className="spinner-enad" /> : <FaFilePdf />} Generate & Upload PDF
+                  </button>
                 </div>
               </div>
             </div>
@@ -1147,6 +1288,8 @@ const MyAssessments = () => {
   const StatusIcon = StatusConfig.icon;
   const TypeIcon = TypeConfig.icon;
   const deviceAssigned = hasDeviceAssigned(selectedItem);
+  const hasDataCollection = selectedItem.dataCollectionStart && selectedItem.dataCollectionEnd;
+  const canAnalyze = selectedItem.dataCollectionEnd && !iotAnalysis;
   
   return (
     <>
@@ -1218,10 +1361,28 @@ const MyAssessments = () => {
                     <span className="info-label-enad">Property Type</span>
                     <span className="info-value-enad capitalize">{selectedItem.propertyType}</span>
                   </div>
+                  {selectedItem.systemType && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Preferred System Type</span>
+                      <span className="info-value-enad">
+                        <FaSolarPanel className="inline-icon" />
+                        {getSystemTypeLabel(selectedItem.systemType)}
+                      </span>
+                    </div>
+                  )}
                   <div className="info-item-enad">
                     <span className="info-label-enad">Roof Type</span>
                     <span className="info-value-enad capitalize">{selectedItem.roofType || 'Not specified'}</span>
                   </div>
+                  {(selectedItem.roofLength || selectedItem.roofWidth) && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Roof Dimensions (from client)</span>
+                      <span className="info-value-enad">
+                        <FaRulerCombined className="inline-icon" />
+                        {selectedItem.roofLength ? `${selectedItem.roofLength}m` : '?'} x {selectedItem.roofWidth ? `${selectedItem.roofWidth}m` : '?'}
+                      </span>
+                    </div>
+                  )}
                   <div className="info-item-enad">
                     <span className="info-label-enad">Desired Capacity</span>
                     <span className="info-value-enad">{selectedItem.desiredCapacity || 'Not specified'}</span>
@@ -1243,7 +1404,25 @@ const MyAssessments = () => {
                   {selectedItem.deviceDeployedAt && (
                     <div className="info-item-enad">
                       <span className="info-label-enad">Device Deployed</span>
-                      <span className="info-value-enad">{formatDate(selectedItem.deviceDeployedAt)}</span>
+                      <span className="info-value-enad">{formatDateTime(selectedItem.deviceDeployedAt)}</span>
+                    </div>
+                  )}
+                  {selectedItem.dataCollectionStart && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Data Collection Start</span>
+                      <span className="info-value-enad">{formatDateTime(selectedItem.dataCollectionStart)}</span>
+                    </div>
+                  )}
+                  {selectedItem.dataCollectionEnd && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Data Collection End</span>
+                      <span className="info-value-enad">{formatDateTime(selectedItem.dataCollectionEnd)}</span>
+                    </div>
+                  )}
+                  {selectedItem.totalReadings > 0 && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Total Readings</span>
+                      <span className="info-value-enad">{selectedItem.totalReadings}</span>
                     </div>
                   )}
                   <div className="info-item-enad">
@@ -1257,6 +1436,107 @@ const MyAssessments = () => {
                     </span>
                   </div>
                 </div>
+                
+                {/* IoT Data Analysis Section */}
+                {hasDataCollection && (
+                  <div className="detail-section-enad">
+                    <div className="section-header-enad">
+                      <h3 className="detail-section-title-enad">
+                        <FaChartLine /> IoT Data Analysis (7-Day Monitoring)
+                      </h3>
+                      {canAnalyze && (
+                        <button
+                          onClick={analyzeIoTData}
+                          disabled={analyzingData}
+                          className="btn-secondary-enad"
+                          style={{ padding: '5px 12px', fontSize: '12px' }}
+                        >
+                          {analyzingData ? <FaSpinner className="spinner-enad" /> : <FaChartArea />} Analyze Data
+                        </button>
+                      )}
+                    </div>
+                    
+                    {iotAnalysis ? (
+                      <div className="iot-analysis-grid-enad">
+                        <div className="analysis-card-enad irradiance-enad">
+                          <FaSun className="analysis-icon-enad" />
+                          <div className="analysis-stats-enad">
+                            <div className="stat-enad">
+                              <span className="stat-label-enad">Avg Irradiance</span>
+                              <span className="stat-value-enad">{iotAnalysis.averageIrradiance?.toFixed(0) || 0} W/m²</span>
+                            </div>
+                            <div className="stat-enad">
+                              <span className="stat-label-enad">Peak Irradiance</span>
+                              <span className="stat-value-enad">{iotAnalysis.maxIrradiance?.toFixed(0) || 0} W/m²</span>
+                            </div>
+                            <div className="stat-enad">
+                              <span className="stat-label-enad">Peak Sun Hours</span>
+                              <span className="stat-value-enad">{iotAnalysis.peakSunHours?.toFixed(1) || 0} hrs/day</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="analysis-card-enad temperature-enad">
+                          <FaThermometerHalf className="analysis-icon-enad" />
+                          <div className="analysis-stats-enad">
+                            <div className="stat-enad">
+                              <span className="stat-label-enad">Avg Temperature</span>
+                              <span className="stat-value-enad">{iotAnalysis.averageTemperature?.toFixed(1) || 0}°C</span>
+                            </div>
+                            <div className="stat-enad">
+                              <span className="stat-label-enad">Temperature Range</span>
+                              <span className="stat-value-enad">{iotAnalysis.minTemperature?.toFixed(1) || 0}°C - {iotAnalysis.maxTemperature?.toFixed(1) || 0}°C</span>
+                            </div>
+                            <div className="stat-enad">
+                              <span className="stat-label-enad">Efficiency Loss</span>
+                              <span className="stat-value-enad">{iotAnalysis.efficiencyLoss || 0}%</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="analysis-card-enad humidity-enad">
+                          <FaTint className="analysis-icon-enad" />
+                          <div className="analysis-stats-enad">
+                            <div className="stat-enad">
+                              <span className="stat-label-enad">Avg Humidity</span>
+                              <span className="stat-value-enad">{iotAnalysis.averageHumidity?.toFixed(0) || 0}%</span>
+                            </div>
+                            <div className="stat-enad">
+                              <span className="stat-label-enad">Humidity Range</span>
+                              <span className="stat-value-enad">{iotAnalysis.minHumidity?.toFixed(0) || 0}% - {iotAnalysis.maxHumidity?.toFixed(0) || 0}%</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="analysis-card-enad recommendations-enad">
+                          <FaChartBar className="analysis-icon-enad" />
+                          <div className="analysis-stats-enad">
+                            <div className="stat-enad">
+                              <span className="stat-label-enad">Recommended System Size</span>
+                              <span className="stat-value-enad">{iotAnalysis.recommendedSystemSize || 0} kWp</span>
+                            </div>
+                            <div className="stat-enad">
+                              <span className="stat-label-enad">Optimal Orientation</span>
+                              <span className="stat-value-enad">{iotAnalysis.recommendedOrientation || 'South-facing'}</span>
+                            </div>
+                            <div className="stat-enad">
+                              <span className="stat-label-enad">Recommended Tilt Angle</span>
+                              <span className="stat-value-enad">{iotAnalysis.recommendedTiltAngle || 15}°</span>
+                            </div>
+                            <div className="stat-enad">
+                              <span className="stat-label-enad">Shading Detection</span>
+                              <span className="stat-value-enad">{iotAnalysis.shadingPercentage ? `${iotAnalysis.shadingPercentage}% shading` : 'Minimal'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="no-data-enad">
+                        <p>Click "Analyze Data" to process the 7-day IoT monitoring data and get system recommendations.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
                 
                 {/* Assigned Device Section */}
                 {deviceAssigned ? (
@@ -1290,7 +1570,7 @@ const MyAssessments = () => {
                         <>
                           <div className="device-info-item-enad">
                             <span className="device-info-label-enad">Deployed At</span>
-                            <span className="device-info-value-enad">{formatDate(selectedItem.deviceDeployedAt)}</span>
+                            <span className="device-info-value-enad">{formatDateTime(selectedItem.deviceDeployedAt)}</span>
                           </div>
                           <div className="device-info-item-enad">
                             <span className="device-info-label-enad">Deployed By</span>
@@ -1305,32 +1585,6 @@ const MyAssessments = () => {
                 ) : (
                   <div className="no-device-card-enad">
                     <FaExclamationTriangle /> No device assigned yet. Please contact admin.
-                  </div>
-                )}
-                
-                {selectedItem.iotDeviceId && selectedItem.deviceDeployedAt && (
-                  <div className="detail-section-enad">
-                    <h3 className="detail-section-title-enad">Data Collection Status</h3>
-                    <div className="info-grid-enad">
-                      {selectedItem.dataCollectionStart && (
-                        <div className="info-item-enad">
-                          <span className="info-label-enad">Start Date</span>
-                          <span className="info-value-enad">{formatDate(selectedItem.dataCollectionStart)}</span>
-                        </div>
-                      )}
-                      {selectedItem.dataCollectionEnd && (
-                        <div className="info-item-enad">
-                          <span className="info-label-enad">End Date</span>
-                          <span className="info-value-enad">{formatDate(selectedItem.dataCollectionEnd)}</span>
-                        </div>
-                      )}
-                      {selectedItem.totalReadings > 0 && (
-                        <div className="info-item-enad">
-                          <span className="info-label-enad">Total Readings</span>
-                          <span className="info-value-enad">{selectedItem.totalReadings}</span>
-                        </div>
-                      )}
-                    </div>
                   </div>
                 )}
               </div>
@@ -1355,7 +1609,7 @@ const MyAssessments = () => {
                       disabled={submitting}
                       className="btn-success-enad"
                     >
-                      {submitting ? <FaSpinner className="spinner-enad" /> : <FaMicrochip />} Deploy Device
+                      {submitting ? <FaSpinner className="spinner-enad" /> : <FaMicrochip />} Deploy Device (Start 7-day Monitoring)
                     </button>
                   )}
                 </div>
@@ -1377,25 +1631,34 @@ const MyAssessments = () => {
                 </div>
                 
                 <div className="form-group-enad">
-                  <label className="form-label-enad">Roof Dimensions (meters)</label>
+                  <label className="form-label-enad">
+                    <FaRulerCombined className="inline-icon" /> Roof Dimensions (meters)
+                  </label>
                   <div className="form-row-enad">
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={assessmentForm.roofLength || ''}
-                      onChange={(e) => handleAssessmentFormChange('roofLength', parseFloat(e.target.value))}
-                      className="form-input-enad"
-                      placeholder="Length"
-                    />
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={assessmentForm.roofWidth || ''}
-                      onChange={(e) => handleAssessmentFormChange('roofWidth', parseFloat(e.target.value))}
-                      className="form-input-enad"
-                      placeholder="Width"
-                    />
+                    <div className="dimension-input-enad">
+                      <FaArrowsAltH className="dimension-icon-small-enad" />
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={assessmentForm.roofLength || ''}
+                        onChange={(e) => handleAssessmentFormChange('roofLength', parseFloat(e.target.value))}
+                        className="form-input-enad"
+                        placeholder="Length (m)"
+                      />
+                    </div>
+                    <div className="dimension-input-enad">
+                      <FaArrowsAltV className="dimension-icon-small-enad" />
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={assessmentForm.roofWidth || ''}
+                        onChange={(e) => handleAssessmentFormChange('roofWidth', parseFloat(e.target.value))}
+                        className="form-input-enad"
+                        placeholder="Width (m)"
+                      />
+                    </div>
                   </div>
+                  <small className="form-hint-enad">Measured during site inspection</small>
                 </div>
                 
                 <div className="form-group-enad">
@@ -1488,6 +1751,23 @@ const MyAssessments = () => {
                   )}
                 </div>
                 
+                <div className="form-group-enad">
+                  <label className="form-label-enad">
+                    <input
+                      type="checkbox"
+                      checked={includeIoTData}
+                      onChange={(e) => setIncludeIoTData(e.target.checked)}
+                      style={{ marginRight: '8px' }}
+                    />
+                    Include IoT Data Analysis in PDF
+                  </label>
+                  {selectedItem.dataCollectionStart && selectedItem.dataCollectionEnd && (
+                    <small className="form-hint-enad">
+                      IoT data collected from {formatDateTime(selectedItem.dataCollectionStart)} to {formatDateTime(selectedItem.dataCollectionEnd)}
+                    </small>
+                  )}
+                </div>
+                
                 <div className="form-grid-enad">
                   <div className="form-group-enad">
                     <label className="form-label-enad">Quotation Number</label>
@@ -1508,7 +1788,9 @@ const MyAssessments = () => {
                     />
                   </div>
                   <div className="form-group-enad">
-                    <label className="form-label-enad">System Type</label>
+                    <label className="form-label-enad">
+                      <FaSolarPanel className="inline-icon" /> Recommended System Type
+                    </label>
                     <select
                       value={quotationForm.systemType}
                       onChange={(e) => handleQuotationChange('systemType', e.target.value)}
@@ -1518,15 +1800,21 @@ const MyAssessments = () => {
                         <option key={type.value} value={type.value}>{type.label}</option>
                       ))}
                     </select>
+                    {quotationForm.systemType && (
+                      <small className="form-hint-enad">
+                        {SYSTEM_TYPES.find(t => t.value === quotationForm.systemType)?.description}
+                      </small>
+                    )}
                   </div>
                   <div className="form-group-enad">
-                    <label className="form-label-enad">System Size (kWp)</label>
+                    <label className="form-label-enad">System Size (kWp) *</label>
                     <input
                       type="number"
                       step="0.1"
                       value={quotationForm.systemSize}
-                      onChange={(e) => handleQuotationChange('systemSize', parseFloat(e.target.value))}
+                      onChange={(e) => handleQuotationChange('systemSize', e.target.value)}
                       className="form-input-enad"
+                      placeholder="e.g., 5.0"
                     />
                   </div>
                   <div className="form-group-enad">
@@ -1534,8 +1822,9 @@ const MyAssessments = () => {
                     <input
                       type="number"
                       value={quotationForm.panelsNeeded}
-                      onChange={(e) => handleQuotationChange('panelsNeeded', parseInt(e.target.value))}
+                      onChange={(e) => handleQuotationChange('panelsNeeded', e.target.value)}
                       className="form-input-enad"
+                      placeholder="Number of panels"
                     />
                   </div>
                   <div className="form-group-enad">
@@ -1561,7 +1850,7 @@ const MyAssessments = () => {
                     <input
                       type="number"
                       value={quotationForm.warrantyYears}
-                      onChange={(e) => handleQuotationChange('warrantyYears', parseInt(e.target.value))}
+                      onChange={(e) => handleQuotationChange('warrantyYears', e.target.value)}
                       className="form-input-enad"
                     />
                   </div>
@@ -1587,7 +1876,7 @@ const MyAssessments = () => {
                 
                 <div className="cost-summary-enad">
                   <div className="cost-row-enad">
-                    <span className="cost-label-enad">Total Cost:</span>
+                    <span className="cost-label-enad">Total Cost *:</span>
                     <span className="cost-value-enad total-cost-enad">{formatCurrency(quotationForm.totalCost)}</span>
                   </div>
                 </div>
@@ -1602,31 +1891,14 @@ const MyAssessments = () => {
                   />
                 </div>
                 
-                <div className="file-upload-enad">
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={uploadPreAssessmentQuotation}
-                    className="file-upload-input-enad"
-                    id="pre-quotation-file-input"
-                  />
-                  <label htmlFor="pre-quotation-file-input" className="file-upload-label-enad">
-                    <FaFilePdf className="upload-icon-enad" />
-                    <span className="upload-text-enad">Click to upload quotation PDF</span>
-                  </label>
-                  {uploading && (
-                    <div className="uploading-enad">
-                      <FaSpinner className="spinner-enad" /> Uploading...
-                    </div>
-                  )}
-                  {selectedItem.quotation?.quotationUrl && (
-                    <div className="uploaded-file-enad">
-                      <span>Quotation PDF uploaded</span>
-                      <a href={selectedItem.quotation.quotationUrl} target="_blank" rel="noopener noreferrer">
-                        <FaDownload />
-                      </a>
-                    </div>
-                  )}
+                <div className="action-buttons-enad" style={{ marginTop: '20px' }}>
+                  <button
+                    onClick={generateQuotationPDF}
+                    disabled={generatingPDF || !quotationForm.systemSize || !quotationForm.totalCost}
+                    className="btn-primary-enad"
+                  >
+                    {generatingPDF ? <FaSpinner className="spinner-enad" /> : <FaFilePdf />} Generate & Upload PDF
+                  </button>
                 </div>
               </div>
             )}
@@ -1715,7 +1987,7 @@ const MyAssessments = () => {
                           </div>
                           <div>
                             <p className="comment-name-enad">{comment.commentedBy?.firstName} {comment.commentedBy?.lastName}</p>
-                            <p className="comment-time-enad">{formatDate(comment.commentedAt)}</p>
+                            <p className="comment-time-enad">{formatDateTime(comment.commentedAt)}</p>
                           </div>
                         </div>
                         {comment.isPublic && <span className="comment-badge-enad">Public</span>}

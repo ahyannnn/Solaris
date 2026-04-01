@@ -3,7 +3,26 @@ const FreeQuote = require('../models/FreeQuote');
 const Client = require('../models/Clients');
 const User = require('../models/Users');
 const Address = require('../models/Address');
+const File = require('../models/File');
+const PDFGenerator = require('../services/pdfGenerator');
+const cloudinary = require('cloudinary').v2;
 const mongoose = require('mongoose');
+
+// Configure Cloudinary (if not already configured elsewhere)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// SYSTEM_TYPES for reference
+const SYSTEM_TYPES = [
+  { value: 'grid-tie', label: 'Grid-Tie System' },
+  { value: 'hybrid', label: 'Hybrid System' },
+  { value: 'off-grid', label: 'Off-Grid System' }
+];
+
+
 
 // @desc    Create a new free quote request
 // @route   POST /api/free-quotes
@@ -11,7 +30,16 @@ const mongoose = require('mongoose');
 exports.createFreeQuote = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { clientId, addressId, monthlyBill, propertyType, desiredCapacity } = req.body;
+    const {
+      clientId,
+      addressId,
+      monthlyBill,
+      propertyType,
+      desiredCapacity,
+      systemType,
+      roofLength,
+      roofWidth
+    } = req.body;
 
     // Find client
     const client = await Client.findOne({ userId });
@@ -47,6 +75,9 @@ exports.createFreeQuote = async (req, res) => {
       monthlyBill: parseFloat(monthlyBill),
       propertyType: propertyType,
       desiredCapacity: desiredCapacity || '',
+      systemType: systemType || null,
+      roofLength: roofLength ? parseFloat(roofLength) : null,
+      roofWidth: roofWidth ? parseFloat(roofWidth) : null,
       status: 'pending',
       quotationReference: quotationReference
     });
@@ -70,6 +101,8 @@ exports.createFreeQuote = async (req, res) => {
         monthlyBill: freeQuote.monthlyBill,
         propertyType: freeQuote.propertyType,
         desiredCapacity: freeQuote.desiredCapacity,
+        roofLength: freeQuote.roofLength,
+        roofWidth: freeQuote.roofWidth,
         status: freeQuote.status,
         requestedAt: freeQuote.requestedAt,
         client: {
@@ -85,15 +118,13 @@ exports.createFreeQuote = async (req, res) => {
 
   } catch (error) {
     console.error('Create free quote error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to submit quote request', 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: 'Failed to submit quote request',
+      error: error.message
     });
   }
 };
-
-// controllers/freeQuoteControllers.js
 
 // @desc    Get all free quotes (Admin only)
 // @route   GET /api/free-quotes
@@ -101,14 +132,14 @@ exports.createFreeQuote = async (req, res) => {
 exports.getAllFreeQuotes = async (req, res) => {
   try {
     const { status, page = 1, limit = 20 } = req.query;
-    
+
     const query = {};
     if (status) query.status = status;
 
     const quotes = await FreeQuote.find(query)
       .populate('clientId', 'contactFirstName contactLastName contactNumber')
       .populate('addressId')
-      .populate('assignedEngineerId', 'fullName email')  // Now this will work
+      .populate('assignedEngineerId', 'fullName email')
       .populate({
         path: 'clientId',
         populate: { path: 'userId', select: 'email' }
@@ -139,7 +170,7 @@ exports.getAllFreeQuotes = async (req, res) => {
 exports.getMyFreeQuotes = async (req, res) => {
   try {
     const userId = req.user.id;
-    
+
     const client = await Client.findOne({ userId });
     if (!client) {
       return res.status(404).json({ message: 'Client not found' });
@@ -159,8 +190,6 @@ exports.getMyFreeQuotes = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch quotes', error: error.message });
   }
 };
-
-// controllers/freeQuoteControllers.js
 
 // @desc    Get free quote by ID
 // @route   GET /api/free-quotes/:id
@@ -187,22 +216,22 @@ exports.getFreeQuoteById = async (req, res) => {
 
     // Check authorization
     const client = await Client.findOne({ userId });
-    
+
     // Admin can access any quote
     if (userRole === 'admin') {
       return res.json({ success: true, quote });
     }
-    
+
     // Customer can access their own quotes
     if (client && quote.clientId._id.toString() === client._id.toString()) {
       return res.json({ success: true, quote });
     }
-    
+
     // Engineer can access quotes assigned to them
     if (userRole === 'engineer' && quote.assignedEngineerId && quote.assignedEngineerId._id.toString() === userId) {
       return res.json({ success: true, quote });
     }
-    
+
     // Otherwise, unauthorized
     return res.status(403).json({ message: 'Unauthorized' });
 
@@ -211,8 +240,6 @@ exports.getFreeQuoteById = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch quote', error: error.message });
   }
 };
-
-// controllers/freeQuoteControllers.js
 
 // @desc    Assign engineer to free quote (Admin only)
 // @route   PUT /api/free-quotes/:id/assign-engineer
@@ -231,16 +258,16 @@ exports.assignEngineerToFreeQuote = async (req, res) => {
 
     // Check if quote is pending
     if (quote.status !== 'pending') {
-      return res.status(400).json({ 
-        message: `Cannot assign engineer. Current status: ${quote.status}. Only pending quotes can be assigned.` 
+      return res.status(400).json({
+        message: `Cannot assign engineer. Current status: ${quote.status}. Only pending quotes can be assigned.`
       });
     }
 
     // Find the engineer
     const engineer = await User.findById(engineerId);
     if (!engineer || engineer.role !== 'engineer') {
-      return res.status(400).json({ 
-        message: 'Invalid engineer selected. User must have engineer role.' 
+      return res.status(400).json({
+        message: 'Invalid engineer selected. User must have engineer role.'
       });
     }
 
@@ -280,10 +307,10 @@ exports.assignEngineerToFreeQuote = async (req, res) => {
 
   } catch (error) {
     console.error('Assign engineer to free quote error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Failed to assign engineer', 
-      error: error.message 
+      message: 'Failed to assign engineer',
+      error: error.message
     });
   }
 };
@@ -312,8 +339,8 @@ exports.updateQuoteStatus = async (req, res) => {
     };
 
     if (validTransitions[quote.status] && !validTransitions[quote.status].includes(status)) {
-      return res.status(400).json({ 
-        message: `Cannot transition from ${quote.status} to ${status}` 
+      return res.status(400).json({
+        message: `Cannot transition from ${quote.status} to ${status}`
       });
     }
 
@@ -346,7 +373,7 @@ exports.updateQuoteStatus = async (req, res) => {
 exports.uploadQuotation = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
@@ -413,8 +440,6 @@ exports.cancelFreeQuote = async (req, res) => {
   }
 };
 
-// controllers/freeQuoteControllers.js
-
 // @desc    Get free quotes assigned to engineer
 // @route   GET /api/free-quotes/engineer/my-quotes
 // @access  Private (Engineer)
@@ -422,18 +447,18 @@ exports.getEngineerFreeQuotes = async (req, res) => {
   try {
     const engineerId = req.user.id;
     const { status, page = 1, limit = 20 } = req.query;
-    
-    const query = { 
+
+    const query = {
       assignedEngineerId: engineerId,
       status: { $nin: ['cancelled'] }
     };
-    
+
     if (status) query.status = status;
 
     const quotes = await FreeQuote.find(query)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber email')
+      .populate('clientId', 'contactFirstName contactLastName contactNumber userId.email')
       .populate('addressId')
-      .populate('assignedEngineerId', 'fullName email')  // Make sure this is populated
+      .populate('assignedEngineerId', 'fullName email')
       .populate({
         path: 'clientId',
         populate: { path: 'userId', select: 'email' }
@@ -455,84 +480,6 @@ exports.getEngineerFreeQuotes = async (req, res) => {
   } catch (error) {
     console.error('Get engineer free quotes error:', error);
     res.status(500).json({ message: 'Failed to fetch quotes', error: error.message });
-  }
-};
-
-// controllers/freeQuoteControllers.js
-
-// @desc    Assign engineer to free quote (Admin only)
-// @route   PUT /api/free-quotes/:id/assign-engineer
-// @access  Private (Admin)
-exports.assignEngineerToFreeQuote = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { engineerId, notes } = req.body;
-    const adminId = req.user.id;
-
-    console.log('Assigning engineer to free quote:', { id, engineerId, adminId });
-
-    // Find the free quote
-    const quote = await FreeQuote.findById(id);
-    if (!quote) {
-      return res.status(404).json({ message: 'Free quote not found' });
-    }
-
-    // Check if quote is pending
-    if (quote.status !== 'pending') {
-      return res.status(400).json({ 
-        message: `Cannot assign engineer. Current status: ${quote.status}. Only pending quotes can be assigned.` 
-      });
-    }
-
-    // Find the engineer
-    const engineer = await User.findById(engineerId);
-    if (!engineer || engineer.role !== 'engineer') {
-      return res.status(400).json({ 
-        message: 'Invalid engineer selected. User must have engineer role.' 
-      });
-    }
-
-    // Update the free quote
-    quote.assignedEngineerId = engineerId;
-    quote.assignedAt = new Date();
-    quote.assignedBy = adminId;
-    quote.status = 'assigned';
-    if (notes) quote.adminRemarks = notes;
-    quote.processedBy = adminId;
-    quote.processedAt = new Date();
-
-    await quote.save();
-
-    // Populate for response
-    await quote.populate('assignedEngineerId', 'fullName email');
-    await quote.populate('clientId', 'contactFirstName contactLastName contactNumber');
-
-    res.json({
-      success: true,
-      message: `Engineer assigned successfully to free quote ${quote.quotationReference}`,
-      quote: {
-        _id: quote._id,
-        quotationReference: quote.quotationReference,
-        status: quote.status,
-        assignedEngineer: {
-          id: engineer._id,
-          name: engineer.fullName,
-          email: engineer.email
-        },
-        client: {
-          name: `${quote.clientId.contactFirstName} ${quote.clientId.contactLastName}`,
-          contactNumber: quote.clientId.contactNumber
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error('Assign engineer to free quote error:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Failed to assign engineer', 
-      error: error.message 
-    });
   }
 };
 
@@ -563,8 +510,8 @@ exports.engineerUpdateStatus = async (req, res) => {
     };
 
     if (!validTransitions[quote.status] || !validTransitions[quote.status].includes(status)) {
-      return res.status(400).json({ 
-        message: `Cannot transition from ${quote.status} to ${status}` 
+      return res.status(400).json({
+        message: `Cannot transition from ${quote.status} to ${status}`
       });
     }
 
@@ -587,10 +534,154 @@ exports.engineerUpdateStatus = async (req, res) => {
 
   } catch (error) {
     console.error('Engineer update status error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Failed to update status', 
-      error: error.message 
+      message: 'Failed to update status',
+      error: error.message
     });
   }
 };
+
+// @desc    Generate and upload free quote PDF (Engineer)
+// @route   POST /api/free-quotes/:id/generate-quotation
+// @access  Private (Engineer)
+exports.generateFreeQuotePDF = async (req, res) => {
+  try {
+
+    const { id } = req.params;
+    const engineerId = req.user.id;
+    const {
+      quotationNumber,
+      quotationExpiryDate,
+      systemSize,
+      systemType,
+      panelsNeeded,
+      inverterType,
+      batteryType,
+      installationCost,
+      equipmentCost,
+      totalCost,
+      paymentTerms,
+      warrantyYears,
+      remarks
+    } = req.body;
+
+    console.log('Generating free quote PDF for:', id);
+    console.log('Request body:', req.body);
+
+    const quote = await FreeQuote.findById(id)
+      .populate('clientId', 'contactFirstName contactLastName contactNumber')
+      .populate('addressId');
+
+    if (!quote) {
+      return res.status(404).json({ message: 'Free quote not found' });
+    }
+
+    // Check if engineer is assigned to this quote
+    if (quote.assignedEngineerId?.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized to generate PDF for this quote' });
+    }
+
+    // Get system type label
+    const systemTypeObj = SYSTEM_TYPES.find(t => t.value === systemType);
+    const systemTypeLabel = systemTypeObj ? systemTypeObj.label : systemType;
+
+    // Prepare data for PDF
+    const pdfData = {
+      quotationReference: quote.quotationReference,
+      clientName: `${quote.clientId.contactFirstName} ${quote.clientId.contactLastName}`,
+      clientPhone: quote.clientId.contactNumber,
+      clientEmail: quote.clientId.userId?.email,
+      propertyType: quote.propertyType,
+      address: quote.addressId ?
+        `${quote.addressId.houseOrBuilding || ''} ${quote.addressId.street || ''}, ${quote.addressId.barangay || ''}, ${quote.addressId.cityMunicipality || ''}` : null,
+      quotationExpiryDate,
+      systemSize,
+      systemTypeLabel,
+      panelsNeeded,
+      inverterType,
+      batteryType,
+      installationCost: parseFloat(installationCost) || 0,
+      equipmentCost: parseFloat(equipmentCost) || 0,
+      totalCost: parseFloat(totalCost) || 0,
+      paymentTerms,
+      warrantyYears: parseInt(warrantyYears) || 10,
+      remarks
+    };
+
+    // Generate PDF
+    const pdfBuffer = await PDFGenerator.generateFreeQuotePDF(pdfData);
+
+    // Upload to Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'auto',
+          folder: `free-quotes/${quote.quotationReference}`,
+          public_id: `quotation_${quotationNumber || quote.quotationReference}`,
+          format: 'pdf',
+          type: 'upload',
+          access_mode: 'public' // Make it publicly accessible
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      uploadStream.end(pdfBuffer);
+    });
+
+    // Save file record
+    const fileRecord = new File({
+      filename: `quotation_${quotationNumber || quote.quotationReference}.pdf`,
+      originalName: `Quotation_${quote.quotationReference}.pdf`,
+      fileType: 'quotation_pdf',
+      mimeType: 'application/pdf',
+      size: pdfBuffer.length,
+      url: result.secure_url,
+      publicId: result.public_id,
+      uploadedBy: engineerId,
+      userRole: 'engineer',
+      relatedTo: 'free_quote',
+      relatedId: quote._id,
+      metadata: {
+        quotationNumber: quotationNumber || quote.quotationReference,
+        systemSize,
+        systemType,
+        totalCost,
+        generatedAt: new Date().toISOString()
+      }
+    });
+
+    await fileRecord.save();
+
+    // Update quote
+    quote.quotationFile = result.secure_url;
+    quote.status = 'completed';
+    quote.quotationSentAt = new Date();
+    quote.processedBy = engineerId;
+    quote.processedAt = new Date();
+
+    await quote.save();
+
+    res.json({
+      success: true,
+      message: 'Quotation PDF generated and uploaded successfully',
+      quotation: {
+        id: fileRecord._id,
+        url: result.secure_url,
+        quotationNumber: quotationNumber || quote.quotationReference,
+        totalCost: totalCost,
+        size: `${(pdfBuffer.length / 1024).toFixed(1)} KB`
+      }
+    });
+
+  } catch (error) {
+    console.error('Generate free quote PDF error:', error);
+    res.status(500).json({
+      message: 'Failed to generate quotation PDF',
+      error: error.message
+    });
+  }
+};
+

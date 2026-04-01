@@ -28,6 +28,21 @@ const freeQuoteSchema = new mongoose.Schema({
     type: String 
   },
   
+  // Roof Dimensions
+  roofLength: { 
+    type: Number,
+    default: null
+  },
+  roofWidth: { 
+    type: Number,
+    default: null
+  },
+  systemType: { 
+    type: String, 
+    enum: ['grid-tie', 'hybrid', 'off-grid'],
+    default: null
+  },
+  
   // Status - Workflow: pending → assigned → processing → completed
   status: { 
     type: String, 

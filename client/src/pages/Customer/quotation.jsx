@@ -4,7 +4,17 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
-import { FaClock, FaCheckCircle, FaBuilding, FaExclamationTriangle, FaMoneyBillWave } from 'react-icons/fa';
+import {
+  FaClock,
+  FaCheckCircle,
+  FaBuilding,
+  FaExclamationTriangle,
+  FaMoneyBillWave,
+  FaFilePdf,
+  FaDownload,
+  FaEye,
+  FaSpinner
+} from 'react-icons/fa';
 import '../../styles/Customer/quotation.css';
 
 const Quotation = () => {
@@ -18,6 +28,9 @@ const Quotation = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showPdfModal, setShowPdfModal] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [detailsItem, setDetailsItem] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState(null);
@@ -66,73 +79,75 @@ const Quotation = () => {
       .join(' ');
   };
 
- // In quotation.jsx - Update the fetchData function
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
 
-const fetchData = async () => {
-  try {
-    setLoading(true);
-    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const freeQuotesRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes/my-quotes`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setFreeQuotes(freeQuotesRes.data.quotes || []);
 
-    const freeQuotesRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes/my-quotes`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setFreeQuotes(freeQuotesRes.data.quotes || []);
+      const projectsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/my-projects`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setProjects(projectsRes.data.projects || []);
 
-    const projectsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/my-projects`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setProjects(projectsRes.data.projects || []);
+      const preAssessmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-bookings`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-    const preAssessmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-bookings`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+  
 
-    // Filter assessments to only show those that:
-    // 1. Have an invoice number (approved by admin)
-    // 2. Are not in pending_review status
-    // 3. Have payment status in: pending_payment, for_verification, paid
-    const transformedBills = preAssessmentsRes.data.assessments
-      ?.filter(assessment => 
-        // Only show if invoice exists and not pending_review
-        assessment.invoiceNumber && 
-        assessment.assessmentStatus !== 'pending_review' &&
-        // Only show relevant payment statuses
-        ['pending', 'for_verification', 'paid'].includes(assessment.paymentStatus)
-      )
-      .map(assessment => ({
-        id: assessment.invoiceNumber,
-        date: new Date(assessment.bookedAt).toLocaleDateString(),
-        dueDate: new Date(assessment.preferredDate).toLocaleDateString(),
-        amount: assessment.assessmentFee,
-        status: assessment.paymentStatus === 'paid' ? 'paid' : 
-                assessment.paymentStatus === 'for_verification' ? 'for_verification' : 'pending',
-        description: 'Pre Assessment Fee',
-        bookingReference: assessment.bookingReference,
-        paymentStatus: assessment.paymentStatus,
-        propertyType: assessment.propertyType,
-        desiredCapacity: assessment.desiredCapacity,
-        roofType: assessment.roofType,
-        preferredDate: assessment.preferredDate,
-        address: assessment.address,
-        bookedAt: assessment.bookedAt,
-        invoiceNumber: assessment.invoiceNumber
-      })) || [];
+      // Filter assessments to only show those that:
+      // 1. Have an invoice number (approved by admin)
+      // 2. Are not in pending_review status
+      // 3. Have payment status in: pending_payment, for_verification, paid
+      const transformedBills = preAssessmentsRes.data.assessments
+        ?.filter(assessment =>
+          assessment.invoiceNumber &&
+          assessment.assessmentStatus !== 'pending_review' &&
+          ['pending', 'for_verification', 'paid'].includes(assessment.paymentStatus)
+        )
+        .map(assessment => ({
+          id: assessment.invoiceNumber,
+          date: new Date(assessment.bookedAt).toLocaleDateString(),
+          dueDate: new Date(assessment.preferredDate).toLocaleDateString(),
+          amount: assessment.assessmentFee,
+          status: assessment.paymentStatus === 'paid' ? 'paid' :
+            assessment.paymentStatus === 'for_verification' ? 'for_verification' : 'pending',
+          description: 'Pre Assessment Fee',
+          bookingReference: assessment.bookingReference,
+          paymentStatus: assessment.paymentStatus,
+          propertyType: assessment.propertyType,
+          desiredCapacity: assessment.desiredCapacity,
+          roofType: assessment.roofType,
+          preferredDate: assessment.preferredDate,
+          address: assessment.address,
+          bookedAt: assessment.bookedAt,
+          invoiceNumber: assessment.invoiceNumber,
+          assessmentId: assessment._id,
+          // Check if quotation exists
+          quotation: assessment.quotation,
+          quotationUrl: assessment.quotation?.quotationUrl || assessment.finalQuotation
+        })) || [];
 
-    console.log('Filtered pre-assessments:', transformedBills); // Debug log
-    setPreAssessments(transformedBills);
+      console.log('Filtered pre-assessments:', transformedBills);
+      setPreAssessments(transformedBills);
 
-    const paymentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/payments`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setPayments(paymentsRes.data.payments || []);
+      const paymentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/payments`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPayments(paymentsRes.data.payments || []);
 
-    setLoading(false);
-  } catch (err) {
-    console.error('Error fetching data:', err);
-    showToast('Failed to load data', 'error');
-    setLoading(false);
-  }
-};
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      showToast('Failed to load data', 'error');
+      setLoading(false);
+    }
+  };
 
   const validateRequestForm = () => {
     const errors = {};
@@ -181,82 +196,135 @@ const fetchData = async () => {
   };
 
   const handlePayNow = (preAssessment) => {
-  setSelectedItem({
-    ...preAssessment,
-    bookingReference: preAssessment.bookingReference  // Ensure this is included
-  });
-  setPaymentMethod(null);
-  setPaymentProof(null);
-  setPaymentReference('');
-  setShowPaymentModal(true);
-};
+    setSelectedItem({
+      ...preAssessment,
+      bookingReference: preAssessment.bookingReference
+    });
+    setPaymentMethod(null);
+    setPaymentProof(null);
+    setPaymentReference('');
+    setShowPaymentModal(true);
+  };
 
   const handleViewDetails = (item, type) => {
     setDetailsItem(item);
     setShowDetailsModal(true);
   };
 
-  // In quotation.jsx - Update the handlePaymentSubmit function for cash payments
-
-const handlePaymentSubmit = async () => {
-  if (!paymentMethod) {
-    showToast('Please select a payment method', 'warning');
-    return;
-  }
-
-  if (paymentMethod === 'gcash') {
-    if (!paymentProof) {
-      showToast('Please upload payment proof', 'warning');
+  // Replace your handleViewQuotation function with this:
+  const handleViewQuotation = async (assessment) => {
+    if (!assessment.quotationUrl) {
+      showToast('No quotation PDF available for this assessment', 'warning');
       return;
     }
-    if (!paymentReference) {
-      showToast('Please enter GCash reference number', 'warning');
+
+    // Simply download the PDF instead of trying to view it
+    const pdfUrl = assessment.quotationUrl;
+
+    // Create a temporary link to download the PDF
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.download = `Quotation_${assessment.bookingReference || assessment.id}.pdf`;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showToast('Downloading quotation...', 'info');
+  };
+
+
+
+  // ✅ NEW: Handle Download Quotation PDF
+  const handleDownloadQuotation = async (assessment) => {
+    if (!assessment.quotationUrl) {
+      showToast('No quotation PDF available for this assessment', 'warning');
       return;
     }
-  }
 
-  setIsSubmitting(true);
+    setPdfLoading(true);
+    try {
+      const response = await axios.get(assessment.quotationUrl, {
+        responseType: 'blob'
+      });
 
-  try {
-    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Quotation_${assessment.bookingReference || assessment.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      showToast('Quotation downloaded successfully!', 'success');
+    } catch (err) {
+      console.error('Error downloading PDF:', err);
+      showToast('Failed to download quotation', 'error');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const handlePaymentSubmit = async () => {
+    if (!paymentMethod) {
+      showToast('Please select a payment method', 'warning');
+      return;
+    }
 
     if (paymentMethod === 'gcash') {
-      const formData = new FormData();
-      formData.append('invoiceNumber', selectedItem.invoiceNumber || selectedItem.id);
-      formData.append('paymentMethod', 'gcash');
-      formData.append('paymentReference', paymentReference);
-      formData.append('paymentProof', paymentProof);
-
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/submit-payment`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-
-      showToast('Payment submitted successfully! A confirmation email has been sent. Our team will verify your payment within 24-48 hours.', 'success');
-
-    } else if (paymentMethod === 'cash') {
-      // For cash payment, use bookingReference
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/cash-payment`, {
-        bookingReference: selectedItem.bookingReference  // Use bookingReference, not invoiceNumber
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      showToast('Cash payment selected. Please visit our office to complete payment.', 'success');
+      if (!paymentProof) {
+        showToast('Please upload payment proof', 'warning');
+        return;
+      }
+      if (!paymentReference) {
+        showToast('Please enter GCash reference number', 'warning');
+        return;
+      }
     }
 
-    closeModal();
-    fetchData();
+    setIsSubmitting(true);
 
-  } catch (err) {
-    console.error('Payment error:', err);
-    showToast(err.response?.data?.message || 'Failed to process payment. Please try again.', 'error');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+
+      if (paymentMethod === 'gcash') {
+        const formData = new FormData();
+        formData.append('invoiceNumber', selectedItem.invoiceNumber || selectedItem.id);
+        formData.append('paymentMethod', 'gcash');
+        formData.append('paymentReference', paymentReference);
+        formData.append('paymentProof', paymentProof);
+
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/submit-payment`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+
+        showToast('Payment submitted successfully! A confirmation email has been sent. Our team will verify your payment within 24-48 hours.', 'success');
+
+      } else if (paymentMethod === 'cash') {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/cash-payment`, {
+          bookingReference: selectedItem.bookingReference
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        showToast('Cash payment selected. Please visit our office to complete payment.', 'success');
+      }
+
+      closeModal();
+      fetchData();
+
+    } catch (err) {
+      console.error('Payment error:', err);
+      showToast(err.response?.data?.message || 'Failed to process payment. Please try again.', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const closeModal = () => {
     setShowPaymentModal(false);
@@ -266,22 +334,22 @@ const handlePaymentSubmit = async () => {
     setPaymentMethod(null);
   };
 
- const getStatusBadge = (status) => {
-  const badges = {
-    'pending': <span className="status-badge-quotation pending-quotation">Pending Payment</span>,
-    'pending_payment': <span className="status-badge-quotation pending-quotation">Pending Payment</span>,
-    'paid': <span className="status-badge-quotation paid-quotation">Paid</span>,
-    'for_verification': <span className="status-badge-quotation for-verification-quotation">For Verification</span>,
-    'processing': <span className="status-badge-quotation processing-quotation">Processing</span>,
-    'quoted': <span className="status-badge-quotation quoted-quotation">Quoted</span>,
-    'approved': <span className="status-badge-quotation approved-quotation">Approved</span>,
-    'initial_paid': <span className="status-badge-quotation initial-paid-quotation">Initial Paid</span>,
-    'in_progress': <span className="status-badge-quotation in-progress-quotation">In Progress</span>,
-    'completed': <span className="status-badge-quotation completed-quotation">Completed</span>,
-    'cancelled': <span className="status-badge-quotation cancelled-quotation">Cancelled</span>
+  const getStatusBadge = (status) => {
+    const badges = {
+      'pending': <span className="status-badge-quotation pending-quotation">Pending Payment</span>,
+      'pending_payment': <span className="status-badge-quotation pending-quotation">Pending Payment</span>,
+      'paid': <span className="status-badge-quotation paid-quotation">Paid</span>,
+      'for_verification': <span className="status-badge-quotation for-verification-quotation">For Verification</span>,
+      'processing': <span className="status-badge-quotation processing-quotation">Processing</span>,
+      'quoted': <span className="status-badge-quotation quoted-quotation">Quoted</span>,
+      'approved': <span className="status-badge-quotation approved-quotation">Approved</span>,
+      'initial_paid': <span className="status-badge-quotation initial-paid-quotation">Initial Paid</span>,
+      'in_progress': <span className="status-badge-quotation in-progress-quotation">In Progress</span>,
+      'completed': <span className="status-badge-quotation completed-quotation">Completed</span>,
+      'cancelled': <span className="status-badge-quotation cancelled-quotation">Cancelled</span>
+    };
+    return badges[status] || <span className="status-badge-quotation">{status}</span>;
   };
-  return badges[status] || <span className="status-badge-quotation">{status}</span>;
-};
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-PH', {
@@ -575,7 +643,11 @@ const handlePaymentSubmit = async () => {
                     <button className="action-btn-quotation view-quotation" onClick={() => handleViewDetails(quote, 'quote')}>
                       View Details
                     </button>
-                    <button className="action-btn-quotation download-quotation">Download PDF</button>
+                    {quote.quotationFile && (
+                      <button className="action-btn-quotation download-quotation" onClick={() => window.open(quote.quotationFile, '_blank')}>
+                        <FaFilePdf /> View PDF
+                      </button>
+                    )}
                   </div>
                 </div>
               ))
@@ -583,7 +655,7 @@ const handlePaymentSubmit = async () => {
           </div>
         )}
 
-        {/* Pre-Assessments Tab - Filtered to only show approved/pending payment items */}
+        {/* Pre-Assessments Tab - Now with Quotation PDF View */}
         {activeTab === 'pre-assessments' && (
           <div className="pre-assessments-list-quotation">
             {preAssessments.length === 0 ? (
@@ -623,9 +695,26 @@ const handlePaymentSubmit = async () => {
                     )}
 
                     {assessment.paymentStatus === 'paid' && (
-                      <span className="payment-status-quotation paid-status-quotation">
-                        <FaCheckCircle style={{ marginRight: '4px' }} /> Payment Completed
-                      </span>
+                      <>
+                        <span className="payment-status-quotation paid-status-quotation">
+                          <FaCheckCircle style={{ marginRight: '4px' }} /> Payment Completed
+                        </span>
+                        {/* ✅ NEW: View Quotation button for completed payments */}
+                        <button
+                          className="action-btn-quotation view-quotation"
+                          onClick={() => handleViewQuotation(assessment)}
+                          style={{ backgroundColor: '#f97316', color: 'white' }}
+                        >
+                          <FaEye /> View Quotation
+                        </button>
+                        <button
+                          className="action-btn-quotation download-quotation"
+                          onClick={() => handleDownloadQuotation(assessment)}
+                          disabled={pdfLoading}
+                        >
+                          {pdfLoading ? <FaSpinner className="spinner" /> : <FaDownload />} Download PDF
+                        </button>
+                      </>
                     )}
 
                     <button className="action-btn-quotation view-quotation" onClick={() => handleViewDetails(assessment, 'assessment')}>
@@ -681,6 +770,41 @@ const handlePaymentSubmit = async () => {
           </div>
         )}
 
+        {/* ✅ NEW: PDF Viewer Modal */}
+        {showPdfModal && pdfUrl && (
+          <div className="modal-overlay-quotation pdf-modal-overlay" onClick={() => setShowPdfModal(false)}>
+            <div className="modal-content-quotation pdf-modal-content" onClick={e => e.stopPropagation()}>
+              <button className="modal-close-quotation" onClick={() => setShowPdfModal(false)}>×</button>
+              <h3>Solar Quotation</h3>
+              <div className="pdf-viewer-container">
+                <iframe
+                  src={`${pdfUrl}#toolbar=0`}
+                  title="Quotation PDF"
+                  width="100%"
+                  height="600px"
+                  style={{ border: 'none' }}
+                />
+              </div>
+              <div className="modal-actions-quotation">
+                <button
+                  className="cancel-btn-quotation"
+                  onClick={() => setShowPdfModal(false)}
+                >
+                  Close
+                </button>
+                <a
+                  href={pdfUrl}
+                  download
+                  className="submit-btn-quotation"
+                  style={{ textDecoration: 'none', display: 'inline-block' }}
+                >
+                  <FaDownload /> Download PDF
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Payment Modal */}
         {showPaymentModal && selectedItem && (
           <div className="modal-overlay-quotation" onClick={closeModal}>
@@ -702,7 +826,7 @@ const handlePaymentSubmit = async () => {
                       className={`payment-method-option-quotation ${paymentMethod === 'gcash' ? 'selected-quotation' : ''}`}
                       onClick={() => setPaymentMethod('gcash')}
                     >
-                      <input type="radio" name="paymentMethod" checked={paymentMethod === 'gcash'} onChange={() => {}} />
+                      <input type="radio" name="paymentMethod" checked={paymentMethod === 'gcash'} onChange={() => { }} />
                       <div className="payment-method-icon-quotation">
                         <img src="/images/gcash-logo.png" alt="GCash" />
                       </div>
@@ -716,7 +840,7 @@ const handlePaymentSubmit = async () => {
                       className={`payment-method-option-quotation ${paymentMethod === 'cash' ? 'selected-quotation' : ''}`}
                       onClick={() => setPaymentMethod('cash')}
                     >
-                      <input type="radio" name="paymentMethod" checked={paymentMethod === 'cash'} onChange={() => {}} />
+                      <input type="radio" name="paymentMethod" checked={paymentMethod === 'cash'} onChange={() => { }} />
                       <div className="payment-method-icon-quotation">
                         <FaMoneyBillWave size={32} color="#2ecc71" />
                       </div>
@@ -855,6 +979,22 @@ const handlePaymentSubmit = async () => {
                       <h4>Address</h4>
                       <p>{detailsItem.address}</p>
                     </div>
+                    {/* ✅ Show Quotation Link if available */}
+                    {detailsItem.quotationUrl && (
+                      <div className="details-section-quotation">
+                        <h4>Quotation</h4>
+                        <button
+                          className="action-btn-quotation view-quotation"
+                          onClick={() => {
+                            setShowDetailsModal(false);
+                            handleViewQuotation(detailsItem);
+                          }}
+                          style={{ marginTop: '8px' }}
+                        >
+                          <FaEye /> View Quotation PDF
+                        </button>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <>

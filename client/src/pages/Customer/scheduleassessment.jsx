@@ -6,6 +6,19 @@ import { Helmet } from 'react-helmet-async';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import { 
   FaMoneyBillWave,
+  FaRulerCombined,
+  FaArrowsAltH,
+  FaArrowsAltV,
+  FaUser,
+  FaPhone,
+  FaEnvelope,
+  FaMapMarkerAlt,
+  FaBuilding,
+  FaEdit,
+  FaEye,
+  FaTimes,
+  FaSolarPanel,
+  FaBolt
 } from 'react-icons/fa';
 import '../../styles/Customer/scheduleassessment.css';
 
@@ -21,16 +34,27 @@ const ScheduleAssessment = () => {
   const [currentStep, setCurrentStep] = useState('service-selection');
   const [submitted, setSubmitted] = useState(false);
   const [submittedData, setSubmittedData] = useState(null);
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
-  // Free quotation state
+  // System Types
+  const SYSTEM_TYPES = [
+    { value: 'grid-tie', label: 'Grid-Tie System', description: 'Connected to utility grid, no batteries' },
+    { value: 'hybrid', label: 'Hybrid System', description: 'Grid-tie with battery backup' },
+    { value: 'off-grid', label: 'Off-Grid System', description: 'Standalone with batteries, not connected to grid' }
+  ];
+
+  // Free quotation state with dimensions
   const [freeQuoteData, setFreeQuoteData] = useState({
     monthlyBill: '',
     propertyType: 'residential',
-    desiredCapacity: ''
+    desiredCapacity: '',
+    systemType: '',
+    roofLength: '',
+    roofWidth: ''
   });
   const [showFreeQuoteConfirm, setShowFreeQuoteConfirm] = useState(false);
 
-  // Pre Assessment state
+  // Pre Assessment state with dimensions
   const [formData, setFormData] = useState({
     firstName: '',
     middleName: '',
@@ -38,9 +62,12 @@ const ScheduleAssessment = () => {
     contactNumber: '',
     propertyType: 'residential',
     desiredCapacity: '',
+    systemType: '',
     roofType: '',
+    roofLength: '',
+    roofWidth: '',
     preferredDate: '',
-    paymentMethod: 'gcash' // Add payment method field
+    paymentMethod: 'gcash'
   });
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -113,6 +140,10 @@ const ScheduleAssessment = () => {
     navigate('/app/customer/settings?tab=addresses');
   };
 
+  const handleProfileClick = () => {
+    navigate('/app/customer/settings?tab=profile');
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (currentStep === 'service-selection') {
@@ -136,18 +167,21 @@ const ScheduleAssessment = () => {
     return '';
   };
 
-  const getSelectedAddressDisplay = () => {
+  const getAddressDisplay = () => {
     if (!selectedAddress) return null;
-
-    const name = `${formData.firstName} ${formData.lastName}`;
-    const contact = formData.contactNumber;
-    const address = `${selectedAddress.houseOrBuilding} ${selectedAddress.street}, ${selectedAddress.barangay}, ${selectedAddress.cityMunicipality}, ${selectedAddress.province} ${selectedAddress.zipCode}`;
-
-    return { name, contact, address };
+    return {
+      fullAddress: getFullAddress(),
+      houseOrBuilding: selectedAddress.houseOrBuilding,
+      street: selectedAddress.street,
+      barangay: selectedAddress.barangay,
+      cityMunicipality: selectedAddress.cityMunicipality,
+      province: selectedAddress.province,
+      zipCode: selectedAddress.zipCode
+    };
   };
 
   // Send email function
-  const sendQuoteConfirmationEmail = async (quoteReference, monthlyBill, propertyType, desiredCapacity, address) => {
+  const sendQuoteConfirmationEmail = async (quoteReference, monthlyBill, propertyType, desiredCapacity, systemType, roofLength, roofWidth, address) => {
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/email/send-free-quote-confirmation`, {
         email: user.email,
@@ -156,6 +190,9 @@ const ScheduleAssessment = () => {
         monthlyBill: monthlyBill,
         propertyType: propertyType,
         desiredCapacity: desiredCapacity,
+        systemType: systemType,
+        roofLength: roofLength,
+        roofWidth: roofWidth,
         address: address
       });
       console.log('Quote confirmation email sent successfully');
@@ -164,7 +201,7 @@ const ScheduleAssessment = () => {
     }
   };
 
-  const sendPreAssessmentConfirmationEmail = async (invoiceNumber, amount, propertyType, desiredCapacity, roofType, preferredDate, address, paymentMethod) => {
+  const sendPreAssessmentConfirmationEmail = async (invoiceNumber, amount, propertyType, desiredCapacity, systemType, roofType, roofLength, roofWidth, preferredDate, address, paymentMethod) => {
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/email/send-pre-assessment-confirmation`, {
         email: user.email,
@@ -173,7 +210,10 @@ const ScheduleAssessment = () => {
         amount: amount,
         propertyType: propertyType,
         desiredCapacity: desiredCapacity,
+        systemType: systemType,
         roofType: roofType,
+        roofLength: roofLength,
+        roofWidth: roofWidth,
         preferredDate: preferredDate,
         address: address,
         paymentMethod: paymentMethod
@@ -204,7 +244,10 @@ const ScheduleAssessment = () => {
         addressId: selectedAddress?._id || null,
         monthlyBill: freeQuoteData.monthlyBill,
         propertyType: freeQuoteData.propertyType,
-        desiredCapacity: freeQuoteData.desiredCapacity
+        desiredCapacity: freeQuoteData.desiredCapacity,
+        systemType: freeQuoteData.systemType,
+        roofLength: freeQuoteData.roofLength,
+        roofWidth: freeQuoteData.roofWidth
       };
 
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/free-quotes`, quotePayload, {
@@ -216,6 +259,9 @@ const ScheduleAssessment = () => {
         freeQuoteData.monthlyBill,
         freeQuoteData.propertyType,
         freeQuoteData.desiredCapacity,
+        freeQuoteData.systemType,
+        freeQuoteData.roofLength,
+        freeQuoteData.roofWidth,
         getFullAddress()
       );
 
@@ -276,7 +322,10 @@ const ScheduleAssessment = () => {
         addressId: selectedAddress?._id || null,
         propertyType: formData.propertyType,
         desiredCapacity: formData.desiredCapacity,
+        systemType: formData.systemType,
         roofType: formData.roofType,
+        roofLength: formData.roofLength,
+        roofWidth: formData.roofWidth,
         preferredDate: formData.preferredDate,
       };
 
@@ -289,7 +338,10 @@ const ScheduleAssessment = () => {
         response.data.booking.assessmentFee,
         formData.propertyType,
         formData.desiredCapacity,
+        formData.systemType,
         formData.roofType,
+        formData.roofLength,
+        formData.roofWidth,
         formData.preferredDate,
         getFullAddress(),
         formData.paymentMethod
@@ -298,8 +350,6 @@ const ScheduleAssessment = () => {
       setShowConfirmDialog(false);
       setTermsAccepted(false);
       
-      // If payment method is cash, redirect to billing page
-      // If GCash, they will upload proof after booking
       showToast('Pre-assessment booked successfully! A confirmation email has been sent.', 'success');
       
       setTimeout(() => {
@@ -330,7 +380,12 @@ const ScheduleAssessment = () => {
     }).format(value);
   };
 
-  const selectedAddressDisplay = getSelectedAddressDisplay();
+  const getSystemTypeLabel = (value) => {
+    const type = SYSTEM_TYPES.find(t => t.value === value);
+    return type ? type.label : 'Not specified';
+  };
+
+  const addressDisplay = getAddressDisplay();
 
   // Skeleton Loader Component
   const SkeletonLoader = () => (
@@ -422,7 +477,7 @@ const ScheduleAssessment = () => {
               onClick={() => {
                 setSubmitted(false);
                 setCurrentStep('service-selection');
-                setFreeQuoteData({ monthlyBill: '', propertyType: 'residential', desiredCapacity: '' });
+                setFreeQuoteData({ monthlyBill: '', propertyType: 'residential', desiredCapacity: '', systemType: '', roofLength: '', roofWidth: '' });
                 setSubmittedData(null);
               }}
               className="schedule-btn-secondary-cusset"
@@ -509,6 +564,62 @@ const ScheduleAssessment = () => {
                     className="schedule-form-input-cusset"
                   />
                 </div>
+
+                <div className="schedule-form-group-cusset">
+                  <label>
+                    <FaSolarPanel className="inline-icon" /> Preferred System Type (Optional)
+                  </label>
+                  <select
+                    name="systemType"
+                    value={freeQuoteData.systemType}
+                    onChange={handleInputChange}
+                    className="schedule-form-select-cusset"
+                  >
+                    <option value="">Select system type</option>
+                    {SYSTEM_TYPES.map(type => (
+                      <option key={type.value} value={type.value}>{type.label}</option>
+                    ))}
+                  </select>
+                  {freeQuoteData.systemType && (
+                    <small className="system-type-hint">
+                      {SYSTEM_TYPES.find(t => t.value === freeQuoteData.systemType)?.description}
+                    </small>
+                  )}
+                </div>
+
+                {/* Roof Dimensions for Free Quote */}
+                <div className="schedule-form-group-cusset">
+                  <label className="dimension-label-cusset">
+                    <FaRulerCombined className="dimension-icon-cusset" />
+                    Roof Dimensions (Optional)
+                  </label>
+                  <div className="dimension-row-cusset">
+                    <div className="dimension-input-cusset">
+                      <FaArrowsAltH className="dimension-icon-small-cusset" />
+                      <input
+                        type="number"
+                        step="0.1"
+                        name="roofLength"
+                        value={freeQuoteData.roofLength}
+                        onChange={handleInputChange}
+                        placeholder="Length (m)"
+                        className="schedule-form-input-cusset"
+                      />
+                    </div>
+                    <div className="dimension-input-cusset">
+                      <FaArrowsAltV className="dimension-icon-small-cusset" />
+                      <input
+                        type="number"
+                        step="0.1"
+                        name="roofWidth"
+                        value={freeQuoteData.roofWidth}
+                        onChange={handleInputChange}
+                        placeholder="Width (m)"
+                        className="schedule-form-input-cusset"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="card-button-container-cusset">
@@ -574,6 +685,18 @@ const ScheduleAssessment = () => {
                       <strong>{freeQuoteData.desiredCapacity}</strong>
                     </div>
                   )}
+                  {freeQuoteData.systemType && (
+                    <div className="quote-item-cusset">
+                      <span>Preferred System Type:</span>
+                      <strong>{getSystemTypeLabel(freeQuoteData.systemType)}</strong>
+                    </div>
+                  )}
+                  {(freeQuoteData.roofLength || freeQuoteData.roofWidth) && (
+                    <div className="quote-item-cusset">
+                      <span>Roof Dimensions:</span>
+                      <strong>{freeQuoteData.roofLength || '?'}m x {freeQuoteData.roofWidth || '?'}m</strong>
+                    </div>
+                  )}
                   <div className="quote-item-cusset">
                     <span>Address:</span>
                     <strong>{getFullAddress()}</strong>
@@ -632,62 +755,41 @@ const ScheduleAssessment = () => {
           <p className="schedule-subtitle-cusset">Complete the form below to schedule your professional pre-assessment (₱1,500)</p>
 
           <div className="pre-assessment-form-wrapper-cusset">
-            {/* Personal & Address Info Section */}
+            {/* Combined Contact & Address Info Card */}
             <div className="schedule-info-section-cusset">
               <h3 className="schedule-section-title-cusset">Contact & Address Information</h3>
 
-              {/* Personal Info Card */}
-              <div className="schedule-info-card-cusset">
-                <div className="schedule-info-card-header-cusset">
-                  <h4>Personal Information</h4>
-                </div>
-                <div className="schedule-info-card-content-cusset">
-                  <div className="schedule-info-row-cusset">
-                    <div className="schedule-info-field-cusset">
-                      <label>Name</label>
-                      <p>{getFullName() || 'Not provided'}</p>
+              {/* Combined Info Card */}
+              <div 
+                className="combined-info-card-cusset"
+                onClick={() => setShowInfoModal(true)}
+              >
+                <div className="combined-info-header-cusset">
+                  <div className="combined-info-icon-cusset">
+                    <FaUser />
+                  </div>
+                  <div className="combined-info-content-cusset">
+                    <div className="combined-info-name-cusset">
+                      {getFullName() || 'Not provided'}
                     </div>
-                    <div className="schedule-info-field-cusset">
-                      <label>Contact Number</label>
-                      <p>{formData.contactNumber || 'Not provided'}</p>
+                    <div className="combined-info-contact-cusset">
+                      <FaPhone className="icon-small-cusset" />
+                      <span>{formData.contactNumber || 'Not provided'}</span>
+                    </div>
+                    <div className="combined-info-address-cusset">
+                      <FaMapMarkerAlt className="icon-small-cusset" />
+                      <span className="truncate">{getFullAddress() || 'No address selected'}</span>
                     </div>
                   </div>
-                  <div className="schedule-info-note-cusset">
-                    <small>Personal information is managed in your <button className="schedule-text-link-cusset" onClick={() => navigate('/app/customer/settings?tab=profile')}>Account Settings</button></small>
+                  <div className="combined-info-arrow-cusset">
+                    <FaEye />
                   </div>
                 </div>
-              </div>
-
-              {/* Address Card */}
-              <div className="schedule-info-card-cusset">
-                <div className="schedule-info-card-header-cusset">
-                  <h4>Address</h4>
-                </div>
-                <div className="schedule-info-card-content-cusset">
-                  {selectedAddressDisplay ? (
-                    <>
-                      <div className="schedule-address-display-cusset">
-                        <div className="schedule-address-name-cusset">{selectedAddressDisplay.name}</div>
-                        <div className="schedule-address-contact-cusset">{selectedAddressDisplay.contact}</div>
-                        <div className="schedule-address-detail-cusset">{selectedAddressDisplay.address}</div>
-                      </div>
-                      <div className="address-actions-cusset">
-                        <button className="schedule-change-address-btn-cusset" onClick={handleAddressClick}>
-                          Change Address
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="schedule-no-address-warning-cusset">
-                      <p>No address found. Please add an address in settings first.</p>
-                      <button onClick={handleAddressClick} className="schedule-add-address-btn-cusset">
-                        Add Address
-                      </button>
-                    </div>
-                  )}
-                  {validationErrors.address && <small className="schedule-error-text-cusset">{validationErrors.address}</small>}
+                <div className="combined-info-hint-cusset">
+                  Click to view full details and manage settings
                 </div>
               </div>
+              {validationErrors.address && <small className="schedule-error-text-cusset">{validationErrors.address}</small>}
             </div>
 
             {/* Assessment Details Section */}
@@ -724,6 +826,28 @@ const ScheduleAssessment = () => {
                   </div>
 
                   <div className="schedule-form-group-cusset">
+                    <label>
+                      <FaSolarPanel className="inline-icon" /> Preferred System Type (Optional)
+                    </label>
+                    <select
+                      name="systemType"
+                      value={formData.systemType}
+                      onChange={handleInputChange}
+                      className="schedule-form-select-cusset"
+                    >
+                      <option value="">Select system type</option>
+                      {SYSTEM_TYPES.map(type => (
+                        <option key={type.value} value={type.value}>{type.label}</option>
+                      ))}
+                    </select>
+                    {formData.systemType && (
+                      <small className="system-type-hint">
+                        {SYSTEM_TYPES.find(t => t.value === formData.systemType)?.description}
+                      </small>
+                    )}
+                  </div>
+
+                  <div className="schedule-form-group-cusset">
                     <label>Roof Type</label>
                     <select
                       name="roofType"
@@ -739,6 +863,41 @@ const ScheduleAssessment = () => {
                     </select>
                   </div>
 
+                  {/* Roof Dimensions */}
+                  <div className="schedule-form-group-cusset">
+                    <label className="dimension-label-cusset">
+                      <FaRulerCombined className="dimension-icon-cusset" />
+                      Roof Dimensions
+                    </label>
+                    <div className="dimension-row-cusset">
+                      <div className="dimension-input-cusset">
+                        <FaArrowsAltH className="dimension-icon-small-cusset" />
+                        <input
+                          type="number"
+                          step="0.1"
+                          name="roofLength"
+                          value={formData.roofLength}
+                          onChange={handleInputChange}
+                          placeholder="Length (meters)"
+                          className="schedule-form-input-cusset"
+                        />
+                      </div>
+                      <div className="dimension-input-cusset">
+                        <FaArrowsAltV className="dimension-icon-small-cusset" />
+                        <input
+                          type="number"
+                          step="0.1"
+                          name="roofWidth"
+                          value={formData.roofWidth}
+                          onChange={handleInputChange}
+                          placeholder="Width (meters)"
+                          className="schedule-form-input-cusset"
+                      />
+                      </div>
+                    </div>
+                    <small className="dimension-hint-cusset">Optional, but helps provide more accurate recommendations</small>
+                  </div>
+
                   <div className="schedule-form-group-cusset">
                     <label>Preferred Start Date *</label>
                     <input
@@ -751,8 +910,6 @@ const ScheduleAssessment = () => {
                     />
                     {validationErrors.preferredDate && <small className="schedule-error-text-cusset">{validationErrors.preferredDate}</small>}
                   </div>
-
-                  
                 </div>
 
                 <div className="schedule-fee-card-cusset">
@@ -779,10 +936,115 @@ const ScheduleAssessment = () => {
             </div>
           </div>
 
+          {/* Info Modal */}
+          {showInfoModal && (
+            <div className="schedule-modal-overlay-cusset" onClick={() => setShowInfoModal(false)}>
+              <div className="schedule-modal-cusset info-modal-cusset" onClick={e => e.stopPropagation()}>
+                <div className="info-modal-header-cusset">
+                  <h3>Contact & Address Details</h3>
+                  <button className="modal-close-cusset" onClick={() => setShowInfoModal(false)}>
+                    <FaTimes />
+                  </button>
+                </div>
+                
+                <div className="info-modal-body-cusset">
+                  {/* Personal Information Section */}
+                  <div className="info-section-cusset">
+                    <div className="info-section-title-cusset">
+                      <FaUser />
+                      <h4>Personal Information</h4>
+                    </div>
+                    <div className="info-details-cusset">
+                      <div className="info-row-cusset">
+                        <span className="info-label-cusset">Full Name:</span>
+                        <span className="info-value-cusset">{getFullName() || 'Not provided'}</span>
+                      </div>
+                      <div className="info-row-cusset">
+                        <span className="info-label-cusset">Contact Number:</span>
+                        <span className="info-value-cusset">{formData.contactNumber || 'Not provided'}</span>
+                      </div>
+                      {user?.email && (
+                        <div className="info-row-cusset">
+                          <span className="info-label-cusset">Email:</span>
+                          <span className="info-value-cusset">{user.email}</span>
+                        </div>
+                      )}
+                    </div>
+                    <button 
+                      className="info-action-btn-cusset"
+                      onClick={handleProfileClick}
+                    >
+                      <FaEdit /> Edit Profile
+                    </button>
+                  </div>
+
+                  {/* Address Information Section */}
+                  <div className="info-section-cusset">
+                    <div className="info-section-title-cusset">
+                      <FaMapMarkerAlt />
+                      <h4>Address Information</h4>
+                    </div>
+                    {addressDisplay ? (
+                      <div className="info-details-cusset">
+                        <div className="info-row-cusset">
+                          <span className="info-label-cusset">House/Building:</span>
+                          <span className="info-value-cusset">{addressDisplay.houseOrBuilding || 'Not provided'}</span>
+                        </div>
+                        <div className="info-row-cusset">
+                          <span className="info-label-cusset">Street:</span>
+                          <span className="info-value-cusset">{addressDisplay.street || 'Not provided'}</span>
+                        </div>
+                        <div className="info-row-cusset">
+                          <span className="info-label-cusset">Barangay:</span>
+                          <span className="info-value-cusset">{addressDisplay.barangay || 'Not provided'}</span>
+                        </div>
+                        <div className="info-row-cusset">
+                          <span className="info-label-cusset">City/Municipality:</span>
+                          <span className="info-value-cusset">{addressDisplay.cityMunicipality || 'Not provided'}</span>
+                        </div>
+                        <div className="info-row-cusset">
+                          <span className="info-label-cusset">Province:</span>
+                          <span className="info-value-cusset">{addressDisplay.province || 'Not provided'}</span>
+                        </div>
+                        <div className="info-row-cusset">
+                          <span className="info-label-cusset">Zip Code:</span>
+                          <span className="info-value-cusset">{addressDisplay.zipCode || 'Not provided'}</span>
+                        </div>
+                        <div className="info-row-cusset">
+                          <span className="info-label-cusset">Full Address:</span>
+                          <span className="info-value-cusset">{addressDisplay.fullAddress}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="info-empty-cusset">
+                        <p>No address selected</p>
+                      </div>
+                    )}
+                    <button 
+                      className="info-action-btn-cusset"
+                      onClick={handleAddressClick}
+                    >
+                      <FaEdit /> Change Address
+                    </button>
+                  </div>
+                </div>
+
+                <div className="info-modal-footer-cusset">
+                  <button 
+                    className="info-close-btn-cusset"
+                    onClick={() => setShowInfoModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Confirmation Modal */}
           {showConfirmDialog && (
-            <div className="schedule-modal-overlay-cusset">
-              <div className="schedule-modal-cusset">
+            <div className="schedule-modal-overlay-cusset" onClick={() => setShowConfirmDialog(false)}>
+              <div className="schedule-modal-cusset" onClick={e => e.stopPropagation()}>
                 <h2>Confirm Pre Assessment</h2>
                 <div className="schedule-modal-summary-cusset">
                   <div className="schedule-summary-section-cusset">
@@ -798,7 +1060,13 @@ const ScheduleAssessment = () => {
                     <h4>Assessment Details</h4>
                     <p><strong>Property Type:</strong> {formData.propertyType}</p>
                     <p><strong>Desired Capacity:</strong> {formData.desiredCapacity || 'Not specified'}</p>
+                    {formData.systemType && (
+                      <p><strong>Preferred System Type:</strong> {getSystemTypeLabel(formData.systemType)}</p>
+                    )}
                     <p><strong>Roof Type:</strong> {formData.roofType || 'Not specified'}</p>
+                    {(formData.roofLength || formData.roofWidth) && (
+                      <p><strong>Roof Dimensions:</strong> {formData.roofLength || '?'}m x {formData.roofWidth || '?'}m</p>
+                    )}
                     <p><strong>Preferred Date:</strong> {formData.preferredDate}</p>
                     <p><strong>Payment Method:</strong> {formData.paymentMethod === 'gcash' ? 'GCash' : 'Cash'}</p>
                     <p><strong>Pre Assessment Fee:</strong> ₱1,500.00</p>

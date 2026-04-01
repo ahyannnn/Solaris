@@ -77,8 +77,8 @@ const RoleRouteGuard = ({ children, allowedRoles }) => {
 // Auth Guard for public routes - redirects to dashboard if already logged in
 const PublicRouteGuard = ({ children }) => {
   // Check BOTH localStorage and sessionStorage
-  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-  const role = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
+  const token = sessionStorage.getItem('token');
+  const role = sessionStorage.getItem('userRole');
   
   // Debug log to see what's happening
   console.log('PublicRouteGuard - Token:', token ? 'exists' : 'none');

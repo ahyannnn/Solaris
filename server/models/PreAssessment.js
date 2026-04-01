@@ -3,35 +3,47 @@ const mongoose = require('mongoose');
 const preAssessmentSchema = new mongoose.Schema({
   clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true, index: true },
   addressId: { type: mongoose.Schema.Types.ObjectId, ref: 'Address', required: true },
-  
+
   // Assessment Details
   propertyType: { type: String, enum: ['residential', 'commercial', 'industrial'], required: true },
   desiredCapacity: { type: String },
   roofType: { type: String, enum: ['concrete', 'metal', 'tile', 'other'] },
+  roofLength: { type: Number, default: null },    // Add this
+  roofWidth: { type: Number, default: null },     // Add this
+   // System Preference
+  systemType: { 
+    type: String, 
+    enum: ['grid-tie', 'hybrid', 'off-grid'],
+    default: null
+  },
   preferredDate: { type: Date, required: true },
-  
+
   // Payment
   assessmentFee: { type: Number, default: 1500 },
   bookingReference: { type: String, unique: true },
-  invoiceNumber: { type: String, unique: true },
+ invoiceNumber: { 
+    type: String, 
+    unique: true, 
+    sparse: true  // Add sparse: true to ignore null values
+  },
   paymentMethod: { type: String, enum: ['gcash', 'cash'], default: null },
   paymentProof: { type: String },
   paymentProofFileId: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
   paymentReference: { type: String },
-  
+
   // Status
-  paymentStatus: { 
-    type: String, 
+  paymentStatus: {
+    type: String,
     enum: ['pending', 'for_verification', 'paid', 'failed'],
     default: 'pending'
   },
   // Find the assessmentStatus enum and add 'device_deployed'
-assessmentStatus: {
-  type: String,
-  enum: ['pending_review', 'pending_payment', 'scheduled', 'site_visit_ongoing', 'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft', 'completed', 'cancelled'],
-  default: 'pending_review'
-},
-  
+  assessmentStatus: {
+    type: String,
+    enum: ['pending_review', 'pending_payment', 'scheduled', 'site_visit_ongoing', 'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft', 'completed', 'cancelled'],
+    default: 'pending_review'
+  },
+
   // IoT Device Integration
   iotDeviceId: { type: mongoose.Schema.Types.ObjectId, ref: 'IoTDevice' },
   deviceDeployedAt: Date,
@@ -40,16 +52,16 @@ assessmentStatus: {
   deviceRetrievedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   dataCollectionStart: Date,
   dataCollectionEnd: Date,
-  
+
   // Data Collection Stats
   totalReadings: { type: Number, default: 0 },
-  
+
   // Site Visit
   assignedEngineerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   siteVisitDate: Date,
   siteVisitNotes: String,
   sitePhotos: [String],
-  
+
   // Engineer Assessment Fields
   engineerAssessment: {
     siteInspectionDate: Date,
@@ -58,6 +70,8 @@ assessmentStatus: {
       type: String,
       enum: ['excellent', 'good', 'fair', 'poor']
     },
+    roofLength: { type: Number, default: null },    // Add this
+    roofWidth: { type: Number, default: null },     // Add this
     structuralIntegrity: {
       type: String,
       enum: ['excellent', 'good', 'fair', 'poor']
@@ -73,7 +87,7 @@ assessmentStatus: {
     safetyConsiderations: [String],
     recommendations: String
   },
-  
+
   // Assessment Documents (Quotation PDF, etc.)
   assessmentDocuments: [{
     fileId: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
@@ -84,7 +98,7 @@ assessmentStatus: {
     description: String,
     uploadedAt: Date
   }],
-  
+
   // Quotation Details
   quotation: {
     quotationFileId: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
@@ -107,7 +121,7 @@ assessmentStatus: {
     generatedAt: Date,
     generatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
   },
-  
+
   // Results
   detailedReport: { type: String },
   finalQuotation: { type: String },
@@ -119,11 +133,11 @@ assessmentStatus: {
   estimatedAnnualSavings: Number,
   paybackPeriod: Number,
   co2Offset: Number,
-  
+
   // Engineer Recommendations
   engineerRecommendations: String,
   technicalFindings: String,
-  
+
   // Engineer Comments
   engineerComments: [{
     comment: String,
@@ -131,10 +145,10 @@ assessmentStatus: {
     commentedAt: Date,
     isPublic: { type: Boolean, default: true }
   }],
-  
+
   // Admin Remarks
   adminRemarks: String,
-  
+
   // Timestamps
   bookedAt: { type: Date, default: Date.now },
   confirmedAt: Date,
@@ -158,7 +172,7 @@ preAssessmentSchema.add({
     safetyEquipmentUsed: [String],
     teamMembers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
   },
-  
+
   // Device Deployment Details
   deviceDeployment: {
     deploymentPhotos: [String],
@@ -171,7 +185,7 @@ preAssessmentSchema.add({
     signalStrength: Number,
     calibrationNotes: String
   },
-  
+
   // Assessment Results
   assessmentResults: {
     totalIrradiance: Number,

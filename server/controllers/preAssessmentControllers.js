@@ -5,8 +5,343 @@ const IoTDevice = require('../models/IoTDevice');
 const SensorData = require('../models/SensorData');
 const File = require('../models/File');
 const { processUpload, getFileUrl, deleteFile: deleteFromStorage } = require('../middleware/uploadMiddleware');
+const PDFGenerator = require('../services/pdfGenerator');
+const cloudinary = require('cloudinary').v2;
 const mongoose = require('mongoose');
 
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const SYSTEM_TYPES = [
+  { value: 'grid-tie', label: 'Grid-Tie System', description: 'Connected to utility grid, no batteries' },
+  { value: 'hybrid', label: 'Hybrid System', description: 'Grid-tie with battery backup' },
+  { value: 'off-grid', label: 'Off-Grid System', description: 'Standalone with batteries, not connected to grid' }
+];
+
+// @desc    Generate and upload quotation PDF (Engineer)
+// @route   POST /api/pre-assessments/:id/generate-quotation
+// @access  Private (Engineer)
+exports.generateQuotationPDF = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const engineerId = req.user.id;
+    const {
+      quotationNumber,
+      quotationExpiryDate,
+      systemSize,
+      systemType,
+      panelsNeeded,
+      inverterType,
+      batteryType,
+      installationCost,
+      equipmentCost,
+      totalCost,
+      paymentTerms,
+      warrantyYears,
+      includeIoTData
+    } = req.body;
+
+    const assessment = await PreAssessment.findById(id)
+      .populate('clientId', 'contactFirstName contactLastName contactNumber')
+      .populate('addressId');
+
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    if (assessment.assignedEngineerId.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // Fetch IoT data if requested
+    let iotAnalysis = null;
+    if (includeIoTData && assessment.dataCollectionEnd) {
+      const sensorData = await SensorData.find({ preAssessmentId: assessment._id });
+      if (sensorData.length > 0) {
+        const irradianceValues = sensorData.map(d => d.irradiance || 0).filter(v => v > 0);
+        const temperatureValues = sensorData.map(d => d.temperature || 0);
+        const humidityValues = sensorData.map(d => d.humidity || 0);
+        
+        iotAnalysis = {
+          totalReadings: sensorData.length,
+          averageIrradiance: irradianceValues.reduce((a, b) => a + b, 0) / irradianceValues.length,
+          maxIrradiance: Math.max(...irradianceValues),
+          peakSunHours: (irradianceValues.reduce((a, b) => a + b, 0) / 1000).toFixed(1),
+          averageTemperature: temperatureValues.reduce((a, b) => a + b, 0) / temperatureValues.length,
+          minTemperature: Math.min(...temperatureValues),
+          maxTemperature: Math.max(...temperatureValues),
+          efficiencyLoss: ((temperatureValues.reduce((a, b) => a + b, 0) / temperatureValues.length - 25) * 0.004 * 100).toFixed(1),
+          averageHumidity: humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length,
+          minHumidity: Math.min(...humidityValues),
+          maxHumidity: Math.max(...humidityValues),
+          recommendedSystemSize: (iotAnalysis?.peakSunHours * 0.8).toFixed(1)
+        };
+      }
+    }
+
+    // Prepare data for PDF
+    const pdfData = {
+      bookingReference: assessment.bookingReference,
+      clientName: `${assessment.clientId.contactFirstName} ${assessment.clientId.contactLastName}`,
+      clientPhone: assessment.clientId.contactNumber,
+      clientEmail: assessment.clientId.userId?.email,
+      propertyType: assessment.propertyType,
+      address: assessment.addressId ? 
+        `${assessment.addressId.houseOrBuilding} ${assessment.addressId.street}, ${assessment.addressId.barangay}, ${assessment.addressId.cityMunicipality}` : null,
+      quotationExpiryDate,
+      systemSize,
+      systemTypeLabel: SYSTEM_TYPES.find(t => t.value === systemType)?.label || systemType,
+      panelsNeeded,
+      inverterType,
+      batteryType,
+      installationCost,
+      equipmentCost,
+      totalCost,
+      paymentTerms,
+      warrantyYears,
+      iotAnalysis,
+      siteAssessment: {
+        roofCondition: assessment.engineerAssessment?.roofCondition,
+        roofLength: assessment.engineerAssessment?.roofLength,
+        roofWidth: assessment.engineerAssessment?.roofWidth,
+        structuralIntegrity: assessment.engineerAssessment?.structuralIntegrity,
+        estimatedInstallationTime: assessment.engineerAssessment?.estimatedInstallationTime,
+        recommendations: assessment.engineerAssessment?.recommendations
+      },
+      performanceEstimates: {
+        annualProduction: (systemSize || 0) * 1200,
+        annualSavings: (totalCost || 0) * 0.15,
+        paybackPeriod: Math.ceil((totalCost || 0) / ((systemSize || 1) * 1200 * 0.1)),
+        co2Offset: (systemSize || 0) * 800
+      },
+      dataCollectionStart: assessment.dataCollectionStart,
+      dataCollectionEnd: assessment.dataCollectionEnd
+    };
+
+    // Generate PDF
+    const pdfBuffer = await PDFGenerator.generatePreAssessmentPDF(pdfData);
+
+    // Upload to Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'auto',
+          folder: `quotations/${assessment.bookingReference}`,
+          public_id: `quotation_${quotationNumber || assessment.bookingReference}`,
+          format: 'pdf',
+          type: 'upload',
+          access_mode: 'public'
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      uploadStream.end(pdfBuffer);
+    });
+
+    // Save file record
+    const fileRecord = new File({
+      filename: `quotation_${quotationNumber || assessment.bookingReference}.pdf`,
+      originalName: `Quotation_${assessment.bookingReference}.pdf`,
+      fileType: 'quotation_pdf',
+      mimeType: 'application/pdf',
+      size: pdfBuffer.length,
+      url: result.secure_url,
+      publicId: result.public_id,
+      uploadedBy: engineerId,
+      userRole: 'engineer',
+      relatedTo: 'pre_assessment',
+      relatedId: assessment._id,
+      metadata: {
+        quotationNumber: quotationNumber || `Q-${assessment.bookingReference}`,
+        systemSize,
+        systemType,
+        totalCost,
+        includeIoTData: !!includeIoTData,
+        generatedAt: new Date().toISOString()
+      }
+    });
+
+    await fileRecord.save();
+
+    // Update assessment with quotation details
+    assessment.quotation = {
+      quotationFileId: fileRecord._id,
+      quotationUrl: result.secure_url,
+      quotationNumber: quotationNumber || `Q-${assessment.bookingReference}`,
+      quotationDate: new Date(),
+      quotationExpiryDate: quotationExpiryDate ? new Date(quotationExpiryDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      systemDetails: {
+        systemSize: parseFloat(systemSize),
+        systemType,
+        panelsNeeded: parseInt(panelsNeeded) || 0,
+        inverterType,
+        batteryType,
+        installationCost: parseFloat(installationCost) || 0,
+        equipmentCost: parseFloat(equipmentCost) || 0,
+        totalCost: parseFloat(totalCost) || 0,
+        paymentTerms,
+        warrantyYears: parseInt(warrantyYears) || 10
+      },
+      generatedAt: new Date(),
+      generatedBy: engineerId
+    };
+    
+    assessment.finalQuotation = result.secure_url;
+    assessment.assessmentStatus = 'report_draft';
+    
+    await assessment.save();
+
+    res.json({
+      success: true,
+      message: 'Quotation PDF generated and uploaded successfully',
+      quotation: {
+        id: fileRecord._id,
+        url: result.secure_url,
+        quotationNumber: assessment.quotation.quotationNumber,
+        totalCost: assessment.quotation.systemDetails.totalCost,
+        size: `${(pdfBuffer.length / 1024).toFixed(1)} KB`
+      }
+    });
+
+  } catch (error) {
+    console.error('Generate quotation PDF error:', error);
+    res.status(500).json({ message: 'Failed to generate quotation PDF', error: error.message });
+  }
+};
+
+// @desc    Generate Free Quote PDF
+// @route   POST /api/free-quotes/:id/generate-quotation
+// @access  Private (Engineer)
+exports.generateFreeQuotePDF = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const engineerId = req.user.id;
+    const {
+      quotationNumber,
+      quotationExpiryDate,
+      systemSize,
+      systemType,
+      panelsNeeded,
+      inverterType,
+      batteryType,
+      installationCost,
+      equipmentCost,
+      totalCost,
+      paymentTerms,
+      warrantyYears,
+      remarks
+    } = req.body;
+
+    const quote = await FreeQuote.findById(id)
+      .populate('clientId', 'contactFirstName contactLastName contactNumber')
+      .populate('addressId');
+
+    if (!quote) {
+      return res.status(404).json({ message: 'Free quote not found' });
+    }
+
+    if (quote.assignedEngineerId.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // Prepare data for PDF
+    const pdfData = {
+      quotationReference: quote.quotationReference,
+      clientName: `${quote.clientId.contactFirstName} ${quote.clientId.contactLastName}`,
+      clientPhone: quote.clientId.contactNumber,
+      clientEmail: quote.clientId.userId?.email,
+      propertyType: quote.propertyType,
+      address: quote.addressId ? 
+        `${quote.addressId.houseOrBuilding} ${quote.addressId.street}, ${quote.addressId.barangay}, ${quote.addressId.cityMunicipality}` : null,
+      quotationExpiryDate,
+      systemSize,
+      systemTypeLabel: SYSTEM_TYPES.find(t => t.value === systemType)?.label || systemType,
+      panelsNeeded,
+      inverterType,
+      batteryType,
+      installationCost,
+      equipmentCost,
+      totalCost,
+      paymentTerms,
+      warrantyYears,
+      remarks
+    };
+
+    // Generate PDF
+    const pdfBuffer = await PDFGenerator.generateFreeQuotePDF(pdfData);
+
+    // Upload to Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'auto',
+          folder: `free-quotes/${quote.quotationReference}`,
+          public_id: `quotation_${quotationNumber || quote.quotationReference}`,
+          format: 'pdf'
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      uploadStream.end(pdfBuffer);
+    });
+
+    // Save file record
+    const fileRecord = new File({
+      filename: `quotation_${quotationNumber || quote.quotationReference}.pdf`,
+      originalName: `Quotation_${quote.quotationReference}.pdf`,
+      fileType: 'quotation_pdf',
+      mimeType: 'application/pdf',
+      size: pdfBuffer.length,
+      url: result.secure_url,
+      publicId: result.public_id,
+      uploadedBy: engineerId,
+      userRole: 'engineer',
+      relatedTo: 'free_quote',
+      relatedId: quote._id,
+      metadata: {
+        quotationNumber: quotationNumber || quote.quotationReference,
+        systemSize,
+        systemType,
+        totalCost,
+        generatedAt: new Date().toISOString()
+      }
+    });
+
+    await fileRecord.save();
+
+    // Update quote
+    quote.quotationFile = result.secure_url;
+    quote.status = 'completed';
+    quote.quotationSentAt = new Date();
+    quote.processedBy = engineerId;
+    quote.processedAt = new Date();
+
+    await quote.save();
+
+    res.json({
+      success: true,
+      message: 'Quotation PDF generated and uploaded successfully',
+      quotation: {
+        id: fileRecord._id,
+        url: result.secure_url,
+        quotationNumber: quotationNumber || quote.quotationReference,
+        totalCost
+      }
+    });
+
+  } catch (error) {
+    console.error('Generate free quote PDF error:', error);
+    res.status(500).json({ message: 'Failed to generate quotation PDF', error: error.message });
+  }
+};
 // @desc    Create a new pre-assessment booking
 // @route   POST /api/pre-assessments
 // @access  Private (Customer)
@@ -77,10 +412,22 @@ exports.approveBooking = async (req, res) => {
 };
 // controllers/preAssessmentControllers.js
 
+// controllers/preAssessmentControllers.js
+
 exports.createPreAssessment = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { clientId, addressId, propertyType, desiredCapacity, roofType, preferredDate } = req.body;
+    const { 
+      clientId, 
+      addressId, 
+      propertyType, 
+      desiredCapacity, 
+      roofType, 
+      roofLength,      // Add this
+      roofWidth,       // Add this
+       systemType, // Add this
+      preferredDate 
+    } = req.body;
 
     const client = await Client.findOne({ userId });
     if (!client) {
@@ -108,10 +455,13 @@ exports.createPreAssessment = async (req, res) => {
       addressId,
       propertyType,
       desiredCapacity: desiredCapacity || '',
+      systemType: systemType || null, // Add this
       roofType: roofType || '',
+      roofLength: roofLength ? parseFloat(roofLength) : null,      // Add this
+      roofWidth: roofWidth ? parseFloat(roofWidth) : null,        // Add this
       preferredDate: new Date(preferredDate),
       paymentStatus: 'pending',
-      assessmentStatus: 'pending_review',  // Changed from pending_payment to pending_review
+      assessmentStatus: 'pending_review',
       bookingReference,
     });
 
@@ -127,6 +477,8 @@ exports.createPreAssessment = async (req, res) => {
         preferredDate: preAssessment.preferredDate,
         assessmentStatus: preAssessment.assessmentStatus,
         paymentStatus: preAssessment.paymentStatus,
+        roofLength: preAssessment.roofLength,    // Add this
+        roofWidth: preAssessment.roofWidth       // Add this
       }
     });
 
@@ -424,7 +776,125 @@ exports.verifyPayment = async (req, res) => {
 // ============ ENGINEER ASSESSMENT FUNCTIONS ============
 
 // In preAssessmentControllers.js, update the getEngineerAssessments function:
+// Add to preAssessmentControllers.js
 
+// @desc    Analyze IoT data and generate recommendations
+// @route   POST /api/pre-assessments/:id/analyze-iot-data
+// @access  Private (Engineer)
+exports.analyzeIoTData = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const engineerId = req.user.id;
+
+    const assessment = await PreAssessment.findById(id);
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    if (assessment.assignedEngineerId.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // Fetch sensor data
+    const sensorData = await SensorData.find({ 
+      preAssessmentId: assessment._id 
+    }).sort({ timestamp: 1 });
+
+    if (sensorData.length === 0) {
+      return res.status(400).json({ message: 'No sensor data available for analysis' });
+    }
+
+    // Calculate statistics
+    const irradianceValues = sensorData.map(d => d.irradiance || 0).filter(v => v > 0);
+    const temperatureValues = sensorData.map(d => d.temperature || 0);
+    const humidityValues = sensorData.map(d => d.humidity || 0);
+    
+    const averageIrradiance = irradianceValues.reduce((a, b) => a + b, 0) / irradianceValues.length;
+    const maxIrradiance = Math.max(...irradianceValues);
+    const peakSunHours = (irradianceValues.reduce((a, b) => a + b, 0) / 1000).toFixed(1);
+    
+    const averageTemperature = temperatureValues.reduce((a, b) => a + b, 0) / temperatureValues.length;
+    const minTemperature = Math.min(...temperatureValues);
+    const maxTemperature = Math.max(...temperatureValues);
+    const efficiencyLoss = ((averageTemperature - 25) * 0.004 * 100).toFixed(1);
+    
+    const averageHumidity = humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length;
+    const minHumidity = Math.min(...humidityValues);
+    const maxHumidity = Math.max(...humidityValues);
+    
+    // Calculate recommended system size based on irradiance
+    const recommendedSystemSize = (peakSunHours * 0.8).toFixed(1);
+    
+    // Determine optimal orientation based on time of day analysis
+    const hourData = {};
+    sensorData.forEach(d => {
+      const hour = new Date(d.timestamp).getHours();
+      if (!hourData[hour]) hourData[hour] = [];
+      hourData[hour].push(d.irradiance || 0);
+    });
+    
+    let peakHour = 12;
+    let maxIrradianceAtHour = 0;
+    for (const [hour, values] of Object.entries(hourData)) {
+      const avg = values.reduce((a, b) => a + b, 0) / values.length;
+      if (avg > maxIrradianceAtHour) {
+        maxIrradianceAtHour = avg;
+        peakHour = parseInt(hour);
+      }
+    }
+    
+    const recommendedOrientation = peakHour < 12 ? 'East-facing' : 
+                                    peakHour > 12 ? 'West-facing' : 'South-facing';
+    const recommendedTiltAngle = Math.min(45, Math.max(10, Math.floor(peakSunHours * 3)));
+    
+    // Calculate shading percentage
+    const shadingPercentage = ((irradianceValues.filter(v => v < 200).length / irradianceValues.length) * 100).toFixed(1);
+    
+    const analysisResults = {
+      averageIrradiance,
+      maxIrradiance,
+      peakSunHours: parseFloat(peakSunHours),
+      averageTemperature,
+      minTemperature,
+      maxTemperature,
+      efficiencyLoss: parseFloat(efficiencyLoss),
+      averageHumidity,
+      minHumidity,
+      maxHumidity,
+      recommendedSystemSize: parseFloat(recommendedSystemSize),
+      recommendedOrientation,
+      recommendedTiltAngle,
+      shadingPercentage: parseFloat(shadingPercentage),
+      totalReadings: sensorData.length,
+      dataCollectionStart: assessment.dataCollectionStart,
+      dataCollectionEnd: assessment.dataCollectionEnd
+    };
+    
+    // Store analysis in assessment
+    assessment.assessmentResults = {
+      totalIrradiance: irradianceValues.reduce((a, b) => a + b, 0),
+      averageTemperature,
+      shadingPercentage: parseFloat(shadingPercentage),
+      recommendedPanelCount: Math.ceil(recommendedSystemSize * 1000 / 400), // Assuming 400W panels
+      estimatedSystemSize: recommendedSystemSize,
+      structuralAssessment: assessment.engineerAssessment?.structuralIntegrity || 'Pending',
+      electricalAssessment: 'Based on site inspection',
+      safetyAssessment: 'Standard safety protocols applicable'
+    };
+    
+    await assessment.save();
+    
+    res.json({
+      success: true,
+      message: 'IoT data analysis completed',
+      analysis: analysisResults
+    });
+    
+  } catch (error) {
+    console.error('Analyze IoT data error:', error);
+    res.status(500).json({ message: 'Failed to analyze IoT data', error: error.message });
+  }
+};
 exports.getEngineerAssessments = async (req, res) => {
   try {
     const engineerId = req.user.id;
@@ -438,7 +908,7 @@ exports.getEngineerAssessments = async (req, res) => {
     if (status) query.assessmentStatus = status;
 
     const assessments = await PreAssessment.find(query)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber email')
+      .populate('clientId', 'contactFirstName contactLastName contactNumber userId.email')
       .populate('addressId')
       .populate('iotDeviceId')  // Add this to populate device data
       .sort({ siteVisitDate: -1, bookedAt: -1 })
@@ -512,6 +982,8 @@ exports.startAssessment = async (req, res) => {
   }
 };
 
+// controllers/preAssessmentControllers.js
+
 // @desc    Update site assessment details (Engineer)
 // @route   PUT /api/pre-assessments/:id/update-assessment
 // @access  Private (Engineer)
@@ -521,6 +993,8 @@ exports.updateSiteAssessment = async (req, res) => {
     const engineerId = req.user.id;
     const {
       roofCondition,
+      roofLength,                    // Add this
+      roofWidth,                     // Add this
       structuralIntegrity,
       shadingAnalysis,
       recommendedPanelPlacement,
@@ -543,6 +1017,8 @@ exports.updateSiteAssessment = async (req, res) => {
     if (!assessment.engineerAssessment) assessment.engineerAssessment = {};
     
     assessment.engineerAssessment.roofCondition = roofCondition;
+    assessment.engineerAssessment.roofLength = roofLength ? parseFloat(roofLength) : null;        // Add this
+    assessment.engineerAssessment.roofWidth = roofWidth ? parseFloat(roofWidth) : null;          // Add this
     assessment.engineerAssessment.structuralIntegrity = structuralIntegrity;
     assessment.engineerAssessment.shadingAnalysis = shadingAnalysis;
     assessment.engineerAssessment.recommendedPanelPlacement = recommendedPanelPlacement;
@@ -1040,6 +1516,8 @@ exports.getMyPreAssessments = async (req, res) => {
     const assessments = await PreAssessment.find({ clientId: client._id })
       .populate('addressId')
       .populate('iotDeviceId')
+      .populate('quotation.quotationFileId')
+      .populate('')
       .sort({ bookedAt: -1 });
 
     // Format the response to include all necessary fields
@@ -1059,7 +1537,10 @@ exports.getMyPreAssessments = async (req, res) => {
       iotDeviceId: assessment.iotDeviceId,
       paymentMethod: assessment.paymentMethod,
       paymentProof: assessment.paymentProof,
-      paymentReference: assessment.paymentReference
+      paymentReference: assessment.paymentReference,
+      quotation: assessment.quotation,
+      finalQuotation: assessment.finalQuotation,
+      quotationUrl: assessment.quotation?.quotationUrl || assessment.finalQuotation
     }));
 
     res.json({

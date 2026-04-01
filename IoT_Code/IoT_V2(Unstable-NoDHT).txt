@@ -9,8 +9,8 @@
 #include <ModbusMaster.h>		//ModbusMaster by Doc Walker
 
 // ------------------- Wi-Fi -------------------
-const char* ssid     = "RomyBaby2.4";
-const char* password = "SID-2023-003155";
+const char* ssid     = "-----------";
+const char* password = "---------------";
 
 // ------------------- NTP -------------------
 WiFiUDP ntpUDP;

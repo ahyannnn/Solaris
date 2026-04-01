@@ -6,8 +6,8 @@
 #include <Ds1302.h>			//Time by Micahel Margolis, RTClib by Adafruit, Ds1302 by Rafa Couto
 
 // ------------------- Wi-Fi -------------------
-const char* ssid     = "RomyBaby2.4";
-const char* password = "SID-2023-003155";
+const char* ssid     = "-----------";
+const char* password = "-------------";
 
 // NTP client for Philippine time (UTC+8)
 WiFiUDP ntpUDP;

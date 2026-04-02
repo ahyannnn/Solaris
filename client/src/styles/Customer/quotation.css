@@ -389,9 +389,6 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.payment-status-quotation:not(.paid-status-quotation) {
   background: #fff3e0;
   color: #ed6c02;
 }
@@ -559,48 +556,39 @@
   margin: 1rem 0;
 }
 
-/* Details Modal Specific */
-.details-modal-quotation {
-  max-width: 600px;
-}
-
-.details-content-quotation {
+/* Quotation Summary */
+.quotation-summary-quotation {
+  background: #fafafa;
+  border-radius: 6px;
+  padding: 1rem;
   margin: 1rem 0;
 }
 
-.details-section-quotation {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #eaeaea;
-}
-
-.details-section-quotation:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-.details-section-quotation h4 {
+.quotation-summary-quotation h4 {
   font-size: 0.875rem;
-  font-weight: 600;
-  color: #666;
-  margin: 0 0 0.75rem 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.details-section-quotation p {
-  font-size: 0.875rem;
-  margin: 0.5rem 0;
-  color: #1a1a1a;
-  line-height: 1.5;
-}
-
-.details-section-quotation p strong {
   font-weight: 500;
+  margin: 0 0 0.75rem 0;
+  color: #1a1a1a;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eaeaea;
+  font-size: 0.875rem;
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+}
+
+.summary-row span {
   color: #666;
-  min-width: 140px;
-  display: inline-block;
+}
+
+.summary-row strong {
+  color: #1a1a1a;
 }
 
 /* Invoice Summary */
@@ -614,6 +602,65 @@
 .invoice-summary-quotation p {
   margin: 0.5rem 0;
   font-size: 0.875rem;
+}
+
+/* Payment Methods */
+.payment-method-section-quotation {
+  margin-bottom: 1rem;
+}
+
+.payment-method-section-quotation h4 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0 0 0.75rem 0;
+  color: #1a1a1a;
+}
+
+.payment-methods-quotation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.payment-method-option-quotation {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #eaeaea;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.payment-method-option-quotation:hover {
+  border-color: #ddd;
+  background: #fafafa;
+}
+
+.payment-method-option-quotation.selected-quotation {
+  border-color: #1a1a1a;
+  background: #fafafa;
+}
+
+.payment-method-option-quotation input[type="radio"] {
+  margin: 0;
+}
+
+.payment-method-info-quotation {
+  flex: 1;
+}
+
+.payment-method-info-quotation strong {
+  display: block;
+  font-size: 0.875rem;
+  color: #1a1a1a;
+  margin-bottom: 0.25rem;
+}
+
+.payment-method-info-quotation small {
+  font-size: 0.75rem;
+  color: #666;
 }
 
 /* GCash Details */
@@ -733,6 +780,46 @@
   color: #666;
   margin: 0;
   line-height: 1.4;
+}
+
+/* Details Modal */
+.details-content-quotation {
+  margin: 1rem 0;
+}
+
+.details-section-quotation {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.details-section-quotation:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.details-section-quotation h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #666;
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.details-section-quotation p {
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+  color: #1a1a1a;
+  line-height: 1.5;
+}
+
+.details-section-quotation p strong {
+  font-weight: 500;
+  color: #666;
+  min-width: 140px;
+  display: inline-block;
 }
 
 /* Modal Actions */
@@ -967,5 +1054,10 @@
   
   .skeleton-tab-quotation {
     width: 80px;
+  }
+  
+  .summary-row {
+    flex-direction: column;
+    gap: 0.25rem;
   }
 }

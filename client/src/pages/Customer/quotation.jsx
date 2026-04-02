@@ -13,7 +13,10 @@ import {
   FaFilePdf,
   FaDownload,
   FaEye,
-  FaSpinner
+  FaSpinner,
+  FaCheck,
+  FaTimes,
+  FaArrowRight
 } from 'react-icons/fa';
 import '../../styles/Customer/quotation.css';
 
@@ -29,6 +32,9 @@ const Quotation = () => {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
+  const [showAcceptModal, setShowAcceptModal] = useState(false);
+  const [acceptingItem, setAcceptingItem] = useState(null);
+  const [acceptingLoading, setAcceptingLoading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState('');
   const [pdfLoading, setPdfLoading] = useState(false);
   const [detailsItem, setDetailsItem] = useState(null);
@@ -98,12 +104,6 @@ const Quotation = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-  
-
-      // Filter assessments to only show those that:
-      // 1. Have an invoice number (approved by admin)
-      // 2. Are not in pending_review status
-      // 3. Have payment status in: pending_payment, for_verification, paid
       const transformedBills = preAssessmentsRes.data.assessments
         ?.filter(assessment =>
           assessment.invoiceNumber &&
@@ -128,9 +128,18 @@ const Quotation = () => {
           bookedAt: assessment.bookedAt,
           invoiceNumber: assessment.invoiceNumber,
           assessmentId: assessment._id,
+          // ✅ Add assessment status to track if project was created
+          assessmentStatus: assessment.assessmentStatus,
           // Check if quotation exists
           quotation: assessment.quotation,
-          quotationUrl: assessment.quotation?.quotationUrl || assessment.finalQuotation
+          quotationUrl: assessment.quotation?.quotationUrl || assessment.finalQuotation,
+          // Get system details from quotation
+          systemSize: assessment.quotation?.systemDetails?.systemSize,
+          systemType: assessment.quotation?.systemDetails?.systemType,
+          totalCost: assessment.quotation?.systemDetails?.totalCost,
+          panelsNeeded: assessment.quotation?.systemDetails?.panelsNeeded,
+          inverterType: assessment.quotation?.systemDetails?.inverterType,
+          batteryType: assessment.quotation?.systemDetails?.batteryType
         })) || [];
 
       console.log('Filtered pre-assessments:', transformedBills);
@@ -211,31 +220,16 @@ const Quotation = () => {
     setShowDetailsModal(true);
   };
 
-  // Replace your handleViewQuotation function with this:
   const handleViewQuotation = async (assessment) => {
     if (!assessment.quotationUrl) {
       showToast('No quotation PDF available for this assessment', 'warning');
       return;
     }
 
-    // Simply download the PDF instead of trying to view it
     const pdfUrl = assessment.quotationUrl;
-
-    // Create a temporary link to download the PDF
-    const link = document.createElement('a');
-    link.href = pdfUrl;
-    link.download = `Quotation_${assessment.bookingReference || assessment.id}.pdf`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    showToast('Downloading quotation...', 'info');
+    window.open(pdfUrl, '_blank');
   };
 
-
-
-  // ✅ NEW: Handle Download Quotation PDF
   const handleDownloadQuotation = async (assessment) => {
     if (!assessment.quotationUrl) {
       showToast('No quotation PDF available for this assessment', 'warning');
@@ -264,6 +258,46 @@ const Quotation = () => {
       showToast('Failed to download quotation', 'error');
     } finally {
       setPdfLoading(false);
+    }
+  };
+
+  // ✅ NEW: Handle Accept Quotation
+  const handleAcceptQuotation = (assessment) => {
+    setAcceptingItem(assessment);
+    setShowAcceptModal(true);
+  };
+
+  const confirmAcceptQuotation = async () => {
+    if (!acceptingItem) return;
+
+    setAcceptingLoading(true);
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/projects/accept`,
+        {
+          sourceType: 'pre-assessment',
+          sourceId: acceptingItem.assessmentId
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      showToast('Quotation accepted successfully! Your project has been created.', 'success');
+      setShowAcceptModal(false);
+      setAcceptingItem(null);
+
+      // Refresh data to show the new project
+      fetchData();
+
+      // Switch to projects tab to show the new project
+      setActiveTab('projects');
+
+    } catch (err) {
+      console.error('Error accepting quotation:', err);
+      showToast(err.response?.data?.message || 'Failed to accept quotation. Please try again.', 'error');
+    } finally {
+      setAcceptingLoading(false);
     }
   };
 
@@ -365,7 +399,7 @@ const Quotation = () => {
     return Math.round((project.amountPaid / project.totalCost) * 100);
   };
 
-  // Skeleton Loader Components (same as before)
+  // Skeleton Loader Components
   const ProjectsSkeleton = () => (
     <div className="projects-list-quotation">
       {[1, 2, 3].map((item) => (
@@ -555,9 +589,9 @@ const Quotation = () => {
             {projects.length === 0 ? (
               <div className="empty-state-quotation">
                 <h3>No projects yet</h3>
-                <p>Click "Request Installation" to start your solar journey</p>
-                <button className="btn-primary-quotation" onClick={() => setShowRequestModal(true)}>
-                  Request Installation
+                <p>Once you accept a quotation, your project will appear here.</p>
+                <button className="btn-primary-quotation" onClick={() => setActiveTab('pre-assessments')}>
+                  View Your Quotations
                 </button>
               </div>
             ) : (
@@ -567,7 +601,7 @@ const Quotation = () => {
                     <div>
                       <h3>{project.projectName || project.projectReference}</h3>
                       <p className="project-reference-quotation">{project.projectReference}</p>
-                      <p className="project-system-quotation">{project.systemSize} Solar System | {project.systemType}</p>
+                      <p className="project-system-quotation">{project.systemSize}kW Solar System | {project.systemType}</p>
                     </div>
                     {getStatusBadge(project.status)}
                   </div>
@@ -655,80 +689,126 @@ const Quotation = () => {
           </div>
         )}
 
-        {/* Pre-Assessments Tab - Now with Quotation PDF View */}
+      
+
+        {/* Pre-Assessments Tab - With Accept Quotation Button */}
         {activeTab === 'pre-assessments' && (
           <div className="pre-assessments-list-quotation">
             {preAssessments.length === 0 ? (
               <div className="empty-state-quotation">
                 <h3>No pre-assessments yet</h3>
-                <p>Once your booking is approved, you'll see the invoice here.</p>
+                <p>Once your booking is approved and payment is completed, you'll see the quotation here.</p>
                 <button className="btn-primary-quotation" onClick={() => navigate('/app/customer/book-assessment')}>
                   Book Assessment
                 </button>
               </div>
             ) : (
-              preAssessments.map(assessment => (
-                <div key={assessment.id} className="bill-card-quotation">
-                  <div className="card-header-quotation">
-                    <div>
-                      <h3>{assessment.id}</h3>
-                      <p>{assessment.description}</p>
-                      <p>Due: {assessment.dueDate}</p>
+              preAssessments.map(assessment => {
+                const hasQuotation = assessment.quotationUrl;
+
+                // ✅ FIX: Check if project exists by comparing IDs properly
+                const projectExists = projects.some(project => {
+                  // Check if preAssessmentId is populated (object) or just an ID (string)
+                  if (project.preAssessmentId) {
+                    const projectPreAssessmentId = typeof project.preAssessmentId === 'object'
+                      ? project.preAssessmentId._id?.toString()
+                      : project.preAssessmentId?.toString();
+                    const assessmentId = assessment.assessmentId?.toString();
+                    return projectPreAssessmentId === assessmentId;
+                  }
+                  return false;
+                });
+
+                // Also check if the assessment status indicates project was already created
+               const alreadyProjectCreated = assessment.assessmentStatus === 'quotation_accepted' || projectExists;
+
+                return (
+                  <div key={assessment.id} className="bill-card-quotation">
+                    <div className="card-header-quotation">
+                      <div>
+                        <h3>{assessment.id}</h3>
+                        <p>{assessment.description}</p>
+                        <p>Due: {assessment.dueDate}</p>
+                      </div>
+                      {getStatusBadge(assessment.status)}
                     </div>
-                    {getStatusBadge(assessment.status)}
-                  </div>
-                  <div className="card-amount-quotation">
-                    <span>Amount Due</span>
-                    <strong>{formatCurrency(assessment.amount)}</strong>
-                  </div>
-                  <div className="card-actions-quotation">
-                    {(assessment.status === 'pending' && assessment.paymentStatus !== 'for_verification' && assessment.paymentStatus !== 'paid') && (
-                      <button className="action-btn-quotation pay-quotation" onClick={() => handlePayNow(assessment)}>
-                        Make Payment
-                      </button>
-                    )}
+                    <div className="card-amount-quotation">
+                      <span>Amount Due</span>
+                      <strong>{formatCurrency(assessment.amount)}</strong>
+                    </div>
+                    <div className="card-actions-quotation">
+                      {(assessment.status === 'pending' && assessment.paymentStatus !== 'for_verification' && assessment.paymentStatus !== 'paid') && (
+                        <button className="action-btn-quotation pay-quotation" onClick={() => handlePayNow(assessment)}>
+                          Make Payment
+                        </button>
+                      )}
 
-                    {assessment.paymentStatus === 'for_verification' && (
-                      <span className="payment-status-quotation">
-                        <FaClock style={{ marginRight: '4px' }} /> Payment Pending Verification
-                      </span>
-                    )}
-
-                    {assessment.paymentStatus === 'paid' && (
-                      <>
-                        <span className="payment-status-quotation paid-status-quotation">
-                          <FaCheckCircle style={{ marginRight: '4px' }} /> Payment Completed
+                      {assessment.paymentStatus === 'for_verification' && (
+                        <span className="payment-status-quotation">
+                          <FaClock style={{ marginRight: '4px' }} /> Payment Pending Verification
                         </span>
-                        {/* ✅ NEW: View Quotation button for completed payments */}
-                        <button
-                          className="action-btn-quotation view-quotation"
-                          onClick={() => handleViewQuotation(assessment)}
-                          style={{ backgroundColor: '#f97316', color: 'white' }}
-                        >
-                          <FaEye /> View Quotation
-                        </button>
-                        <button
-                          className="action-btn-quotation download-quotation"
-                          onClick={() => handleDownloadQuotation(assessment)}
-                          disabled={pdfLoading}
-                        >
-                          {pdfLoading ? <FaSpinner className="spinner" /> : <FaDownload />} Download PDF
-                        </button>
-                      </>
-                    )}
+                      )}
 
-                    <button className="action-btn-quotation view-quotation" onClick={() => handleViewDetails(assessment, 'assessment')}>
-                      View Details
-                    </button>
-                  </div>
+                      {assessment.paymentStatus === 'paid' && (
+                        <>
+                          <span className="payment-status-quotation paid-status-quotation">
+                            <FaCheckCircle style={{ marginRight: '4px' }} /> Payment Completed
+                          </span>
 
-                  {(assessment.status === 'pending' && assessment.paymentStatus !== 'for_verification' && assessment.paymentStatus !== 'paid') && (
-                    <div className="walkin-note-quotation">
-                      <small><FaBuilding style={{ marginRight: '4px' }} /> For walk-in payment, please visit our office at Purok 2, Masaya, San Jose, Camarines Sur</small>
+                          {/* Show Quotation buttons if quotation exists AND project not yet created */}
+                          {hasQuotation && !alreadyProjectCreated && (
+                            <>
+                              <button
+                                className="action-btn-quotation view-quotation"
+                                onClick={() => handleViewQuotation(assessment)}
+                                style={{ backgroundColor: '#f97316', color: 'white' }}
+                              >
+                                <FaEye /> View Quotation
+                              </button>
+                              <button
+                                className="action-btn-quotation download-quotation"
+                                onClick={() => handleDownloadQuotation(assessment)}
+                                disabled={pdfLoading}
+                              >
+                                {pdfLoading ? <FaSpinner className="spinner" /> : <FaDownload />} Download PDF
+                              </button>
+                              {/* ACCEPT QUOTATION BUTTON */}
+                              <button
+                                className="action-btn-quotation accept-quotation"
+                                onClick={() => handleAcceptQuotation(assessment)}
+                                style={{ backgroundColor: '#27ae60', color: 'white' }}
+                              >
+                                <FaCheck /> Accept Quotation & Start Project
+                              </button>
+                            </>
+                          )}
+
+                          {/* Show that project was already created */}
+                          {alreadyProjectCreated && (
+                            <button
+                              className="action-btn-quotation view-project"
+                              onClick={() => setActiveTab('projects')}
+                              style={{ backgroundColor: '#3498db', color: 'white' }}
+                            >
+                              <FaArrowRight /> View Project
+                            </button>
+                          )}
+                        </>
+                      )}
+
+                      <button className="action-btn-quotation view-quotation" onClick={() => handleViewDetails(assessment, 'assessment')}>
+                        View Details
+                      </button>
                     </div>
-                  )}
-                </div>
-              ))
+
+                    {(assessment.status === 'pending' && assessment.paymentStatus !== 'for_verification' && assessment.paymentStatus !== 'paid') && (
+                      <div className="walkin-note-quotation">
+                        <small><FaBuilding style={{ marginRight: '4px' }} /> For walk-in payment, please visit our office at Purok 2, Masaya, San Jose, Camarines Sur</small>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
             )}
           </div>
         )}
@@ -770,7 +850,62 @@ const Quotation = () => {
           </div>
         )}
 
-        {/* ✅ NEW: PDF Viewer Modal */}
+        {/* Accept Quotation Confirmation Modal */}
+        {showAcceptModal && acceptingItem && (
+          <div className="modal-overlay-quotation" onClick={() => setShowAcceptModal(false)}>
+            <div className="modal-content-quotation accept-modal-quotation" onClick={e => e.stopPropagation()}>
+              <button className="modal-close-quotation" onClick={() => setShowAcceptModal(false)}>×</button>
+              <div className="accept-modal-icon">
+                <FaCheckCircle size={60} color="#27ae60" />
+              </div>
+              <h3>Accept Quotation</h3>
+              <p>Are you sure you want to accept this quotation? This will create a new project and start the installation process.</p>
+
+              <div className="quotation-summary-quotation">
+                <h4>Quotation Summary</h4>
+                <div className="summary-row">
+                  <span>System Size:</span>
+                  <strong>{acceptingItem.systemSize || 'To be determined'} kWp</strong>
+                </div>
+                <div className="summary-row">
+                  <span>System Type:</span>
+                  <strong>{acceptingItem.systemType || 'Grid-Tie'}</strong>
+                </div>
+                <div className="summary-row">
+                  <span>Panels Needed:</span>
+                  <strong>{acceptingItem.panelsNeeded || 'To be determined'}</strong>
+                </div>
+                <div className="summary-row">
+                  <span>Total Cost:</span>
+                  <strong>{formatCurrency(acceptingItem.totalCost || acceptingItem.amount)}</strong>
+                </div>
+              </div>
+
+              <div className="accept-note-quotation">
+                <small>
+                  <FaExclamationTriangle style={{ marginRight: '4px' }} />
+                  By accepting, you agree to proceed with the installation. A project manager will contact you within 24 hours.
+                </small>
+              </div>
+
+              <div className="modal-actions-quotation">
+                <button className="cancel-btn-quotation" onClick={() => setShowAcceptModal(false)}>
+                  <FaTimes /> Cancel
+                </button>
+                <button
+                  className="submit-btn-quotation"
+                  onClick={confirmAcceptQuotation}
+                  disabled={acceptingLoading}
+                  style={{ backgroundColor: '#27ae60' }}
+                >
+                  {acceptingLoading ? <FaSpinner className="spinner" /> : <FaCheck />} Confirm & Create Project
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PDF Viewer Modal */}
         {showPdfModal && pdfUrl && (
           <div className="modal-overlay-quotation pdf-modal-overlay" onClick={() => setShowPdfModal(false)}>
             <div className="modal-content-quotation pdf-modal-content" onClick={e => e.stopPropagation()}>
@@ -979,7 +1114,6 @@ const Quotation = () => {
                       <h4>Address</h4>
                       <p>{detailsItem.address}</p>
                     </div>
-                    {/* ✅ Show Quotation Link if available */}
                     {detailsItem.quotationUrl && (
                       <div className="details-section-quotation">
                         <h4>Quotation</h4>
@@ -1006,7 +1140,7 @@ const Quotation = () => {
                     </div>
                     <div className="details-section-quotation">
                       <h4>System Details</h4>
-                      <p><strong>System Size:</strong> {detailsItem.systemSize}</p>
+                      <p><strong>System Size:</strong> {detailsItem.systemSize}kW</p>
                       <p><strong>System Type:</strong> {detailsItem.systemType}</p>
                       <p><strong>Property Type:</strong> {detailsItem.propertyType}</p>
                     </div>

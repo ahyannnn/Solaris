@@ -1,51 +1,51 @@
-// routes/projectRoutes.js
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const { admin, engineer } = require('../middleware/roleMiddleware');
+const { upload } = require('../middleware/uploadMiddleware');
 
 const {
+  // Customer functions
   getMyProjects,
-  getAllProjects,
   getProjectById,
-  createProject,
+  createProjectFromAcceptance,
+  recordPayment,
+  
+  // Engineer functions
+  getEngineerProjects,
+  updateProjectProgress,
+  uploadProjectPhotos,
+  
+  // Admin functions
+  getAllProjects,
   updateProjectStatus,
-  assignEngineer,
-  updateProgress,
+  assignEngineerToProject,
+  recordProjectPayment,
   getProjectStats,
-  createProjectFromAcceptance  // <-- ADD THIS IMPORT
+  createProject
 } = require('../controllers/projectController');
 
 const { verifyToken } = authMiddleware;
 
 // ============ CUSTOMER ROUTES ============
-// Get my projects - must come before /:id
 router.get('/my-projects', verifyToken, getMyProjects);
+router.post('/accept', verifyToken, createProjectFromAcceptance);
+router.post('/:id/payments', verifyToken, recordPayment);
 
-// Create project from acceptance (customer proceeds) - must come before /:id
-router.post('/accept', verifyToken, createProjectFromAcceptance);  // <-- NOW THIS WORKS
+// ============ ENGINEER ROUTES ============
+router.get('/engineer/my-projects', verifyToken, engineer, getEngineerProjects);
+router.put('/:id/progress', verifyToken, engineer, updateProjectProgress);
+router.post('/:id/upload-photos', verifyToken, engineer, upload.array('photos', 10), uploadProjectPhotos);
 
 // ============ ADMIN ROUTES ============
-// Stats route - must come before /:id
 router.get('/stats', verifyToken, admin, getProjectStats);
-
-// Get all projects
 router.get('/', verifyToken, admin, getAllProjects);
-
-// Create project (admin)
 router.post('/', verifyToken, admin, createProject);
+router.put('/:id/status', verifyToken, admin, updateProjectStatus);
+router.put('/:id/assign-engineer', verifyToken, admin, assignEngineerToProject);
+router.post('/:id/payments', verifyToken, admin, recordProjectPayment);
 
 // ============ DYNAMIC ROUTES (must be LAST) ============
-// Get by ID
 router.get('/:id', verifyToken, getProjectById);
-
-// Update status
-router.put('/:id/status', verifyToken, admin, updateProjectStatus);
-
-// Assign engineer
-router.put('/:id/assign-engineer', verifyToken, admin, assignEngineer);
-
-// Update progress (Engineer)
-router.put('/:id/progress', verifyToken, engineer, updateProgress);
 
 module.exports = router;

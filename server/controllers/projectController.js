@@ -3,7 +3,20 @@ const Project = require('../models/Project');
 const Client = require('../models/Clients');
 const FreeQuote = require('../models/FreeQuote');
 const PreAssessment = require('../models/PreAssessment');
+const User = require('../models/Users');
 const mongoose = require('mongoose');
+
+// Helper function to format currency (for internal use)
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount || 0);
+};
+
+// ============ CUSTOMER FUNCTIONS ============
 
 // @desc    Get client's projects
 // @route   GET /api/projects/my-projects
@@ -19,6 +32,8 @@ exports.getMyProjects = async (req, res) => {
 
     const projects = await Project.find({ clientId: client._id })
       .populate('assignedEngineerId', 'firstName lastName email')
+      .populate('preAssessmentId')
+      .populate('addressId')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -32,26 +47,350 @@ exports.getMyProjects = async (req, res) => {
   }
 };
 
-// @desc    Get all projects (Admin/Engineer)
-// @route   GET /api/projects
-// @access  Private (Admin, Engineer)
-exports.getAllProjects = async (req, res) => {
+// @desc    Create project from accepted quotation (when customer accepts)
+// @route   POST /api/projects/accept
+// @access  Private (Customer)
+exports.createProjectFromAcceptance = async (req, res) => {
   try {
-    const { status, page = 1, limit = 20 } = req.query;
-    const userRole = req.user.role;
     const userId = req.user.id;
-    
-    const query = {};
-    if (status) query.status = status;
-    
-    // If engineer, only show projects assigned to them
-    if (userRole === 'engineer') {
-      query.assignedEngineerId = userId;
+    const { sourceType, sourceId } = req.body;
+
+    const client = await Client.findOne({ userId });
+    if (!client) {
+      return res.status(404).json({ message: 'Client not found' });
     }
 
+    let sourceData;
+    let projectData = {};
+
+    const generateProjectReference = () => {
+      const date = new Date();
+      const year = date.getFullYear().toString().slice(-2);
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+      return `PROJ-${year}${month}-${random}`;
+    };
+
+    if (sourceType === 'free-quote') {
+      sourceData = await FreeQuote.findById(sourceId).populate('addressId');
+      if (!sourceData || sourceData.clientId.toString() !== client._id.toString()) {
+        return res.status(404).json({ message: 'Free quote not found' });
+      }
+      
+      projectData = {
+        projectReference: generateProjectReference(),
+        clientId: client._id,
+        userId: client.userId,
+        addressId: sourceData.addressId?._id,
+        systemSize: parseFloat(sourceData.desiredCapacity) || 5,
+        systemType: 'grid-tie',
+        totalCost: 0,
+        status: 'quoted',
+        projectName: `${client.contactFirstName} ${client.contactLastName} - Solar Installation`,
+        sourceType: 'free-quote',
+        sourceId: sourceData._id
+      };
+    } else if (sourceType === 'pre-assessment') {
+      sourceData = await PreAssessment.findById(sourceId).populate('addressId');
+      if (!sourceData || sourceData.clientId.toString() !== client._id.toString()) {
+        return res.status(404).json({ message: 'Pre-assessment not found' });
+      }
+      
+      const systemDetails = sourceData.quotation?.systemDetails || {};
+      const totalCost = systemDetails.totalCost || sourceData.finalSystemCost || 0;
+      
+      const parseSafeNumber = (value) => {
+        if (!value) return null;
+        const parsed = parseFloat(value);
+        return isNaN(parsed) ? null : parsed;
+      };
+      
+      const paymentSchedule = [];
+      if (totalCost > 0) {
+        paymentSchedule.push({
+          type: 'initial',
+          amount: totalCost * 0.3,
+          dueDate: new Date(),
+          status: 'pending'
+        });
+        paymentSchedule.push({
+          type: 'progress',
+          amount: totalCost * 0.4,
+          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          status: 'pending'
+        });
+        paymentSchedule.push({
+          type: 'final',
+          amount: totalCost * 0.3,
+          dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+          status: 'pending'
+        });
+      }
+      
+      projectData = {
+        projectReference: generateProjectReference(),
+        clientId: client._id,
+        userId: client.userId,
+        addressId: sourceData.addressId?._id,
+        preAssessmentId: sourceData._id,
+        systemSize: parseSafeNumber(systemDetails.systemSize) || parseSafeNumber(sourceData.desiredCapacity) || 5,
+        systemType: systemDetails.systemType || sourceData.recommendedSystemType || sourceData.systemType || 'grid-tie',
+        panelsNeeded: parseSafeNumber(systemDetails.panelsNeeded) || sourceData.panelsNeeded || null,
+        inverterType: systemDetails.inverterType || null,
+        batteryType: systemDetails.batteryType || null,
+        totalCost: totalCost,
+        initialPayment: totalCost * 0.3,
+        progressPayment: totalCost * 0.4,
+        finalPayment: totalCost * 0.3,
+        amountPaid: 0,
+        balance: totalCost,
+        paymentSchedule: paymentSchedule,
+        quotationFile: sourceData.finalQuotation || sourceData.quotation?.quotationUrl,
+        status: 'quoted',
+        projectName: `${client.contactFirstName} ${client.contactLastName} - Solar Installation`,
+        sourceType: 'pre-assessment',
+        sourceId: sourceData._id
+      };
+    } else {
+      return res.status(400).json({ message: 'Invalid source type' });
+    }
+
+    // Remove any undefined or NaN values
+    Object.keys(projectData).forEach(key => {
+      if (projectData[key] === undefined || (typeof projectData[key] === 'number' && isNaN(projectData[key]))) {
+        delete projectData[key];
+      }
+    });
+
+    const project = new Project(projectData);
+    await project.save();
+
+    // Update the source to mark as accepted
+    if (sourceType === 'free-quote') {
+      sourceData.status = 'accepted';
+      await sourceData.save();
+    } else {
+      if (sourceData.assessmentStatus) {
+        sourceData.assessmentStatus = 'quotation_accepted';
+        await sourceData.save();
+      }
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Project created successfully',
+      project
+    });
+
+  } catch (error) {
+    console.error('Create project from acceptance error:', error);
+    res.status(500).json({ message: 'Failed to create project', error: error.message });
+  }
+};
+
+// @desc    Record payment on project (Customer)
+// @route   POST /api/projects/:id/payments
+// @access  Private (Customer)
+exports.recordPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount, paymentType, paymentReference, paymentProof } = req.body;
+    const userId = req.user.id;
+
+    const project = await Project.findById(id);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const client = await Client.findOne({ userId });
+    if (!client || project.clientId.toString() !== client._id.toString()) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    await project.recordPayment(amount, paymentType, null, paymentProof, paymentReference);
+
+    res.json({
+      success: true,
+      message: 'Payment recorded successfully',
+      project: {
+        id: project._id,
+        amountPaid: project.amountPaid,
+        balance: project.balance,
+        status: project.status
+      }
+    });
+
+  } catch (error) {
+    console.error('Record payment error:', error);
+    res.status(500).json({ message: 'Failed to record payment', error: error.message });
+  }
+};
+
+// ============ ENGINEER FUNCTIONS ============
+
+// @desc    Get engineer's assigned projects
+// @route   GET /api/projects/engineer/my-projects
+// @access  Private (Engineer)
+exports.getEngineerProjects = async (req, res) => {
+  try {
+    const engineerId = req.user.id;
+    const { status, page = 1, limit = 10 } = req.query;
+    
+    const query = { assignedEngineerId: engineerId };
+    if (status && status !== 'all') query.status = status;
+
     const projects = await Project.find(query)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber')
+      .populate('clientId', 'contactFirstName contactLastName contactNumber userId.email')
+      .populate('addressId')
       .populate('assignedEngineerId', 'firstName lastName email')
+      .populate('preAssessmentId')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    const total = await Project.countDocuments(query);
+
+    res.json({
+      success: true,
+      projects,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / limit)
+    });
+
+  } catch (error) {
+    console.error('Get engineer projects error:', error);
+    res.status(500).json({ message: 'Failed to fetch projects', error: error.message });
+  }
+};
+
+// @desc    Update project progress (Engineer)
+// @route   PUT /api/projects/:id/progress
+// @access  Private (Engineer)
+exports.updateProjectProgress = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { installationNotes, status, sitePhotos } = req.body;
+    const engineerId = req.user.id;
+
+    const project = await Project.findById(id);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    if (project.assignedEngineerId?.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized to update this project' });
+    }
+
+    // Validate status transition
+    const validTransitions = {
+      'approved': ['in_progress'],
+      'initial_paid': ['in_progress'],
+      'in_progress': ['progress_paid', 'completed'],
+      'progress_paid': ['completed']
+    };
+    
+    if (status && validTransitions[project.status] && !validTransitions[project.status].includes(status)) {
+      return res.status(400).json({ 
+        message: `Cannot transition from ${project.status} to ${status}` 
+      });
+    }
+
+    if (installationNotes) project.installationNotes = installationNotes;
+    if (sitePhotos) project.sitePhotos = [...(project.sitePhotos || []), ...sitePhotos];
+    if (status) {
+      const oldStatus = project.status;
+      project.status = status;
+      
+      project.projectUpdates = project.projectUpdates || [];
+      project.projectUpdates.push({
+        title: `Progress Updated: ${oldStatus} → ${status}`,
+        description: installationNotes || `Project status changed to ${status}`,
+        status: status,
+        updatedBy: engineerId
+      });
+      
+      if (status === 'in_progress' && !project.startDate) {
+        project.startDate = new Date();
+      }
+      
+      if (status === 'completed') {
+        project.actualCompletionDate = new Date();
+      }
+    }
+
+    await project.save();
+
+    res.json({
+      success: true,
+      message: 'Project progress updated successfully',
+      project
+    });
+
+  } catch (error) {
+    console.error('Update project progress error:', error);
+    res.status(500).json({ message: 'Failed to update progress', error: error.message });
+  }
+};
+
+// @desc    Upload project photos (Engineer)
+// @route   POST /api/projects/:id/upload-photos
+// @access  Private (Engineer)
+exports.uploadProjectPhotos = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const engineerId = req.user.id;
+    const files = req.files;
+
+    const project = await Project.findById(id);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    if (project.assignedEngineerId?.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // Process file uploads (implement with your file storage service)
+    const photoUrls = [];
+    for (const file of files) {
+      // TODO: Upload to Cloudinary or local storage
+      // For now, just store the original name as placeholder
+      photoUrls.push(file.path || `/uploads/projects/${file.filename}`);
+    }
+
+    project.sitePhotos = [...(project.sitePhotos || []), ...photoUrls];
+    await project.save();
+
+    res.json({
+      success: true,
+      message: 'Photos uploaded successfully',
+      photos: photoUrls
+    });
+
+  } catch (error) {
+    console.error('Upload photos error:', error);
+    res.status(500).json({ message: 'Failed to upload photos', error: error.message });
+  }
+};
+
+// ============ ADMIN FUNCTIONS ============
+
+// @desc    Get all projects (Admin)
+// @route   GET /api/projects
+// @access  Private (Admin)
+exports.getAllProjects = async (req, res) => {
+  try {
+    const { status, page = 1, limit = 10 } = req.query;
+    
+    const query = {};
+    if (status && status !== 'all') query.status = status;
+
+    const projects = await Project.find(query)
+      .populate('clientId', 'contactFirstName contactLastName contactNumber userId.email')
+      .populate('addressId')
+      .populate('assignedEngineerId', 'firstName lastName email')
+      .populate('preAssessmentId')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
@@ -71,84 +410,250 @@ exports.getAllProjects = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch projects', error: error.message });
   }
 };
-// controllers/projectController.js - Add function to create project from customer acceptance
-exports.createProjectFromAcceptance = async (req, res) => {
+
+// @desc    Update project status (Admin)
+// @route   PUT /api/projects/:id/status
+// @access  Private (Admin)
+exports.updateProjectStatus = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { sourceType, sourceId } = req.body; // sourceType: 'free-quote' or 'pre-assessment'
+    const { id } = req.params;
+    const { status, notes } = req.body;
+    const adminId = req.user.id;
 
-    const client = await Client.findOne({ userId });
-    if (!client) {
-      return res.status(404).json({ message: 'Client not found' });
+    const project = await Project.findById(id);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
     }
 
-    let sourceData;
-    let projectData = {};
+    // Validate status transition
+    const validTransitions = {
+      'quoted': ['approved', 'cancelled'],
+      'approved': ['initial_paid', 'cancelled'],
+      'initial_paid': ['in_progress', 'cancelled'],
+      'in_progress': ['progress_paid', 'completed', 'cancelled'],
+      'progress_paid': ['completed', 'cancelled'],
+      'completed': [],
+      'cancelled': []
+    };
 
-    if (sourceType === 'free-quote') {
-      sourceData = await FreeQuote.findById(sourceId).populate('addressId');
-      if (!sourceData || sourceData.clientId.toString() !== client._id.toString()) {
-        return res.status(404).json({ message: 'Free quote not found' });
-      }
-      
-      projectData = {
-        clientId: client._id,
-        userId: client.userId,
-        addressId: sourceData.addressId?._id,
-        systemSize: sourceData.desiredCapacity || '5',
-        systemType: 'grid-tie',
-        totalCost: 0, // To be set by admin
-        status: 'quoted',
-        projectName: `${client.contactFirstName} ${client.contactLastName} - Solar Installation`,
-        sourceType: 'free-quote',
-        sourceId: sourceData._id
-      };
-    } else if (sourceType === 'pre-assessment') {
-      sourceData = await PreAssessment.findById(sourceId).populate('addressId');
-      if (!sourceData || sourceData.clientId.toString() !== client._id.toString()) {
-        return res.status(404).json({ message: 'Pre-assessment not found' });
-      }
-      
-      projectData = {
-        clientId: client._id,
-        userId: client.userId,
-        addressId: sourceData.addressId._id,
-        systemSize: sourceData.desiredCapacity || '5',
-        systemType: sourceData.recommendedSystemType || 'grid-tie',
-        totalCost: sourceData.finalSystemCost || 0,
-        status: 'quoted',
-        projectName: `${client.contactFirstName} ${client.contactLastName} - Solar Installation`,
-        sourceType: 'pre-assessment',
-        sourceId: sourceData._id,
-        preAssessmentId: sourceData._id
-      };
-    } else {
-      return res.status(400).json({ message: 'Invalid source type' });
+    if (validTransitions[project.status] && !validTransitions[project.status].includes(status)) {
+      return res.status(400).json({ 
+        message: `Cannot transition from ${project.status} to ${status}` 
+      });
     }
 
-    const project = new Project(projectData);
+    const oldStatus = project.status;
+    project.status = status;
+    
+    if (status === 'approved') {
+      project.approvedAt = new Date();
+      project.approvedBy = adminId;
+    }
+    
+    if (status === 'completed') {
+      project.actualCompletionDate = new Date();
+    }
+
+    project.projectUpdates = project.projectUpdates || [];
+    project.projectUpdates.push({
+      title: `Status Updated: ${oldStatus} → ${status}`,
+      description: notes || `Project status changed to ${status}`,
+      status: status,
+      updatedBy: adminId
+    });
+
     await project.save();
 
-    // Update the source to mark as accepted
-    if (sourceType === 'free-quote') {
-      sourceData.status = 'accepted';
-      await sourceData.save();
-    } else {
-      sourceData.assessmentStatus = 'project_created';
-      await sourceData.save();
-    }
-
-    res.status(201).json({
+    res.json({
       success: true,
-      message: 'Project created successfully',
+      message: `Project status updated to ${status}`,
       project
     });
 
   } catch (error) {
-    console.error('Create project from acceptance error:', error);
-    res.status(500).json({ message: 'Failed to create project', error: error.message });
+    console.error('Update project status error:', error);
+    res.status(500).json({ message: 'Failed to update status', error: error.message });
   }
 };
+
+// @desc    Assign engineer to project (Admin)
+// @route   PUT /api/projects/:id/assign-engineer
+// @access  Private (Admin)
+exports.assignEngineerToProject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { engineerId, notes } = req.body;
+    const adminId = req.user.id;
+
+    const project = await Project.findById(id);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const engineer = await User.findById(engineerId);
+    if (!engineer || engineer.role !== 'engineer') {
+      return res.status(400).json({ message: 'Invalid engineer selected' });
+    }
+
+    project.assignedEngineerId = engineerId;
+    if (notes) project.internalNotes = notes;
+    
+    project.projectUpdates = project.projectUpdates || [];
+    project.projectUpdates.push({
+      title: 'Engineer Assigned',
+      description: `Engineer ${engineer.firstName} ${engineer.lastName} assigned to project`,
+      status: project.status,
+      updatedBy: adminId
+    });
+
+    await project.save();
+
+    res.json({
+      success: true,
+      message: 'Engineer assigned successfully',
+      project
+    });
+
+  } catch (error) {
+    console.error('Assign engineer error:', error);
+    res.status(500).json({ message: 'Failed to assign engineer', error: error.message });
+  }
+};
+
+// @desc    Record payment for project (Admin)
+// @route   POST /api/projects/:id/payments
+// @access  Private (Admin)
+exports.recordProjectPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount, paymentType, paymentReference } = req.body;
+    const adminId = req.user.id;
+
+    const project = await Project.findById(id);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    if (amount <= 0) {
+      return res.status(400).json({ message: 'Invalid payment amount' });
+    }
+
+    // Update payment schedule
+    const scheduleItem = project.paymentSchedule.find(p => p.type === paymentType);
+    if (scheduleItem) {
+      scheduleItem.status = 'paid';
+      scheduleItem.paidAt = new Date();
+      scheduleItem.paymentReference = paymentReference;
+    }
+
+    // Update amount paid
+    project.amountPaid += amount;
+    project.balance = project.totalCost - project.amountPaid;
+
+    // Update project status based on payment
+    if (paymentType === 'initial' && project.status === 'approved') {
+      project.status = 'initial_paid';
+    } else if (paymentType === 'progress' && project.status === 'in_progress') {
+      project.status = 'progress_paid';
+    } else if (paymentType === 'final') {
+      if (project.amountPaid >= project.totalCost) {
+        project.status = 'completed';
+        project.actualCompletionDate = new Date();
+      }
+    }
+
+    project.projectUpdates = project.projectUpdates || [];
+    project.projectUpdates.push({
+      title: 'Payment Received',
+      description: `Payment of ${formatCurrency(amount)} received for ${paymentType} payment`,
+      status: project.status,
+      updatedBy: adminId
+    });
+
+    await project.save();
+
+    res.json({
+      success: true,
+      message: 'Payment recorded successfully',
+      project: {
+        id: project._id,
+        amountPaid: project.amountPaid,
+        balance: project.balance,
+        status: project.status
+      }
+    });
+
+  } catch (error) {
+    console.error('Record payment error:', error);
+    res.status(500).json({ message: 'Failed to record payment', error: error.message });
+  }
+};
+
+// @desc    Get project statistics for admin dashboard
+// @route   GET /api/projects/stats
+// @access  Private (Admin)
+exports.getProjectStats = async (req, res) => {
+  try {
+    const total = await Project.countDocuments();
+    const quoted = await Project.countDocuments({ status: 'quoted' });
+    const approved = await Project.countDocuments({ status: 'approved' });
+    const initialPaid = await Project.countDocuments({ status: 'initial_paid' });
+    const inProgress = await Project.countDocuments({ status: 'in_progress' });
+    const progressPaid = await Project.countDocuments({ status: 'progress_paid' });
+    const completed = await Project.countDocuments({ status: 'completed' });
+    const cancelled = await Project.countDocuments({ status: 'cancelled' });
+
+    const revenueResult = await Project.aggregate([
+      { $match: { status: 'completed' } },
+      { $group: { _id: null, total: { $sum: '$totalCost' } } }
+    ]);
+    const totalRevenue = revenueResult[0]?.total || 0;
+
+    // Get projects by source type
+    const fromPreAssessment = await Project.countDocuments({ sourceType: 'pre-assessment' });
+    const fromFreeQuote = await Project.countDocuments({ sourceType: 'free-quote' });
+    const fromAdmin = await Project.countDocuments({ sourceType: 'admin' });
+
+    // Monthly stats for chart
+    const monthlyStats = await Project.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+          count: { $sum: 1 },
+          revenue: { $sum: '$totalCost' }
+        }
+      },
+      { $sort: { _id: 1 } },
+      { $limit: 12 }
+    ]);
+
+    res.json({
+      success: true,
+      stats: {
+        total,
+        quoted,
+        approved,
+        initialPaid,
+        inProgress,
+        progressPaid,
+        completed,
+        cancelled,
+        totalRevenue,
+        sources: {
+          preAssessment: fromPreAssessment,
+          freeQuote: fromFreeQuote,
+          admin: fromAdmin
+        },
+        monthlyStats
+      }
+    });
+
+  } catch (error) {
+    console.error('Get project stats error:', error);
+    res.status(500).json({ message: 'Failed to fetch stats', error: error.message });
+  }
+};
+
 // @desc    Get project by ID
 // @route   GET /api/projects/:id
 // @access  Private
@@ -159,7 +664,7 @@ exports.getProjectById = async (req, res) => {
     const userRole = req.user.role;
 
     const project = await Project.findById(id)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber')
+      .populate('clientId', 'contactFirstName contactLastName contactNumber email')
       .populate('assignedEngineerId', 'firstName lastName email')
       .populate('preAssessmentId')
       .populate('addressId');
@@ -170,7 +675,8 @@ exports.getProjectById = async (req, res) => {
 
     // Check authorization
     const client = await Client.findOne({ userId });
-    if (userRole !== 'admin' && userRole !== 'engineer' && project.clientId._id.toString() !== client?._id.toString()) {
+    if (userRole !== 'admin' && userRole !== 'engineer' && 
+        project.clientId._id.toString() !== client?._id.toString()) {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
@@ -208,10 +714,16 @@ exports.createProject = async (req, res) => {
       return res.status(404).json({ message: 'Client not found' });
     }
 
-    // Create project name based on client name
+    const generateProjectReference = () => {
+      const date = new Date();
+      const year = date.getFullYear().toString().slice(-2);
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+      return `PROJ-${year}${month}-${random}`;
+    };
+
     const projectName = `${client.contactFirstName} ${client.contactLastName} - Solar Installation`;
 
-    // Create payment schedule
     const paymentSchedule = [];
     if (initialPayment > 0) {
       paymentSchedule.push({
@@ -225,7 +737,7 @@ exports.createProject = async (req, res) => {
       paymentSchedule.push({
         type: 'progress',
         amount: progressPayment,
-        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         status: 'pending'
       });
     }
@@ -233,12 +745,13 @@ exports.createProject = async (req, res) => {
       paymentSchedule.push({
         type: 'final',
         amount: finalPayment,
-        dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days
+        dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
         status: 'pending'
       });
     }
 
     const project = new Project({
+      projectReference: generateProjectReference(),
       clientId,
       userId,
       addressId,
@@ -252,7 +765,8 @@ exports.createProject = async (req, res) => {
       paymentSchedule,
       status: 'quoted',
       notes,
-      createdBy: req.user.id
+      createdBy: req.user.id,
+      sourceType: 'admin'
     });
 
     await project.save();
@@ -266,137 +780,5 @@ exports.createProject = async (req, res) => {
   } catch (error) {
     console.error('Create project error:', error);
     res.status(500).json({ message: 'Failed to create project', error: error.message });
-  }
-};
-
-// @desc    Update project status
-// @route   PUT /api/projects/:id/status
-// @access  Private (Admin)
-exports.updateProjectStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status, notes } = req.body;
-
-    const project = await Project.findById(id);
-    if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
-    }
-
-    project.status = status;
-    if (notes) project.internalNotes = notes;
-    
-    if (status === 'approved') {
-      project.approvedAt = new Date();
-      project.approvedBy = req.user.id;
-    }
-
-    await project.save();
-
-    res.json({
-      success: true,
-      message: 'Project status updated successfully',
-      project
-    });
-
-  } catch (error) {
-    console.error('Update project status error:', error);
-    res.status(500).json({ message: 'Failed to update project', error: error.message });
-  }
-};
-
-// @desc    Assign engineer to project
-// @route   PUT /api/projects/:id/assign-engineer
-// @access  Private (Admin)
-exports.assignEngineer = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { engineerId, notes } = req.body;
-
-    const project = await Project.findById(id);
-    if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
-    }
-
-    project.assignedEngineerId = engineerId;
-    if (notes) project.internalNotes = notes;
-
-    await project.save();
-
-    res.json({
-      success: true,
-      message: 'Engineer assigned successfully',
-      project
-    });
-
-  } catch (error) {
-    console.error('Assign engineer error:', error);
-    res.status(500).json({ message: 'Failed to assign engineer', error: error.message });
-  }
-};
-
-// @desc    Update project progress (Engineer)
-// @route   PUT /api/projects/:id/progress
-// @access  Private (Engineer)
-exports.updateProgress = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { installationNotes, sitePhotos, status } = req.body;
-
-    const project = await Project.findById(id);
-    if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
-    }
-
-    if (installationNotes) project.installationNotes = installationNotes;
-    if (sitePhotos) project.sitePhotos = sitePhotos;
-    if (status) project.status = status;
-
-    await project.save();
-
-    res.json({
-      success: true,
-      message: 'Project progress updated successfully',
-      project
-    });
-
-  } catch (error) {
-    console.error('Update progress error:', error);
-    res.status(500).json({ message: 'Failed to update progress', error: error.message });
-  }
-};
-
-// @desc    Get project stats for dashboard (Admin)
-// @route   GET /api/projects/stats
-// @access  Private (Admin)
-exports.getProjectStats = async (req, res) => {
-  try {
-    const total = await Project.countDocuments();
-    const quoted = await Project.countDocuments({ status: 'quoted' });
-    const approved = await Project.countDocuments({ status: 'approved' });
-    const inProgress = await Project.countDocuments({ status: 'in_progress' });
-    const completed = await Project.countDocuments({ status: 'completed' });
-    const cancelled = await Project.countDocuments({ status: 'cancelled' });
-
-    const totalRevenue = await Project.aggregate([
-      { $match: { status: 'completed' } },
-      { $group: { _id: null, total: { $sum: '$totalCost' } } }
-    ]);
-
-    res.json({
-      success: true,
-      stats: {
-        total,
-        quoted,
-        approved,
-        inProgress,
-        completed,
-        cancelled,
-        totalRevenue: totalRevenue[0]?.total || 0
-      }
-    });
-
-  } catch (error) {
-    console.error('Get project stats error:', error);
-    res.status(500).json({ message: 'Failed to fetch stats', error: error.message });
   }
 };

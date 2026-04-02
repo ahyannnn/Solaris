@@ -1,9 +1,8 @@
-// models/Project.js
 const mongoose = require('mongoose');
 
 const projectSchema = new mongoose.Schema({
   // Project Identification
-  projectReference: { type: String, unique: true, required: true },
+  projectReference: { type: String, unique: true },
   projectName: { type: String, required: true },
   
   // References
@@ -12,12 +11,16 @@ const projectSchema = new mongoose.Schema({
   preAssessmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'PreAssessment' },
   addressId: { type: mongoose.Schema.Types.ObjectId, ref: 'Address', required: true },
   
+  // Source tracking (which type created this project)
+  sourceType: { type: String, enum: ['free-quote', 'pre-assessment', 'admin'], default: 'admin' },
+  sourceId: { type: mongoose.Schema.Types.ObjectId },
+  
   // Project Details
   systemSize: { type: Number, required: true }, // in kW
   systemType: { type: String, enum: ['grid-tie', 'hybrid', 'off-grid'], default: 'grid-tie' },
   panelsNeeded: { type: Number },
-  inverterSize: { type: Number },
-  batterySize: { type: Number },
+  inverterType: { type: String },
+  batteryType: { type: String },
   
   // Financial Details
   totalCost: { type: Number, required: true },
@@ -34,7 +37,9 @@ const projectSchema = new mongoose.Schema({
     dueDate: Date,
     paidAt: Date,
     status: { type: String, enum: ['pending', 'paid', 'overdue'], default: 'pending' },
-    invoiceNumber: String
+    invoiceNumber: String,
+    paymentProof: String,
+    paymentReference: String
   }],
   
   // Project Timeline
@@ -51,7 +56,7 @@ const projectSchema = new mongoose.Schema({
   
   // Assigned Personnel
   assignedEngineerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  assignedTeam: [String],
+  assignedTeam: [{ type: String }],
   
   // Documents
   quotationFile: { type: String },
@@ -89,17 +94,7 @@ const projectSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Pre-save middleware to generate project reference
-projectSchema.pre('save', function(next) {
-  if (this.isNew && !this.projectReference) {
-    const date = new Date();
-    const year = date.getFullYear().toString().slice(-2);
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    this.projectReference = `PROJ-${year}${month}-${random}`;
-  }
-  next();
-});
+
 
 // Method to calculate balance
 projectSchema.methods.calculateBalance = function() {
@@ -108,7 +103,7 @@ projectSchema.methods.calculateBalance = function() {
 };
 
 // Method to record payment
-projectSchema.methods.recordPayment = async function(amount, paymentType, invoiceId) {
+projectSchema.methods.recordPayment = async function(amount, paymentType, invoiceId, paymentProof, paymentReference) {
   this.amountPaid += amount;
   this.calculateBalance();
   
@@ -118,6 +113,8 @@ projectSchema.methods.recordPayment = async function(amount, paymentType, invoic
     scheduleItem.paidAt = new Date();
     scheduleItem.status = 'paid';
     scheduleItem.invoiceNumber = invoiceId;
+    if (paymentProof) scheduleItem.paymentProof = paymentProof;
+    if (paymentReference) scheduleItem.paymentReference = paymentReference;
   }
   
   // Update project status based on payments

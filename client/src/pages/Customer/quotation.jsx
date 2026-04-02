@@ -4,20 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
-import {
-  FaClock,
-  FaCheckCircle,
-  FaBuilding,
-  FaExclamationTriangle,
-  FaMoneyBillWave,
-  FaFilePdf,
-  FaDownload,
-  FaEye,
-  FaSpinner,
-  FaCheck,
-  FaTimes,
-  FaArrowRight
-} from 'react-icons/fa';
+import TermsModal from '../../assets/termsandconditions';
 import '../../styles/Customer/quotation.css';
 
 const Quotation = () => {
@@ -42,6 +29,11 @@ const Quotation = () => {
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [paymentProof, setPaymentProof] = useState(null);
   const [paymentReference, setPaymentReference] = useState('');
+  
+  // Add state for Terms Modal
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [termsModalMode, setTermsModalMode] = useState('registration'); // 'simple' or 'registration'
+  const [pendingAction, setPendingAction] = useState(null); // Store pending action when terms need to be accepted
 
   // Solar Installation Request Form
   const [solarRequest, setSolarRequest] = useState({
@@ -128,12 +120,9 @@ const Quotation = () => {
           bookedAt: assessment.bookedAt,
           invoiceNumber: assessment.invoiceNumber,
           assessmentId: assessment._id,
-          // ✅ Add assessment status to track if project was created
           assessmentStatus: assessment.assessmentStatus,
-          // Check if quotation exists
           quotation: assessment.quotation,
           quotationUrl: assessment.quotation?.quotationUrl || assessment.finalQuotation,
-          // Get system details from quotation
           systemSize: assessment.quotation?.systemDetails?.systemSize,
           systemType: assessment.quotation?.systemDetails?.systemType,
           totalCost: assessment.quotation?.systemDetails?.totalCost,
@@ -170,6 +159,21 @@ const Quotation = () => {
     return Object.keys(errors).length === 0;
   };
 
+  // Modified to show terms modal first
+  const handleRequestSolarClick = () => {
+    // Check if user has already accepted terms (you can store this in localStorage or user state)
+    const hasAcceptedTerms = localStorage.getItem('termsAccepted') === 'true';
+    
+    if (!hasAcceptedTerms) {
+      setPendingAction('requestSolar');
+      setTermsModalMode('registration');
+      setShowTermsModal(true);
+    } else {
+      // Proceed directly with request
+      handleRequestSolar();
+    }
+  };
+
   const handleRequestSolar = async () => {
     if (!validateRequestForm()) {
       return;
@@ -190,7 +194,7 @@ const Quotation = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      showToast('Solar installation request submitted successfully! Our team will contact you within 2-3 business days.', 'success');
+      showToast('Solar installation request submitted successfully!', 'success');
       setShowRequestModal(false);
       setSolarRequest({ systemSize: '', propertyType: 'residential', systemType: 'grid-tie', notes: '' });
 
@@ -204,6 +208,19 @@ const Quotation = () => {
     }
   };
 
+  // Modified to show terms modal before payment
+  const handlePayNowClick = (preAssessment) => {
+    const hasAcceptedTerms = localStorage.getItem('termsAccepted') === 'true';
+    
+    if (!hasAcceptedTerms) {
+      setPendingAction({ type: 'payment', data: preAssessment });
+      setTermsModalMode('registration');
+      setShowTermsModal(true);
+    } else {
+      handlePayNow(preAssessment);
+    }
+  };
+
   const handlePayNow = (preAssessment) => {
     setSelectedItem({
       ...preAssessment,
@@ -213,6 +230,42 @@ const Quotation = () => {
     setPaymentProof(null);
     setPaymentReference('');
     setShowPaymentModal(true);
+  };
+
+  // Modified to show terms modal before accepting quotation
+  const handleAcceptQuotationClick = (assessment) => {
+    const hasAcceptedTerms = localStorage.getItem('termsAccepted') === 'true';
+    
+    if (!hasAcceptedTerms) {
+      setPendingAction({ type: 'acceptQuotation', data: assessment });
+      setTermsModalMode('registration');
+      setShowTermsModal(true);
+    } else {
+      handleAcceptQuotation(assessment);
+    }
+  };
+
+  const handleAcceptQuotation = (assessment) => {
+    setAcceptingItem(assessment);
+    setShowAcceptModal(true);
+  };
+
+  // Terms acceptance handler
+  const handleTermsAccept = () => {
+    // Store that user has accepted terms
+    localStorage.setItem('termsAccepted', 'true');
+    
+    // Execute the pending action
+    if (pendingAction) {
+      if (pendingAction === 'requestSolar') {
+        handleRequestSolar();
+      } else if (pendingAction.type === 'payment') {
+        handlePayNow(pendingAction.data);
+      } else if (pendingAction.type === 'acceptQuotation') {
+        handleAcceptQuotation(pendingAction.data);
+      }
+      setPendingAction(null);
+    }
   };
 
   const handleViewDetails = (item, type) => {
@@ -261,12 +314,6 @@ const Quotation = () => {
     }
   };
 
-  // ✅ NEW: Handle Accept Quotation
-  const handleAcceptQuotation = (assessment) => {
-    setAcceptingItem(assessment);
-    setShowAcceptModal(true);
-  };
-
   const confirmAcceptQuotation = async () => {
     if (!acceptingItem) return;
 
@@ -283,14 +330,10 @@ const Quotation = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      showToast('Quotation accepted successfully! Your project has been created.', 'success');
+      showToast('Quotation accepted successfully!', 'success');
       setShowAcceptModal(false);
       setAcceptingItem(null);
-
-      // Refresh data to show the new project
       fetchData();
-
-      // Switch to projects tab to show the new project
       setActiveTab('projects');
 
     } catch (err) {
@@ -337,7 +380,7 @@ const Quotation = () => {
           }
         });
 
-        showToast('Payment submitted successfully! A confirmation email has been sent. Our team will verify your payment within 24-48 hours.', 'success');
+        showToast('Payment submitted successfully!', 'success');
 
       } else if (paymentMethod === 'cash') {
         await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/cash-payment`, {
@@ -370,8 +413,8 @@ const Quotation = () => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      'pending': <span className="status-badge-quotation pending-quotation">Pending Payment</span>,
-      'pending_payment': <span className="status-badge-quotation pending-quotation">Pending Payment</span>,
+      'pending': <span className="status-badge-quotation pending-quotation">Pending</span>,
+      'pending_payment': <span className="status-badge-quotation pending-quotation">Pending</span>,
       'paid': <span className="status-badge-quotation paid-quotation">Paid</span>,
       'for_verification': <span className="status-badge-quotation for-verification-quotation">For Verification</span>,
       'processing': <span className="status-badge-quotation processing-quotation">Processing</span>,
@@ -399,7 +442,7 @@ const Quotation = () => {
     return Math.round((project.amountPaid / project.totalCost) * 100);
   };
 
-  // Skeleton Loader Components
+  // Skeleton Loader Components (keep as is)
   const ProjectsSkeleton = () => (
     <div className="projects-list-quotation">
       {[1, 2, 3].map((item) => (
@@ -549,7 +592,7 @@ const Quotation = () => {
           </div>
           <button
             className="request-solar-btn-quotation"
-            onClick={() => setShowRequestModal(true)}
+            onClick={handleRequestSolarClick} // Updated to use terms check
           >
             Request Installation
           </button>
@@ -633,10 +676,10 @@ const Quotation = () => {
                   </div>
 
                   <div className="project-actions-quotation">
-                    <button className="action-btn-quotation view-quotation" onClick={() => handleViewDetails(project, 'project')}>
+                    <button className="action-btn-quotation" onClick={() => handleViewDetails(project, 'project')}>
                       View Details
                     </button>
-                    <button className="action-btn-quotation download-quotation">
+                    <button className="action-btn-quotation">
                       Contract
                     </button>
                     {(project.status === 'approved' || project.status === 'initial_paid') && (
@@ -674,12 +717,12 @@ const Quotation = () => {
                     {getStatusBadge(quote.status)}
                   </div>
                   <div className="card-actions-quotation">
-                    <button className="action-btn-quotation view-quotation" onClick={() => handleViewDetails(quote, 'quote')}>
+                    <button className="action-btn-quotation" onClick={() => handleViewDetails(quote, 'quote')}>
                       View Details
                     </button>
                     {quote.quotationFile && (
-                      <button className="action-btn-quotation download-quotation" onClick={() => window.open(quote.quotationFile, '_blank')}>
-                        <FaFilePdf /> View PDF
+                      <button className="action-btn-quotation" onClick={() => window.open(quote.quotationFile, '_blank')}>
+                        View PDF
                       </button>
                     )}
                   </div>
@@ -689,9 +732,7 @@ const Quotation = () => {
           </div>
         )}
 
-      
-
-        {/* Pre-Assessments Tab - With Accept Quotation Button */}
+        {/* Pre-Assessments Tab - Updated with terms check on buttons */}
         {activeTab === 'pre-assessments' && (
           <div className="pre-assessments-list-quotation">
             {preAssessments.length === 0 ? (
@@ -705,10 +746,7 @@ const Quotation = () => {
             ) : (
               preAssessments.map(assessment => {
                 const hasQuotation = assessment.quotationUrl;
-
-                // ✅ FIX: Check if project exists by comparing IDs properly
                 const projectExists = projects.some(project => {
-                  // Check if preAssessmentId is populated (object) or just an ID (string)
                   if (project.preAssessmentId) {
                     const projectPreAssessmentId = typeof project.preAssessmentId === 'object'
                       ? project.preAssessmentId._id?.toString()
@@ -718,9 +756,7 @@ const Quotation = () => {
                   }
                   return false;
                 });
-
-                // Also check if the assessment status indicates project was already created
-               const alreadyProjectCreated = assessment.assessmentStatus === 'quotation_accepted' || projectExists;
+                const alreadyProjectCreated = assessment.assessmentStatus === 'quotation_accepted' || projectExists;
 
                 return (
                   <div key={assessment.id} className="bill-card-quotation">
@@ -738,72 +774,65 @@ const Quotation = () => {
                     </div>
                     <div className="card-actions-quotation">
                       {(assessment.status === 'pending' && assessment.paymentStatus !== 'for_verification' && assessment.paymentStatus !== 'paid') && (
-                        <button className="action-btn-quotation pay-quotation" onClick={() => handlePayNow(assessment)}>
+                        <button className="action-btn-quotation pay-quotation" onClick={() => handlePayNowClick(assessment)}>
                           Make Payment
                         </button>
                       )}
 
                       {assessment.paymentStatus === 'for_verification' && (
                         <span className="payment-status-quotation">
-                          <FaClock style={{ marginRight: '4px' }} /> Payment Pending Verification
+                          For Verification
                         </span>
                       )}
 
                       {assessment.paymentStatus === 'paid' && (
                         <>
-                          <span className="payment-status-quotation paid-status-quotation">
-                            <FaCheckCircle style={{ marginRight: '4px' }} /> Payment Completed
-                          </span>
-
-                          {/* Show Quotation buttons if quotation exists AND project not yet created */}
                           {hasQuotation && !alreadyProjectCreated && (
                             <>
                               <button
-                                className="action-btn-quotation view-quotation"
+                                className="action-btn-quotation"
                                 onClick={() => handleViewQuotation(assessment)}
                                 style={{ backgroundColor: '#f97316', color: 'white' }}
                               >
-                                <FaEye /> View Quotation
+                                View Quotation
                               </button>
                               <button
-                                className="action-btn-quotation download-quotation"
+                                className="action-btn-quotation"
                                 onClick={() => handleDownloadQuotation(assessment)}
                                 disabled={pdfLoading}
                               >
-                                {pdfLoading ? <FaSpinner className="spinner" /> : <FaDownload />} Download PDF
+                                {pdfLoading ? 'Downloading...' : 'Download PDF'}
                               </button>
-                              {/* ACCEPT QUOTATION BUTTON */}
                               <button
-                                className="action-btn-quotation accept-quotation"
-                                onClick={() => handleAcceptQuotation(assessment)}
+                                className="action-btn-quotation"
+                                onClick={() => handleAcceptQuotationClick(assessment)}
                                 style={{ backgroundColor: '#27ae60', color: 'white' }}
                               >
-                                <FaCheck /> Accept Quotation & Start Project
+                                Accept Quotation
                               </button>
                             </>
                           )}
 
-                          {/* Show that project was already created */}
                           {alreadyProjectCreated && (
                             <button
-                              className="action-btn-quotation view-project"
+                              className="action-btn-quotation"
                               onClick={() => setActiveTab('projects')}
                               style={{ backgroundColor: '#3498db', color: 'white' }}
                             >
-                              <FaArrowRight /> View Project
+                              View Project
                             </button>
                           )}
                         </>
                       )}
 
-                      <button className="action-btn-quotation view-quotation" onClick={() => handleViewDetails(assessment, 'assessment')}>
+                      <button className="action-btn-quotation" onClick={() => handleViewDetails(assessment, 'assessment')}>
                         View Details
                       </button>
                     </div>
 
                     {(assessment.status === 'pending' && assessment.paymentStatus !== 'for_verification' && assessment.paymentStatus !== 'paid') && (
                       <div className="walkin-note-quotation">
-                        <small><FaBuilding style={{ marginRight: '4px' }} /> For walk-in payment, please visit our office at Purok 2, Masaya, San Jose, Camarines Sur</small>
+                        <small>For walk-in payment, please visit our office at Purok 2, Masaya, San Jose, Camarines Sur</small>
                       </div>
                     )}
                   </div>
@@ -850,16 +879,25 @@ const Quotation = () => {
           </div>
         )}
 
+        {/* Terms Modal */}
+        <TermsModal
+          isOpen={showTermsModal}
+          onClose={() => {
+            setShowTermsModal(false);
+            setPendingAction(null);
+          }}
+          onAccept={handleTermsAccept}
+          mode={termsModalMode}
+          title="Terms and Conditions"
+        />
+
         {/* Accept Quotation Confirmation Modal */}
         {showAcceptModal && acceptingItem && (
           <div className="modal-overlay-quotation" onClick={() => setShowAcceptModal(false)}>
-            <div className="modal-content-quotation accept-modal-quotation" onClick={e => e.stopPropagation()}>
+            <div className="modal-content-quotation" onClick={e => e.stopPropagation()}>
               <button className="modal-close-quotation" onClick={() => setShowAcceptModal(false)}>×</button>
-              <div className="accept-modal-icon">
-                <FaCheckCircle size={60} color="#27ae60" />
-              </div>
               <h3>Accept Quotation</h3>
-              <p>Are you sure you want to accept this quotation? This will create a new project and start the installation process.</p>
+              <p>Are you sure you want to accept this quotation?</p>
 
               <div className="quotation-summary-quotation">
                 <h4>Quotation Summary</h4>
@@ -872,69 +910,22 @@ const Quotation = () => {
                   <strong>{acceptingItem.systemType || 'Grid-Tie'}</strong>
                 </div>
                 <div className="summary-row">
-                  <span>Panels Needed:</span>
-                  <strong>{acceptingItem.panelsNeeded || 'To be determined'}</strong>
-                </div>
-                <div className="summary-row">
                   <span>Total Cost:</span>
                   <strong>{formatCurrency(acceptingItem.totalCost || acceptingItem.amount)}</strong>
                 </div>
               </div>
 
-              <div className="accept-note-quotation">
-                <small>
-                  <FaExclamationTriangle style={{ marginRight: '4px' }} />
-                  By accepting, you agree to proceed with the installation. A project manager will contact you within 24 hours.
-                </small>
-              </div>
-
               <div className="modal-actions-quotation">
                 <button className="cancel-btn-quotation" onClick={() => setShowAcceptModal(false)}>
-                  <FaTimes /> Cancel
+                  Cancel
                 </button>
                 <button
                   className="submit-btn-quotation"
                   onClick={confirmAcceptQuotation}
                   disabled={acceptingLoading}
-                  style={{ backgroundColor: '#27ae60' }}
                 >
-                  {acceptingLoading ? <FaSpinner className="spinner" /> : <FaCheck />} Confirm & Create Project
+                  {acceptingLoading ? 'Processing...' : 'Confirm'}
                 </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* PDF Viewer Modal */}
-        {showPdfModal && pdfUrl && (
-          <div className="modal-overlay-quotation pdf-modal-overlay" onClick={() => setShowPdfModal(false)}>
-            <div className="modal-content-quotation pdf-modal-content" onClick={e => e.stopPropagation()}>
-              <button className="modal-close-quotation" onClick={() => setShowPdfModal(false)}>×</button>
-              <h3>Solar Quotation</h3>
-              <div className="pdf-viewer-container">
-                <iframe
-                  src={`${pdfUrl}#toolbar=0`}
-                  title="Quotation PDF"
-                  width="100%"
-                  height="600px"
-                  style={{ border: 'none' }}
-                />
-              </div>
-              <div className="modal-actions-quotation">
-                <button
-                  className="cancel-btn-quotation"
-                  onClick={() => setShowPdfModal(false)}
-                >
-                  Close
-                </button>
-                <a
-                  href={pdfUrl}
-                  download
-                  className="submit-btn-quotation"
-                  style={{ textDecoration: 'none', display: 'inline-block' }}
-                >
-                  <FaDownload /> Download PDF
-                </a>
               </div>
             </div>
           </div>
@@ -961,10 +952,7 @@ const Quotation = () => {
                       className={`payment-method-option-quotation ${paymentMethod === 'gcash' ? 'selected-quotation' : ''}`}
                       onClick={() => setPaymentMethod('gcash')}
                     >
-                      <input type="radio" name="paymentMethod" checked={paymentMethod === 'gcash'} onChange={() => { }} />
-                      <div className="payment-method-icon-quotation">
-                        <img src="/images/gcash-logo.png" alt="GCash" />
-                      </div>
+                      <input type="radio" name="paymentMethod" checked={paymentMethod === 'gcash'} onChange={() => {}} />
                       <div className="payment-method-info-quotation">
                         <strong>GCash</strong>
                         <small>Pay via GCash mobile wallet</small>
@@ -975,10 +963,7 @@ const Quotation = () => {
                       className={`payment-method-option-quotation ${paymentMethod === 'cash' ? 'selected-quotation' : ''}`}
                       onClick={() => setPaymentMethod('cash')}
                     >
-                      <input type="radio" name="paymentMethod" checked={paymentMethod === 'cash'} onChange={() => { }} />
-                      <div className="payment-method-icon-quotation">
-                        <FaMoneyBillWave size={32} color="#2ecc71" />
-                      </div>
+                      <input type="radio" name="paymentMethod" checked={paymentMethod === 'cash'} onChange={() => {}} />
                       <div className="payment-method-info-quotation">
                         <strong>Cash</strong>
                         <small>Pay in cash at our office</small>
@@ -1023,27 +1008,14 @@ const Quotation = () => {
                 {paymentMethod === 'cash' && (
                   <div className="cash-details-quotation">
                     <div className="info-box-quotation">
-                      <FaBuilding size={24} />
                       <div>
                         <strong>Office Address</strong>
                         <p>Purok 2, Masaya, San Jose, Camarines Sur</p>
                         <p>Business Hours: Monday-Friday, 8:00 AM - 5:00 PM</p>
                       </div>
                     </div>
-                    <p className="cash-note-quotation">
-                      Please visit our office to complete your payment.
-                      Your assessment will be scheduled upon payment confirmation.
-                    </p>
                   </div>
                 )}
-
-                <div className="walkin-note-quotation" style={{ marginTop: '1rem' }}>
-                  <small><FaExclamationTriangle style={{ marginRight: '4px' }} />
-                    {paymentMethod === 'gcash'
-                      ? 'Payment will be verified within 24-48 hours. You will receive a confirmation email once verified.'
-                      : 'Payment will be recorded upon visit to our office.'}
-                  </small>
-                </div>
               </div>
 
               <div className="modal-actions-quotation">
@@ -1063,7 +1035,7 @@ const Quotation = () => {
         {/* Details Modal */}
         {showDetailsModal && detailsItem && (
           <div className="modal-overlay-quotation" onClick={() => setShowDetailsModal(false)}>
-            <div className="modal-content-quotation details-modal-quotation" onClick={e => e.stopPropagation()}>
+            <div className="modal-content-quotation" onClick={e => e.stopPropagation()}>
               <button className="modal-close-quotation" onClick={() => setShowDetailsModal(false)}>×</button>
               <h3>Details Information</h3>
 
@@ -1114,21 +1086,6 @@ const Quotation = () => {
                       <h4>Address</h4>
                       <p>{detailsItem.address}</p>
                     </div>
-                    {detailsItem.quotationUrl && (
-                      <div className="details-section-quotation">
-                        <h4>Quotation</h4>
-                        <button
-                          className="action-btn-quotation view-quotation"
-                          onClick={() => {
-                            setShowDetailsModal(false);
-                            handleViewQuotation(detailsItem);
-                          }}
-                          style={{ marginTop: '8px' }}
-                        >
-                          <FaEye /> View Quotation PDF
-                        </button>
-                      </div>
-                    )}
                   </>
                 ) : (
                   <>
@@ -1164,7 +1121,7 @@ const Quotation = () => {
         {/* Request Installation Modal */}
         {showRequestModal && (
           <div className="modal-overlay-quotation" onClick={() => setShowRequestModal(false)}>
-            <div className="modal-content-quotation solar-request-modal-quotation" onClick={e => e.stopPropagation()}>
+            <div className="modal-content-quotation" onClick={e => e.stopPropagation()}>
               <button className="modal-close-quotation" onClick={() => setShowRequestModal(false)}>×</button>
               <h3>Request Solar Installation</h3>
               <p className="modal-subtitle-quotation">Get a detailed quote for your solar panel system installation</p>

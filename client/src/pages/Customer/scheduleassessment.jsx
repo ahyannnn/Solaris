@@ -4,22 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
-import { 
-  FaMoneyBillWave,
-  FaRulerCombined,
-  FaArrowsAltH,
-  FaArrowsAltV,
-  FaUser,
-  FaPhone,
-  FaEnvelope,
-  FaMapMarkerAlt,
-  FaBuilding,
-  FaEdit,
-  FaEye,
-  FaTimes,
-  FaSolarPanel,
-  FaBolt
-} from 'react-icons/fa';
 import '../../styles/Customer/scheduleassessment.css';
 
 const ScheduleAssessment = () => {
@@ -274,7 +258,7 @@ const ScheduleAssessment = () => {
       setCurrentStep('service-selection');
       setSubmitted(true);
       
-      showToast('Quote request submitted successfully! A confirmation email has been sent to your email address.', 'success');
+      showToast('Quote request submitted successfully!', 'success');
       
       setIsSubmitting(false);
       
@@ -291,7 +275,6 @@ const ScheduleAssessment = () => {
     if (!formData.propertyType) errors.propertyType = 'Property type is required';
     if (!formData.preferredDate) errors.preferredDate = 'Preferred date is required';
     if (!selectedAddress) errors.address = 'Please select an address';
-    if (!formData.paymentMethod) errors.paymentMethod = 'Please select a payment method';
     return errors;
   };
 
@@ -350,7 +333,7 @@ const ScheduleAssessment = () => {
       setShowConfirmDialog(false);
       setTermsAccepted(false);
       
-      showToast('Pre-assessment booked successfully! A confirmation email has been sent.', 'success');
+      showToast('Pre-assessment booked successfully!', 'success');
       
       setTimeout(() => {
         navigate('/app/customer/billing', { 
@@ -358,8 +341,7 @@ const ScheduleAssessment = () => {
             newInvoice: {
               id: response.data.booking.invoiceNumber,
               amount: response.data.booking.assessmentFee,
-              description: 'Pre Assessment Fee',
-              paymentMethod: formData.paymentMethod
+              description: 'Pre Assessment Fee'
             }
           }
         });
@@ -461,13 +443,10 @@ const ScheduleAssessment = () => {
               <div className="schedule-next-steps-cusset">
                 <h3>What's Next?</h3>
                 <ul>
-                  <li>Our team will review your request within 2-3 business days</li>
+                  <li>Our team will review your request</li>
                   <li>You'll receive a detailed quotation via email</li>
                   <li>Our engineer may contact you for additional information</li>
                 </ul>
-              </div>
-              <div className="schedule-email-notice-cusset">
-                <p><small>✓ A confirmation email has been sent to your registered email address.</small></p>
               </div>
             </>
           )}
@@ -566,9 +545,7 @@ const ScheduleAssessment = () => {
                 </div>
 
                 <div className="schedule-form-group-cusset">
-                  <label>
-                    <FaSolarPanel className="inline-icon" /> Preferred System Type (Optional)
-                  </label>
+                  <label>Preferred System Type (Optional)</label>
                   <select
                     name="systemType"
                     value={freeQuoteData.systemType}
@@ -590,12 +567,10 @@ const ScheduleAssessment = () => {
                 {/* Roof Dimensions for Free Quote */}
                 <div className="schedule-form-group-cusset">
                   <label className="dimension-label-cusset">
-                    <FaRulerCombined className="dimension-icon-cusset" />
                     Roof Dimensions (Optional)
                   </label>
                   <div className="dimension-row-cusset">
                     <div className="dimension-input-cusset">
-                      <FaArrowsAltH className="dimension-icon-small-cusset" />
                       <input
                         type="number"
                         step="0.1"
@@ -607,7 +582,6 @@ const ScheduleAssessment = () => {
                       />
                     </div>
                     <div className="dimension-input-cusset">
-                      <FaArrowsAltV className="dimension-icon-small-cusset" />
                       <input
                         type="number"
                         step="0.1"
@@ -703,9 +677,6 @@ const ScheduleAssessment = () => {
                   </div>
                 </div>
 
-                <p className="quote-note-cusset">Our team will review your request and send a detailed quotation via email within 2-3 business days.</p>
-                <p className="quote-note-cusset" style={{ color: '#2ecc71' }}>✓ A confirmation email will be sent to your registered email address.</p>
-
                 <div className="schedule-modal-actions-cusset">
                   <button
                     onClick={() => setShowFreeQuoteConfirm(false)}
@@ -766,23 +737,21 @@ const ScheduleAssessment = () => {
               >
                 <div className="combined-info-header-cusset">
                   <div className="combined-info-icon-cusset">
-                    <FaUser />
+                    {/* Icon removed */}
                   </div>
                   <div className="combined-info-content-cusset">
                     <div className="combined-info-name-cusset">
                       {getFullName() || 'Not provided'}
                     </div>
                     <div className="combined-info-contact-cusset">
-                      <FaPhone className="icon-small-cusset" />
                       <span>{formData.contactNumber || 'Not provided'}</span>
                     </div>
                     <div className="combined-info-address-cusset">
-                      <FaMapMarkerAlt className="icon-small-cusset" />
                       <span className="truncate">{getFullAddress() || 'No address selected'}</span>
                     </div>
                   </div>
                   <div className="combined-info-arrow-cusset">
-                    <FaEye />
+                    {/* Icon removed */}
                   </div>
                 </div>
                 <div className="combined-info-hint-cusset">
@@ -826,9 +795,7 @@ const ScheduleAssessment = () => {
                   </div>
 
                   <div className="schedule-form-group-cusset">
-                    <label>
-                      <FaSolarPanel className="inline-icon" /> Preferred System Type (Optional)
-                    </label>
+                    <label>Preferred System Type (Optional)</label>
                     <select
                       name="systemType"
                       value={formData.systemType}
@@ -866,12 +833,10 @@ const ScheduleAssessment = () => {
                   {/* Roof Dimensions */}
                   <div className="schedule-form-group-cusset">
                     <label className="dimension-label-cusset">
-                      <FaRulerCombined className="dimension-icon-cusset" />
                       Roof Dimensions
                     </label>
                     <div className="dimension-row-cusset">
                       <div className="dimension-input-cusset">
-                        <FaArrowsAltH className="dimension-icon-small-cusset" />
                         <input
                           type="number"
                           step="0.1"
@@ -883,7 +848,6 @@ const ScheduleAssessment = () => {
                         />
                       </div>
                       <div className="dimension-input-cusset">
-                        <FaArrowsAltV className="dimension-icon-small-cusset" />
                         <input
                           type="number"
                           step="0.1"
@@ -917,12 +881,8 @@ const ScheduleAssessment = () => {
                     <div>
                       <strong>Pre Assessment Fee: ₱1,500.00</strong>
                       <p>
-                        {formData.paymentMethod === 'gcash' 
-                          ? 'You will be redirected to the billing page to upload your GCash payment proof after booking.'
-                          : 'Please visit our office to complete payment. The assessment will be scheduled upon payment confirmation.'
-                        }
+                        You will be redirected to the billing page to upload your payment proof after booking.
                       </p>
-                      <p style={{ color: '#2ecc71', fontSize: '12px', marginTop: '8px' }}>✓ A confirmation email will be sent to your registered email address.</p>
                     </div>
                   </div>
                 </div>
@@ -943,7 +903,7 @@ const ScheduleAssessment = () => {
                 <div className="info-modal-header-cusset">
                   <h3>Contact & Address Details</h3>
                   <button className="modal-close-cusset" onClick={() => setShowInfoModal(false)}>
-                    <FaTimes />
+                    ✕
                   </button>
                 </div>
                 
@@ -951,7 +911,6 @@ const ScheduleAssessment = () => {
                   {/* Personal Information Section */}
                   <div className="info-section-cusset">
                     <div className="info-section-title-cusset">
-                      <FaUser />
                       <h4>Personal Information</h4>
                     </div>
                     <div className="info-details-cusset">
@@ -974,14 +933,13 @@ const ScheduleAssessment = () => {
                       className="info-action-btn-cusset"
                       onClick={handleProfileClick}
                     >
-                      <FaEdit /> Edit Profile
+                      Edit Profile
                     </button>
                   </div>
 
                   {/* Address Information Section */}
                   <div className="info-section-cusset">
                     <div className="info-section-title-cusset">
-                      <FaMapMarkerAlt />
                       <h4>Address Information</h4>
                     </div>
                     {addressDisplay ? (
@@ -1024,7 +982,7 @@ const ScheduleAssessment = () => {
                       className="info-action-btn-cusset"
                       onClick={handleAddressClick}
                     >
-                      <FaEdit /> Change Address
+                      Change Address
                     </button>
                   </div>
                 </div>
@@ -1068,7 +1026,6 @@ const ScheduleAssessment = () => {
                       <p><strong>Roof Dimensions:</strong> {formData.roofLength || '?'}m x {formData.roofWidth || '?'}m</p>
                     )}
                     <p><strong>Preferred Date:</strong> {formData.preferredDate}</p>
-                    <p><strong>Payment Method:</strong> {formData.paymentMethod === 'gcash' ? 'GCash' : 'Cash'}</p>
                     <p><strong>Pre Assessment Fee:</strong> ₱1,500.00</p>
                   </div>
                 </div>

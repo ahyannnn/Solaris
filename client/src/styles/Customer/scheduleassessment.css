@@ -1,6 +1,5 @@
-/* scheduleassessment.css - Minimalistic Version with Buttons Inside Cards */
+/* scheduleassessment.css - Complete Updated Version */
 
-/* Base Container */
 .schedule-container-cusset {
   margin: 0 auto;
   padding: 1rem;
@@ -9,7 +8,7 @@
   min-height: 100vh;
 }
 
-/* Typography */
+/* Headers */
 .schedule-title-cusset {
   font-size: 1.75rem;
   font-weight: 500;
@@ -23,22 +22,37 @@
   margin: 0 0 2rem 0;
 }
 
+/* Back Button */
+.back-button-container-cusset {
+  margin-bottom: 1.5rem;
+}
+
+.back-to-services-cusset {
+  padding: 0.5rem 1rem;
+  background: #f5f5f5;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #666;
+}
+
+.back-to-services-cusset:hover {
+  background: #eaeaea;
+  color: #1a1a1a;
+}
+
 /* Service Selection Grid */
 .service-selection-grid-cusset {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
   gap: 2rem;
-  margin-bottom: 2rem;
+  margin-top: 1rem;
+  align-items: stretch;
 }
 
-@media (max-width: 768px) {
-  .service-selection-grid-cusset {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-}
-
-/* Service Cards */
+/* Service Cards - FIXED ALIGNMENT */
 .service-card-cusset {
   background: #fff;
   border: 1px solid #eaeaea;
@@ -52,11 +66,11 @@
 
 .service-card-cusset:hover {
   border-color: #ddd;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
 .service-card-cusset.paid-cusset {
-  border-color: #eaeaea;
+  border-top: 3px solid #1a1a1a;
 }
 
 .service-card-header-cusset {
@@ -76,10 +90,11 @@
 }
 
 .service-badge-cusset {
-  font-size: 0.75rem;
-  font-weight: 500;
+  display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .service-badge-cusset.free-cusset {
@@ -88,22 +103,23 @@
 }
 
 .service-badge-cusset.paid-cusset {
-  background: #fff3e0;
-  color: #ed6c02;
+  background: #1a1a1a;
+  color: #fff;
 }
 
 .service-description-cusset {
   font-size: 0.875rem;
   color: #666;
-  line-height: 1.5;
   margin: 0 0 1rem 0;
+  line-height: 1.5;
+  flex-shrink: 0;
 }
 
-/* Service Features */
 .service-features-cusset {
   list-style: none;
   padding: 0;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0 0;
+  flex: 1;
 }
 
 .service-features-cusset li {
@@ -119,40 +135,113 @@
   position: absolute;
   left: 0;
   color: #2e7d32;
-  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 /* Quote Form */
 .quote-form-cusset {
+  margin: 0;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Form Groups */
+.schedule-form-group-cusset {
   margin-bottom: 1rem;
 }
 
-.quote-form-cusset .schedule-form-group-cusset {
-  margin-bottom: 0.75rem;
-}
-
-.quote-form-cusset label {
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #666;
+.schedule-form-group-cusset label {
   display: block;
-  margin-bottom: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #666;
 }
 
-/* Button Container Inside Cards */
+.schedule-form-input-cusset,
+.schedule-form-select-cusset,
+.schedule-form-textarea-cusset {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.schedule-form-input-cusset:focus,
+.schedule-form-select-cusset:focus,
+.schedule-form-textarea-cusset:focus {
+  outline: none;
+  border-color: #999;
+}
+
+.schedule-form-input-cusset.error-cusset,
+.schedule-form-select-cusset.error-cusset {
+  border-color: #dc3545;
+}
+
+.schedule-error-text-cusset {
+  font-size: 0.75rem;
+  color: #dc3545;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.system-type-hint {
+  font-size: 0.7rem;
+  color: #999;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+/* Dimension Fields */
+.dimension-label-cusset {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dimension-row-cusset {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.dimension-input-cusset {
+  position: relative;
+}
+
+.dimension-hint-cusset {
+  font-size: 0.7rem;
+  color: #999;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+/* Form Grid */
+.schedule-form-grid-cusset {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+/* Buttons - FIXED ALIGNMENT */
 .card-button-container-cusset {
   margin-top: auto;
-  padding-top: 1rem;
+  padding-top: 1.5rem;
 }
 
-/* Buttons Inside Cards */
 .btn-get-quote-cusset,
-.btn-paid-assessment-cusset {
+.btn-paid-assessment-cusset,
+.schedule-btn-primary-cusset,
+.schedule-btn-secondary-cusset,
+.schedule-btn-success-cusset,
+.schedule-btn-submit-cusset {
   width: 100%;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem;
   border: none;
   border-radius: 4px;
   font-size: 0.875rem;
@@ -170,7 +259,6 @@
 
 .btn-get-quote-cusset:hover:not(:disabled) {
   background: #eaeaea;
-  border-color: #ddd;
 }
 
 .btn-get-quote-cusset:disabled {
@@ -178,273 +266,29 @@
   cursor: not-allowed;
 }
 
-.btn-paid-assessment-cusset {
-  background: #1a1a1a;
-  color: #fff;
-  border: 1px solid #1a1a1a;
-}
-
-.btn-paid-assessment-cusset:hover {
-  background: #333;
-}
-
-/* Form Elements */
-.schedule-form-group-cusset {
-  margin-bottom: 1rem;
-}
-
-.schedule-form-group-cusset label {
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #666;
-  display: block;
-  margin-bottom: 0.25rem;
-}
-
-.schedule-form-input-cusset,
-.schedule-form-select-cusset {
-  width: 100%;
-  padding: 0.625rem 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  transition: all 0.2s;
-  background: #fff;
-}
-
-.schedule-form-input-cusset:focus,
-.schedule-form-select-cusset:focus {
-  outline: none;
-  border-color: #999;
-}
-
-.schedule-form-input-cusset.error-cusset,
-.schedule-form-select-cusset.error-cusset {
-  border-color: #dc3545;
-}
-
-/* Info Cards */
-.schedule-info-section-cusset {
-  margin-bottom: 2rem;
-}
-
-.schedule-section-title-cusset {
-  font-size: 1rem;
-  font-weight: 500;
-  margin: 0 0 1rem 0;
-  color: #1a1a1a;
-}
-
-.schedule-info-card-cusset {
-  border: 1px solid #eaeaea;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-  overflow: hidden;
-}
-
-.schedule-info-card-header-cusset {
-  background: #fafafa;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #eaeaea;
-}
-
-.schedule-info-card-header-cusset h4 {
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin: 0;
-  color: #1a1a1a;
-}
-
-.schedule-info-card-content-cusset {
-  padding: 1rem;
-}
-
-.schedule-info-row-cusset {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-@media (max-width: 640px) {
-  .schedule-info-row-cusset {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-}
-
-.schedule-info-field-cusset label {
-  font-size: 0.7rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #999;
-  display: block;
-  margin-bottom: 0.25rem;
-}
-
-.schedule-info-field-cusset p {
-  font-size: 0.875rem;
-  margin: 0;
-  color: #333;
-}
-
-.schedule-info-note-cusset {
-  padding-top: 0.75rem;
-  border-top: 1px solid #eaeaea;
-  font-size: 0.75rem;
-  color: #999;
-}
-
-.schedule-text-link-cusset {
-  background: none;
-  border: none;
-  color: #666;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 0;
-  font-size: 0.75rem;
-}
-
-.schedule-text-link-cusset:hover {
-  color: #000;
-}
-
-/* Address Display */
-.schedule-address-display-cusset {
-  margin-bottom: 0.75rem;
-}
-
-.schedule-address-name-cusset,
-.schedule-address-contact-cusset {
-  font-size: 0.875rem;
-  margin-bottom: 0.25rem;
-  color: #333;
-}
-
-.schedule-address-detail-cusset {
-  font-size: 0.8125rem;
-  color: #666;
-  line-height: 1.4;
-}
-
-.address-actions-cusset {
-  margin-top: 0.75rem;
-}
-
-.schedule-change-address-btn-cusset,
-.schedule-add-address-btn-cusset {
-  background: none;
-  border: 1px solid #ddd;
-  padding: 0.375rem 0.75rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  cursor: pointer;
-  color: #666;
-}
-
-.schedule-change-address-btn-cusset:hover,
-.schedule-add-address-btn-cusset:hover {
-  border-color: #999;
-  color: #000;
-}
-
-/* No Address Warning */
-.schedule-no-address-warning-cusset {
-  text-align: center;
-  padding: 1rem;
-  background: #fafafa;
-  border-radius: 4px;
-}
-
-.schedule-no-address-warning-cusset p {
-  font-size: 0.875rem;
-  color: #666;
-  margin: 0 0 0.75rem 0;
-}
-
-/* Form Grid */
-.schedule-form-grid-cusset {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-@media (max-width: 640px) {
-  .schedule-form-grid-cusset {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-}
-
-/* Fee Card */
-.schedule-fee-card-cusset {
-  background: #fafafa;
-  border: 1px solid #eaeaea;
-  border-radius: 6px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.schedule-fee-info-cusset strong {
-  font-size: 0.875rem;
-  color: #1a1a1a;
-}
-
-.schedule-fee-info-cusset p {
-  font-size: 0.75rem;
-  color: #666;
-  margin: 0.25rem 0 0 0;
-}
-
-/* Buttons */
-.form-actions-cusset {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.schedule-btn-submit-cusset,
+.btn-paid-assessment-cusset,
 .schedule-btn-primary-cusset,
-.schedule-btn-secondary-cusset,
-.schedule-btn-success-cusset {
-  padding: 0.625rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
 .schedule-btn-submit-cusset {
   background: #1a1a1a;
   color: #fff;
 }
 
+.btn-paid-assessment-cusset:hover,
+.schedule-btn-primary-cusset:hover,
 .schedule-btn-submit-cusset:hover {
   background: #333;
 }
 
-.schedule-btn-primary-cusset {
-  background: #1a1a1a;
-  color: #fff;
-}
-
-.schedule-btn-primary-cusset:hover {
-  background: #333;
-}
-
 .schedule-btn-secondary-cusset {
-  background: #f5f5f5;
+  background: #fff;
   color: #666;
   border: 1px solid #eaeaea;
 }
 
 .schedule-btn-secondary-cusset:hover {
-  background: #eaeaea;
+  background: #f5f5f5;
+  border-color: #ddd;
+  color: #1a1a1a;
 }
 
 .schedule-btn-success-cusset {
@@ -461,43 +305,143 @@
   cursor: not-allowed;
 }
 
-/* Back Button */
-.back-button-container-cusset {
-  margin-bottom: 1.5rem;
+/* Info Section */
+.schedule-info-section-cusset {
+  margin-bottom: 2rem;
 }
 
-.back-to-services-cusset {
-  background: none;
-  border: none;
-  font-size: 0.875rem;
-  color: #666;
+.schedule-section-title-cusset {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0 0 1rem 0;
+  color: #1a1a1a;
+}
+
+/* Combined Info Card */
+.combined-info-card-cusset {
+  background: #fafafa;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
   cursor: pointer;
-  padding: 0;
-  display: inline-flex;
+  transition: all 0.2s;
+}
+
+.combined-info-card-cusset:hover {
+  border-color: #ddd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.combined-info-header-cusset {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.combined-info-icon-cusset {
+  width: 40px;
+  height: 40px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
   align-items: center;
-  gap: 0.25rem;
+  justify-content: center;
+  color: #666;
+  font-size: 1rem;
 }
 
-.back-to-services-cusset:hover {
-  color: #000;
+.combined-info-content-cusset {
+  flex: 1;
 }
 
-/* Error Text */
-.schedule-error-text-cusset {
+.combined-info-name-cusset {
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.combined-info-contact-cusset,
+.combined-info-address-cusset {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.combined-info-address-cusset .truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.combined-info-arrow-cusset {
+  color: #999;
+  font-size: 0.875rem;
+}
+
+.combined-info-hint-cusset {
   font-size: 0.7rem;
-  color: #dc3545;
-  margin-top: 0.25rem;
-  display: block;
+  color: #999;
+  margin-top: 0.5rem;
+  text-align: right;
 }
 
-/* Modal */
+/* Assessment Details Section */
+.schedule-assessment-details-section-cusset {
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.schedule-assessment-form-cusset {
+  margin-top: 1rem;
+}
+
+/* Fee Card */
+.schedule-fee-card-cusset {
+  background: #fafafa;
+  border: 1px solid #eaeaea;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.schedule-fee-info-cusset {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.schedule-fee-info-cusset strong {
+  font-size: 1rem;
+  color: #1a1a1a;
+}
+
+.schedule-fee-info-cusset p {
+  font-size: 0.8125rem;
+  color: #666;
+  margin: 0.5rem 0 0 0;
+  line-height: 1.4;
+}
+
+/* Form Actions */
+.form-actions-cusset {
+  margin-top: 1.5rem;
+}
+
+/* Modal - INCREASED HEIGHT */
 .schedule-modal-overlay-cusset {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -508,81 +452,46 @@
 .schedule-modal-cusset {
   background: #fff;
   border-radius: 8px;
-  max-width: 500px;
+  max-width: 550px;
   width: 100%;
-  max-height: 90vh;
+  max-height: calc(90vh + 20px);
+  min-height: 400px;
   overflow-y: auto;
   padding: 1.5rem;
+  position: relative;
+  animation: modalFadeIn 0.3s ease;
+}
+
+.schedule-modal-cusset.info-modal-cusset {
+  max-width: 600px;
+  max-height: calc(90vh + 20px);
+  min-height: 420px;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .schedule-modal-cusset h2 {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 500;
   margin: 0 0 0.5rem 0;
   color: #1a1a1a;
-}
-
-.schedule-modal-summary-cusset {
-  margin: 1rem 0;
-}
-
-.schedule-summary-section-cusset {
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #eaeaea;
-}
-
-.schedule-summary-section-cusset:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-  margin-bottom: 0;
-}
-
-.schedule-summary-section-cusset h4 {
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #999;
-  margin: 0 0 0.5rem 0;
-}
-
-.schedule-summary-section-cusset p {
-  font-size: 0.875rem;
-  margin: 0.25rem 0;
-  color: #333;
-}
-
-.schedule-modal-checkbox-cusset {
-  margin: 1rem 0;
-}
-
-.schedule-modal-checkbox-cusset label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  cursor: pointer;
-}
-
-.schedule-modal-checkbox-cusset input {
-  width: 16px;
-  height: 16px;
-  margin: 0;
-}
-
-.schedule-modal-actions-cusset {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1rem;
+  padding-right: 2rem;
 }
 
 /* Quote Summary */
 .quote-summary-cusset {
   background: #fafafa;
-  padding: 1rem;
   border-radius: 6px;
+  padding: 1rem;
   margin: 1rem 0;
 }
 
@@ -602,27 +511,253 @@
   color: #666;
 }
 
+.quote-item-cusset strong {
+  color: #1a1a1a;
+  font-weight: 500;
+  text-align: right;
+  word-break: break-word;
+  max-width: 60%;
+}
+
 .quote-note-cusset {
   font-size: 0.75rem;
+  color: #666;
+  margin: 1rem 0;
+  line-height: 1.4;
+}
+
+/* Modal Summary */
+.schedule-modal-summary-cusset {
+  margin: 1rem 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.schedule-summary-section-cusset {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.schedule-summary-section-cusset:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.schedule-summary-section-cusset h4 {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #666;
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.schedule-summary-section-cusset p {
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+  color: #1a1a1a;
+  line-height: 1.5;
+}
+
+.schedule-summary-section-cusset p strong {
+  font-weight: 500;
+  color: #666;
+  min-width: 140px;
+  display: inline-block;
+}
+
+/* Checkbox */
+.schedule-modal-checkbox-cusset {
+  margin: 1rem 0;
+}
+
+.schedule-modal-checkbox-cusset label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.schedule-modal-checkbox-cusset input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.schedule-modal-checkbox-cusset span {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+/* Modal Actions */
+.schedule-modal-actions-cusset {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eaeaea;
+}
+
+/* Info Modal Styles - INCREASED HEIGHT */
+.info-modal-header-cusset {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.info-modal-header-cusset h3 {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+.modal-close-cusset {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
   color: #999;
-  margin: 0.75rem 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.modal-close-cusset:hover {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.info-modal-body-cusset {
+  max-height: calc(60vh + 20px);
+  overflow-y: auto;
+}
+
+.info-section-cusset {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #fafafa;
+  border-radius: 6px;
+}
+
+.info-section-title-cusset {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.info-section-title-cusset h4 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+.info-details-cusset {
+  margin-bottom: 1rem;
+}
+
+.info-row-cusset {
+  display: flex;
+  margin-bottom: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.info-label-cusset {
+  width: 120px;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.info-value-cusset {
+  color: #1a1a1a;
+  word-break: break-word;
+  flex: 1;
+}
+
+.info-empty-cusset {
+  text-align: center;
+  padding: 1rem;
+  color: #999;
+  font-size: 0.875rem;
+}
+
+.info-action-btn-cusset {
+  width: 100%;
+  padding: 0.5rem;
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.info-action-btn-cusset:hover {
+  background: #f5f5f5;
+  border-color: #ddd;
+  color: #1a1a1a;
+}
+
+.info-modal-footer-cusset {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eaeaea;
+}
+
+.info-close-btn-cusset {
+  width: 100%;
+  padding: 0.625rem;
+  background: #f5f5f5;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #666;
+}
+
+.info-close-btn-cusset:hover {
+  background: #eaeaea;
+  color: #1a1a1a;
 }
 
 /* Confirmation Card */
 .schedule-confirmation-card-cusset {
+  max-width: 600px;
+  margin: 2rem auto;
   text-align: center;
-  padding: 3rem;
+  padding: 2rem;
+  background: #fff;
   border: 1px solid #eaeaea;
   border-radius: 8px;
-  max-width: 500px;
-  margin: 0 auto;
 }
 
 .schedule-confirmation-card-cusset h1 {
   font-size: 1.5rem;
   font-weight: 500;
   margin: 0 0 1rem 0;
-  color: #1a1a1a;
+  color: #2e7d32;
+}
+
+.schedule-confirmation-card-cusset p {
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 1rem;
 }
 
 .schedule-booking-details-cusset {
@@ -634,8 +769,7 @@
 }
 
 .schedule-booking-details-cusset p {
-  margin: 0.25rem 0;
-  font-size: 0.875rem;
+  margin: 0.5rem 0;
 }
 
 .schedule-next-steps-cusset {
@@ -644,42 +778,80 @@
 }
 
 .schedule-next-steps-cusset h3 {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 500;
   margin: 0 0 0.5rem 0;
+  color: #1a1a1a;
 }
 
 .schedule-next-steps-cusset ul {
+  list-style: none;
+  padding: 0;
   margin: 0;
-  padding-left: 1.25rem;
 }
 
 .schedule-next-steps-cusset li {
   font-size: 0.8125rem;
   color: #666;
-  margin: 0.25rem 0;
+  padding: 0.25rem 0;
+  position: relative;
+  padding-left: 1.25rem;
+}
+
+.schedule-next-steps-cusset li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: #666;
+}
+
+.schedule-email-notice-cusset {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background: #e8f5e9;
+  border-radius: 4px;
+}
+
+.schedule-email-notice-cusset p {
+  margin: 0;
+  color: #2e7d32;
+  font-size: 0.75rem;
 }
 
 .quote-actions-cusset {
   display: flex;
   gap: 1rem;
   justify-content: center;
-  margin-top: 1.5rem;
+  margin-top: 1rem;
 }
 
 /* Error Container */
 .schedule-error-container-cusset {
   text-align: center;
-  padding: 3rem;
-  max-width: 500px;
-  margin: 0 auto;
+  padding: 4rem 2rem;
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  margin: 2rem;
+}
+
+.schedule-error-container-cusset h2 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+  color: #dc3545;
+}
+
+.schedule-error-container-cusset p {
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 1rem;
 }
 
 .schedule-error-actions-cusset {
   display: flex;
   gap: 1rem;
   justify-content: center;
-  margin-top: 1.5rem;
 }
 
 /* Skeleton Loader */
@@ -690,6 +862,7 @@
 .skeleton-line-cusset {
   background: #f0f0f0;
   border-radius: 4px;
+  animation: pulse 1.5s ease-in-out infinite;
   margin-bottom: 0.5rem;
 }
 
@@ -700,26 +873,28 @@
 
 .skeleton-line-cusset.medium-cusset {
   height: 20px;
-  width: 150px;
+  width: 180px;
 }
 
 .skeleton-line-cusset.small-cusset {
   height: 16px;
-  width: 200px;
+  width: 120px;
 }
 
 .skeleton-service-card-cusset {
+  background: #fff;
   border: 1px solid #eaeaea;
   border-radius: 8px;
   padding: 1.5rem;
 }
 
 .skeleton-icon-cusset {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   background: #f0f0f0;
   border-radius: 8px;
   margin-bottom: 1rem;
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 .skeleton-form-group-cusset {
@@ -727,15 +902,81 @@
 }
 
 .skeleton-input-cusset {
-  height: 38px;
-  background: #f0f0f0;
-  border-radius: 4px;
-  margin-top: 0.25rem;
-}
-
-.skeleton-button-cusset {
   height: 40px;
   background: #f0f0f0;
   border-radius: 4px;
+  margin-top: 0.25rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-button-cusset {
+  height: 44px;
+  background: #f0f0f0;
+  border-radius: 4px;
   margin-top: 1rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .schedule-container-cusset {
+    padding: 1rem;
+  }
+  
+  .service-selection-grid-cusset {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .schedule-form-grid-cusset {
+    grid-template-columns: 1fr;
+  }
+  
+  .dimension-row-cusset {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .schedule-modal-cusset {
+    margin: 1rem;
+    padding: 1rem;
+    max-height: calc(95vh + 20px);
+  }
+  
+  .quote-item-cusset {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .quote-item-cusset strong {
+    text-align: left;
+    max-width: 100%;
+  }
+  
+  .schedule-summary-section-cusset p strong {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+  
+  .info-row-cusset {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .info-label-cusset {
+    width: auto;
+  }
+  
+  .quote-actions-cusset {
+    flex-direction: column;
+  }
 }

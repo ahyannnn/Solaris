@@ -29,6 +29,36 @@ const LoginPage = () => {
     return token.replace(/^["']|["']$/g, '').trim();
   };
 
+  // IMPROVED: Selective storage clearing (NO FLICKERING!)
+  const clearAuthStorage = () => {
+    const keysToRemove = [
+      'token', 
+      'userName', 
+      'userEmail', 
+      'userRole', 
+      'userPhotoURL'
+    ];
+    
+    keysToRemove.forEach(key => {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    });
+    // DON'T clear everything - preserves Firebase state & prevents conflicts
+  };
+
+  // IMPROVED: Error parsing helper
+  const parseError = (responseText) => {
+    try {
+      if (responseText) {
+        const errorData = JSON.parse(responseText);
+        return errorData.message || errorData.error || `Server error`;
+      }
+    } catch {
+      return responseText || 'Login failed';
+    }
+    return 'Login failed';
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -47,8 +77,7 @@ const LoginPage = () => {
     const newErrors = {};
     if (!formData.email) {
       newErrors.email = 'Email is required';
-    }
-    else if (!formData.email.endsWith('@gmail.com')) {
+    } else if (!formData.email.endsWith('@gmail.com')) {
       newErrors.email = 'Please use a valid @gmail.com email address';
     }
     
@@ -59,13 +88,7 @@ const LoginPage = () => {
     return newErrors;
   };
 
-  // Clear all storage before new login
-  const clearAllStorage = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-  };
-
-  // EMAIL/PASSWORD LOGIN
+  // IMPROVED: Email/Password Login (ANTI-FLICKER)
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -79,6 +102,7 @@ const LoginPage = () => {
 
     setIsLoading(true);
     setErrors({});
+    setIsNavigating(true); // EARLY SETTING prevents double-clicks
 
     try {
       const apiUrl = `${import.meta.env.VITE_API_URL}/api/auth/login`;
@@ -98,51 +122,44 @@ const LoginPage = () => {
       const responseText = await response.text();
 
       if (!response.ok) {
-        let errorMessage = `Server error: ${response.status}`;
-        try {
-          if (responseText) {
-            const errorData = JSON.parse(responseText);
-            errorMessage = errorData.message || errorData.error || errorMessage;
-          }
-        } catch {
-          errorMessage = responseText;
-        }
-        throw new Error(errorMessage);
+        throw new Error(parseError(responseText));
       }
 
       const data = JSON.parse(responseText);
 
       if (data.token && data.user) {
-        // Clear all existing storage first to prevent conflicts
-        clearAllStorage();
+        // SELECTIVE CLEAR - NO FLICKERING!
+        clearAuthStorage();
         
+        // BATCH STORAGE - prevents race conditions
         const storage = rememberMe ? localStorage : sessionStorage;
-        
-        // Clean token before storing
         const cleanedToken = cleanToken(data.token);
-        storage.setItem("token", cleanedToken);
-        storage.setItem("userName", data.user.fullName || '');
-        storage.setItem("userEmail", data.user.email || '');
-        storage.setItem("userRole", data.user.role || 'user');
         
-        if (data.user.photoURL) {
-          storage.setItem("userPhotoURL", data.user.photoURL);
-        }
+        const userData = {
+          token: cleanedToken,
+          userName: data.user.fullName || '',
+          userEmail: data.user.email || '',
+          userRole: data.user.role || 'user',
+          userPhotoURL: data.user.photoURL || ''
+        };
         
-        // Prevent multiple navigations
-        setIsNavigating(true);
+        // Store ALL data together
+        Object.entries(userData).forEach(([key, value]) => {
+          storage.setItem(key, value);
+        });
         
-        // Use setTimeout to ensure storage is set before navigation
+        // Trigger storage event & navigate
         setTimeout(() => {
-          navigate("/app");
-        }, 100);
+          window.dispatchEvent(new Event('storage'));
+          navigate("/app", { replace: true });
+        }, 50);
       }
       
     } catch (err) {
       setErrors({ general: err.message });
-      setIsNavigating(false);
     } finally {
       setIsLoading(false);
+      setIsNavigating(false);
     }
   };
 
@@ -150,7 +167,22 @@ const LoginPage = () => {
     setShowPassword(!showPassword);
   };
 
-  // GOOGLE LOGIN
+  // IMPROVED: Centralized error handling
+  const handleAuthError = (error) => {
+    console.error("Auth error:", error);
+    
+    if (error.code?.includes('popup') || error.code === 'auth/popup-closed-by-user') {
+      setErrors({ general: 'Login cancelled. Please try again.' });
+    } else if (error.code === 'auth/popup-blocked') {
+      setErrors({ general: 'Popup blocked. Please allow popups and try again.' });
+    } else if (error.code === 'auth/network-request-failed') {
+      setErrors({ general: 'Network error. Please check your connection.' });
+    } else {
+      setErrors({ general: error.message || 'Login failed' });
+    }
+  };
+
+  // IMPROVED: Google Login (ANTI-FLICKER)
   const handleGoogleLogin = async () => {
     if (socialLoading === 'google' || isNavigating) return;
     
@@ -162,9 +194,7 @@ const LoginPage = () => {
       const user = result.user;
 
       if (!user.email.endsWith('@gmail.com')) {
-        setErrors({ general: 'Please use a Gmail account to sign in.' });
-        setSocialLoading('');
-        return;
+        throw new Error('Please use a Gmail account to sign in.');
       }
 
       const apiUrl = `${import.meta.env.VITE_API_URL}/api/auth/google-login`;
@@ -186,62 +216,41 @@ const LoginPage = () => {
       const responseText = await response.text();
 
       if (!response.ok) {
-        let errorMessage = `Server error: ${response.status}`;
-        try {
-          if (responseText) {
-            const errorData = JSON.parse(responseText);
-            errorMessage = errorData.message || errorData.error || errorMessage;
-          }
-        } catch {
-          errorMessage = responseText;
-        }
-        throw new Error(errorMessage);
+        throw new Error(parseError(responseText));
       }
 
       const data = JSON.parse(responseText);
 
       if (data.token && data.user) {
-        // Clear all existing storage first to prevent conflicts
-        clearAllStorage();
+        // SELECTIVE CLEAR - NO FLICKERING!
+        clearAuthStorage();
         
         const storage = rememberMe ? localStorage : sessionStorage;
-        
-        // Clean token before storing
         const cleanedToken = cleanToken(data.token);
-        storage.setItem("token", cleanedToken);
-        storage.setItem("userName", data.user.fullName || '');
-        storage.setItem("userEmail", data.user.email || '');
-        storage.setItem("userRole", data.user.role || 'user');
-
-        if (data.user.photoURL) {
-          storage.setItem("userPhotoURL", data.user.photoURL);
-        }
         
-        // Prevent multiple navigations
-        setIsNavigating(true);
+        const userData = {
+          token: cleanedToken,
+          userName: data.user.fullName || '',
+          userEmail: data.user.email || '',
+          userRole: data.user.role || 'user',
+          userPhotoURL: data.user.photoURL || ''
+        };
         
-        // Use setTimeout to ensure storage is set before navigation
+        Object.entries(userData).forEach(([key, value]) => {
+          storage.setItem(key, value);
+        });
+        
         setTimeout(() => {
-          navigate("/app");
-        }, 100);
+          window.dispatchEvent(new Event('storage'));
+          navigate("/app", { replace: true });
+        }, 50);
       }
 
     } catch (error) {
-      console.error("Google login error:", error);
-      
-      if (error.code === 'auth/popup-closed-by-user') {
-        setErrors({ general: 'Login cancelled. Please try again.' });
-      } else if (error.code === 'auth/popup-blocked') {
-        setErrors({ general: 'Popup was blocked by your browser. Please allow popups and try again.' });
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        setErrors({ general: 'Login was cancelled. Please try again.' });
-      } else if (error.code === 'auth/network-request-failed') {
-        setErrors({ general: 'Network error. Please check your internet connection.' });
-      } else {
-        setErrors({ general: error.message || 'Failed to login with Google.' });
-      }
+      handleAuthError(error);
     } finally {
       setSocialLoading('');
+      setIsNavigating(false);
     }
   };
 

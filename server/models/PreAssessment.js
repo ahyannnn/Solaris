@@ -40,7 +40,9 @@ const preAssessmentSchema = new mongoose.Schema({
   // Find the assessmentStatus enum and add 'device_deployed'
   assessmentStatus: {
     type: String,
-    enum: ['pending_review', 'pending_payment', 'scheduled', 'site_visit_ongoing', 'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft', 'completed', 'cancelled'],
+     enum: ['pending_review', 'pending_payment', 'scheduled', 'site_visit_ongoing', 
+         'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft', 
+         'quotation_generated', 'quotation_accepted', 'completed', 'cancelled'],
     default: 'pending_review'
   },
 

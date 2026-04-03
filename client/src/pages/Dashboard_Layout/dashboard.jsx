@@ -34,7 +34,9 @@ import {
   FaLock,
   FaShieldAlt,
   FaPalette,
-  FaKey
+  FaKey,
+  FaRegClock,
+  FaRegCalendarAlt
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
 import '../../styles/Dashboard/dashboard.css';
@@ -44,6 +46,7 @@ const Dashboard = () => {
   const location = useLocation();
   const [initialized, setInitialized] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
   const profileRef = useRef(null);
   const notificationsRef = useRef(null);
@@ -60,6 +63,14 @@ const Dashboard = () => {
   const [userName, setUserName] = useState('Customer User');
   const [userPhoto, setUserPhoto] = useState(null);
   const [userEmail, setUserEmail] = useState('');
+
+  // Update datetime every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Handle click outside for all dropdowns
   useEffect(() => {
@@ -99,12 +110,10 @@ const Dashboard = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Handle user authentication and initial redirect - FIXED
+  // Handle user authentication and initial redirect
   useEffect(() => {
-    // Prevent multiple initializations and navigation attempts
     if (initialized || isNavigating) return;
     
-    // Read from both storages (prioritize localStorage for remember me)
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const role = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
     const name = localStorage.getItem('userName') || sessionStorage.getItem('userName');
@@ -116,25 +125,21 @@ const Dashboard = () => {
     if (photo) setUserPhoto(photo);
     if (email) setUserEmail(email);
 
-    // If no token or role found, redirect to login
     if (!token || !role) {
       setIsNavigating(true);
       navigate('/login');
       return;
     }
 
-    // Set initial sidebar state based on screen size
     if (window.innerWidth <= 768) {
       setSidebarOpen(false);
     } else {
       setSidebarOpen(true);
     }
 
-    // Only redirect once on initial load, not on every path change
     if (!initialized && location.pathname === '/app') {
       setInitialized(true);
       
-      // Use setTimeout to prevent navigation conflicts
       setTimeout(() => {
         if (role === 'user') {
           navigate('/app/customer');
@@ -184,11 +189,9 @@ const Dashboard = () => {
       { icon: <FaProjectDiagram />, label: 'My Project', path: '/app/customer/project' },
       { icon: <FaCalendarAlt />, label: 'Book Assessment', path: '/app/customer/book-assessment' },
       { icon: <FaFileInvoiceDollar />, label: 'Billing', path: '/app/customer/billing' },
-      // Performance and Reports removed
     ],
   };
 
-  // Settings Submenu
   const settingsSubmenu = [
     { label: 'Profile', path: '/app/customer/settings?tab=profile' },
     { label: 'Addresses', path: '/app/customer/settings?tab=addresses' },
@@ -197,7 +200,6 @@ const Dashboard = () => {
     { label: 'Preferences', path: '/app/customer/settings?tab=preferences' },
   ];
 
-  // Support Submenu
   const supportSubmenu = [
     { label: 'FAQ', path: '/app/customer/support?tab=faq' },
     { label: 'Contact Form', path: '/app/customer/support?tab=contact' },
@@ -206,12 +208,41 @@ const Dashboard = () => {
     { label: 'User Guides', path: '/app/customer/support?tab=guides' },
   ];
 
+  // Generate breadcrumb based on current path
+  const getBreadcrumb = () => {
+    const pathnames = location.pathname.split('/').filter(x => x);
+    const breadcrumbs = [];
+    
+    if (pathnames.length === 0) return [{ name: 'Dashboard', path: '/app' }];
+    
+    let currentPath = '';
+    for (let i = 0; i < pathnames.length; i++) {
+      currentPath += `/${pathnames[i]}`;
+      let name = pathnames[i].charAt(0).toUpperCase() + pathnames[i].slice(1);
+      if (name === 'App') name = 'Dashboard';
+      if (name === 'Customer') continue;
+      breadcrumbs.push({ name, path: currentPath });
+    }
+    
+    return breadcrumbs;
+  };
+
+  const breadcrumbs = getBreadcrumb();
+
   const getRoleDisplay = () => {
     switch (userRole) {
       case 'admin': return 'Administrator';
       case 'engineer': return 'Solar Engineer';
       case 'user': return 'Customer';
       default: return 'User';
+    }
+  };
+
+  const getRoleBadgeClass = () => {
+    switch (userRole) {
+      case 'admin': return 'role-badge-admin';
+      case 'engineer': return 'role-badge-engineer';
+      default: return 'role-badge-user';
     }
   };
 
@@ -239,6 +270,19 @@ const Dashboard = () => {
   const isAdmin = userRole === 'admin';
   const isEngineer = userRole === 'engineer';
 
+  const formatDateTime = () => {
+    return currentDateTime.toLocaleDateString('en-PH', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }) + ' | ' + currentDateTime.toLocaleTimeString('en-PH', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
   const isActive = (itemPath) => {
     const currentPath = location.pathname;
     
@@ -246,21 +290,10 @@ const Dashboard = () => {
       return currentPath === itemPath;
     }
     
-    if (currentPath === itemPath) {
-      return true;
-    }
-    
-    if (currentPath.startsWith(itemPath + '/')) {
-      return true;
-    }
-    
-    if (itemPath === '/app/customer/settings' && currentPath === '/app/customer/settings') {
-      return true;
-    }
-    
-    if (itemPath === '/app/customer/support' && currentPath === '/app/customer/support') {
-      return true;
-    }
+    if (currentPath === itemPath) return true;
+    if (currentPath.startsWith(itemPath + '/')) return true;
+    if (itemPath === '/app/customer/settings' && currentPath === '/app/customer/settings') return true;
+    if (itemPath === '/app/customer/support' && currentPath === '/app/customer/support') return true;
     
     return false;
   };
@@ -295,11 +328,9 @@ const Dashboard = () => {
     if (isNavigating) return;
     setIsNavigating(true);
     
-    // Clear both storages
     localStorage.clear();
     sessionStorage.clear();
     
-    // Navigate to home
     setTimeout(() => {
       navigate('/');
     }, 100);
@@ -339,7 +370,7 @@ const Dashboard = () => {
     ));
   };
 
-  // ========== CUSTOMER LAYOUT (White Header) ==========
+  // ========== CUSTOMER LAYOUT ==========
   if (isCustomer) {
     return (
       <div className="dashboard-layout-dashboard customer-dashboard-layout-dashboard">
@@ -521,7 +552,7 @@ const Dashboard = () => {
     );
   }
 
-  // ========== ADMIN/ENGINEER LAYOUT (Neutral Sidebar) ==========
+  // ========== ADMIN/ENGINEER LAYOUT ==========
   return (
     <div className="dashboard-layout-dashboard">
       {sidebarOpen && <div className="sidebar-overlay-layout-dashboard" onClick={() => setSidebarOpen(false)} />}
@@ -574,15 +605,28 @@ const Dashboard = () => {
 
       <main className="main-content-layout-dashboard">
         <header className="dashboard-header-layout-dashboard">
-          {/* REMOVED HAMBURGER MENU BUTTON */}
-          {/* <button 
-            className="sidebar-toggle-layout-dashboard" 
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            disabled={isNavigating}
-          >
-            <FaBars />
-          </button> */}
+          {/* Left side - Breadcrumb and Role Badge */}
+          <div className="header-left-layout-dashboard">
+            <div className="breadcrumb-layout-dashboard">
+              <FaHome className="breadcrumb-home-icon" />
+              {breadcrumbs.map((crumb, index) => (
+                <span key={index}>
+                  <span className="breadcrumb-separator">/</span>
+                  <button 
+                    className="breadcrumb-link"
+                    onClick={() => handleNavigation(crumb.path)}
+                  >
+                    {crumb.name}
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className={`role-badge-layout-dashboard ${getRoleBadgeClass()}`}>
+              {getRoleDisplay()}
+            </div>
+          </div>
 
+          {/* Center - Search Bar (Admin/Engineer only) */}
           <div className="header-search-layout-dashboard">
             <FaSearch className="search-icon-layout-dashboard" />
             <input
@@ -594,91 +638,99 @@ const Dashboard = () => {
             />
           </div>
 
-          <div className="header-actions-layout-dashboard">
-            <div className="notification-wrapper-layout-dashboard" ref={notificationsRef}>
-              <button
-                className="notification-btn-layout-dashboard"
-                onClick={() => setNotificationsOpen(!notificationsOpen)}
-                disabled={isNavigating}
-              >
-                <FaBell />
-                {unreadCount > 0 && <span className="notification-badge-layout-dashboard">{unreadCount}</span>}
-              </button>
-
-              {notificationsOpen && (
-                <div className="notification-dropdown-layout-dashboard">
-                  <div className="notification-header-layout-dashboard">
-                    <h3>Notifications</h3>
-                    {unreadCount > 0 && (
-                      <span className="mark-read-layout-dashboard" onClick={markAllAsRead}>
-                        Mark all as read
-                      </span>
-                    )}
-                  </div>
-                  <div className="notification-list-layout-dashboard">
-                    {notifications.map(notif => (
-                      <div
-                        key={notif.id}
-                        className={`notification-item-layout-dashboard ${!notif.read ? 'unread-layout-dashboard' : ''}`}
-                        onClick={() => markAsRead(notif.id)}
-                      >
-                        <p className="notification-message-layout-dashboard">{notif.message}</p>
-                        <span className="notification-time-layout-dashboard">{notif.time}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="notification-footer-layout-dashboard">
-                    <button onClick={() => handleNavigation('/app/notifications')} disabled={isNavigating}>
-                      View all notifications
-                    </button>
-                  </div>
-                </div>
-              )}
+          {/* Right side - DateTime, Notifications, Profile */}
+          <div className="header-right-layout-dashboard">
+            <div className="datetime-layout-dashboard">
+              <FaRegCalendarAlt className="datetime-icon" />
+              <span className="datetime-text">{formatDateTime()}</span>
             </div>
 
-            <div className="profile-wrapper-layout-dashboard" ref={profileRef}>
-              <button
-                className="profile-btn-layout-dashboard"
-                onClick={() => setProfileOpen(!profileOpen)}
-                disabled={isNavigating}
-              >
-                {userPhoto ? (
-                  <img
-                    src={userPhoto}
-                    alt={userName}
-                    style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', marginRight: '8px' }}
-                  />
-                ) : (
-                  <FaUserCircle className="profile-icon-layout-dashboard" />
-                )}
-                <span className="profile-name-layout-dashboard">{userName}</span>
-                <FaChevronDown className={`dropdown-icon-layout-dashboard ${profileOpen ? 'open-layout-dashboard' : ''}`} />
-              </button>
+            <div className="header-actions-layout-dashboard">
+              <div className="notification-wrapper-layout-dashboard" ref={notificationsRef}>
+                <button
+                  className="notification-btn-layout-dashboard"
+                  onClick={() => setNotificationsOpen(!notificationsOpen)}
+                  disabled={isNavigating}
+                >
+                  <FaBell />
+                  {unreadCount > 0 && <span className="notification-badge-red-layout-dashboard">{unreadCount}</span>}
+                </button>
 
-              {profileOpen && (
-                <div className="profile-dropdown-layout-dashboard">
-                  <div className="profile-menu-layout-dashboard">
-                    <button
-                      onClick={() => handleProfileNavigation(getProfilePath())}
-                      className="dropdown-item-layout-dashboard"
-                      disabled={isNavigating}
-                    >
-                      <FaUserCircle /> My Profile
-                    </button>
-                    <button
-                      onClick={() => handleProfileNavigation(getSettingsPath())}
-                      className="dropdown-item-layout-dashboard"
-                      disabled={isNavigating}
-                    >
-                      <FaCog /> Settings
-                    </button>
-                    <hr />
-                    <button onClick={handleLogout} className="dropdown-item-layout-dashboard logout-layout-dashboard" disabled={isNavigating}>
-                      <FaSignOutAlt /> Logout
-                    </button>
+                {notificationsOpen && (
+                  <div className="notification-dropdown-layout-dashboard">
+                    <div className="notification-header-layout-dashboard">
+                      <h3>Notifications</h3>
+                      {unreadCount > 0 && (
+                        <span className="mark-read-layout-dashboard" onClick={markAllAsRead}>
+                          Mark all as read
+                        </span>
+                      )}
+                    </div>
+                    <div className="notification-list-layout-dashboard">
+                      {notifications.map(notif => (
+                        <div
+                          key={notif.id}
+                          className={`notification-item-layout-dashboard ${!notif.read ? 'unread-layout-dashboard' : ''}`}
+                          onClick={() => markAsRead(notif.id)}
+                        >
+                          <p className="notification-message-layout-dashboard">{notif.message}</p>
+                          <span className="notification-time-layout-dashboard">{notif.time}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="notification-footer-layout-dashboard">
+                      <button onClick={() => handleNavigation('/app/notifications')} disabled={isNavigating}>
+                        View all notifications
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+
+              <div className="profile-wrapper-layout-dashboard" ref={profileRef}>
+                <button
+                  className="profile-btn-layout-dashboard"
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  disabled={isNavigating}
+                >
+                  {userPhoto ? (
+                    <img
+                      src={userPhoto}
+                      alt={userName}
+                      style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', marginRight: '8px' }}
+                    />
+                  ) : (
+                    <FaUserCircle className="profile-icon-layout-dashboard" />
+                  )}
+                  <span className="profile-name-layout-dashboard">{userName}</span>
+                  <FaChevronDown className={`dropdown-icon-layout-dashboard ${profileOpen ? 'open-layout-dashboard' : ''}`} />
+                </button>
+
+                {profileOpen && (
+                  <div className="profile-dropdown-layout-dashboard">
+                    <div className="profile-menu-layout-dashboard">
+                      <button
+                        onClick={() => handleProfileNavigation(getProfilePath())}
+                        className="dropdown-item-layout-dashboard"
+                        disabled={isNavigating}
+                      >
+                        <FaUserCircle /> My Profile
+                      </button>
+                      <button
+                        onClick={() => handleProfileNavigation(getSettingsPath())}
+                        className="dropdown-item-layout-dashboard"
+                        disabled={isNavigating}
+                      >
+                        <FaCog /> Settings
+                      </button>
+                      <hr />
+                      <button onClick={handleLogout} className="dropdown-item-layout-dashboard logout-layout-dashboard" disabled={isNavigating}>
+                        <FaSignOutAlt /> Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </header>

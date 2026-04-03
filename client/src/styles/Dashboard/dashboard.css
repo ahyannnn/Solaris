@@ -1,4 +1,4 @@
-/* dashboard.css - Modern Minimalist Neutral Design */
+/* dashboard.css - Modern Minimalist with Dark Blue Sidebar */
 
 /* ============================================
    BASE LAYOUT
@@ -6,17 +6,17 @@
 .dashboard-layout-dashboard {
   display: flex;
   min-height: 100vh;
-  background: #FFFFFF;
+  background: #F5F5F7;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
 }
 
 /* ============================================
-   SIDEBAR (Neutral Gray)
+   SIDEBAR (Dark Blue - Centered Logo)
    ============================================ */
 .sidebar-layout-dashboard {
   width: 280px;
-  background: #F8F9FA;
-  border-right: 1px solid #E5E5E8;
+  background: #1e2a3e;
+  border-right: none;
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -38,7 +38,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 999;
   display: none;
 }
@@ -49,40 +49,47 @@
   }
 }
 
-/* Sidebar Header */
+/* Sidebar Header - Centered */
 .sidebar-header-layout-dashboard {
   padding: 1.5rem 1rem;
-  border-bottom: 1px solid #E5E5E8;
+  border-bottom: 1px solid #2d3e54;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  position: relative;
 }
 
 .logo-container-layout-dashboard {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: center;
 }
 
 .logo-icon-layout-dashboard {
-  width: 32px;
-  height: 32px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0 auto;
 }
 
 .sidebar-logo-img-layout-dashboard {
-  width: 32px;
-  height: 32px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
 }
 
 .logo-text-layout-dashboard {
-  font-size: 1rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: #1F1F1F;
+  color: #FFFFFF;
   margin: 0;
+  letter-spacing: 0.5px;
 }
 
 .sidebar-close-layout-dashboard {
@@ -91,7 +98,10 @@
   border: none;
   font-size: 1.25rem;
   cursor: pointer;
-  color: #6B6B6F;
+  color: #a0aec0;
+  position: absolute;
+  right: 1rem;
+  top: 1.5rem;
 }
 
 @media (max-width: 768px) {
@@ -100,10 +110,14 @@
   }
 }
 
+.sidebar-close-layout-dashboard:hover {
+  color: #FFFFFF;
+}
+
 /* User Info */
 .user-info-layout-dashboard {
   padding: 1.5rem 1rem;
-  border-bottom: 1px solid #E5E5E8;
+  border-bottom: 1px solid #2d3e54;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -113,11 +127,12 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: #F5F5F7;
+  background: #2d3e54;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  color: #a0aec0;
 }
 
 .user-details-layout-dashboard {
@@ -128,14 +143,14 @@
   display: block;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #1F1F1F;
+  color: #FFFFFF;
   margin-bottom: 0.25rem;
 }
 
 .user-role-layout-dashboard {
   display: block;
   font-size: 0.7rem;
-  color: #6B6B6F;
+  color: #a0aec0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -158,20 +173,21 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.875rem;
-  color: #6B6B6F;
+  color: #a0aec0;
   text-align: left;
   border-radius: 8px;
+  margin: 0 0.5rem;
+  width: calc(100% - 1rem);
 }
 
 .nav-item-layout-dashboard:hover {
-  background: #EEEEF2;
-  color: #1F1F1F;
+  background: #2d3e54;
+  color: #FFFFFF;
 }
 
 .nav-item-layout-dashboard.active-layout-dashboard {
-  background: #E8E8EC;
-  color: #1F1F1F;
-  border-left: 3px solid #1F1F1F;
+  background: #2d3e54;
+  color: #FFFFFF;
 }
 
 .nav-icon-layout-dashboard {
@@ -205,44 +221,86 @@
   }
 }
 
-/* Dashboard Header */
+/* Dashboard Header - With Breadcrumb, Search, DateTime */
 .dashboard-header-layout-dashboard {
-  background: #FFFFFF;
-  border-bottom: 1px solid #E5E5E8;
+  background: #F5F5F7;
   padding: 0.75rem 1.5rem;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 1rem;
+  justify-content: space-between;
+  gap: 1.5rem;
   position: sticky;
   top: 0;
   z-index: 100;
+  flex-wrap: wrap;
 }
 
-@media (max-width: 768px) {
-  .dashboard-header-layout-dashboard {
-    justify-content: space-between;
-  }
-}
-
-.menu-toggle-layout-dashboard {
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  cursor: pointer;
-  color: #6B6B6F;
-  padding: 0.5rem;
+/* Header Left - Breadcrumb and Role Badge */
+.header-left-layout-dashboard {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Breadcrumb Styles */
+.breadcrumb-layout-dashboard {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.breadcrumb-home-icon {
+  color: #6B6B6F;
+  font-size: 0.875rem;
+}
+
+.breadcrumb-separator {
+  color: #9CA3AF;
+  margin: 0 0.25rem;
+}
+
+.breadcrumb-link {
+  background: none;
+  border: none;
+  color: #6B6B6F;
+  cursor: pointer;
+  font-size: 0.875rem;
   transition: color 0.2s ease;
 }
 
-.menu-toggle-layout-dashboard:hover {
+.breadcrumb-link:hover {
   color: #1F1F1F;
 }
 
-/* Header Search */
+/* Role Badge Styles */
+.role-badge-layout-dashboard {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-badge-admin {
+  background: #1e2a3e;
+  color: #FFFFFF;
+}
+
+.role-badge-engineer {
+  background: #2d3e54;
+  color: #FFFFFF;
+}
+
+.role-badge-user {
+  background: #E5E5E8;
+  color: #1F1F1F;
+}
+
+/* Header Center - Search Bar */
 .header-search-layout-dashboard {
   flex: 1;
   max-width: 400px;
@@ -253,7 +311,7 @@
   width: 100%;
   padding: 0.5rem 0.75rem 0.5rem 2.25rem;
   border: 1px solid #E5E5E8;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 0.875rem;
   transition: all 0.2s ease;
   background: #FFFFFF;
@@ -279,6 +337,36 @@
   font-size: 0.875rem;
 }
 
+/* Header Right - DateTime, Notifications, Profile */
+.header-right-layout-dashboard {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* DateTime Styles */
+.datetime-layout-dashboard {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background: #FFFFFF;
+  border-radius: 10px;
+  border: 1px solid #E5E5E8;
+}
+
+.datetime-icon {
+  font-size: 0.875rem;
+  color: #6B6B6F;
+}
+
+.datetime-text {
+  font-size: 0.75rem;
+  color: #1F1F1F;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 /* Header Actions */
 .header-actions-layout-dashboard {
   display: flex;
@@ -286,7 +374,7 @@
   gap: 1rem;
 }
 
-/* Notification */
+/* Notification - RED BADGE */
 .notification-wrapper-layout-dashboard {
   position: relative;
 }
@@ -305,17 +393,17 @@
 
 .notification-btn-layout-dashboard:hover {
   color: #1F1F1F;
-  background: #F5F5F7;
+  background: #EEEEF2;
 }
 
-.notification-badge-layout-dashboard {
+.notification-badge-red-layout-dashboard {
   position: absolute;
   top: 0;
   right: 0;
-  background: #E5E5E8;
-  color: #1F1F1F;
+  background: #DC2626;
+  color: #FFFFFF;
   font-size: 0.6rem;
-  font-weight: 500;
+  font-weight: 600;
   padding: 0.125rem 0.375rem;
   border-radius: 10px;
   min-width: 18px;
@@ -448,7 +536,7 @@
 }
 
 .profile-btn-layout-dashboard:hover {
-  background: #F5F5F7;
+  background: #EEEEF2;
 }
 
 .profile-icon-layout-dashboard {
@@ -537,7 +625,7 @@
    CUSTOMER LAYOUT (Horizontal Navigation)
    ============================================ */
 .customer-dashboard-layout-dashboard {
-  background: #FFFFFF;
+  background: #F5F5F7;
 }
 
 .customer-main-content-layout-dashboard {
@@ -619,7 +707,7 @@
   position: relative;
 }
 
-/* UNDERLINE FOR ACTIVE BUTTON - RESTORED */
+/* UNDERLINE FOR ACTIVE BUTTON */
 .customer-nav-link-layout-dashboard.active-layout-dashboard::after {
   content: '';
   position: absolute;
@@ -661,7 +749,6 @@
   position: relative;
 }
 
-/* UNDERLINE FOR ACTIVE SETTINGS BUTTON - RESTORED */
 .settings-dropdown-btn-layout-dashboard.active-layout-dashboard::after {
   content: '';
   position: absolute;
@@ -726,7 +813,6 @@
   gap: 1rem;
 }
 
-/* Customer Profile Image */
 .customer-profile-img-layout-dashboard {
   width: 32px;
   height: 32px;
@@ -734,7 +820,6 @@
   object-fit: cover;
 }
 
-/* Customer Content Area */
 .customer-content-area-layout-dashboard {
   flex: 1;
   padding: 1.5rem;
@@ -779,6 +864,19 @@
   .customer-header-right-layout-dashboard {
     justify-content: flex-end;
   }
+  
+  .dashboard-header-layout-dashboard {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .header-search-layout-dashboard {
+    max-width: 100%;
+  }
+  
+  .header-right-layout-dashboard {
+    justify-content: space-between;
+  }
 }
 
 @media (max-width: 768px) {
@@ -790,8 +888,12 @@
     padding: 0.5rem 1rem;
   }
   
-  .header-search-layout-dashboard {
-    max-width: 200px;
+  .datetime-text {
+    display: none;
+  }
+  
+  .datetime-icon {
+    margin: 0;
   }
   
   .profile-name-layout-dashboard {
@@ -816,13 +918,14 @@
     left: auto;
     right: 0;
   }
+  
+  .header-left-layout-dashboard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 480px) {
-  .header-search-layout-dashboard {
-    display: none;
-  }
-  
   .notification-dropdown-layout-dashboard {
     width: 260px;
     right: -100px;
@@ -841,6 +944,14 @@
   .settings-dropdown-btn-layout-dashboard {
     padding: 0.375rem 0.75rem;
     font-size: 0.75rem;
+  }
+  
+  .breadcrumb-layout-dashboard {
+    font-size: 0.75rem;
+  }
+  
+  .role-badge-layout-dashboard {
+    font-size: 0.6rem;
   }
 }
 
@@ -886,210 +997,4 @@
 
 .font-bold-dashboard {
   font-weight: 600;
-}
-
-/* ============================================
-   NEUTRAL SIDEBAR FOR ADMIN & ENGINEER
-   (Changed from dark blue to neutral gray)
-   ============================================ */
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard {
-  background: #F8F9FA;
-  border-right: 1px solid #E5E5E8;
-}
-
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .sidebar-header-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .sidebar-header-layout-dashboard {
-  border-bottom-color: #E5E5E8;
-}
-
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .logo-text-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .logo-text-layout-dashboard {
-  color: #1F1F1F;
-}
-
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .user-info-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .user-info-layout-dashboard {
-  border-bottom-color: #E5E5E8;
-}
-
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .user-name-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .user-name-layout-dashboard {
-  color: #1F1F1F;
-}
-
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .user-role-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .user-role-layout-dashboard {
-  color: #6B6B6F;
-}
-
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .nav-item-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .nav-item-layout-dashboard {
-  color: #6B6B6F;
-}
-
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .nav-item-layout-dashboard:hover,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .nav-item-layout-dashboard:hover {
-  background: #EEEEF2;
-  color: #1F1F1F;
-}
-
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .nav-item-layout-dashboard.active-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .nav-item-layout-dashboard.active-layout-dashboard {
-  background: #E8E8EC;
-  color: #1F1F1F;
-  border-left-color: #1F1F1F;
-}
-
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .sidebar-close-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .sidebar-close-layout-dashboard {
-  color: #6B6B6F;
-}
-
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .sidebar-close-layout-dashboard:hover,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .sidebar-close-layout-dashboard:hover {
-  color: #1F1F1F;
-}
-
-/* ============================================
-   ADMIN/ENGINEER HEADER - NO HAMBURGER BUTTON
-   ============================================ */
-.dashboard-header-layout-dashboard {
-  padding: 0.75rem 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 1rem;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: #FFFFFF;
-  border-bottom: 1px solid #E5E5E8;
-}
-
-@media (max-width: 768px) {
-  .dashboard-header-layout-dashboard {
-    justify-content: space-between;
-  }
-}
-
-.header-search-layout-dashboard {
-  flex: 1;
-  max-width: 400px;
-  position: relative;
-}
-
-@media (max-width: 768px) {
-  .header-search-layout-dashboard {
-    max-width: 200px;
-  }
-}
-
-.header-actions-layout-dashboard {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-/* Remove margin-left adjustment since no hamburger button */
-.main-content-layout-dashboard {
-  flex: 1;
-  margin-left: 280px;
-  transition: margin-left 0.3s ease;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #F5F5F7;
-}
-
-@media (max-width: 768px) {
-  .main-content-layout-dashboard {
-    margin-left: 0;
-  }
-}
-
-/* ============================================
-   NEUTRAL SIDEBAR FOR ADMIN & ENGINEER
-   (Active: Black background with white text, may spacing sa gilid)
-   ============================================ */
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard {
-  background: #F8F9FA;
-  border-right: 1px solid #E5E5E8;
-}
-
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .sidebar-header-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .sidebar-header-layout-dashboard {
-  border-bottom-color: #E5E5E8;
-}
-
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .logo-text-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .logo-text-layout-dashboard {
-  color: #1F1F1F;
-}
-
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .user-info-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .user-info-layout-dashboard {
-  border-bottom-color: #E5E5E8;
-}
-
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .user-name-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .user-name-layout-dashboard {
-  color: #1F1F1F;
-}
-
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .user-role-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .user-role-layout-dashboard {
-  color: #6B6B6F;
-}
-
-/* Default nav item styles - may margin sa gilid */
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .nav-item-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .nav-item-layout-dashboard {
-  color: #6B6B6F;
-  transition: all 0.2s ease;
-  margin: 0 0.5rem;
-  width: calc(100% - 1rem);
-  border-radius: 8px;
-  padding: 0.75rem 0.75rem;
-}
-
-/* Hover state - Light gray background only */
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .nav-item-layout-dashboard:hover,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .nav-item-layout-dashboard:hover {
-  background: #EEEEF2;
-  color: #1F1F1F;
-}
-
-/* Hover state icon color */
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .nav-item-layout-dashboard:hover .nav-icon-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .nav-item-layout-dashboard:hover .nav-icon-layout-dashboard {
-  color: #6B6B6F;
-}
-
-/* Active state - BLACK background, WHITE text, may margin sa gilid */
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .nav-item-layout-dashboard.active-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .nav-item-layout-dashboard.active-layout-dashboard {
-  background: #1F1F1F;
-  color: #FFFFFF;
-  /* Inalis ang border-left para hindi dumikit sa sidebar border */
-  margin: 0 0.5rem;
-  border-radius: 8px;
-}
-
-/* Active state icon color - WHITE */
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .nav-item-layout-dashboard.active-layout-dashboard .nav-icon-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .nav-item-layout-dashboard.active-layout-dashboard .nav-icon-layout-dashboard {
-  color: #FFFFFF;
-}
-
-/* Sidebar close button */
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .sidebar-close-layout-dashboard,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .sidebar-close-layout-dashboard {
-  color: #6B6B6F;
-}
-
-.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .sidebar-close-layout-dashboard:hover,
-.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .sidebar-close-layout-dashboard:hover {
-  color: #1F1F1F;
 }

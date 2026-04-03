@@ -254,14 +254,14 @@ const ScheduleAssessment = () => {
         reference: response.data.quote.quotationReference,
         type: 'free-quote'
       });
-      
+
       setCurrentStep('service-selection');
       setSubmitted(true);
-      
+
       showToast('Quote request submitted successfully!', 'success');
-      
+
       setIsSubmitting(false);
-      
+
     } catch (err) {
       console.error('Error submitting quote:', err);
       showToast(err.response?.data?.message || 'Failed to submit quote request. Please try again.', 'error');
@@ -332,12 +332,12 @@ const ScheduleAssessment = () => {
 
       setShowConfirmDialog(false);
       setTermsAccepted(false);
-      
+
       showToast('Pre-assessment booked successfully!', 'success');
-      
+
       setTimeout(() => {
-        navigate('/app/customer/billing', { 
-          state: { 
+        navigate('/app/customer/billing', {
+          state: {
             newInvoice: {
               id: response.data.booking.invoiceNumber,
               amount: response.data.booking.assessmentFee,
@@ -491,9 +491,10 @@ const ScheduleAssessment = () => {
         </Helmet>
 
         <div className="schedule-container-cusset">
-          <h1 className="schedule-title-cusset">Get Your Solar Solution</h1>
-          <p className="schedule-subtitle-cusset">Choose how you want to proceed with your solar journey</p>
-
+          <div className="schedule-header-card-cusset">
+            <h1 className="schedule-title-cusset">Get Your Solar Solution</h1>
+            <p className="schedule-subtitle-cusset">Choose how you want to proceed with your solar journey</p>
+          </div>
           <div className="service-selection-grid-cusset">
             {/* Free Quote Request Card */}
             <div className="service-card-cusset">
@@ -731,7 +732,7 @@ const ScheduleAssessment = () => {
               <h3 className="schedule-section-title-cusset">Contact & Address Information</h3>
 
               {/* Combined Info Card */}
-              <div 
+              <div
                 className="combined-info-card-cusset"
                 onClick={() => setShowInfoModal(true)}
               >
@@ -856,7 +857,7 @@ const ScheduleAssessment = () => {
                           onChange={handleInputChange}
                           placeholder="Width (meters)"
                           className="schedule-form-input-cusset"
-                      />
+                        />
                       </div>
                     </div>
                     <small className="dimension-hint-cusset">Optional, but helps provide more accurate recommendations</small>
@@ -906,7 +907,7 @@ const ScheduleAssessment = () => {
                     ✕
                   </button>
                 </div>
-                
+
                 <div className="info-modal-body-cusset">
                   {/* Personal Information Section */}
                   <div className="info-section-cusset">
@@ -929,7 +930,7 @@ const ScheduleAssessment = () => {
                         </div>
                       )}
                     </div>
-                    <button 
+                    <button
                       className="info-action-btn-cusset"
                       onClick={handleProfileClick}
                     >
@@ -978,7 +979,7 @@ const ScheduleAssessment = () => {
                         <p>No address selected</p>
                       </div>
                     )}
-                    <button 
+                    <button
                       className="info-action-btn-cusset"
                       onClick={handleAddressClick}
                     >
@@ -988,7 +989,7 @@ const ScheduleAssessment = () => {
                 </div>
 
                 <div className="info-modal-footer-cusset">
-                  <button 
+                  <button
                     className="info-close-btn-cusset"
                     onClick={() => setShowInfoModal(false)}
                   >

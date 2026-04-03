@@ -521,7 +521,7 @@ const Dashboard = () => {
     );
   }
 
-  // ========== ADMIN/ENGINEER LAYOUT (Dark Blue Sidebar) ==========
+  // ========== ADMIN/ENGINEER LAYOUT (Neutral Sidebar) ==========
   return (
     <div className="dashboard-layout-dashboard">
       {sidebarOpen && <div className="sidebar-overlay-layout-dashboard" onClick={() => setSidebarOpen(false)} />}

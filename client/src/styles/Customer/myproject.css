@@ -1,741 +1,856 @@
-/* myproject.css - Minimalistic Customer My Project Styles */
+/* styles/Customer/myproject.cuspro.css - Modern Minimalist Redesign */
 
 /* ============================================
-   BASE CONTAINER
+   PAGE CONTAINER
    ============================================ */
-.myproject-container {
-  padding: 1rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #ffffff;
-  min-height: 100vh;
+.cuspro-page {
+  margin: 0 auto;
+   padding: 1rem;
+  background: #F5F5F7;
+  min-height: calc(100vh - 70px);
 }
 
 /* ============================================
-   HEADER
+   HEADER CARD
    ============================================ */
-.myproject-header {
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #eaeaea;
+.cuspro-header-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 1.75rem 2rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #E5E5E8;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
-.myproject-header h1 {
+.cuspro-header-card-content h1 {
   font-size: 1.75rem;
-  font-weight: 500;
-  margin: 0 0 0.25rem 0;
-  color: #1a1a1a;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.3px;
 }
 
-.myproject-header p {
+.cuspro-header-card-content p {
   font-size: 0.875rem;
-  color: #666;
+  color: #6B6B6F;
   margin: 0;
 }
 
 /* ============================================
-   EMPTY STATE (Centered)
+   SELECTOR CARD
    ============================================ */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  min-height: 60vh;
-  padding: 2rem;
-}
-
-.empty-icon {
-  font-size: 4rem;
-  color: #ccc;
-  margin-bottom: 1rem;
-}
-
-.empty-state h2 {
-  font-size: 1.25rem;
-  font-weight: 500;
-  margin: 0 0 0.5rem 0;
-  color: #666;
-}
-
-.empty-state p {
-  font-size: 0.875rem;
-  color: #999;
-  margin: 0 0 1.5rem 0;
-}
-
-/* ============================================
-   LOADING
-   ============================================ */
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  gap: 1rem;
-  color: #666;
-}
-
-.spinner {
-  animation: spin 1s linear infinite;
-  font-size: 2rem;
-  color: #f39c12;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* ============================================
-   PROJECT SELECTOR
-   ============================================ */
-.project-selector {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.cuspro-selector-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 1.25rem 1.5rem;
   margin-bottom: 1.5rem;
-  flex-wrap: wrap;
+  border: 1px solid #E5E5E8;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
-.project-selector label {
+.cuspro-selector-card-content label {
+  display: block;
   font-size: 0.75rem;
   font-weight: 500;
-  color: #666;
+  color: #6B6B6F;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.project-selector-buttons {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.project-select-btn {
-  padding: 0.5rem 1rem;
-  background: #f5f5f5;
-  border: 1px solid #eaeaea;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: #666;
-}
-
-.project-select-btn:hover {
-  background: #eaeaea;
-}
-
-.project-select-btn.active {
-  background: #1a1a1a;
-  color: #ffffff;
-  border-color: #1a1a1a;
-}
-
-/* ============================================
-   OVERVIEW CARD
-   ============================================ */
-.overview-card {
-  background: #ffffff;
-  border: 1px solid #eaeaea;
+.cuspro-project-select {
+  width: 100%;
+  max-width: 300px;
+  padding: 0.75rem 1rem;
+  background: #F8F9FA;
+  border: 1px solid #E5E5E8;
   border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  color: #1F1F1F;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.overview-header {
+.cuspro-project-select:hover {
+  border-color: #D4D4D8;
+  background: #FFFFFF;
+}
+
+.cuspro-project-select:focus {
+  outline: none;
+  border-color: #1F1F1F;
+  background: #FFFFFF;
+}
+
+/* ============================================
+   HERO CARD
+   ============================================ */
+.cuspro-hero-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+  border: 1px solid #E5E5E8;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
-.overview-header h2 {
-  font-size: 1.125rem;
-  font-weight: 500;
+.cuspro-hero-left h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1F1F1F;
   margin: 0 0 0.25rem 0;
-  color: #1a1a1a;
 }
 
-.project-ref {
-  font-size: 0.7rem;
-  color: #999;
-  margin: 0;
+.cuspro-project-ref {
+  font-size: 0.75rem;
+  color: #9CA3AF;
+  margin: 0 0 1rem 0;
 }
 
-.overview-details {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-@media (max-width: 640px) {
-  .overview-details {
-    grid-template-columns: 1fr;
-  }
-}
-
-.detail-item {
+.cuspro-hero-details {
   display: flex;
-  align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem;
-  background: #fafafa;
-  border-radius: 8px;
+  flex-wrap: wrap;
 }
 
-.detail-item svg {
-  font-size: 1.25rem;
-  color: #999;
+.cuspro-detail-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.875rem;
+  background: #F5F5F7;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  color: #6B6B6F;
 }
 
-.detail-item div {
-  display: flex;
-  flex-direction: column;
+.cuspro-detail-chip svg {
+  font-size: 0.75rem;
 }
 
-.detail-item span {
-  font-size: 0.65rem;
-  color: #999;
-}
-
-.detail-item strong {
-  font-size: 0.875rem;
-  color: #1a1a1a;
+.cuspro-status-badge {
+  padding: 0.375rem 1rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
   font-weight: 500;
+  text-transform: capitalize;
+  background: #F5F5F7;
+  color: #6B6B6F;
+  border: 1px solid #E5E5E8;
+}
+
+.cuspro-status-badge.completed {
+  background: #EEEEF2;
+  color: #1F1F1F;
+  border-color: #D4D4D8;
 }
 
 /* ============================================
-   PROGRESS CARD
+   PROGRESS SECTION
    ============================================ */
-.progress-card {
-  background: #ffffff;
-  border: 1px solid #eaeaea;
-  border-radius: 12px;
+.cuspro-progress-section {
+  background: #FFFFFF;
+  border-radius: 20px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
+  border: 1px solid #E5E5E8;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
-.progress-header {
+.cuspro-progress-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.75rem;
 }
 
-.progress-header h3 {
+.cuspro-progress-label {
   font-size: 0.875rem;
   font-weight: 500;
-  margin: 0;
-  color: #1a1a1a;
+  color: #6B6B6F;
 }
 
-.progress-percent {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #f39c12;
+.cuspro-progress-percentage {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1F1F1F;
 }
 
-.progress-bar-container {
-  height: 4px;
-  background: #eaeaea;
-  border-radius: 2px;
+.cuspro-progress-track {
+  background: #F0F0F0;
+  border-radius: 20px;
+  height: 8px;
   overflow: hidden;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.progress-bar {
+.cuspro-progress-fill {
+  background: #1F1F1F;
+  border-radius: 20px;
   height: 100%;
-  background: #f39c12;
-  border-radius: 2px;
   transition: width 0.3s ease;
 }
 
-.progress-stats {
+.cuspro-stats-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #eaeaea;
+  border-top: 1px solid #E5E5E8;
 }
 
-.stat {
-  display: flex;
-  flex-direction: column;
+.cuspro-stat-block {
   text-align: center;
 }
 
-.stat span {
-  font-size: 0.65rem;
-  color: #999;
+.cuspro-stat-label {
+  display: block;
+  font-size: 0.7rem;
+  color: #9CA3AF;
   margin-bottom: 0.25rem;
 }
 
-.stat strong {
-  font-size: 0.875rem;
-  color: #1a1a1a;
-  font-weight: 500;
+.cuspro-stat-value {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1F1F1F;
 }
 
 /* ============================================
-   SECTION CARD
+   TAB NAVIGATION
    ============================================ */
-.section-card {
-  background: #ffffff;
-  border: 1px solid #eaeaea;
+.cuspro-tab-navigation {
+  display: flex;
+  gap: 0.25rem;
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 0.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #E5E5E8;
+}
+
+.cuspro-tab-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
   border-radius: 12px;
-  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6B6B6F;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cuspro-tab-btn:hover {
+  background: #F5F5F7;
+  color: #1F1F1F;
+}
+
+.cuspro-tab-btn.active {
+  background: #1F1F1F;
+  color: #FFFFFF;
+}
+
+/* ============================================
+   TAB CONTENT
+   ============================================ */
+.cuspro-tab-content {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid #E5E5E8;
   overflow: hidden;
 }
 
-.section-header {
+/* Overview Tab */
+.cuspro-overview-tab {
+  padding: 1.5rem;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.25rem;
-  cursor: pointer;
-  transition: background 0.2s;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.section-header:hover {
-  background: #fafafa;
+.cuspro-info-card {
+  background: #F8F9FA;
+  border-radius: 16px;
+  padding: 1.25rem;
 }
 
-.section-header h3 {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin: 0;
-  color: #1a1a1a;
-}
-
-.chevron {
-  font-size: 0.75rem;
-  color: #999;
-  transition: transform 0.2s;
-}
-
-.chevron.expanded {
-  transform: rotate(180deg);
-}
-
-.section-content {
-  padding: 1rem 1.25rem 1.5rem;
-  border-top: 1px solid #eaeaea;
-}
-
-/* ============================================
-   MILESTONE TIMELINE
-   ============================================ */
-.milestone-timeline {
-  position: relative;
-  padding-left: 2rem;
-}
-
-.milestone {
-  position: relative;
-  padding-bottom: 1.5rem;
-}
-
-.milestone:last-child {
-  padding-bottom: 0;
-}
-
-.milestone-marker {
-  position: absolute;
-  left: -2rem;
-  top: 0;
-  width: 1.5rem;
-  text-align: center;
-}
-
-.milestone-marker svg {
+.cuspro-info-card h3 {
   font-size: 1rem;
-  color: #2ecc71;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #E5E5E8;
 }
 
-.marker-dot {
-  width: 8px;
-  height: 8px;
-  background: #ccc;
-  border-radius: 50%;
-  margin: 0 auto;
-}
-
-.milestone-line {
-  position: absolute;
-  left: -1.25rem;
-  top: 1.5rem;
-  bottom: -0.5rem;
-  width: 1px;
-  background: #eaeaea;
-}
-
-.milestone:last-child .milestone-line {
-  display: none;
-}
-
-.milestone-content h4 {
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin: 0 0 0.25rem 0;
-  color: #1a1a1a;
-}
-
-.milestone-content p {
-  font-size: 0.75rem;
-  color: #666;
-  margin: 0 0 0.25rem 0;
-}
-
-.milestone-date {
-  font-size: 0.65rem;
-  color: #999;
-}
-
-.milestone.completed .milestone-content h4 {
-  color: #2ecc71;
-}
-
-/* ============================================
-   PERSONNEL GRID
-   ============================================ */
-.personnel-grid {
+.cuspro-specs-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
 }
 
-@media (max-width: 640px) {
-  .personnel-grid {
-    grid-template-columns: 1fr;
-  }
+.cuspro-spec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
 }
 
-.personnel-card {
+.cuspro-spec-label {
+  font-size: 0.75rem;
+  color: #9CA3AF;
+}
+
+.cuspro-spec-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1F1F1F;
+}
+
+.cuspro-address-block {
   display: flex;
   gap: 1rem;
-  padding: 1rem;
-  background: #fafafa;
-  border-radius: 8px;
+  align-items: flex-start;
 }
 
-.personnel-avatar {
+.cuspro-address-icon {
+  font-size: 1.25rem;
+  color: #6B6B6F;
+  margin-top: 0.125rem;
+}
+
+.cuspro-address-block p {
+  font-size: 0.875rem;
+  color: #1F1F1F;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cuspro-personnel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cuspro-personnel-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: #FFFFFF;
+  border-radius: 12px;
+}
+
+.cuspro-personnel-avatar {
   width: 48px;
   height: 48px;
+  background: #F5F5F7;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
-  border-radius: 50%;
-  font-size: 1.5rem;
-  color: #999;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #6B6B6F;
 }
 
-.avatar-initials {
-  font-size: 1rem;
-  font-weight: 500;
-  color: #1a1a1a;
-}
-
-.personnel-info {
+.cuspro-personnel-details {
   flex: 1;
 }
 
-.personnel-info h4 {
+.cuspro-personnel-details h4 {
   font-size: 0.7rem;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #999;
+  color: #9CA3AF;
   margin: 0 0 0.25rem 0;
 }
 
-.personnel-info strong {
+.cuspro-personnel-details p {
   font-size: 0.875rem;
-  color: #1a1a1a;
-  display: block;
-  margin-bottom: 0.25rem;
+  font-weight: 500;
+  color: #1F1F1F;
+  margin: 0 0 0.25rem 0;
 }
 
-.personnel-info p {
+.cuspro-personnel-details a {
+  font-size: 0.75rem;
+  color: #6B6B6F;
+  text-decoration: none;
+}
+
+.cuspro-personnel-details a:hover {
+  color: #1F1F1F;
+}
+
+/* Timeline Tab */
+.cuspro-timeline-tab {
+  padding: 1.5rem;
+}
+
+.cuspro-timeline-container {
+  position: relative;
+}
+
+.cuspro-timeline-item {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.7rem;
-  color: #666;
-  margin: 0.25rem 0;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  position: relative;
 }
 
-/* ============================================
-   PAYMENT SCHEDULE
-   ============================================ */
-.payment-schedule {
+.cuspro-timeline-item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 1.25rem;
+  top: 2rem;
+  bottom: 0;
+  width: 2px;
+  background: #E5E5E8;
+}
+
+.cuspro-timeline-marker {
+  width: 2.5rem;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cuspro-timeline-marker svg {
+  font-size: 1.125rem;
+  color: #D4D4D8;
+}
+
+.cuspro-marker-dot {
+  width: 10px;
+  height: 10px;
+  background: #D4D4D8;
+  border-radius: 50%;
+  margin-top: 0.25rem;
+}
+
+.cuspro-timeline-item.completed .cuspro-timeline-marker svg {
+  color: #1F1F1F;
+}
+
+.cuspro-timeline-content {
+  flex: 1;
+  background: #F8F9FA;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.cuspro-timeline-content h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 0 0 0.25rem 0;
+}
+
+.cuspro-timeline-content p {
+  font-size: 0.75rem;
+  color: #6B6B6F;
+  margin: 0 0 0.5rem 0;
+}
+
+.cuspro-timeline-date {
+  font-size: 0.7rem;
+  color: #9CA3AF;
+}
+
+/* Payments Tab */
+.cuspro-payments-tab {
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
-.payment-item {
+.cuspro-payment-card {
+  background: #F8F9FA;
+  border-radius: 16px;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.cuspro-payment-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 0.75rem;
-  background: #fafafa;
-  border-radius: 8px;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #E5E5E8;
 }
 
-.payment-type .type-badge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  background: #ffffff;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  text-transform: capitalize;
-  color: #666;
-}
-
-.payment-details {
-  display: flex;
-  gap: 1rem;
-  align-items: baseline;
-}
-
-.amount {
+.cuspro-payment-type {
   font-size: 0.875rem;
-  font-weight: 500;
-  color: #1a1a1a;
+  font-weight: 600;
+  color: #1F1F1F;
 }
 
-.due-date {
-  font-size: 0.7rem;
-  color: #999;
-}
-
-.paid-badge {
-  font-size: 0.7rem;
-  color: #2ecc71;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.overdue-badge {
-  font-size: 0.7rem;
-  color: #e74c3c;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.pending-badge {
-  font-size: 0.7rem;
-  color: #f39c12;
-}
-
-.payment-item.paid {
-  background: #e8f5e9;
-}
-
-.payment-item.overdue {
-  background: #ffebee;
-}
-
-/* ============================================
-   DOCUMENTS GRID
-   ============================================ */
-.documents-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-}
-
-@media (max-width: 640px) {
-  .documents-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.document-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: #fafafa;
-  border-radius: 8px;
-}
-
-.document-item svg {
-  font-size: 1.25rem;
-  color: #999;
-}
-
-.document-item div {
-  flex: 1;
-}
-
-.document-item h4 {
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin: 0 0 0.25rem 0;
-  color: #1a1a1a;
-}
-
-.document-item p {
-  font-size: 0.65rem;
-  color: #999;
-  margin: 0;
-}
-
-.download-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  background: #ffffff;
-  border: 1px solid #eaeaea;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: #666;
-}
-
-.download-btn:hover {
-  background: #f5f5f5;
-  border-color: #ddd;
-  color: #1a1a1a;
-}
-
-/* ============================================
-   ACTION BUTTONS
-   ============================================ */
-.action-buttons {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-}
-
-.btn-primary {
-  padding: 0.625rem 1.25rem;
-  background: #1a1a1a;
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-primary:hover {
-  background: #333;
-}
-
-.btn-secondary {
-  padding: 0.625rem 1.25rem;
-  background: #f5f5f5;
-  border: 1px solid #eaeaea;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: #666;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-secondary:hover {
-  background: #eaeaea;
-  color: #1a1a1a;
-}
-
-/* ============================================
-   STATUS BADGES
-   ============================================ */
-.status-badge {
-  display: inline-block;
+.cuspro-payment-status-badge {
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.7rem;
   font-weight: 500;
 }
 
-.status-badge.quoted {
-  background: #e3f2fd;
-  color: #1976d2;
+.cuspro-payment-status-badge.paid {
+  background: #EEEEF2;
+  color: #1F1F1F;
 }
 
-.status-badge.approved {
-  background: #e8f5e9;
-  color: #2e7d32;
+.cuspro-payment-status-badge.pending {
+  background: #F5F5F7;
+  color: #6B6B6F;
 }
 
-.status-badge.initial-paid {
-  background: #fff3e0;
-  color: #ed6c02;
+.cuspro-payment-status-badge.overdue {
+  background: #F5F5F7;
+  color: #6B6B6F;
 }
 
-.status-badge.in-progress {
-  background: #e3f2fd;
-  color: #1976d2;
+.cuspro-payment-body {
+  margin-bottom: 1rem;
 }
 
-.status-badge.progress-paid {
-  background: #e8f5e9;
-  color: #2e7d32;
+.cuspro-payment-amount {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1F1F1F;
+  margin-bottom: 0.25rem;
 }
 
-.status-badge.completed {
-  background: #e8f5e9;
-  color: #2e7d32;
+.cuspro-payment-due {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.7rem;
+  color: #9CA3AF;
 }
 
-.status-badge.cancelled {
-  background: #ffebee;
-  color: #c62828;
+.cuspro-payment-paid-date {
+  font-size: 0.7rem;
+  color: #9CA3AF;
+  margin-top: 0.25rem;
 }
 
-/* ============================================
-   RESPONSIVE
-   ============================================ */
+.cuspro-payment-action {
+  margin-top: 0.75rem;
+}
+
+.cuspro-btn-pay {
+  padding: 0.5rem 1.25rem;
+  background: #1F1F1F;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cuspro-btn-pay:hover {
+  background: #3A3A3A;
+}
+
+/* Documents Tab */
+.cuspro-documents-tab {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cuspro-document-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #F8F9FA;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.cuspro-document-card:hover {
+  background: #F5F5F7;
+}
+
+.cuspro-document-icon {
+  width: 48px;
+  height: 48px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: #6B6B6F;
+  border: 1px solid #E5E5E8;
+}
+
+.cuspro-document-info {
+  flex: 1;
+}
+
+.cuspro-document-info h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 0 0 0.25rem 0;
+}
+
+.cuspro-document-info p {
+  font-size: 0.7rem;
+  color: #9CA3AF;
+  margin: 0;
+}
+
+.cuspro-btn-download {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #FFFFFF;
+  border: 1px solid #E5E5E8;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: #6B6B6F;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cuspro-btn-download:hover {
+  background: #EEEEF2;
+  color: #1F1F1F;
+  border-color: #D4D4D8;
+}
+
+/* Support Tab */
+.cuspro-support-tab {
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.cuspro-support-card {
+  text-align: center;
+  padding: 1.5rem;
+  background: #F8F9FA;
+  border-radius: 16px;
+}
+
+.cuspro-support-icon {
+  font-size: 2rem;
+  color: #6B6B6F;
+  margin-bottom: 1rem;
+}
+
+.cuspro-support-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 0 0 0.5rem 0;
+}
+
+.cuspro-support-card p {
+  font-size: 0.75rem;
+  color: #6B6B6F;
+  margin: 0 0 1rem 0;
+}
+
+.cuspro-support-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1F1F1F;
+  text-decoration: none;
+}
+
+.cuspro-support-link:hover {
+  text-decoration: underline;
+}
+
+.cuspro-coordinator-info {
+  margin-top: 0.5rem;
+}
+
+.cuspro-coordinator-info strong {
+  display: block;
+  font-size: 0.875rem;
+  color: #1F1F1F;
+  margin-bottom: 0.25rem;
+}
+
+.cuspro-coordinator-info a {
+  font-size: 0.75rem;
+  color: #6B6B6F;
+  text-decoration: none;
+}
+
+.cuspro-coordinator-info a:hover {
+  color: #1F1F1F;
+}
+
+/* Action Buttons */
+.cuspro-action-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.cuspro-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #1F1F1F;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cuspro-btn-primary:hover {
+  background: #3A3A3A;
+  transform: translateY(-1px);
+}
+
+.cuspro-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #FFFFFF;
+  color: #1F1F1F;
+  border: 1px solid #E5E5E8;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cuspro-btn-secondary:hover {
+  background: #F5F5F7;
+  border-color: #D4D4D8;
+}
+
+/* Empty & Loading States */
+.cuspro-empty-state-card {
+  text-align: center;
+  padding: 3rem;
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid #E5E5E8;
+}
+
+.cuspro-empty-icon {
+  font-size: 3rem;
+  color: #9CA3AF;
+  margin-bottom: 1rem;
+}
+
+.cuspro-empty-state-card h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 0 0 0.5rem 0;
+}
+
+.cuspro-empty-state-card p {
+  font-size: 0.875rem;
+  color: #6B6B6F;
+  margin: 0 0 1.5rem 0;
+}
+
+.cuspro-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+}
+
+.cuspro-spinner-icon {
+  font-size: 2rem;
+  color: #6B6B6F;
+  animation: cuspro-spin 1s linear infinite;
+}
+
+@keyframes cuspro-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .myproject-container {
+  .cuspro-page {
     padding: 1rem;
   }
-  
-  .project-selector {
+
+  .cuspro-hero-card {
     flex-direction: column;
-    align-items: flex-start;
+    gap: 1rem;
   }
-  
-  .action-buttons {
+
+  .cuspro-stats-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .cuspro-tab-navigation {
+    flex-wrap: wrap;
+  }
+
+  .cuspro-tab-btn {
+    flex: auto;
+    min-width: calc(33.33% - 0.5rem);
+  }
+
+  .cuspro-specs-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cuspro-support-tab {
+    grid-template-columns: 1fr;
+  }
+
+  .cuspro-action-buttons {
     flex-direction: column;
   }
-  
-  .btn-primary,
-  .btn-secondary {
+
+  .cuspro-btn-primary,
+  .cuspro-btn-secondary {
     width: 100%;
     justify-content: center;
   }
-  
-  .payment-item {
-    flex-direction: column;
-    align-items: flex-start;
+}
+
+@media (max-width: 480px) {
+  .cuspro-tab-btn {
+    min-width: calc(50% - 0.5rem);
+    font-size: 0.75rem;
+    padding: 0.5rem;
+  }
+
+  .cuspro-hero-details {
+    gap: 0.5rem;
+  }
+
+  .cuspro-detail-chip {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.625rem;
   }
 }

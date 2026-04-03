@@ -1,38 +1,32 @@
-// pages/Customer/MyProject.jsx
+// pages/Customer/MyProject.cuspro.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
   FaProjectDiagram,
-  FaUser,
   FaUserCircle,
   FaCalendarAlt,
-  FaClock,
   FaCheckCircle,
-  FaExclamationTriangle,
   FaSpinner,
   FaMoneyBillWave,
   FaFileInvoice,
   FaDownload,
-  FaEye,
   FaEnvelope,
   FaPhone,
   FaMapMarkerAlt,
-  FaBuilding,
   FaSolarPanel,
   FaTools,
-  FaChartLine,
-  FaHistory,
-  FaChevronRight,
   FaChevronDown,
+  FaChevronUp,
   FaFileAlt,
   FaUserCog,
   FaUsers,
-  FaCalendarCheck,
-  FaRulerCombined,
   FaMicrochip,
-  FaWifi
+  FaWifi,
+  FaRulerCombined,
+  FaHistory,
+  FaClock
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/myproject.css';
@@ -43,14 +37,7 @@ const MyProject = () => {
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [activeMilestone, setActiveMilestone] = useState(null);
-  const [expandedSections, setExpandedSections] = useState({
-    timeline: true,
-    personnel: true,
-    payments: true,
-    documents: true,
-    systemSpecs: true
-  });
+  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     fetchProjects();
@@ -64,7 +51,6 @@ const MyProject = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      
       setProjects(response.data.projects || []);
       
       if (response.data.projects?.length > 0) {
@@ -76,13 +62,6 @@ const MyProject = () => {
       showToast('Failed to load projects', 'error');
       setLoading(false);
     }
-  };
-
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
   };
 
   const formatCurrency = (amount) => {
@@ -103,19 +82,6 @@ const MyProject = () => {
     });
   };
 
-  const getStatusBadge = (status) => {
-    const badges = {
-      'quoted': <span className="status-badge quoted">Quoted</span>,
-      'approved': <span className="status-badge approved">Approved</span>,
-      'initial_paid': <span className="status-badge initial-paid">Initial Payment</span>,
-      'in_progress': <span className="status-badge in-progress">In Progress</span>,
-      'progress_paid': <span className="status-badge progress-paid">Progress Payment</span>,
-      'completed': <span className="status-badge completed">Completed</span>,
-      'cancelled': <span className="status-badge cancelled">Cancelled</span>
-    };
-    return badges[status] || <span className="status-badge">{status}</span>;
-  };
-
   const getProjectProgress = (project) => {
     const statusProgress = {
       'quoted': 10,
@@ -128,63 +94,6 @@ const MyProject = () => {
     return statusProgress[project.status] || 0;
   };
 
-  const getMilestones = (project) => {
-    const milestones = [
-      { 
-        key: 'quoted', 
-        label: 'Quotation Sent', 
-        description: 'Initial quotation has been sent for your review',
-        date: project.createdAt,
-        completed: ['quoted', 'approved', 'initial_paid', 'in_progress', 'progress_paid', 'completed'].includes(project.status)
-      },
-      { 
-        key: 'approved', 
-        label: 'Project Approved', 
-        description: 'You have approved the quotation and project is confirmed',
-        date: project.approvedAt,
-        completed: ['approved', 'initial_paid', 'in_progress', 'progress_paid', 'completed'].includes(project.status)
-      },
-      { 
-        key: 'initial_paid', 
-        label: 'Initial Payment', 
-        description: 'Initial payment of 30% has been received',
-        date: project.paymentSchedule?.find(p => p.type === 'initial')?.paidAt,
-        completed: project.amountPaid >= (project.initialPayment || 0)
-      },
-      { 
-        key: 'in_progress', 
-        label: 'Installation Started', 
-        description: 'Solar panel installation has begun at your site',
-        date: project.startDate,
-        completed: ['in_progress', 'progress_paid', 'completed'].includes(project.status)
-      },
-      { 
-        key: 'progress_paid', 
-        label: 'Progress Payment', 
-        description: 'Progress payment of 40% has been received',
-        date: project.paymentSchedule?.find(p => p.type === 'progress')?.paidAt,
-        completed: project.amountPaid >= (project.initialPayment + project.progressPayment)
-      },
-      { 
-        key: 'completed', 
-        label: 'Installation Completed', 
-        description: 'Solar system installation is complete and ready for use',
-        date: project.actualCompletionDate,
-        completed: project.status === 'completed'
-      }
-    ];
-    return milestones;
-  };
-
-  const handleDownload = (docName, url) => {
-    if (url) {
-      window.open(url, '_blank');
-    } else {
-      showToast(`${docName} not available yet`, 'warning');
-    }
-  };
-
-  // Get pre-assessment data if available
   const getPreAssessmentData = (project) => {
     if (project.preAssessmentId && typeof project.preAssessmentId === 'object') {
       return project.preAssessmentId;
@@ -194,10 +103,10 @@ const MyProject = () => {
 
   if (loading) {
     return (
-      <div className="myproject-container">
-        <div className="loading-container">
-          <FaSpinner className="spinner" />
-          <p>Loading your projects...</p>
+      <div className="cuspro-page">
+        <div className="cuspro-loading-state">
+          <FaSpinner className="cuspro-spinner-icon" />
+          <p>Loading your project...</p>
         </div>
       </div>
     );
@@ -209,12 +118,12 @@ const MyProject = () => {
         <Helmet>
           <title>My Projects | Salfer Engineering</title>
         </Helmet>
-        <div className="myproject-container">
-          <div className="empty-state">
-            <FaProjectDiagram className="empty-icon" />
+        <div className="cuspro-page">
+          <div className="cuspro-empty-state-card">
+            <FaProjectDiagram className="cuspro-empty-icon" />
             <h2>No Projects Yet</h2>
             <p>You haven't started any solar installation projects yet.</p>
-            <button className="btn-primary" onClick={() => navigate('/app/customer/book-assessment')}>
+            <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/book-assessment')}>
               Book an Assessment
             </button>
           </div>
@@ -229,320 +138,424 @@ const MyProject = () => {
         <title>My Projects | Salfer Engineering</title>
       </Helmet>
 
-      <div className="myproject-container">
-        <div className="myproject-header">
-          <h1>My Solar Projects</h1>
-          <p>Track your solar installation projects, view progress, and manage documents</p>
+      <div className="cuspro-page">
+        {/* Header Card */}
+        <div className="cuspro-header-card">
+          <div className="cuspro-header-card-content">
+            <h1>My Solar Project</h1>
+            <p>Track your installation progress and manage your project</p>
+          </div>
         </div>
 
-        {/* Project Selector */}
+        {/* Project Selector Card */}
         {projects.length > 1 && (
-          <div className="project-selector">
-            <label>Select Project:</label>
-            <div className="project-selector-buttons">
-              {projects.map(project => (
-                <button
-                  key={project._id}
-                  className={`project-select-btn ${selectedProject?._id === project._id ? 'active' : ''}`}
-                  onClick={() => setSelectedProject(project)}
-                >
-                  {project.projectName}
-                </button>
-              ))}
+          <div className="cuspro-selector-card">
+            <div className="cuspro-selector-card-content">
+              <label>Select Project</label>
+              <select 
+                value={selectedProject?._id} 
+                onChange={(e) => setSelectedProject(projects.find(p => p._id === e.target.value))}
+                className="cuspro-project-select"
+              >
+                {projects.map(project => (
+                  <option key={project._id} value={project._id}>
+                    {project.projectName}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         )}
 
         {selectedProject && (
-          <div className="project-dashboard">
-            {/* Project Overview Card */}
-            <div className="overview-card">
-              <div className="overview-header">
-                <div>
-                  <h2>{selectedProject.projectName}</h2>
-                  <p className="project-ref">Ref: {selectedProject.projectReference}</p>
+          <>
+            {/* Hero Card */}
+            <div className="cuspro-hero-card">
+              <div className="cuspro-hero-left">
+                <h2>{selectedProject.projectName}</h2>
+                <p className="cuspro-project-ref">{selectedProject.projectReference}</p>
+                <div className="cuspro-hero-details">
+                  <span className="cuspro-detail-chip">
+                    <FaSolarPanel /> {selectedProject.systemSize} kWp
+                  </span>
+                  <span className="cuspro-detail-chip">
+                    <FaTools /> {selectedProject.systemType === 'grid-tie' ? 'Grid-Tie' : 
+                             selectedProject.systemType === 'hybrid' ? 'Hybrid' : 'Off-Grid'}
+                  </span>
+                  <span className="cuspro-detail-chip">
+                    <FaMapMarkerAlt /> {selectedProject.addressId?.barangay || 'Location TBD'}
+                  </span>
                 </div>
-                {getStatusBadge(selectedProject.status)}
               </div>
-              <div className="overview-details">
-                <div className="detail-item">
-                  <FaSolarPanel />
-                  <div>
-                    <span>System Size</span>
-                    <strong>{selectedProject.systemSize} kWp</strong>
-                  </div>
-                </div>
-                <div className="detail-item">
-                  <FaTools />
-                  <div>
-                    <span>System Type</span>
-                    <strong>{selectedProject.systemType === 'grid-tie' ? 'Grid-Tie' : 
-                             selectedProject.systemType === 'hybrid' ? 'Hybrid' : 'Off-Grid'}</strong>
-                  </div>
-                </div>
-                <div className="detail-item">
-                  <FaMapMarkerAlt />
-                  <div>
-                    <span>Location</span>
-                    <strong>
-                      {selectedProject.addressId?.houseOrBuilding || selectedProject.installationAddress?.houseOrBuilding} 
-                      {selectedProject.addressId?.street || selectedProject.installationAddress?.street}, 
-                      {selectedProject.addressId?.barangay || selectedProject.installationAddress?.barangay}
-                    </strong>
-                  </div>
-                </div>
-                <div className="detail-item">
-                  <FaCalendarAlt />
-                  <div>
-                    <span>Start Date</span>
-                    <strong>{formatDate(selectedProject.startDate)}</strong>
-                  </div>
+              <div className="cuspro-hero-right">
+                <div className={`cuspro-status-badge ${selectedProject.status}`}>
+                  {selectedProject.status?.replace('_', ' ').toUpperCase()}
                 </div>
               </div>
             </div>
 
-            {/* Progress Bar */}
-            <div className="progress-card">
-              <div className="progress-header">
-                <h3>Project Progress</h3>
-                <span className="progress-percent">{getProjectProgress(selectedProject)}%</span>
+            {/* Progress Section */}
+            <div className="cuspro-progress-section">
+              <div className="cuspro-progress-header">
+                <span className="cuspro-progress-label">Overall Progress</span>
+                <span className="cuspro-progress-percentage">{getProjectProgress(selectedProject)}%</span>
               </div>
-              <div className="progress-bar-container">
-                <div className="progress-bar" style={{ width: `${getProjectProgress(selectedProject)}%` }}></div>
+              <div className="cuspro-progress-track">
+                <div className="cuspro-progress-fill" style={{ width: `${getProjectProgress(selectedProject)}%` }}></div>
               </div>
-              <div className="progress-stats">
-                <div className="stat">
-                  <span>Total Cost</span>
-                  <strong>{formatCurrency(selectedProject.totalCost)}</strong>
+              <div className="cuspro-stats-row">
+                <div className="cuspro-stat-block">
+                  <span className="cuspro-stat-label">Total Cost</span>
+                  <strong className="cuspro-stat-value">{formatCurrency(selectedProject.totalCost)}</strong>
                 </div>
-                <div className="stat">
-                  <span>Amount Paid</span>
-                  <strong>{formatCurrency(selectedProject.amountPaid)}</strong>
+                <div className="cuspro-stat-block">
+                  <span className="cuspro-stat-label">Amount Paid</span>
+                  <strong className="cuspro-stat-value">{formatCurrency(selectedProject.amountPaid)}</strong>
                 </div>
-                <div className="stat">
-                  <span>Balance</span>
-                  <strong>{formatCurrency(selectedProject.balance)}</strong>
+                <div className="cuspro-stat-block">
+                  <span className="cuspro-stat-label">Balance</span>
+                  <strong className="cuspro-stat-value">{formatCurrency(selectedProject.balance)}</strong>
                 </div>
               </div>
             </div>
 
-            {/* System Specifications from PreAssessment */}
-            {getPreAssessmentData(selectedProject) && (
-              <div className="section-card">
-                <div className="section-header" onClick={() => toggleSection('systemSpecs')}>
-                  <h3><FaMicrochip /> System Specifications</h3>
-                  <FaChevronDown className={`chevron ${expandedSections.systemSpecs ? 'expanded' : ''}`} />
-                </div>
-                {expandedSections.systemSpecs && (
-                  <div className="section-content">
-                    <div className="specs-grid">
-                      <div className="spec-item">
-                        <FaSolarPanel />
-                        <div>
-                          <label>Panels Needed</label>
-                          <p>{getPreAssessmentData(selectedProject)?.panelsNeeded || selectedProject.panelsNeeded || 'To be determined'}</p>
-                        </div>
+            {/* Tab Navigation */}
+            <div className="cuspro-tab-navigation">
+              <button 
+                className={`cuspro-tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
+                onClick={() => setActiveTab('overview')}
+              >
+                Overview
+              </button>
+              <button 
+                className={`cuspro-tab-btn ${activeTab === 'timeline' ? 'active' : ''}`}
+                onClick={() => setActiveTab('timeline')}
+              >
+                Timeline
+              </button>
+              <button 
+                className={`cuspro-tab-btn ${activeTab === 'payments' ? 'active' : ''}`}
+                onClick={() => setActiveTab('payments')}
+              >
+                Payments
+              </button>
+              <button 
+                className={`cuspro-tab-btn ${activeTab === 'documents' ? 'active' : ''}`}
+                onClick={() => setActiveTab('documents')}
+              >
+                Documents
+              </button>
+              <button 
+                className={`cuspro-tab-btn ${activeTab === 'support' ? 'active' : ''}`}
+                onClick={() => setActiveTab('support')}
+              >
+                Support
+              </button>
+            </div>
+
+            {/* Tab Content */}
+            <div className="cuspro-tab-content">
+              {/* Overview Tab */}
+              {activeTab === 'overview' && (
+                <div className="cuspro-overview-tab">
+                  {/* System Specs */}
+                  <div className="cuspro-info-card">
+                    <h3>System Specifications</h3>
+                    <div className="cuspro-specs-grid">
+                      <div className="cuspro-spec-row">
+                        <span className="cuspro-spec-label">Panels Needed</span>
+                        <span className="cuspro-spec-value">{getPreAssessmentData(selectedProject)?.panelsNeeded || selectedProject.panelsNeeded || 'TBD'}</span>
                       </div>
-                      <div className="spec-item">
-                        <FaMicrochip />
-                        <div>
-                          <label>Inverter Type</label>
-                          <p>{selectedProject.inverterType || 'Standard'}</p>
-                        </div>
+                      <div className="cuspro-spec-row">
+                        <span className="cuspro-spec-label">Inverter Type</span>
+                        <span className="cuspro-spec-value">{selectedProject.inverterType || 'Standard'}</span>
                       </div>
-                      <div className="spec-item">
-                        <FaWifi />
-                        <div>
-                          <label>Battery Type</label>
-                          <p>{selectedProject.batteryType || 'N/A'}</p>
-                        </div>
+                      <div className="cuspro-spec-row">
+                        <span className="cuspro-spec-label">Battery Type</span>
+                        <span className="cuspro-spec-value">{selectedProject.batteryType || 'N/A'}</span>
                       </div>
-                      <div className="spec-item">
-                        <FaRulerCombined />
-                        <div>
-                          <label>Property Type</label>
-                          <p>{getPreAssessmentData(selectedProject)?.propertyType || 'Residential'}</p>
-                        </div>
+                      <div className="cuspro-spec-row">
+                        <span className="cuspro-spec-label">Property Type</span>
+                        <span className="cuspro-spec-value">{getPreAssessmentData(selectedProject)?.propertyType || 'Residential'}</span>
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
-            )}
 
-            {/* Project Timeline Section */}
-            <div className="section-card">
-              <div className="section-header" onClick={() => toggleSection('timeline')}>
-                <h3><FaCalendarAlt /> Project Timeline</h3>
-                <FaChevronDown className={`chevron ${expandedSections.timeline ? 'expanded' : ''}`} />
-              </div>
-              {expandedSections.timeline && (
-                <div className="section-content">
-                  <div className="milestone-timeline">
-                    {getMilestones(selectedProject).map((milestone, index) => (
-                      <div key={milestone.key} className={`milestone ${milestone.completed ? 'completed' : ''}`}>
-                        <div className="milestone-marker">
-                          {milestone.completed ? <FaCheckCircle /> : <div className="marker-dot"></div>}
-                        </div>
-                        <div className="milestone-content">
-                          <h4>{milestone.label}</h4>
-                          <p>{milestone.description}</p>
-                          <span className="milestone-date">{milestone.date ? formatDate(milestone.date) : 'Pending'}</span>
-                        </div>
-                        {index < getMilestones(selectedProject).length - 1 && <div className="milestone-line"></div>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Assigned Personnel Section */}
-            <div className="section-card">
-              <div className="section-header" onClick={() => toggleSection('personnel')}>
-                <h3><FaUsers /> Assigned Personnel</h3>
-                <FaChevronDown className={`chevron ${expandedSections.personnel ? 'expanded' : ''}`} />
-              </div>
-              {expandedSections.personnel && (
-                <div className="section-content">
-                  <div className="personnel-grid">
-                    <div className="personnel-card">
-                      <div className="personnel-avatar">
-                        {selectedProject.assignedEngineerId?.firstName ? (
-                          <div className="avatar-initials">
-                            {selectedProject.assignedEngineerId.firstName[0]}
-                            {selectedProject.assignedEngineerId.lastName?.[0]}
-                          </div>
-                        ) : (
-                          <FaUserCircle />
-                        )}
-                      </div>
-                      <div className="personnel-info">
-                        <h4>Lead Engineer</h4>
-                        <strong>{selectedProject.assignedEngineerId?.firstName} {selectedProject.assignedEngineerId?.lastName || 'To be assigned'}</strong>
-                        {selectedProject.assignedEngineerId?.email && (
-                          <p><FaEnvelope /> {selectedProject.assignedEngineerId.email}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="personnel-card">
-                      <div className="personnel-avatar">
-                        <FaUserCog />
-                      </div>
-                      <div className="personnel-info">
-                        <h4>Project Coordinator</h4>
-                        <strong>Solaris Support Team</strong>
-                        <p><FaPhone /> (02) 1234-5678</p>
-                        <p><FaEnvelope /> support@salferengineering.com</p>
+                  {/* Installation Address */}
+                  <div className="cuspro-info-card">
+                    <h3>Installation Address</h3>
+                    <div className="cuspro-address-block">
+                      <FaMapMarkerAlt className="cuspro-address-icon" />
+                      <div>
+                        <p>{selectedProject.addressId?.houseOrBuilding || selectedProject.installationAddress?.houseOrBuilding}</p>
+                        <p>{selectedProject.addressId?.street || selectedProject.installationAddress?.street}</p>
+                        <p>{selectedProject.addressId?.barangay || selectedProject.installationAddress?.barangay}</p>
+                        <p>{selectedProject.addressId?.city || selectedProject.installationAddress?.city}</p>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
 
-            {/* Payment Schedule Section */}
-            <div className="section-card">
-              <div className="section-header" onClick={() => toggleSection('payments')}>
-                <h3><FaMoneyBillWave /> Payment Schedule</h3>
-                <FaChevronDown className={`chevron ${expandedSections.payments ? 'expanded' : ''}`} />
-              </div>
-              {expandedSections.payments && (
-                <div className="section-content">
-                  <div className="payment-schedule">
-                    {selectedProject.paymentSchedule?.map((payment, idx) => (
-                      <div key={idx} className={`payment-item ${payment.status}`}>
-                        <div className="payment-type">
-                          <span className="type-badge">{payment.type === 'initial' ? 'Initial Deposit (30%)' : 
-                                                       payment.type === 'progress' ? 'Progress Payment (40%)' : 
-                                                       'Final Payment (30%)'}</span>
-                        </div>
-                        <div className="payment-details">
-                          <span className="amount">{formatCurrency(payment.amount)}</span>
-                          <span className="due-date">Due: {formatDate(payment.dueDate)}</span>
-                        </div>
-                        <div className="payment-status">
-                          {payment.status === 'paid' ? (
-                            <span className="paid-badge">Paid on {formatDate(payment.paidAt)}</span>
-                          ) : payment.status === 'overdue' ? (
-                            <span className="overdue-badge">Overdue</span>
+                  {/* Assigned Personnel */}
+                  <div className="cuspro-info-card">
+                    <h3>Assigned Personnel</h3>
+                    <div className="cuspro-personnel-list">
+                      <div className="cuspro-personnel-item">
+                        <div className="cuspro-personnel-avatar">
+                          {selectedProject.assignedEngineerId?.firstName ? (
+                            <span>{selectedProject.assignedEngineerId.firstName[0]}{selectedProject.assignedEngineerId.lastName?.[0]}</span>
                           ) : (
-                            <span className="pending-badge">Pending</span>
+                            <FaUserCircle />
+                          )}
+                        </div>
+                        <div className="cuspro-personnel-details">
+                          <h4>Lead Engineer</h4>
+                          <p>{selectedProject.assignedEngineerId?.firstName} {selectedProject.assignedEngineerId?.lastName || 'To be assigned'}</p>
+                          {selectedProject.assignedEngineerId?.email && (
+                            <a href={`mailto:${selectedProject.assignedEngineerId.email}`}>{selectedProject.assignedEngineerId.email}</a>
                           )}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Documents Section */}
-            <div className="section-card">
-              <div className="section-header" onClick={() => toggleSection('documents')}>
-                <h3><FaFileInvoice /> Project Documents</h3>
-                <FaChevronDown className={`chevron ${expandedSections.documents ? 'expanded' : ''}`} />
-              </div>
-              {expandedSections.documents && (
-                <div className="section-content">
-                  <div className="documents-grid">
-                    {selectedProject.quotationFile && (
-                      <div className="document-item">
-                        <FaFileInvoice />
-                        <div>
-                          <h4>Quotation</h4>
-                          <p>Detailed quotation for your solar system</p>
+                      <div className="cuspro-personnel-item">
+                        <div className="cuspro-personnel-avatar">
+                          <FaUserCog />
                         </div>
-                        <button className="download-btn" onClick={() => handleDownload('Quotation', selectedProject.quotationFile)}>
-                          <FaDownload /> Download
-                        </button>
+                        <div className="cuspro-personnel-details">
+                          <h4>Project Coordinator</h4>
+                          <p>Solaris Support Team</p>
+                          <a href="mailto:support@salferengineering.com">support@salferengineering.com</a>
+                        </div>
                       </div>
-                    )}
-                    <div className="document-item">
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="cuspro-action-buttons">
+                    <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>
+                      <FaMoneyBillWave /> Make Payment
+                    </button>
+                    <button className="cuspro-btn-secondary" onClick={() => setActiveTab('support')}>
+                      <FaEnvelope /> Contact Support
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Timeline Tab */}
+              {activeTab === 'timeline' && (
+                <div className="cuspro-timeline-tab">
+                  <div className="cuspro-timeline-container">
+                    <div className="cuspro-timeline-item completed">
+                      <div className="cuspro-timeline-marker">
+                        <FaCheckCircle />
+                      </div>
+                      <div className="cuspro-timeline-content">
+                        <h4>Quotation Sent</h4>
+                        <p>Initial quotation has been sent for your review</p>
+                        <span className="cuspro-timeline-date">{formatDate(selectedProject.createdAt)}</span>
+                      </div>
+                    </div>
+
+                    <div className={`cuspro-timeline-item ${selectedProject.status !== 'quoted' ? 'completed' : ''}`}>
+                      <div className="cuspro-timeline-marker">
+                        {selectedProject.status !== 'quoted' ? <FaCheckCircle /> : <div className="cuspro-marker-dot"></div>}
+                      </div>
+                      <div className="cuspro-timeline-content">
+                        <h4>Project Approved</h4>
+                        <p>You have approved the quotation and project is confirmed</p>
+                        <span className="cuspro-timeline-date">{selectedProject.approvedAt ? formatDate(selectedProject.approvedAt) : 'Pending'}</span>
+                      </div>
+                    </div>
+
+                    <div className={`cuspro-timeline-item ${selectedProject.amountPaid >= (selectedProject.initialPayment || 0) ? 'completed' : ''}`}>
+                      <div className="cuspro-timeline-marker">
+                        {selectedProject.amountPaid >= (selectedProject.initialPayment || 0) ? <FaCheckCircle /> : <div className="cuspro-marker-dot"></div>}
+                      </div>
+                      <div className="cuspro-timeline-content">
+                        <h4>Initial Payment</h4>
+                        <p>Initial payment of 30% has been received</p>
+                        <span className="cuspro-timeline-date">
+                          {selectedProject.paymentSchedule?.find(p => p.type === 'initial')?.paidAt 
+                            ? formatDate(selectedProject.paymentSchedule.find(p => p.type === 'initial').paidAt) 
+                            : 'Pending'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className={`cuspro-timeline-item ${['in_progress', 'progress_paid', 'completed'].includes(selectedProject.status) ? 'completed' : ''}`}>
+                      <div className="cuspro-timeline-marker">
+                        {['in_progress', 'progress_paid', 'completed'].includes(selectedProject.status) ? <FaCheckCircle /> : <div className="cuspro-marker-dot"></div>}
+                      </div>
+                      <div className="cuspro-timeline-content">
+                        <h4>Installation Started</h4>
+                        <p>Solar panel installation has begun at your site</p>
+                        <span className="cuspro-timeline-date">{selectedProject.startDate ? formatDate(selectedProject.startDate) : 'Pending'}</span>
+                      </div>
+                    </div>
+
+                    <div className={`cuspro-timeline-item ${selectedProject.status === 'progress_paid' || selectedProject.status === 'completed' ? 'completed' : ''}`}>
+                      <div className="cuspro-timeline-marker">
+                        {selectedProject.status === 'progress_paid' || selectedProject.status === 'completed' ? <FaCheckCircle /> : <div className="cuspro-marker-dot"></div>}
+                      </div>
+                      <div className="cuspro-timeline-content">
+                        <h4>Progress Payment</h4>
+                        <p>Progress payment of 40% has been received</p>
+                        <span className="cuspro-timeline-date">
+                          {selectedProject.paymentSchedule?.find(p => p.type === 'progress')?.paidAt 
+                            ? formatDate(selectedProject.paymentSchedule.find(p => p.type === 'progress').paidAt) 
+                            : 'Pending'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className={`cuspro-timeline-item ${selectedProject.status === 'completed' ? 'completed' : ''}`}>
+                      <div className="cuspro-timeline-marker">
+                        {selectedProject.status === 'completed' ? <FaCheckCircle /> : <div className="cuspro-marker-dot"></div>}
+                      </div>
+                      <div className="cuspro-timeline-content">
+                        <h4>Installation Completed</h4>
+                        <p>Solar system installation is complete and ready for use</p>
+                        <span className="cuspro-timeline-date">{selectedProject.actualCompletionDate ? formatDate(selectedProject.actualCompletionDate) : 'Pending'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Payments Tab */}
+              {activeTab === 'payments' && (
+                <div className="cuspro-payments-tab">
+                  {selectedProject.paymentSchedule?.map((payment, idx) => (
+                    <div key={idx} className="cuspro-payment-card">
+                      <div className="cuspro-payment-header">
+                        <div className="cuspro-payment-type">
+                          {payment.type === 'initial' && 'Initial Deposit (30%)'}
+                          {payment.type === 'progress' && 'Progress Payment (40%)'}
+                          {payment.type === 'final' && 'Final Payment (30%)'}
+                        </div>
+                        <div className={`cuspro-payment-status-badge ${payment.status}`}>
+                          {payment.status === 'paid' ? 'Paid' : payment.status === 'overdue' ? 'Overdue' : 'Pending'}
+                        </div>
+                      </div>
+                      <div className="cuspro-payment-body">
+                        <div className="cuspro-payment-amount">{formatCurrency(payment.amount)}</div>
+                        <div className="cuspro-payment-due">
+                          <FaClock /> Due: {formatDate(payment.dueDate)}
+                        </div>
+                        {payment.status === 'paid' && payment.paidAt && (
+                          <div className="cuspro-payment-paid-date">
+                            Paid on {formatDate(payment.paidAt)}
+                          </div>
+                        )}
+                      </div>
+                      {payment.status !== 'paid' && (
+                        <div className="cuspro-payment-action">
+                          <button className="cuspro-btn-pay" onClick={() => navigate('/app/customer/billing')}>
+                            Pay Now
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Documents Tab */}
+              {activeTab === 'documents' && (
+                <div className="cuspro-documents-tab">
+                  <div className="cuspro-document-card">
+                    <div className="cuspro-document-icon">
+                      <FaFileInvoice />
+                    </div>
+                    <div className="cuspro-document-info">
+                      <h4>Quotation</h4>
+                      <p>Detailed quotation for your solar system</p>
+                    </div>
+                    <button className="cuspro-btn-download" onClick={() => window.open(selectedProject.quotationFile, '_blank')}>
+                      <FaDownload /> Download
+                    </button>
+                  </div>
+
+                  <div className="cuspro-document-card">
+                    <div className="cuspro-document-icon">
                       <FaFileAlt />
-                      <div>
-                        <h4>Contract</h4>
-                        <p>Signed installation contract</p>
-                      </div>
-                      <button className="download-btn" onClick={() => handleDownload('Contract', selectedProject.contractFile)}>
-                        <FaDownload /> Download
-                      </button>
                     </div>
-                    <div className="document-item">
+                    <div className="cuspro-document-info">
+                      <h4>Contract</h4>
+                      <p>Signed installation contract</p>
+                    </div>
+                    <button className="cuspro-btn-download" onClick={() => window.open(selectedProject.contractFile, '_blank')}>
+                      <FaDownload /> Download
+                    </button>
+                  </div>
+
+                  <div className="cuspro-document-card">
+                    <div className="cuspro-document-icon">
                       <FaHistory />
-                      <div>
-                        <h4>Permits</h4>
-                        <p>Required permits and certifications</p>
-                      </div>
-                      <button className="download-btn" onClick={() => handleDownload('Permits', selectedProject.permitFiles?.[0])}>
-                        <FaDownload /> Download
-                      </button>
                     </div>
-                    <div className="document-item">
+                    <div className="cuspro-document-info">
+                      <h4>Permits</h4>
+                      <p>Required permits and certifications</p>
+                    </div>
+                    <button className="cuspro-btn-download" onClick={() => window.open(selectedProject.permitFiles?.[0], '_blank')}>
+                      <FaDownload /> Download
+                    </button>
+                  </div>
+
+                  <div className="cuspro-document-card">
+                    <div className="cuspro-document-icon">
                       <FaCheckCircle />
-                      <div>
-                        <h4>Completion Certificate</h4>
-                        <p>Certificate of completion</p>
-                      </div>
-                      <button className="download-btn" onClick={() => handleDownload('Completion Certificate', selectedProject.completionCertificate)}>
-                        <FaDownload /> Download
-                      </button>
+                    </div>
+                    <div className="cuspro-document-info">
+                      <h4>Completion Certificate</h4>
+                      <p>Certificate of completion</p>
+                    </div>
+                    <button className="cuspro-btn-download" onClick={() => window.open(selectedProject.completionCertificate, '_blank')}>
+                      <FaDownload /> Download
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Support Tab */}
+              {activeTab === 'support' && (
+                <div className="cuspro-support-tab">
+                  <div className="cuspro-support-card">
+                    <div className="cuspro-support-icon">
+                      <FaEnvelope />
+                    </div>
+                    <h3>Email Support</h3>
+                    <p>Send us an email and we'll respond within 24 hours</p>
+                    <a href="mailto:support@salferengineering.com" className="cuspro-support-link">
+                      support@salferengineering.com
+                    </a>
+                  </div>
+
+                  <div className="cuspro-support-card">
+                    <div className="cuspro-support-icon">
+                      <FaPhone />
+                    </div>
+                    <h3>Phone Support</h3>
+                    <p>Call us during business hours (Mon-Fri, 9AM-6PM)</p>
+                    <a href="tel:+63212345678" className="cuspro-support-link">
+                      (02) 1234-5678
+                    </a>
+                  </div>
+
+                  <div className="cuspro-support-card">
+                    <div className="cuspro-support-icon">
+                      <FaUserCog />
+                    </div>
+                    <h3>Project Coordinator</h3>
+                    <p>Your dedicated project coordinator</p>
+                    <div className="cuspro-coordinator-info">
+                      <strong>Solaris Support Team</strong>
+                      <a href="mailto:projects@salferengineering.com">projects@salferengineering.com</a>
                     </div>
                   </div>
                 </div>
               )}
             </div>
-
-            {/* Action Buttons */}
-            <div className="action-buttons">
-              <button className="btn-primary" onClick={() => navigate('/app/customer/billing')}>
-                <FaMoneyBillWave /> Make Payment
-              </button>
-              <button className="btn-secondary" onClick={() => navigate('/app/customer/support')}>
-                <FaEnvelope /> Contact Support
-              </button>
-            </div>
-          </div>
+          </>
         )}
 
         <ToastNotification

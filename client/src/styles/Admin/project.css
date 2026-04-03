@@ -1,123 +1,88 @@
-/* project.css - Admin Project Management Styles */
+/* styles/Admin/project.cuspro.css - Modern Minimalist Neutral Design */
 
 /* ============================================
-   BASE CONTAINER
+   CONTAINER
    ============================================ */
-.project-management-adminprojectman {
-  padding: 1rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #ffffff;
-  min-height: 100vh;
+.project-management-adminproject {
+  margin: 0 auto;
+  background: #F5F5F7;
+  min-height: calc(100vh - 70px);
 }
 
 /* ============================================
    HEADER
    ============================================ */
-.project-header-adminprojectman {
+.project-header-adminproject {
   margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #eaeaea;
 }
 
-.project-header-adminprojectman h1 {
+.project-header-adminproject h1 {
   font-size: 1.75rem;
-  font-weight: 500;
-  margin: 0 0 0.25rem 0;
-  color: #1a1a1a;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.3px;
 }
 
-.project-header-adminprojectman p {
+.project-header-adminproject p {
   font-size: 0.875rem;
-  color: #666;
+  color: #6B6B6F;
   margin: 0;
 }
 
 /* ============================================
    STATS CARDS
    ============================================ */
-.project-stats-adminprojectman {
+.project-stats-adminproject {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 1rem;
   margin-bottom: 2rem;
 }
 
-@media (max-width: 1024px) {
-  .project-stats-adminprojectman {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .project-stats-adminprojectman {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 480px) {
-  .project-stats-adminprojectman {
-    grid-template-columns: 1fr;
-  }
-}
-
-.stat-card-adminprojectman {
-  background: #ffffff;
-  border: 1px solid #eaeaea;
-  border-top: 3px solid;
-  border-radius: 8px;
-  padding: 1rem;
+.stat-card-adminproject {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 1.25rem;
+  border: 1px solid #E5E5E8;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   transition: all 0.2s ease;
 }
 
-.stat-card-adminprojectman:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+.stat-card-adminproject:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
 }
 
-.stat-card-adminprojectman.total-adminprojectman {
-  border-top-color: #3498db;
-}
-
-.stat-card-adminprojectman.quoted-adminprojectman {
-  border-top-color: #f39c12;
-}
-
-.stat-card-adminprojectman.in-progress-adminprojectman {
-  border-top-color: #9b59b6;
-}
-
-.stat-card-adminprojectman.completed-adminprojectman {
-  border-top-color: #2ecc71;
-}
-
-.stat-card-adminprojectman.revenue-adminprojectman {
-  border-top-color: #e74c3c;
-}
-
-.stat-info-adminprojectman {
+.stat-info {
   display: flex;
   flex-direction: column;
-  text-align: center;
 }
 
-.stat-value-adminprojectman {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1a1a1a;
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1F1F1F;
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
 }
 
-.stat-label-adminprojectman {
-  font-size: 0.7rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #999;
-  margin-top: 0.25rem;
+.stat-label {
+  font-size: 0.75rem;
+  color: #6B6B6F;
 }
+
+/* Stats Card Variants */
+.stat-card-adminproject.total .stat-value { color: #1F1F1F; }
+.stat-card-adminproject.quoted .stat-value { color: #1F1F1F; }
+.stat-card-adminproject.in-progress .stat-value { color: #1F1F1F; }
+.stat-card-adminproject.completed .stat-value { color: #2E7D32; }
+.stat-card-adminproject.revenue .stat-value { color: #1F1F1F; }
 
 /* ============================================
    FILTERS
    ============================================ */
-.project-filters-adminprojectman {
+.project-filters-adminproject {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -126,259 +91,278 @@
   flex-wrap: wrap;
 }
 
-.filter-group-adminprojectman select {
-  padding: 0.5rem 1rem;
-  border: 1px solid #eaeaea;
-  border-radius: 4px;
+.filter-group-adminproject select {
+  padding: 0.625rem 1rem;
+  background: #FFFFFF;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
   font-size: 0.875rem;
-  background: #ffffff;
+  color: #1F1F1F;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.search-group-adminprojectman {
+.filter-group-adminproject select:hover {
+  border-color: #D4D4D8;
+}
+
+.filter-group-adminproject select:focus {
+  outline: none;
+  border-color: #1F1F1F;
+}
+
+.search-group-adminproject {
   position: relative;
-  width: 300px;
+  flex: 1;
+  max-width: 350px;
 }
 
-.search-icon-adminprojectman {
+.search-icon {
   position: absolute;
   left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #999;
+  color: #9CA3AF;
   font-size: 0.875rem;
 }
 
-.search-group-adminprojectman input {
+.search-group-adminproject input {
   width: 100%;
-  padding: 0.5rem 0.75rem 0.5rem 2.25rem;
-  border: 1px solid #eaeaea;
-  border-radius: 4px;
+  padding: 0.625rem 0.75rem 0.625rem 2.25rem;
+  background: #FFFFFF;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
   font-size: 0.875rem;
+  color: #1F1F1F;
+  transition: all 0.2s ease;
 }
 
-.search-group-adminprojectman input:focus {
+.search-group-adminproject input:focus {
   outline: none;
-  border-color: #999;
+  border-color: #D4D4D8;
+}
+
+.search-group-adminproject input::placeholder {
+  color: #9CA3AF;
 }
 
 /* ============================================
-   TABLE
+   PROJECT TABLE
    ============================================ */
-.project-table-container-adminprojectman {
-  background: #ffffff;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
+.project-table-container-adminproject {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid #E5E5E8;
   overflow-x: auto;
-  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
-.project-table-adminprojectman {
+.project-table-adminproject {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  min-width: 800px;
 }
 
-.project-table-adminprojectman th,
-.project-table-adminprojectman td {
-  padding: 0.75rem 1rem;
+.project-table-adminproject th {
   text-align: left;
-  border-bottom: 1px solid #eaeaea;
-}
-
-.project-table-adminprojectman th {
-  font-weight: 500;
-  color: #666;
+  padding: 1rem 1rem;
+  background: #F8F9FA;
   font-size: 0.75rem;
+  font-weight: 600;
+  color: #6B6B6F;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background: #fafafa;
+  border-bottom: 1px solid #E5E5E8;
 }
 
-.project-table-adminprojectman tr:hover {
-  background: #fafafa;
+.project-table-adminproject td {
+  padding: 1rem 1rem;
+  font-size: 0.875rem;
+  color: #1F1F1F;
+  border-bottom: 1px solid #F0F0F0;
 }
 
-.project-cell-adminprojectman {
-  min-width: 150px;
+.project-table-adminproject tr:last-child td {
+  border-bottom: none;
 }
 
-.project-name-adminprojectman {
-  font-weight: 500;
-  color: #1a1a1a;
+.project-table-adminproject tr:hover {
+  background: #F8F9FA;
 }
 
-.project-ref-adminprojectman {
-  font-size: 0.7rem;
-  color: #999;
-  margin-top: 0.25rem;
-}
-
-.amount-adminprojectman {
-  font-weight: 500;
-  color: #1a1a1a;
-}
-
-/* Progress Bar */
-.progress-cell-adminprojectman {
-  min-width: 100px;
-}
-
-.progress-bar-container-adminprojectman {
-  height: 6px;
-  background: #eaeaea;
-  border-radius: 3px;
-  overflow: hidden;
+/* Project Cell */
+.project-cell-adminproject .project-name {
+  font-weight: 600;
+  color: #1F1F1F;
   margin-bottom: 0.25rem;
 }
 
-.progress-bar-adminprojectman {
+.project-cell-adminproject .project-ref {
+  font-size: 0.7rem;
+  color: #9CA3AF;
+}
+
+/* Amount Cell */
+.amount {
+  font-weight: 600;
+  color: #1F1F1F;
+}
+
+/* Progress Cell */
+.progress-cell {
+  min-width: 120px;
+}
+
+.progress-bar-container {
+  background: #F0F0F0;
+  border-radius: 20px;
+  height: 6px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+  background: #1F1F1F;
+  border-radius: 20px;
   height: 100%;
-  background: #1a1a1a;
-  border-radius: 3px;
   transition: width 0.3s ease;
 }
 
-.progress-text-adminprojectman {
+.progress-text {
   font-size: 0.7rem;
-  color: #666;
+  color: #6B6B6F;
 }
 
-/* Status Badges */
-.status-badge-adminprojectman {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.65rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.status-badge-adminprojectman.quoted-adminprojectman {
-  background: #fff3e0;
-  color: #ed6c02;
-}
-
-.status-badge-adminprojectman.approved-adminprojectman {
-  background: #e3f2fd;
-  color: #1976d2;
-}
-
-.status-badge-adminprojectman.initial-paid-adminprojectman {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.status-badge-adminprojectman.in-progress-adminprojectman {
-  background: #f3e5f5;
-  color: #7b1fa2;
-}
-
-.status-badge-adminprojectman.progress-paid-adminprojectman {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.status-badge-adminprojectman.completed-adminprojectman {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.status-badge-adminprojectman.cancelled-adminprojectman {
-  background: #ffebee;
-  color: #c62828;
-}
-
-/* Action Buttons */
-.actions-cell-adminprojectman {
+/* Actions Cell */
+.actions-cell {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.action-btn-adminprojectman {
+.action-btn {
+  width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.375rem;
-  background: none;
-  border: 1px solid #eaeaea;
-  border-radius: 4px;
+  background: #F5F5F7;
+  border: 1px solid #E5E5E8;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: #666;
+  color: #6B6B6F;
 }
 
-.action-btn-adminprojectman:hover {
-  background: #f5f5f5;
-  border-color: #ddd;
+.action-btn:hover {
+  background: #EEEEF2;
+  border-color: #D4D4D8;
+  color: #1F1F1F;
+  transform: translateY(-1px);
 }
 
-.action-btn-adminprojectman.view-adminprojectman:hover {
-  color: #3498db;
+.action-btn.view:hover { background: #E3F2FD; color: #1565C0; }
+.action-btn.approve:hover { background: #E8F5E9; color: #2E7D32; }
+.action-btn.assign:hover { background: #FFF3E0; color: #E65100; }
+.action-btn.payment:hover { background: #E8F5E9; color: #2E7D32; }
+.action-btn.complete:hover { background: #E8F5E9; color: #2E7D32; }
+.action-btn.cancel:hover { background: #FFEBEE; color: #C62828; }
+
+/* ============================================
+   STATUS BADGES
+   ============================================ */
+.status-badge-adminproject {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 500;
 }
 
-.action-btn-adminprojectman.approve-adminprojectman:hover {
-  color: #2ecc71;
+.status-badge-adminproject.quoted {
+  background: #F5F5F7;
+  color: #6B6B6F;
+  border: 1px solid #E5E5E8;
 }
 
-.action-btn-adminprojectman.assign-adminprojectman:hover {
-  color: #9b59b6;
+.status-badge-adminproject.approved,
+.status-badge-adminproject.initial-paid,
+.status-badge-adminproject.in-progress,
+.status-badge-adminproject.progress-paid {
+  background: #EEEEF2;
+  color: #1F1F1F;
+  border: 1px solid #D4D4D8;
 }
 
-.action-btn-adminprojectman.payment-adminprojectman:hover {
-  color: #f39c12;
+.status-badge-adminproject.completed {
+  background: #E8F5E9;
+  color: #2E7D32;
 }
 
-.action-btn-adminprojectman.complete-adminprojectman:hover {
-  color: #2ecc71;
+.status-badge-adminproject.cancelled {
+  background: #FFEBEE;
+  color: #C62828;
 }
 
 /* ============================================
    PAGINATION
    ============================================ */
-.pagination-adminprojectman {
+.pagination-adminproject {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
+  padding: 1rem 0;
 }
 
-.page-btn-adminprojectman {
-  display: inline-flex;
+.page-btn {
+  display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: #ffffff;
-  border: 1px solid #eaeaea;
-  border-radius: 4px;
-  font-size: 0.75rem;
+  background: #FFFFFF;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #6B6B6F;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: #666;
 }
 
-.page-btn-adminprojectman:hover:not(:disabled) {
-  background: #f5f5f5;
-  border-color: #ddd;
+.page-btn:hover:not(:disabled) {
+  background: #F5F5F7;
+  border-color: #D4D4D8;
+  color: #1F1F1F;
 }
 
-.page-btn-adminprojectman:disabled {
+.page-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.page-info-adminprojectman {
-  font-size: 0.75rem;
-  color: #666;
+.page-info {
+  font-size: 0.875rem;
+  color: #6B6B6F;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.empty-state-adminproject {
+  text-align: center;
+  padding: 3rem;
+}
+
+.empty-state-adminproject p {
+  font-size: 0.875rem;
+  color: #9CA3AF;
 }
 
 /* ============================================
    MODALS
    ============================================ */
-.modal-overlay-adminprojectman {
+.modal-overlay-adminproject {
   position: fixed;
   top: 0;
   left: 0;
@@ -389,288 +373,442 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 1rem;
+  backdrop-filter: blur(2px);
 }
 
-.modal-content-adminprojectman {
-  background: #ffffff;
-  border-radius: 8px;
-  max-width: 600px;
-  width: 100%;
-  max-height: 90vh;
+.modal-content-adminproject {
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 1.75rem;
+  max-width: 650px;
+  width: 90%;
+  max-height: 85vh;
   overflow-y: auto;
-  padding: 1.5rem;
+  border: 1px solid #E5E5E8;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
-.modal-content-adminprojectman h3 {
-  font-size: 1rem;
-  font-weight: 500;
+.detail-modal {
+  max-width: 800px;
+}
+
+.modal-close {
+  float: right;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #9CA3AF;
+  transition: color 0.2s ease;
+  margin-top: -0.5rem;
+  margin-right: -0.5rem;
+}
+
+.modal-close:hover {
+  color: #1F1F1F;
+}
+
+.modal-content-adminproject h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1F1F1F;
   margin: 0 0 1rem 0;
-  color: #1a1a1a;
 }
 
-.detail-section-adminprojectman {
-  margin-bottom: 1rem;
+/* Detail Sections */
+.detail-section {
+  margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #eaeaea;
+  border-bottom: 1px solid #E5E5E8;
 }
 
-.detail-section-adminprojectman:last-child {
+.detail-section:last-child {
   border-bottom: none;
+  margin-bottom: 0;
   padding-bottom: 0;
 }
 
-.detail-section-adminprojectman h4 {
-  font-size: 0.75rem;
+.detail-section h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 0 0 0.75rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #E5E5E8;
+}
+
+.detail-section p {
+  margin: 0.5rem 0;
+  font-size: 0.875rem;
+  color: #1F1F1F;
+}
+
+.detail-section p strong {
+  color: #6B6B6F;
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #999;
-  margin: 0 0 0.5rem 0;
+  min-width: 140px;
+  display: inline-block;
 }
 
-.detail-section-adminprojectman p {
-  font-size: 0.875rem;
-  margin: 0.25rem 0;
-  color: #333;
+/* Progress Bar Large */
+.progress-bar-container.large {
+  height: 8px;
+  margin: 0.75rem 0;
 }
 
-/* Forms */
-.form-group-adminprojectman {
-  margin-bottom: 1rem;
-}
-
-.form-group-adminprojectman label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-  color: #666;
-}
-
-.form-group-adminprojectman select,
-.form-group-adminprojectman input,
-.form-group-adminprojectman textarea {
-  width: 100%;
-  padding: 0.625rem 0.75rem;
-  border: 1px solid #eaeaea;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  font-family: inherit;
-}
-
-.form-group-adminprojectman select:focus,
-.form-group-adminprojectman input:focus,
-.form-group-adminprojectman textarea:focus {
-  outline: none;
-  border-color: #999;
-}
-
-/* Modal Actions */
-.modal-actions-adminprojectman {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #eaeaea;
-}
-
-.cancel-btn-adminprojectman {
-  padding: 0.5rem 1rem;
-  background: #f5f5f5;
-  border: 1px solid #eaeaea;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  cursor: pointer;
-  color: #666;
-}
-
-.cancel-btn-adminprojectman:hover {
-  background: #eaeaea;
-}
-
-.update-btn-adminprojectman,
-.assign-btn-adminprojectman,
-.record-btn-adminprojectman {
-  padding: 0.5rem 1rem;
-  background: #1a1a1a;
-  color: #ffffff;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  cursor: pointer;
-}
-
-.update-btn-adminprojectman:hover:not(:disabled),
-.assign-btn-adminprojectman:hover:not(:disabled),
-.record-btn-adminprojectman:hover:not(:disabled) {
-  background: #333;
-}
-
-.update-btn-adminprojectman:disabled,
-.assign-btn-adminprojectman:disabled,
-.record-btn-adminprojectman:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Payment Schedule Table */
-.payment-schedule-table-adminprojectman {
+/* Payment Table in Modal */
+.payment-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.75rem;
 }
 
-.payment-schedule-table-adminprojectman th,
-.payment-schedule-table-adminprojectman td {
+.payment-table th,
+.payment-table td {
   padding: 0.5rem;
   text-align: left;
-  border-bottom: 1px solid #eaeaea;
+  border-bottom: 1px solid #E5E5E8;
 }
 
-.payment-schedule-table-adminprojectman th {
+.payment-table th {
+  background: #F8F9FA;
+  font-weight: 600;
+  color: #6B6B6F;
+}
+
+.paid-text { color: #2E7D32; font-weight: 500; }
+.pending-text { color: #E65100; font-weight: 500; }
+.overdue-text { color: #C62828; font-weight: 500; }
+.capitalize { text-transform: capitalize; }
+
+/* Timeline */
+.timeline-list {
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.timeline-item {
+  position: relative;
+  padding-bottom: 1rem;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -1.25rem;
+  top: 0.25rem;
+  width: 10px;
+  height: 10px;
+  background: #D4D4D8;
+  border-radius: 50%;
+}
+
+.timeline-item:not(:last-child) .timeline-dot::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 10px;
+  width: 2px;
+  height: calc(100% + 0.5rem);
+  background: #E5E5E8;
+}
+
+.timeline-content strong {
+  display: block;
+  font-size: 0.875rem;
+  color: #1F1F1F;
+  margin-bottom: 0.25rem;
+}
+
+.timeline-content p {
+  font-size: 0.75rem;
+  color: #6B6B6F;
+  margin: 0 0 0.25rem 0;
+}
+
+.timeline-content small {
+  font-size: 0.65rem;
+  color: #9CA3AF;
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.75rem;
   font-weight: 500;
-  color: #666;
-  background: #fafafa;
+  color: #1F1F1F;
+  margin-bottom: 0.375rem;
 }
 
-.capitalize-adminprojectman {
-  text-transform: capitalize;
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background: #F8F9FA;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #1F1F1F;
+  transition: all 0.2s ease;
 }
 
-/* Empty State */
-.empty-state-adminprojectman {
-  text-align: center;
-  padding: 3rem;
-  color: #999;
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #D4D4D8;
+  background: #FFFFFF;
 }
 
-.empty-state-adminprojectman p {
-  margin: 0;
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E5E5E8;
+}
+
+.cancel-btn {
+  padding: 0.625rem 1.25rem;
+  background: #F5F5F7;
+  color: #1F1F1F;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background: #EEEEF2;
+  border-color: #D4D4D8;
+}
+
+.submit-btn,
+.close-btn {
+  padding: 0.625rem 1.25rem;
+  background: #1F1F1F;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submit-btn:hover:not(:disabled),
+.close-btn:hover {
+  background: #3A3A3A;
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ============================================
    SKELETON LOADER
    ============================================ */
-.skeleton-line-adminprojectman {
-  background: #f0f0f0;
-  border-radius: 4px;
-  animation: pulse-adminprojectman 1.5s ease-in-out infinite;
+.skeleton-line {
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
 }
 
-.skeleton-line-adminprojectman.large-adminprojectman {
-  height: 32px;
+.skeleton-line.large {
   width: 250px;
+  height: 32px;
+  margin-bottom: 8px;
 }
 
-.skeleton-line-adminprojectman.medium-adminprojectman {
-  height: 24px;
-  width: 180px;
+.skeleton-line.medium {
+  width: 350px;
+  height: 20px;
+  margin-bottom: 8px;
 }
 
-.skeleton-line-adminprojectman.small-adminprojectman {
+.skeleton-line.small {
   height: 16px;
-  width: 120px;
+  width: 80px;
+  margin-bottom: 8px;
 }
 
-.skeleton-card-adminprojectman {
-  background: #ffffff;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
-  padding: 1rem;
+.skeleton-card {
+  background: #FFFFFF;
 }
 
-.skeleton-select-adminprojectman {
-  height: 38px;
+.skeleton-select {
   width: 150px;
-  background: #f0f0f0;
-  border-radius: 4px;
-  animation: pulse-adminprojectman 1.5s ease-in-out infinite;
+  height: 42px;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 10px;
 }
 
-.skeleton-search-adminprojectman {
-  height: 38px;
-  width: 280px;
-  background: #f0f0f0;
-  border-radius: 4px;
-  animation: pulse-adminprojectman 1.5s ease-in-out infinite;
+.skeleton-search {
+  width: 250px;
+  height: 42px;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 10px;
 }
 
-.skeleton-table-adminprojectman {
-  background: #ffffff;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
+.skeleton-table {
   padding: 1rem;
 }
 
-.skeleton-table-header-adminprojectman {
-  height: 40px;
-  background: #f0f0f0;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-  animation: pulse-adminprojectman 1.5s ease-in-out infinite;
+.skeleton-table-header {
+  height: 48px;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+  margin-bottom: 1rem;
 }
 
-.skeleton-table-row-adminprojectman {
+.skeleton-table-row {
   height: 60px;
-  background: #f0f0f0;
-  border-radius: 4px;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
   margin-bottom: 0.5rem;
-  animation: pulse-adminprojectman 1.5s ease-in-out infinite;
 }
 
-@keyframes pulse-adminprojectman {
-  0%, 100% {
-    opacity: 1;
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
   }
-  50% {
-    opacity: 0.5;
+  100% {
+    background-position: -200% 0;
   }
 }
 
 /* ============================================
-   RESPONSIVE
+   RESPONSIVE DESIGN
    ============================================ */
+@media (max-width: 1200px) {
+  .project-stats-adminproject {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .project-table-adminproject th,
+  .project-table-adminproject td {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .detail-section p strong {
+    min-width: 120px;
+  }
+}
+
 @media (max-width: 768px) {
-  .project-management-adminprojectman {
+  .project-management-adminproject {
     padding: 1rem;
   }
   
-  .project-filters-adminprojectman {
+  .project-stats-adminproject {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .project-filters-adminproject {
     flex-direction: column;
+    align-items: stretch;
   }
   
-  .search-group-adminprojectman {
-    width: 100%;
+  .search-group-adminproject {
+    max-width: 100%;
   }
   
-  .filter-group-adminprojectman select {
-    width: 100%;
+  .project-table-container-adminproject {
+    overflow-x: auto;
   }
   
-  .project-table-adminprojectman th,
-  .project-table-adminprojectman td {
-    padding: 0.5rem;
+  .project-table-adminproject {
+    min-width: 700px;
   }
   
-  .actions-cell-adminprojectman {
-    flex-direction: column;
-  }
-  
-  .modal-content-adminprojectman {
-    margin: 1rem;
-  }
-  
-  .modal-actions-adminprojectman {
+  .actions-cell {
     flex-wrap: wrap;
   }
   
-  .cancel-btn-adminprojectman,
-  .update-btn-adminprojectman,
-  .assign-btn-adminprojectman,
-  .record-btn-adminprojectman {
-    flex: 1;
+  .modal-content-adminproject {
+    padding: 1.25rem;
+  }
+  
+  .detail-section p strong {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .project-stats-adminproject {
+    grid-template-columns: 1fr;
+  }
+  
+  .project-header-adminproject h1 {
+    font-size: 1.5rem;
+  }
+  
+  .pagination-adminproject {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .cancel-btn,
+  .submit-btn,
+  .close-btn {
+    width: 100%;
     text-align: center;
   }
+  
+  .payment-table {
+    font-size: 0.65rem;
+  }
+  
+  .payment-table th,
+  .payment-table td {
+    padding: 0.25rem;
+  }
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F0F0F0;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4D4D8;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
 }

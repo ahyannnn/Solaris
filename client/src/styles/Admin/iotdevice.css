@@ -1,13 +1,12 @@
-/* styles/Admin/iotDevice.css */
+/* styles/Admin/iotDevice.cuspro.css - Modern Minimalist Neutral Design */
 
 /* ============================================
    BASE CONTAINER
    ============================================ */
 .admin-iot-adminiot {
-  padding: 1rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #ffffff;
-  min-height: 100vh;
+  margin: 0 auto;
+  background: #F5F5F7;
+  min-height: calc(100vh - 70px);
 }
 
 /* ============================================
@@ -19,21 +18,22 @@
   align-items: center;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #eaeaea;
+  border-bottom: 1px solid #E5E5E8;
   flex-wrap: wrap;
   gap: 1rem;
 }
 
 .iot-header-adminiot h1 {
   font-size: 1.75rem;
-  font-weight: 500;
+  font-weight: 600;
   margin: 0 0 0.25rem 0;
-  color: #1a1a1a;
+  color: #1F1F1F;
+  letter-spacing: -0.3px;
 }
 
 .iot-header-adminiot p {
   font-size: 0.875rem;
-  color: #666;
+  color: #6B6B6F;
   margin: 0;
 }
 
@@ -41,11 +41,11 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  background: #1a1a1a;
-  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  background: #1F1F1F;
+  color: #FFFFFF;
   border: none;
-  border-radius: 4px;
+  border-radius: 12px;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -53,7 +53,9 @@
 }
 
 .create-device-btn-adminiot:hover {
-  background: #333;
+  background: #3A3A3A;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* ============================================
@@ -85,15 +87,17 @@
 }
 
 .stat-card-adminiot {
-  background: #ffffff;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
-  padding: 1rem;
+  background: #FFFFFF;
+  border: 1px solid #E5E5E8;
+  border-radius: 16px;
+  padding: 1.25rem;
   transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .stat-card-adminiot:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
 }
 
 .stat-info-adminiot {
@@ -103,9 +107,9 @@
 }
 
 .stat-value-adminiot {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1F1F1F;
 }
 
 .stat-label-adminiot {
@@ -113,7 +117,7 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #999;
+  color: #9CA3AF;
   margin-top: 0.25rem;
 }
 
@@ -130,17 +134,23 @@
 }
 
 .filter-group-adminiot select {
-  padding: 0.5rem 1rem;
-  border: 1px solid #eaeaea;
-  border-radius: 4px;
+  padding: 0.625rem 1rem;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
   font-size: 0.875rem;
-  background: #ffffff;
+  background: #FFFFFF;
   cursor: pointer;
+  color: #1F1F1F;
+  transition: all 0.2s ease;
+}
+
+.filter-group-adminiot select:hover {
+  border-color: #D4D4D8;
 }
 
 .filter-group-adminiot select:focus {
   outline: none;
-  border-color: #999;
+  border-color: #1F1F1F;
 }
 
 .search-group-adminiot {
@@ -153,21 +163,28 @@
   left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #999;
+  color: #9CA3AF;
   font-size: 0.875rem;
 }
 
 .search-group-adminiot input {
   width: 100%;
-  padding: 0.5rem 0.75rem 0.5rem 2.25rem;
-  border: 1px solid #eaeaea;
-  border-radius: 4px;
+  padding: 0.625rem 0.75rem 0.625rem 2.25rem;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
   font-size: 0.875rem;
+  background: #FFFFFF;
+  color: #1F1F1F;
+  transition: all 0.2s ease;
 }
 
 .search-group-adminiot input:focus {
   outline: none;
-  border-color: #999;
+  border-color: #D4D4D8;
+}
+
+.search-group-adminiot input::placeholder {
+  color: #9CA3AF;
 }
 
 /* ============================================
@@ -188,15 +205,17 @@
 
 /* Device Card */
 .device-card-adminiot {
-  background: #ffffff;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
+  background: #FFFFFF;
+  border: 1px solid #E5E5E8;
+  border-radius: 20px;
   overflow: hidden;
   transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .device-card-adminiot:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
 }
 
 /* Device Header */
@@ -204,20 +223,21 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem;
-  border-bottom: 1px solid #eaeaea;
+  padding: 1.25rem;
+  border-bottom: 1px solid #E5E5E8;
 }
 
 .device-icon-adminiot {
-  width: 40px;
-  height: 40px;
-  background: #f5f5f5;
-  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  background: #F8F9FA;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
-  color: #666;
+  color: #6B6B6F;
+  border: 1px solid #E5E5E8;
 }
 
 .device-info-adminiot {
@@ -226,22 +246,22 @@
 
 .device-info-adminiot h3 {
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   margin: 0 0 0.25rem 0;
-  color: #1a1a1a;
+  color: #1F1F1F;
 }
 
 .device-id-adminiot {
   font-size: 0.7rem;
-  color: #999;
+  color: #9CA3AF;
   font-family: monospace;
 }
 
 /* Status Badges */
 .status-badge-adminiot {
   display: inline-block;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
   font-size: 0.65rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -249,42 +269,42 @@
 }
 
 .status-badge-adminiot.available-adminiot {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: #E8F5E9;
+  color: #2E7D32;
 }
 
 .status-badge-adminiot.assigned-adminiot {
-  background: #fff3e0;
-  color: #ed6c02;
+  background: #FFF3E0;
+  color: #E65100;
 }
 
 .status-badge-adminiot.deployed-adminiot {
-  background: #e0f7fa;
-  color: #0097a7;
+  background: #E0F7FA;
+  color: #00838F;
 }
 
 .status-badge-adminiot.data-collecting-adminiot {
-  background: #e3f2fd;
-  color: #1976d2;
+  background: #E3F2FD;
+  color: #1565C0;
 }
 
 .status-badge-adminiot.maintenance-adminiot {
-  background: #ffebee;
-  color: #c62828;
+  background: #FFEBEE;
+  color: #C62828;
 }
 
 .status-badge-adminiot.retired-adminiot {
-  background: #eceff1;
-  color: #546e7a;
+  background: #ECEFF1;
+  color: #546E7A;
 }
 
 /* Device Specs */
 .device-specs-adminiot {
   display: flex;
   gap: 1rem;
-  padding: 0.75rem 1rem;
-  background: #fafafa;
-  border-bottom: 1px solid #eaeaea;
+  padding: 0.75rem 1.25rem;
+  background: #F8F9FA;
+  border-bottom: 1px solid #E5E5E8;
   flex-wrap: wrap;
 }
 
@@ -299,20 +319,20 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #999;
+  color: #9CA3AF;
 }
 
 .spec-value-adminiot {
   font-size: 0.75rem;
   font-weight: 500;
-  color: #333;
+  color: #1F1F1F;
 }
 
 /* Sensor Data Section */
 .sensor-data-adminiot {
-  padding: 0.75rem 1rem;
-  background: #ffffff;
-  border-bottom: 1px solid #eaeaea;
+  padding: 0.75rem 1.25rem;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E5E5E8;
 }
 
 .sensor-row-adminiot {
@@ -339,19 +359,19 @@
 }
 
 .sensor-icon-adminiot.irradiance-adminiot {
-  color: #f39c12;
+  color: #F39C12;
 }
 
 .sensor-icon-adminiot.temp-adminiot {
-  color: #e67e22;
+  color: #E67E22;
 }
 
 .sensor-icon-adminiot.humidity-adminiot {
-  color: #3498db;
+  color: #3498DB;
 }
 
 .sensor-icon-adminiot.location-adminiot {
-  color: #27ae60;
+  color: #27AE60;
 }
 
 .sensor-reading-adminiot div {
@@ -364,26 +384,26 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #999;
+  color: #9CA3AF;
 }
 
 .sensor-value-adminiot {
   font-size: 0.75rem;
   font-weight: 500;
-  color: #1a1a1a;
+  color: #1F1F1F;
 }
 
 .sensor-placeholder-adminiot {
   padding: 1rem;
   text-align: center;
-  color: #999;
+  color: #9CA3AF;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   font-size: 0.75rem;
-  background: #ffffff;
-  border-bottom: 1px solid #eaeaea;
+  background: #F8F9FA;
+  border-bottom: 1px solid #E5E5E8;
 }
 
 /* Device Footer */
@@ -391,9 +411,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1rem;
-  background: #ffffff;
-  border-bottom: 1px solid #eaeaea;
+  padding: 0.75rem 1.25rem;
+  background: #F8F9FA;
+  border-bottom: 1px solid #E5E5E8;
 }
 
 .battery-status-adminiot {
@@ -408,19 +428,19 @@
 }
 
 .battery-level-adminiot.high {
-  color: #2e7d32;
+  color: #2E7D32;
 }
 
 .battery-level-adminiot.medium {
-  color: #ed6c02;
+  color: #E65100;
 }
 
 .battery-level-adminiot.low {
-  color: #c62828;
+  color: #C62828;
 }
 
 .battery-level-adminiot.critical {
-  color: #d32f2f;
+  color: #D32F2F;
 }
 
 .last-heartbeat-adminiot {
@@ -428,15 +448,15 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.65rem;
-  color: #999;
+  color: #9CA3AF;
 }
 
 /* Device Actions */
 .device-actions-adminiot {
   display: flex;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: #ffffff;
+  padding: 0.75rem 1.25rem;
+  background: #FFFFFF;
 }
 
 .action-btn-adminiot {
@@ -444,37 +464,38 @@
   align-items: center;
   justify-content: center;
   padding: 0.375rem;
-  background: none;
-  border: 1px solid #eaeaea;
-  border-radius: 4px;
+  background: #F5F5F7;
+  border: 1px solid #E5E5E8;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: #666;
+  color: #6B6B6F;
 }
 
 .action-btn-adminiot:hover {
-  background: #f5f5f5;
-  border-color: #ddd;
+  background: #EEEEF2;
+  border-color: #D4D4D8;
+  transform: translateY(-1px);
 }
 
 .action-btn-adminiot.view-adminiot:hover {
-  color: #3498db;
+  color: #1565C0;
 }
 
 .action-btn-adminiot.data-adminiot:hover {
-  color: #2ecc71;
+  color: #2E7D32;
 }
 
 .action-btn-adminiot.edit-adminiot:hover {
-  color: #f39c12;
+  color: #E65100;
 }
 
 .action-btn-adminiot.maintenance-adminiot:hover {
-  color: #e74c3c;
+  color: #C62828;
 }
 
 .action-btn-adminiot.delete-adminiot:hover {
-  color: #e74c3c;
+  color: #C62828;
 }
 
 /* ============================================
@@ -484,13 +505,13 @@
   grid-column: 1 / -1;
   text-align: center;
   padding: 3rem;
-  color: #999;
+  color: #9CA3AF;
 }
 
 .empty-icon-adminiot {
   font-size: 2rem;
   margin-bottom: 1rem;
-  color: #ccc;
+  color: #D4D4D8;
 }
 
 .empty-state-adminiot p {
@@ -505,7 +526,8 @@
   justify-content: center;
   align-items: center;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
+  padding: 1rem 0;
 }
 
 .page-btn-adminiot {
@@ -513,18 +535,19 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: #ffffff;
-  border: 1px solid #eaeaea;
-  border-radius: 4px;
+  background: #FFFFFF;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
   font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: #666;
+  color: #6B6B6F;
 }
 
 .page-btn-adminiot:hover:not(:disabled) {
-  background: #f5f5f5;
-  border-color: #ddd;
+  background: #F5F5F7;
+  border-color: #D4D4D8;
+  color: #1F1F1F;
 }
 
 .page-btn-adminiot:disabled {
@@ -534,7 +557,7 @@
 
 .page-info-adminiot {
   font-size: 0.75rem;
-  color: #666;
+  color: #6B6B6F;
 }
 
 /* ============================================
@@ -551,26 +574,31 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  backdrop-filter: blur(2px);
   padding: 1rem;
 }
 
 .modal-content-adminiot {
-  background: #ffffff;
-  border-radius: 8px;
+  background: #FFFFFF;
+  border-radius: 20px;
   max-width: 600px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  padding: 1.5rem;
+  padding: 1.75rem;
   position: relative;
+  border: 1px solid #E5E5E8;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .modal-content-adminiot h3 {
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 1.25rem;
+  font-weight: 600;
   margin: 0 0 1rem 0;
-  color: #1a1a1a;
+  color: #1F1F1F;
   padding-right: 2rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #E5E5E8;
 }
 
 .modal-close-adminiot {
@@ -581,11 +609,12 @@
   border: none;
   font-size: 1.25rem;
   cursor: pointer;
-  color: #999;
+  color: #9CA3AF;
+  transition: color 0.2s ease;
 }
 
 .modal-close-adminiot:hover {
-  color: #666;
+  color: #1F1F1F;
 }
 
 /* Data Modal */
@@ -607,9 +636,9 @@
 }
 
 .summary-card-adminiot {
-  background: #fafafa;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
+  background: #F8F9FA;
+  border: 1px solid #E5E5E8;
+  border-radius: 12px;
   padding: 1rem;
   display: flex;
   align-items: center;
@@ -618,7 +647,7 @@
 
 .summary-card-adminiot svg {
   font-size: 1.5rem;
-  color: #666;
+  color: #6B6B6F;
 }
 
 .summary-card-adminiot div {
@@ -631,13 +660,13 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #999;
+  color: #9CA3AF;
 }
 
 .summary-card-adminiot strong {
   font-size: 1rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #1F1F1F;
 }
 
 .data-table-container-adminiot {
@@ -656,20 +685,20 @@
 .data-table-adminiot td {
   padding: 0.5rem;
   text-align: left;
-  border-bottom: 1px solid #eaeaea;
+  border-bottom: 1px solid #E5E5E8;
 }
 
 .data-table-adminiot th {
-  font-weight: 500;
-  color: #666;
-  background: #fafafa;
+  font-weight: 600;
+  color: #6B6B6F;
+  background: #F8F9FA;
   position: sticky;
   top: 0;
 }
 
 .empty-data-adminiot {
   text-align: center;
-  color: #999;
+  color: #9CA3AF;
   padding: 2rem;
 }
 
@@ -681,7 +710,7 @@
 .detail-section-adminiot {
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #eaeaea;
+  border-bottom: 1px solid #E5E5E8;
 }
 
 .detail-section-adminiot:last-child {
@@ -692,23 +721,23 @@
 
 .detail-section-adminiot h4 {
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #999;
+  color: #9CA3AF;
   margin: 0 0 0.5rem 0;
 }
 
 .detail-section-adminiot p {
   font-size: 0.875rem;
   margin: 0.25rem 0;
-  color: #333;
+  color: #1F1F1F;
 }
 
 .history-item-adminiot {
-  background: #fafafa;
+  background: #F8F9FA;
   padding: 0.5rem;
-  border-radius: 4px;
+  border-radius: 8px;
   margin-bottom: 0.5rem;
 }
 
@@ -730,26 +759,29 @@
   display: block;
   font-size: 0.75rem;
   font-weight: 500;
-  margin-bottom: 0.25rem;
-  color: #666;
+  margin-bottom: 0.375rem;
+  color: #6B6B6F;
 }
 
 .form-group-adminiot input,
 .form-group-adminiot select,
 .form-group-adminiot textarea {
   width: 100%;
-  padding: 0.625rem 0.75rem;
-  border: 1px solid #eaeaea;
-  border-radius: 4px;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
   font-size: 0.875rem;
   font-family: inherit;
+  background: #F8F9FA;
+  transition: all 0.2s ease;
 }
 
 .form-group-adminiot input:focus,
 .form-group-adminiot select:focus,
 .form-group-adminiot textarea:focus {
   outline: none;
-  border-color: #999;
+  border-color: #D4D4D8;
+  background: #FFFFFF;
 }
 
 .form-row-adminiot {
@@ -772,35 +804,38 @@
   gap: 0.75rem;
   margin-top: 1.5rem;
   padding-top: 1rem;
-  border-top: 1px solid #eaeaea;
+  border-top: 1px solid #E5E5E8;
 }
 
 .cancel-btn-adminiot {
-  padding: 0.5rem 1rem;
-  background: #f5f5f5;
-  border: 1px solid #eaeaea;
-  border-radius: 4px;
+  padding: 0.625rem 1.25rem;
+  background: #F5F5F7;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
   font-size: 0.875rem;
   cursor: pointer;
-  color: #666;
+  color: #6B6B6F;
+  transition: all 0.2s ease;
 }
 
 .cancel-btn-adminiot:hover {
-  background: #eaeaea;
+  background: #EEEEF2;
+  color: #1F1F1F;
 }
 
 .save-btn-adminiot {
-  padding: 0.5rem 1rem;
-  background: #1a1a1a;
-  color: #ffffff;
+  padding: 0.625rem 1.25rem;
+  background: #1F1F1F;
+  color: #FFFFFF;
   border: none;
-  border-radius: 4px;
+  border-radius: 10px;
   font-size: 0.875rem;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .save-btn-adminiot:hover:not(:disabled) {
-  background: #333;
+  background: #3A3A3A;
 }
 
 .save-btn-adminiot:disabled {
@@ -809,43 +844,46 @@
 }
 
 .maintenance-btn-adminiot {
-  padding: 0.5rem 1rem;
-  background: #ed6c02;
-  color: #ffffff;
+  padding: 0.625rem 1.25rem;
+  background: #E65100;
+  color: #FFFFFF;
   border: none;
-  border-radius: 4px;
+  border-radius: 10px;
   font-size: 0.875rem;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .maintenance-btn-adminiot:hover:not(:disabled) {
-  background: #c55a02;
+  background: #BF360C;
 }
 
 .export-btn-adminiot {
-  padding: 0.5rem 1rem;
-  background: #27ae60;
-  color: #ffffff;
+  padding: 0.625rem 1.25rem;
+  background: #2E7D32;
+  color: #FFFFFF;
   border: none;
-  border-radius: 4px;
+  border-radius: 10px;
   font-size: 0.875rem;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  transition: all 0.2s ease;
 }
 
 .export-btn-adminiot:hover {
-  background: #219653;
+  background: #1B5E20;
 }
 
 /* ============================================
    SKELETON LOADER
    ============================================ */
 .skeleton-line-adminiot {
-  background: #f0f0f0;
-  border-radius: 4px;
-  animation: pulse-adminiot 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-iot 1.5s infinite;
+  border-radius: 8px;
 }
 
 .skeleton-line-adminiot.large-adminiot {
@@ -869,11 +907,12 @@
 }
 
 .skeleton-button-adminiot {
-  height: 38px;
+  height: 42px;
   width: 150px;
-  background: #f0f0f0;
-  border-radius: 4px;
-  animation: pulse-adminiot 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-iot 1.5s infinite;
+  border-radius: 10px;
 }
 
 .skeleton-button-adminiot.small-adminiot {
@@ -882,34 +921,37 @@
 }
 
 .skeleton-select-adminiot {
-  height: 38px;
+  height: 42px;
   width: 150px;
-  background: #f0f0f0;
-  border-radius: 4px;
-  animation: pulse-adminiot 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-iot 1.5s infinite;
+  border-radius: 10px;
 }
 
 .skeleton-search-adminiot {
-  height: 38px;
+  height: 42px;
   width: 280px;
-  background: #f0f0f0;
-  border-radius: 4px;
-  animation: pulse-adminiot 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-iot 1.5s infinite;
+  border-radius: 10px;
 }
 
 .skeleton-card-adminiot {
-  background: #ffffff;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
+  background: #FFFFFF;
+  border: 1px solid #E5E5E8;
+  border-radius: 20px;
   padding: 1rem;
 }
 
 .skeleton-badge-adminiot {
   width: 80px;
   height: 24px;
-  background: #f0f0f0;
-  border-radius: 4px;
-  animation: pulse-adminiot 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-iot 1.5s infinite;
+  border-radius: 20px;
 }
 
 .skeleton-button-group-adminiot {
@@ -918,12 +960,12 @@
   margin-top: 0.75rem;
 }
 
-@keyframes pulse-adminiot {
-  0%, 100% {
-    opacity: 1;
+@keyframes shimmer-iot {
+  0% {
+    background-position: 200% 0;
   }
-  50% {
-    opacity: 0.5;
+  100% {
+    background-position: -200% 0;
   }
 }
 
@@ -954,6 +996,7 @@
   
   .modal-content-adminiot {
     margin: 1rem;
+    padding: 1.25rem;
   }
   
   .modal-actions-adminiot {
@@ -967,4 +1010,26 @@
     flex: 1;
     text-align: center;
   }
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F0F0F0;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4D4D8;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
 }

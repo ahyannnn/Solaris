@@ -1,4 +1,4 @@
-// pages/Admin/Schedule.jsx
+// pages/Admin/AdminSchedule.adsche.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -131,24 +131,24 @@ const AdminSchedule = () => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      'scheduled': <span className="status-badge-schedule scheduled">Scheduled</span>,
-      'confirmed': <span className="status-badge-schedule confirmed">Confirmed</span>,
-      'in_progress': <span className="status-badge-schedule in-progress">In Progress</span>,
-      'completed': <span className="status-badge-schedule completed">Completed</span>,
-      'cancelled': <span className="status-badge-schedule cancelled">Cancelled</span>,
-      'rescheduled': <span className="status-badge-schedule rescheduled">Rescheduled</span>
+      'scheduled': <span className="status-badge-adsche scheduled">Scheduled</span>,
+      'confirmed': <span className="status-badge-adsche confirmed">Confirmed</span>,
+      'in_progress': <span className="status-badge-adsche in-progress">In Progress</span>,
+      'completed': <span className="status-badge-adsche completed">Completed</span>,
+      'cancelled': <span className="status-badge-adsche cancelled">Cancelled</span>,
+      'rescheduled': <span className="status-badge-adsche rescheduled">Rescheduled</span>
     };
-    return badges[status] || <span className="status-badge-schedule">{status}</span>;
+    return badges[status] || <span className="status-badge-adsche">{status}</span>;
   };
 
   const getTypeBadge = (type) => {
     const badges = {
-      'pre_assessment': <span className="type-badge-schedule pre-assessment">Pre-Assessment</span>,
-      'site_visit': <span className="type-badge-schedule site-visit">Site Visit</span>,
-      'installation': <span className="type-badge-schedule installation">Installation</span>,
-      'inspection': <span className="type-badge-schedule inspection">Inspection</span>
+      'pre_assessment': <span className="type-badge-adsche pre-assessment">Pre-Assessment</span>,
+      'site_visit': <span className="type-badge-adsche site-visit">Site Visit</span>,
+      'installation': <span className="type-badge-adsche installation">Installation</span>,
+      'inspection': <span className="type-badge-adsche inspection">Inspection</span>
     };
-    return badges[type] || <span className="type-badge-schedule">{type}</span>;
+    return badges[type] || <span className="type-badge-adsche">{type}</span>;
   };
 
   const filteredSchedules = schedules.filter(schedule => {
@@ -160,29 +160,29 @@ const AdminSchedule = () => {
   });
 
   const SkeletonLoader = () => (
-    <div className="schedule-management">
-      <div className="schedule-header">
-        <div className="skeleton-line large"></div>
-        <div className="skeleton-line medium"></div>
+    <div className="schedule-management-adsche">
+      <div className="schedule-header-adsche">
+        <div className="skeleton-line-adsche large"></div>
+        <div className="skeleton-line-adsche medium"></div>
       </div>
-      <div className="schedule-stats">
+      <div className="schedule-stats-adsche">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="stat-card skeleton-card">
-            <div className="skeleton-line small"></div>
-            <div className="skeleton-line large"></div>
+          <div key={i} className="stat-card-adsche skeleton-card-adsche">
+            <div className="skeleton-line-adsche small"></div>
+            <div className="skeleton-line-adsche large"></div>
           </div>
         ))}
       </div>
-      <div className="schedule-filters">
-        <div className="skeleton-select"></div>
-        <div className="skeleton-select"></div>
-        <div className="skeleton-search"></div>
+      <div className="schedule-filters-adsche">
+        <div className="skeleton-select-adsche"></div>
+        <div className="skeleton-select-adsche"></div>
+        <div className="skeleton-search-adsche"></div>
       </div>
-      <div className="schedule-table-container">
-        <div className="skeleton-table">
-          <div className="skeleton-table-header"></div>
+      <div className="schedule-table-container-adsche">
+        <div className="skeleton-table-adsche">
+          <div className="skeleton-table-header-adsche"></div>
           {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className="skeleton-table-row"></div>
+            <div key={i} className="skeleton-table-row-adsche"></div>
           ))}
         </div>
       </div>
@@ -199,44 +199,44 @@ const AdminSchedule = () => {
         <title>Schedule Management | Admin | Salfer Engineering</title>
       </Helmet>
 
-      <div className="schedule-management">
-        <div className="schedule-header">
+      <div className="schedule-management-adsche">
+        <div className="schedule-header-adsche">
           <h1>Schedule Management</h1>
           <p>Manage all site visits, assessments, and installation schedules</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="schedule-stats">
-          <div className="stat-card total">
-            <div className="stat-info">
-              <span className="stat-value">{stats.total}</span>
-              <span className="stat-label">Total Schedules</span>
+        <div className="schedule-stats-adsche">
+          <div className="stat-card-adsche total">
+            <div className="stat-info-adsche">
+              <span className="stat-value-adsche">{stats.total}</span>
+              <span className="stat-label-adsche">Total Schedules</span>
             </div>
           </div>
-          <div className="stat-card upcoming">
-            <div className="stat-info">
-              <span className="stat-value">{stats.upcoming}</span>
-              <span className="stat-label">Upcoming</span>
+          <div className="stat-card-adsche upcoming">
+            <div className="stat-info-adsche">
+              <span className="stat-value-adsche">{stats.upcoming}</span>
+              <span className="stat-label-adsche">Upcoming</span>
             </div>
           </div>
-          <div className="stat-card completed">
-            <div className="stat-info">
-              <span className="stat-value">{stats.completed}</span>
-              <span className="stat-label">Completed</span>
+          <div className="stat-card-adsche completed">
+            <div className="stat-info-adsche">
+              <span className="stat-value-adsche">{stats.completed}</span>
+              <span className="stat-label-adsche">Completed</span>
             </div>
           </div>
-          <div className="stat-card cancelled">
-            <div className="stat-info">
-              <span className="stat-value">{stats.cancelled}</span>
-              <span className="stat-label">Cancelled</span>
+          <div className="stat-card-adsche cancelled">
+            <div className="stat-info-adsche">
+              <span className="stat-value-adsche">{stats.cancelled}</span>
+              <span className="stat-label-adsche">Cancelled</span>
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="schedule-filters">
-          <div className="filter-group">
-            <FaFilter className="filter-icon" />
+        <div className="schedule-filters-adsche">
+          <div className="filter-group-adsche">
+            <FaFilter className="filter-icon-adsche" />
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
               <option value="all">All Status</option>
               <option value="scheduled">Scheduled</option>
@@ -246,7 +246,7 @@ const AdminSchedule = () => {
               <option value="cancelled">Cancelled</option>
             </select>
           </div>
-          <div className="filter-group">
+          <div className="filter-group-adsche">
             <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
               <option value="all">All Types</option>
               <option value="pre_assessment">Pre-Assessment</option>
@@ -255,8 +255,8 @@ const AdminSchedule = () => {
               <option value="inspection">Inspection</option>
             </select>
           </div>
-          <div className="search-group">
-            <FaSearch className="search-icon" />
+          <div className="search-group-adsche">
+            <FaSearch className="search-icon-adsche" />
             <input
               type="text"
               placeholder="Search by title or client..."
@@ -267,8 +267,8 @@ const AdminSchedule = () => {
         </div>
 
         {/* Schedules Table */}
-        <div className="schedule-table-container">
-          <table className="schedule-table">
+        <div className="schedule-table-container-adsche">
+          <table className="schedule-table-adsche">
             <thead>
               <tr>
                 <th>Title</th>
@@ -282,32 +282,32 @@ const AdminSchedule = () => {
             </thead>
             <tbody>
               {filteredSchedules.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="empty-state">
+                <tr className="empty-row-adsche">
+                  <td colSpan="7" className="empty-state-adsche">
                     <p>No schedules found</p>
                   </td>
                 </tr>
               ) : (
                 filteredSchedules.map(schedule => (
                   <tr key={schedule._id}>
-                    <td className="title-cell">
-                      <div className="schedule-title">{schedule.title}</div>
-                      <div className="schedule-ref">{schedule._id}</div>
+                    <td className="title-cell-adsche">
+                      <div className="schedule-title-adsche">{schedule.title}</div>
+                      <div className="schedule-ref-adsche">{schedule._id}</div>
                     </td>
                     <td>
-                      <div className="client-name">{schedule.clientName}</div>
-                      <div className="client-phone">{schedule.clientPhone}</div>
+                      <div className="client-name-adsche">{schedule.clientName}</div>
+                      <div className="client-phone-adsche">{schedule.clientPhone}</div>
                     </td>
                     <td>
-                      <div className="schedule-date">{formatDate(schedule.scheduledDate)}</div>
-                      <div className="schedule-time">{formatTime(schedule.scheduledTime)} - {schedule.endTime || ''}</div>
+                      <div className="schedule-date-adsche">{formatDate(schedule.scheduledDate)}</div>
+                      <div className="schedule-time-adsche">{formatTime(schedule.scheduledTime)} - {schedule.endTime || ''}</div>
                     </td>
                     <td>{schedule.assignedEngineerId?.firstName} {schedule.assignedEngineerId?.lastName || 'Unassigned'}</td>
                     <td>{getTypeBadge(schedule.type)}</td>
                     <td>{getStatusBadge(schedule.status)}</td>
-                    <td className="actions-cell">
+                    <td className="actions-cell-adsche">
                       <button 
-                        className="action-btn view"
+                        className="action-btn-adsche view"
                         onClick={() => { setSelectedSchedule(schedule); setShowDetailModal(true); }}
                         title="View Details"
                       >
@@ -315,7 +315,7 @@ const AdminSchedule = () => {
                       </button>
                       {schedule.status === 'scheduled' && (
                         <button 
-                          className="action-btn confirm"
+                          className="action-btn-adsche confirm"
                           onClick={() => handleUpdateStatus(schedule._id, 'confirmed')}
                           title="Confirm Schedule"
                         >
@@ -324,7 +324,7 @@ const AdminSchedule = () => {
                       )}
                       {schedule.status === 'confirmed' && (
                         <button 
-                          className="action-btn start"
+                          className="action-btn-adsche start"
                           onClick={() => handleUpdateStatus(schedule._id, 'in_progress')}
                           title="Start"
                         >
@@ -333,7 +333,7 @@ const AdminSchedule = () => {
                       )}
                       {schedule.status === 'in_progress' && (
                         <button 
-                          className="action-btn complete"
+                          className="action-btn-adsche complete"
                           onClick={() => handleUpdateStatus(schedule._id, 'completed')}
                           title="Mark Complete"
                         >
@@ -341,7 +341,7 @@ const AdminSchedule = () => {
                         </button>
                       )}
                       <button 
-                        className="action-btn delete"
+                        className="action-btn-adsche delete"
                         onClick={() => handleDeleteSchedule(schedule._id)}
                         title="Delete"
                       >
@@ -357,17 +357,17 @@ const AdminSchedule = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="pagination">
+          <div className="pagination-adsche">
             <button 
-              className="page-btn"
+              className="page-btn-adsche"
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
             >
               <FaChevronLeft /> Previous
             </button>
-            <span className="page-info">Page {currentPage} of {totalPages}</span>
+            <span className="page-info-adsche">Page {currentPage} of {totalPages}</span>
             <button 
-              className="page-btn"
+              className="page-btn-adsche"
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
             >
@@ -378,12 +378,12 @@ const AdminSchedule = () => {
 
         {/* Detail Modal */}
         {showDetailModal && selectedSchedule && (
-          <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
-            <div className="modal-content detail-modal" onClick={e => e.stopPropagation()}>
-              <button className="modal-close" onClick={() => setShowDetailModal(false)}>×</button>
+          <div className="modal-overlay-adsche" onClick={() => setShowDetailModal(false)}>
+            <div className="modal-content-adsche detail-modal-adsche" onClick={e => e.stopPropagation()}>
+              <button className="modal-close-adsche" onClick={() => setShowDetailModal(false)}>×</button>
               <h3>Schedule Details</h3>
               
-              <div className="detail-section">
+              <div className="detail-section-adsche">
                 <h4>Schedule Information</h4>
                 <p><strong>Title:</strong> {selectedSchedule.title}</p>
                 <p><strong>Type:</strong> {getTypeBadge(selectedSchedule.type)}</p>
@@ -393,34 +393,34 @@ const AdminSchedule = () => {
                 {selectedSchedule.duration && <p><strong>Duration:</strong> {selectedSchedule.duration} hours</p>}
               </div>
 
-              <div className="detail-section">
+              <div className="detail-section-adsche">
                 <h4>Client Information</h4>
                 <p><strong>Name:</strong> {selectedSchedule.clientName}</p>
                 <p><strong>Phone:</strong> {selectedSchedule.clientPhone}</p>
                 <p><strong>Address:</strong> {selectedSchedule.address?.houseOrBuilding} {selectedSchedule.address?.street}, {selectedSchedule.address?.barangay}, {selectedSchedule.address?.cityMunicipality}</p>
               </div>
 
-              <div className="detail-section">
+              <div className="detail-section-adsche">
                 <h4>Assigned Personnel</h4>
                 <p><strong>Engineer:</strong> {selectedSchedule.assignedEngineerId?.firstName} {selectedSchedule.assignedEngineerId?.lastName || 'Not assigned'}</p>
               </div>
 
               {selectedSchedule.description && (
-                <div className="detail-section">
+                <div className="detail-section-adsche">
                   <h4>Description</h4>
                   <p>{selectedSchedule.description}</p>
                 </div>
               )}
 
               {selectedSchedule.notes && (
-                <div className="detail-section">
+                <div className="detail-section-adsche">
                   <h4>Notes</h4>
                   <p>{selectedSchedule.notes}</p>
                 </div>
               )}
 
-              <div className="modal-actions">
-                <button className="close-btn" onClick={() => setShowDetailModal(false)}>Close</button>
+              <div className="modal-actions-adsche">
+                <button className="close-btn-adsche" onClick={() => setShowDetailModal(false)}>Close</button>
               </div>
             </div>
           </div>

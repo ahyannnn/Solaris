@@ -52,6 +52,10 @@ const adminRoutes = require('./routes/adminRoutes');
 const freeQuoteRoutes = require('./routes/freeQuoteRoutes');
 const preAssessmentRoutes = require('./routes/preAssessmentRoutes');
 const iotDataRoutes = require('./routes/iotDataRoutes');
+const scheduleRoutes = require('./routes/scheduleRoutes');
+
+// Use new routes
+app.use('/api/schedules', scheduleRoutes);
 
 // API Routes
 app.use("/api/auth", authRoutes);

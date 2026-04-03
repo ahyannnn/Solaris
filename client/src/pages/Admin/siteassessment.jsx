@@ -229,41 +229,62 @@ const SiteAssessment = () => {
     }
   };
 
-  const handleAssignEngineer = async () => {
-    if (!selectedItem || !engineerId) return;
+  // In pages/Admin/SiteAssessment.jsx - Update handleAssignEngineer
 
-    try {
-      const token = sessionStorage.getItem('token');
+const handleAssignEngineer = async () => {
+  if (!selectedItem || !engineerId) return;
 
-      if (activeTab === 'free-quotes') {
-        await axios.put(
-          `${import.meta.env.VITE_API_URL}/api/free-quotes/${selectedItem._id}/assign-engineer`,
-          { engineerId, notes: siteVisitNotes },
+  setIsSubmitting(true);
+  try {
+    const token = sessionStorage.getItem('token');
+
+    if (activeTab === 'free-quotes') {
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/free-quotes/${selectedItem._id}/assign-engineer`,
+        { engineerId, notes: siteVisitNotes },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert('Engineer assigned to free quote successfully');
+    } else {
+      // First assign engineer to pre-assessment
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}/assign-engineer`,
+        { engineerId, siteVisitDate, notes: siteVisitNotes },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // ✅ NEW: Create schedule entry
+      if (siteVisitDate) {
+        await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/schedules/create-from-preassessment`,
+          {
+            preAssessmentId: selectedItem._id,
+            engineerId: engineerId,
+            siteVisitDate: siteVisitDate,
+            siteVisitTime: '09:00' // Default time, you can add a time picker
+          },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        alert('Engineer assigned to free quote successfully');
-      } else {
-        await axios.put(
-          `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}/assign-engineer`,
-          { engineerId, siteVisitDate, notes: siteVisitNotes },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        alert('Engineer assigned successfully');
       }
 
-      setShowAssignEngineerModal(false);
-      setSelectedItem(null);
-      setEngineerId('');
-      setSiteVisitDate('');
-      setSiteVisitNotes('');
-      fetchData();
-      fetchStats();
-    } catch (error) {
-      console.error('Error assigning engineer:', error);
-      console.error('Error response:', error.response?.data);
-      alert(error.response?.data?.message || 'Failed to assign engineer');
+      alert('Engineer assigned and schedule created successfully');
     }
-  };
+
+    setShowAssignEngineerModal(false);
+    setSelectedItem(null);
+    setEngineerId('');
+    setSiteVisitDate('');
+    setSiteVisitNotes('');
+    fetchData();
+    fetchStats();
+  } catch (error) {
+    console.error('Error assigning engineer:', error);
+    console.error('Error response:', error.response?.data);
+    alert(error.response?.data?.message || 'Failed to assign engineer');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleAssignDevice = async () => {
     if (!selectedItem || !deviceId) return;

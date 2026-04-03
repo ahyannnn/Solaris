@@ -1,4 +1,4 @@
-// pages/Customer/quotation.jsx
+// pages/Customer/Quotation.cuspro.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -30,10 +30,10 @@ const Quotation = () => {
   const [paymentProof, setPaymentProof] = useState(null);
   const [paymentReference, setPaymentReference] = useState('');
   
-  // Add state for Terms Modal
+  // Terms Modal state
   const [showTermsModal, setShowTermsModal] = useState(false);
-  const [termsModalMode, setTermsModalMode] = useState('registration'); // 'simple' or 'registration'
-  const [pendingAction, setPendingAction] = useState(null); // Store pending action when terms need to be accepted
+  const [termsModalMode, setTermsModalMode] = useState('registration');
+  const [pendingAction, setPendingAction] = useState(null);
 
   // Solar Installation Request Form
   const [solarRequest, setSolarRequest] = useState({
@@ -131,7 +131,6 @@ const Quotation = () => {
           batteryType: assessment.quotation?.systemDetails?.batteryType
         })) || [];
 
-      console.log('Filtered pre-assessments:', transformedBills);
       setPreAssessments(transformedBills);
 
       const paymentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/payments`, {
@@ -159,9 +158,7 @@ const Quotation = () => {
     return Object.keys(errors).length === 0;
   };
 
-  // Modified to show terms modal first
   const handleRequestSolarClick = () => {
-    // Check if user has already accepted terms (you can store this in localStorage or user state)
     const hasAcceptedTerms = localStorage.getItem('termsAccepted') === 'true';
     
     if (!hasAcceptedTerms) {
@@ -169,7 +166,6 @@ const Quotation = () => {
       setTermsModalMode('registration');
       setShowTermsModal(true);
     } else {
-      // Proceed directly with request
       handleRequestSolar();
     }
   };
@@ -208,7 +204,6 @@ const Quotation = () => {
     }
   };
 
-  // Modified to show terms modal before payment
   const handlePayNowClick = (preAssessment) => {
     const hasAcceptedTerms = localStorage.getItem('termsAccepted') === 'true';
     
@@ -232,7 +227,6 @@ const Quotation = () => {
     setShowPaymentModal(true);
   };
 
-  // Modified to show terms modal before accepting quotation
   const handleAcceptQuotationClick = (assessment) => {
     const hasAcceptedTerms = localStorage.getItem('termsAccepted') === 'true';
     
@@ -250,12 +244,9 @@ const Quotation = () => {
     setShowAcceptModal(true);
   };
 
-  // Terms acceptance handler
   const handleTermsAccept = () => {
-    // Store that user has accepted terms
     localStorage.setItem('termsAccepted', 'true');
     
-    // Execute the pending action
     if (pendingAction) {
       if (pendingAction === 'requestSolar') {
         handleRequestSolar();
@@ -413,19 +404,19 @@ const Quotation = () => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      'pending': <span className="status-badge-quotation pending-quotation">Pending</span>,
-      'pending_payment': <span className="status-badge-quotation pending-quotation">Pending</span>,
-      'paid': <span className="status-badge-quotation paid-quotation">Paid</span>,
-      'for_verification': <span className="status-badge-quotation for-verification-quotation">For Verification</span>,
-      'processing': <span className="status-badge-quotation processing-quotation">Processing</span>,
-      'quoted': <span className="status-badge-quotation quoted-quotation">Quoted</span>,
-      'approved': <span className="status-badge-quotation approved-quotation">Approved</span>,
-      'initial_paid': <span className="status-badge-quotation initial-paid-quotation">Initial Paid</span>,
-      'in_progress': <span className="status-badge-quotation in-progress-quotation">In Progress</span>,
-      'completed': <span className="status-badge-quotation completed-quotation">Completed</span>,
-      'cancelled': <span className="status-badge-quotation cancelled-quotation">Cancelled</span>
+      'pending': <span className="status-badge-cuspro pending-cuspro">Pending</span>,
+      'pending_payment': <span className="status-badge-cuspro pending-cuspro">Pending</span>,
+      'paid': <span className="status-badge-cuspro paid-cuspro">Paid</span>,
+      'for_verification': <span className="status-badge-cuspro for-verification-cuspro">For Verification</span>,
+      'processing': <span className="status-badge-cuspro processing-cuspro">Processing</span>,
+      'quoted': <span className="status-badge-cuspro quoted-cuspro">Quoted</span>,
+      'approved': <span className="status-badge-cuspro approved-cuspro">Approved</span>,
+      'initial_paid': <span className="status-badge-cuspro initial-paid-cuspro">Initial Paid</span>,
+      'in_progress': <span className="status-badge-cuspro in-progress-cuspro">In Progress</span>,
+      'completed': <span className="status-badge-cuspro completed-cuspro">Completed</span>,
+      'cancelled': <span className="status-badge-cuspro cancelled-cuspro">Cancelled</span>
     };
-    return badges[status] || <span className="status-badge-quotation">{status}</span>;
+    return badges[status] || <span className="status-badge-cuspro">{status}</span>;
   };
 
   const formatCurrency = (amount) => {
@@ -442,184 +433,57 @@ const Quotation = () => {
     return Math.round((project.amountPaid / project.totalCost) * 100);
   };
 
-  // Skeleton Loader Components (keep as is)
-  const ProjectsSkeleton = () => (
-    <div className="projects-list-quotation">
-      {[1, 2, 3].map((item) => (
-        <div key={item} className="project-card-quotation skeleton-card-quotation">
-          <div className="project-header-quotation">
-            <div>
-              <div className="skeleton-line-quotation medium-quotation"></div>
-              <div className="skeleton-line-quotation small-quotation"></div>
-              <div className="skeleton-line-quotation tiny-quotation"></div>
-            </div>
-            <div className="skeleton-badge-quotation"></div>
-          </div>
-          <div className="project-progress-quotation">
-            <div className="skeleton-progress-quotation"></div>
-            <div className="skeleton-line-quotation small-quotation"></div>
-          </div>
-          <div className="payment-schedule-quotation">
-            <div className="skeleton-line-quotation small-quotation"></div>
-            <div className="skeleton-schedule-item-quotation"></div>
-            <div className="skeleton-schedule-item-quotation"></div>
-          </div>
-          <div className="project-actions-quotation">
-            <div className="skeleton-button-quotation"></div>
-            <div className="skeleton-button-quotation"></div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const QuotesSkeleton = () => (
-    <div className="free-quotes-list-quotation">
-      {[1, 2, 3].map((item) => (
-        <div key={item} className="quote-card-quotation skeleton-card-quotation">
-          <div className="card-header-quotation">
-            <div>
-              <div className="skeleton-line-quotation medium-quotation"></div>
-              <div className="skeleton-line-quotation small-quotation"></div>
-              <div className="skeleton-line-quotation tiny-quotation"></div>
-            </div>
-            <div className="skeleton-badge-quotation"></div>
-          </div>
-          <div className="card-actions-quotation">
-            <div className="skeleton-button-quotation"></div>
-            <div className="skeleton-button-quotation"></div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const PreAssessmentsSkeleton = () => (
-    <div className="pre-assessments-list-quotation">
-      {[1, 2, 3].map((item) => (
-        <div key={item} className="bill-card-quotation skeleton-card-quotation">
-          <div className="card-header-quotation">
-            <div>
-              <div className="skeleton-line-quotation medium-quotation"></div>
-              <div className="skeleton-line-quotation small-quotation"></div>
-              <div className="skeleton-line-quotation tiny-quotation"></div>
-            </div>
-            <div className="skeleton-badge-quotation"></div>
-          </div>
-          <div className="card-amount-quotation">
-            <div className="skeleton-line-quotation small-quotation"></div>
-            <div className="skeleton-line-quotation medium-quotation"></div>
-          </div>
-          <div className="card-actions-quotation">
-            <div className="skeleton-button-quotation"></div>
-            <div className="skeleton-button-quotation"></div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const PaymentsSkeleton = () => (
-    <div className="payments-list-quotation">
-      <div className="payments-table-quotation">
-        <div className="skeleton-table-quotation">
-          <div className="skeleton-table-header-quotation">
-            <div className="skeleton-line-quotation small-quotation"></div>
-            <div className="skeleton-line-quotation small-quotation"></div>
-            <div className="skeleton-line-quotation small-quotation"></div>
-            <div className="skeleton-line-quotation small-quotation"></div>
-            <div className="skeleton-line-quotation small-quotation"></div>
-          </div>
-          {[1, 2, 3].map((item) => (
-            <div key={item} className="skeleton-table-row-quotation">
-              <div className="skeleton-line-quotation tiny-quotation"></div>
-              <div className="skeleton-line-quotation tiny-quotation"></div>
-              <div className="skeleton-line-quotation tiny-quotation"></div>
-              <div className="skeleton-line-quotation tiny-quotation"></div>
-              <div className="skeleton-badge-quotation"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const MainSkeleton = () => (
-    <div className="billing-container-quotation">
-      <div className="billing-header-quotation">
-        <div>
-          <div className="skeleton-line-quotation large-quotation"></div>
-          <div className="skeleton-line-quotation medium-quotation"></div>
-        </div>
-        <div className="skeleton-button-quotation large-quotation"></div>
-      </div>
-
-      <div className="billing-tabs-quotation">
-        {[1, 2, 3, 4].map((item) => (
-          <div key={item} className="skeleton-tab-quotation"></div>
-        ))}
-      </div>
-
-      {activeTab === 'projects' && <ProjectsSkeleton />}
-      {activeTab === 'free-quotes' && <QuotesSkeleton />}
-      {activeTab === 'pre-assessments' && <PreAssessmentsSkeleton />}
-      {activeTab === 'payments' && <PaymentsSkeleton />}
-    </div>
-  );
-
   if (loading) {
     return (
-      <>
-        <Helmet>
-          <title>My Projects & Bills | Salfer Engineering</title>
-        </Helmet>
-        <MainSkeleton />
-      </>
+      <div className="cuspro-quotation-container">
+        <div className="cuspro-loading-state">
+          <div className="cuspro-spinner"></div>
+          <p>Loading your solar journey...</p>
+        </div>
+      </div>
     );
   }
 
   return (
     <>
       <Helmet>
-        <title>My Projects & Bills | Salfer Engineering</title>
+        <title>My Solar Journey | Salfer Engineering</title>
       </Helmet>
 
-      <div className="billing-container-quotation">
-        <div className="billing-header-quotation">
-          <div>
+      <div className="cuspro-quotation-container">
+        {/* Header Card */}
+        <div className="cuspro-header-card">
+          <div className="cuspro-header-content">
             <h1>My Solar Journey</h1>
             <p>Track your projects, view quotes, and manage payments</p>
           </div>
-          <button
-            className="request-solar-btn-quotation"
-            onClick={handleRequestSolarClick} // Updated to use terms check
-          >
+          <button className="cuspro-request-btn" onClick={handleRequestSolarClick}>
             Request Installation
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="billing-tabs-quotation">
+        {/* Tab Navigation */}
+        <div className="cuspro-tabs">
           <button
-            className={`tab-btn-quotation ${activeTab === 'projects' ? 'active-quotation' : ''}`}
+            className={`cuspro-tab ${activeTab === 'projects' ? 'active' : ''}`}
             onClick={() => setActiveTab('projects')}
           >
             My Projects
           </button>
           <button
-            className={`tab-btn-quotation ${activeTab === 'free-quotes' ? 'active-quotation' : ''}`}
+            className={`cuspro-tab ${activeTab === 'free-quotes' ? 'active' : ''}`}
             onClick={() => setActiveTab('free-quotes')}
           >
             Free Quotes
           </button>
           <button
-            className={`tab-btn-quotation ${activeTab === 'pre-assessments' ? 'active-quotation' : ''}`}
+            className={`cuspro-tab ${activeTab === 'pre-assessments' ? 'active' : ''}`}
             onClick={() => setActiveTab('pre-assessments')}
           >
             Pre-Assessment
           </button>
           <button
-            className={`tab-btn-quotation ${activeTab === 'payments' ? 'active-quotation' : ''}`}
+            className={`cuspro-tab ${activeTab === 'payments' ? 'active' : ''}`}
             onClick={() => setActiveTab('payments')}
           >
             Payment History
@@ -628,64 +492,84 @@ const Quotation = () => {
 
         {/* Projects Tab */}
         {activeTab === 'projects' && (
-          <div className="projects-list-quotation">
+          <div className="cuspro-projects-section">
             {projects.length === 0 ? (
-              <div className="empty-state-quotation">
+              <div className="cuspro-empty-state">
+                <div className="cuspro-empty-icon">📋</div>
                 <h3>No projects yet</h3>
                 <p>Once you accept a quotation, your project will appear here.</p>
-                <button className="btn-primary-quotation" onClick={() => setActiveTab('pre-assessments')}>
+                <button className="cuspro-primary-btn" onClick={() => setActiveTab('pre-assessments')}>
                   View Your Quotations
                 </button>
               </div>
             ) : (
               projects.map(project => (
-                <div key={project._id} className="project-card-quotation">
-                  <div className="project-header-quotation">
-                    <div>
+                <div key={project._id} className="cuspro-project-card">
+                  <div className="cuspro-project-header">
+                    <div className="cuspro-project-info">
                       <h3>{project.projectName || project.projectReference}</h3>
-                      <p className="project-reference-quotation">{project.projectReference}</p>
-                      <p className="project-system-quotation">{project.systemSize}kW Solar System | {project.systemType}</p>
+                      <p className="cuspro-project-ref">{project.projectReference}</p>
+                      <p className="cuspro-project-system">{project.systemSize}kW • {project.systemType === 'grid-tie' ? 'Grid-Tie' : project.systemType === 'hybrid' ? 'Hybrid' : 'Off-Grid'}</p>
                     </div>
                     {getStatusBadge(project.status)}
                   </div>
 
-                  <div className="project-progress-quotation">
-                    <div className="progress-bar-quotation">
-                      <div className="progress-fill-quotation" style={{ width: `${getProjectProgress(project)}%` }}></div>
+                  {/* Progress Bar */}
+                  <div className="cuspro-progress-section">
+                    <div className="cuspro-progress-header">
+                      <span>Project Progress</span>
+                      <span className="cuspro-progress-percent">{getProjectProgress(project)}%</span>
                     </div>
-                    <div className="progress-info-quotation">
+                    <div className="cuspro-progress-bar">
+                      <div className="cuspro-progress-fill" style={{ width: `${getProjectProgress(project)}%` }}></div>
+                    </div>
+                    <div className="cuspro-progress-stats">
                       <span>Paid: {formatCurrency(project.amountPaid)}</span>
                       <span>Total: {formatCurrency(project.totalCost)}</span>
-                      <span>{getProjectProgress(project)}% Complete</span>
                     </div>
                   </div>
 
-                  <div className="payment-schedule-quotation">
+                  {/* Payment Schedule Table */}
+                  <div className="cuspro-payment-table-wrapper">
                     <h4>Payment Schedule</h4>
-                    <div className="schedule-items-quotation">
-                      {project.paymentSchedule?.map((payment, idx) => (
-                        <div key={idx} className={`schedule-item-quotation ${payment.status}`}>
-                          <span className="schedule-type-quotation">{payment.type}</span>
-                          <span className="schedule-amount-quotation">{formatCurrency(payment.amount)}</span>
-                          <span className="schedule-status-quotation">
-                            {payment.status === 'paid' ? 'Paid' : payment.status === 'overdue' ? 'Overdue' : 'Pending'}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                    <table className="cuspro-payment-table">
+                      <thead>
+                        <tr>
+                          <th>Payment Type</th>
+                          <th>Amount</th>
+                          <th>Due Date</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {project.paymentSchedule?.map((payment, idx) => (
+                          <tr key={idx}>
+                            <td className="cuspro-payment-type-cell">
+                              {payment.type === 'initial' ? 'Initial Deposit (30%)' :
+                               payment.type === 'progress' ? 'Progress Payment (40%)' :
+                               'Final Payment (30%)'}
+                            </td>
+                            <td>{formatCurrency(payment.amount)}</td>
+                            <td>{payment.dueDate ? new Date(payment.dueDate).toLocaleDateString() : 'TBD'}</td>
+                            <td>
+                              <span className={`cuspro-payment-status ${payment.status}`}>
+                                {payment.status === 'paid' ? '✓ Paid' :
+                                 payment.status === 'overdue' ? 'Overdue' : 'Pending'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
 
-                  <div className="project-actions-quotation">
-                    <button className="action-btn-quotation" onClick={() => handleViewDetails(project, 'project')}>
+                  <div className="cuspro-project-actions">
+                    <button className="cuspro-secondary-btn" onClick={() => handleViewDetails(project, 'project')}>
                       View Details
                     </button>
-                    <button className="action-btn-quotation">
-                      Contract
-                    </button>
+                    <button className="cuspro-secondary-btn">Contract</button>
                     {(project.status === 'approved' || project.status === 'initial_paid') && (
-                      <button className="action-btn-quotation pay-quotation">
-                        Make Payment
-                      </button>
+                      <button className="cuspro-primary-btn-small">Make Payment</button>
                     )}
                   </div>
                 </div>
@@ -696,32 +580,33 @@ const Quotation = () => {
 
         {/* Free Quotes Tab */}
         {activeTab === 'free-quotes' && (
-          <div className="free-quotes-list-quotation">
+          <div className="cuspro-quotes-section">
             {freeQuotes.length === 0 ? (
-              <div className="empty-state-quotation">
+              <div className="cuspro-empty-state">
+                <div className="cuspro-empty-icon">📄</div>
                 <h3>No free quotes yet</h3>
                 <p>Use our solar estimator to get a free quote</p>
-                <button className="btn-primary-quotation" onClick={() => navigate('/app/customer/book-assessment')}>
+                <button className="cuspro-primary-btn" onClick={() => navigate('/app/customer/book-assessment')}>
                   Get Free Quote
                 </button>
               </div>
             ) : (
               freeQuotes.map(quote => (
-                <div key={quote._id} className="quote-card-quotation">
-                  <div className="card-header-quotation">
+                <div key={quote._id} className="cuspro-quote-card">
+                  <div className="cuspro-quote-header">
                     <div>
                       <h3>{quote.quotationReference}</h3>
                       <p>Requested: {new Date(quote.requestedAt).toLocaleDateString()}</p>
-                      <p>{quote.propertyType} property | {quote.desiredCapacity || 'Custom'} system</p>
+                      <p>{quote.propertyType} • {quote.desiredCapacity || 'Custom'} system</p>
                     </div>
                     {getStatusBadge(quote.status)}
                   </div>
-                  <div className="card-actions-quotation">
-                    <button className="action-btn-quotation" onClick={() => handleViewDetails(quote, 'quote')}>
+                  <div className="cuspro-quote-actions">
+                    <button className="cuspro-secondary-btn" onClick={() => handleViewDetails(quote, 'quote')}>
                       View Details
                     </button>
                     {quote.quotationFile && (
-                      <button className="action-btn-quotation" onClick={() => window.open(quote.quotationFile, '_blank')}>
+                      <button className="cuspro-secondary-btn" onClick={() => window.open(quote.quotationFile, '_blank')}>
                         View PDF
                       </button>
                     )}
@@ -732,14 +617,15 @@ const Quotation = () => {
           </div>
         )}
 
-        {/* Pre-Assessments Tab - Updated with terms check on buttons */}
+        {/* Pre-Assessments Tab */}
         {activeTab === 'pre-assessments' && (
-          <div className="pre-assessments-list-quotation">
+          <div className="cuspro-assessments-section">
             {preAssessments.length === 0 ? (
-              <div className="empty-state-quotation">
+              <div className="cuspro-empty-state">
+                <div className="cuspro-empty-icon">🔍</div>
                 <h3>No pre-assessments yet</h3>
                 <p>Once your booking is approved and payment is completed, you'll see the quotation here.</p>
-                <button className="btn-primary-quotation" onClick={() => navigate('/app/customer/book-assessment')}>
+                <button className="cuspro-primary-btn" onClick={() => navigate('/app/customer/book-assessment')}>
                   Book Assessment
                 </button>
               </div>
@@ -759,8 +645,8 @@ const Quotation = () => {
                 const alreadyProjectCreated = assessment.assessmentStatus === 'quotation_accepted' || projectExists;
 
                 return (
-                  <div key={assessment.id} className="bill-card-quotation">
-                    <div className="card-header-quotation">
+                  <div key={assessment.id} className="cuspro-assessment-card">
+                    <div className="cuspro-assessment-header">
                       <div>
                         <h3>{assessment.id}</h3>
                         <p>{assessment.description}</p>
@@ -768,70 +654,52 @@ const Quotation = () => {
                       </div>
                       {getStatusBadge(assessment.status)}
                     </div>
-                    <div className="card-amount-quotation">
+                    <div className="cuspro-assessment-amount">
                       <span>Amount Due</span>
                       <strong>{formatCurrency(assessment.amount)}</strong>
                     </div>
-                    <div className="card-actions-quotation">
+                    <div className="cuspro-assessment-actions">
                       {(assessment.status === 'pending' && assessment.paymentStatus !== 'for_verification' && assessment.paymentStatus !== 'paid') && (
-                        <button className="action-btn-quotation pay-quotation" onClick={() => handlePayNowClick(assessment)}>
+                        <button className="cuspro-pay-btn" onClick={() => handlePayNowClick(assessment)}>
                           Make Payment
                         </button>
                       )}
 
                       {assessment.paymentStatus === 'for_verification' && (
-                        <span className="payment-status-quotation">
-                          For Verification
-                        </span>
+                        <span className="cuspro-verification-badge">For Verification</span>
                       )}
 
                       {assessment.paymentStatus === 'paid' && (
                         <>
                           {hasQuotation && !alreadyProjectCreated && (
                             <>
-                              <button
-                                className="action-btn-quotation"
-                                onClick={() => handleViewQuotation(assessment)}
-                                style={{ backgroundColor: '#f97316', color: 'white' }}
-                              >
+                              <button className="cuspro-secondary-btn" onClick={() => handleViewQuotation(assessment)}>
                                 View Quotation
                               </button>
-                              <button
-                                className="action-btn-quotation"
-                                onClick={() => handleDownloadQuotation(assessment)}
-                                disabled={pdfLoading}
-                              >
+                              <button className="cuspro-secondary-btn" onClick={() => handleDownloadQuotation(assessment)} disabled={pdfLoading}>
                                 {pdfLoading ? 'Downloading...' : 'Download PDF'}
                               </button>
-                              <button
-                                className="action-btn-quotation"
-                                onClick={() => handleAcceptQuotationClick(assessment)}
-                                style={{ backgroundColor: '#27ae60', color: 'white' }}
-                              >
+                              <button className="cuspro-accept-btn" onClick={() => handleAcceptQuotationClick(assessment)}>
                                 Accept Quotation
                               </button>
                             </>
                           )}
 
                           {alreadyProjectCreated && (
-                            <button
-                              className="action-btn-quotation"
-                              onClick={() => setActiveTab('projects')}
-                              style={{ backgroundColor: '#3498db', color: 'white' }}
-                            >
+                            <button className="cuspro-view-project-btn" onClick={() => setActiveTab('projects')}>
                               View Project
                             </button>
                           )}
                         </>
                       )}
 
-                      <button className="action-btn-quotation" onClick={() => handleViewDetails(assessment, 'assessment')}>
+                      <button className="cuspro-secondary-btn" onClick={() => handleViewDetails(assessment, 'assessment')}>
                         View Details
                       </button>
                     </div>
 
                     {(assessment.status === 'pending' && assessment.paymentStatus !== 'for_verification' && assessment.paymentStatus !== 'paid') && (
-                      <div className="walkin-note-quotation">
+                      <div className="cuspro-walkin-note">
                         <small>For walk-in payment, please visit our office at Purok 2, Masaya, San Jose, Camarines Sur</small>
                       </div>
                     )}
@@ -842,23 +710,25 @@ const Quotation = () => {
           </div>
         )}
 
-        {/* Payments Tab */}
+        {/* Payments Tab - Table Format */}
         {activeTab === 'payments' && (
-          <div className="payments-list-quotation">
+          <div className="cuspro-payments-section">
             {payments.length === 0 ? (
-              <div className="empty-state-quotation">
+              <div className="cuspro-empty-state">
+                <div className="cuspro-empty-icon">💰</div>
                 <h3>No payment history</h3>
                 <p>Your payments will appear here</p>
               </div>
             ) : (
-              <div className="payments-table-quotation">
-                <table>
+              <div className="cuspro-payments-table-wrapper">
+                <table className="cuspro-payments-table">
                   <thead>
                     <tr>
                       <th>Date</th>
-                      <th>Invoice</th>
+                      <th>Invoice Number</th>
+                      <th>Description</th>
                       <th>Amount</th>
-                      <th>Method</th>
+                      <th>Payment Method</th>
                       <th>Status</th>
                     </tr>
                   </thead>
@@ -866,9 +736,14 @@ const Quotation = () => {
                     {payments.map(payment => (
                       <tr key={payment.id}>
                         <td>{new Date(payment.date).toLocaleDateString()}</td>
-                        <td>{payment.invoiceId}</td>
-                        <td className="amount-quotation">{formatCurrency(payment.amount)}</td>
-                        <td>{payment.method}</td>
+                        <td className="cuspro-invoice-cell">{payment.invoiceId}</td>
+                        <td>{payment.description || 'Pre Assessment Fee'}</td>
+                        <td className="cuspro-amount-cell">{formatCurrency(payment.amount)}</td>
+                        <td className="cuspro-method-cell">
+                          <span className={`cuspro-method-badge ${payment.method}`}>
+                            {payment.method === 'gcash' ? 'GCash' : payment.method === 'cash' ? 'Cash' : payment.method}
+                          </span>
+                        </td>
                         <td>{getStatusBadge(payment.status)}</td>
                       </tr>
                     ))}
@@ -879,6 +754,7 @@ const Quotation = () => {
           </div>
         )}
 
+        {/* Modals remain the same structure but with updated class names */}
         {/* Terms Modal */}
         <TermsModal
           isOpen={showTermsModal}
@@ -891,39 +767,33 @@ const Quotation = () => {
           title="Terms and Conditions"
         />
 
-        {/* Accept Quotation Confirmation Modal */}
+        {/* Accept Quotation Modal */}
         {showAcceptModal && acceptingItem && (
-          <div className="modal-overlay-quotation" onClick={() => setShowAcceptModal(false)}>
-            <div className="modal-content-quotation" onClick={e => e.stopPropagation()}>
-              <button className="modal-close-quotation" onClick={() => setShowAcceptModal(false)}>×</button>
+          <div className="cuspro-modal-overlay" onClick={() => setShowAcceptModal(false)}>
+            <div className="cuspro-modal" onClick={e => e.stopPropagation()}>
+              <button className="cuspro-modal-close" onClick={() => setShowAcceptModal(false)}>×</button>
               <h3>Accept Quotation</h3>
               <p>Are you sure you want to accept this quotation?</p>
 
-              <div className="quotation-summary-quotation">
+              <div className="cuspro-quotation-summary">
                 <h4>Quotation Summary</h4>
-                <div className="summary-row">
+                <div className="cuspro-summary-row">
                   <span>System Size:</span>
                   <strong>{acceptingItem.systemSize || 'To be determined'} kWp</strong>
                 </div>
-                <div className="summary-row">
+                <div className="cuspro-summary-row">
                   <span>System Type:</span>
                   <strong>{acceptingItem.systemType || 'Grid-Tie'}</strong>
                 </div>
-                <div className="summary-row">
+                <div className="cuspro-summary-row">
                   <span>Total Cost:</span>
                   <strong>{formatCurrency(acceptingItem.totalCost || acceptingItem.amount)}</strong>
                 </div>
               </div>
 
-              <div className="modal-actions-quotation">
-                <button className="cancel-btn-quotation" onClick={() => setShowAcceptModal(false)}>
-                  Cancel
-                </button>
-                <button
-                  className="submit-btn-quotation"
-                  onClick={confirmAcceptQuotation}
-                  disabled={acceptingLoading}
-                >
+              <div className="cuspro-modal-actions">
+                <button className="cuspro-cancel-btn" onClick={() => setShowAcceptModal(false)}>Cancel</button>
+                <button className="cuspro-confirm-btn" onClick={confirmAcceptQuotation} disabled={acceptingLoading}>
                   {acceptingLoading ? 'Processing...' : 'Confirm'}
                 </button>
               </div>
@@ -933,98 +803,69 @@ const Quotation = () => {
 
         {/* Payment Modal */}
         {showPaymentModal && selectedItem && (
-          <div className="modal-overlay-quotation" onClick={closeModal}>
-            <div className="modal-content-quotation" onClick={e => e.stopPropagation()}>
-              <button className="modal-close-quotation" onClick={closeModal}>×</button>
+          <div className="cuspro-modal-overlay" onClick={closeModal}>
+            <div className="cuspro-modal" onClick={e => e.stopPropagation()}>
+              <button className="cuspro-modal-close" onClick={closeModal}>×</button>
               <h3>Make Payment</h3>
-              <div className="modal-body-quotation">
-                <div className="invoice-summary-quotation">
-                  <p><strong>Invoice:</strong> {selectedItem.invoiceNumber || selectedItem.id}</p>
-                  <p><strong>Amount:</strong> {formatCurrency(selectedItem.amount)}</p>
-                  <p><strong>Due Date:</strong> {selectedItem.dueDate}</p>
-                </div>
-
-                {/* Payment Method Selection */}
-                <div className="payment-method-section-quotation">
-                  <h4>Select Payment Method</h4>
-                  <div className="payment-methods-quotation">
-                    <div
-                      className={`payment-method-option-quotation ${paymentMethod === 'gcash' ? 'selected-quotation' : ''}`}
-                      onClick={() => setPaymentMethod('gcash')}
-                    >
-                      <input type="radio" name="paymentMethod" checked={paymentMethod === 'gcash'} onChange={() => {}} />
-                      <div className="payment-method-info-quotation">
-                        <strong>GCash</strong>
-                        <small>Pay via GCash mobile wallet</small>
-                      </div>
-                    </div>
-
-                    <div
-                      className={`payment-method-option-quotation ${paymentMethod === 'cash' ? 'selected-quotation' : ''}`}
-                      onClick={() => setPaymentMethod('cash')}
-                    >
-                      <input type="radio" name="paymentMethod" checked={paymentMethod === 'cash'} onChange={() => {}} />
-                      <div className="payment-method-info-quotation">
-                        <strong>Cash</strong>
-                        <small>Pay in cash at our office</small>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* GCash Payment Details */}
-                {paymentMethod === 'gcash' && (
-                  <>
-                    <div className="gcash-details-quotation">
-                      <h4>GCash Details</h4>
-                      <p>Number: <strong>0917XXXXXXX</strong></p>
-                      <p>Name: <strong>SALFER ENGINEERING CORP</strong></p>
-                      <p>Amount: <strong>{formatCurrency(selectedItem.amount)}</strong></p>
-                    </div>
-
-                    <div className="upload-section-quotation">
-                      <label>Reference Number *</label>
-                      <input
-                        type="text"
-                        value={paymentReference}
-                        onChange={(e) => setPaymentReference(e.target.value)}
-                        placeholder="Enter GCash reference number"
-                      />
-                    </div>
-
-                    <div className="upload-section-quotation">
-                      <label>Upload Payment Screenshot *</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setPaymentProof(e.target.files[0])}
-                      />
-                      {paymentProof && <small>Selected: {paymentProof.name}</small>}
-                    </div>
-                  </>
-                )}
-
-                {/* Cash Payment Details */}
-                {paymentMethod === 'cash' && (
-                  <div className="cash-details-quotation">
-                    <div className="info-box-quotation">
-                      <div>
-                        <strong>Office Address</strong>
-                        <p>Purok 2, Masaya, San Jose, Camarines Sur</p>
-                        <p>Business Hours: Monday-Friday, 8:00 AM - 5:00 PM</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
+              <div className="cuspro-payment-summary">
+                <p><strong>Invoice:</strong> {selectedItem.invoiceNumber || selectedItem.id}</p>
+                <p><strong>Amount:</strong> {formatCurrency(selectedItem.amount)}</p>
+                <p><strong>Due Date:</strong> {selectedItem.dueDate}</p>
               </div>
 
-              <div className="modal-actions-quotation">
-                <button className="cancel-btn-quotation" onClick={closeModal}>Cancel</button>
-                <button
-                  className="submit-btn-quotation"
-                  onClick={handlePaymentSubmit}
-                  disabled={isSubmitting || !paymentMethod}
-                >
+              <div className="cuspro-payment-methods">
+                <h4>Select Payment Method</h4>
+                <div className="cuspro-method-options">
+                  <div className={`cuspro-method-option ${paymentMethod === 'gcash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('gcash')}>
+                    <input type="radio" checked={paymentMethod === 'gcash'} onChange={() => {}} />
+                    <div>
+                      <strong>GCash</strong>
+                      <small>Pay via GCash mobile wallet</small>
+                    </div>
+                  </div>
+                  <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
+                    <input type="radio" checked={paymentMethod === 'cash'} onChange={() => {}} />
+                    <div>
+                      <strong>Cash</strong>
+                      <small>Pay in cash at our office</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {paymentMethod === 'gcash' && (
+                <>
+                  <div className="cuspro-gcash-details">
+                    <h4>GCash Details</h4>
+                    <p>Number: <strong>0917XXXXXXX</strong></p>
+                    <p>Name: <strong>SALFER ENGINEERING CORP</strong></p>
+                    <p>Amount: <strong>{formatCurrency(selectedItem.amount)}</strong></p>
+                  </div>
+                  <div className="cuspro-form-group">
+                    <label>Reference Number *</label>
+                    <input type="text" value={paymentReference} onChange={(e) => setPaymentReference(e.target.value)} placeholder="Enter GCash reference number" />
+                  </div>
+                  <div className="cuspro-form-group">
+                    <label>Upload Payment Screenshot *</label>
+                    <input type="file" accept="image/*" onChange={(e) => setPaymentProof(e.target.files[0])} />
+                    {paymentProof && <small>Selected: {paymentProof.name}</small>}
+                  </div>
+                </>
+              )}
+
+              {paymentMethod === 'cash' && (
+                <div className="cuspro-cash-details">
+                  <div className="cuspro-info-box">
+                    <strong>Office Address</strong>
+                    <p>Purok 2, Masaya, San Jose, Camarines Sur</p>
+                    <p>Business Hours: Monday-Friday, 8:00 AM - 5:00 PM</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="cuspro-modal-actions">
+                <button className="cuspro-cancel-btn" onClick={closeModal}>Cancel</button>
+                <button className="cuspro-confirm-btn" onClick={handlePaymentSubmit} disabled={isSubmitting || !paymentMethod}>
                   {isSubmitting ? 'Processing...' : `Pay with ${paymentMethod === 'gcash' ? 'GCash' : 'Cash'}`}
                 </button>
               </div>
@@ -1034,47 +875,37 @@ const Quotation = () => {
 
         {/* Details Modal */}
         {showDetailsModal && detailsItem && (
-          <div className="modal-overlay-quotation" onClick={() => setShowDetailsModal(false)}>
-            <div className="modal-content-quotation" onClick={e => e.stopPropagation()}>
-              <button className="modal-close-quotation" onClick={() => setShowDetailsModal(false)}>×</button>
+          <div className="cuspro-modal-overlay" onClick={() => setShowDetailsModal(false)}>
+            <div className="cuspro-modal cuspro-details-modal" onClick={e => e.stopPropagation()}>
+              <button className="cuspro-modal-close" onClick={() => setShowDetailsModal(false)}>×</button>
               <h3>Details Information</h3>
 
-              <div className="details-content-quotation">
+              <div className="cuspro-details-content">
                 {detailsItem.quotationReference ? (
                   <>
-                    <div className="details-section-quotation">
+                    <div className="cuspro-details-section">
                       <h4>Quote Information</h4>
                       <p><strong>Reference Number:</strong> {detailsItem.quotationReference}</p>
                       <p><strong>Request Date:</strong> {new Date(detailsItem.requestedAt).toLocaleDateString()}</p>
                       <p><strong>Status:</strong> {detailsItem.status}</p>
                     </div>
-                    <div className="details-section-quotation">
+                    <div className="cuspro-details-section">
                       <h4>Details</h4>
                       <p><strong>Property Type:</strong> {detailsItem.propertyType}</p>
                       <p><strong>Monthly Bill:</strong> {formatCurrency(detailsItem.monthlyBill)}</p>
                       <p><strong>Desired Capacity:</strong> {detailsItem.desiredCapacity || 'Not specified'}</p>
                     </div>
-                    <div className="details-section-quotation">
-                      <h4>Address</h4>
-                      <p>{detailsItem.address?.houseOrBuilding} {detailsItem.address?.street}</p>
-                      <p>{detailsItem.address?.barangay}, {detailsItem.address?.cityMunicipality}</p>
-                      <p>{detailsItem.address?.province} {detailsItem.address?.zipCode}</p>
-                    </div>
                   </>
                 ) : detailsItem.bookingReference ? (
                   <>
-                    <div className="details-section-quotation">
+                    <div className="cuspro-details-section">
                       <h4>Booking Information</h4>
                       <p><strong>Invoice Number:</strong> {detailsItem.id}</p>
                       <p><strong>Booking Reference:</strong> {detailsItem.bookingReference}</p>
                       <p><strong>Booked Date:</strong> {new Date(detailsItem.bookedAt).toLocaleDateString()}</p>
-                      <p><strong>Status:</strong> {
-                        detailsItem.paymentStatus === 'paid' ? 'Paid' :
-                          detailsItem.paymentStatus === 'for_verification' ? 'For Verification' :
-                            'Pending'
-                      }</p>
+                      <p><strong>Status:</strong> {detailsItem.paymentStatus === 'paid' ? 'Paid' : detailsItem.paymentStatus === 'for_verification' ? 'For Verification' : 'Pending'}</p>
                     </div>
-                    <div className="details-section-quotation">
+                    <div className="cuspro-details-section">
                       <h4>Assessment Details</h4>
                       <p><strong>Property Type:</strong> {detailsItem.propertyType}</p>
                       <p><strong>Desired Capacity:</strong> {detailsItem.desiredCapacity || 'Not specified'}</p>
@@ -1082,26 +913,22 @@ const Quotation = () => {
                       <p><strong>Preferred Date:</strong> {new Date(detailsItem.preferredDate).toLocaleDateString()}</p>
                       <p><strong>Amount:</strong> {formatCurrency(detailsItem.amount)}</p>
                     </div>
-                    <div className="details-section-quotation">
-                      <h4>Address</h4>
-                      <p>{detailsItem.address}</p>
-                    </div>
                   </>
                 ) : (
                   <>
-                    <div className="details-section-quotation">
+                    <div className="cuspro-details-section">
                       <h4>Project Information</h4>
                       <p><strong>Project Name:</strong> {detailsItem.projectName || detailsItem.projectReference}</p>
                       <p><strong>Project Reference:</strong> {detailsItem.projectReference}</p>
                       <p><strong>Status:</strong> {detailsItem.status}</p>
                     </div>
-                    <div className="details-section-quotation">
+                    <div className="cuspro-details-section">
                       <h4>System Details</h4>
                       <p><strong>System Size:</strong> {detailsItem.systemSize}kW</p>
                       <p><strong>System Type:</strong> {detailsItem.systemType}</p>
                       <p><strong>Property Type:</strong> {detailsItem.propertyType}</p>
                     </div>
-                    <div className="details-section-quotation">
+                    <div className="cuspro-details-section">
                       <h4>Financial</h4>
                       <p><strong>Total Cost:</strong> {formatCurrency(detailsItem.totalCost)}</p>
                       <p><strong>Amount Paid:</strong> {formatCurrency(detailsItem.amountPaid)}</p>
@@ -1111,8 +938,8 @@ const Quotation = () => {
                 )}
               </div>
 
-              <div className="modal-actions-quotation">
-                <button className="cancel-btn-quotation" onClick={() => setShowDetailsModal(false)}>Close</button>
+              <div className="cuspro-modal-actions">
+                <button className="cuspro-cancel-btn" onClick={() => setShowDetailsModal(false)}>Close</button>
               </div>
             </div>
           </div>
@@ -1120,14 +947,14 @@ const Quotation = () => {
 
         {/* Request Installation Modal */}
         {showRequestModal && (
-          <div className="modal-overlay-quotation" onClick={() => setShowRequestModal(false)}>
-            <div className="modal-content-quotation" onClick={e => e.stopPropagation()}>
-              <button className="modal-close-quotation" onClick={() => setShowRequestModal(false)}>×</button>
+          <div className="cuspro-modal-overlay" onClick={() => setShowRequestModal(false)}>
+            <div className="cuspro-modal" onClick={e => e.stopPropagation()}>
+              <button className="cuspro-modal-close" onClick={() => setShowRequestModal(false)}>×</button>
               <h3>Request Solar Installation</h3>
-              <p className="modal-subtitle-quotation">Get a detailed quote for your solar panel system installation</p>
+              <p className="cuspro-modal-subtitle">Get a detailed quote for your solar panel system installation</p>
 
-              <div className="modal-body-quotation">
-                <div className="form-group-quotation">
+              <div className="cuspro-request-form">
+                <div className="cuspro-form-group">
                   <label>Desired System Size *</label>
                   <select value={solarRequest.systemSize} onChange={(e) => setSolarRequest({ ...solarRequest, systemSize: e.target.value })}>
                     <option value="">Select system size</option>
@@ -1137,10 +964,10 @@ const Quotation = () => {
                     <option value="10kW">10kW (For large homes / small business)</option>
                     <option value="Custom">Custom (I'll specify in notes)</option>
                   </select>
-                  {requestErrors.systemSize && <span className="error-text-quotation">{requestErrors.systemSize}</span>}
+                  {requestErrors.systemSize && <span className="cuspro-error-text">{requestErrors.systemSize}</span>}
                 </div>
 
-                <div className="form-group-quotation">
+                <div className="cuspro-form-group">
                   <label>System Type</label>
                   <select value={solarRequest.systemType} onChange={(e) => setSolarRequest({ ...solarRequest, systemType: e.target.value })}>
                     <option value="grid-tie">Grid-tie (No battery)</option>
@@ -1149,29 +976,30 @@ const Quotation = () => {
                   </select>
                 </div>
 
-                <div className="form-group-quotation">
+                <div className="cuspro-form-group">
                   <label>Property Type *</label>
                   <select value={solarRequest.propertyType} onChange={(e) => setSolarRequest({ ...solarRequest, propertyType: e.target.value })}>
                     <option value="residential">Residential</option>
                     <option value="commercial">Commercial</option>
                     <option value="industrial">Industrial</option>
                   </select>
-                  {requestErrors.propertyType && <span className="error-text-quotation">{requestErrors.propertyType}</span>}
+                  {requestErrors.propertyType && <span className="cuspro-error-text">{requestErrors.propertyType}</span>}
                 </div>
 
-                <div className="form-group-quotation">
+                <div className="cuspro-form-group">
                   <label>Additional Notes (Optional)</label>
                   <textarea rows="4" value={solarRequest.notes} onChange={(e) => setSolarRequest({ ...solarRequest, notes: e.target.value })} placeholder="Tell us about your specific needs, roof type, or any questions..." />
                 </div>
 
-                <div className="info-box-quotation">
-                  <div><strong>What happens next?</strong><p>Our solar specialists will review your request and provide a detailed quotation within 2-3 business days.</p></div>
+                <div className="cuspro-info-box">
+                  <strong>What happens next?</strong>
+                  <p>Our solar specialists will review your request and provide a detailed quotation within 2-3 business days.</p>
                 </div>
               </div>
 
-              <div className="modal-actions-quotation">
-                <button className="cancel-btn-quotation" onClick={() => setShowRequestModal(false)}>Cancel</button>
-                <button className="submit-btn-quotation" onClick={handleRequestSolar} disabled={isSubmitting}>
+              <div className="cuspro-modal-actions">
+                <button className="cuspro-cancel-btn" onClick={() => setShowRequestModal(false)}>Cancel</button>
+                <button className="cuspro-confirm-btn" onClick={handleRequestSolar} disabled={isSubmitting}>
                   {isSubmitting ? 'Submitting...' : 'Submit Request'}
                 </button>
               </div>
@@ -1179,13 +1007,7 @@ const Quotation = () => {
           </div>
         )}
 
-        {/* Toast Notification */}
-        <ToastNotification
-          show={toast.show}
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-        />
+        <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} />
       </div>
     </>
   );

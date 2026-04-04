@@ -1,0 +1,527 @@
+/* systemConfig.adsycon.css - Admin System Configuration Styles */
+
+/* ============================================
+   CONTAINER
+   ============================================ */
+.system-config-container-adsycon {
+  margin: 0 auto;
+  padding: 1.5rem;
+  background: #F5F5F7;
+  min-height: calc(100vh - 70px);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.config-header-adsycon {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #E5E5E8;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.config-header-adsycon h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: #1F1F1F;
+  letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.config-header-adsycon p {
+  font-size: 0.875rem;
+  color: #6B6B6F;
+  margin: 0;
+}
+
+.header-actions-adsycon {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-reset-adsycon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: #F5F5F7;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6B6B6F;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-reset-adsycon:hover:not(:disabled) {
+  background: #EEEEF2;
+  color: #1F1F1F;
+}
+
+.btn-reset-adsycon:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   TABS - LIKE USER MANAGEMENT
+   ============================================ */
+.config-tabs-adsycon {
+  display: flex;
+  gap: 0.5rem;
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 0.25rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #E5E5E8;
+  width: fit-content;
+  flex-wrap: wrap;
+}
+
+.tab-btn-adsycon {
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6B6B6F;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tab-btn-adsycon:hover {
+  background: #F5F5F7;
+  color: #1F1F1F;
+}
+
+.tab-btn-adsycon.active-adsycon {
+  background: #1F1F1F;
+  color: #FFFFFF;
+}
+
+/* ============================================
+   CONFIG CONTENT
+   ============================================ */
+.config-content-adsycon {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid #E5E5E8;
+  overflow: hidden;
+}
+
+.config-section-adsycon {
+  padding: 1.5rem;
+}
+
+.config-section-adsycon h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 0 0 1.25rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #E5E5E8;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.config-section-adsycon h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 1.25rem 0 0.75rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Form Elements */
+.form-group-adsycon {
+  margin-bottom: 1rem;
+}
+
+.form-group-adsycon label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6B6B6F;
+  margin-bottom: 0.375rem;
+}
+
+.form-group-adsycon input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background: #F8F9FA;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #1F1F1F;
+  transition: all 0.2s ease;
+}
+
+.form-group-adsycon input:focus {
+  outline: none;
+  border-color: #D4D4D8;
+  background: #FFFFFF;
+}
+
+.input-group-adsycon {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.currency-adsycon {
+  padding: 0.625rem 0.875rem;
+  background: #F5F5F7;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #6B6B6F;
+}
+
+.input-group-adsycon input {
+  flex: 1;
+}
+
+.form-row-adsycon {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .form-row-adsycon {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Config Actions */
+.config-actions-adsycon {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E5E5E8;
+}
+
+.btn-save-adsycon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  background: #1F1F1F;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-save-adsycon:hover:not(:disabled) {
+  background: #3A3A3A;
+}
+
+/* ============================================
+   MODAL
+   ============================================ */
+.modal-overlay-adsycon {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  padding: 1rem;
+}
+
+.modal-content-adsycon {
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 1.75rem;
+  max-width: 500px;
+  width: 100%;
+  border: 1px solid #E5E5E8;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.modal-content-adsycon h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 0 0 0.5rem 0;
+}
+
+.modal-content-adsycon p {
+  font-size: 0.875rem;
+  color: #6B6B6F;
+  margin-bottom: 1rem;
+}
+
+.modal-content-adsycon textarea {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background: #F8F9FA;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #1F1F1F;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 1rem;
+}
+
+.modal-content-adsycon textarea:focus {
+  outline: none;
+  border-color: #D4D4D8;
+  background: #FFFFFF;
+}
+
+.modal-actions-adsycon {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.btn-cancel-adsycon {
+  padding: 0.625rem 1.25rem;
+  background: #F5F5F7;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #6B6B6F;
+}
+
+.btn-cancel-adsycon:hover {
+  background: #EEEEF2;
+  color: #1F1F1F;
+}
+
+.btn-confirm-adsycon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: #1F1F1F;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-confirm-adsycon:hover:not(:disabled) {
+  background: #3A3A3A;
+}
+
+.btn-confirm-adsycon:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinner-adsycon {
+  animation: spin-adsycon 1s linear infinite;
+}
+
+@keyframes spin-adsycon {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   SKELETON LOADER
+   ============================================ */
+.skeleton-line-adsycon {
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-adsycon 1.5s infinite;
+  border-radius: 8px;
+}
+
+.skeleton-line-adsycon.large-adsycon {
+  width: 250px;
+  height: 32px;
+  margin-bottom: 8px;
+}
+
+.skeleton-line-adsycon.medium-adsycon {
+  width: 200px;
+  height: 20px;
+  margin-bottom: 8px;
+}
+
+.skeleton-button-adsycon {
+  height: 42px;
+  width: 150px;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-adsycon 1.5s infinite;
+  border-radius: 10px;
+}
+
+.skeleton-tab-adsycon {
+  height: 36px;
+  width: 100px;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-adsycon 1.5s infinite;
+  border-radius: 8px;
+}
+
+.skeleton-card-adsycon {
+  background: #FFFFFF;
+  border: 1px solid #E5E5E8;
+  border-radius: 20px;
+  padding: 1.5rem;
+}
+
+.skeleton-input-adsycon {
+  height: 42px;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-adsycon 1.5s infinite;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+@keyframes shimmer-adsycon {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1024px) {
+  .config-tabs-adsycon {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  
+  .tab-btn-adsycon {
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .system-config-container-adsycon {
+    padding: 1rem;
+  }
+  
+  .config-header-adsycon {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .header-actions-adsycon {
+    width: 100%;
+  }
+  
+  .btn-reset-adsycon {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .config-section-adsycon {
+    padding: 1rem;
+  }
+  
+  .modal-content-adsycon {
+    padding: 1.25rem;
+  }
+  
+  .modal-actions-adsycon {
+    flex-direction: column;
+  }
+  
+  .btn-cancel-adsycon,
+  .btn-confirm-adsycon {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .config-header-adsycon h1 {
+    font-size: 1.5rem;
+  }
+  
+  .tab-btn-adsycon {
+    font-size: 0.75rem;
+    padding: 0.5rem;
+  }
+  
+  .config-section-adsycon h3 {
+    font-size: 0.875rem;
+  }
+  
+  .config-section-adsycon h4 {
+    font-size: 0.75rem;
+  }
+  
+  .form-group-adsycon label {
+    font-size: 0.7rem;
+  }
+  
+  .form-group-adsycon input {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F0F0F0;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4D4D8;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}

@@ -1,4 +1,4 @@
-// pages/Admin/SystemConfig.jsx
+// pages/Admin/SystemConfig.adsycon.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -26,7 +26,7 @@ import {
   FaBatteryFull
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
-//import '../../styles/Admin/systemConfig.css';
+import '../../styles/Admin/systemconfig.css';
 
 const SystemConfig = () => {
   const { toast, showToast, hideToast } = useToast();
@@ -127,14 +127,41 @@ const SystemConfig = () => {
     setConfig(newConfig);
   };
 
-  if (loading) {
-    return (
-      <div className="system-config-container">
-        <div className="loading-container">
-          <FaSpinner className="spinner" />
-          <p>Loading configuration...</p>
+  // Skeleton Loader Component
+  const SkeletonLoader = () => (
+    <div className="system-config-container-adsycon">
+      <div className="config-header-adsycon">
+        <div className="skeleton-line-adsycon large-adsycon"></div>
+        <div className="skeleton-line-adsycon medium-adsycon"></div>
+        <div className="skeleton-button-adsycon"></div>
+      </div>
+      <div className="config-tabs-adsycon">
+        <div className="skeleton-tab-adsycon"></div>
+        <div className="skeleton-tab-adsycon"></div>
+        <div className="skeleton-tab-adsycon"></div>
+        <div className="skeleton-tab-adsycon"></div>
+        <div className="skeleton-tab-adsycon"></div>
+      </div>
+      <div className="config-content-adsycon">
+        <div className="config-section-adsycon skeleton-card-adsycon">
+          <div className="skeleton-line-adsycon medium-adsycon"></div>
+          <div className="skeleton-input-adsycon"></div>
+          <div className="skeleton-input-adsycon"></div>
+          <div className="skeleton-input-adsycon"></div>
+          <div className="skeleton-button-adsycon"></div>
         </div>
       </div>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <>
+        <Helmet>
+          <title>System Configuration | Admin | Salfer Engineering</title>
+        </Helmet>
+        <SkeletonLoader />
+      </>
     );
   }
 
@@ -144,45 +171,47 @@ const SystemConfig = () => {
         <title>System Configuration | Admin | Salfer Engineering</title>
       </Helmet>
 
-      <div className="system-config-container">
-        <div className="config-header">
-          <h1><FaCog /> System Configuration</h1>
-          <p>Manage system parameters, prices, and calculation settings</p>
-          <div className="header-actions">
-            <button className="btn-reset" onClick={handleReset} disabled={saving}>
+      <div className="system-config-container-adsycon">
+        <div className="config-header-adsycon">
+          <div>
+            <h1><FaCog /> System Configuration</h1>
+            <p>Manage system parameters, prices, and calculation settings</p>
+          </div>
+          <div className="header-actions-adsycon">
+            <button className="btn-reset-adsycon" onClick={handleReset} disabled={saving}>
               <FaUndo /> Reset to Defaults
             </button>
           </div>
         </div>
 
-        <div className="config-tabs">
-          <button className={`tab ${activeTab === 'prices' ? 'active' : ''}`} onClick={() => setActiveTab('prices')}>
+        <div className="config-tabs-adsycon">
+          <button className={`tab-btn-adsycon ${activeTab === 'prices' ? 'active-adsycon' : ''}`} onClick={() => setActiveTab('prices')}>
             <FaMoneyBillWave /> Prices & Fees
           </button>
-          <button className={`tab ${activeTab === 'calculations' ? 'active' : ''}`} onClick={() => setActiveTab('calculations')}>
+          <button className={`tab-btn-adsycon ${activeTab === 'calculations' ? 'active-adsycon' : ''}`} onClick={() => setActiveTab('calculations')}>
             <FaCalculator /> Calculations
           </button>
-          <button className={`tab ${activeTab === 'financial' ? 'active' : ''}`} onClick={() => setActiveTab('financial')}>
+          <button className={`tab-btn-adsycon ${activeTab === 'financial' ? 'active-adsycon' : ''}`} onClick={() => setActiveTab('financial')}>
             <FaChartLine /> Financial
           </button>
-          <button className={`tab ${activeTab === 'taxes' ? 'active' : ''}`} onClick={() => setActiveTab('taxes')}>
+          <button className={`tab-btn-adsycon ${activeTab === 'taxes' ? 'active-adsycon' : ''}`} onClick={() => setActiveTab('taxes')}>
             <FaPercentage /> Taxes & Fees
           </button>
-          <button className={`tab ${activeTab === 'thresholds' ? 'active' : ''}`} onClick={() => setActiveTab('thresholds')}>
+          <button className={`tab-btn-adsycon ${activeTab === 'thresholds' ? 'active-adsycon' : ''}`} onClick={() => setActiveTab('thresholds')}>
             <FaChartBar /> Thresholds
           </button>
         </div>
 
-        <div className="config-content">
+        <div className="config-content-adsycon">
           {/* Prices & Fees Tab */}
           {activeTab === 'prices' && config && (
-            <div className="config-section">
+            <div className="config-section-adsycon">
               <h3><FaMoneyBillWave /> Assessment & Equipment Prices</h3>
               
-              <div className="config-group">
+              <div className="form-group-adsycon">
                 <label>Pre-Assessment Fee</label>
-                <div className="input-group">
-                  <span className="currency">₱</span>
+                <div className="input-group-adsycon">
+                  <span className="currency-adsycon">₱</span>
                   <input
                     type="number"
                     value={config.assessmentFee || 1500}
@@ -192,7 +221,7 @@ const SystemConfig = () => {
               </div>
 
               <h4><FaBolt /> Solar Panel Prices</h4>
-              <div className="config-group">
+              <div className="form-group-adsycon">
                 <label>Price per Watt (₱)</label>
                 <input
                   type="number"
@@ -203,8 +232,8 @@ const SystemConfig = () => {
               </div>
 
               <h4><FaBolt /> Inverter Prices</h4>
-              <div className="config-row">
-                <div className="config-group">
+              <div className="form-row-adsycon">
+                <div className="form-group-adsycon">
                   <label>Grid-Tie Inverter (₱)</label>
                   <input
                     type="number"
@@ -212,7 +241,7 @@ const SystemConfig = () => {
                     onChange={(e) => updateNestedValue('equipmentPrices.inverter.gridTie', parseFloat(e.target.value))}
                   />
                 </div>
-                <div className="config-group">
+                <div className="form-group-adsycon">
                   <label>Hybrid Inverter (₱)</label>
                   <input
                     type="number"
@@ -220,7 +249,7 @@ const SystemConfig = () => {
                     onChange={(e) => updateNestedValue('equipmentPrices.inverter.hybrid', parseFloat(e.target.value))}
                   />
                 </div>
-                <div className="config-group">
+                <div className="form-group-adsycon">
                   <label>Off-Grid Inverter (₱)</label>
                   <input
                     type="number"
@@ -231,8 +260,8 @@ const SystemConfig = () => {
               </div>
 
               <h4><FaBatteryFull /> Battery Prices</h4>
-              <div className="config-row">
-                <div className="config-group">
+              <div className="form-row-adsycon">
+                <div className="form-group-adsycon">
                   <label>Lead Acid Battery (₱)</label>
                   <input
                     type="number"
@@ -240,7 +269,7 @@ const SystemConfig = () => {
                     onChange={(e) => updateNestedValue('equipmentPrices.battery.leadAcid', parseFloat(e.target.value))}
                   />
                 </div>
-                <div className="config-group">
+                <div className="form-group-adsycon">
                   <label>Lithium Battery (₱)</label>
                   <input
                     type="number"
@@ -251,8 +280,8 @@ const SystemConfig = () => {
               </div>
 
               <h4><FaWrench /> Labor Rates</h4>
-              <div className="config-row">
-                <div className="config-group">
+              <div className="form-row-adsycon">
+                <div className="form-group-adsycon">
                   <label>Per kW Installation (₱)</label>
                   <input
                     type="number"
@@ -260,7 +289,7 @@ const SystemConfig = () => {
                     onChange={(e) => updateNestedValue('laborRates.perKw', parseFloat(e.target.value))}
                   />
                 </div>
-                <div className="config-group">
+                <div className="form-group-adsycon">
                   <label>Per Panel Installation (₱)</label>
                   <input
                     type="number"
@@ -268,7 +297,7 @@ const SystemConfig = () => {
                     onChange={(e) => updateNestedValue('laborRates.perPanel', parseFloat(e.target.value))}
                   />
                 </div>
-                <div className="config-group">
+                <div className="form-group-adsycon">
                   <label>Minimum Labor Fee (₱)</label>
                   <input
                     type="number"
@@ -278,8 +307,8 @@ const SystemConfig = () => {
                 </div>
               </div>
 
-              <div className="config-actions">
-                <button className="btn-save" onClick={() => handleSave({ assessmentFee: config.assessmentFee, equipmentPrices: config.equipmentPrices, laborRates: config.laborRates })}>
+              <div className="config-actions-adsycon">
+                <button className="btn-save-adsycon" onClick={() => handleSave({ assessmentFee: config.assessmentFee, equipmentPrices: config.equipmentPrices, laborRates: config.laborRates })}>
                   <FaSave /> Save Changes
                 </button>
               </div>
@@ -288,11 +317,11 @@ const SystemConfig = () => {
 
           {/* Calculations Tab */}
           {activeTab === 'calculations' && config && (
-            <div className="config-section">
+            <div className="config-section-adsycon">
               <h3><FaCalculator /> System Calculation Parameters</h3>
               
-              <div className="config-row">
-                <div className="config-group">
+              <div className="form-row-adsycon">
+                <div className="form-group-adsycon">
                   <label>Average Sun Hours (hours/day)</label>
                   <input
                     type="number"
@@ -301,7 +330,7 @@ const SystemConfig = () => {
                     onChange={(e) => updateNestedValue('systemCalculations.averageSunHours', parseFloat(e.target.value))}
                   />
                 </div>
-                <div className="config-group">
+                <div className="form-group-adsycon">
                   <label>System Losses (%)</label>
                   <input
                     type="number"
@@ -312,8 +341,8 @@ const SystemConfig = () => {
                 </div>
               </div>
 
-              <div className="config-row">
-                <div className="config-group">
+              <div className="form-row-adsycon">
+                <div className="form-group-adsycon">
                   <label>Derating Factor</label>
                   <input
                     type="number"
@@ -322,7 +351,7 @@ const SystemConfig = () => {
                     onChange={(e) => updateNestedValue('systemCalculations.deratingFactor', parseFloat(e.target.value))}
                   />
                 </div>
-                <div className="config-group">
+                <div className="form-group-adsycon">
                   <label>Panel Efficiency (%)</label>
                   <input
                     type="number"
@@ -333,8 +362,8 @@ const SystemConfig = () => {
                 </div>
               </div>
 
-              <div className="config-row">
-                <div className="config-group">
+              <div className="form-row-adsycon">
+                <div className="form-group-adsycon">
                   <label>Inverter Efficiency (%)</label>
                   <input
                     type="number"
@@ -343,7 +372,7 @@ const SystemConfig = () => {
                     onChange={(e) => updateNestedValue('systemCalculations.inverterEfficiency', parseFloat(e.target.value) / 100)}
                   />
                 </div>
-                <div className="config-group">
+                <div className="form-group-adsycon">
                   <label>Battery Efficiency (%)</label>
                   <input
                     type="number"
@@ -354,8 +383,8 @@ const SystemConfig = () => {
                 </div>
               </div>
 
-              <div className="config-actions">
-                <button className="btn-save" onClick={() => handleSave({ systemCalculations: config.systemCalculations })}>
+              <div className="config-actions-adsycon">
+                <button className="btn-save-adsycon" onClick={() => handleSave({ systemCalculations: config.systemCalculations })}>
                   <FaSave /> Save Changes
                 </button>
               </div>
@@ -364,11 +393,11 @@ const SystemConfig = () => {
 
           {/* Financial Tab */}
           {activeTab === 'financial' && config && (
-            <div className="config-section">
+            <div className="config-section-adsycon">
               <h3><FaChartLine /> Financial Parameters</h3>
               
-              <div className="config-row">
-                <div className="config-group">
+              <div className="form-row-adsycon">
+                <div className="form-group-adsycon">
                   <label>Electricity Rate (₱/kWh)</label>
                   <input
                     type="number"
@@ -377,7 +406,7 @@ const SystemConfig = () => {
                     onChange={(e) => updateNestedValue('financialParams.electricityRate', parseFloat(e.target.value))}
                   />
                 </div>
-                <div className="config-group">
+                <div className="form-group-adsycon">
                   <label>Inflation Rate (%)</label>
                   <input
                     type="number"
@@ -388,8 +417,8 @@ const SystemConfig = () => {
                 </div>
               </div>
 
-              <div className="config-row">
-                <div className="config-group">
+              <div className="form-row-adsycon">
+                <div className="form-group-adsycon">
                   <label>Discount Rate (%)</label>
                   <input
                     type="number"
@@ -398,7 +427,7 @@ const SystemConfig = () => {
                     onChange={(e) => updateNestedValue('financialParams.discountRate', parseFloat(e.target.value) / 100)}
                   />
                 </div>
-                <div className="config-group">
+                <div className="form-group-adsycon">
                   <label>System Lifespan (years)</label>
                   <input
                     type="number"
@@ -408,8 +437,8 @@ const SystemConfig = () => {
                 </div>
               </div>
 
-              <div className="config-row">
-                <div className="config-group">
+              <div className="form-row-adsycon">
+                <div className="form-group-adsycon">
                   <label>Warranty Period (years)</label>
                   <input
                     type="number"
@@ -417,7 +446,7 @@ const SystemConfig = () => {
                     onChange={(e) => updateNestedValue('financialParams.warrantyPeriod', parseInt(e.target.value))}
                   />
                 </div>
-                <div className="config-group">
+                <div className="form-group-adsycon">
                   <label>Payback Target (years)</label>
                   <input
                     type="number"
@@ -427,8 +456,8 @@ const SystemConfig = () => {
                 </div>
               </div>
 
-              <div className="config-actions">
-                <button className="btn-save" onClick={() => handleSave({ financialParams: config.financialParams })}>
+              <div className="config-actions-adsycon">
+                <button className="btn-save-adsycon" onClick={() => handleSave({ financialParams: config.financialParams })}>
                   <FaSave /> Save Changes
                 </button>
               </div>
@@ -437,11 +466,11 @@ const SystemConfig = () => {
 
           {/* Taxes & Fees Tab */}
           {activeTab === 'taxes' && config && (
-            <div className="config-section">
+            <div className="config-section-adsycon">
               <h3><FaPercentage /> Taxes and Additional Fees</h3>
               
-              <div className="config-row">
-                <div className="config-group">
+              <div className="form-row-adsycon">
+                <div className="form-group-adsycon">
                   <label>VAT Rate (%)</label>
                   <input
                     type="number"
@@ -450,7 +479,7 @@ const SystemConfig = () => {
                     onChange={(e) => updateNestedValue('taxesAndFees.vatRate', parseFloat(e.target.value) / 100)}
                   />
                 </div>
-                <div className="config-group">
+                <div className="form-group-adsycon">
                   <label>Withholding Tax (%)</label>
                   <input
                     type="number"
@@ -461,8 +490,8 @@ const SystemConfig = () => {
                 </div>
               </div>
 
-              <div className="config-row">
-                <div className="config-group">
+              <div className="form-row-adsycon">
+                <div className="form-group-adsycon">
                   <label>Permit Fee (₱)</label>
                   <input
                     type="number"
@@ -470,7 +499,7 @@ const SystemConfig = () => {
                     onChange={(e) => updateNestedValue('taxesAndFees.permitFee', parseFloat(e.target.value))}
                   />
                 </div>
-                <div className="config-group">
+                <div className="form-group-adsycon">
                   <label>Net Metering Fee (₱)</label>
                   <input
                     type="number"
@@ -480,8 +509,8 @@ const SystemConfig = () => {
                 </div>
               </div>
 
-              <div className="config-actions">
-                <button className="btn-save" onClick={() => handleSave({ taxesAndFees: config.taxesAndFees })}>
+              <div className="config-actions-adsycon">
+                <button className="btn-save-adsycon" onClick={() => handleSave({ taxesAndFees: config.taxesAndFees })}>
                   <FaSave /> Save Changes
                 </button>
               </div>
@@ -490,11 +519,11 @@ const SystemConfig = () => {
 
           {/* Thresholds Tab */}
           {activeTab === 'thresholds' && config && (
-            <div className="config-section">
+            <div className="config-section-adsycon">
               <h3><FaChartBar /> System Size Thresholds (kW)</h3>
               
-              <div className="config-row">
-                <div className="config-group">
+              <div className="form-row-adsycon">
+                <div className="form-group-adsycon">
                   <label>Small System (≤ kW)</label>
                   <input
                     type="number"
@@ -502,7 +531,7 @@ const SystemConfig = () => {
                     onChange={(e) => updateNestedValue('thresholds.smallSystem', parseFloat(e.target.value))}
                   />
                 </div>
-                <div className="config-group">
+                <div className="form-group-adsycon">
                   <label>Medium System (≤ kW)</label>
                   <input
                     type="number"
@@ -512,8 +541,8 @@ const SystemConfig = () => {
                 </div>
               </div>
 
-              <div className="config-row">
-                <div className="config-group">
+              <div className="form-row-adsycon">
+                <div className="form-group-adsycon">
                   <label>Large System (≤ kW)</label>
                   <input
                     type="number"
@@ -521,7 +550,7 @@ const SystemConfig = () => {
                     onChange={(e) => updateNestedValue('thresholds.largeSystem', parseFloat(e.target.value))}
                   />
                 </div>
-                <div className="config-group">
+                <div className="form-group-adsycon">
                   <label>Max Recommended System (kW)</label>
                   <input
                     type="number"
@@ -531,8 +560,8 @@ const SystemConfig = () => {
                 </div>
               </div>
 
-              <div className="config-actions">
-                <button className="btn-save" onClick={() => handleSave({ thresholds: config.thresholds })}>
+              <div className="config-actions-adsycon">
+                <button className="btn-save-adsycon" onClick={() => handleSave({ thresholds: config.thresholds })}>
                   <FaSave /> Save Changes
                 </button>
               </div>
@@ -542,8 +571,8 @@ const SystemConfig = () => {
 
         {/* Reason Modal */}
         {showReasonModal && (
-          <div className="modal-overlay" onClick={() => setShowReasonModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adsycon" onClick={() => setShowReasonModal(false)}>
+            <div className="modal-content-adsycon" onClick={e => e.stopPropagation()}>
               <h3>Reason for Update</h3>
               <p>Please provide a reason for these configuration changes:</p>
               <textarea
@@ -552,10 +581,10 @@ const SystemConfig = () => {
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="e.g., Price adjustment due to market changes, Updated calculation parameters, etc."
               />
-              <div className="modal-actions">
-                <button className="btn-cancel" onClick={() => setShowReasonModal(false)}>Cancel</button>
-                <button className="btn-confirm" onClick={confirmSave} disabled={saving}>
-                  {saving ? <FaSpinner className="spinner" /> : <FaCheckCircle />} Confirm Update
+              <div className="modal-actions-adsycon">
+                <button className="btn-cancel-adsycon" onClick={() => setShowReasonModal(false)}>Cancel</button>
+                <button className="btn-confirm-adsycon" onClick={confirmSave} disabled={saving}>
+                  {saving ? <FaSpinner className="spinner-adsycon" /> : <FaCheckCircle />} Confirm Update
                 </button>
               </div>
             </div>

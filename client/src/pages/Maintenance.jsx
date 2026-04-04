@@ -1,4 +1,4 @@
-// pages/Maintenance.jsx
+// pages/Maintenance.adminsc.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -98,14 +98,27 @@ const Maintenance = () => {
     }
   };
 
+  // Skeleton Loader
+  const SkeletonLoader = () => (
+    <div className="maintenance-container-adminsc">
+      <div className="maintenance-content-adminsc">
+        <div className="skeleton-icon-adminsc"></div>
+        <div className="skeleton-line-adminsc large-adminsc"></div>
+        <div className="skeleton-line-adminsc medium-adminsc"></div>
+        <div className="skeleton-line-adminsc small-adminsc"></div>
+        <div className="skeleton-button-adminsc"></div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="maintenance-container">
-        <div className="maintenance-content">
-          <FaSpinner className="spinner" />
-          <p>Loading...</p>
-        </div>
-      </div>
+      <>
+        <Helmet>
+          <title>Maintenance | Salfer Engineering</title>
+        </Helmet>
+        <SkeletonLoader />
+      </>
     );
   }
 
@@ -115,60 +128,60 @@ const Maintenance = () => {
         <title>{maintenanceData.title} | Salfer Engineering</title>
       </Helmet>
 
-      <div className="maintenance-container">
-        <div className="maintenance-content">
-          <div className="maintenance-icon">
+      <div className="maintenance-container-adminsc">
+        <div className="maintenance-content-adminsc">
+          <div className="maintenance-icon-adminsc">
             <FaTools />
           </div>
           
           <h1>{maintenanceData.title}</h1>
-          <p className="maintenance-message">{maintenanceData.message}</p>
+          <p className="maintenance-message-adminsc">{maintenanceData.message}</p>
           
-          <div className="maintenance-details">
-            <div className="detail-item">
+          <div className="maintenance-details-adminsc">
+            <div className="detail-item-adminsc">
               <FaClock />
               <span>Estimated Duration: {maintenanceData.estimatedDuration}</span>
             </div>
           </div>
           
           {maintenanceData.showCountdown && timeRemaining && (
-            <div className="countdown-timer">
+            <div className="countdown-timer-adminsc">
               <h3>Expected to be back in:</h3>
-              <div className="timer">
-                <div className="timer-unit">
-                  <span className="timer-value">{String(timeRemaining.hours).padStart(2, '0')}</span>
-                  <span className="timer-label">Hours</span>
+              <div className="timer-adminsc">
+                <div className="timer-unit-adminsc">
+                  <span className="timer-value-adminsc">{String(timeRemaining.hours).padStart(2, '0')}</span>
+                  <span className="timer-label-adminsc">Hours</span>
                 </div>
-                <div className="timer-separator">:</div>
-                <div className="timer-unit">
-                  <span className="timer-value">{String(timeRemaining.minutes).padStart(2, '0')}</span>
-                  <span className="timer-label">Minutes</span>
+                <div className="timer-separator-adminsc">:</div>
+                <div className="timer-unit-adminsc">
+                  <span className="timer-value-adminsc">{String(timeRemaining.minutes).padStart(2, '0')}</span>
+                  <span className="timer-label-adminsc">Minutes</span>
                 </div>
-                <div className="timer-separator">:</div>
-                <div className="timer-unit">
-                  <span className="timer-value">{String(timeRemaining.seconds).padStart(2, '0')}</span>
-                  <span className="timer-label">Seconds</span>
+                <div className="timer-separator-adminsc">:</div>
+                <div className="timer-unit-adminsc">
+                  <span className="timer-value-adminsc">{String(timeRemaining.seconds).padStart(2, '0')}</span>
+                  <span className="timer-label-adminsc">Seconds</span>
                 </div>
               </div>
             </div>
           )}
           
           {maintenanceData.showProgressBar && (
-            <div className="progress-section">
-              <div className="progress-bar-container">
-                <div className="progress-bar" style={{ width: `${progress}%` }}></div>
+            <div className="progress-section-adminsc">
+              <div className="progress-bar-container-adminsc">
+                <div className="progress-bar-adminsc" style={{ width: `${progress}%` }}></div>
               </div>
-              <p className="progress-text">{Math.round(progress)}% Complete</p>
+              <p className="progress-text-adminsc">{Math.round(progress)}% Complete</p>
             </div>
           )}
           
-          <div className="contact-info">
+          <div className="contact-info-adminsc">
             <h3>Need immediate assistance?</h3>
-            <div className="contact-details">
-              <a href={`mailto:${maintenanceData.contactEmail}`}>
+            <div className="contact-details-adminsc">
+              <a href={`mailto:${maintenanceData.contactEmail}`} className="contact-link-adminsc">
                 <FaEnvelope /> {maintenanceData.contactEmail}
               </a>
-              <a href={`tel:${maintenanceData.contactPhone}`}>
+              <a href={`tel:${maintenanceData.contactPhone}`} className="contact-link-adminsc">
                 <FaPhone /> {maintenanceData.contactPhone}
               </a>
             </div>
@@ -177,21 +190,21 @@ const Maintenance = () => {
           {(maintenanceData.socialLinks?.facebook || 
             maintenanceData.socialLinks?.twitter || 
             maintenanceData.socialLinks?.instagram) && (
-            <div className="social-links">
+            <div className="social-links-adminsc">
               <h3>Follow us for updates:</h3>
-              <div className="social-icons">
+              <div className="social-icons-adminsc">
                 {maintenanceData.socialLinks.facebook && (
-                  <a href={maintenanceData.socialLinks.facebook} target="_blank" rel="noopener noreferrer">
+                  <a href={maintenanceData.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="social-icon-adminsc facebook-adminsc">
                     <FaFacebook />
                   </a>
                 )}
                 {maintenanceData.socialLinks.twitter && (
-                  <a href={maintenanceData.socialLinks.twitter} target="_blank" rel="noopener noreferrer">
+                  <a href={maintenanceData.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="social-icon-adminsc twitter-adminsc">
                     <FaTwitter />
                   </a>
                 )}
                 {maintenanceData.socialLinks.instagram && (
-                  <a href={maintenanceData.socialLinks.instagram} target="_blank" rel="noopener noreferrer">
+                  <a href={maintenanceData.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="social-icon-adminsc instagram-adminsc">
                     <FaInstagram />
                   </a>
                 )}
@@ -199,7 +212,7 @@ const Maintenance = () => {
             </div>
           )}
           
-          <div className="refresh-message">
+          <div className="refresh-message-adminsc">
             <small>Please refresh the page after maintenance is complete.</small>
           </div>
         </div>

@@ -50,7 +50,9 @@ import {
   FaSun,
   FaThermometerHalf,
   FaTint,
-  FaChartBar
+  FaChartBar,
+  FaBolt,
+  FaBatteryFull
 } from 'react-icons/fa';
 import '../../styles/Engineer/siteassessment.css';
 
@@ -77,6 +79,11 @@ const MyAssessments = () => {
   const [includeIoTData, setIncludeIoTData] = useState(true);
   const [analyzingData, setAnalyzingData] = useState(false);
   const [iotAnalysis, setIotAnalysis] = useState(null);
+  
+  // Dynamic options from system config (read-only for engineers)
+  const [panelTypes, setPanelTypes] = useState([]);
+  const [inverterTypes, setInverterTypes] = useState([]);
+  const [batteryTypes, setBatteryTypes] = useState([]);
 
   // Free Quote Form State
   const [freeQuoteForm, setFreeQuoteForm] = useState({
@@ -85,6 +92,7 @@ const MyAssessments = () => {
     systemSize: '',
     systemType: 'grid-tie',
     panelsNeeded: '',
+    panelType: '',
     inverterType: '',
     batteryType: '',
     installationCost: 0,
@@ -116,6 +124,7 @@ const MyAssessments = () => {
     systemSize: '',
     systemType: 'grid-tie',
     panelsNeeded: '',
+    panelType: '',
     inverterType: '',
     batteryType: '',
     installationCost: 0,
@@ -181,6 +190,88 @@ const MyAssessments = () => {
     { value: 'hybrid', label: 'Hybrid System', description: 'Grid-tie with battery backup' },
     { value: 'off-grid', label: 'Off-Grid System', description: 'Standalone with batteries, not connected to grid' }
   ];
+
+  // Fetch system configuration (read-only for engineers)
+  const fetchSystemConfig = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/maintenance/config`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const config = response.data.config;
+      
+      // Extract panel types from config
+      if (config?.equipmentPrices?.solarPanel) {
+        setPanelTypes([
+          {
+            id: 'standard',
+            name: config.equipmentPrices.solarPanel.brand || 'Standard Solar Panel',
+            pricePerWatt: config.equipmentPrices.solarPanel.pricePerWatt,
+            warranty: config.equipmentPrices.solarPanel.warranty || 25
+          }
+        ]);
+      } else {
+        // Fallback defaults
+        setPanelTypes([
+          { id: 'standard', name: 'Standard Solar Panel', pricePerWatt: 25, warranty: 25 },
+          { id: 'premium', name: 'Premium Solar Panel', pricePerWatt: 35, warranty: 30 }
+        ]);
+      }
+      
+      // Extract inverter types from config
+      if (config?.equipmentPrices?.inverter) {
+        const inverters = [];
+        if (config.equipmentPrices.inverter.gridTie) {
+          inverters.push({ id: 'gridTie', name: 'Grid-Tie Inverter', price: config.equipmentPrices.inverter.gridTie });
+        }
+        if (config.equipmentPrices.inverter.hybrid) {
+          inverters.push({ id: 'hybrid', name: 'Hybrid Inverter', price: config.equipmentPrices.inverter.hybrid });
+        }
+        if (config.equipmentPrices.inverter.offGrid) {
+          inverters.push({ id: 'offGrid', name: 'Off-Grid Inverter', price: config.equipmentPrices.inverter.offGrid });
+        }
+        setInverterTypes(inverters);
+      } else {
+        setInverterTypes([
+          { id: 'gridTie', name: 'Grid-Tie Inverter', price: 15000 },
+          { id: 'hybrid', name: 'Hybrid Inverter', price: 25000 },
+          { id: 'offGrid', name: 'Off-Grid Inverter', price: 20000 }
+        ]);
+      }
+      
+      // Extract battery types from config
+      if (config?.equipmentPrices?.battery) {
+        const batteries = [];
+        if (config.equipmentPrices.battery.leadAcid) {
+          batteries.push({ id: 'leadAcid', name: 'Lead Acid Battery', price: config.equipmentPrices.battery.leadAcid });
+        }
+        if (config.equipmentPrices.battery.lithium) {
+          batteries.push({ id: 'lithium', name: 'Lithium Battery', price: config.equipmentPrices.battery.lithium });
+        }
+        setBatteryTypes(batteries);
+      } else {
+        setBatteryTypes([
+          { id: 'leadAcid', name: 'Lead Acid Battery', price: 8000 },
+          { id: 'lithium', name: 'Lithium Battery', price: 15000 }
+        ]);
+      }
+    } catch (error) {
+      console.error('Error fetching system config:', error);
+      // Use default options if config not available
+      setPanelTypes([
+        { id: 'standard', name: 'Standard Solar Panel', pricePerWatt: 25, warranty: 25 }
+      ]);
+      setInverterTypes([
+        { id: 'gridTie', name: 'Grid-Tie Inverter', price: 15000 },
+        { id: 'hybrid', name: 'Hybrid Inverter', price: 25000 },
+        { id: 'offGrid', name: 'Off-Grid Inverter', price: 20000 }
+      ]);
+      setBatteryTypes([
+        { id: 'leadAcid', name: 'Lead Acid Battery', price: 8000 },
+        { id: 'lithium', name: 'Lithium Battery', price: 15000 }
+      ]);
+    }
+  };
 
   const hasDeviceAssigned = (item) => {
     return !!(item.iotDeviceId || item.assignedDevice || item.assignedDeviceId);
@@ -373,6 +464,7 @@ const MyAssessments = () => {
         systemSize: '',
         systemType: formattedQuote.systemType || 'grid-tie',
         panelsNeeded: '',
+        panelType: '',
         inverterType: '',
         batteryType: '',
         installationCost: 0,
@@ -469,6 +561,7 @@ const MyAssessments = () => {
           systemSize: assessment.quotation.systemDetails.systemSize || '',
           systemType: assessment.quotation.systemDetails.systemType || formattedAssessment.systemType || 'grid-tie',
           panelsNeeded: assessment.quotation.systemDetails.panelsNeeded || '',
+          panelType: assessment.quotation.systemDetails.panelType || '',
           inverterType: assessment.quotation.systemDetails.inverterType || '',
           batteryType: assessment.quotation.systemDetails.batteryType || '',
           installationCost: assessment.quotation.systemDetails.installationCost || 0,
@@ -512,7 +605,6 @@ const MyAssessments = () => {
       setIotAnalysis(response.data.analysis);
       showNotification('IoT data analysis completed successfully!', 'success');
       
-      // Refresh to show updated data
       fetchPreAssessmentDetails(selectedItem._id);
     } catch (err) {
       console.error('Error analyzing IoT data:', err);
@@ -523,7 +615,6 @@ const MyAssessments = () => {
   };
 
   const generateQuotationPDF = async () => {
-    // Fix validation - check if systemSize exists and is greater than 0
     const systemSize = selectedType === 'free_quote' ? freeQuoteForm.systemSize : quotationForm.systemSize;
     const totalCost = selectedType === 'free_quote' ? freeQuoteForm.totalCost : quotationForm.totalCost;
     
@@ -550,6 +641,7 @@ const MyAssessments = () => {
         systemSize: parseFloat(freeQuoteForm.systemSize),
         systemType: freeQuoteForm.systemType,
         panelsNeeded: freeQuoteForm.panelsNeeded ? parseInt(freeQuoteForm.panelsNeeded) : 0,
+        panelType: freeQuoteForm.panelType,
         inverterType: freeQuoteForm.inverterType,
         batteryType: freeQuoteForm.batteryType,
         installationCost: parseFloat(freeQuoteForm.installationCost) || 0,
@@ -565,6 +657,7 @@ const MyAssessments = () => {
         systemSize: parseFloat(quotationForm.systemSize),
         systemType: quotationForm.systemType,
         panelsNeeded: quotationForm.panelsNeeded ? parseInt(quotationForm.panelsNeeded) : 0,
+        panelType: quotationForm.panelType,
         inverterType: quotationForm.inverterType,
         batteryType: quotationForm.batteryType,
         installationCost: parseFloat(quotationForm.installationCost) || 0,
@@ -583,7 +676,6 @@ const MyAssessments = () => {
       
       showNotification('Quotation PDF generated and uploaded successfully!', 'success');
       
-      // Refresh to show the new quotation
       if (selectedType === 'free_quote') {
         fetchFreeQuoteDetails(selectedItem._id);
       } else {
@@ -756,6 +848,7 @@ const MyAssessments = () => {
 
   useEffect(() => {
     fetchAllAssessments();
+    fetchSystemConfig();
   }, []);
 
   useEffect(() => {
@@ -1121,7 +1214,7 @@ const MyAssessments = () => {
                 </div>
               </div>
 
-              {/* Quotation Form */}
+              {/* Quotation Form with Dynamic Dropdowns */}
               <div className="detail-section-enad">
                 <h3 className="detail-section-title-enad">Generate Quotation</h3>
                 
@@ -1169,7 +1262,7 @@ const MyAssessments = () => {
                       type="number"
                       step="0.1"
                       value={freeQuoteForm.systemSize}
-                      onChange={(e) => handleFreeQuoteFormChange('systemSize', e.target.value)}
+                      onChange={(e) => handleFreeQuoteFormChange('systemSize', parseFloat(e.target.value))}
                       className="form-input-enad"
                       placeholder="e.g., 5.0"
                     />
@@ -1179,35 +1272,78 @@ const MyAssessments = () => {
                     <input
                       type="number"
                       value={freeQuoteForm.panelsNeeded}
-                      onChange={(e) => handleFreeQuoteFormChange('panelsNeeded', e.target.value)}
+                      onChange={(e) => handleFreeQuoteFormChange('panelsNeeded', parseInt(e.target.value))}
                       className="form-input-enad"
                       placeholder="Number of panels"
                     />
                   </div>
+                  
+                  {/* Dynamic Panel Type Dropdown */}
                   <div className="form-group-enad">
-                    <label className="form-label-enad">Inverter Type</label>
-                    <input
-                      type="text"
+                    <label className="form-label-enad">
+                      <FaSolarPanel className="inline-icon" /> Panel Type
+                    </label>
+                    <select
+                      value={freeQuoteForm.panelType}
+                      onChange={(e) => handleFreeQuoteFormChange('panelType', e.target.value)}
+                      className="form-select-enad"
+                    >
+                      <option value="">Select panel type...</option>
+                      {panelTypes.map(panel => (
+                        <option key={panel.id} value={panel.id}>
+                          {panel.name} - {formatCurrency(panel.pricePerWatt)}/W
+                        </option>
+                      ))}
+                    </select>
+                    <small className="form-hint-enad">Select from available panel types</small>
+                  </div>
+                  
+                  {/* Dynamic Inverter Type Dropdown */}
+                  <div className="form-group-enad">
+                    <label className="form-label-enad">
+                      <FaBolt className="inline-icon" /> Inverter Type
+                    </label>
+                    <select
                       value={freeQuoteForm.inverterType}
                       onChange={(e) => handleFreeQuoteFormChange('inverterType', e.target.value)}
-                      className="form-input-enad"
-                    />
+                      className="form-select-enad"
+                    >
+                      <option value="">Select inverter type...</option>
+                      {inverterTypes.map(inverter => (
+                        <option key={inverter.id} value={inverter.id}>
+                          {inverter.name} - {formatCurrency(inverter.price)}
+                        </option>
+                      ))}
+                    </select>
+                    <small className="form-hint-enad">Select from available inverter types</small>
                   </div>
+                  
+                  {/* Dynamic Battery Type Dropdown */}
                   <div className="form-group-enad">
-                    <label className="form-label-enad">Battery Type</label>
-                    <input
-                      type="text"
+                    <label className="form-label-enad">
+                      <FaBatteryFull className="inline-icon" /> Battery Type
+                    </label>
+                    <select
                       value={freeQuoteForm.batteryType}
                       onChange={(e) => handleFreeQuoteFormChange('batteryType', e.target.value)}
-                      className="form-input-enad"
-                    />
+                      className="form-select-enad"
+                    >
+                      <option value="">Select battery type...</option>
+                      {batteryTypes.map(battery => (
+                        <option key={battery.id} value={battery.id}>
+                          {battery.name} - {formatCurrency(battery.price)}
+                        </option>
+                      ))}
+                    </select>
+                    <small className="form-hint-enad">Select from available battery types</small>
                   </div>
+                  
                   <div className="form-group-enad">
                     <label className="form-label-enad">Warranty Years</label>
                     <input
                       type="number"
                       value={freeQuoteForm.warrantyYears}
-                      onChange={(e) => handleFreeQuoteFormChange('warrantyYears', e.target.value)}
+                      onChange={(e) => handleFreeQuoteFormChange('warrantyYears', parseInt(e.target.value))}
                       className="form-input-enad"
                     />
                   </div>
@@ -1736,7 +1872,7 @@ const MyAssessments = () => {
               </div>
             )}
 
-            {/* Quotation Tab */}
+            {/* Quotation Tab with Dynamic Dropdowns */}
             {activeTab === 'quotation' && (
               <div>
                 <div className="action-buttons-enad">
@@ -1812,7 +1948,7 @@ const MyAssessments = () => {
                       type="number"
                       step="0.1"
                       value={quotationForm.systemSize}
-                      onChange={(e) => handleQuotationChange('systemSize', e.target.value)}
+                      onChange={(e) => handleQuotationChange('systemSize', parseFloat(e.target.value))}
                       className="form-input-enad"
                       placeholder="e.g., 5.0"
                     />
@@ -1822,35 +1958,78 @@ const MyAssessments = () => {
                     <input
                       type="number"
                       value={quotationForm.panelsNeeded}
-                      onChange={(e) => handleQuotationChange('panelsNeeded', e.target.value)}
+                      onChange={(e) => handleQuotationChange('panelsNeeded', parseInt(e.target.value))}
                       className="form-input-enad"
                       placeholder="Number of panels"
                     />
                   </div>
+                  
+                  {/* Dynamic Panel Type Dropdown */}
                   <div className="form-group-enad">
-                    <label className="form-label-enad">Inverter Type</label>
-                    <input
-                      type="text"
+                    <label className="form-label-enad">
+                      <FaSolarPanel className="inline-icon" /> Panel Type
+                    </label>
+                    <select
+                      value={quotationForm.panelType}
+                      onChange={(e) => handleQuotationChange('panelType', e.target.value)}
+                      className="form-select-enad"
+                    >
+                      <option value="">Select panel type...</option>
+                      {panelTypes.map(panel => (
+                        <option key={panel.id} value={panel.id}>
+                          {panel.name} - {formatCurrency(panel.pricePerWatt)}/W
+                        </option>
+                      ))}
+                    </select>
+                    <small className="form-hint-enad">Select from available panel types</small>
+                  </div>
+                  
+                  {/* Dynamic Inverter Type Dropdown */}
+                  <div className="form-group-enad">
+                    <label className="form-label-enad">
+                      <FaBolt className="inline-icon" /> Inverter Type
+                    </label>
+                    <select
                       value={quotationForm.inverterType}
                       onChange={(e) => handleQuotationChange('inverterType', e.target.value)}
-                      className="form-input-enad"
-                    />
+                      className="form-select-enad"
+                    >
+                      <option value="">Select inverter type...</option>
+                      {inverterTypes.map(inverter => (
+                        <option key={inverter.id} value={inverter.id}>
+                          {inverter.name} - {formatCurrency(inverter.price)}
+                        </option>
+                      ))}
+                    </select>
+                    <small className="form-hint-enad">Select from available inverter types</small>
                   </div>
+                  
+                  {/* Dynamic Battery Type Dropdown */}
                   <div className="form-group-enad">
-                    <label className="form-label-enad">Battery Type</label>
-                    <input
-                      type="text"
+                    <label className="form-label-enad">
+                      <FaBatteryFull className="inline-icon" /> Battery Type
+                    </label>
+                    <select
                       value={quotationForm.batteryType}
                       onChange={(e) => handleQuotationChange('batteryType', e.target.value)}
-                      className="form-input-enad"
-                    />
+                      className="form-select-enad"
+                    >
+                      <option value="">Select battery type...</option>
+                      {batteryTypes.map(battery => (
+                        <option key={battery.id} value={battery.id}>
+                          {battery.name} - {formatCurrency(battery.price)}
+                        </option>
+                      ))}
+                    </select>
+                    <small className="form-hint-enad">Select from available battery types</small>
                   </div>
+                  
                   <div className="form-group-enad">
                     <label className="form-label-enad">Warranty Years</label>
                     <input
                       type="number"
                       value={quotationForm.warrantyYears}
-                      onChange={(e) => handleQuotationChange('warrantyYears', e.target.value)}
+                      onChange={(e) => handleQuotationChange('warrantyYears', parseInt(e.target.value))}
                       className="form-input-enad"
                     />
                   </div>

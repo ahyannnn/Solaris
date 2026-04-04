@@ -1,6 +1,7 @@
 // pages/Dashboard_Layout/dashboard.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import axios from 'axios';
 import {
   FaSolarPanel,
   FaTachometerAlt,
@@ -36,7 +37,8 @@ import {
   FaPalette,
   FaKey,
   FaRegClock,
-  FaRegCalendarAlt
+  FaRegCalendarAlt,
+  FaTools
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
 import '../../styles/Dashboard/dashboard.css';
@@ -47,6 +49,7 @@ const Dashboard = () => {
   const [initialized, setInitialized] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [maintenanceStatus, setMaintenanceStatus] = useState({ isUnderMaintenance: false, title: '' });
 
   const profileRef = useRef(null);
   const notificationsRef = useRef(null);
@@ -63,96 +66,6 @@ const Dashboard = () => {
   const [userName, setUserName] = useState('Customer User');
   const [userPhoto, setUserPhoto] = useState(null);
   const [userEmail, setUserEmail] = useState('');
-
-  // Update datetime every second
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentDateTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Handle click outside for all dropdowns
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
-        setProfileOpen(false);
-      }
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
-        setNotificationsOpen(false);
-      }
-      if (settingsDropdownRef.current && !settingsDropdownRef.current.contains(event.target)) {
-        setSettingsDropdownOpen(false);
-      }
-      if (supportDropdownRef.current && !supportDropdownRef.current.contains(event.target)) {
-        setSupportDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  // Handle window resize for sidebar
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth > 768) {
-        setSidebarOpen(true);
-      } else {
-        setSidebarOpen(false);
-      }
-    };
-    
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Handle user authentication and initial redirect
-  useEffect(() => {
-    if (initialized || isNavigating) return;
-    
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const role = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
-    const name = localStorage.getItem('userName') || sessionStorage.getItem('userName');
-    const photo = localStorage.getItem('userPhotoURL') || sessionStorage.getItem('userPhotoURL');
-    const email = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail');
-
-    if (role) setUserRole(role);
-    if (name) setUserName(name);
-    if (photo) setUserPhoto(photo);
-    if (email) setUserEmail(email);
-
-    if (!token || !role) {
-      setIsNavigating(true);
-      navigate('/login');
-      return;
-    }
-
-    if (window.innerWidth <= 768) {
-      setSidebarOpen(false);
-    } else {
-      setSidebarOpen(true);
-    }
-
-    if (!initialized && location.pathname === '/app') {
-      setInitialized(true);
-      
-      setTimeout(() => {
-        if (role === 'user') {
-          navigate('/app/customer');
-        } else if (role === 'engineer') {
-          navigate('/app/engineer');
-        } else if (role === 'admin') {
-          navigate('/app/admin');
-        }
-      }, 0);
-    } else {
-      setInitialized(true);
-    }
-  }, [navigate, location.pathname, initialized, isNavigating]);
 
   const [notifications, setNotifications] = useState([
     { id: 1, message: 'New site assessment scheduled', time: '5 min ago', read: false },
@@ -171,6 +84,9 @@ const Dashboard = () => {
       { icon: <FaChartBar />, label: 'Reports', path: '/app/admin/reports' },
       { icon: <FaClipboardList />, label: 'Schedule', path: '/app/admin/schedule' },
       { icon: <FaUsers />, label: 'User Management', path: '/app/admin/usermanagement' },
+      { icon: <FaTools />, label: 'Maintenance', path: '/app/admin/maintenance' },
+      // In dashboard.jsx, add to admin menu items
+      { icon: <FaCog />, label: 'System Config', path: '/app/admin/system-config' },
       { icon: <FaCog />, label: 'Settings', path: '/app/admin/settings' },
     ],
 
@@ -208,13 +124,128 @@ const Dashboard = () => {
     { label: 'User Guides', path: '/app/customer/support?tab=guides' },
   ];
 
+  const isCustomer = userRole === 'user';
+  const isAdmin = userRole === 'admin';
+  const isEngineer = userRole === 'engineer';
+
+  // Update datetime every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Fetch maintenance status (Admin only)
+  useEffect(() => {
+    const fetchMaintenanceStatus = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/maintenance/status`);
+        setMaintenanceStatus({
+          isUnderMaintenance: response.data.isUnderMaintenance,
+          title: response.data.title
+        });
+      } catch (error) {
+        console.error('Error fetching maintenance status:', error);
+      }
+    };
+
+    if (isAdmin) {
+      fetchMaintenanceStatus();
+      const interval = setInterval(fetchMaintenanceStatus, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isAdmin]);
+
+  // Handle click outside for all dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setProfileOpen(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setNotificationsOpen(false);
+      }
+      if (settingsDropdownRef.current && !settingsDropdownRef.current.contains(event.target)) {
+        setSettingsDropdownOpen(false);
+      }
+      if (supportDropdownRef.current && !supportDropdownRef.current.contains(event.target)) {
+        setSupportDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Handle window resize for sidebar
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Handle user authentication and initial redirect
+  useEffect(() => {
+    if (initialized || isNavigating) return;
+
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const role = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
+    const name = localStorage.getItem('userName') || sessionStorage.getItem('userName');
+    const photo = localStorage.getItem('userPhotoURL') || sessionStorage.getItem('userPhotoURL');
+    const email = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail');
+
+    if (role) setUserRole(role);
+    if (name) setUserName(name);
+    if (photo) setUserPhoto(photo);
+    if (email) setUserEmail(email);
+
+    if (!token || !role) {
+      setIsNavigating(true);
+      navigate('/login');
+      return;
+    }
+
+    if (window.innerWidth <= 768) {
+      setSidebarOpen(false);
+    } else {
+      setSidebarOpen(true);
+    }
+
+    if (!initialized && location.pathname === '/app') {
+      setInitialized(true);
+
+      setTimeout(() => {
+        if (role === 'user') {
+          navigate('/app/customer');
+        } else if (role === 'engineer') {
+          navigate('/app/engineer');
+        } else if (role === 'admin') {
+          navigate('/app/admin');
+        }
+      }, 0);
+    } else {
+      setInitialized(true);
+    }
+  }, [navigate, location.pathname, initialized, isNavigating]);
+
   // Generate breadcrumb based on current path
   const getBreadcrumb = () => {
     const pathnames = location.pathname.split('/').filter(x => x);
     const breadcrumbs = [];
-    
+
     if (pathnames.length === 0) return [{ name: 'Dashboard', path: '/app' }];
-    
+
     let currentPath = '';
     for (let i = 0; i < pathnames.length; i++) {
       currentPath += `/${pathnames[i]}`;
@@ -223,7 +254,7 @@ const Dashboard = () => {
       if (name === 'Customer') continue;
       breadcrumbs.push({ name, path: currentPath });
     }
-    
+
     return breadcrumbs;
   };
 
@@ -266,9 +297,6 @@ const Dashboard = () => {
 
   const currentMenu = menuItems[userRole] || menuItems.admin;
   const unreadCount = notifications.filter(n => !n.read).length;
-  const isCustomer = userRole === 'user';
-  const isAdmin = userRole === 'admin';
-  const isEngineer = userRole === 'engineer';
 
   const formatDateTime = () => {
     return currentDateTime.toLocaleDateString('en-PH', {
@@ -285,16 +313,16 @@ const Dashboard = () => {
 
   const isActive = (itemPath) => {
     const currentPath = location.pathname;
-    
+
     if (itemPath === '/app/customer' || itemPath === '/app/engineer' || itemPath === '/app/admin') {
       return currentPath === itemPath;
     }
-    
+
     if (currentPath === itemPath) return true;
     if (currentPath.startsWith(itemPath + '/')) return true;
     if (itemPath === '/app/customer/settings' && currentPath === '/app/customer/settings') return true;
     if (itemPath === '/app/customer/support' && currentPath === '/app/customer/support') return true;
-    
+
     return false;
   };
 
@@ -327,10 +355,10 @@ const Dashboard = () => {
   const handleLogout = () => {
     if (isNavigating) return;
     setIsNavigating(true);
-    
+
     localStorage.clear();
     sessionStorage.clear();
-    
+
     setTimeout(() => {
       navigate('/');
     }, 100);
@@ -339,7 +367,7 @@ const Dashboard = () => {
   const handleNavigation = (path) => {
     if (isNavigating) return;
     setIsNavigating(true);
-    
+
     navigate(path);
     if (window.innerWidth <= 768) {
       setSidebarOpen(false);
@@ -348,7 +376,7 @@ const Dashboard = () => {
     setNotificationsOpen(false);
     setSettingsDropdownOpen(false);
     setSupportDropdownOpen(false);
-    
+
     setTimeout(() => setIsNavigating(false), 500);
   };
 
@@ -612,7 +640,7 @@ const Dashboard = () => {
               {breadcrumbs.map((crumb, index) => (
                 <span key={index}>
                   <span className="breadcrumb-separator">/</span>
-                  <button 
+                  <button
                     className="breadcrumb-link"
                     onClick={() => handleNavigation(crumb.path)}
                   >
@@ -638,12 +666,20 @@ const Dashboard = () => {
             />
           </div>
 
-          {/* Right side - DateTime, Notifications, Profile */}
+          {/* Right side - DateTime, Maintenance Warning, Notifications, Profile */}
           <div className="header-right-layout-dashboard">
             <div className="datetime-layout-dashboard">
               <FaRegCalendarAlt className="datetime-icon" />
               <span className="datetime-text">{formatDateTime()}</span>
             </div>
+
+            {/* Maintenance Warning Indicator */}
+            {isAdmin && maintenanceStatus.isUnderMaintenance && (
+              <div className="maintenance-warning">
+                <FaTools className="maintenance-icon" />
+                <span className="maintenance-text">Maintenance Mode Active</span>
+              </div>
+            )}
 
             <div className="header-actions-layout-dashboard">
               <div className="notification-wrapper-layout-dashboard" ref={notificationsRef}>

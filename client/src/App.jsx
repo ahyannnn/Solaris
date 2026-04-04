@@ -1,6 +1,7 @@
-// App.jsx - Update the PublicRouteGuard
+// App.jsx - Updated with Maintenance integration
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 import SolarisLandingPage from './pages/Auth/landingpage';
 import LoginPage from './pages/Auth/loginpage';
@@ -25,6 +26,8 @@ import Settings from './pages/Admin/settings';
 import FreeQuotes from './pages/Admin/freequotes';
 import PreAssessment from './pages/Admin/preassessments';
 import Schedule from './pages/Admin/schedule';
+import Maintenance from './pages/Admin/Maintenance'; // Admin Maintenance Panel
+import SystemConfig from './pages/Admin/SystemConfig'; // Admin System Configuration
 
 // Engineer Pages
 import EngineerDashboard from './pages/Engineer/dashboard';
@@ -45,7 +48,10 @@ import Supports from './pages/Customer/supports';
 import CustomerProfile from './pages/Customer/profile';
 import CustomerSettings from './pages/Customer/customersettings';
 
-// Helper function to get user data from storage (checks both localStorage and sessionStorage)
+// Maintenance Page (public)
+import MaintenancePage from './pages/Maintenance';
+
+// Helper function to get user data from storage
 const getUserData = () => {
   const token = localStorage.getItem('token') || sessionStorage.getItem('token');
   const role = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
@@ -74,18 +80,56 @@ const RoleRouteGuard = ({ children, allowedRoles }) => {
   return children;
 };
 
+// Maintenance Guard - checks if site is under maintenance
+const MaintenanceGuard = ({ children }) => {
+  const [isUnderMaintenance, setIsUnderMaintenance] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { role: userRole, token } = getUserData();
+
+  useEffect(() => {
+    const checkMaintenance = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/maintenance/status`);
+        const maintenanceData = response.data;
+        
+        if (maintenanceData.isUnderMaintenance) {
+          // Admins can always access during maintenance
+          if (userRole === 'admin') {
+            setIsUnderMaintenance(false);
+          } else {
+            setIsUnderMaintenance(true);
+          }
+        } else {
+          setIsUnderMaintenance(false);
+        }
+      } catch (error) {
+        console.error('Error checking maintenance status:', error);
+        setIsUnderMaintenance(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    checkMaintenance();
+  }, [userRole]);
+
+  if (loading) {
+    return <div className="loading-container">Checking system status...</div>;
+  }
+
+  if (isUnderMaintenance) {
+    return <MaintenancePage />;
+  }
+
+  return children;
+};
+
 // Auth Guard for public routes - redirects to dashboard if already logged in
 const PublicRouteGuard = ({ children }) => {
-  // Check BOTH localStorage and sessionStorage
-  const token = sessionStorage.getItem('token');
-  const role = sessionStorage.getItem('userRole');
-  
-  // Debug log to see what's happening
-  console.log('PublicRouteGuard - Token:', token ? 'exists' : 'none');
-  console.log('PublicRouteGuard - Role:', role);
+  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  const role = sessionStorage.getItem('userRole') || localStorage.getItem('userRole');
   
   if (token && role) {
-    console.log('Redirecting to dashboard based on role:', role);
     if (role === 'admin') return <Navigate to="/app/admin" replace />;
     if (role === 'engineer') return <Navigate to="/app/engineer" replace />;
     if (role === 'user') return <Navigate to="/app/customer" replace />;
@@ -100,17 +144,17 @@ function App() {
   useEffect(() => {
     const role = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
     setUserRole(role);
-    
-    // Debug log
-   // console.log('App mounted - User role from storage:', role);
-    //console.log('sessionStorage items:', sessionStorage);
-   // console.log('localStorage items:', localStorage);
   }, []);
 
   return (
     <Router>
       <Routes>
-        {/* Public Routes - Redirect to dashboard if already logged in */}
+        {/* Public Routes - Maintenance page is separate */}
+        <Route 
+          path="/maintenance" 
+          element={<MaintenancePage />} 
+        />
+        
         <Route 
           path="/" 
           element={
@@ -147,15 +191,17 @@ function App() {
         {/* Setup Account */}
         <Route path="/setup" element={<SetupAccount />} />
 
-        {/* Admin Routes */}
+        {/* Admin Routes - Wrapped with MaintenanceGuard */}
         <Route
           path="/app/admin"
           element={
-            <AccountSetupGuard>
-              <RoleRouteGuard allowedRoles={['admin']}>
-                <DashboardLayout />
-              </RoleRouteGuard>
-            </AccountSetupGuard>
+            <MaintenanceGuard>
+              <AccountSetupGuard>
+                <RoleRouteGuard allowedRoles={['admin']}>
+                  <DashboardLayout />
+                </RoleRouteGuard>
+              </AccountSetupGuard>
+            </MaintenanceGuard>
           }
         >
           <Route index element={<AdminDashboard />} />
@@ -170,17 +216,21 @@ function App() {
           <Route path="schedule" element={<Schedule />} />
           <Route path="usermanagement" element={<UserManagement />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="maintenance" element={<Maintenance />} />
+          <Route path="system-config" element={<SystemConfig />} />
         </Route>
 
-        {/* Engineer Routes */}
+        {/* Engineer Routes - Wrapped with MaintenanceGuard */}
         <Route
           path="/app/engineer"
           element={
-            <AccountSetupGuard>
-              <RoleRouteGuard allowedRoles={['engineer']}>
-                <DashboardLayout />
-              </RoleRouteGuard>
-            </AccountSetupGuard>
+            <MaintenanceGuard>
+              <AccountSetupGuard>
+                <RoleRouteGuard allowedRoles={['engineer']}>
+                  <DashboardLayout />
+                </RoleRouteGuard>
+              </AccountSetupGuard>
+            </MaintenanceGuard>
           }
         >
           <Route index element={<EngineerDashboard />} />
@@ -193,15 +243,17 @@ function App() {
           <Route path="profile" element={<EngineerProfile />} />
         </Route>
 
-        {/* Customer Routes */}
+        {/* Customer Routes - Wrapped with MaintenanceGuard */}
         <Route
           path="/app/customer"
           element={
-            <AccountSetupGuard>
-              <RoleRouteGuard allowedRoles={['user']}>
-                <DashboardLayout />
-              </RoleRouteGuard>
-            </AccountSetupGuard>
+            <MaintenanceGuard>
+              <AccountSetupGuard>
+                <RoleRouteGuard allowedRoles={['user']}>
+                  <DashboardLayout />
+                </RoleRouteGuard>
+              </AccountSetupGuard>
+            </MaintenanceGuard>
           }
         >
           <Route index element={<CustomerDashboard />} />

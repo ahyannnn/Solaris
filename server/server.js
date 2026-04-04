@@ -44,7 +44,8 @@ const clientRoutes = require('./routes/clientRoutes');
 const solarInvoiceRoutes = require('./routes/solarInvoiceRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const fileRoutes = require('./routes/fileRoutes');
-
+const maintenanceMiddleware = require('./middleware/maintenanceMiddleware');
+const maintenanceRoutes = require('./routes/maintenanceRoutes');
 // Admin Routes
 const adminRoutes = require('./routes/adminRoutes');
 
@@ -56,7 +57,8 @@ const scheduleRoutes = require('./routes/scheduleRoutes');
 
 // Use new routes
 app.use('/api/schedules', scheduleRoutes);
-
+app.use(maintenanceMiddleware);
+app.use('/api/maintenance', maintenanceRoutes);
 // API Routes
 app.use("/api/auth", authRoutes);
 
@@ -73,6 +75,9 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/uploads', express.static('uploads'));
 
+app.get('/maintenance', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'maintenance.html'));
+});
 // Test Route
 app.get("/", (req, res) => {
     res.send("Solar IoT TPS API is running...");

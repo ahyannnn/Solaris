@@ -31,7 +31,66 @@
 .sidebar-layout-dashboard:not(.open-layout-dashboard) {
   transform: translateX(-100%);
 }
+/* Add to dashboard.css - Maintenance Warning Indicator */
 
+.maintenance-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff3cd;
+  color: #856404;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-right: 16px;
+  animation: fadeIn 0.3s ease;
+}
+
+.maintenance-icon {
+  font-size: 14px;
+  animation: pulse-warning 1.5s infinite;
+}
+
+.maintenance-text {
+  font-size: 12px;
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* For mobile responsiveness */
+@media (max-width: 768px) {
+  .maintenance-warning {
+    margin-right: 8px;
+    padding: 4px 8px;
+  }
+  
+  .maintenance-text {
+    display: none;
+  }
+  
+  .maintenance-icon {
+    margin: 0;
+  }
+}
 .sidebar-overlay-layout-dashboard {
   position: fixed;
   top: 0;

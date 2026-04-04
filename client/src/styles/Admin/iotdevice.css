@@ -5,6 +5,7 @@
    ============================================ */
 .admin-iot-adminiot {
   margin: 0 auto;
+  padding: 1.5rem;
   background: #F5F5F7;
   min-height: calc(100vh - 70px);
 }

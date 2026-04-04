@@ -5,6 +5,7 @@
    ============================================ */
 .site-assessment-siteassesad {
   margin: 0 auto;
+  padding: 1.5rem;
   background: #F5F5F7;
   min-height: calc(100vh - 70px);
 }
@@ -91,53 +92,40 @@
 }
 
 /* ============================================
-   TABS - WITH UNDERLINE ONLY (NO BACKGROUND)
+   TABS - LIKE USER MANAGEMENT (Background, Active Black)
    ============================================ */
 .assessment-tabs-siteassesad {
   display: flex;
-  flex-wrap: wrap;
   gap: 0.5rem;
-  border-bottom: 1px solid #E5E5E8;
-  margin-bottom: 1.5rem;
   background: #FFFFFF;
-  border-radius: 16px;
-  padding: 0.5rem;
+  border-radius: 12px;
+  padding: 0.25rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #E5E5E8;
+  width: fit-content;
 }
 
 .tab-btn-siteassesad {
-  padding: 0.625rem 1.25rem;
+  padding: 0.5rem 1rem;
   background: none;
   border: none;
+  border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 500;
   color: #6B6B6F;
   cursor: pointer;
   transition: all 0.2s ease;
-  position: relative;
-  border-radius: 10px;
+  white-space: nowrap;
 }
 
 .tab-btn-siteassesad:hover {
-  color: #1F1F1F;
   background: #F5F5F7;
-}
-
-/* ACTIVE TAB - NO BACKGROUND, ONLY UNDERLINE */
-.tab-btn-siteassesad.active-siteassesad {
   color: #1F1F1F;
-  background: none;
 }
 
-/* UNDERLINE FOR ACTIVE TAB ONLY */
-.tab-btn-siteassesad.active-siteassesad::after {
-  content: '';
-  position: absolute;
-  bottom: -0.5rem;
-  left: 1rem;
-  right: 1rem;
-  height: 2px;
+.tab-btn-siteassesad.active-siteassesad {
   background: #1F1F1F;
-  border-radius: 2px;
+  color: #FFFFFF;
 }
 
 /* ============================================
@@ -835,20 +823,13 @@
   
   /* Tab responsive */
   .assessment-tabs-siteassesad {
-    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
   }
   
   .tab-btn-siteassesad {
     flex: 1;
     text-align: center;
-    padding: 0.5rem 1rem;
-    font-size: 0.75rem;
-  }
-  
-  .tab-btn-siteassesad.active-siteassesad::after {
-    bottom: -0.5rem;
-    left: 0.75rem;
-    right: 0.75rem;
   }
 }
 
@@ -874,6 +855,14 @@
   .info-box-siteassesad {
     flex-direction: column;
     text-align: center;
+  }
+  
+  .assessment-tabs-siteassesad {
+    flex-direction: column;
+  }
+  
+  .tab-btn-siteassesad {
+    width: 100%;
   }
 }
 

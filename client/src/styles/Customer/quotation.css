@@ -5,7 +5,7 @@
    ============================================ */
 .cuspro-quotation-container {
   margin: 0 auto;
-  padding: 1rem;
+  padding: 1.5rem;
   background: #F5F5F7;
   min-height: calc(100vh - 70px);
 }
@@ -58,29 +58,30 @@
 }
 
 /* ============================================
-   TABS
+   TABS - LIKE USER MANAGEMENT
    ============================================ */
 .cuspro-tabs {
   display: flex;
   gap: 0.5rem;
   background: #FFFFFF;
-  border-radius: 16px;
-  padding: 0.5rem;
+  border-radius: 12px;
+  padding: 0.25rem;
   margin-bottom: 1.5rem;
   border: 1px solid #E5E5E8;
+  width: fit-content;
 }
 
 .cuspro-tab {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  background: transparent;
+  padding: 0.5rem 1rem;
+  background: none;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 500;
   color: #6B6B6F;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .cuspro-tab:hover {
@@ -1010,11 +1011,12 @@
 
   .cuspro-tabs {
     flex-wrap: wrap;
+    width: 100%;
   }
 
   .cuspro-tab {
-    flex: auto;
-    min-width: calc(50% - 0.5rem);
+    flex: 1;
+    text-align: center;
   }
 
   .cuspro-project-header {

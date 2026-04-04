@@ -1,0 +1,562 @@
+/* dashboard.engdas.css - Engineer Dashboard Modern Minimalist Design */
+
+/* ============================================
+   CONTAINER
+   ============================================ */
+.engdas-dashboard {
+  margin: 0 auto;
+  padding: 1.5rem;
+  background: #F5F5F7;
+  min-height: calc(100vh - 70px);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.engdas-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #E5E5E8;
+}
+
+.engdas-header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: #1F1F1F;
+  letter-spacing: -0.3px;
+}
+
+.engdas-header p {
+  font-size: 0.875rem;
+  color: #6B6B6F;
+  margin: 0;
+}
+
+/* ============================================
+   STATS GRID
+   ============================================ */
+.engdas-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 1200px) {
+  .engdas-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .engdas-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .engdas-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.engdas-stat-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 1.25rem;
+  border: 1px solid #E5E5E8;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.engdas-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.engdas-stat-icon {
+  width: 48px;
+  height: 48px;
+  background: #F8F9FA;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #6B6B6F;
+  border: 1px solid #E5E5E8;
+}
+
+.engdas-stat-info {
+  flex: 1;
+}
+
+.engdas-stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1F1F1F;
+  line-height: 1.2;
+}
+
+.engdas-stat-label {
+  display: block;
+  font-size: 0.7rem;
+  color: #9CA3AF;
+  margin-top: 0.25rem;
+}
+
+/* ============================================
+   CONTENT GRID
+   ============================================ */
+.engdas-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .engdas-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Recent Assessments & Upcoming Schedules Sections */
+.engdas-recent-section,
+.engdas-upcoming-section {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid #E5E5E8;
+  padding: 1.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.engdas-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #E5E5E8;
+}
+
+.engdas-section-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.engdas-view-all {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 0.7rem;
+  color: #6B6B6F;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.engdas-view-all:hover {
+  color: #1F1F1F;
+}
+
+/* Assessment & Schedule Lists */
+.engdas-assessment-list,
+.engdas-schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.engdas-assessment-item,
+.engdas-schedule-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #F8F9FA;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.engdas-assessment-item:hover,
+.engdas-schedule-item:hover {
+  background: #F5F5F7;
+  transform: translateX(4px);
+}
+
+.engdas-assessment-info,
+.engdas-schedule-info {
+  flex: 1;
+}
+
+.engdas-assessment-client,
+.engdas-schedule-client {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #1F1F1F;
+  margin-bottom: 0.25rem;
+}
+
+.engdas-assessment-client svg,
+.engdas-schedule-client svg {
+  font-size: 0.7rem;
+  color: #9CA3AF;
+}
+
+.engdas-assessment-address,
+.engdas-schedule-address {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.65rem;
+  color: #9CA3AF;
+  margin-bottom: 0.25rem;
+}
+
+.engdas-assessment-address svg,
+.engdas-schedule-address svg {
+  font-size: 0.6rem;
+}
+
+.engdas-assessment-date {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.65rem;
+  color: #6B6B6F;
+}
+
+.engdas-schedule-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+}
+
+.engdas-schedule-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #1F1F1F;
+}
+
+.engdas-schedule-time {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.65rem;
+  color: #E65100;
+}
+
+.engdas-schedule-time svg {
+  font-size: 0.6rem;
+}
+
+.engdas-assessment-status,
+.engdas-schedule-status {
+  flex-shrink: 0;
+}
+
+/* ============================================
+   MY DEVICES SECTION
+   ============================================ */
+.engdas-devices-section {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid #E5E5E8;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.engdas-devices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.engdas-device-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #F8F9FA;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.engdas-device-card:hover {
+  background: #F5F5F7;
+  transform: translateX(4px);
+}
+
+.engdas-device-icon {
+  width: 40px;
+  height: 40px;
+  background: #FFFFFF;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: #6B6B6F;
+  border: 1px solid #E5E5E8;
+}
+
+.engdas-device-info {
+  flex: 1;
+}
+
+.engdas-device-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin-bottom: 0.25rem;
+}
+
+.engdas-device-id {
+  font-size: 0.6rem;
+  color: #9CA3AF;
+  font-family: monospace;
+}
+
+.engdas-device-status {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 20px;
+}
+
+.engdas-device-status.online-engdas {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+/* ============================================
+   STATUS BADGES
+   ============================================ */
+.status-badge-engdas {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.status-badge-engdas.scheduled-engdas {
+  background: #E3F2FD;
+  color: #1565C0;
+}
+
+.status-badge-engdas.confirmed-engdas {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+.status-badge-engdas.in-progress-engdas {
+  background: #FFF3E0;
+  color: #E65100;
+}
+
+.status-badge-engdas.completed-engdas {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+.status-badge-engdas.deployed-engdas {
+  background: #E3F2FD;
+  color: #1565C0;
+}
+
+.status-badge-engdas.collecting-engdas {
+  background: #FFF3E0;
+  color: #E65100;
+}
+
+.status-badge-engdas.analyzing-engdas {
+  background: #F3E5F5;
+  color: #7B1FA2;
+}
+
+/* ============================================
+   QUICK ACTIONS
+   ============================================ */
+.engdas-quick-actions {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid #E5E5E8;
+  padding: 1.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.engdas-quick-actions h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #E5E5E8;
+}
+
+.engdas-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .engdas-actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .engdas-actions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.engdas-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #F5F5F7;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6B6B6F;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.engdas-action-btn:hover {
+  background: #EEEEF2;
+  color: #1F1F1F;
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.engdas-empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: #9CA3AF;
+}
+
+.engdas-empty-state p {
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+/* ============================================
+   SKELETON LOADER
+   ============================================ */
+.engdas-skeleton-title {
+  width: 250px;
+  height: 32px;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-engdas 1.5s infinite;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.engdas-skeleton-subtitle {
+  width: 350px;
+  height: 20px;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-engdas 1.5s infinite;
+  border-radius: 8px;
+}
+
+.engdas-skeleton-card {
+  background: #FFFFFF;
+}
+
+.engdas-skeleton-line {
+  height: 16px;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-engdas 1.5s infinite;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.engdas-skeleton-large {
+  height: 32px;
+  width: 60%;
+}
+
+@keyframes shimmer-engdas {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .engdas-dashboard {
+    padding: 1rem;
+  }
+  
+  .engdas-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .engdas-devices-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F0F0F0;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4D4D8;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}

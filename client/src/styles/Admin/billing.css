@@ -5,6 +5,7 @@
    ============================================ */
 .admin-billing-adminbilling {
   margin: 0 auto;
+  padding: 1.5rem;
   background: #F5F5F7;
   min-height: calc(100vh - 70px);
 }
@@ -127,52 +128,40 @@
 }
 
 /* ============================================
-   TABS - WITH UNDERLINE FOR ACTIVE
+   TABS - LIKE USER MANAGEMENT (Background, Active Black)
    ============================================ */
 .billing-tabs-adminbilling {
   display: flex;
   gap: 0.5rem;
-  border-bottom: 1px solid #E5E5E8;
-  margin-bottom: 1.5rem;
-  overflow-x: auto;
   background: #FFFFFF;
-  border-radius: 16px 16px 0 0;
-  padding: 0.5rem 1rem 0 1rem;
+  border-radius: 12px;
+  padding: 0.25rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #E5E5E8;
+  width: fit-content;
 }
 
 .tab-btn-adminbilling {
-  padding: 0.75rem 1.25rem;
+  padding: 0.5rem 1rem;
   background: none;
   border: none;
+  border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 500;
   color: #6B6B6F;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-  position: relative;
 }
 
 .tab-btn-adminbilling:hover {
-  color: #1F1F1F;
   background: #F5F5F7;
-  border-radius: 10px 10px 0 0;
+  color: #1F1F1F;
 }
 
 .tab-btn-adminbilling.active-adminbilling {
-  color: #1F1F1F;
-}
-
-/* UNDERLINE FOR ACTIVE TAB */
-.tab-btn-adminbilling.active-adminbilling::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 1rem;
-  right: 1rem;
-  height: 2px;
   background: #1F1F1F;
-  border-radius: 2px;
+  color: #FFFFFF;
 }
 
 /* ============================================
@@ -1158,12 +1147,23 @@
   }
   
   .billing-tabs-adminbilling {
-    padding: 0.5rem 0.5rem 0 0.5rem;
+    flex-wrap: wrap;
+    width: 100%;
   }
   
   .tab-btn-adminbilling {
-    padding: 0.5rem 1rem;
-    font-size: 0.75rem;
+    flex: 1;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .billing-tabs-adminbilling {
+    flex-direction: column;
+  }
+  
+  .tab-btn-adminbilling {
+    width: 100%;
   }
 }
 
@@ -1187,71 +1187,4 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #9CA3AF;
-}
-
-/* ============================================
-   TABS - WITH UNDERLINE ONLY (NO BACKGROUND HIGHLIGHT)
-   ============================================ */
-.billing-tabs-adminbilling {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  border-bottom: 1px solid #E5E5E8;
-  margin-bottom: 1.5rem;
-  background: #FFFFFF;
-  border-radius: 16px;
-  padding: 0.5rem;
-}
-
-.tab-btn-adminbilling {
-  padding: 0.625rem 1.25rem;
-  background: none;
-  border: none;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #6B6B6F;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  border-radius: 10px;
-}
-
-.tab-btn-adminbilling:hover {
-  color: #1F1F1F;
-  background: #F5F5F7;
-}
-
-/* ACTIVE TAB - NO BACKGROUND, ONLY UNDERLINE */
-.tab-btn-adminbilling.active-adminbilling {
-  color: #1F1F1F;
-  background: none;
-}
-
-/* UNDERLINE FOR ACTIVE TAB ONLY */
-.tab-btn-adminbilling.active-adminbilling::after {
-  content: '';
-  position: absolute;
-  bottom: -0.5rem;
-  left: 1rem;
-  right: 1rem;
-  height: 2px;
-  background: #1F1F1F;
-  border-radius: 2px;
-}
-
-@media (max-width: 768px) {
-  .billing-tabs-adminbilling {
-    justify-content: center;
-  }
-  
-  .tab-btn-adminbilling {
-    padding: 0.5rem 1rem;
-    font-size: 0.75rem;
-  }
-  
-  .tab-btn-adminbilling.active-adminbilling::after {
-    bottom: -0.5rem;
-    left: 0.75rem;
-    right: 0.75rem;
-  }
 }

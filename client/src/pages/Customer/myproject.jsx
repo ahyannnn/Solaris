@@ -101,14 +101,79 @@ const MyProject = () => {
     return null;
   };
 
-  if (loading) {
-    return (
-      <div className="cuspro-page">
-        <div className="cuspro-loading-state">
-          <FaSpinner className="cuspro-spinner-icon" />
-          <p>Loading your project...</p>
+  // Skeleton Loader Component
+  const SkeletonLoader = () => (
+    <div className="cuspro-page">
+      {/* Header Card Skeleton */}
+      <div className="cuspro-header-card skeleton-card">
+        <div className="skeleton-line large"></div>
+        <div className="skeleton-line medium"></div>
+      </div>
+
+      {/* Selector Card Skeleton */}
+      <div className="cuspro-selector-card skeleton-card">
+        <div className="skeleton-line small"></div>
+        <div className="skeleton-select"></div>
+      </div>
+
+      {/* Hero Card Skeleton */}
+      <div className="cuspro-hero-card skeleton-card">
+        <div className="cuspro-hero-left">
+          <div className="skeleton-line large"></div>
+          <div className="skeleton-line small"></div>
+          <div className="skeleton-details">
+            <div className="skeleton-chip"></div>
+            <div className="skeleton-chip"></div>
+            <div className="skeleton-chip"></div>
+          </div>
+        </div>
+        <div className="cuspro-hero-right">
+          <div className="skeleton-badge"></div>
         </div>
       </div>
+
+      {/* Progress Section Skeleton */}
+      <div className="cuspro-progress-section skeleton-card">
+        <div className="skeleton-line medium"></div>
+        <div className="skeleton-progress"></div>
+        <div className="skeleton-stats">
+          <div className="skeleton-stat"></div>
+          <div className="skeleton-stat"></div>
+          <div className="skeleton-stat"></div>
+        </div>
+      </div>
+
+      {/* Tab Navigation Skeleton */}
+      <div className="cuspro-tab-navigation skeleton-tabs">
+        <div className="skeleton-tab"></div>
+        <div className="skeleton-tab"></div>
+        <div className="skeleton-tab"></div>
+        <div className="skeleton-tab"></div>
+        <div className="skeleton-tab"></div>
+      </div>
+
+      {/* Tab Content Skeleton */}
+      <div className="cuspro-tab-content skeleton-card">
+        <div className="skeleton-content">
+          <div className="skeleton-line medium"></div>
+          <div className="skeleton-grid">
+            <div className="skeleton-info-card"></div>
+            <div className="skeleton-info-card"></div>
+            <div className="skeleton-info-card"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <>
+        <Helmet>
+          <title>My Projects | Salfer Engineering</title>
+        </Helmet>
+        <SkeletonLoader />
+      </>
     );
   }
 
@@ -253,7 +318,7 @@ const MyProject = () => {
               </button>
             </div>
 
-            {/* Tab Content */}
+            {/* Tab Content - keep your existing content */}
             <div className="cuspro-tab-content">
               {/* Overview Tab */}
               {activeTab === 'overview' && (

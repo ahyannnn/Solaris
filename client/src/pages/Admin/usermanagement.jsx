@@ -28,9 +28,11 @@ import {
   FaSave,
   FaTimes
 } from 'react-icons/fa';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/userManagement.css';
 
 const UserManagement = () => {
+  const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({
@@ -49,6 +51,8 @@ const UserManagement = () => {
   const [showUserModal, setShowUserModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showStatusConfirm, setShowStatusConfirm] = useState(false);
+  const [statusAction, setStatusAction] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalMode, setModalMode] = useState('view');
   const [formData, setFormData] = useState({
@@ -85,6 +89,7 @@ const UserManagement = () => {
       setTotalPages(response.data.totalPages || 1);
     } catch (error) {
       console.error('Error fetching users:', error);
+      showToast('Failed to load users', 'error');
     } finally {
       setLoading(false);
     }
@@ -165,6 +170,12 @@ const UserManagement = () => {
     setShowPasswordModal(true);
   };
 
+  const handleOpenStatusModal = (user, action) => {
+    setSelectedUser(user);
+    setStatusAction(action);
+    setShowStatusConfirm(true);
+  };
+
   const validateForm = () => {
     const errors = {};
     if (modalMode === 'create') {
@@ -205,13 +216,13 @@ const UserManagement = () => {
       );
 
       if (response.data.success) {
-        alert('Password reset successfully!');
+        showToast('Password reset successfully!', 'success');
         setShowPasswordModal(false);
         setFormData({ ...formData, password: '', confirmPassword: '' });
       }
     } catch (error) {
       console.error('Error resetting password:', error);
-      alert(error.response?.data?.message || 'Failed to reset password');
+      showToast(error.response?.data?.message || 'Failed to reset password', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -260,21 +271,24 @@ const UserManagement = () => {
         fetchUsers();
         fetchStats();
         setShowUserModal(false);
-        alert(modalMode === 'create' ? 'User created successfully!' : 'User updated successfully!');
+        showToast(modalMode === 'create' ? 'User created successfully!' : 'User updated successfully!', 'success');
       }
     } catch (error) {
       console.error('Error saving user:', error);
-      alert(error.response?.data?.message || 'Failed to save user');
+      showToast(error.response?.data?.message || 'Failed to save user', 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleToggleStatus = async (user) => {
+  const handleToggleStatus = async () => {
+    if (!selectedUser) return;
+
+    setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/admin/users/${user._id}/toggle-status`,
+        `${import.meta.env.VITE_API_URL}/api/admin/users/${selectedUser._id}/toggle-status`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -282,11 +296,16 @@ const UserManagement = () => {
       if (response.data.success) {
         fetchUsers();
         fetchStats();
-        alert(response.data.message);
+        setShowStatusConfirm(false);
+        setSelectedUser(null);
+        setStatusAction(null);
+        showToast(response.data.message, 'success');
       }
     } catch (error) {
       console.error('Error toggling user status:', error);
-      alert('Failed to update user status');
+      showToast('Failed to update user status', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -306,11 +325,11 @@ const UserManagement = () => {
         fetchStats();
         setShowDeleteConfirm(false);
         setSelectedUser(null);
-        alert('User deleted successfully!');
+        showToast('User deleted successfully!', 'success');
       }
     } catch (error) {
       console.error('Error deleting user:', error);
-      alert(error.response?.data?.message || 'Failed to delete user');
+      showToast(error.response?.data?.message || 'Failed to delete user', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -540,7 +559,7 @@ const UserManagement = () => {
                       </button>
                       <button
                         className="action-btn-usermgmtad toggle-usermgmtad"
-                        onClick={() => handleToggleStatus(user)}
+                        onClick={() => handleOpenStatusModal(user, user.isActive ? 'deactivate' : 'activate')}
                         title={user.isActive ? 'Deactivate User' : 'Activate User'}
                       >
                         {user.isActive ? <FaBan /> : <FaCheck />}
@@ -879,6 +898,39 @@ const UserManagement = () => {
             </div>
           </div>
         )}
+
+        {/* Status Toggle Confirmation Modal (Reuses same modal structure) */}
+        {showStatusConfirm && selectedUser && (
+          <div className="modal-overlay-usermgmtad" onClick={() => setShowStatusConfirm(false)}>
+            <div className="modal-content-usermgmtad confirm-modal-usermgmtad" onClick={e => e.stopPropagation()}>
+              <div className="confirm-icon-usermgmtad">
+                {statusAction === 'deactivate' ? <FaBan /> : <FaCheck />}
+              </div>
+              <h3>{statusAction === 'deactivate' ? 'Deactivate User' : 'Activate User'}</h3>
+              <p>Are you sure you want to <strong>{statusAction === 'deactivate' ? 'deactivate' : 'activate'}</strong> <strong>{selectedUser.fullName || selectedUser.email}</strong>?</p>
+              <p className="warning-text-usermgmtad">
+                {statusAction === 'deactivate' 
+                  ? 'Deactivated users will not be able to log in to the system.' 
+                  : 'Activated users will regain access to the system.'}
+              </p>
+              <div className="modal-actions-usermgmtad">
+                <button className="cancel-btn-usermgmtad" onClick={() => setShowStatusConfirm(false)}>
+                  Cancel
+                </button>
+                <button className="delete-btn-usermgmtad" onClick={handleToggleStatus} disabled={isSubmitting}>
+                  {isSubmitting ? 'Processing...' : (statusAction === 'deactivate' ? 'Deactivate' : 'Activate')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
       </div>
     </>
   );

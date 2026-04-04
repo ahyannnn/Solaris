@@ -1,12 +1,9 @@
-// pages/Admin/Maintenance.jsx - Updated toggle functionality
-
+// pages/Admin/Maintenance.admain.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { 
   FaTools, 
-  FaToggleOn, 
-  FaToggleOff, 
   FaSave, 
   FaHistory,
   FaPlus,
@@ -15,7 +12,9 @@ import {
   FaCheckCircle,
   FaClock,
   FaPowerOff,
-  FaPlay
+  FaPlay,
+  FaEye,
+  FaEyeSlash
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/maintenance.css';
@@ -96,14 +95,12 @@ const MaintenancePanel = () => {
     }
   };
 
-  // ✅ Updated toggle function - can disable at any time
   const handleToggleMaintenance = async () => {
     setIsToggling(true);
     try {
       const token = sessionStorage.getItem('token');
       
       if (!isEnabled) {
-        // Enable maintenance
         await axios.post(`${import.meta.env.VITE_API_URL}/api/maintenance/enable`, 
           { 
             title: settings.title, 
@@ -116,7 +113,6 @@ const MaintenancePanel = () => {
         );
         showToast('Maintenance mode enabled', 'success');
       } else {
-        // ✅ Disable maintenance - works regardless of duration
         await axios.post(`${import.meta.env.VITE_API_URL}/api/maintenance/disable`, {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -124,8 +120,8 @@ const MaintenancePanel = () => {
       }
       
       setIsEnabled(!isEnabled);
-      await fetchMaintenanceData(); // Refresh data
-      await fetchHistory(); // Refresh history
+      await fetchMaintenanceData();
+      await fetchHistory();
       
     } catch (error) {
       console.error('Error toggling maintenance:', error);
@@ -144,7 +140,6 @@ const MaintenancePanel = () => {
       });
       showToast('Settings saved successfully', 'success');
       if (isEnabled) {
-        // If maintenance is active, refresh the page settings
         await fetchMaintenanceData();
       }
     } catch (error) {
@@ -192,14 +187,56 @@ const MaintenancePanel = () => {
     return new Date(date).toLocaleString();
   };
 
+  // Skeleton Loader Component
+  const SkeletonLoader = () => (
+    <div className="maintenance-panel-admain">
+      <div className="panel-header-admain">
+        <div className="skeleton-line-admain large-admain"></div>
+        <div className="skeleton-line-admain medium-admain"></div>
+      </div>
+      
+      {/* Toggle Card Skeleton */}
+      <div className="toggle-card-admain skeleton-card-admain">
+        <div className="toggle-info-admain">
+          <div className="skeleton-line-admain medium-admain"></div>
+          <div className="skeleton-line-admain small-admain"></div>
+          <div className="skeleton-badge-admain"></div>
+        </div>
+        <div className="skeleton-button-admain"></div>
+      </div>
+      
+      {/* Settings Card Skeleton */}
+      <div className="settings-card-admain skeleton-card-admain">
+        <div className="skeleton-line-admain medium-admain"></div>
+        <div className="skeleton-input-admain"></div>
+        <div className="skeleton-input-admain"></div>
+        <div className="skeleton-input-admain"></div>
+        <div className="skeleton-button-admain"></div>
+      </div>
+      
+      {/* IPs Card Skeleton */}
+      <div className="ips-card-admain skeleton-card-admain">
+        <div className="skeleton-line-admain medium-admain"></div>
+        <div className="skeleton-input-admain"></div>
+        <div className="skeleton-ip-item-admain"></div>
+        <div className="skeleton-ip-item-admain"></div>
+      </div>
+      
+      {/* History Card Skeleton */}
+      <div className="history-card-admain skeleton-card-admain">
+        <div className="skeleton-button-admain"></div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="maintenance-panel">
-        <div className="loading-container">
-          <FaSpinner className="spinner" />
-          <p>Loading maintenance settings...</p>
-        </div>
-      </div>
+      <>
+        <Helmet>
+          <title>Maintenance Mode | Admin | Salfer Engineering</title>
+        </Helmet>
+        <SkeletonLoader />
+      </>
     );
   }
 
@@ -209,48 +246,48 @@ const MaintenancePanel = () => {
         <title>Maintenance Mode | Admin | Salfer Engineering</title>
       </Helmet>
 
-      <div className="maintenance-panel">
-        <div className="panel-header">
+      <div className="maintenance-panel-admain">
+        <div className="panel-header-admain">
           <h1><FaTools /> Maintenance Mode Control</h1>
           <p>Enable/disable maintenance mode and configure settings</p>
         </div>
 
         {/* Maintenance Toggle Card */}
-        <div className="toggle-card">
-          <div className="toggle-info">
+        <div className="toggle-card-admain">
+          <div className="toggle-info-admain">
             <h3>Maintenance Mode</h3>
             <p>When enabled, users will see a maintenance page instead of the website.</p>
             {isEnabled && (
-              <div className="active-badge">
+              <div className="active-badge-admain">
                 <FaCheckCircle /> Maintenance Mode ACTIVE
                 {settings.scheduledStart && (
-                  <span className="start-time">
+                  <span className="start-time-admain">
                     Started: {formatDate(settings.scheduledStart)}
                   </span>
                 )}
               </div>
             )}
             {!isEnabled && settings.scheduledEnd && (
-              <div className="last-maintenance">
+              <div className="last-maintenance-admain">
                 <FaClock /> Last maintenance ended: {formatDate(settings.scheduledEnd)}
               </div>
             )}
           </div>
           <button 
-            className={`toggle-btn ${isEnabled ? 'active' : 'inactive'}`}
+            className={`toggle-btn-admain ${isEnabled ? 'active-admain' : 'inactive-admain'}`}
             onClick={handleToggleMaintenance}
             disabled={isToggling}
           >
-            {isToggling ? <FaSpinner className="spinner" /> : isEnabled ? <FaPowerOff /> : <FaPlay />}
+            {isToggling ? <FaSpinner className="spinner-admain" /> : isEnabled ? <FaPowerOff /> : <FaPlay />}
             {isEnabled ? 'Disable Maintenance' : 'Enable Maintenance'}
           </button>
         </div>
 
-        {/* Settings Card - Only show when maintenance is active OR always show? */}
-        <div className="settings-card">
+        {/* Settings Card */}
+        <div className="settings-card-admain">
           <h3>Maintenance Page Settings</h3>
           
-          <div className="form-group">
+          <div className="form-group-admain">
             <label>Page Title</label>
             <input 
               type="text" 
@@ -260,7 +297,7 @@ const MaintenancePanel = () => {
             />
           </div>
           
-          <div className="form-group">
+          <div className="form-group-admain">
             <label>Message</label>
             <textarea 
               rows="3" 
@@ -270,8 +307,8 @@ const MaintenancePanel = () => {
             />
           </div>
           
-          <div className="form-row">
-            <div className="form-group">
+          <div className="form-row-admain">
+            <div className="form-group-admain">
               <label>Estimated Duration (for display only)</label>
               <input 
                 type="text" 
@@ -283,8 +320,8 @@ const MaintenancePanel = () => {
             </div>
           </div>
           
-          <div className="form-row">
-            <div className="form-group">
+          <div className="form-row-admain">
+            <div className="form-group-admain">
               <label>Contact Email</label>
               <input 
                 type="email" 
@@ -292,7 +329,7 @@ const MaintenancePanel = () => {
                 onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
               />
             </div>
-            <div className="form-group">
+            <div className="form-group-admain">
               <label>Contact Phone</label>
               <input 
                 type="text" 
@@ -302,29 +339,29 @@ const MaintenancePanel = () => {
             </div>
           </div>
           
-          <div className="checkbox-group">
-            <label>
+          <div className="checkbox-group-admain">
+            <label className="checkbox-label-admain">
               <input 
                 type="checkbox" 
                 checked={settings.showCountdown} 
                 onChange={(e) => setSettings({ ...settings, showCountdown: e.target.checked })}
               />
-              Show Countdown Timer
+              <span>Show Countdown Timer</span>
             </label>
-            <label>
+            <label className="checkbox-label-admain">
               <input 
                 type="checkbox" 
                 checked={settings.showProgressBar} 
                 onChange={(e) => setSettings({ ...settings, showProgressBar: e.target.checked })}
               />
-              Show Progress Bar
+              <span>Show Progress Bar</span>
             </label>
           </div>
           
-          <div className="social-links-section">
+          <div className="social-links-section-admain">
             <h4>Social Media Links (Optional)</h4>
-            <div className="form-row">
-              <div className="form-group">
+            <div className="form-row-admain">
+              <div className="form-group-admain">
                 <label>Facebook</label>
                 <input 
                   type="url" 
@@ -333,7 +370,7 @@ const MaintenancePanel = () => {
                   placeholder="https://facebook.com/..."
                 />
               </div>
-              <div className="form-group">
+              <div className="form-group-admain">
                 <label>Twitter</label>
                 <input 
                   type="url" 
@@ -342,7 +379,7 @@ const MaintenancePanel = () => {
                   placeholder="https://twitter.com/..."
                 />
               </div>
-              <div className="form-group">
+              <div className="form-group-admain">
                 <label>Instagram</label>
                 <input 
                   type="url" 
@@ -355,7 +392,7 @@ const MaintenancePanel = () => {
           </div>
           
           <button 
-            className="save-btn" 
+            className="save-btn-admain" 
             onClick={handleSaveSettings}
             disabled={isSubmitting}
           >
@@ -364,9 +401,9 @@ const MaintenancePanel = () => {
         </div>
 
         {/* Allowed IPs Card */}
-        <div className="ips-card">
+        <div className="ips-card-admain">
           <h3>Allowed IP Addresses (Admin Access During Maintenance)</h3>
-          <div className="add-ip">
+          <div className="add-ip-admain">
             <input 
               type="text" 
               value={newIP} 
@@ -375,51 +412,51 @@ const MaintenancePanel = () => {
             />
             <button onClick={handleAddIP}><FaPlus /> Add IP</button>
           </div>
-          <div className="ip-list">
+          <div className="ip-list-admain">
             {settings.allowedIPs.map((ip, index) => (
-              <div key={index} className="ip-item">
+              <div key={index} className="ip-item-admain">
                 <span>{ip}</span>
                 <button onClick={() => handleRemoveIP(ip)}><FaTrash /></button>
               </div>
             ))}
             {settings.allowedIPs.length === 0 && (
-              <p className="no-ips">No IP addresses added. Only admins can access during maintenance.</p>
+              <p className="no-ips-admain">No IP addresses added. Only admins can access during maintenance.</p>
             )}
           </div>
         </div>
 
         {/* History Card */}
-        <div className="history-card">
+        <div className="history-card-admain">
           <button 
-            className="history-toggle" 
+            className="history-toggle-admain" 
             onClick={() => setShowHistory(!showHistory)}
           >
             <FaHistory /> {showHistory ? 'Hide' : 'Show'} Maintenance History
           </button>
           
           {showHistory && (
-            <div className="history-list">
+            <div className="history-list-admain">
               {history.length === 0 ? (
-                <p>No maintenance history available.</p>
+                <p className="no-history-admain">No maintenance history available.</p>
               ) : (
                 history.map((entry, index) => (
-                  <div key={index} className="history-item">
-                    <div className="history-date">
+                  <div key={index} className="history-item-admain">
+                    <div className="history-date-admain">
                       <FaClock />
                       <span>Started: {new Date(entry.startDate).toLocaleString()}</span>
                     </div>
                     {entry.endDate && (
-                      <div className="history-date">
+                      <div className="history-date-admain">
                         <FaClock />
                         <span>Ended: {new Date(entry.endDate).toLocaleString()}</span>
                       </div>
                     )}
-                    <div className="history-details">
-                      <p><strong>Reason:</strong> {entry.reason}</p>
+                    <div className="history-details-admain">
+                      <p><strong>Reason:</strong> {entry.reason || 'Scheduled maintenance'}</p>
                       <p><strong>Duration:</strong> {entry.endDate ? 
                         `${Math.round((new Date(entry.endDate) - new Date(entry.startDate)) / 1000 / 60)} minutes` : 
                         'Ongoing'}</p>
-                      <p><strong>Initiated by:</strong> {entry.initiatedBy?.firstName} {entry.initiatedBy?.lastName}</p>
+                      <p><strong>Initiated by:</strong> {entry.initiatedBy?.firstName} {entry.initiatedBy?.lastName || 'Admin'}</p>
                     </div>
                   </div>
                 ))

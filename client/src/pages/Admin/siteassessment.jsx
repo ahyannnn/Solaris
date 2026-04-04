@@ -36,10 +36,13 @@ import {
   FaCheck,
   FaWifi
 } from 'react-icons/fa';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/siteAssessment.css';
 
 const SiteAssessment = () => {
+  const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('free-quotes');
   const [freeQuotes, setFreeQuotes] = useState([]);
   const [preAssessments, setPreAssessments] = useState([]);
@@ -93,13 +96,13 @@ const SiteAssessment = () => {
           headers: { Authorization: `Bearer ${token}` },
           params: { status: filter === 'all' ? undefined : filter, page: currentPage, limit: 10 }
         });
-        console.log('Fetched pre-assessments:', response.data.assessments);
         setPreAssessments(response.data.assessments || []);
         setTotalPages(response.data.totalPages || 1);
       }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
+      showToast('Failed to load data', 'error');
       setLoading(false);
     }
   };
@@ -174,18 +177,19 @@ const SiteAssessment = () => {
         { status },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert('Status updated successfully');
+      showToast('Status updated successfully', 'success');
       fetchData();
       fetchStats();
     } catch (error) {
       console.error('Error updating status:', error);
-      alert('Failed to update status');
+      showToast('Failed to update status', 'error');
     }
   };
 
   const handleApproveBooking = async (approved) => {
     if (!selectedItem) return;
 
+    setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
       await axios.put(
@@ -194,7 +198,7 @@ const SiteAssessment = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert(approved ? 'Booking approved! Invoice generated.' : 'Booking rejected.');
+      showToast(approved ? 'Booking approved! Invoice generated.' : 'Booking rejected.', approved ? 'success' : 'warning');
       setShowApproveModal(false);
       setSelectedItem(null);
       setApproveNotes('');
@@ -202,13 +206,16 @@ const SiteAssessment = () => {
       fetchStats();
     } catch (error) {
       console.error('Error approving booking:', error);
-      alert('Failed to process booking');
+      showToast('Failed to process booking', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleVerifyPayment = async (verified) => {
     if (!selectedItem) return;
 
+    setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
       await axios.put(
@@ -217,7 +224,7 @@ const SiteAssessment = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert(verified ? 'Payment verified successfully!' : 'Payment rejected');
+      showToast(verified ? 'Payment verified successfully!' : 'Payment rejected', verified ? 'success' : 'warning');
       setShowVerifyModal(false);
       setSelectedItem(null);
       setVerificationNote('');
@@ -225,70 +232,68 @@ const SiteAssessment = () => {
       fetchStats();
     } catch (error) {
       console.error('Error verifying payment:', error);
-      alert('Failed to verify payment');
+      showToast('Failed to verify payment', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // In pages/Admin/SiteAssessment.jsx - Update handleAssignEngineer
+  const handleAssignEngineer = async () => {
+    if (!selectedItem || !engineerId) return;
 
-const handleAssignEngineer = async () => {
-  if (!selectedItem || !engineerId) return;
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
 
-  setIsSubmitting(true);
-  try {
-    const token = sessionStorage.getItem('token');
-
-    if (activeTab === 'free-quotes') {
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/free-quotes/${selectedItem._id}/assign-engineer`,
-        { engineerId, notes: siteVisitNotes },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      alert('Engineer assigned to free quote successfully');
-    } else {
-      // First assign engineer to pre-assessment
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}/assign-engineer`,
-        { engineerId, siteVisitDate, notes: siteVisitNotes },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      // ✅ NEW: Create schedule entry
-      if (siteVisitDate) {
-        await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/schedules/create-from-preassessment`,
-          {
-            preAssessmentId: selectedItem._id,
-            engineerId: engineerId,
-            siteVisitDate: siteVisitDate,
-            siteVisitTime: '09:00' // Default time, you can add a time picker
-          },
+      if (activeTab === 'free-quotes') {
+        await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/free-quotes/${selectedItem._id}/assign-engineer`,
+          { engineerId, notes: siteVisitNotes },
           { headers: { Authorization: `Bearer ${token}` } }
         );
+        showToast('Engineer assigned to free quote successfully', 'success');
+      } else {
+        await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}/assign-engineer`,
+          { engineerId, siteVisitDate, notes: siteVisitNotes },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (siteVisitDate) {
+          await axios.post(
+            `${import.meta.env.VITE_API_URL}/api/schedules/create-from-preassessment`,
+            {
+              preAssessmentId: selectedItem._id,
+              engineerId: engineerId,
+              siteVisitDate: siteVisitDate,
+              siteVisitTime: '09:00'
+            },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        }
+
+        showToast('Engineer assigned and schedule created successfully', 'success');
       }
 
-      alert('Engineer assigned and schedule created successfully');
+      setShowAssignEngineerModal(false);
+      setSelectedItem(null);
+      setEngineerId('');
+      setSiteVisitDate('');
+      setSiteVisitNotes('');
+      fetchData();
+      fetchStats();
+    } catch (error) {
+      console.error('Error assigning engineer:', error);
+      showToast(error.response?.data?.message || 'Failed to assign engineer', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setShowAssignEngineerModal(false);
-    setSelectedItem(null);
-    setEngineerId('');
-    setSiteVisitDate('');
-    setSiteVisitNotes('');
-    fetchData();
-    fetchStats();
-  } catch (error) {
-    console.error('Error assigning engineer:', error);
-    console.error('Error response:', error.response?.data);
-    alert(error.response?.data?.message || 'Failed to assign engineer');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   const handleAssignDevice = async () => {
     if (!selectedItem || !deviceId) return;
 
+    setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
 
@@ -302,7 +307,7 @@ const handleAssignEngineer = async () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert('Device assigned successfully to the pre-assessment');
+      showToast('Device assigned successfully to the pre-assessment', 'success');
       setShowAssignDeviceModal(false);
       setSelectedItem(null);
       setDeviceId('');
@@ -310,10 +315,11 @@ const handleAssignEngineer = async () => {
       await fetchData();
       await fetchStats();
       await fetchDevices();
-
     } catch (error) {
       console.error('Error assigning device:', error);
-      alert(error.response?.data?.message || 'Failed to assign device');
+      showToast(error.response?.data?.message || 'Failed to assign device', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -332,7 +338,7 @@ const handleAssignEngineer = async () => {
         { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
       );
 
-      alert('Quotation uploaded and sent to customer');
+      showToast('Quotation uploaded and sent to customer', 'success');
       setShowUploadModal(false);
       setSelectedItem(null);
       setQuotationFile(null);
@@ -340,7 +346,7 @@ const handleAssignEngineer = async () => {
       fetchStats();
     } catch (error) {
       console.error('Error uploading quotation:', error);
-      alert('Failed to upload quotation');
+      showToast('Failed to upload quotation', 'error');
     } finally {
       setUploading(false);
     }
@@ -391,12 +397,10 @@ const handleAssignEngineer = async () => {
 
   const getDisplayStatus = (item) => {
     if (activeTab === 'pre-assessments') {
-      // Show "Pending Review" for new bookings waiting for admin approval
       if (item.assessmentStatus === 'pending_review') {
         return 'pending_review';
       }
       
-      // If payment is not verified yet, show payment status
       if (item.paymentStatus !== 'paid' && item.paymentStatus !== 'pending' && item.assessmentStatus !== 'pending_payment') {
         return item.paymentStatus;
       }
@@ -612,13 +616,13 @@ const handleAssignEngineer = async () => {
                     <td>{formatDate(activeTab === 'free-quotes' ? item.requestedAt : item.bookedAt)}</td>
                     {activeTab === 'free-quotes' ? (
                       <>
-                        <td>{formatCurrency(item.monthlyBill)}</td>
+                        <td className="amount-cell-siteassesad">{formatCurrency(item.monthlyBill)}</td>
                         <td>{item.desiredCapacity || 'N/A'}</td>
                       </>
                     ) : (
                       <>
                         <td>{item.propertyType}</td>
-                        <td>{formatCurrency(item.assessmentFee)}</td>
+                        <td className="amount-cell-siteassesad">{formatCurrency(item.assessmentFee)}</td>
                       </>
                     )}
                     <td>{getStatusBadge(getDisplayStatus(item), activeTab === 'free-quotes' ? 'free-quote' : 'pre-assessment')}</td>
@@ -631,7 +635,6 @@ const handleAssignEngineer = async () => {
                         <FaEye />
                       </button>
 
-                      {/* Admin Approve/Reject for Pending Review Bookings */}
                       {activeTab === 'pre-assessments' && item.assessmentStatus === 'pending_review' && (
                         <>
                           <button
@@ -651,7 +654,6 @@ const handleAssignEngineer = async () => {
                         </>
                       )}
 
-                      {/* Free Quote Actions */}
                       {activeTab === 'free-quotes' && item.status === 'pending' && (
                         <button
                           className="action-btn-siteassesad assign-siteassesad"
@@ -682,7 +684,6 @@ const handleAssignEngineer = async () => {
                         </button>
                       )}
 
-                      {/* Pre-Assessment Actions - Verify Payment (after invoice generated) */}
                       {activeTab === 'pre-assessments' && item.paymentStatus === 'for_verification' && (
                         <>
                           <button
@@ -702,7 +703,6 @@ const handleAssignEngineer = async () => {
                         </>
                       )}
 
-                      {/* Pre-Assessment Actions - Assign Engineer (after payment verified) */}
                       {activeTab === 'pre-assessments' &&
                         item.paymentStatus === 'paid' &&
                         item.assessmentStatus === 'scheduled' &&
@@ -716,7 +716,6 @@ const handleAssignEngineer = async () => {
                           </button>
                         )}
 
-                      {/* Pre-Assessment Actions - Assign Device (after engineer assigned) */}
                       {activeTab === 'pre-assessments' &&
                         item.paymentStatus === 'paid' &&
                         item.assignedEngineerId &&
@@ -792,7 +791,9 @@ const handleAssignEngineer = async () => {
               <div className="modal-actions-siteassesad">
                 <button className="cancel-btn-siteassesad" onClick={() => setShowApproveModal(false)}>Cancel</button>
                 <button className="reject-btn-siteassesad" onClick={() => handleApproveBooking(false)}>Reject</button>
-                <button className="approve-btn-siteassesad" onClick={() => handleApproveBooking(true)}>Approve & Generate Invoice</button>
+                <button className="approve-btn-siteassesad" onClick={() => handleApproveBooking(true)} disabled={isSubmitting}>
+                  {isSubmitting ? 'Processing...' : 'Approve & Generate Invoice'}
+                </button>
               </div>
             </div>
           </div>
@@ -802,6 +803,7 @@ const handleAssignEngineer = async () => {
         {showDetailModal && selectedItem && (
           <div className="modal-overlay-siteassesad" onClick={() => setShowDetailModal(false)}>
             <div className="modal-content-siteassesad detail-modal-siteassesad" onClick={e => e.stopPropagation()}>
+              <button className="modal-close-siteassesad" onClick={() => setShowDetailModal(false)}>×</button>
               <h3>Assessment Details</h3>
               <div className="detail-section-siteassesad">
                 <h4>Client Information</h4>
@@ -867,8 +869,10 @@ const handleAssignEngineer = async () => {
               </div>
               <div className="modal-actions-siteassesad">
                 <button className="cancel-btn-siteassesad" onClick={() => setShowVerifyModal(false)}>Cancel</button>
-                <button className="reject-btn-siteassesad" onClick={() => handleVerifyPayment(false)}>Reject</button>
-                <button className="verify-btn-siteassesad" onClick={() => handleVerifyPayment(true)}>Verify & Confirm</button>
+                <button className="reject-btn-siteassesad" onClick={() => handleVerifyPayment(false)} disabled={isSubmitting}>Reject</button>
+                <button className="verify-btn-siteassesad" onClick={() => handleVerifyPayment(true)} disabled={isSubmitting}>
+                  {isSubmitting ? 'Processing...' : 'Verify & Confirm'}
+                </button>
               </div>
             </div>
           </div>
@@ -920,7 +924,9 @@ const handleAssignEngineer = async () => {
               </div>
               <div className="modal-actions-siteassesad">
                 <button className="cancel-btn-siteassesad" onClick={() => setShowAssignEngineerModal(false)}>Cancel</button>
-                <button className="assign-btn-siteassesad" onClick={handleAssignEngineer}>Assign Engineer</button>
+                <button className="assign-btn-siteassesad" onClick={handleAssignEngineer} disabled={!engineerId || isSubmitting}>
+                  {isSubmitting ? 'Assigning...' : 'Assign Engineer'}
+                </button>
               </div>
             </div>
           </div>
@@ -957,8 +963,8 @@ const handleAssignEngineer = async () => {
               </div>
               <div className="modal-actions-siteassesad">
                 <button className="cancel-btn-siteassesad" onClick={() => setShowAssignDeviceModal(false)}>Cancel</button>
-                <button className="assign-btn-siteassesad" onClick={handleAssignDevice} disabled={!deviceId}>
-                  Assign Device
+                <button className="assign-btn-siteassesad" onClick={handleAssignDevice} disabled={!deviceId || isSubmitting}>
+                  {isSubmitting ? 'Assigning...' : 'Assign Device'}
                 </button>
               </div>
             </div>
@@ -989,6 +995,13 @@ const handleAssignEngineer = async () => {
             </div>
           </div>
         )}
+
+        <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
       </div>
     </>
   );

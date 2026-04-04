@@ -3,8 +3,39 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { 
+  FaProjectDiagram,
+  FaFileInvoice,
+  FaSpinner,
+  FaEye,
+  FaDownload,
+  FaCheckCircle,
+  FaClock,
+  FaCalendarAlt,
+  FaUser,
+  FaEnvelope,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaCreditCard,
+  FaMoneyBillWave,
+  FaTools,
+  FaSolarPanel,
+  FaMicrochip,
+  FaWifi,
+  FaRulerCombined,
+  FaHistory,
+  FaFileAlt,
+  FaUserCog,
+  FaBan,
+  FaTimesCircle,
+  FaInfoCircle,
+  FaArrowRight,
+  FaPlus,
+  FaTrash,
+  FaSave,
+  FaTimes
+} from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
-import TermsModal from '../../assets/termsandconditions';
 import '../../styles/Customer/quotation.css';
 
 const Quotation = () => {
@@ -18,22 +49,15 @@ const Quotation = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showPdfModal, setShowPdfModal] = useState(false);
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [acceptingItem, setAcceptingItem] = useState(null);
   const [acceptingLoading, setAcceptingLoading] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState('');
   const [pdfLoading, setPdfLoading] = useState(false);
   const [detailsItem, setDetailsItem] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [paymentProof, setPaymentProof] = useState(null);
   const [paymentReference, setPaymentReference] = useState('');
-  
-  // Terms Modal state
-  const [showTermsModal, setShowTermsModal] = useState(false);
-  const [termsModalMode, setTermsModalMode] = useState('registration');
-  const [pendingAction, setPendingAction] = useState(null);
 
   // Solar Installation Request Form
   const [solarRequest, setSolarRequest] = useState({
@@ -159,15 +183,13 @@ const Quotation = () => {
   };
 
   const handleRequestSolarClick = () => {
-    const hasAcceptedTerms = localStorage.getItem('termsAccepted') === 'true';
-    
-    if (!hasAcceptedTerms) {
-      setPendingAction('requestSolar');
-      setTermsModalMode('registration');
-      setShowTermsModal(true);
-    } else {
-      handleRequestSolar();
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+    if (!token) {
+      showToast('Please login to request installation', 'warning');
+      navigate('/login');
+      return;
     }
+    setShowRequestModal(true);
   };
 
   const handleRequestSolar = async () => {
@@ -175,11 +197,16 @@ const Quotation = () => {
       return;
     }
 
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+    if (!token) {
+      showToast('Session expired. Please login again.', 'error');
+      navigate('/login');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/projects/request`,
         {
           systemSize: solarRequest.systemSize,
@@ -193,27 +220,23 @@ const Quotation = () => {
       showToast('Solar installation request submitted successfully!', 'success');
       setShowRequestModal(false);
       setSolarRequest({ systemSize: '', propertyType: 'residential', systemType: 'grid-tie', notes: '' });
-
       fetchData();
 
     } catch (err) {
       console.error('Error submitting solar request:', err);
-      showToast(err.response?.data?.message || 'Failed to submit request. Please try again.', 'error');
+      if (err.response?.status === 401) {
+        showToast('Session expired. Please login again.', 'error');
+        navigate('/login');
+      } else {
+        showToast(err.response?.data?.message || 'Failed to submit request. Please try again.', 'error');
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handlePayNowClick = (preAssessment) => {
-    const hasAcceptedTerms = localStorage.getItem('termsAccepted') === 'true';
-    
-    if (!hasAcceptedTerms) {
-      setPendingAction({ type: 'payment', data: preAssessment });
-      setTermsModalMode('registration');
-      setShowTermsModal(true);
-    } else {
-      handlePayNow(preAssessment);
-    }
+    handlePayNow(preAssessment);
   };
 
   const handlePayNow = (preAssessment) => {
@@ -228,35 +251,12 @@ const Quotation = () => {
   };
 
   const handleAcceptQuotationClick = (assessment) => {
-    const hasAcceptedTerms = localStorage.getItem('termsAccepted') === 'true';
-    
-    if (!hasAcceptedTerms) {
-      setPendingAction({ type: 'acceptQuotation', data: assessment });
-      setTermsModalMode('registration');
-      setShowTermsModal(true);
-    } else {
-      handleAcceptQuotation(assessment);
-    }
+    handleAcceptQuotation(assessment);
   };
 
   const handleAcceptQuotation = (assessment) => {
     setAcceptingItem(assessment);
     setShowAcceptModal(true);
-  };
-
-  const handleTermsAccept = () => {
-    localStorage.setItem('termsAccepted', 'true');
-    
-    if (pendingAction) {
-      if (pendingAction === 'requestSolar') {
-        handleRequestSolar();
-      } else if (pendingAction.type === 'payment') {
-        handlePayNow(pendingAction.data);
-      } else if (pendingAction.type === 'acceptQuotation') {
-        handleAcceptQuotation(pendingAction.data);
-      }
-      setPendingAction(null);
-    }
   };
 
   const handleViewDetails = (item, type) => {
@@ -270,8 +270,7 @@ const Quotation = () => {
       return;
     }
 
-    const pdfUrl = assessment.quotationUrl;
-    window.open(pdfUrl, '_blank');
+    window.open(assessment.quotationUrl, '_blank');
   };
 
   const handleDownloadQuotation = async (assessment) => {
@@ -433,14 +432,56 @@ const Quotation = () => {
     return Math.round((project.amountPaid / project.totalCost) * 100);
   };
 
-  if (loading) {
-    return (
-      <div className="cuspro-quotation-container">
-        <div className="cuspro-loading-state">
-          <div className="cuspro-spinner"></div>
-          <p>Loading your solar journey...</p>
+  // Skeleton Loader Component
+  const SkeletonLoader = () => (
+    <div className="cuspro-quotation-container">
+      <div className="cuspro-header-card skeleton-card">
+        <div className="cuspro-header-content">
+          <div className="skeleton-line large"></div>
+          <div className="skeleton-line medium"></div>
+        </div>
+        <div className="skeleton-button"></div>
+      </div>
+
+      <div className="cuspro-tabs skeleton-tabs">
+        <div className="skeleton-tab"></div>
+        <div className="skeleton-tab"></div>
+        <div className="skeleton-tab"></div>
+        <div className="skeleton-tab"></div>
+      </div>
+
+      <div className="cuspro-projects-section">
+        <div className="cuspro-project-card skeleton-card">
+          <div className="cuspro-project-header">
+            <div>
+              <div className="skeleton-line medium"></div>
+              <div className="skeleton-line small"></div>
+            </div>
+            <div className="skeleton-badge"></div>
+          </div>
+          <div className="skeleton-progress"></div>
+          <div className="skeleton-stats">
+            <div className="skeleton-stat"></div>
+            <div className="skeleton-stat"></div>
+          </div>
+          <div className="skeleton-table"></div>
+          <div className="skeleton-actions">
+            <div className="skeleton-button small"></div>
+            <div className="skeleton-button small"></div>
+          </div>
         </div>
       </div>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <>
+        <Helmet>
+          <title>My Solar Journey | Salfer Engineering</title>
+        </Helmet>
+        <SkeletonLoader />
+      </>
     );
   }
 
@@ -458,11 +499,11 @@ const Quotation = () => {
             <p>Track your projects, view quotes, and manage payments</p>
           </div>
           <button className="cuspro-request-btn" onClick={handleRequestSolarClick}>
-            Request Installation
+            <FaTools /> Request Installation
           </button>
         </div>
 
-        {/* Tab Navigation */}
+        {/* Tab Navigation - NO ICONS */}
         <div className="cuspro-tabs">
           <button
             className={`cuspro-tab ${activeTab === 'projects' ? 'active' : ''}`}
@@ -495,7 +536,7 @@ const Quotation = () => {
           <div className="cuspro-projects-section">
             {projects.length === 0 ? (
               <div className="cuspro-empty-state">
-                <div className="cuspro-empty-icon">📋</div>
+                <FaProjectDiagram className="cuspro-empty-icon" />
                 <h3>No projects yet</h3>
                 <p>Once you accept a quotation, your project will appear here.</p>
                 <button className="cuspro-primary-btn" onClick={() => setActiveTab('pre-assessments')}>
@@ -514,7 +555,6 @@ const Quotation = () => {
                     {getStatusBadge(project.status)}
                   </div>
 
-                  {/* Progress Bar */}
                   <div className="cuspro-progress-section">
                     <div className="cuspro-progress-header">
                       <span>Project Progress</span>
@@ -529,7 +569,6 @@ const Quotation = () => {
                     </div>
                   </div>
 
-                  {/* Payment Schedule Table */}
                   <div className="cuspro-payment-table-wrapper">
                     <h4>Payment Schedule</h4>
                     <table className="cuspro-payment-table">
@@ -553,7 +592,7 @@ const Quotation = () => {
                             <td>{payment.dueDate ? new Date(payment.dueDate).toLocaleDateString() : 'TBD'}</td>
                             <td>
                               <span className={`cuspro-payment-status ${payment.status}`}>
-                                {payment.status === 'paid' ? '✓ Paid' :
+                                {payment.status === 'paid' ? 'Paid' :
                                  payment.status === 'overdue' ? 'Overdue' : 'Pending'}
                               </span>
                             </td>
@@ -565,11 +604,15 @@ const Quotation = () => {
 
                   <div className="cuspro-project-actions">
                     <button className="cuspro-secondary-btn" onClick={() => handleViewDetails(project, 'project')}>
-                      View Details
+                      <FaEye /> View Details
                     </button>
-                    <button className="cuspro-secondary-btn">Contract</button>
+                    <button className="cuspro-secondary-btn">
+                      <FaFileAlt /> Contract
+                    </button>
                     {(project.status === 'approved' || project.status === 'initial_paid') && (
-                      <button className="cuspro-primary-btn-small">Make Payment</button>
+                      <button className="cuspro-primary-btn-small">
+                        <FaMoneyBillWave /> Make Payment
+                      </button>
                     )}
                   </div>
                 </div>
@@ -583,7 +626,7 @@ const Quotation = () => {
           <div className="cuspro-quotes-section">
             {freeQuotes.length === 0 ? (
               <div className="cuspro-empty-state">
-                <div className="cuspro-empty-icon">📄</div>
+                <FaFileInvoice className="cuspro-empty-icon" />
                 <h3>No free quotes yet</h3>
                 <p>Use our solar estimator to get a free quote</p>
                 <button className="cuspro-primary-btn" onClick={() => navigate('/app/customer/book-assessment')}>
@@ -603,11 +646,11 @@ const Quotation = () => {
                   </div>
                   <div className="cuspro-quote-actions">
                     <button className="cuspro-secondary-btn" onClick={() => handleViewDetails(quote, 'quote')}>
-                      View Details
+                      <FaEye /> View Details
                     </button>
                     {quote.quotationFile && (
                       <button className="cuspro-secondary-btn" onClick={() => window.open(quote.quotationFile, '_blank')}>
-                        View PDF
+                        <FaFileInvoice /> View PDF
                       </button>
                     )}
                   </div>
@@ -622,7 +665,7 @@ const Quotation = () => {
           <div className="cuspro-assessments-section">
             {preAssessments.length === 0 ? (
               <div className="cuspro-empty-state">
-                <div className="cuspro-empty-icon">🔍</div>
+                <FaCalendarAlt className="cuspro-empty-icon" />
                 <h3>No pre-assessments yet</h3>
                 <p>Once your booking is approved and payment is completed, you'll see the quotation here.</p>
                 <button className="cuspro-primary-btn" onClick={() => navigate('/app/customer/book-assessment')}>
@@ -661,12 +704,14 @@ const Quotation = () => {
                     <div className="cuspro-assessment-actions">
                       {(assessment.status === 'pending' && assessment.paymentStatus !== 'for_verification' && assessment.paymentStatus !== 'paid') && (
                         <button className="cuspro-pay-btn" onClick={() => handlePayNowClick(assessment)}>
-                          Make Payment
+                          <FaMoneyBillWave /> Make Payment
                         </button>
                       )}
 
                       {assessment.paymentStatus === 'for_verification' && (
-                        <span className="cuspro-verification-badge">For Verification</span>
+                        <span className="cuspro-verification-badge">
+                          <FaClock /> For Verification
+                        </span>
                       )}
 
                       {assessment.paymentStatus === 'paid' && (
@@ -674,27 +719,27 @@ const Quotation = () => {
                           {hasQuotation && !alreadyProjectCreated && (
                             <>
                               <button className="cuspro-secondary-btn" onClick={() => handleViewQuotation(assessment)}>
-                                View Quotation
+                                <FaEye /> View Quotation
                               </button>
                               <button className="cuspro-secondary-btn" onClick={() => handleDownloadQuotation(assessment)} disabled={pdfLoading}>
-                                {pdfLoading ? 'Downloading...' : 'Download PDF'}
+                                <FaDownload /> {pdfLoading ? 'Downloading...' : 'Download PDF'}
                               </button>
                               <button className="cuspro-accept-btn" onClick={() => handleAcceptQuotationClick(assessment)}>
-                                Accept Quotation
+                                <FaCheckCircle /> Accept Quotation
                               </button>
                             </>
                           )}
 
                           {alreadyProjectCreated && (
                             <button className="cuspro-view-project-btn" onClick={() => setActiveTab('projects')}>
-                              View Project
+                              <FaProjectDiagram /> View Project
                             </button>
                           )}
                         </>
                       )}
 
                       <button className="cuspro-secondary-btn" onClick={() => handleViewDetails(assessment, 'assessment')}>
-                        View Details
+                        <FaEye /> View Details
                       </button>
                     </div>
 
@@ -710,12 +755,12 @@ const Quotation = () => {
           </div>
         )}
 
-        {/* Payments Tab - Table Format */}
+        {/* Payments Tab */}
         {activeTab === 'payments' && (
           <div className="cuspro-payments-section">
             {payments.length === 0 ? (
               <div className="cuspro-empty-state">
-                <div className="cuspro-empty-icon">💰</div>
+                <FaCreditCard className="cuspro-empty-icon" />
                 <h3>No payment history</h3>
                 <p>Your payments will appear here</p>
               </div>
@@ -753,19 +798,6 @@ const Quotation = () => {
             )}
           </div>
         )}
-
-        {/* Modals remain the same structure but with updated class names */}
-        {/* Terms Modal */}
-        <TermsModal
-          isOpen={showTermsModal}
-          onClose={() => {
-            setShowTermsModal(false);
-            setPendingAction(null);
-          }}
-          onAccept={handleTermsAccept}
-          mode={termsModalMode}
-          title="Terms and Conditions"
-        />
 
         {/* Accept Quotation Modal */}
         {showAcceptModal && acceptingItem && (
@@ -842,11 +874,11 @@ const Quotation = () => {
                     <p>Amount: <strong>{formatCurrency(selectedItem.amount)}</strong></p>
                   </div>
                   <div className="cuspro-form-group">
-                    <label>Reference Number *</label>
+                    <label>Reference Number</label>
                     <input type="text" value={paymentReference} onChange={(e) => setPaymentReference(e.target.value)} placeholder="Enter GCash reference number" />
                   </div>
                   <div className="cuspro-form-group">
-                    <label>Upload Payment Screenshot *</label>
+                    <label>Upload Payment Screenshot</label>
                     <input type="file" accept="image/*" onChange={(e) => setPaymentProof(e.target.files[0])} />
                     {paymentProof && <small>Selected: {paymentProof.name}</small>}
                   </div>
@@ -955,7 +987,7 @@ const Quotation = () => {
 
               <div className="cuspro-request-form">
                 <div className="cuspro-form-group">
-                  <label>Desired System Size *</label>
+                  <label>Desired System Size</label>
                   <select value={solarRequest.systemSize} onChange={(e) => setSolarRequest({ ...solarRequest, systemSize: e.target.value })}>
                     <option value="">Select system size</option>
                     <option value="3kW">3kW (Good for small homes)</option>
@@ -977,7 +1009,7 @@ const Quotation = () => {
                 </div>
 
                 <div className="cuspro-form-group">
-                  <label>Property Type *</label>
+                  <label>Property Type</label>
                   <select value={solarRequest.propertyType} onChange={(e) => setSolarRequest({ ...solarRequest, propertyType: e.target.value })}>
                     <option value="residential">Residential</option>
                     <option value="commercial">Commercial</option>
@@ -992,8 +1024,8 @@ const Quotation = () => {
                 </div>
 
                 <div className="cuspro-info-box">
-                  <strong>What happens next?</strong>
-                  <p>Our solar specialists will review your request and provide a detailed quotation within 2-3 business days.</p>
+                  <FaInfoCircle />
+                  <small>Our solar specialists will review your request and provide a detailed quotation within 2-3 business days.</small>
                 </div>
               </div>
 

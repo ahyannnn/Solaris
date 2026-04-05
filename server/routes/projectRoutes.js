@@ -10,6 +10,7 @@ const {
   getProjectById,
   createProjectFromAcceptance,
   recordPayment,
+  processFullPayment,
   
   // Engineer functions
   getEngineerProjects,
@@ -31,6 +32,10 @@ const { verifyToken } = authMiddleware;
 router.get('/my-projects', verifyToken, getMyProjects);
 router.post('/accept', verifyToken, createProjectFromAcceptance);
 router.post('/:id/payments', verifyToken, recordPayment);
+// routes/projectRoutes.js - Add this route
+
+// Customer full payment route
+router.post('/:id/full-payment', verifyToken, upload.single('paymentProof'), processFullPayment);
 
 // ============ ENGINEER ROUTES ============
 router.get('/engineer/my-projects', verifyToken, engineer, getEngineerProjects);

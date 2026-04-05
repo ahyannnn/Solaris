@@ -54,14 +54,14 @@ const freeQuoteRoutes = require('./routes/freeQuoteRoutes');
 const preAssessmentRoutes = require('./routes/preAssessmentRoutes');
 const iotDataRoutes = require('./routes/iotDataRoutes');
 const scheduleRoutes = require('./routes/scheduleRoutes');
-
+const jobPortalRoutes = require('./routes/jobPortalRoutes');
 // Use new routes
 app.use('/api/schedules', scheduleRoutes);
 app.use(maintenanceMiddleware);
 app.use('/api/maintenance', maintenanceRoutes);
 // API Routes
 app.use("/api/auth", authRoutes);
-
+app.use("/api/job-portal", jobPortalRoutes);
 app.use("/api/sensor", iotRoutes);
 app.use("/api/iot-data", iotDataRoutes);
 

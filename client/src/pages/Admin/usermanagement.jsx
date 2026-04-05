@@ -26,7 +26,11 @@ import {
   FaExclamationTriangle,
   FaKey,
   FaSave,
-  FaTimes
+  FaTimes,
+  FaDatabase,
+  FaUserGraduate,
+  FaCloudUploadAlt,
+  FaCheckDouble
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/userManagement.css';
@@ -55,6 +59,17 @@ const UserManagement = () => {
   const [statusAction, setStatusAction] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalMode, setModalMode] = useState('view');
+
+  // New state for job portal integration
+  const [activeTab, setActiveTab] = useState('manual'); // 'manual' or 'import'
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [hiredApplicants, setHiredApplicants] = useState([]);
+  const [loadingApplicants, setLoadingApplicants] = useState(false);
+  const [selectedApplicants, setSelectedApplicants] = useState([]);
+  const [importStats, setImportStats] = useState(null);
+  const [applicantSearchTerm, setApplicantSearchTerm] = useState('');
+  const [bulkImportMode, setBulkImportMode] = useState(false);
+
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -107,6 +122,117 @@ const UserManagement = () => {
     }
   };
 
+  // Fetch hired applicants from job portal
+  const fetchHiredApplicants = async () => {
+    try {
+      setLoadingApplicants(true);
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/job-portal/hired-applicants`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        setHiredApplicants(response.data.applicants);
+        setImportStats({
+          total: response.data.count,
+          notImported: response.data.applicants.filter(a => !a.imported).length,
+          alreadyImported: response.data.applicants.filter(a => a.imported).length
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching hired applicants:', error);
+      showToast('Failed to fetch hired applicants from job portal', 'error');
+    } finally {
+      setLoadingApplicants(false);
+    }
+  };
+
+  const handleOpenImportModal = () => {
+    setShowImportModal(true);
+    fetchHiredApplicants();
+    setSelectedApplicants([]);
+    setBulkImportMode(false);
+  };
+
+  const handleImportEngineer = async (applicantId) => {
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/job-portal/import-engineer/${applicantId}`,
+        { role: 'engineer' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        showToast(`Successfully imported ${response.data.user.fullName} as engineer`, 'success');
+        fetchUsers();
+        fetchStats();
+        fetchHiredApplicants(); // Refresh the list
+        setSelectedApplicants([]);
+      }
+    } catch (error) {
+      console.error('Error importing engineer:', error);
+      showToast(error.response?.data?.message || 'Failed to import engineer', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleBulkImport = async () => {
+    if (selectedApplicants.length === 0) {
+      showToast('Please select at least one applicant to import', 'warning');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/job-portal/bulk-import`,
+        {
+          applicantIds: selectedApplicants,
+          role: 'engineer'
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        showToast(response.data.message, 'success');
+        fetchUsers();
+        fetchStats();
+        fetchHiredApplicants();
+        setSelectedApplicants([]);
+        setBulkImportMode(false);
+
+        // Show detailed results
+        const { results } = response.data;
+        console.log('Import results:', results);
+      }
+    } catch (error) {
+      console.error('Error in bulk import:', error);
+      showToast(error.response?.data?.message || 'Failed to perform bulk import', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const toggleApplicantSelection = (applicantId) => {
+    setSelectedApplicants(prev =>
+      prev.includes(applicantId)
+        ? prev.filter(id => id !== applicantId)
+        : [...prev, applicantId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedApplicants.length === filteredApplicants.length) {
+      setSelectedApplicants([]);
+    } else {
+      setSelectedApplicants(filteredApplicants.map(a => a.id));
+    }
+  };
+
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
@@ -120,12 +246,20 @@ const UserManagement = () => {
       user.clientInfo?.contactNumber?.includes(searchTerm);
   });
 
+  const filteredApplicants = hiredApplicants.filter(applicant => {
+    if (!applicantSearchTerm) return true;
+    const searchLower = applicantSearchTerm.toLowerCase();
+    return applicant.fullName?.toLowerCase().includes(searchLower) ||
+      applicant.email?.toLowerCase().includes(searchLower) ||
+      applicant.position?.toLowerCase().includes(searchLower);
+  });
+
   const handleOpenCreateModal = () => {
     setModalMode('create');
     setFormData({
       fullName: '',
       email: '',
-      role: 'user',
+      role: 'engineer', // Default to engineer for manual adding
       firstName: '',
       lastName: '',
       contactNumber: '',
@@ -360,7 +494,6 @@ const UserManagement = () => {
     });
   };
 
-  // Skeleton Loader
   const SkeletonLoader = () => (
     <div className="user-management-usermgmtad">
       <div className="user-management-header-usermgmtad">
@@ -407,9 +540,14 @@ const UserManagement = () => {
             <h1>User Management</h1>
             <p>Manage system users, roles, and permissions</p>
           </div>
-          <button className="create-user-btn-usermgmtad" onClick={handleOpenCreateModal}>
-            <FaUserPlus /> Create New User
-          </button>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button className="create-user-btn-usermgmtad" onClick={handleOpenImportModal} style={{ backgroundColor: '#6c757d' }}>
+              <FaDatabase /> Import from Job Portal
+            </button>
+            <button className="create-user-btn-usermgmtad" onClick={handleOpenCreateModal}>
+              <FaUserPlus /> Add Manually
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -522,6 +660,11 @@ const UserManagement = () => {
                             {user.clientInfo.firstName} {user.clientInfo.lastName}
                           </div>
                         )}
+                        {user.metadata?.importedFrom === 'job-portal' && (
+                          <div className="import-badge-usermgmtad">
+                            <FaCloudUploadAlt /> Imported
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="email-cell-usermgmtad">
@@ -603,7 +746,161 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* User Modal */}
+        {/* Import Modal */}
+        {showImportModal && (
+          <div className="modal-overlay-usermgmtad" onClick={() => setShowImportModal(false)}>
+            <div className="modal-content-usermgmtad import-modal-usermgmtad" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-usermgmtad">
+                <h3>
+                  <FaDatabase /> Import Engineers from Job Portal
+                </h3>
+                <button className="modal-close-usermgmtad" onClick={() => setShowImportModal(false)}>×</button>
+              </div>
+
+              <div className="modal-body-usermgmtad">
+                {importStats && (
+                  <div className="import-stats-usermgmtad">
+                    <div className="stat-badge-usermgmtad">
+                      <span>Total Hired: {importStats.total}</span>
+                      <span>Not Imported: {importStats.notImported}</span>
+                      <span>Already Imported: {importStats.alreadyImported}</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="import-controls-usermgmtad">
+                  <div className="search-box-usermgmtad">
+                    <FaSearch className="search-icon-usermgmtad" />
+                    <input
+                      type="text"
+                      placeholder="Search applicants by name, email, or position..."
+                      value={applicantSearchTerm}
+                      onChange={(e) => setApplicantSearchTerm(e.target.value)}
+                    />
+                  </div>
+
+                  {filteredApplicants.length > 0 && (
+                    <div className="bulk-actions-usermgmtad">
+                      <button
+                        className="bulk-import-btn-usermgmtad"
+                        onClick={() => setBulkImportMode(!bulkImportMode)}
+                      >
+                        {bulkImportMode ? 'Cancel Bulk Mode' : 'Bulk Import Mode'}
+                      </button>
+                      {bulkImportMode && selectedApplicants.length > 0 && (
+                        <button
+                          className="import-selected-btn-usermgmtad"
+                          onClick={handleBulkImport}
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? 'Importing...' : `Import Selected (${selectedApplicants.length})`}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="applicants-table-container-usermgmtad">
+                  {loadingApplicants ? (
+                    <div className="loading-spinner-usermgmtad">
+                      <FaSpinner className="spinner-usermgmtad" />
+                      <p>Loading hired applicants...</p>
+                    </div>
+                  ) : (
+                    <table className="applicants-table-usermgmtad">
+                      <thead>
+                        <tr>
+                          {bulkImportMode && (
+                            <th>
+                              <input
+                                type="checkbox"
+                                checked={selectedApplicants.length === filteredApplicants.length && filteredApplicants.length > 0}
+                                onChange={toggleSelectAll}
+                              />
+                            </th>
+                          )}
+                          <th>Name</th>
+                          <th>Email</th>
+                          <th>Phone</th>
+                          <th>Position</th>
+                          <th>Submitted</th>
+                          <th>Status</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredApplicants.length === 0 ? (
+                          <tr>
+                            <td colSpan={bulkImportMode ? 8 : 7} className="empty-state-usermgmtad">
+                              <p>No hired applicants found</p>
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredApplicants.map(applicant => (
+                            <tr key={applicant.id} className={applicant.imported ? 'imported-row-usermgmtad' : ''}>
+                              {bulkImportMode && (
+                                <td>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedApplicants.includes(applicant.id)}
+                                    onChange={() => toggleApplicantSelection(applicant.id)}
+                                    disabled={applicant.imported}
+                                  />
+                                </td>
+                              )}
+                              <td className="applicant-name-usermgmtad">
+                                <FaUserGraduate />
+                                {applicant.fullName}
+                              </td>
+                              <td>{applicant.email}</td>
+                              <td>{applicant.phone || '—'}</td>
+                              <td>
+                                <span className="position-badge-usermgmtad">
+                                  {applicant.position}
+                                </span>
+                              </td>
+                              <td>{formatDate(applicant.submittedAt)}</td>
+                              <td>
+                                {applicant.imported ? (
+                                  <span className="imported-badge-usermgmtad">
+                                    <FaCheckDouble /> Imported
+                                  </span>
+                                ) : (
+                                  <span className="pending-badge-usermgmtad">
+                                    Pending Import
+                                  </span>
+                                )}
+                              </td>
+                              <td>
+                                {!applicant.imported && (
+                                  <button
+                                    className="import-btn-usermgmtad"
+                                    onClick={() => handleImportEngineer(applicant.id)}
+                                    disabled={isSubmitting}
+                                  >
+                                    <FaCloudUploadAlt /> Import
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+
+              <div className="modal-actions-usermgmtad">
+                <button className="cancel-btn-usermgmtad" onClick={() => setShowImportModal(false)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* User Modal (Create/Edit/View) */}
         {showUserModal && (
           <div className="modal-overlay-usermgmtad" onClick={() => setShowUserModal(false)}>
             <div className={`modal-content-usermgmtad user-modal-usermgmtad ${modalMode}`} onClick={e => e.stopPropagation()}>
@@ -681,6 +978,24 @@ const UserManagement = () => {
                         <div className="detail-row-usermgmtad">
                           <span>Account Setup:</span>
                           <strong>{selectedUser.clientInfo.account_setup ? 'Completed' : 'Pending'}</strong>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedUser.metadata?.importedFrom === 'job-portal' && (
+                      <div className="detail-section-usermgmtad">
+                        <h4>Import Information</h4>
+                        <div className="detail-row-usermgmtad">
+                          <span>Imported From:</span>
+                          <strong>Job Portal</strong>
+                        </div>
+                        <div className="detail-row-usermgmtad">
+                          <span>Import Date:</span>
+                          <strong>{formatDate(selectedUser.metadata.importDate)}</strong>
+                        </div>
+                        <div className="detail-row-usermgmtad">
+                          <span>Position:</span>
+                          <strong>{selectedUser.metadata.position || '—'}</strong>
                         </div>
                       </div>
                     )}
@@ -899,7 +1214,7 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* Status Toggle Confirmation Modal (Reuses same modal structure) */}
+        {/* Status Toggle Confirmation Modal */}
         {showStatusConfirm && selectedUser && (
           <div className="modal-overlay-usermgmtad" onClick={() => setShowStatusConfirm(false)}>
             <div className="modal-content-usermgmtad confirm-modal-usermgmtad" onClick={e => e.stopPropagation()}>
@@ -909,8 +1224,8 @@ const UserManagement = () => {
               <h3>{statusAction === 'deactivate' ? 'Deactivate User' : 'Activate User'}</h3>
               <p>Are you sure you want to <strong>{statusAction === 'deactivate' ? 'deactivate' : 'activate'}</strong> <strong>{selectedUser.fullName || selectedUser.email}</strong>?</p>
               <p className="warning-text-usermgmtad">
-                {statusAction === 'deactivate' 
-                  ? 'Deactivated users will not be able to log in to the system.' 
+                {statusAction === 'deactivate'
+                  ? 'Deactivated users will not be able to log in to the system.'
                   : 'Activated users will regain access to the system.'}
               </p>
               <div className="modal-actions-usermgmtad">

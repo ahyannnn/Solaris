@@ -49,6 +49,7 @@ const projectSchema = new mongoose.Schema({
     paidAt: Date,
     status: { type: String, enum: ['pending', 'paid', 'overdue'], default: 'pending' },
     invoiceNumber: String,
+    paymentGateway: { type: String, enum: ['paymongo', 'manual'], default: 'manual' },
     paymentProof: String,
     paymentReference: String
   }],
@@ -92,7 +93,9 @@ const projectSchema = new mongoose.Schema({
     issuedAt: Date,
     paidAt: Date
   }],
-  
+  // Add after fullPaymentCompleted field (around line 45)
+  paymongoPaymentIntentId: { type: String, index: true },
+  currentPaymentId: { type: String },
   // Project Updates/Audit Trail
   projectUpdates: [{
     title: String,

@@ -44,6 +44,7 @@ router.get('/my-bookings', verifyToken, getMyPreAssessments);
 // Payment routes
 router.post('/submit-payment', verifyToken, upload.single('paymentProof'), submitPayment);
 router.post('/cash-payment', verifyToken, cashPayment);
+router.post('/:id/create-payment-intent', verifyToken, require('../controllers/paymentController').createPreAssessmentPaymentIntent);
 
 // ============ ADMIN ROUTES ============
 router.get('/stats', verifyToken, admin, getPreAssessmentStats);

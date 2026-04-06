@@ -1,12 +1,11 @@
-// pages/Admin/Billing.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
-import { 
-  FaSearch, 
-  FaEye, 
-  FaCheckCircle, 
-  FaTimesCircle, 
+import {
+  FaSearch,
+  FaEye,
+  FaCheckCircle,
+  FaTimesCircle,
   FaSpinner,
   FaDownload,
   FaChevronLeft,
@@ -17,7 +16,8 @@ import {
   FaTrash,
   FaEdit,
   FaSave,
-  FaTimes
+  FaTimes,
+  FaInfoCircle
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/billing.css';
@@ -26,7 +26,7 @@ const AdminBilling = () => {
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pre-assessments');
-  
+
   const [assessments, setAssessments] = useState([]);
   const [selectedAssessment, setSelectedAssessment] = useState(null);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
@@ -36,7 +36,7 @@ const AdminBilling = () => {
     notes: ''
   });
   const [verificationNote, setVerificationNote] = useState('');
-  
+
   const [solarInvoices, setSolarInvoices] = useState([]);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
@@ -58,10 +58,10 @@ const AdminBilling = () => {
     reference: '',
     notes: ''
   });
-  
+
   const [transactions, setTransactions] = useState([]);
   const [projects, setProjects] = useState([]);
-  
+
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -71,6 +71,8 @@ const AdminBilling = () => {
     pending: 0,
     forVerification: 0,
     paidPre: 0,
+    autoVerified: 0,
+    pendingCash: 0,
     totalSolarInvoices: 0,
     paidSolar: 0,
     partial: 0,
@@ -96,7 +98,7 @@ const AdminBilling = () => {
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token');
-      
+
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
@@ -105,12 +107,11 @@ const AdminBilling = () => {
           limit: 10
         }
       });
-      
-      // Filter to only show assessments that have an invoice number (issued invoices)
+
       const assessmentsWithInvoice = (response.data.assessments || []).filter(
         assessment => assessment.invoiceNumber && assessment.invoiceNumber !== null && assessment.invoiceNumber !== ''
       );
-      
+
       setAssessments(assessmentsWithInvoice);
       setTotalPages(response.data.totalPages || 1);
     } catch (error) {
@@ -125,7 +126,7 @@ const AdminBilling = () => {
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token');
-      
+
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/solar-invoices`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
@@ -134,7 +135,7 @@ const AdminBilling = () => {
           limit: 10
         }
       });
-      
+
       setSolarInvoices(response.data.invoices || []);
       setTotalPages(response.data.totalPages || 1);
     } catch (error) {
@@ -149,7 +150,7 @@ const AdminBilling = () => {
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token');
-      
+
       const [preRes, solarRes] = await Promise.all([
         axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -158,8 +159,7 @@ const AdminBilling = () => {
           headers: { Authorization: `Bearer ${token}` }
         })
       ]);
-      
-      // Only include pre-assessments with invoice numbers
+
       const prePayments = (preRes.data.assessments || [])
         .filter(a => a.invoiceNumber && (a.paymentStatus === 'paid' || a.paymentStatus === 'for_verification'))
         .map(a => ({
@@ -168,12 +168,13 @@ const AdminBilling = () => {
           reference: a.bookingReference,
           invoiceNumber: a.invoiceNumber,
           amount: a.assessmentFee,
-          method: a.paymentMethod || 'cash',
+          method: a.paymentGateway === 'paymongo' ? 'PayMongo' : (a.paymentMethod || 'cash'),
           status: a.paymentStatus,
           date: a.confirmedAt || a.bookedAt,
-          client: `${a.clientId?.contactFirstName} ${a.clientId?.contactLastName}`
+          client: `${a.clientId?.contactFirstName} ${a.clientId?.contactLastName}`,
+          gateway: a.paymentGateway
         }));
-      
+
       const solarPayments = solarRes.data.invoices
         .filter(i => i.paymentStatus === 'paid' || i.paymentStatus === 'partial')
         .flatMap(i => i.payments.map(p => ({
@@ -185,9 +186,10 @@ const AdminBilling = () => {
           method: p.method,
           status: i.paymentStatus,
           date: p.date,
-          client: `${i.clientId?.contactFirstName} ${i.clientId?.contactLastName}`
+          client: `${i.clientId?.contactFirstName} ${i.clientId?.contactLastName}`,
+          gateway: 'manual'
         })));
-      
+
       setTransactions([...prePayments, ...solarPayments].sort((a, b) => new Date(b.date) - new Date(a.date)));
       setTotalPages(1);
     } catch (error) {
@@ -201,21 +203,30 @@ const AdminBilling = () => {
   const fetchStats = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      
-      const [preStatsRes, solarStatsRes] = await Promise.all([
+
+      const [preStatsRes, solarStatsRes, allAssessmentsRes] = await Promise.all([
         axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/stats`, {
           headers: { Authorization: `Bearer ${token}` }
         }).catch(() => ({ data: {} })),
         axios.get(`${import.meta.env.VITE_API_URL}/api/solar-invoices/stats`, {
           headers: { Authorization: `Bearer ${token}` }
-        }).catch(() => ({ data: { stats: {} } }))
+        }).catch(() => ({ data: { stats: {} } })),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(() => ({ data: { assessments: [] } }))
       ]);
-      
+
+      const assessments = allAssessmentsRes.data.assessments || [];
+      const autoVerified = assessments.filter(a => a.autoVerified === true || a.paymentGateway === 'paymongo').length;
+      const pendingCash = assessments.filter(a => a.paymentMethod === 'cash' && a.paymentStatus === 'pending').length;
+
       setStats({
         totalPreAssessments: preStatsRes.data.total || 0,
         pending: preStatsRes.data.pending || 0,
         forVerification: preStatsRes.data.forVerification || 0,
         paidPre: preStatsRes.data.paid || 0,
+        autoVerified: autoVerified,
+        pendingCash: pendingCash,
         totalSolarInvoices: solarStatsRes.data.stats?.total || 0,
         paidSolar: solarStatsRes.data.stats?.paid || 0,
         partial: solarStatsRes.data.stats?.partial || 0,
@@ -241,7 +252,6 @@ const AdminBilling = () => {
 
   const handleVerifyPayment = async (verified) => {
     if (!selectedAssessment) return;
-
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
@@ -250,7 +260,7 @@ const AdminBilling = () => {
         { verified, notes: verificationNote },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       fetchPreAssessments();
       fetchStats();
       setShowVerifyModal(false);
@@ -271,10 +281,10 @@ const AdminBilling = () => {
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
-      
+
       let newPaymentStatus = editStatusData.paymentStatus;
       let newAssessmentStatus = selectedAssessment.assessmentStatus;
-      
+
       if (newPaymentStatus === 'paid') {
         newAssessmentStatus = 'scheduled';
       } else if (newPaymentStatus === 'pending') {
@@ -282,10 +292,10 @@ const AdminBilling = () => {
       } else if (newPaymentStatus === 'failed') {
         newAssessmentStatus = 'cancelled';
       }
-      
+
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedAssessment._id}/update-payment-status`,
-        { 
+        {
           paymentStatus: newPaymentStatus,
           assessmentStatus: newAssessmentStatus,
           notes: editStatusData.notes,
@@ -293,7 +303,7 @@ const AdminBilling = () => {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       fetchPreAssessments();
       fetchStats();
       setShowEditStatusModal(false);
@@ -317,11 +327,11 @@ const AdminBilling = () => {
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/solar-invoices`, 
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/solar-invoices`,
         invoiceFormData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       showToast('Invoice created successfully!', 'success');
       setShowInvoiceModal(false);
       resetInvoiceForm();
@@ -349,7 +359,7 @@ const AdminBilling = () => {
         paymentData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       showToast('Payment recorded successfully!', 'success');
       setShowPaymentModal(false);
       setSelectedInvoice(null);
@@ -390,7 +400,7 @@ const AdminBilling = () => {
           responseType: 'blob'
         }
       );
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -490,19 +500,29 @@ const AdminBilling = () => {
     return badges[status] || <span className="status-badge-adminbilling">{status}</span>;
   };
 
+  const getGatewayBadge = (assessment) => {
+    if (assessment.paymentGateway === 'paymongo' || assessment.autoVerified === true) {
+      return <span className="gateway-badge paymongo">PayMongo</span>;
+    }
+    if (assessment.paymentMethod === 'cash') {
+      return <span className="gateway-badge cash">Cash</span>;
+    }
+    return <span className="gateway-badge manual">Manual</span>;
+  };
+
   const filteredItems = (activeTab === 'pre-assessments' ? assessments : solarInvoices).filter(item => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
     if (activeTab === 'pre-assessments') {
       return item.bookingReference?.toLowerCase().includes(searchLower) ||
-             item.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
-             item.clientId?.contactLastName?.toLowerCase().includes(searchLower) ||
-             item.invoiceNumber?.toLowerCase().includes(searchLower);
+        item.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
+        item.clientId?.contactLastName?.toLowerCase().includes(searchLower) ||
+        item.invoiceNumber?.toLowerCase().includes(searchLower);
     } else {
       return item.invoiceNumber?.toLowerCase().includes(searchLower) ||
-             item.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
-             item.clientId?.contactLastName?.toLowerCase().includes(searchLower) ||
-             item.projectId?.projectName?.toLowerCase().includes(searchLower);
+        item.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
+        item.clientId?.contactLastName?.toLowerCase().includes(searchLower) ||
+        item.projectId?.projectName?.toLowerCase().includes(searchLower);
     }
   });
 
@@ -584,8 +604,8 @@ const AdminBilling = () => {
               <span className="stat-label-adminbilling">Pre-Assessments</span>
               <div className="stat-detail-adminbilling">
                 <span>Paid: {stats.paidPre}</span>
-                <span>Pending: {stats.pending}</span>
-                <span>For Verification: {stats.forVerification}</span>
+                <span>Auto-Verified: {stats.autoVerified}</span>
+                <span>Pending Cash: {stats.pendingCash}</span>
               </div>
             </div>
           </div>
@@ -603,19 +623,19 @@ const AdminBilling = () => {
 
         {/* Tabs */}
         <div className="billing-tabs-adminbilling">
-          <button 
+          <button
             className={`tab-btn-adminbilling ${activeTab === 'pre-assessments' ? 'active-adminbilling' : ''}`}
             onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); }}
           >
             Pre-Assessments
           </button>
-          <button 
+          <button
             className={`tab-btn-adminbilling ${activeTab === 'solar-invoices' ? 'active-adminbilling' : ''}`}
             onClick={() => { setActiveTab('solar-invoices'); setFilter('all'); setCurrentPage(1); }}
           >
             Solar Invoices
           </button>
-          <button 
+          <button
             className={`tab-btn-adminbilling ${activeTab === 'transactions' ? 'active-adminbilling' : ''}`}
             onClick={() => { setActiveTab('transactions'); setCurrentPage(1); }}
           >
@@ -655,7 +675,7 @@ const AdminBilling = () => {
           </div>
         </div>
 
-        {/* Pre-Assessments Table - Only shows assessments with invoices */}
+        {/* Pre-Assessments Table */}
         {activeTab === 'pre-assessments' && (
           <div className="payments-table-container-adminbilling">
             <table className="payments-table-adminbilling">
@@ -667,15 +687,16 @@ const AdminBilling = () => {
                   <th>Date</th>
                   <th>Amount</th>
                   <th>Payment Method</th>
+                  <th>Gateway</th>
                   <th>Payment Status</th>
                   <th>Assessment Status</th>
                   <th>Actions</th>
-                 </tr>
+                </tr>
               </thead>
               <tbody>
                 {filteredItems.length === 0 ? (
                   <tr>
-                    <td colSpan="9" className="empty-state-adminbilling">
+                    <td colSpan="10" className="empty-state-adminbilling">
                       <p>No pre-assessments with issued invoices found</p>
                     </td>
                   </tr>
@@ -693,19 +714,29 @@ const AdminBilling = () => {
                       <td>{formatDate(assessment.bookedAt)}</td>
                       <td className="amount-adminbilling">{formatCurrency(assessment.assessmentFee)}</td>
                       <td>
-                        {assessment.paymentMethod ? (
+                        {assessment.paymentGateway === 'paymongo' ? (
+                          <span className="payment-method-adminbilling paymongo-method">PayMongo</span>
+                        ) : assessment.paymentMethod ? (
                           <span className="payment-method-adminbilling">
                             {assessment.paymentMethod.toUpperCase()}
                           </span>
                         ) : '-'}
                       </td>
+                      <td>{getGatewayBadge(assessment)}</td>
                       <td>{getPaymentStatusBadge(assessment.paymentStatus)}</td>
                       <td>{getAssessmentStatusBadge(assessment.assessmentStatus)}</td>
                       <td className="actions-adminbilling">
-                        {/* For GCash payments - needs verification */}
+                        {/* PayMongo Card Payments - Auto-verified (No action needed) */}
+                        {(assessment.paymentGateway === 'paymongo' || assessment.autoVerified === true) && assessment.paymentStatus === 'paid' && (
+                          <span className="verified-badge-adminbilling auto-verified">
+                            <FaCheckCircle /> Auto-Verified
+                          </span>
+                        )}
+
+                        {/* ✅ FIXED: Manual GCash Payments - Need verification (Removed the !assessment.paymentGateway condition) */}
                         {assessment.paymentMethod === 'gcash' && assessment.paymentStatus === 'for_verification' && (
                           <>
-                            <button 
+                            <button
                               className="action-btn-adminbilling view-proof-adminbilling"
                               onClick={() => {
                                 if (assessment.paymentProof) window.open(assessment.paymentProof, '_blank');
@@ -714,7 +745,7 @@ const AdminBilling = () => {
                             >
                               <FaEye />
                             </button>
-                            <button 
+                            <button
                               className="action-btn-adminbilling verify-adminbilling"
                               onClick={() => {
                                 setSelectedAssessment(assessment);
@@ -724,12 +755,23 @@ const AdminBilling = () => {
                             >
                               <FaCheckCircle />
                             </button>
+                            <button
+                              className="action-btn-adminbilling reject-adminbilling"
+                              onClick={() => {
+                                setSelectedAssessment(assessment);
+                                setVerificationNote('');
+                                handleVerifyPayment(false);
+                              }}
+                              title="Reject Payment"
+                            >
+                              <FaTimesCircle />
+                            </button>
                           </>
                         )}
-                        
-                        {/* For Cash payments - can edit status directly */}
-                        {assessment.paymentMethod === 'cash' && assessment.paymentStatus !== 'paid' && assessment.paymentStatus !== 'for_verification' && (
-                          <button 
+
+                        {/* Cash Payments - Need manual verification */}
+                        {assessment.paymentMethod === 'cash' && assessment.paymentStatus === 'pending' && (
+                          <button
                             className="action-btn-adminbilling edit-status-adminbilling"
                             onClick={() => {
                               setSelectedAssessment(assessment);
@@ -739,20 +781,20 @@ const AdminBilling = () => {
                               });
                               setShowEditStatusModal(true);
                             }}
-                            title="Edit Payment Status"
+                            title="Mark as Paid"
                           >
-                            <FaEdit />
+                            <FaMoneyBillWave /> Mark Paid
                           </button>
                         )}
-                        
-                        {/* For pending cash payments */}
-                        {assessment.paymentMethod === 'cash' && assessment.paymentStatus === 'pending' && (
-                          <span className="no-action-adminbilling">Awaiting Payment</span>
+
+                        {/* Cash Payments that are paid */}
+                        {assessment.paymentMethod === 'cash' && assessment.paymentStatus === 'paid' && (
+                          <span className="verified-badge-adminbilling">Cash - Verified</span>
                         )}
-                        
-                        {/* For paid status */}
-                        {assessment.paymentStatus === 'paid' && (
-                          <span className="verified-badge-adminbilling">Verified</span>
+
+                        {/* Failed payments */}
+                        {assessment.paymentStatus === 'failed' && (
+                          <span className="failed-badge-adminbilling">Failed</span>
                         )}
                       </td>
                     </tr>
@@ -808,14 +850,14 @@ const AdminBilling = () => {
                       <td className="amount-adminbilling balance-adminbilling">{formatCurrency(invoice.balance)}</td>
                       <td>{getPaymentStatusBadge(invoice.paymentStatus)}</td>
                       <td className="actions-adminbilling">
-                        <button 
+                        <button
                           className="action-btn-adminbilling view-adminbilling"
                           onClick={() => { setSelectedInvoice(invoice); setModalMode('view'); setShowInvoiceModal(true); }}
                           title="View Details"
                         >
                           <FaEye />
                         </button>
-                        <button 
+                        <button
                           className="action-btn-adminbilling download-adminbilling"
                           onClick={() => handleDownloadInvoice(invoice)}
                           title="Download PDF"
@@ -823,7 +865,7 @@ const AdminBilling = () => {
                           <FaDownload />
                         </button>
                         {invoice.status === 'draft' && (
-                          <button 
+                          <button
                             className="action-btn-adminbilling send-adminbilling"
                             onClick={() => handleSendInvoice(invoice)}
                             title="Send to Customer"
@@ -832,7 +874,7 @@ const AdminBilling = () => {
                           </button>
                         )}
                         {(invoice.paymentStatus === 'pending' || invoice.paymentStatus === 'partial') && (
-                          <button 
+                          <button
                             className="action-btn-adminbilling payment-adminbilling"
                             onClick={() => { setSelectedInvoice(invoice); setShowPaymentModal(true); }}
                             title="Record Payment"
@@ -862,13 +904,14 @@ const AdminBilling = () => {
                   <th>Client</th>
                   <th>Amount</th>
                   <th>Method</th>
+                  <th>Gateway</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {transactions.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="empty-state-adminbilling">
+                    <td colSpan="9" className="empty-state-adminbilling">
                       <p>No transactions found</p>
                     </td>
                   </tr>
@@ -882,6 +925,13 @@ const AdminBilling = () => {
                       <td>{transaction.client}</td>
                       <td className="amount-adminbilling">{formatCurrency(transaction.amount)}</td>
                       <td><span className="payment-method-adminbilling">{transaction.method?.toUpperCase()}</span></td>
+                      <td>
+                        {transaction.gateway === 'paymongo' ? (
+                          <span className="gateway-badge paymongo">PayMongo</span>
+                        ) : (
+                          <span className="gateway-badge manual">Manual</span>
+                        )}
+                      </td>
                       <td>{getPaymentStatusBadge(transaction.status)}</td>
                     </tr>
                   ))
@@ -894,7 +944,7 @@ const AdminBilling = () => {
         {/* Pagination */}
         {totalPages > 1 && activeTab !== 'transactions' && (
           <div className="pagination-adminbilling">
-            <button 
+            <button
               className="page-btn-adminbilling"
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
@@ -902,7 +952,7 @@ const AdminBilling = () => {
               <FaChevronLeft /> Previous
             </button>
             <span className="page-info-adminbilling">Page {currentPage} of {totalPages}</span>
-            <button 
+            <button
               className="page-btn-adminbilling"
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
@@ -912,12 +962,12 @@ const AdminBilling = () => {
           </div>
         )}
 
-        {/* Verify Payment Modal (for GCash) */}
+        {/* Verify Payment Modal (for legacy manual GCash) */}
         {showVerifyModal && selectedAssessment && (
           <div className="modal-overlay-adminbilling" onClick={() => setShowVerifyModal(false)}>
             <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>Verify Payment</h3>
-              
+
               <div className="modal-body-adminbilling">
                 <div className="payment-details-adminbilling">
                   <div className="detail-row-adminbilling"><span>Booking Reference:</span><strong>{selectedAssessment.bookingReference}</strong></div>
@@ -959,7 +1009,7 @@ const AdminBilling = () => {
           <div className="modal-overlay-adminbilling" onClick={() => setShowEditStatusModal(false)}>
             <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>Edit Payment Status</h3>
-              
+
               <div className="modal-body-adminbilling">
                 <div className="payment-details-adminbilling">
                   <div className="detail-row-adminbilling"><span>Booking Reference:</span><strong>{selectedAssessment.bookingReference}</strong></div>
@@ -972,8 +1022,8 @@ const AdminBilling = () => {
 
                 <div className="form-group-adminbilling">
                   <label>New Payment Status</label>
-                  <select 
-                    value={editStatusData.paymentStatus} 
+                  <select
+                    value={editStatusData.paymentStatus}
                     onChange={(e) => setEditStatusData({ ...editStatusData, paymentStatus: e.target.value })}
                   >
                     <option value="pending">Pending</option>
@@ -985,11 +1035,11 @@ const AdminBilling = () => {
 
                 <div className="verification-notes-adminbilling">
                   <label>Notes (Optional):</label>
-                  <textarea 
-                    rows="3" 
-                    value={editStatusData.notes} 
-                    onChange={(e) => setEditStatusData({ ...editStatusData, notes: e.target.value })} 
-                    placeholder="Add notes about this status change..." 
+                  <textarea
+                    rows="3"
+                    value={editStatusData.notes}
+                    onChange={(e) => setEditStatusData({ ...editStatusData, notes: e.target.value })}
+                    placeholder="Add notes about this status change..."
                   />
                 </div>
               </div>
@@ -998,12 +1048,12 @@ const AdminBilling = () => {
                 <button className="btn-cancel-adminbilling" onClick={() => setShowEditStatusModal(false)}>
                   <FaTimes /> Cancel
                 </button>
-                <button 
-                  className="btn-save-adminbilling" 
-                  onClick={handleEditPaymentStatus} 
+                <button
+                  className="btn-save-adminbilling"
+                  onClick={handleEditPaymentStatus}
                   disabled={!editStatusData.paymentStatus || isSubmitting}
                 >
-                  {isSubmitting ? <FaSpinner className="spinning" /> : <FaSave />} 
+                  {isSubmitting ? <FaSpinner className="spinning" /> : <FaSave />}
                   Save Changes
                 </button>
               </div>
@@ -1016,7 +1066,7 @@ const AdminBilling = () => {
           <div className="modal-overlay-adminbilling" onClick={() => setShowInvoiceModal(false)}>
             <div className="modal-content-adminbilling invoice-modal-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>{modalMode === 'create' ? 'Create Solar Invoice' : 'Invoice Details'}</h3>
-              
+
               {modalMode === 'create' ? (
                 <div className="invoice-form-adminbilling">
                   <div className="form-group-adminbilling">

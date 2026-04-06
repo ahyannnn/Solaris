@@ -48,7 +48,7 @@ const maintenanceMiddleware = require('./middleware/maintenanceMiddleware');
 const maintenanceRoutes = require('./routes/maintenanceRoutes');
 // Admin Routes
 const adminRoutes = require('./routes/adminRoutes');
-
+const paymentRoutes = require('./routes/paymentRoutes');
 // New Routes
 const freeQuoteRoutes = require('./routes/freeQuoteRoutes');
 const preAssessmentRoutes = require('./routes/preAssessmentRoutes');
@@ -64,7 +64,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/job-portal", jobPortalRoutes);
 app.use("/api/sensor", iotRoutes);
 app.use("/api/iot-data", iotDataRoutes);
-
+app.use('/api/payments', paymentRoutes);
 app.use("/api/email", emailRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/free-quotes', freeQuoteRoutes);

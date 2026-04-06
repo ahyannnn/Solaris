@@ -5,6 +5,7 @@ const FreeQuote = require('../models/FreeQuote');
 const PreAssessment = require('../models/PreAssessment');
 const User = require('../models/Users');
 const mongoose = require('mongoose');
+const PayMongoService = require('../services/paymongoService');
 
 // Helper function to format currency (for internal use)
 const formatCurrency = (amount) => {
@@ -16,6 +17,189 @@ const formatCurrency = (amount) => {
   }).format(amount || 0);
 };
 
+
+// @desc    Create PayMongo payment intent for project payment
+// @route   POST /api/projects/:id/create-payment-intent/:paymentId
+// @access  Private (Customer)
+exports.createProjectPayMongoPaymentIntent = async (req, res) => {
+  try {
+    const { id, paymentId } = req.params;
+    const userId = req.user.id;
+    const { paymentMethod } = req.body;
+
+    const client = await Client.findOne({ userId });
+    if (!client) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    const project = await Project.findOne({ 
+      _id: id, 
+      clientId: client._id 
+    });
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    let paymentAmount = 0;
+    let paymentTypeName = '';
+
+    // Handle full payment
+    if (paymentId === 'full') {
+      if (project.fullPaymentCompleted) {
+        return res.status(400).json({ message: 'Full payment already completed' });
+      }
+      paymentAmount = project.totalCost - project.amountPaid;
+      paymentTypeName = 'full';
+    } else {
+      // Find the specific payment in schedule
+      const payment = project.paymentSchedule.find(p => p.type === paymentId);
+      if (!payment) {
+        return res.status(404).json({ message: 'Payment not found' });
+      }
+      if (payment.status === 'paid') {
+        return res.status(400).json({ message: 'Payment already completed' });
+      }
+      paymentAmount = payment.amount;
+      paymentTypeName = payment.type;
+    }
+
+    const paymentIntent = await PayMongoService.createPaymentIntent(
+      paymentAmount,
+      `${project.projectName} - ${paymentTypeName.toUpperCase()} Payment`,
+      {
+        type: 'project_payment',
+        projectId: project._id.toString(),
+        paymentId: paymentId,
+        paymentType: paymentTypeName,
+        clientId: client._id.toString(),
+        clientName: `${client.contactFirstName} ${client.contactLastName}`
+      }
+    );
+
+    if (!paymentIntent.success) {
+      return res.status(500).json({ message: paymentIntent.error });
+    }
+
+    project.paymongoPaymentIntentId = paymentIntent.paymentIntentId;
+    project.currentPaymentId = paymentId;
+    await project.save();
+
+    if (paymentMethod === 'gcash') {
+      const gcashPayment = await PayMongoService.createGCashPaymentSource(paymentIntent.paymentIntentId);
+      
+      if (!gcashPayment.success) {
+        return res.status(500).json({ message: gcashPayment.error });
+      }
+      
+      return res.json({
+        success: true,
+        redirectUrl: gcashPayment.redirectUrl,
+        paymentIntentId: paymentIntent.paymentIntentId,
+        type: 'redirect'
+      });
+    }
+
+    return res.json({
+      success: true,
+      clientSecret: paymentIntent.clientSecret,
+      paymentIntentId: paymentIntent.paymentIntentId,
+      amount: paymentIntent.amount,
+      type: 'card'
+    });
+
+  } catch (error) {
+    console.error('Create project payment intent error:', error);
+    res.status(500).json({ message: 'Failed to create payment intent', error: error.message });
+  }
+};
+
+// @desc    Verify PayMongo project payment after redirect
+// @route   POST /api/projects/verify-paymongo-payment
+// @access  Private (Customer)
+exports.verifyProjectPayMongoPayment = async (req, res) => {
+  try {
+    const { paymentIntentId } = req.body;
+    const userId = req.user.id;
+
+    const client = await Client.findOne({ userId });
+    if (!client) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    const project = await Project.findOne({ 
+      paymongoPaymentIntentId: paymentIntentId,
+      clientId: client._id
+    });
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const paymentIntent = await PayMongoService.getPaymentIntent(paymentIntentId);
+    
+    if (!paymentIntent.success) {
+      return res.status(500).json({ message: paymentIntent.error });
+    }
+
+    if (paymentIntent.status !== 'succeeded') {
+      return res.status(400).json({ 
+        message: `Payment not successful. Status: ${paymentIntent.status}` 
+      });
+    }
+
+    const metadata = paymentIntent.metadata;
+    const paymentId = metadata.paymentId;
+    const paymentTypeName = metadata.paymentType;
+
+    if (paymentId === 'full') {
+      await project.recordFullPayment(
+        paymentIntent.amount,
+        'paymongo',
+        paymentIntentId,
+        null
+      );
+    } else {
+      const scheduleItem = project.paymentSchedule.find(p => p.type === paymentTypeName);
+      if (scheduleItem && scheduleItem.status !== 'paid') {
+        scheduleItem.paidAt = new Date();
+        scheduleItem.status = 'paid';
+        scheduleItem.paymentReference = paymentIntentId;
+        scheduleItem.paymentGateway = 'paymongo';
+        
+        project.amountPaid += scheduleItem.amount;
+        project.balance = project.totalCost - project.amountPaid;
+        
+        if (paymentTypeName === 'initial' && project.status === 'approved') {
+          project.status = 'initial_paid';
+        } else if (paymentTypeName === 'progress' && project.status === 'in_progress') {
+          project.status = 'progress_paid';
+        } else if (project.amountPaid >= project.totalCost) {
+          project.status = 'completed';
+          project.actualCompletionDate = new Date();
+        }
+        
+        await project.save();
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Payment verified successfully',
+      project: {
+        id: project._id,
+        projectReference: project.projectReference,
+        amountPaid: project.amountPaid,
+        balance: project.balance,
+        status: project.status
+      }
+    });
+
+  } catch (error) {
+    console.error('Verify project payment error:', error);
+    res.status(500).json({ message: 'Failed to verify payment', error: error.message });
+  }
+};
 // ============ CUSTOMER FUNCTIONS ============
 
 // @desc    Get client's projects

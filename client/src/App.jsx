@@ -47,6 +47,8 @@ import Quotation from './pages/Customer/quotation';
 import Supports from './pages/Customer/supports';
 import CustomerProfile from './pages/Customer/profile';
 import CustomerSettings from './pages/Customer/customersettings';
+import PaymentSuccess from './pages/Customer/PaymentSuccess';
+import PaymentCancel from './pages/Customer/PaymentCancel';
 
 // Maintenance Page (public)
 import MaintenancePage from './pages/Maintenance';
@@ -263,6 +265,8 @@ function App() {
           <Route path="support" element={<Supports />} />
           <Route path="profile" element={<CustomerProfile />} />
           <Route path="settings" element={<CustomerSettings />} />
+          <Route path="payment-success" element={<PaymentSuccess />} />
+          <Route path="payment-cancel" element={<PaymentCancel />} />
         </Route>
 
         {/* Catch all - redirect based on role */}

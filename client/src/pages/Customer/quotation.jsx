@@ -1,9 +1,10 @@
-// pages/Customer/Quotation.cuspro.jsx
+// pages/Customer/Quotation.cuspro.jsx - Progress Bar Removed
+
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { 
+import {
   FaProjectDiagram,
   FaFileInvoice,
   FaSpinner,
@@ -50,6 +51,7 @@ const Quotation = () => {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showAcceptModal, setShowAcceptModal] = useState(false);
+  const [showFullPaymentModal, setShowFullPaymentModal] = useState(false);
   const [acceptingItem, setAcceptingItem] = useState(null);
   const [acceptingLoading, setAcceptingLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -58,6 +60,7 @@ const Quotation = () => {
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [paymentProof, setPaymentProof] = useState(null);
   const [paymentReference, setPaymentReference] = useState('');
+  const [selectedPaymentPreference, setSelectedPaymentPreference] = useState('installment');
 
   // Solar Installation Request Form
   const [solarRequest, setSolarRequest] = useState({
@@ -251,12 +254,14 @@ const Quotation = () => {
   };
 
   const handleAcceptQuotationClick = (assessment) => {
-    handleAcceptQuotation(assessment);
+    setAcceptingItem(assessment);
+    setSelectedPaymentPreference('installment');
+    setShowAcceptModal(true);
   };
 
-  const handleAcceptQuotation = (assessment) => {
-    setAcceptingItem(assessment);
-    setShowAcceptModal(true);
+  const handleFullPaymentClick = (project) => {
+    setSelectedItem(project);
+    setShowFullPaymentModal(true);
   };
 
   const handleViewDetails = (item, type) => {
@@ -315,12 +320,20 @@ const Quotation = () => {
         `${import.meta.env.VITE_API_URL}/api/projects/accept`,
         {
           sourceType: 'pre-assessment',
-          sourceId: acceptingItem.assessmentId
+          sourceId: acceptingItem.assessmentId,
+          paymentPreference: selectedPaymentPreference
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      showToast('Quotation accepted successfully!', 'success');
+      const project = response.data.project;
+
+      if (selectedPaymentPreference === 'full') {
+        showToast('Quotation accepted! You can now proceed with full payment.', 'success');
+      } else {
+        showToast('Quotation accepted successfully!', 'success');
+      }
+
       setShowAcceptModal(false);
       setAcceptingItem(null);
       fetchData();
@@ -331,6 +344,91 @@ const Quotation = () => {
       showToast(err.response?.data?.message || 'Failed to accept quotation. Please try again.', 'error');
     } finally {
       setAcceptingLoading(false);
+    }
+  };
+
+  const handleFullPaymentSubmit = async () => {
+    if (!paymentMethod) {
+      showToast('Please select a payment method', 'warning');
+      return;
+    }
+
+    if (paymentMethod === 'gcash') {
+      if (!paymentProof) {
+        showToast('Please upload payment proof', 'warning');
+        return;
+      }
+      if (!paymentReference) {
+        showToast('Please enter GCash reference number', 'warning');
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const fullAmount = parseFloat(selectedItem.totalCost);
+
+      console.log('Sending full payment:', {
+        projectId: selectedItem._id,
+        amount: fullAmount,
+        paymentMethod: paymentMethod,
+        paymentReference: paymentReference
+      });
+
+      if (paymentMethod === 'gcash') {
+        const formData = new FormData();
+        formData.append('amount', fullAmount.toString());
+        formData.append('paymentMethod', 'gcash');
+        formData.append('paymentReference', paymentReference);
+        formData.append('paymentType', 'full');
+        if (paymentProof) {
+          formData.append('paymentProof', paymentProof);
+        }
+
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/projects/${selectedItem._id}/full-payment`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            }
+          }
+        );
+
+        console.log('Payment response:', response.data);
+        showToast('Full payment submitted successfully!', 'success');
+
+      } else if (paymentMethod === 'cash') {
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/projects/${selectedItem._id}/full-payment`,
+          {
+            amount: fullAmount,
+            paymentMethod: 'cash',
+            paymentType: 'full'
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        showToast('Full payment selected. Please visit our office to complete payment.', 'success');
+      }
+
+      closeFullPaymentModal();
+      fetchData();
+
+    } catch (err) {
+      console.error('Payment error:', err);
+      const errorMessage = err.response?.data?.message || 'Failed to process payment. Please try again.';
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -401,6 +499,14 @@ const Quotation = () => {
     setPaymentMethod(null);
   };
 
+  const closeFullPaymentModal = () => {
+    setShowFullPaymentModal(false);
+    setSelectedItem(null);
+    setPaymentProof(null);
+    setPaymentReference('');
+    setPaymentMethod(null);
+  };
+
   const getStatusBadge = (status) => {
     const badges = {
       'pending': <span className="status-badge-cuspro pending-cuspro">Pending</span>,
@@ -425,11 +531,6 @@ const Quotation = () => {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(amount);
-  };
-
-  const getProjectProgress = (project) => {
-    if (project.totalCost === 0) return 0;
-    return Math.round((project.amountPaid / project.totalCost) * 100);
   };
 
   // Skeleton Loader Component
@@ -459,7 +560,6 @@ const Quotation = () => {
             </div>
             <div className="skeleton-badge"></div>
           </div>
-          <div className="skeleton-progress"></div>
           <div className="skeleton-stats">
             <div className="skeleton-stat"></div>
             <div className="skeleton-stat"></div>
@@ -503,7 +603,7 @@ const Quotation = () => {
           </button>
         </div>
 
-        {/* Tab Navigation - NO ICONS */}
+        {/* Tab Navigation */}
         <div className="cuspro-tabs">
           <button
             className={`cuspro-tab ${activeTab === 'projects' ? 'active' : ''}`}
@@ -544,79 +644,117 @@ const Quotation = () => {
                 </button>
               </div>
             ) : (
-              projects.map(project => (
-                <div key={project._id} className="cuspro-project-card">
-                  <div className="cuspro-project-header">
-                    <div className="cuspro-project-info">
-                      <h3>{project.projectName || project.projectReference}</h3>
-                      <p className="cuspro-project-ref">{project.projectReference}</p>
-                      <p className="cuspro-project-system">{project.systemSize}kW • {project.systemType === 'grid-tie' ? 'Grid-Tie' : project.systemType === 'hybrid' ? 'Hybrid' : 'Off-Grid'}</p>
-                    </div>
-                    {getStatusBadge(project.status)}
-                  </div>
+              projects.map(project => {
+                const hasFullPaymentOption = project.paymentPreference === 'full' && !project.fullPaymentCompleted;
 
-                  <div className="cuspro-progress-section">
-                    <div className="cuspro-progress-header">
-                      <span>Project Progress</span>
-                      <span className="cuspro-progress-percent">{getProjectProgress(project)}%</span>
+                return (
+                  <div key={project._id} className="cuspro-project-card">
+                    <div className="cuspro-project-header">
+                      <div className="cuspro-project-info">
+                        <h3>{project.projectName || project.projectReference}</h3>
+                        <p className="cuspro-project-ref">{project.projectReference}</p>
+                        <p className="cuspro-project-system">{project.systemSize}kW • {project.systemType === 'grid-tie' ? 'Grid-Tie' : project.systemType === 'hybrid' ? 'Hybrid' : 'Off-Grid'}</p>
+                        {project.paymentPreference === 'full' && (
+                          <p className="cuspro-payment-preference-badge">Full Payment Selected</p>
+                        )}
+                      </div>
+                      {getStatusBadge(project.status)}
                     </div>
-                    <div className="cuspro-progress-bar">
-                      <div className="cuspro-progress-fill" style={{ width: `${getProjectProgress(project)}%` }}></div>
-                    </div>
-                    <div className="cuspro-progress-stats">
-                      <span>Paid: {formatCurrency(project.amountPaid)}</span>
-                      <span>Total: {formatCurrency(project.totalCost)}</span>
-                    </div>
-                  </div>
 
-                  <div className="cuspro-payment-table-wrapper">
-                    <h4>Payment Schedule</h4>
-                    <table className="cuspro-payment-table">
-                      <thead>
-                        <tr>
-                          <th>Payment Type</th>
-                          <th>Amount</th>
-                          <th>Due Date</th>
-                          <th>Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {project.paymentSchedule?.map((payment, idx) => (
-                          <tr key={idx}>
-                            <td className="cuspro-payment-type-cell">
-                              {payment.type === 'initial' ? 'Initial Deposit (30%)' :
-                               payment.type === 'progress' ? 'Progress Payment (40%)' :
-                               'Final Payment (30%)'}
-                            </td>
-                            <td>{formatCurrency(payment.amount)}</td>
-                            <td>{payment.dueDate ? new Date(payment.dueDate).toLocaleDateString() : 'TBD'}</td>
-                            <td>
-                              <span className={`cuspro-payment-status ${payment.status}`}>
-                                {payment.status === 'paid' ? 'Paid' :
-                                 payment.status === 'overdue' ? 'Overdue' : 'Pending'}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                    {/* Payment Information Section - No Progress Bar */}
+                    <div className="cuspro-payment-info-section">
+                      <div className="cuspro-payment-stats">
+                        <div className="cuspro-stat-item">
+                          <span className="cuspro-stat-label">Total Amount</span>
+                          <span className="cuspro-stat-value">{formatCurrency(project.totalCost)}</span>
+                        </div>
+                        <div className="cuspro-stat-item">
+                          <span className="cuspro-stat-label">Amount Paid</span>
+                          <span className="cuspro-stat-value">{formatCurrency(project.amountPaid)}</span>
+                        </div>
+                        <div className="cuspro-stat-item">
+                          <span className="cuspro-stat-label">Remaining Balance</span>
+                          <span className="cuspro-stat-value">{formatCurrency(project.totalCost - project.amountPaid)}</span>
+                        </div>
+                      </div>
+                    </div>
 
-                  <div className="cuspro-project-actions">
-                    <button className="cuspro-secondary-btn" onClick={() => handleViewDetails(project, 'project')}>
-                      <FaEye /> View Details
-                    </button>
-                    <button className="cuspro-secondary-btn">
-                      <FaFileAlt /> Contract
-                    </button>
-                    {(project.status === 'approved' || project.status === 'initial_paid') && (
-                      <button className="cuspro-primary-btn-small">
-                        <FaMoneyBillWave /> Make Payment
-                      </button>
+                    {project.paymentPreference === 'installment' && project.paymentSchedule?.length > 0 && (
+                      <div className="cuspro-payment-table-wrapper">
+                        <h4>Installment Payment Schedule</h4>
+                        <table className="cuspro-payment-table">
+                          <thead>
+                            <tr>
+                              <th>Payment Type</th>
+                              <th>Amount</th>
+                              <th>Due Date</th>
+                              <th>Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {project.paymentSchedule.map((payment, idx) => (
+                              <tr key={idx}>
+                                <td className="cuspro-payment-type-cell">
+                                  {payment.type === 'initial' ? 'Initial Deposit (30%)' :
+                                    payment.type === 'progress' ? 'Progress Payment (40%)' :
+                                      payment.type === 'final' ? 'Final Payment (30%)' :
+                                        'Full Payment'}
+                                </td>
+                                <td>{formatCurrency(payment.amount)}</td>
+                                <td>{payment.dueDate ? new Date(payment.dueDate).toLocaleDateString() : 'TBD'}</td>
+                                <td>
+                                  <span className={`cuspro-payment-status ${payment.status}`}>
+                                    {payment.status === 'paid' ? 'Paid' :
+                                      payment.status === 'overdue' ? 'Overdue' : 'Pending'}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     )}
+
+                    {project.paymentPreference === 'full' && !project.fullPaymentCompleted && (
+                      <div className="cuspro-full-payment-section">
+                        <div className="cuspro-full-payment-info">
+                          <h4>Full Payment Option</h4>
+                          <div className="cuspro-full-payment-details">
+                            <p className="cuspro-full-amount">
+                              Total Amount: <strong>{formatCurrency(project.totalCost)}</strong>
+                            </p>
+                            <p className="cuspro-payment-note">
+                              Pay the full amount upfront to complete your project
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="cuspro-project-actions">
+                      <button className="cuspro-secondary-btn" onClick={() => handleViewDetails(project, 'project')}>
+                        <FaEye /> View Details
+                      </button>
+                      <button className="cuspro-secondary-btn">
+                        <FaFileAlt /> Contract
+                      </button>
+                      {(project.status === 'approved' || project.status === 'initial_paid' || project.status === 'quoted') && (
+                        <>
+                          {project.paymentPreference === 'full' && !project.fullPaymentCompleted ? (
+                            <button className="cuspro-primary-btn-small" onClick={() => handleFullPaymentClick(project)}>
+                              <FaMoneyBillWave /> Make Full Payment
+                            </button>
+                          ) : project.paymentPreference === 'installment' && (
+                            <button className="cuspro-primary-btn-small">
+                              <FaMoneyBillWave /> Make Payment
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         )}
@@ -799,13 +937,13 @@ const Quotation = () => {
           </div>
         )}
 
-        {/* Accept Quotation Modal */}
+        {/* Accept Quotation Modal with Payment Preference */}
         {showAcceptModal && acceptingItem && (
           <div className="cuspro-modal-overlay" onClick={() => setShowAcceptModal(false)}>
-            <div className="cuspro-modal" onClick={e => e.stopPropagation()}>
+            <div className="cuspro-modal cuspro-accept-modal" onClick={e => e.stopPropagation()}>
               <button className="cuspro-modal-close" onClick={() => setShowAcceptModal(false)}>×</button>
               <h3>Accept Quotation</h3>
-              <p>Are you sure you want to accept this quotation?</p>
+              <p>Please select your payment preference</p>
 
               <div className="cuspro-quotation-summary">
                 <h4>Quotation Summary</h4>
@@ -823,17 +961,158 @@ const Quotation = () => {
                 </div>
               </div>
 
+              <div className="cuspro-payment-preference-section">
+                <h4>Choose Payment Option</h4>
+
+                <div
+                  className={`cuspro-preference-option ${selectedPaymentPreference === 'installment' ? 'selected' : ''}`}
+                  onClick={() => setSelectedPaymentPreference('installment')}
+                >
+                  <input
+                    type="radio"
+                    checked={selectedPaymentPreference === 'installment'}
+                    onChange={() => { }}
+                  />
+                  <div className="cuspro-preference-content">
+                    <strong>Installment Payment</strong>
+                    <small>Pay in 3 installments (30% - 40% - 30%)</small>
+                    <div className="cuspre-preference-details">
+                      <span>Initial: {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.3)}</span>
+                      <span>Progress: {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.4)}</span>
+                      <span>Final: {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.3)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className={`cuspro-preference-option ${selectedPaymentPreference === 'full' ? 'selected' : ''}`}
+                  onClick={() => setSelectedPaymentPreference('full')}
+                >
+                  <input
+                    type="radio"
+                    checked={selectedPaymentPreference === 'full'}
+                    onChange={() => { }}
+                  />
+                  <div className="cuspro-preference-content">
+                    <strong>Full Payment</strong>
+                    <small>Pay the full amount upfront</small>
+                    <div className="cuspre-preference-details full-payment-details">
+                      <span className="full-amount">
+                        Amount: {formatCurrency(acceptingItem.totalCost || acceptingItem.amount)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="cuspro-modal-actions">
                 <button className="cuspro-cancel-btn" onClick={() => setShowAcceptModal(false)}>Cancel</button>
-                <button className="cuspro-confirm-btn" onClick={confirmAcceptQuotation} disabled={acceptingLoading}>
-                  {acceptingLoading ? 'Processing...' : 'Confirm'}
+                <button
+                  className="cuspro-confirm-btn"
+                  onClick={confirmAcceptQuotation}
+                  disabled={acceptingLoading}
+                >
+                  {acceptingLoading ? 'Processing...' : 'Confirm Selection'}
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Payment Modal */}
+        {/* Full Payment Modal */}
+        {showFullPaymentModal && selectedItem && (
+          <div className="cuspro-modal-overlay" onClick={closeFullPaymentModal}>
+            <div className="cuspro-modal" onClick={e => e.stopPropagation()}>
+              <button className="cuspro-modal-close" onClick={closeFullPaymentModal}>×</button>
+              <h3>Make Full Payment</h3>
+
+              <div className="cuspro-payment-summary">
+                <p><strong>Project:</strong> {selectedItem.projectName}</p>
+                <p><strong>Reference:</strong> {selectedItem.projectReference}</p>
+                <div className="cuspro-payment-breakdown">
+                  <p className="cuspro-total-amount">
+                    <strong>Total Amount to Pay:</strong> {formatCurrency(selectedItem.totalCost)}
+                  </p>
+                  <p className="cuspro-payment-info">
+                    Pay the full amount to complete your solar installation project
+                  </p>
+                </div>
+              </div>
+
+              <div className="cuspro-payment-methods">
+                <h4>Select Payment Method</h4>
+                <div className="cuspro-method-options">
+                  <div className={`cuspro-method-option ${paymentMethod === 'gcash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('gcash')}>
+                    <input type="radio" checked={paymentMethod === 'gcash'} onChange={() => { }} />
+                    <div>
+                      <strong>GCash</strong>
+                      <small>Pay via GCash mobile wallet</small>
+                    </div>
+                  </div>
+                  <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
+                    <input type="radio" checked={paymentMethod === 'cash'} onChange={() => { }} />
+                    <div>
+                      <strong>Cash</strong>
+                      <small>Pay in cash at our office</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {paymentMethod === 'gcash' && (
+                <>
+                  <div className="cuspro-gcash-details">
+                    <h4>GCash Details</h4>
+                    <p>Number: <strong>0917XXXXXXX</strong></p>
+                    <p>Name: <strong>SALFER ENGINEERING CORP</strong></p>
+                    <p>Amount: <strong>{formatCurrency(selectedItem.totalCost)}</strong></p>
+                  </div>
+                  <div className="cuspro-form-group">
+                    <label>Reference Number</label>
+                    <input
+                      type="text"
+                      value={paymentReference}
+                      onChange={(e) => setPaymentReference(e.target.value)}
+                      placeholder="Enter GCash reference number"
+                    />
+                  </div>
+                  <div className="cuspro-form-group">
+                    <label>Upload Payment Screenshot</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setPaymentProof(e.target.files[0])}
+                    />
+                    {paymentProof && <small>Selected: {paymentProof.name}</small>}
+                  </div>
+                </>
+              )}
+
+              {paymentMethod === 'cash' && (
+                <div className="cuspro-cash-details">
+                  <div className="cuspro-info-box">
+                    <strong>Office Address</strong>
+                    <p>Purok 2, Masaya, San Jose, Camarines Sur</p>
+                    <p>Business Hours: Monday-Friday, 8:00 AM - 5:00 PM</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="cuspro-modal-actions">
+                <button className="cuspro-cancel-btn" onClick={closeFullPaymentModal}>Cancel</button>
+                <button
+                  className="cuspro-confirm-btn"
+                  onClick={handleFullPaymentSubmit}
+                  disabled={isSubmitting || !paymentMethod}
+                >
+                  {isSubmitting ? 'Processing...' : `Pay ${formatCurrency(selectedItem.totalCost)}`}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Payment Modal for Pre-assessment */}
         {showPaymentModal && selectedItem && (
           <div className="cuspro-modal-overlay" onClick={closeModal}>
             <div className="cuspro-modal" onClick={e => e.stopPropagation()}>
@@ -849,14 +1128,14 @@ const Quotation = () => {
                 <h4>Select Payment Method</h4>
                 <div className="cuspro-method-options">
                   <div className={`cuspro-method-option ${paymentMethod === 'gcash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('gcash')}>
-                    <input type="radio" checked={paymentMethod === 'gcash'} onChange={() => {}} />
+                    <input type="radio" checked={paymentMethod === 'gcash'} onChange={() => { }} />
                     <div>
                       <strong>GCash</strong>
                       <small>Pay via GCash mobile wallet</small>
                     </div>
                   </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
-                    <input type="radio" checked={paymentMethod === 'cash'} onChange={() => {}} />
+                    <input type="radio" checked={paymentMethod === 'cash'} onChange={() => { }} />
                     <div>
                       <strong>Cash</strong>
                       <small>Pay in cash at our office</small>
@@ -953,6 +1232,7 @@ const Quotation = () => {
                       <p><strong>Project Name:</strong> {detailsItem.projectName || detailsItem.projectReference}</p>
                       <p><strong>Project Reference:</strong> {detailsItem.projectReference}</p>
                       <p><strong>Status:</strong> {detailsItem.status}</p>
+                      <p><strong>Payment Preference:</strong> {detailsItem.paymentPreference === 'full' ? 'Full Payment' : 'Installment'}</p>
                     </div>
                     <div className="cuspro-details-section">
                       <h4>System Details</h4>

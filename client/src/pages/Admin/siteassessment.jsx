@@ -1,4 +1,3 @@
-// pages/Admin/SiteAssessment.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -69,7 +68,7 @@ const SiteAssessment = () => {
   const [devices, setDevices] = useState([]);
   const [stats, setStats] = useState({
     freeQuotes: { total: 0, pending: 0, assigned: 0, processing: 0, completed: 0 },
-    preAssessments: { total: 0, pendingReview: 0, pendingPayment: 0, forVerification: 0, paid: 0, scheduled: 0, completed: 0 }
+    preAssessments: { total: 0, pendingReview: 0, pendingPayment: 0, forVerification: 0, paid: 0, scheduled: 0, completed: 0, autoVerified: 0 }
   });
 
   useEffect(() => {
@@ -146,6 +145,8 @@ const SiteAssessment = () => {
       });
       const assessments = preAssessmentsRes.data.assessments || [];
 
+      const autoVerified = assessments.filter(a => a.autoVerified === true || a.paymentGateway === 'paymongo').length;
+
       setStats({
         freeQuotes: {
           total: quotes.length,
@@ -161,7 +162,8 @@ const SiteAssessment = () => {
           forVerification: assessments.filter(a => a.paymentStatus === 'for_verification').length,
           paid: assessments.filter(a => a.paymentStatus === 'paid').length,
           scheduled: assessments.filter(a => a.assessmentStatus === 'scheduled').length,
-          completed: assessments.filter(a => a.assessmentStatus === 'completed').length
+          completed: assessments.filter(a => a.assessmentStatus === 'completed').length,
+          autoVerified: autoVerified
         }
       });
     } catch (error) {
@@ -521,7 +523,7 @@ const SiteAssessment = () => {
               <span className="stat-label-siteassesad">Pre-Assessments</span>
               <div className="stat-detail-siteassesad">
                 <span>Pending Review: {stats.preAssessments.pendingReview}</span>
-                <span>For Verification: {stats.preAssessments.forVerification}</span>
+                <span>Auto-Verified: {stats.preAssessments.autoVerified}</span>
                 <span>Completed: {stats.preAssessments.completed}</span>
               </div>
             </div>
@@ -589,6 +591,7 @@ const SiteAssessment = () => {
                 <th>Date</th>
                 {activeTab === 'free-quotes' ? <th>Monthly Bill</th> : <th>Property Type</th>}
                 {activeTab === 'free-quotes' ? <th>Capacity</th> : <th>Amount</th>}
+                <th>Payment Method</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -596,7 +599,7 @@ const SiteAssessment = () => {
             <tbody>
               {filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="empty-state-siteassesad">
+                  <td colSpan="9" className="empty-state-siteassesad">
                     <p>No {activeTab === 'free-quotes' ? 'free quotes' : 'pre-assessments'} found</p>
                   </td>
                 </tr>
@@ -625,6 +628,17 @@ const SiteAssessment = () => {
                         <td className="amount-cell-siteassesad">{formatCurrency(item.assessmentFee)}</td>
                       </>
                     )}
+                    <td>
+                      {item.paymentGateway === 'paymongo' ? (
+                        <span className="payment-method-badge paymongo">PayMongo</span>
+                      ) : item.paymentMethod === 'cash' ? (
+                        <span className="payment-method-badge cash">Cash</span>
+                      ) : item.paymentMethod === 'gcash' ? (
+                        <span className="payment-method-badge gcash">GCash</span>
+                      ) : (
+                        <span className="payment-method-badge">-</span>
+                      )}
+                    </td>
                     <td>{getStatusBadge(getDisplayStatus(item), activeTab === 'free-quotes' ? 'free-quote' : 'pre-assessment')}</td>
                     <td className="actions-cell-siteassesad">
                       <button
@@ -684,14 +698,42 @@ const SiteAssessment = () => {
                         </button>
                       )}
 
-                      {activeTab === 'pre-assessments' && item.paymentStatus === 'for_verification' && (
+                      {/* PayMongo payments - Auto-verified, no action needed */}
+                      {(item.paymentGateway === 'paymongo' || item.autoVerified === true) && item.paymentStatus === 'paid' && (
+                        <span className="auto-verified-badge" title="Auto-verified via PayMongo">
+                          <FaCheckCircle /> Auto
+                        </span>
+                      )}
+
+                      {/* Cash payments that need manual verification */}
+                      {activeTab === 'pre-assessments' && item.paymentMethod === 'cash' && item.paymentStatus === 'pending' && (
                         <>
                           <button
                             className="action-btn-siteassesad verify-siteassesad"
                             onClick={() => { setSelectedItem(item); setShowVerifyModal(true); }}
-                            title="Verify Payment"
+                            title="Verify Cash Payment"
                           >
-                            <FaCheckCircle />
+                            <FaMoneyBillWave /> Verify Cash
+                          </button>
+                          <button
+                            className="action-btn-siteassesad reject-siteassesad"
+                            onClick={() => handleVerifyPayment(false)}
+                            title="Reject"
+                          >
+                            <FaTimesCircle />
+                          </button>
+                        </>
+                      )}
+
+                      {/* Legacy manual GCash payments (for existing data) */}
+                      {activeTab === 'pre-assessments' && item.paymentMethod === 'gcash' && item.paymentStatus === 'for_verification' && !item.paymentGateway && (
+                        <>
+                          <button
+                            className="action-btn-siteassesad verify-siteassesad"
+                            onClick={() => { setSelectedItem(item); setShowVerifyModal(true); }}
+                            title="Verify GCash Payment"
+                          >
+                            <FaCheckCircle /> Verify
                           </button>
                           <button
                             className="action-btn-siteassesad reject-siteassesad"
@@ -834,6 +876,7 @@ const SiteAssessment = () => {
                   <p><strong>Roof Type:</strong> {selectedItem.roofType || 'Not specified'}</p>
                   <p><strong>Preferred Date:</strong> {formatDate(selectedItem.preferredDate)}</p>
                   <p><strong>Assessment Fee:</strong> {formatCurrency(selectedItem.assessmentFee)}</p>
+                  <p><strong>Payment Gateway:</strong> {selectedItem.paymentGateway === 'paymongo' ? 'PayMongo (Auto-Verified)' : (selectedItem.paymentMethod === 'cash' ? 'Cash (Manual)' : 'Manual')}</p>
                   <p><strong>Payment Status:</strong> {selectedItem.paymentStatus}</p>
                   <p><strong>Assessment Status:</strong> {selectedItem.assessmentStatus}</p>
                   <p><strong>Assigned Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p>
@@ -851,29 +894,89 @@ const SiteAssessment = () => {
         {showVerifyModal && selectedItem && (
           <div className="modal-overlay-siteassesad" onClick={() => setShowVerifyModal(false)}>
             <div className="modal-content-siteassesad" onClick={e => e.stopPropagation()}>
-              <h3>Verify Payment</h3>
+              <h3>
+                {selectedItem.paymentGateway === 'paymongo' 
+                  ? 'PayMongo Payment Details' 
+                  : selectedItem.paymentMethod === 'cash'
+                    ? 'Verify Cash Payment'
+                    : 'Verify GCash Payment'}
+              </h3>
+              
               <div className="payment-info-siteassesad">
                 <p><strong>Reference:</strong> {selectedItem.bookingReference}</p>
                 <p><strong>Amount:</strong> {formatCurrency(selectedItem.assessmentFee)}</p>
-                <p><strong>Method:</strong> {selectedItem.paymentMethod?.toUpperCase()}</p>
-                <p><strong>Reference #:</strong> {selectedItem.paymentReference || 'N/A'}</p>
+                <p><strong>Method:</strong> 
+                  {selectedItem.paymentGateway === 'paymongo' 
+                    ? 'PayMongo (Auto-Verified)' 
+                    : selectedItem.paymentMethod?.toUpperCase()}
+                </p>
+                {selectedItem.paymentReference && (
+                  <p><strong>Transaction ID:</strong> {selectedItem.paymentReference}</p>
+                )}
               </div>
-              <div className="form-group-siteassesad">
-                <label>Verification Notes (Optional)</label>
-                <textarea
-                  rows="3"
-                  value={verificationNote}
-                  onChange={(e) => setVerificationNote(e.target.value)}
-                  placeholder="Add any notes about this verification..."
-                />
-              </div>
-              <div className="modal-actions-siteassesad">
-                <button className="cancel-btn-siteassesad" onClick={() => setShowVerifyModal(false)}>Cancel</button>
-                <button className="reject-btn-siteassesad" onClick={() => handleVerifyPayment(false)} disabled={isSubmitting}>Reject</button>
-                <button className="verify-btn-siteassesad" onClick={() => handleVerifyPayment(true)} disabled={isSubmitting}>
-                  {isSubmitting ? 'Processing...' : 'Verify & Confirm'}
-                </button>
-              </div>
+
+              {/* Only show verification options for Cash payments */}
+              {selectedItem.paymentMethod === 'cash' && (
+                <>
+                  <div className="form-group-siteassesad">
+                    <label>Verification Notes (Optional)</label>
+                    <textarea
+                      rows="3"
+                      value={verificationNote}
+                      onChange={(e) => setVerificationNote(e.target.value)}
+                      placeholder="Add any notes about this cash payment verification..."
+                    />
+                  </div>
+                  
+                  <div className="modal-actions-siteassesad">
+                    <button className="cancel-btn-siteassesad" onClick={() => setShowVerifyModal(false)}>Cancel</button>
+                    <button className="verify-btn-siteassesad" onClick={() => handleVerifyPayment(true)}>
+                      <FaCheckCircle /> Confirm Cash Received
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* For PayMongo payments - just show info */}
+              {selectedItem.paymentGateway === 'paymongo' && (
+                <div className="info-box-siteassesad">
+                  <FaInfoCircle />
+                  <small>This payment was automatically verified via PayMongo. No action needed.</small>
+                  <div className="modal-actions-siteassesad">
+                    <button className="cancel-btn-siteassesad" onClick={() => setShowVerifyModal(false)}>Close</button>
+                  </div>
+                </div>
+              )}
+
+              {/* For legacy manual GCash payments */}
+              {selectedItem.paymentMethod === 'gcash' && !selectedItem.paymentGateway && (
+                <>
+                  {selectedItem.paymentProof && (
+                    <div className="payment-proof-siteassesad">
+                      <label>Payment Proof:</label>
+                      <button className="view-proof-btn-siteassesad" onClick={() => window.open(selectedItem.paymentProof, '_blank')}>
+                        <FaEye /> View Screenshot
+                      </button>
+                    </div>
+                  )}
+                  <div className="form-group-siteassesad">
+                    <label>Verification Notes (Optional)</label>
+                    <textarea
+                      rows="3"
+                      value={verificationNote}
+                      onChange={(e) => setVerificationNote(e.target.value)}
+                      placeholder="Add any notes about this verification..."
+                    />
+                  </div>
+                  <div className="modal-actions-siteassesad">
+                    <button className="cancel-btn-siteassesad" onClick={() => setShowVerifyModal(false)}>Cancel</button>
+                    <button className="reject-btn-siteassesad" onClick={() => handleVerifyPayment(false)} disabled={isSubmitting}>Reject</button>
+                    <button className="verify-btn-siteassesad" onClick={() => handleVerifyPayment(true)} disabled={isSubmitting}>
+                      {isSubmitting ? 'Processing...' : 'Verify & Confirm'}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

@@ -26,16 +26,17 @@ const {
   createProject
 } = require('../controllers/projectController');
 
+// ✅ FIXED: Correct import syntax
+const { createProjectPaymentIntent } = require('../controllers/paymentController');
+
 const { verifyToken } = authMiddleware;
 
 // ============ CUSTOMER ROUTES ============
 router.get('/my-projects', verifyToken, getMyProjects);
 router.post('/accept', verifyToken, createProjectFromAcceptance);
 router.post('/:id/payments', verifyToken, recordPayment);
-// routes/projectRoutes.js - Add this route
-
-// Customer full payment route
 router.post('/:id/full-payment', verifyToken, upload.single('paymentProof'), processFullPayment);
+//router.post('/:id/create-payment-intent/:paymentId', verifyToken, createProjectPaymentIntent);
 
 // ============ ENGINEER ROUTES ============
 router.get('/engineer/my-projects', verifyToken, engineer, getEngineerProjects);

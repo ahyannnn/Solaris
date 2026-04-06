@@ -1,4 +1,4 @@
-// pages/Customer/Quotation.cuspro.jsx - Progress Bar Removed
+// pages/Customer/Quotation.cuspro.jsx
 
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
@@ -34,7 +34,8 @@ import {
   FaPlus,
   FaTrash,
   FaSave,
-  FaTimes
+  FaTimes,
+  FaQrcode
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/quotation.css';
@@ -242,14 +243,20 @@ const Quotation = () => {
     handlePayNow(preAssessment);
   };
 
-  const handlePayNow = (preAssessment) => {
+  const handlePayNow = async (preAssessment) => {
+    const assessmentId = preAssessment.assessmentId || preAssessment._id;
+    
+    if (!assessmentId) {
+      showToast('Invalid assessment data. Cannot process payment.', 'error');
+      return;
+    }
+    
     setSelectedItem({
       ...preAssessment,
-      bookingReference: preAssessment.bookingReference
+      bookingReference: preAssessment.bookingReference,
+      assessmentId: assessmentId,
     });
-    setPaymentMethod(null);
-    setPaymentProof(null);
-    setPaymentReference('');
+    
     setShowPaymentModal(true);
   };
 
@@ -347,91 +354,68 @@ const Quotation = () => {
     }
   };
 
-  const handleFullPaymentSubmit = async () => {
-    if (!paymentMethod) {
-      showToast('Please select a payment method', 'warning');
-      return;
-    }
-
-    if (paymentMethod === 'gcash') {
-      if (!paymentProof) {
-        showToast('Please upload payment proof', 'warning');
-        return;
-      }
-      if (!paymentReference) {
-        showToast('Please enter GCash reference number', 'warning');
-        return;
-      }
-    }
-
+  // PayMongo Card Payment Handler
+  const handlePayMongoCardPayment = async () => {
     setIsSubmitting(true);
-
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-      const fullAmount = parseFloat(selectedItem.totalCost);
+      
+      const cardNumber = document.getElementById('card-number')?.value.replace(/\s/g, '');
+      const cardExpiry = document.getElementById('card-expiry')?.value;
+      const cardCvc = document.getElementById('card-cvc')?.value;
 
-      console.log('Sending full payment:', {
-        projectId: selectedItem._id,
-        amount: fullAmount,
-        paymentMethod: paymentMethod,
-        paymentReference: paymentReference
-      });
-
-      if (paymentMethod === 'gcash') {
-        const formData = new FormData();
-        formData.append('amount', fullAmount.toString());
-        formData.append('paymentMethod', 'gcash');
-        formData.append('paymentReference', paymentReference);
-        formData.append('paymentType', 'full');
-        if (paymentProof) {
-          formData.append('paymentProof', paymentProof);
-        }
-
-        const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/projects/${selectedItem._id}/full-payment`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data'
-            }
-          }
-        );
-
-        console.log('Payment response:', response.data);
-        showToast('Full payment submitted successfully!', 'success');
-
-      } else if (paymentMethod === 'cash') {
-        const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/projects/${selectedItem._id}/full-payment`,
-          {
-            amount: fullAmount,
-            paymentMethod: 'cash',
-            paymentType: 'full'
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-
-        showToast('Full payment selected. Please visit our office to complete payment.', 'success');
+      if (!cardNumber || !cardExpiry || !cardCvc) {
+        showToast('Please fill in all card details', 'warning');
+        setIsSubmitting(false);
+        return;
       }
 
-      closeFullPaymentModal();
-      fetchData();
+      const [expMonth, expYear] = cardExpiry.split('/');
 
+      const intentResponse = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/payments/pre-assessment/${selectedItem.assessmentId}/create-intent`,
+        { paymentMethod: 'card' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (!intentResponse.data.success) {
+        throw new Error('Failed to create payment intent');
+      }
+
+      const paymentIntentId = intentResponse.data.paymentIntentId;
+      
+      sessionStorage.setItem('pendingPaymentIntentId', paymentIntentId);
+
+      const paymentResponse = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/payments/process-card-payment`,
+        {
+          paymentIntentId: paymentIntentId,
+          cardDetails: {
+            cardNumber: cardNumber,
+            expMonth: parseInt(expMonth),
+            expYear: parseInt(expYear),
+            cvc: cardCvc
+          }
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (paymentResponse.data.success) {
+        showToast('Payment successful!', 'success');
+        closeModal();
+        fetchData();
+      } else {
+        showToast(paymentResponse.data.message || 'Payment failed', 'error');
+      }
     } catch (err) {
-      console.error('Payment error:', err);
-      const errorMessage = err.response?.data?.message || 'Failed to process payment. Please try again.';
-      showToast(errorMessage, 'error');
+      console.error('Card payment error:', err);
+      showToast(err.response?.data?.message || 'Failed to process card payment', 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // Manual GCash Payment Handler (Original Working Flow)
   const handlePaymentSubmit = async () => {
     if (!paymentMethod) {
       showToast('Please select a payment method', 'warning');
@@ -468,8 +452,9 @@ const Quotation = () => {
           }
         });
 
-        showToast('Payment submitted successfully!', 'success');
-
+        showToast('Payment submitted for verification!', 'success');
+        closeModal();
+        fetchData();
       } else if (paymentMethod === 'cash') {
         await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/cash-payment`, {
           bookingReference: selectedItem.bookingReference
@@ -478,14 +463,190 @@ const Quotation = () => {
         });
 
         showToast('Cash payment selected. Please visit our office to complete payment.', 'success');
+        closeModal();
+        fetchData();
+      }
+    } catch (err) {
+      console.error('Payment error:', err);
+      showToast(err.response?.data?.message || 'Failed to process payment', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Cash payment for Pre-assessment
+  const handleCashPaymentSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/cash-payment`, {
+        bookingReference: selectedItem.bookingReference
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      showToast('Cash payment selected. Please visit our office to complete payment.', 'success');
+      closeModal();
+      fetchData();
+    } catch (err) {
+      console.error('Cash payment error:', err);
+      showToast(err.response?.data?.message || 'Failed to process cash payment', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Project PayMongo Payment
+  const handleProjectPayMongoPayment = async (method) => {
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/payments/project/${selectedItem._id}/payment/full/create-intent`,
+        { paymentMethod: method },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (method === 'gcash' && response.data.type === 'redirect') {
+        sessionStorage.setItem('pendingPaymentIntentId', response.data.paymentIntentId);
+        sessionStorage.setItem('paymentType', 'project');
+        window.location.href = response.data.redirectUrl;
+      } else if (method === 'card') {
+        const cardNumber = document.getElementById('full-card-number')?.value.replace(/\s/g, '');
+        const cardExpiry = document.getElementById('full-card-expiry')?.value;
+        const cardCvc = document.getElementById('full-card-cvc')?.value;
+
+        if (!cardNumber || !cardExpiry || !cardCvc) {
+          showToast('Please fill in all card details', 'warning');
+          setIsSubmitting(false);
+          return;
+        }
+
+        const [expMonth, expYear] = cardExpiry.split('/');
+
+        if (!window.Paymongo) {
+          const script = document.createElement('script');
+          script.src = 'https://js.paymongo.com/v1';
+          await new Promise((resolve) => {
+            script.onload = resolve;
+            document.head.appendChild(script);
+          });
+        }
+
+        const paymongo = window.Paymongo;
+        const paymentMethodResult = await paymongo.createPaymentMethod({
+          type: 'card',
+          card: {
+            number: cardNumber,
+            exp_month: parseInt(expMonth),
+            exp_year: parseInt(expYear),
+            cvc: cardCvc
+          }
+        });
+
+        await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/payments/attach-payment-method`,
+          {
+            paymentIntentId: response.data.paymentIntentId,
+            paymentMethodId: paymentMethodResult.data.id
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        const verifyResponse = await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/payments/verify`,
+          { paymentIntentId: response.data.paymentIntentId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (verifyResponse.data.success) {
+          showToast('Payment successful!', 'success');
+          closeFullPaymentModal();
+          fetchData();
+        }
+      }
+    } catch (err) {
+      console.error('Project payment error:', err);
+      showToast(err.response?.data?.message || 'Failed to process payment', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleFullPaymentSubmit = async () => {
+    if (!paymentMethod) {
+      showToast('Please select a payment method', 'warning');
+      return;
+    }
+
+    if (paymentMethod === 'gcash') {
+      if (!paymentProof) {
+        showToast('Please upload payment proof', 'warning');
+        return;
+      }
+      if (!paymentReference) {
+        showToast('Please enter GCash reference number', 'warning');
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const fullAmount = parseFloat(selectedItem.totalCost);
+
+      if (paymentMethod === 'gcash') {
+        const formData = new FormData();
+        formData.append('amount', fullAmount.toString());
+        formData.append('paymentMethod', 'gcash');
+        formData.append('paymentReference', paymentReference);
+        formData.append('paymentType', 'full');
+        if (paymentProof) {
+          formData.append('paymentProof', paymentProof);
+        }
+
+        await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/projects/${selectedItem._id}/full-payment`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            }
+          }
+        );
+
+        showToast('Full payment submitted successfully!', 'success');
+
+      } else if (paymentMethod === 'cash') {
+        await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/projects/${selectedItem._id}/full-payment`,
+          {
+            amount: fullAmount,
+            paymentMethod: 'cash',
+            paymentType: 'full'
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        showToast('Full payment selected. Please visit our office to complete payment.', 'success');
       }
 
-      closeModal();
+      closeFullPaymentModal();
       fetchData();
 
     } catch (err) {
       console.error('Payment error:', err);
-      showToast(err.response?.data?.message || 'Failed to process payment. Please try again.', 'error');
+      const errorMessage = err.response?.data?.message || 'Failed to process payment. Please try again.';
+      showToast(errorMessage, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -533,7 +694,6 @@ const Quotation = () => {
     }).format(amount);
   };
 
-  // Skeleton Loader Component
   const SkeletonLoader = () => (
     <div className="cuspro-quotation-container">
       <div className="cuspro-header-card skeleton-card">
@@ -661,7 +821,6 @@ const Quotation = () => {
                       {getStatusBadge(project.status)}
                     </div>
 
-                    {/* Payment Information Section - No Progress Bar */}
                     <div className="cuspro-payment-info-section">
                       <div className="cuspro-payment-stats">
                         <div className="cuspro-stat-item">
@@ -1019,7 +1178,7 @@ const Quotation = () => {
           </div>
         )}
 
-        {/* Full Payment Modal */}
+        {/* Full Payment Modal for Projects */}
         {showFullPaymentModal && selectedItem && (
           <div className="cuspro-modal-overlay" onClick={closeFullPaymentModal}>
             <div className="cuspro-modal" onClick={e => e.stopPropagation()}>
@@ -1033,22 +1192,20 @@ const Quotation = () => {
                   <p className="cuspro-total-amount">
                     <strong>Total Amount to Pay:</strong> {formatCurrency(selectedItem.totalCost)}
                   </p>
-                  <p className="cuspro-payment-info">
-                    Pay the full amount to complete your solar installation project
-                  </p>
                 </div>
               </div>
 
               <div className="cuspro-payment-methods">
                 <h4>Select Payment Method</h4>
                 <div className="cuspro-method-options">
-                  <div className={`cuspro-method-option ${paymentMethod === 'gcash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('gcash')}>
-                    <input type="radio" checked={paymentMethod === 'gcash'} onChange={() => { }} />
+                  <div className={`cuspro-method-option ${paymentMethod === 'paymongo_card' ? 'selected' : ''}`} onClick={() => setPaymentMethod('paymongo_card')}>
+                    <input type="radio" checked={paymentMethod === 'paymongo_card'} onChange={() => { }} />
                     <div>
-                      <strong>GCash</strong>
-                      <small>Pay via GCash mobile wallet</small>
+                      <strong>Credit/Debit Card</strong>
+                      <small>Pay securely with card</small>
                     </div>
                   </div>
+
                   <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
                     <input type="radio" checked={paymentMethod === 'cash'} onChange={() => { }} />
                     <div>
@@ -1059,35 +1216,37 @@ const Quotation = () => {
                 </div>
               </div>
 
-              {paymentMethod === 'gcash' && (
-                <>
-                  <div className="cuspro-gcash-details">
-                    <h4>GCash Details</h4>
-                    <p>Number: <strong>0917XXXXXXX</strong></p>
-                    <p>Name: <strong>SALFER ENGINEERING CORP</strong></p>
-                    <p>Amount: <strong>{formatCurrency(selectedItem.totalCost)}</strong></p>
+              {/* PayMongo Card Section */}
+              {paymentMethod === 'paymongo_card' && (
+                <div className="cuspro-paymongo-section">
+                  <div className="cuspro-card-form">
+                    <div className="cuspro-form-group">
+                      <label>Card Number</label>
+                      <input type="text" id="full-card-number" placeholder="1234 5678 9012 3456" />
+                    </div>
+                    <div className="cuspro-form-row">
+                      <div className="cuspro-form-group">
+                        <label>Expiry</label>
+                        <input type="text" id="full-card-expiry" placeholder="MM/YY" />
+                      </div>
+                      <div className="cuspro-form-group">
+                        <label>CVC</label>
+                        <input type="text" id="full-card-cvc" placeholder="123" />
+                      </div>
+                    </div>
+                    <button
+                      className="cuspro-paymongo-btn card-btn"
+                      onClick={() => handleProjectPayMongoPayment('card')}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? <FaSpinner className="spinning" /> : <FaCreditCard />}
+                      {isSubmitting ? 'Processing...' : `Pay ${formatCurrency(selectedItem.totalCost)}`}
+                    </button>
                   </div>
-                  <div className="cuspro-form-group">
-                    <label>Reference Number</label>
-                    <input
-                      type="text"
-                      value={paymentReference}
-                      onChange={(e) => setPaymentReference(e.target.value)}
-                      placeholder="Enter GCash reference number"
-                    />
-                  </div>
-                  <div className="cuspro-form-group">
-                    <label>Upload Payment Screenshot</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setPaymentProof(e.target.files[0])}
-                    />
-                    {paymentProof && <small>Selected: {paymentProof.name}</small>}
-                  </div>
-                </>
+                </div>
               )}
 
+              {/* Cash Section */}
               {paymentMethod === 'cash' && (
                 <div className="cuspro-cash-details">
                   <div className="cuspro-info-box">
@@ -1095,18 +1254,14 @@ const Quotation = () => {
                     <p>Purok 2, Masaya, San Jose, Camarines Sur</p>
                     <p>Business Hours: Monday-Friday, 8:00 AM - 5:00 PM</p>
                   </div>
+                  <button className="cuspro-confirm-btn" onClick={handleFullPaymentSubmit} disabled={isSubmitting}>
+                    {isSubmitting ? 'Processing...' : 'Confirm Cash Payment'}
+                  </button>
                 </div>
               )}
 
               <div className="cuspro-modal-actions">
                 <button className="cuspro-cancel-btn" onClick={closeFullPaymentModal}>Cancel</button>
-                <button
-                  className="cuspro-confirm-btn"
-                  onClick={handleFullPaymentSubmit}
-                  disabled={isSubmitting || !paymentMethod}
-                >
-                  {isSubmitting ? 'Processing...' : `Pay ${formatCurrency(selectedItem.totalCost)}`}
-                </button>
               </div>
             </div>
           </div>
@@ -1127,15 +1282,27 @@ const Quotation = () => {
               <div className="cuspro-payment-methods">
                 <h4>Select Payment Method</h4>
                 <div className="cuspro-method-options">
+                  {/* GCash - Manual Upload (Working) */}
                   <div className={`cuspro-method-option ${paymentMethod === 'gcash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('gcash')}>
-                    <input type="radio" checked={paymentMethod === 'gcash'} onChange={() => { }} />
+                    <input type="radio" checked={paymentMethod === 'gcash'} onChange={() => {}} />
                     <div>
                       <strong>GCash</strong>
-                      <small>Pay via GCash mobile wallet</small>
+                      <small>Pay via GCash - Upload receipt for verification</small>
                     </div>
                   </div>
+
+                  {/* Credit/Debit Card - PayMongo Instant */}
+                  <div className={`cuspro-method-option ${paymentMethod === 'paymongo_card' ? 'selected' : ''}`} onClick={() => setPaymentMethod('paymongo_card')}>
+                    <input type="radio" checked={paymentMethod === 'paymongo_card'} onChange={() => {}} />
+                    <div>
+                      <strong>Credit/Debit Card</strong>
+                      <small>Instant payment - No receipt needed</small>
+                    </div>
+                  </div>
+
+                  {/* Cash - Walk-in */}
                   <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
-                    <input type="radio" checked={paymentMethod === 'cash'} onChange={() => { }} />
+                    <input type="radio" checked={paymentMethod === 'cash'} onChange={() => {}} />
                     <div>
                       <strong>Cash</strong>
                       <small>Pay in cash at our office</small>
@@ -1144,6 +1311,7 @@ const Quotation = () => {
                 </div>
               </div>
 
+              {/* Manual GCash Section - Working */}
               {paymentMethod === 'gcash' && (
                 <>
                   <div className="cuspro-gcash-details">
@@ -1161,9 +1329,58 @@ const Quotation = () => {
                     <input type="file" accept="image/*" onChange={(e) => setPaymentProof(e.target.files[0])} />
                     {paymentProof && <small>Selected: {paymentProof.name}</small>}
                   </div>
+                  <button className="cuspro-confirm-btn" onClick={handlePaymentSubmit} disabled={isSubmitting}>
+                    {isSubmitting ? 'Processing...' : 'Submit Payment'}
+                  </button>
                 </>
               )}
 
+              {/* PayMongo Card Payment Section */}
+              {paymentMethod === 'paymongo_card' && (
+                <div className="cuspro-paymongo-section">
+                  <div className="cuspro-card-form">
+                    <div className="cuspro-form-group">
+                      <label>Card Number</label>
+                      <input
+                        type="text"
+                        id="card-number"
+                        placeholder="1234 5678 9012 3456"
+                        className="cuspro-card-input"
+                      />
+                    </div>
+                    <div className="cuspro-form-row">
+                      <div className="cuspro-form-group">
+                        <label>Expiry Date</label>
+                        <input
+                          type="text"
+                          id="card-expiry"
+                          placeholder="MM/YY"
+                          className="cuspro-card-input-small"
+                        />
+                      </div>
+                      <div className="cuspro-form-group">
+                        <label>CVC</label>
+                        <input
+                          type="text"
+                          id="card-cvc"
+                          placeholder="123"
+                          className="cuspro-card-input-small"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      className="cuspro-paymongo-btn card-btn"
+                      onClick={handlePayMongoCardPayment}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? <FaSpinner className="spinning" /> : <FaCreditCard />}
+                      {isSubmitting ? 'Processing...' : `Pay ${formatCurrency(selectedItem.amount)}`}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Cash Payment Section */}
               {paymentMethod === 'cash' && (
                 <div className="cuspro-cash-details">
                   <div className="cuspro-info-box">
@@ -1171,14 +1388,18 @@ const Quotation = () => {
                     <p>Purok 2, Masaya, San Jose, Camarines Sur</p>
                     <p>Business Hours: Monday-Friday, 8:00 AM - 5:00 PM</p>
                   </div>
+                  <button
+                    className="cuspro-confirm-btn"
+                    onClick={handleCashPaymentSubmit}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Processing...' : 'Confirm Cash Payment'}
+                  </button>
                 </div>
               )}
 
               <div className="cuspro-modal-actions">
                 <button className="cuspro-cancel-btn" onClick={closeModal}>Cancel</button>
-                <button className="cuspro-confirm-btn" onClick={handlePaymentSubmit} disabled={isSubmitting || !paymentMethod}>
-                  {isSubmitting ? 'Processing...' : `Pay with ${paymentMethod === 'gcash' ? 'GCash' : 'Cash'}`}
-                </button>
               </div>
             </div>
           </div>

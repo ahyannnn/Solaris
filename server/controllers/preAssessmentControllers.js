@@ -8,6 +8,7 @@ const { processUpload, getFileUrl, deleteFile: deleteFromStorage } = require('..
 const PDFGenerator = require('../services/pdfGenerator');
 const cloudinary = require('cloudinary').v2;
 const mongoose = require('mongoose');
+const PayMongoService = require('../services/paymongoService');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -21,7 +22,164 @@ const SYSTEM_TYPES = [
   { value: 'hybrid', label: 'Hybrid System', description: 'Grid-tie with battery backup' },
   { value: 'off-grid', label: 'Off-Grid System', description: 'Standalone with batteries, not connected to grid' }
 ];
+// @desc    Create PayMongo payment intent for pre-assessment
+// @route   POST /api/pre-assessments/:id/create-payment-intent
+// @access  Private (Customer)
+exports.createPayMongoPaymentIntent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const { paymentMethod } = req.body;
 
+    const client = await Client.findOne({ userId });
+    if (!client) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    const assessment = await PreAssessment.findOne({
+      _id: id,
+      clientId: client._id
+    });
+
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    if (assessment.paymentStatus !== 'pending') {
+      return res.status(400).json({ message: 'Payment already processed' });
+    }
+
+    const paymentIntent = await PayMongoService.createPaymentIntent(
+      assessment.assessmentFee,
+      `Pre-Assessment Fee - ${assessment.bookingReference}`,
+      {
+        type: 'pre_assessment',
+        preAssessmentId: assessment._id.toString(),
+        bookingReference: assessment.bookingReference,
+        clientId: client._id.toString(),
+        clientName: `${client.contactFirstName} ${client.contactLastName}`
+      }
+    );
+
+    if (!paymentIntent.success) {
+      return res.status(500).json({ message: paymentIntent.error });
+    }
+
+    assessment.paymongoPaymentIntentId = paymentIntent.paymentIntentId;
+    assessment.paymentGateway = 'paymongo';
+    await assessment.save();
+
+    if (paymentMethod === 'gcash') {
+      const gcashPayment = await PayMongoService.createGCashPaymentSource(paymentIntent.paymentIntentId);
+
+      if (!gcashPayment.success) {
+        return res.status(500).json({ message: gcashPayment.error });
+      }
+
+      return res.json({
+        success: true,
+        redirectUrl: gcashPayment.redirectUrl,
+        paymentIntentId: paymentIntent.paymentIntentId,
+        type: 'redirect'
+      });
+    }
+
+    return res.json({
+      success: true,
+      clientSecret: paymentIntent.clientSecret,
+      paymentIntentId: paymentIntent.paymentIntentId,
+      amount: paymentIntent.amount,
+      type: 'card'
+    });
+
+  } catch (error) {
+    console.error('Create payment intent error:', error);
+    res.status(500).json({ message: 'Failed to create payment intent', error: error.message });
+  }
+};
+// @desc    Get PayMongo payment status
+// @route   GET /api/pre-assessments/paymongo-status/:paymentIntentId
+// @access  Private (Customer)
+exports.getPayMongoPaymentStatus = async (req, res) => {
+  try {
+    const { paymentIntentId } = req.params;
+    
+    const paymentIntent = await PayMongoService.getPaymentIntent(paymentIntentId);
+    
+    if (!paymentIntent.success) {
+      return res.status(500).json({ message: paymentIntent.error });
+    }
+
+    res.json({
+      success: true,
+      status: paymentIntent.status,
+      amount: paymentIntent.amount,
+      paidAt: paymentIntent.paidAt
+    });
+
+  } catch (error) {
+    console.error('Get PayMongo payment status error:', error);
+    res.status(500).json({ message: 'Failed to get payment status', error: error.message });
+  }
+};
+// @desc    Verify PayMongo payment after redirect
+// @route   POST /api/pre-assessments/verify-paymongo-payment
+// @access  Private (Customer)
+exports.verifyPayMongoPayment = async (req, res) => {
+  try {
+    const { paymentIntentId } = req.body;
+    const userId = req.user.id;
+
+    const client = await Client.findOne({ userId });
+    if (!client) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    const assessment = await PreAssessment.findOne({
+      paymongoPaymentIntentId: paymentIntentId,
+      clientId: client._id
+    });
+
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    const paymentIntent = await PayMongoService.getPaymentIntent(paymentIntentId);
+
+    if (!paymentIntent.success) {
+      return res.status(500).json({ message: paymentIntent.error });
+    }
+
+    if (paymentIntent.status !== 'succeeded') {
+      return res.status(400).json({
+        message: `Payment not successful. Status: ${paymentIntent.status}`
+      });
+    }
+
+    assessment.paymentStatus = 'paid';
+    assessment.assessmentStatus = 'scheduled';
+    assessment.paymentMethod = 'paymongo';
+    assessment.paymentGateway = 'paymongo';
+    assessment.autoVerified = true;
+    assessment.paymentCompletedAt = new Date();
+    assessment.confirmedAt = new Date();
+    await assessment.save();
+
+    res.json({
+      success: true,
+      message: 'Payment verified successfully',
+      booking: {
+        bookingReference: assessment.bookingReference,
+        invoiceNumber: assessment.invoiceNumber,
+        assessmentStatus: assessment.assessmentStatus
+      }
+    });
+
+  } catch (error) {
+    console.error('Verify PayMongo payment error:', error);
+    res.status(500).json({ message: 'Failed to verify payment', error: error.message });
+  }
+};
 // @desc    Generate and upload quotation PDF (Engineer)
 // @route   POST /api/pre-assessments/:id/generate-quotation
 // @access  Private (Engineer)
@@ -65,7 +223,7 @@ exports.generateQuotationPDF = async (req, res) => {
         const irradianceValues = sensorData.map(d => d.irradiance || 0).filter(v => v > 0);
         const temperatureValues = sensorData.map(d => d.temperature || 0);
         const humidityValues = sensorData.map(d => d.humidity || 0);
-        
+
         iotAnalysis = {
           totalReadings: sensorData.length,
           averageIrradiance: irradianceValues.reduce((a, b) => a + b, 0) / irradianceValues.length,
@@ -90,7 +248,7 @@ exports.generateQuotationPDF = async (req, res) => {
       clientPhone: assessment.clientId.contactNumber,
       clientEmail: assessment.clientId.userId?.email,
       propertyType: assessment.propertyType,
-      address: assessment.addressId ? 
+      address: assessment.addressId ?
         `${assessment.addressId.houseOrBuilding} ${assessment.addressId.street}, ${assessment.addressId.barangay}, ${assessment.addressId.cityMunicipality}` : null,
       quotationExpiryDate,
       systemSize,
@@ -191,10 +349,10 @@ exports.generateQuotationPDF = async (req, res) => {
       generatedAt: new Date(),
       generatedBy: engineerId
     };
-    
+
     assessment.finalQuotation = result.secure_url;
     assessment.assessmentStatus = 'report_draft';
-    
+
     await assessment.save();
 
     res.json({
@@ -257,7 +415,7 @@ exports.generateFreeQuotePDF = async (req, res) => {
       clientPhone: quote.clientId.contactNumber,
       clientEmail: quote.clientId.userId?.email,
       propertyType: quote.propertyType,
-      address: quote.addressId ? 
+      address: quote.addressId ?
         `${quote.addressId.houseOrBuilding} ${quote.addressId.street}, ${quote.addressId.barangay}, ${quote.addressId.cityMunicipality}` : null,
       quotationExpiryDate,
       systemSize,
@@ -362,17 +520,17 @@ exports.approveBooking = async (req, res) => {
   try {
     const { id } = req.params;
     const { approved, notes } = req.body;
-    
+
     const assessment = await PreAssessment.findById(id);
     if (!assessment) {
       return res.status(404).json({ message: 'Pre-assessment not found' });
     }
-    
+
     // Check if booking is pending review
     if (assessment.assessmentStatus !== 'pending_review') {
       return res.status(400).json({ message: 'Booking already processed' });
     }
-    
+
     if (approved) {
       // Generate invoice number only when approved
       const date = new Date();
@@ -381,7 +539,7 @@ exports.approveBooking = async (req, res) => {
       const day = String(date.getDate()).padStart(2, '0');
       const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
       const invoiceNumber = `INV-${year}${month}${day}-${random}`;
-      
+
       assessment.invoiceNumber = invoiceNumber;
       assessment.paymentStatus = 'pending';
       assessment.assessmentStatus = 'pending_payment'; // After approval, goes to pending payment
@@ -390,9 +548,9 @@ exports.approveBooking = async (req, res) => {
       assessment.assessmentStatus = 'cancelled';
       assessment.adminRemarks = notes || 'Booking rejected by admin';
     }
-    
+
     await assessment.save();
-    
+
     res.json({
       success: true,
       message: approved ? 'Booking approved. Invoice generated.' : 'Booking rejected.',
@@ -404,7 +562,7 @@ exports.approveBooking = async (req, res) => {
         paymentStatus: assessment.paymentStatus
       }
     });
-    
+
   } catch (error) {
     console.error('Approve booking error:', error);
     res.status(500).json({ message: 'Failed to process booking' });
@@ -417,16 +575,16 @@ exports.approveBooking = async (req, res) => {
 exports.createPreAssessment = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { 
-      clientId, 
-      addressId, 
-      propertyType, 
-      desiredCapacity, 
-      roofType, 
+    const {
+      clientId,
+      addressId,
+      propertyType,
+      desiredCapacity,
+      roofType,
       roofLength,      // Add this
       roofWidth,       // Add this
-       systemType, // Add this
-      preferredDate 
+      systemType, // Add this
+      preferredDate
     } = req.body;
 
     const client = await Client.findOne({ userId });
@@ -494,7 +652,7 @@ exports.submitPayment = async (req, res) => {
   try {
     const userId = req.user.id;
     const { invoiceNumber, paymentMethod, paymentReference } = req.body;
-    
+
     if (!req.file && paymentMethod === 'gcash') {
       return res.status(400).json({ message: 'Payment proof is required' });
     }
@@ -504,9 +662,9 @@ exports.submitPayment = async (req, res) => {
       return res.status(404).json({ message: 'Client not found' });
     }
 
-    const preAssessment = await PreAssessment.findOne({ 
-      invoiceNumber, 
-      clientId: client._id 
+    const preAssessment = await PreAssessment.findOne({
+      invoiceNumber,
+      clientId: client._id
     });
 
     if (!preAssessment) {
@@ -545,7 +703,7 @@ exports.submitPayment = async (req, res) => {
       preAssessment.paymentProof = fileUrl;
       preAssessment.paymentProofFileId = fileRecord._id;
       preAssessment.paymentStatus = 'for_verification';
-      
+
     } else if (paymentMethod === 'cash') {
       preAssessment.paymentMethod = 'cash';
       preAssessment.paymentStatus = 'pending';
@@ -570,7 +728,7 @@ exports.submitPaymentProof = async (req, res) => {
   try {
     const userId = req.user.id;
     const { bookingReference, paymentMethod, paymentReference } = req.body;
-    
+
     if (!req.file) {
       return res.status(400).json({ message: 'Payment proof is required' });
     }
@@ -580,9 +738,9 @@ exports.submitPaymentProof = async (req, res) => {
       return res.status(404).json({ message: 'Client not found' });
     }
 
-    const preAssessment = await PreAssessment.findOne({ 
-      bookingReference, 
-      clientId: client._id 
+    const preAssessment = await PreAssessment.findOne({
+      bookingReference,
+      clientId: client._id
     });
 
     if (!preAssessment) {
@@ -594,9 +752,9 @@ exports.submitPaymentProof = async (req, res) => {
     }
 
     const processedFile = await processUpload(
-      req, 
-      req.file, 
-      'payment-proofs', 
+      req,
+      req.file,
+      'payment-proofs',
       `payment_${bookingReference}_${Date.now()}`
     );
 
@@ -679,9 +837,9 @@ exports.cashPayment = async (req, res) => {
       return res.status(404).json({ message: 'Client not found' });
     }
 
-    const preAssessment = await PreAssessment.findOne({ 
-      bookingReference, 
-      clientId: client._id 
+    const preAssessment = await PreAssessment.findOne({
+      bookingReference,
+      clientId: client._id
     });
 
     if (!preAssessment) {
@@ -712,11 +870,6 @@ exports.cashPayment = async (req, res) => {
 // @desc    Verify payment (Admin only)
 // @route   PUT /api/pre-assessments/:id/verify-payment
 // @access  Private (Admin)
-// controllers/preAssessmentControllers.js
-
-// @desc    Verify payment (Admin only)
-// @route   PUT /api/pre-assessments/:id/verify-payment
-// @access  Private (Admin)
 exports.verifyPayment = async (req, res) => {
   try {
     const { id } = req.params;
@@ -727,44 +880,46 @@ exports.verifyPayment = async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
+    // ✅ REMOVED the restriction that was blocking GCash verification
+    // The old code had: if (preAssessment.paymentGateway === 'paymongo') { return error }
+    // Now we allow verification for manual GCash payments
+    
+    // Only allow verification for manual payments (GCash manual upload, Cash)
+    // Skip for PayMongo auto-verified payments
+    if (preAssessment.paymentGateway === 'paymongo' && preAssessment.autoVerified === true) {
+      return res.status(400).json({ 
+        message: 'PayMongo payments are auto-verified and cannot be manually verified' 
+      });
+    }
+
+    // Allow verification for GCash manual and Cash payments
     if (verified) {
       preAssessment.paymentStatus = 'paid';
-      preAssessment.assessmentStatus = 'scheduled'; // Set assessment status to scheduled when payment is verified
+      preAssessment.assessmentStatus = 'scheduled';
       preAssessment.confirmedAt = new Date();
+      preAssessment.adminRemarks = notes || 'Payment verified by admin';
       
-      if (preAssessment.paymentProofFileId) {
-        await File.findByIdAndUpdate(preAssessment.paymentProofFileId, {
-          'metadata.verified': true,
-          'metadata.verifiedBy': req.user.id,
-          'metadata.verifiedAt': new Date(),
-          'metadata.adminNotes': notes
-        });
+      // If this is a GCash manual payment, mark it as verified
+      if (preAssessment.paymentMethod === 'gcash') {
+        preAssessment.autoVerified = false; // Manual verification, not auto
       }
     } else {
       preAssessment.paymentStatus = 'failed';
-      preAssessment.assessmentStatus = 'cancelled'; // Set assessment status to cancelled when payment is rejected
-      
-      if (preAssessment.paymentProofFileId) {
-        const fileRecord = await File.findById(preAssessment.paymentProofFileId);
-        if (fileRecord) {
-          await deleteFromStorage(fileRecord.publicId);
-          await fileRecord.deleteOne();
-        }
-      }
+      preAssessment.assessmentStatus = 'cancelled';
+      preAssessment.adminRemarks = notes || 'Payment rejected by admin';
     }
 
-    preAssessment.adminRemarks = notes;
     await preAssessment.save();
 
     res.json({
       success: true,
-      message: verified ? 'Payment verified successfully' : 'Payment verification failed',
+      message: verified ? 'Payment verified successfully' : 'Payment rejected',
       booking: {
         _id: preAssessment._id,
         bookingReference: preAssessment.bookingReference,
         invoiceNumber: preAssessment.invoiceNumber,
         paymentStatus: preAssessment.paymentStatus,
-        assessmentStatus: preAssessment.assessmentStatus // Include assessment status in response
+        assessmentStatus: preAssessment.assessmentStatus
       }
     });
 
@@ -796,8 +951,8 @@ exports.analyzeIoTData = async (req, res) => {
     }
 
     // Fetch sensor data
-    const sensorData = await SensorData.find({ 
-      preAssessmentId: assessment._id 
+    const sensorData = await SensorData.find({
+      preAssessmentId: assessment._id
     }).sort({ timestamp: 1 });
 
     if (sensorData.length === 0) {
@@ -808,23 +963,23 @@ exports.analyzeIoTData = async (req, res) => {
     const irradianceValues = sensorData.map(d => d.irradiance || 0).filter(v => v > 0);
     const temperatureValues = sensorData.map(d => d.temperature || 0);
     const humidityValues = sensorData.map(d => d.humidity || 0);
-    
+
     const averageIrradiance = irradianceValues.reduce((a, b) => a + b, 0) / irradianceValues.length;
     const maxIrradiance = Math.max(...irradianceValues);
     const peakSunHours = (irradianceValues.reduce((a, b) => a + b, 0) / 1000).toFixed(1);
-    
+
     const averageTemperature = temperatureValues.reduce((a, b) => a + b, 0) / temperatureValues.length;
     const minTemperature = Math.min(...temperatureValues);
     const maxTemperature = Math.max(...temperatureValues);
     const efficiencyLoss = ((averageTemperature - 25) * 0.004 * 100).toFixed(1);
-    
+
     const averageHumidity = humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length;
     const minHumidity = Math.min(...humidityValues);
     const maxHumidity = Math.max(...humidityValues);
-    
+
     // Calculate recommended system size based on irradiance
     const recommendedSystemSize = (peakSunHours * 0.8).toFixed(1);
-    
+
     // Determine optimal orientation based on time of day analysis
     const hourData = {};
     sensorData.forEach(d => {
@@ -832,7 +987,7 @@ exports.analyzeIoTData = async (req, res) => {
       if (!hourData[hour]) hourData[hour] = [];
       hourData[hour].push(d.irradiance || 0);
     });
-    
+
     let peakHour = 12;
     let maxIrradianceAtHour = 0;
     for (const [hour, values] of Object.entries(hourData)) {
@@ -842,14 +997,14 @@ exports.analyzeIoTData = async (req, res) => {
         peakHour = parseInt(hour);
       }
     }
-    
-    const recommendedOrientation = peakHour < 12 ? 'East-facing' : 
-                                    peakHour > 12 ? 'West-facing' : 'South-facing';
+
+    const recommendedOrientation = peakHour < 12 ? 'East-facing' :
+      peakHour > 12 ? 'West-facing' : 'South-facing';
     const recommendedTiltAngle = Math.min(45, Math.max(10, Math.floor(peakSunHours * 3)));
-    
+
     // Calculate shading percentage
     const shadingPercentage = ((irradianceValues.filter(v => v < 200).length / irradianceValues.length) * 100).toFixed(1);
-    
+
     const analysisResults = {
       averageIrradiance,
       maxIrradiance,
@@ -869,7 +1024,7 @@ exports.analyzeIoTData = async (req, res) => {
       dataCollectionStart: assessment.dataCollectionStart,
       dataCollectionEnd: assessment.dataCollectionEnd
     };
-    
+
     // Store analysis in assessment
     assessment.assessmentResults = {
       totalIrradiance: irradianceValues.reduce((a, b) => a + b, 0),
@@ -881,15 +1036,15 @@ exports.analyzeIoTData = async (req, res) => {
       electricalAssessment: 'Based on site inspection',
       safetyAssessment: 'Standard safety protocols applicable'
     };
-    
+
     await assessment.save();
-    
+
     res.json({
       success: true,
       message: 'IoT data analysis completed',
       analysis: analysisResults
     });
-    
+
   } catch (error) {
     console.error('Analyze IoT data error:', error);
     res.status(500).json({ message: 'Failed to analyze IoT data', error: error.message });
@@ -899,12 +1054,12 @@ exports.getEngineerAssessments = async (req, res) => {
   try {
     const engineerId = req.user.id;
     const { status, page = 1, limit = 20 } = req.query;
-    
-    const query = { 
+
+    const query = {
       assignedEngineerId: engineerId,
       assessmentStatus: { $nin: ['cancelled', 'pending_payment'] }
     };
-    
+
     if (status) query.assessmentStatus = status;
 
     const assessments = await PreAssessment.find(query)
@@ -1015,7 +1170,7 @@ exports.updateSiteAssessment = async (req, res) => {
     }
 
     if (!assessment.engineerAssessment) assessment.engineerAssessment = {};
-    
+
     assessment.engineerAssessment.roofCondition = roofCondition;
     assessment.engineerAssessment.roofLength = roofLength ? parseFloat(roofLength) : null;        // Add this
     assessment.engineerAssessment.roofWidth = roofWidth ? parseFloat(roofWidth) : null;          // Add this
@@ -1049,8 +1204,8 @@ exports.uploadQuotationPDF = async (req, res) => {
   try {
     const { id } = req.params;
     const engineerId = req.user.id;
-    const { 
-      quotationNumber, 
+    const {
+      quotationNumber,
       quotationExpiryDate,
       systemSize,
       systemType,
@@ -1365,13 +1520,13 @@ exports.getAssessmentComments = async (req, res) => {
 exports.getPaymentHistory = async (req, res) => {
   try {
     const userId = req.user.id;
-    
+
     const client = await Client.findOne({ userId });
     if (!client) {
       return res.status(404).json({ message: 'Client not found' });
     }
 
-    const assessments = await PreAssessment.find({ 
+    const assessments = await PreAssessment.find({
       clientId: client._id,
       paymentStatus: { $in: ['paid', 'for_verification'] }
     }).sort({ confirmedAt: -1 });
@@ -1406,10 +1561,10 @@ exports.getPreAssessmentStats = async (req, res) => {
     const forVerification = await PreAssessment.countDocuments({ paymentStatus: 'for_verification' });
     const paid = await PreAssessment.countDocuments({ paymentStatus: 'paid' });
     const failed = await PreAssessment.countDocuments({ paymentStatus: 'failed' });
-    
+
     const currentDate = new Date();
     const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 5, 1);
-    
+
     const monthlyStats = await PreAssessment.aggregate([
       {
         $match: {
@@ -1470,7 +1625,7 @@ exports.getPreAssessmentStats = async (req, res) => {
 exports.getAllPreAssessments = async (req, res) => {
   try {
     const { status, page = 1, limit = 20 } = req.query;
-    
+
     const query = {};
     if (status) query.assessmentStatus = status;
 
@@ -1517,14 +1672,13 @@ exports.getMyPreAssessments = async (req, res) => {
       .populate('addressId')
       .populate('iotDeviceId')
       .populate('quotation.quotationFileId')
-      .populate('')
       .sort({ bookedAt: -1 });
 
     // Format the response to include all necessary fields
     const formattedAssessments = assessments.map(assessment => ({
       _id: assessment._id,
       bookingReference: assessment.bookingReference,
-      invoiceNumber: assessment.invoiceNumber, // Include invoice number
+      invoiceNumber: assessment.invoiceNumber,
       assessmentStatus: assessment.assessmentStatus,
       paymentStatus: assessment.paymentStatus,
       assessmentFee: assessment.assessmentFee,
@@ -1536,6 +1690,8 @@ exports.getMyPreAssessments = async (req, res) => {
       address: assessment.addressId,
       iotDeviceId: assessment.iotDeviceId,
       paymentMethod: assessment.paymentMethod,
+      paymentGateway: assessment.paymentGateway,  // ADD THIS LINE ONLY
+      autoVerified: assessment.autoVerified,      // ADD THIS LINE ONLY
       paymentProof: assessment.paymentProof,
       paymentReference: assessment.paymentReference,
       quotation: assessment.quotation,
@@ -1560,19 +1716,19 @@ exports.updatePaymentStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { paymentStatus, assessmentStatus, notes } = req.body;
-    
+
     const assessment = await PreAssessment.findById(id);
     if (!assessment) {
       return res.status(404).json({ message: 'Pre-assessment not found' });
     }
-    
+
     assessment.paymentStatus = paymentStatus;
     assessment.assessmentStatus = assessmentStatus;
     if (notes) assessment.adminRemarks = notes;
     assessment.confirmedAt = paymentStatus === 'paid' ? new Date() : assessment.confirmedAt;
-    
+
     await assessment.save();
-    
+
     res.json({
       success: true,
       message: 'Payment status updated successfully',
@@ -1606,10 +1762,10 @@ exports.deployDevice = async (req, res) => {
 
     // Check if device is assigned - check both possible fields
     const deviceId = assessment.assignedDeviceId || assessment.iotDeviceId;
-    
+
     if (!deviceId) {
-      return res.status(400).json({ 
-        message: 'No device assigned to this assessment. Please contact admin.' 
+      return res.status(400).json({
+        message: 'No device assigned to this assessment. Please contact admin.'
       });
     }
 
@@ -1660,8 +1816,8 @@ exports.deployDevice = async (req, res) => {
         device.assignedAt = new Date();
         await device.save();
       } else {
-        return res.status(400).json({ 
-          message: `Device is not ready for deployment. Current status: ${device.status}. Device must be 'assigned' first.` 
+        return res.status(400).json({
+          message: `Device is not ready for deployment. Current status: ${device.status}. Device must be 'assigned' first.`
         });
       }
     }
@@ -1671,7 +1827,7 @@ exports.deployDevice = async (req, res) => {
     device.deployedAt = new Date();
     device.deployedBy = engineerId;
     device.deploymentNotes = notes || 'Device deployed on site';
-    
+
     // Update deployment history
     if (device.deploymentHistory && device.deploymentHistory.length > 0) {
       const lastDeployment = device.deploymentHistory[device.deploymentHistory.length - 1];
@@ -1691,7 +1847,7 @@ exports.deployDevice = async (req, res) => {
         notes: notes
       }];
     }
-    
+
     await device.save();
     console.log('✅ Device status updated to: deployed');
 
@@ -1750,8 +1906,8 @@ exports.retrieveDevice = async (req, res) => {
 
     // Check if device is deployed
     if (assessment.assessmentStatus !== 'device_deployed' && assessment.assessmentStatus !== 'data_collecting') {
-      return res.status(400).json({ 
-        message: `No device deployed to retrieve. Current status: ${assessment.assessmentStatus}` 
+      return res.status(400).json({
+        message: `No device deployed to retrieve. Current status: ${assessment.assessmentStatus}`
       });
     }
 
@@ -1766,11 +1922,11 @@ exports.retrieveDevice = async (req, res) => {
     device.retrievedAt = new Date();
     device.retrievedBy = engineerId;
     device.retrievalNotes = notes;
-    
+
     // Clear assignment
     device.assignedToEngineerId = null;
     device.assignedToPreAssessmentId = null;
-    
+
     // Update deployment history
     if (device.deploymentHistory.length > 0) {
       const lastDeployment = device.deploymentHistory[device.deploymentHistory.length - 1];
@@ -1778,7 +1934,7 @@ exports.retrieveDevice = async (req, res) => {
       lastDeployment.retrievedBy = engineerId;
       lastDeployment.notes = notes;
     }
-    
+
     await device.save();
 
     // Update assessment
@@ -1810,15 +1966,15 @@ exports.uploadSiteImages = async (req, res) => {
   try {
     const { id } = req.params;
     const files = req.files;
-    
+
     const imageUrls = [];
     // Process each image upload to Cloudinary/local storage
-    
+
     const assessment = await PreAssessment.findById(id);
     if (!assessment.sitePhotos) assessment.sitePhotos = [];
     assessment.sitePhotos.push(...imageUrls);
     await assessment.save();
-    
+
     res.json({ success: true, images: imageUrls });
   } catch (error) {
     res.status(500).json({ message: error.message });

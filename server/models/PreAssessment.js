@@ -26,11 +26,15 @@ const preAssessmentSchema = new mongoose.Schema({
     unique: true, 
     sparse: true  // Add sparse: true to ignore null values
   },
-  paymentMethod: { type: String, enum: ['gcash', 'cash'], default: null },
+  paymentMethod: { type: String, enum: ['gcash', 'card', 'cash'], default: null },
   paymentProof: { type: String },
   paymentProofFileId: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
   paymentReference: { type: String },
-
+// Add after paymentReference field (around line 30)
+  paymongoPaymentIntentId: { type: String, index: true },
+  paymentGateway: { type: String, enum: ['paymongo', 'manual'], default: 'manual' },
+  autoVerified: { type: Boolean, default: false },
+  paymentCompletedAt: Date,
   // Status
   paymentStatus: {
     type: String,

@@ -6,7 +6,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../../firebase";
 import { Helmet } from 'react-helmet-async';
-import TermsModal from '../../assets/termsandconditions';
 import logo from '../../assets/Salfare_Logo.png';
 import '../../styles/Auth/register.css';
 
@@ -15,7 +14,7 @@ const RegisterPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [verifiedCode, setVerifiedCode] = useState(null);
 
   const [cooldown, setCooldown] = useState(0);
@@ -78,6 +77,10 @@ const RegisterPage = () => {
     }
   };
 
+  const openTermsInNewTab = () => {
+    window.open('/terms', '_blank');
+  };
+
   const validateStep1 = () => {
     const newErrors = {};
     if (!formData.fullName) newErrors.fullName = 'Full name is required';
@@ -87,6 +90,7 @@ const RegisterPage = () => {
     else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
     else if (!/(?=.*[0-9])/.test(formData.password)) newErrors.password = 'Password must contain at least one number';
     if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+    if (!termsAccepted) newErrors.terms = 'You must agree to the Terms and Conditions';
     return newErrors;
   };
 
@@ -171,7 +175,7 @@ const RegisterPage = () => {
           email: formData.email,
           code: verificationCode
         });
-        setShowTermsModal(true);
+        registerUser();
       }
     } catch (error) {
       console.error('Error:', error);
@@ -179,17 +183,6 @@ const RegisterPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleTermsAccept = () => {
-    setShowTermsModal(false);
-    registerUser();
-  };
-
-  const handleTermsDecline = () => {
-    setShowTermsModal(false);
-    setVerifiedCode(null);
-    setCode(['', '', '', '', '', '']);
   };
 
   const registerUser = async () => {
@@ -277,7 +270,7 @@ const RegisterPage = () => {
     }
   };
 
-  // GOOGLE REGISTER - Show Terms Modal first
+  // GOOGLE REGISTER
   const handleGoogleRegister = async () => {
     setSocialLoading('google');
     
@@ -285,63 +278,14 @@ const RegisterPage = () => {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      // Store Google user data temporarily
-      setVerifiedCode({
-        email: user.email,
-        isGoogle: true,
-        googleData: {
-          fullName: user.displayName,
-          email: user.email,
-          googleId: user.uid,
-          photoURL: user.photoURL
-        }
-      });
-      
-      // Show Terms Modal before proceeding with Google registration
-      setShowTermsModal(true);
-      
-    } catch (error) {
-      console.error("Google registration error:", error);
-      if (error.code === 'auth/popup-closed-by-user') {
-        showModal('Registration popup was closed. Please try again.', 'warning');
-      } else {
-        showModal('Failed to register with Google. Please try again.', 'error');
-      }
-    } finally {
-      setSocialLoading('');
-    }
-  };
-
-  // Modified Terms Accept for Google registration
-  const handleTermsAcceptForGoogle = () => {
-    setShowTermsModal(false);
-    
-    if (verifiedCode?.isGoogle) {
-      // Proceed with Google registration
-      registerWithGoogle();
-    } else {
-      // Normal email registration
-      registerUser();
-    }
-  };
-
-  // Register with Google after terms accepted
-  const registerWithGoogle = async () => {
-    if (!verifiedCode?.googleData) return;
-
-    setIsLoading(true);
-
-    try {
-      const { fullName, email, googleId, photoURL } = verifiedCode.googleData;
-
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google-register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fullName,
-          email,
-          googleId,
-          photoURL
+          fullName: user.displayName,
+          email: user.email,
+          googleId: user.uid,
+          photoURL: user.photoURL
         })
       });
 
@@ -366,19 +310,13 @@ const RegisterPage = () => {
 
     } catch (error) {
       console.error("Google registration error:", error);
-      showModal('Failed to register with Google. Please try again.', 'error');
+      if (error.code === 'auth/popup-closed-by-user') {
+        showModal('Registration popup was closed. Please try again.', 'warning');
+      } else {
+        showModal('Failed to register with Google. Please try again.', 'error');
+      }
     } finally {
-      setIsLoading(false);
-      setVerifiedCode(null);
-    }
-  };
-
-  // Updated terms accept handler
-  const handleTermsAcceptWrapper = () => {
-    if (verifiedCode?.isGoogle) {
-      handleTermsAcceptForGoogle();
-    } else {
-      handleTermsAccept();
+      setSocialLoading('');
     }
   };
 
@@ -423,15 +361,6 @@ const RegisterPage = () => {
             </div>
           </div>
         )}
-
-        {/* Terms Modal */}
-        <TermsModal
-          isOpen={showTermsModal}
-          onClose={handleTermsDecline}
-          mode="registration"
-          onAccept={handleTermsAcceptWrapper}
-          title="Terms and Conditions"
-        />
 
         <div className="register-card-reg">
           {/* LEFT BRANDING */}
@@ -553,6 +482,29 @@ const RegisterPage = () => {
                         </button>
                       </div>
                       {errors.confirmPassword && <span className="error-message-reg">{errors.confirmPassword}</span>}
+                    </div>
+
+                    {/* Terms and Conditions Checkbox */}
+                    <div className="form-group-reg">
+                      <label className="checkbox-label-reg">
+                        <input
+                          type="checkbox"
+                          checked={termsAccepted}
+                          onChange={(e) => setTermsAccepted(e.target.checked)}
+                          className="terms-checkbox-reg"
+                        />
+                        <span className="checkbox-text-reg">
+                          I agree to the{' '}
+                          <button 
+                            type="button" 
+                            className="terms-link-reg"
+                            onClick={openTermsInNewTab}
+                          >
+                            Terms and Conditions
+                          </button>
+                        </span>
+                      </label>
+                      {errors.terms && <span className="error-message-reg">{errors.terms}</span>}
                     </div>
 
                     <button

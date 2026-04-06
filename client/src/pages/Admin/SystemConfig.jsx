@@ -3,27 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { 
-  FaDollarSign, 
-  FaCalculator, 
-  FaChartLine, 
-  FaPercentage,
-  FaCog,
-  FaSave,
-  FaHistory,
-  FaUndo,
   FaSpinner,
   FaCheckCircle,
-  FaExclamationTriangle,
-  FaMoneyBillWave,
-  FaWrench,
-  FaChartBar,
-  FaReceipt,
-  FaArrowLeft,
-  FaInfoCircle,
-  FaTools,
-  FaBoxes,
-  FaBolt,
-  FaBatteryFull
+  FaSave,
+  FaUndo
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/systemconfig.css';
@@ -174,7 +157,7 @@ const SystemConfig = () => {
       <div className="system-config-container-adsycon">
         <div className="config-header-adsycon">
           <div>
-            <h1><FaCog /> System Configuration</h1>
+            <h1>System Configuration</h1>
             <p>Manage system parameters, prices, and calculation settings</p>
           </div>
           <div className="header-actions-adsycon">
@@ -186,19 +169,19 @@ const SystemConfig = () => {
 
         <div className="config-tabs-adsycon">
           <button className={`tab-btn-adsycon ${activeTab === 'prices' ? 'active-adsycon' : ''}`} onClick={() => setActiveTab('prices')}>
-            <FaMoneyBillWave /> Prices & Fees
+            Prices & Fees
           </button>
           <button className={`tab-btn-adsycon ${activeTab === 'calculations' ? 'active-adsycon' : ''}`} onClick={() => setActiveTab('calculations')}>
-            <FaCalculator /> Calculations
+            Calculations
           </button>
           <button className={`tab-btn-adsycon ${activeTab === 'financial' ? 'active-adsycon' : ''}`} onClick={() => setActiveTab('financial')}>
-            <FaChartLine /> Financial
+            Financial
           </button>
           <button className={`tab-btn-adsycon ${activeTab === 'taxes' ? 'active-adsycon' : ''}`} onClick={() => setActiveTab('taxes')}>
-            <FaPercentage /> Taxes & Fees
+            Taxes & Fees
           </button>
           <button className={`tab-btn-adsycon ${activeTab === 'thresholds' ? 'active-adsycon' : ''}`} onClick={() => setActiveTab('thresholds')}>
-            <FaChartBar /> Thresholds
+            Thresholds
           </button>
         </div>
 
@@ -206,7 +189,7 @@ const SystemConfig = () => {
           {/* Prices & Fees Tab */}
           {activeTab === 'prices' && config && (
             <div className="config-section-adsycon">
-              <h3><FaMoneyBillWave /> Assessment & Equipment Prices</h3>
+              <h3>Assessment & Equipment Prices</h3>
               
               <div className="form-group-adsycon">
                 <label>Pre-Assessment Fee</label>
@@ -220,7 +203,7 @@ const SystemConfig = () => {
                 </div>
               </div>
 
-              <h4><FaBolt /> Solar Panel Prices</h4>
+              <h4>Solar Panel Prices</h4>
               <div className="form-group-adsycon">
                 <label>Price per Watt (₱)</label>
                 <input
@@ -231,7 +214,7 @@ const SystemConfig = () => {
                 />
               </div>
 
-              <h4><FaBolt /> Inverter Prices</h4>
+              <h4>Inverter Prices</h4>
               <div className="form-row-adsycon">
                 <div className="form-group-adsycon">
                   <label>Grid-Tie Inverter (₱)</label>
@@ -259,7 +242,7 @@ const SystemConfig = () => {
                 </div>
               </div>
 
-              <h4><FaBatteryFull /> Battery Prices</h4>
+              <h4>Battery Prices</h4>
               <div className="form-row-adsycon">
                 <div className="form-group-adsycon">
                   <label>Lead Acid Battery (₱)</label>
@@ -279,7 +262,7 @@ const SystemConfig = () => {
                 </div>
               </div>
 
-              <h4><FaWrench /> Labor Rates</h4>
+              <h4>Labor Rates</h4>
               <div className="form-row-adsycon">
                 <div className="form-group-adsycon">
                   <label>Per kW Installation (₱)</label>
@@ -318,7 +301,7 @@ const SystemConfig = () => {
           {/* Calculations Tab */}
           {activeTab === 'calculations' && config && (
             <div className="config-section-adsycon">
-              <h3><FaCalculator /> System Calculation Parameters</h3>
+              <h3>System Calculation Parameters</h3>
               
               <div className="form-row-adsycon">
                 <div className="form-group-adsycon">
@@ -394,7 +377,7 @@ const SystemConfig = () => {
           {/* Financial Tab */}
           {activeTab === 'financial' && config && (
             <div className="config-section-adsycon">
-              <h3><FaChartLine /> Financial Parameters</h3>
+              <h3>Financial Parameters</h3>
               
               <div className="form-row-adsycon">
                 <div className="form-group-adsycon">
@@ -467,7 +450,7 @@ const SystemConfig = () => {
           {/* Taxes & Fees Tab */}
           {activeTab === 'taxes' && config && (
             <div className="config-section-adsycon">
-              <h3><FaPercentage /> Taxes and Additional Fees</h3>
+              <h3>Taxes and Additional Fees</h3>
               
               <div className="form-row-adsycon">
                 <div className="form-group-adsycon">
@@ -520,7 +503,7 @@ const SystemConfig = () => {
           {/* Thresholds Tab */}
           {activeTab === 'thresholds' && config && (
             <div className="config-section-adsycon">
-              <h3><FaChartBar /> System Size Thresholds (kW)</h3>
+              <h3>System Size Thresholds (kW)</h3>
               
               <div className="form-row-adsycon">
                 <div className="form-group-adsycon">

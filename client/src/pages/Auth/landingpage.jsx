@@ -15,7 +15,6 @@ import {
   FaCalculator,
   FaCalendarAlt
 } from 'react-icons/fa';
-import TermsModal from '../../assets/termsandconditions';
 import logo from '../../assets/Salfare_Logo.png';
 import "../../styles/Auth/landingpage.css";
 
@@ -26,7 +25,6 @@ const LandingPage = () => {
   const [showEstimateModal, setShowEstimateModal] = useState(false);
   const [monthlyBill, setMonthlyBill] = useState('');
   const [estimateResult, setEstimateResult] = useState(null);
-  const [showTermsModal, setShowTermsModal] = useState(false);
 
   // Advanced Estimator State
   const [advancedEstimatorData, setAdvancedEstimatorData] = useState({
@@ -75,6 +73,11 @@ const LandingPage = () => {
 
   const handleLogin = () => navigate('/login');
   const handleSignup = () => navigate('/register');
+
+  // Open Terms in new tab
+  const handleOpenTerms = () => {
+    window.open('/terms', '_blank');
+  };
 
   const calculateAdvancedSavings = () => {
     setCalculating(true);
@@ -431,9 +434,6 @@ const LandingPage = () => {
         </div>
       )}
 
-      {/* Terms and Conditions Modal */}
-      <TermsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} mode="simple" title="Terms and Conditions" />
-
       {/* Footer */}
       <footer className="footer-land">
         <div className="container-land">
@@ -452,7 +452,7 @@ const LandingPage = () => {
             </div>
             <div className="footer-links-land">
               <h4>Legal</h4>
-              <button onClick={() => setShowTermsModal(true)}>Terms & Conditions</button>
+              <button onClick={handleOpenTerms}>Terms & Conditions</button>
               <button onClick={() => alert('Privacy Policy - Coming Soon')}>Privacy Policy</button>
             </div>
             <div className="footer-cta-land">

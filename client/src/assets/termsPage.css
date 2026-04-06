@@ -1,0 +1,268 @@
+/* styles/termsPage.css - Modern Terms and Conditions Page */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, 'Helvetica Neue', sans-serif;
+  line-height: 1.6;
+  background: #F5F5F7;
+  color: #1F1F1F;
+}
+
+/* ============================================
+   PAGE WRAPPER
+   ============================================ */
+.terms-page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  background: #F5F5F7;
+}
+
+.terms-page-container {
+  max-width: 900px;
+  width: 100%;
+  background: #FFFFFF;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  padding: 2.5rem;
+}
+
+/* ============================================
+   HEADER SECTION
+   ============================================ */
+.terms-header {
+  margin-bottom: 2rem;
+}
+
+.terms-header h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #1F1F1F;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem 0;
+}
+
+.terms-effective-date {
+  font-size: 0.875rem;
+  color: #9CA3AF;
+  margin: 0 0 0.75rem 0;
+}
+
+.terms-intro {
+  font-size: 1rem;
+  color: #6B6B6F;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.terms-divider {
+  height: 1px;
+  background: linear-gradient(90deg, #E5E5E8 0%, #E5E5E8 100%);
+  margin: 1.5rem 0 2rem 0;
+}
+
+/* ============================================
+   CONTENT
+   ============================================ */
+.terms-content {
+  margin-bottom: 2rem;
+}
+
+.terms-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #E5E5E8;
+  letter-spacing: -0.01em;
+}
+
+/* Sections */
+.terms-section {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #F0F0F0;
+}
+
+.terms-section-last {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.terms-section h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 0 0 1rem 0;
+}
+
+.terms-section p {
+  font-size: 0.9375rem;
+  color: #4A4A4E;
+  margin-bottom: 1rem;
+  line-height: 1.65;
+}
+
+.terms-section p:last-child {
+  margin-bottom: 0;
+}
+
+/* Lists */
+.terms-section ul {
+  margin: 0.75rem 0 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.terms-section li {
+  font-size: 0.9375rem;
+  color: #4A4A4E;
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+.terms-section li:last-child {
+  margin-bottom: 0;
+}
+
+/* Highlight Box */
+.terms-highlight-box {
+  background: #F8F9FA;
+  border-left: 3px solid #1F1F1F;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  border-radius: 8px;
+}
+
+.terms-highlight-box strong {
+  font-size: 0.9375rem;
+  color: #1F1F1F;
+}
+
+/* ============================================
+   TABLE STYLES
+   ============================================ */
+.terms-table-wrapper {
+  overflow-x: auto;
+  margin: 1rem 0;
+  border-radius: 12px;
+  border: 1px solid #E5E5E8;
+}
+
+.terms-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.terms-table th {
+  background: #F8F9FA;
+  padding: 0.875rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #1F1F1F;
+  border-bottom: 1px solid #E5E5E8;
+}
+
+.terms-table td {
+  padding: 0.875rem 1rem;
+  color: #4A4A4E;
+  border-bottom: 1px solid #F0F0F0;
+}
+
+.terms-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.terms-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #E5E5E8;
+  text-align: center;
+}
+
+.terms-footer p {
+  font-size: 0.75rem;
+  color: #9CA3AF;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 768px) {
+  .terms-page-wrapper {
+    padding: 1.5rem;
+  }
+  
+  .terms-page-container {
+    padding: 1.5rem;
+  }
+  
+  .terms-header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .terms-content h2 {
+    font-size: 1.25rem;
+  }
+  
+  .terms-section h3 {
+    font-size: 1rem;
+  }
+  
+  .terms-section p,
+  .terms-section li {
+    font-size: 0.875rem;
+  }
+  
+  .terms-table th,
+  .terms-table td {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .terms-page-container {
+    padding: 1.25rem;
+  }
+  
+  .terms-table th,
+  .terms-table td {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F0F0F0;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4D4D8;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}

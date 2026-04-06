@@ -7,6 +7,7 @@ import SolarisLandingPage from './pages/Auth/landingpage';
 import LoginPage from './pages/Auth/loginpage';
 import RegisterPage from './pages/Auth/registerpage';
 import ForgotPage from './pages/Auth/forgotpage';
+import TermsPage from './assets/termspage'; // Import TermsPage
 
 import DashboardLayout from "./pages/Dashboard_Layout/dashboard";
 import SetupAccount from "./pages/Customer/setupacc";
@@ -26,8 +27,8 @@ import Settings from './pages/Admin/settings';
 import FreeQuotes from './pages/Admin/freequotes';
 import PreAssessment from './pages/Admin/preassessments';
 import Schedule from './pages/Admin/schedule';
-import Maintenance from './pages/Admin/Maintenance'; // Admin Maintenance Panel
-import SystemConfig from './pages/Admin/SystemConfig'; // Admin System Configuration
+import Maintenance from './pages/Admin/Maintenance';
+import SystemConfig from './pages/Admin/SystemConfig';
 
 // Engineer Pages
 import EngineerDashboard from './pages/Engineer/dashboard';
@@ -93,7 +94,6 @@ const MaintenanceGuard = ({ children }) => {
         const maintenanceData = response.data;
         
         if (maintenanceData.isUnderMaintenance) {
-          // Admins can always access during maintenance
           if (userRole === 'admin') {
             setIsUnderMaintenance(false);
           } else {
@@ -149,11 +149,9 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Routes - Maintenance page is separate */}
-        <Route 
-          path="/maintenance" 
-          element={<MaintenancePage />} 
-        />
+        {/* Public Routes */}
+        <Route path="/maintenance" element={<MaintenancePage />} />
+        <Route path="/terms" element={<TermsPage />} /> {/* Terms Page Route */}
         
         <Route 
           path="/" 
@@ -191,7 +189,7 @@ function App() {
         {/* Setup Account */}
         <Route path="/setup" element={<SetupAccount />} />
 
-        {/* Admin Routes - Wrapped with MaintenanceGuard */}
+        {/* Admin Routes */}
         <Route
           path="/app/admin"
           element={
@@ -220,7 +218,7 @@ function App() {
           <Route path="system-config" element={<SystemConfig />} />
         </Route>
 
-        {/* Engineer Routes - Wrapped with MaintenanceGuard */}
+        {/* Engineer Routes */}
         <Route
           path="/app/engineer"
           element={
@@ -243,7 +241,7 @@ function App() {
           <Route path="profile" element={<EngineerProfile />} />
         </Route>
 
-        {/* Customer Routes - Wrapped with MaintenanceGuard */}
+        {/* Customer Routes */}
         <Route
           path="/app/customer"
           element={

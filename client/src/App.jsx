@@ -12,7 +12,7 @@ import TermsPage from './assets/termspage'; // Import TermsPage
 import DashboardLayout from "./pages/Dashboard_Layout/dashboard";
 import SetupAccount from "./pages/Customer/setupacc";
 
-import AccountSetupGuard from './guards/accountSetupGuard';
+import AccountSetupGuard from './guards/tempGuard';
 
 // Admin Pages
 import AdminDashboard from './pages/Admin/dashboard';

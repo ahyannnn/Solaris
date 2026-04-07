@@ -33,7 +33,7 @@ import {
   FaCheckDouble
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
-import '../../styles/Admin/userManagement.css';
+import '../../styles/Admin/usermanagement.css';
 
 const UserManagement = () => {
   const { toast, showToast, hideToast } = useToast();

@@ -10,19 +10,12 @@ import {
   FaMicrochip,
   FaChartLine,
   FaCheckCircle,
-  FaClock,
   FaExclamationTriangle,
-  FaSpinner,
   FaDownload,
-  FaPlus,
   FaChartBar,
-  FaEye,
-  FaEnvelope,
   FaFileAlt,
   FaCalendarAlt,
-  FaMoneyBillWave,
-  FaUserCheck,
-  FaArrowRight
+  FaMoneyBillWave
 } from 'react-icons/fa';
 import '../../styles/Admin/dashboard.css';
 
@@ -171,7 +164,6 @@ const AdminDashboard = () => {
     }).format(amount);
   };
 
-  // Stats Cards Component
   const StatsCards = () => {
     const cards = [
       {
@@ -229,17 +221,17 @@ const AdminDashboard = () => {
     ];
 
     return (
-      <div className="cuspro-stats-grid">
+      <div className="adsih-stats-grid">
         {cards.map((card, index) => (
-          <div key={index} className="cuspro-stat-card">
-            <div className="cuspro-stat-header">
-              <div className="cuspro-stat-icon">{card.icon}</div>
-              <div className="cuspro-stat-value">{card.value}</div>
+          <div key={index} className="adsih-stat-card">
+            <div className="adsih-stat-header">
+              <div className="adsih-stat-icon">{card.icon}</div>
+              <div className="adsih-stat-value">{card.value}</div>
             </div>
-            <div className="cuspro-stat-title">{card.title}</div>
-            <div className="cuspro-stat-details">
+            <div className="adsih-stat-title">{card.title}</div>
+            <div className="adsih-stat-details">
               {card.details.map((detail, idx) => (
-                <div key={idx} className="cuspro-stat-detail">
+                <div key={idx} className="adsih-stat-detail">
                   <span>{detail.label}</span>
                   <strong>{detail.value}</strong>
                 </div>
@@ -251,7 +243,6 @@ const AdminDashboard = () => {
     );
   };
 
-  // Charts Component
   const Charts = () => {
     const monthlyData = {
       labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
@@ -267,50 +258,50 @@ const AdminDashboard = () => {
     };
 
     return (
-      <div className="cuspro-charts-row">
-        <div className="cuspro-chart-card">
-          <div className="cuspro-chart-header">
+      <div className="adsih-charts-row">
+        <div className="adsih-chart-card">
+          <div className="adsih-chart-header">
             <h3>
               <FaChartLine /> Assessment Trends
             </h3>
-            <button className="cuspro-export-btn" onClick={handleExport}>
+            <button className="adsih-export-btn" onClick={handleExport}>
               <FaDownload /> Export
             </button>
           </div>
-          <div className="cuspro-chart-body">
-            <div className="cuspro-bar-chart">
+          <div className="adsih-chart-body">
+            <div className="adsih-bar-chart">
               {monthlyData.assessments.map((value, index) => (
-                <div key={index} className="cuspro-bar-item">
+                <div key={index} className="adsih-bar-item">
                   <div 
-                    className="cuspro-bar" 
+                    className="adsih-bar" 
                     style={{ height: `${(value / maxAssessments) * 120}px` }}
                   >
-                    <span className="cuspro-bar-value">{value}</span>
+                    <span className="adsih-bar-value">{value}</span>
                   </div>
-                  <span className="cuspro-bar-label">{monthlyData.labels[index]}</span>
+                  <span className="adsih-bar-label">{monthlyData.labels[index]}</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="cuspro-chart-card">
-          <div className="cuspro-chart-header">
+        <div className="adsih-chart-card">
+          <div className="adsih-chart-header">
             <h3>
               <FaChartBar /> Revenue Overview
             </h3>
           </div>
-          <div className="cuspro-chart-body">
-            <div className="cuspro-bar-chart">
+          <div className="adsih-chart-body">
+            <div className="adsih-bar-chart">
               {monthlyData.revenue.map((value, index) => (
-                <div key={index} className="cuspro-bar-item">
+                <div key={index} className="adsih-bar-item">
                   <div 
-                    className="cuspro-bar cuspro-revenue-bar" 
+                    className="adsih-bar adsih-revenue-bar" 
                     style={{ height: `${(value / maxRevenue) * 120}px` }}
                   >
-                    <span className="cuspro-bar-value">{formatCurrency(value)}</span>
+                    <span className="adsih-bar-value">{formatCurrency(value)}</span>
                   </div>
-                  <span className="cuspro-bar-label">{monthlyData.labels[index]}</span>
+                  <span className="adsih-bar-label">{monthlyData.labels[index]}</span>
                 </div>
               ))}
             </div>
@@ -320,45 +311,13 @@ const AdminDashboard = () => {
     );
   };
 
-  // Quick Actions Component
-  const QuickActions = () => {
-    const actions = [
-      { label: 'New Free Quote', icon: <FaPlus />, path: '/dashboard/free-quotes/new' },
-      { label: 'Create Invoice', icon: <FaFileInvoiceDollar />, path: '/dashboard/billing/new' },
-      { label: 'Add User', icon: <FaUsers />, path: '/dashboard/usermanagement/new' },
-      { label: 'Register Device', icon: <FaMicrochip />, path: '/dashboard/iotdevice/new' },
-      { label: 'View Reports', icon: <FaChartLine />, path: '/dashboard/reports' },
-      { label: 'Send Announcement', icon: <FaEnvelope />, path: '/dashboard/announcements' },
-    ];
-
-    return (
-      <div className="cuspro-quick-actions">
-        <h3>Quick Actions</h3>
-        <div className="cuspro-actions-grid">
-          {actions.map((action, index) => (
-            <button
-              key={index}
-              className="cuspro-action-btn"
-              onClick={() => navigate(action.path)}
-            >
-              <span className="cuspro-action-icon">{action.icon}</span>
-              <span className="cuspro-action-label">{action.label}</span>
-              <FaArrowRight className="cuspro-action-arrow" />
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  // Recent Activity Component
   const RecentActivity = () => {
     const getStatusClass = (status) => {
       switch(status) {
-        case 'completed': return 'completed';
-        case 'pending': return 'pending';
-        case 'for_verification': return 'for-verification';
-        case 'scheduled': return 'scheduled';
+        case 'completed': return 'completed-adsih';
+        case 'pending': return 'pending-adsih';
+        case 'for_verification': return 'for-verification-adsih';
+        case 'scheduled': return 'scheduled-adsih';
         default: return '';
       }
     };
@@ -374,32 +333,32 @@ const AdminDashboard = () => {
     };
 
     return (
-      <div className="cuspro-recent-activity">
-        <div className="cuspro-activity-header">
+      <div className="adsih-recent-activity">
+        <div className="adsih-activity-header">
           <h3>Recent Activity</h3>
-          <button className="cuspro-view-all" onClick={() => navigate('/dashboard/activities')}>
+          <button className="adsih-view-all" onClick={() => navigate('/dashboard/activities')}>
             View All
           </button>
         </div>
         
-        <div className="cuspro-activity-list">
+        <div className="adsih-activity-list">
           {recentActivities.length === 0 ? (
-            <div className="cuspro-empty-activity">
+            <div className="adsih-empty-activity">
               <p>No recent activities</p>
             </div>
           ) : (
             recentActivities.map((activity) => (
               <div 
                 key={activity.id} 
-                className="cuspro-activity-item"
+                className="adsih-activity-item"
                 onClick={() => activity.action && navigate(activity.action)}
               >
-                <div className="cuspro-activity-icon">{activity.icon}</div>
-                <div className="cuspro-activity-content">
-                  <p className="cuspro-activity-message">{activity.message}</p>
-                  <span className="cuspro-activity-time">{activity.time}</span>
+                <div className="adsih-activity-icon">{activity.icon}</div>
+                <div className="adsih-activity-content">
+                  <p className="adsih-activity-message">{activity.message}</p>
+                  <span className="adsih-activity-time">{activity.time}</span>
                 </div>
-                <div className={`cuspro-activity-status ${getStatusClass(activity.status)}`}>
+                <div className={`adsih-activity-status ${getStatusClass(activity.status)}`}>
                   {getStatusText(activity.status)}
                 </div>
               </div>
@@ -410,31 +369,35 @@ const AdminDashboard = () => {
     );
   };
 
-  // Skeleton Loader
   const SkeletonLoader = () => (
-    <div className="cuspro-admin-dashboard">
-      <div className="cuspro-dashboard-header">
-        <div className="cuspro-skeleton-title"></div>
-        <div className="cuspro-skeleton-subtitle"></div>
+    <div className="adsih-admin-dashboard">
+      <div className="adsih-dashboard-header">
+        <div className="adsih-skeleton-title"></div>
+        <div className="adsih-skeleton-subtitle"></div>
       </div>
-      <div className="cuspro-stats-grid">
+      <div className="adsih-stats-grid">
         {[1, 2, 3, 4, 5, 6].map(i => (
-          <div key={i} className="cuspro-stat-card cuspro-skeleton-card">
-            <div className="cuspro-skeleton-line"></div>
-            <div className="cuspro-skeleton-line cuspro-skeleton-large"></div>
-            <div className="cuspro-skeleton-line cuspro-skeleton-small"></div>
+          <div key={i} className="adsih-stat-card adsih-skeleton-card">
+            <div className="adsih-skeleton-line"></div>
+            <div className="adsih-skeleton-line adsih-skeleton-large"></div>
+            <div className="adsih-skeleton-line adsih-skeleton-small"></div>
           </div>
         ))}
       </div>
-      <div className="cuspro-charts-row">
-        <div className="cuspro-chart-card cuspro-skeleton-card">
-          <div className="cuspro-skeleton-line"></div>
-          <div className="cuspro-skeleton-chart"></div>
+      <div className="adsih-charts-row">
+        <div className="adsih-chart-card adsih-skeleton-card">
+          <div className="adsih-skeleton-line"></div>
+          <div className="adsih-skeleton-chart"></div>
         </div>
-        <div className="cuspro-quick-actions cuspro-skeleton-card">
-          <div className="cuspro-skeleton-line"></div>
-          <div className="cuspro-skeleton-line"></div>
+        <div className="adsih-chart-card adsih-skeleton-card">
+          <div className="adsih-skeleton-line"></div>
+          <div className="adsih-skeleton-chart"></div>
         </div>
+      </div>
+      <div className="adsih-recent-activity adsih-skeleton-card">
+        <div className="adsih-skeleton-line"></div>
+        <div className="adsih-skeleton-line"></div>
+        <div className="adsih-skeleton-line"></div>
       </div>
     </div>
   );
@@ -452,11 +415,11 @@ const AdminDashboard = () => {
 
   if (error) {
     return (
-      <div className="cuspro-error-state">
-        <FaExclamationTriangle className="cuspro-error-icon" />
+      <div className="adsih-error-state">
+        <FaExclamationTriangle className="adsih-error-icon" />
         <h2>Error Loading Dashboard</h2>
         <p>{error}</p>
-        <button onClick={fetchDashboardData} className="cuspro-retry-btn">Retry</button>
+        <button onClick={fetchDashboardData} className="adsih-retry-btn">Retry</button>
       </div>
     );
   }
@@ -467,19 +430,14 @@ const AdminDashboard = () => {
         <title>Admin Dashboard | Salfer Engineering</title>
       </Helmet>
 
-      <div className="cuspro-admin-dashboard">
-        <div className="cuspro-dashboard-header">
+      <div className="adsih-admin-dashboard">
+        <div className="adsih-dashboard-header">
           <h1>Admin Dashboard</h1>
           <p>Welcome back! Here's what's happening with your solar business today.</p>
         </div>
 
         <StatsCards />
-
-        <div className="cuspro-dashboard-row">
-          <Charts />
-          <QuickActions />
-        </div>
-
+        <Charts />
         <RecentActivity />
       </div>
     </>

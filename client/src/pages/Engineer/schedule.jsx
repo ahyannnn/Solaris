@@ -2,29 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
-import { 
-  FaCalendarAlt, 
-  FaEye, 
-  FaCheckCircle, 
-  FaTimesCircle,
-  FaClock,
-  FaUser,
-  FaMapMarkerAlt,
-  FaSpinner,
-  FaSearch,
-  FaFilter,
-  FaChevronLeft,
-  FaChevronRight,
-  FaCalendarWeek,
-  FaList,
-  FaHome,
-  FaPhone,
-  FaEnvelope,
-  FaBuilding,
-  FaInfoCircle,
-  FaPlay,
-  FaFlagCheckered
-} from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Engineer/schedule.css';
 
@@ -39,7 +16,7 @@ const EngineerSchedule = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateStatus, setUpdateStatus] = useState('');
   const [updateNotes, setUpdateNotes] = useState('');
-  const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
+  const [viewMode, setViewMode] = useState('list');
   const [filter, setFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -160,24 +137,24 @@ const EngineerSchedule = () => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      'scheduled': <span className="status-badge-engineer-schedule scheduled">Scheduled</span>,
-      'confirmed': <span className="status-badge-engineer-schedule confirmed">Confirmed</span>,
-      'in_progress': <span className="status-badge-engineer-schedule in-progress">In Progress</span>,
-      'completed': <span className="status-badge-engineer-schedule completed">Completed</span>,
-      'cancelled': <span className="status-badge-engineer-schedule cancelled">Cancelled</span>,
-      'rescheduled': <span className="status-badge-engineer-schedule rescheduled">Rescheduled</span>
+      'scheduled': <span className="status-badge-esch scheduled-esch">Scheduled</span>,
+      'confirmed': <span className="status-badge-esch confirmed-esch">Confirmed</span>,
+      'in_progress': <span className="status-badge-esch in-progress-esch">In Progress</span>,
+      'completed': <span className="status-badge-esch completed-esch">Completed</span>,
+      'cancelled': <span className="status-badge-esch cancelled-esch">Cancelled</span>,
+      'rescheduled': <span className="status-badge-esch rescheduled-esch">Rescheduled</span>
     };
-    return badges[status] || <span className="status-badge-engineer-schedule">{status}</span>;
+    return badges[status] || <span className="status-badge-esch">{status}</span>;
   };
 
   const getTypeBadge = (type) => {
     const badges = {
-      'pre_assessment': <span className="type-badge-engineer-schedule pre-assessment">Pre-Assessment</span>,
-      'site_visit': <span className="type-badge-engineer-schedule site-visit">Site Visit</span>,
-      'installation': <span className="type-badge-engineer-schedule installation">Installation</span>,
-      'inspection': <span className="type-badge-engineer-schedule inspection">Inspection</span>
+      'pre_assessment': <span className="type-badge-esch pre-assessment-esch">Pre-Assessment</span>,
+      'site_visit': <span className="type-badge-esch site-visit-esch">Site Visit</span>,
+      'installation': <span className="type-badge-esch installation-esch">Installation</span>,
+      'inspection': <span className="type-badge-esch inspection-esch">Inspection</span>
     };
-    return badges[type] || <span className="type-badge-engineer-schedule">{type}</span>;
+    return badges[type] || <span className="type-badge-esch">{type}</span>;
   };
 
   const getNextActionButton = (schedule) => {
@@ -186,27 +163,27 @@ const EngineerSchedule = () => {
       case 'confirmed':
         return (
           <button 
-            className="action-btn start"
+            className="action-btn-esch start-esch"
             onClick={() => {
               setSelectedSchedule(schedule);
               setUpdateStatus('in_progress');
               setShowUpdateModal(true);
             }}
           >
-            <FaPlay /> Start
+            Start Visit
           </button>
         );
       case 'in_progress':
         return (
           <button 
-            className="action-btn complete"
+            className="action-btn-esch complete-esch"
             onClick={() => {
               setSelectedSchedule(schedule);
               setUpdateStatus('completed');
               setShowUpdateModal(true);
             }}
           >
-            <FaFlagCheckered /> Complete
+            Complete
           </button>
         );
       default:
@@ -217,10 +194,10 @@ const EngineerSchedule = () => {
   const getStatusActions = (schedule) => {
     if (schedule.status === 'scheduled' || schedule.status === 'confirmed') {
       return (
-        <div className="action-buttons">
+        <div className="action-buttons-esch">
           {getNextActionButton(schedule)}
           <button 
-            className="action-btn reschedule"
+            className="action-btn-esch reschedule-esch"
             onClick={() => {
               setSelectedSchedule(schedule);
               handleRequestReschedule();
@@ -243,30 +220,30 @@ const EngineerSchedule = () => {
   });
 
   const SkeletonLoader = () => (
-    <div className="engineer-schedule-container">
-      <div className="schedule-header-engineer">
-        <div className="skeleton-line large"></div>
-        <div className="skeleton-line medium"></div>
+    <div className="engineer-schedule-container-esch">
+      <div className="schedule-header-esch">
+        <div className="skeleton-line-esch large-esch"></div>
+        <div className="skeleton-line-esch medium-esch"></div>
       </div>
-      <div className="schedule-stats-engineer">
+      <div className="schedule-stats-esch">
         {[1, 2, 3].map(i => (
-          <div key={i} className="stat-card skeleton-card">
-            <div className="skeleton-line small"></div>
-            <div className="skeleton-line large"></div>
+          <div key={i} className="stat-card-esch skeleton-card-esch">
+            <div className="skeleton-line-esch small-esch"></div>
+            <div className="skeleton-line-esch large-esch"></div>
           </div>
         ))}
       </div>
-      <div className="schedule-controls-engineer">
-        <div className="skeleton-button"></div>
-        <div className="skeleton-select"></div>
-        <div className="skeleton-search"></div>
+      <div className="schedule-controls-esch">
+        <div className="skeleton-button-esch"></div>
+        <div className="skeleton-select-esch"></div>
+        <div className="skeleton-search-esch"></div>
       </div>
-      <div className="schedule-list-engineer">
+      <div className="schedule-list-esch">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="schedule-card skeleton-card">
-            <div className="skeleton-line"></div>
-            <div className="skeleton-line small"></div>
-            <div className="skeleton-line"></div>
+          <div key={i} className="schedule-card-esch skeleton-card-esch">
+            <div className="skeleton-line-esch"></div>
+            <div className="skeleton-line-esch small-esch"></div>
+            <div className="skeleton-line-esch"></div>
           </div>
         ))}
       </div>
@@ -283,52 +260,49 @@ const EngineerSchedule = () => {
         <title>My Schedule | Engineer | Salfer Engineering</title>
       </Helmet>
 
-      <div className="engineer-schedule-container">
-        <div className="schedule-header-engineer">
+      <div className="engineer-schedule-container-esch">
+        <div className="schedule-header-esch">
           <h1>My Schedule</h1>
           <p>View and manage your upcoming site visits and assessments</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="schedule-stats-engineer">
-          <div className="stat-card total">
-            <div className="stat-info">
-              <span className="stat-value">{upcomingSchedules.length}</span>
-              <span className="stat-label">Upcoming</span>
+        <div className="schedule-stats-esch">
+          <div className="stat-card-esch total-esch">
+            <div className="stat-info-esch">
+              <span className="stat-value-esch">{upcomingSchedules.length}</span>
+              <span className="stat-label-esch">Upcoming</span>
             </div>
           </div>
-          <div className="stat-card today">
-            <div className="stat-info">
-              <span className="stat-value">{schedules.filter(s => s.status === 'in_progress').length}</span>
-              <span className="stat-label">In Progress</span>
+          <div className="stat-card-esch today-esch">
+            <div className="stat-info-esch">
+              <span className="stat-value-esch">{schedules.filter(s => s.status === 'in_progress').length}</span>
+              <span className="stat-label-esch">In Progress</span>
             </div>
           </div>
-          <div className="stat-card completed">
-            <div className="stat-info">
-              <span className="stat-value">{pastSchedules.length}</span>
-              <span className="stat-label">Completed</span>
+          <div className="stat-card-esch completed-esch">
+            <div className="stat-info-esch">
+              <span className="stat-value-esch">{pastSchedules.length}</span>
+              <span className="stat-label-esch">Completed</span>
             </div>
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="schedule-controls-engineer">
-          <div className="view-toggle">
+        <div className="schedule-controls-esch">
+          <div className="view-toggle-esch">
             <button 
-              className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+              className={`toggle-btn-esch ${viewMode === 'list' ? 'active-esch' : ''}`}
               onClick={() => setViewMode('list')}
             >
-              <FaList /> List View
+              List View
             </button>
             <button 
-              className={`toggle-btn ${viewMode === 'calendar' ? 'active' : ''}`}
+              className={`toggle-btn-esch ${viewMode === 'calendar' ? 'active-esch' : ''}`}
               onClick={() => setViewMode('calendar')}
             >
-              <FaCalendarWeek /> Calendar View
+              Calendar View
             </button>
           </div>
-          <div className="filter-group">
-            <FaFilter className="filter-icon" />
+          <div className="filter-group-esch">
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
               <option value="all">All Status</option>
               <option value="scheduled">Scheduled</option>
@@ -337,7 +311,7 @@ const EngineerSchedule = () => {
               <option value="completed">Completed</option>
             </select>
           </div>
-          <div className="filter-group">
+          <div className="filter-group-esch">
             <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
               <option value="all">All Types</option>
               <option value="pre_assessment">Pre-Assessment</option>
@@ -346,8 +320,7 @@ const EngineerSchedule = () => {
               <option value="inspection">Inspection</option>
             </select>
           </div>
-          <div className="search-group">
-            <FaSearch className="search-icon" />
+          <div className="search-group-esch">
             <input
               type="text"
               placeholder="Search by title or client..."
@@ -357,62 +330,56 @@ const EngineerSchedule = () => {
           </div>
         </div>
 
-        {/* List View */}
         {viewMode === 'list' && (
-          <div className="schedule-list-engineer">
+          <div className="schedule-list-esch">
             {filteredSchedules.length === 0 ? (
-              <div className="empty-state">
-                <FaCalendarAlt className="empty-icon" />
+              <div className="empty-state-esch">
+                <div className="empty-icon-esch"></div>
                 <h3>No schedules found</h3>
                 <p>You don't have any upcoming schedules at the moment.</p>
               </div>
             ) : (
               filteredSchedules.map(schedule => (
-                <div key={schedule._id} className="schedule-card">
-                  <div className="schedule-card-header">
-                    <div className="schedule-type">
+                <div key={schedule._id} className="schedule-card-esch">
+                  <div className="schedule-card-header-esch">
+                    <div className="schedule-type-esch">
                       {getTypeBadge(schedule.type)}
                       {getStatusBadge(schedule.status)}
                     </div>
-                    <div className="schedule-date-large">
-                      <FaCalendarAlt />
+                    <div className="schedule-date-large-esch">
                       <span>{formatDate(schedule.scheduledDate)}</span>
                     </div>
                   </div>
                   
-                  <div className="schedule-card-body">
+                  <div className="schedule-card-body-esch">
                     <h3>{schedule.title}</h3>
-                    <div className="schedule-details">
-                      <div className="detail-item">
-                        <FaClock />
+                    <div className="schedule-details-esch">
+                      <div className="detail-item-esch">
                         <span>{formatTime(schedule.scheduledTime)} - {schedule.endTime || 'N/A'}</span>
                       </div>
-                      <div className="detail-item">
-                        <FaUser />
+                      <div className="detail-item-esch">
                         <span>{schedule.clientName}</span>
                       </div>
-                      <div className="detail-item">
-                        <FaMapMarkerAlt />
+                      <div className="detail-item-esch">
                         <span>
                           {schedule.address?.houseOrBuilding} {schedule.address?.street}, 
                           {schedule.address?.barangay}, {schedule.address?.cityMunicipality}
                         </span>
                       </div>
                       {schedule.clientPhone && (
-                        <div className="detail-item">
-                          <FaPhone />
+                        <div className="detail-item-esch">
                           <span>{schedule.clientPhone}</span>
                         </div>
                       )}
                     </div>
                   </div>
                   
-                  <div className="schedule-card-footer">
+                  <div className="schedule-card-footer-esch">
                     <button 
-                      className="action-btn view"
+                      className="action-btn-esch view-esch"
                       onClick={() => { setSelectedSchedule(schedule); setShowDetailModal(true); }}
                     >
-                      <FaEye /> View Details
+                      View Details
                     </button>
                     {getStatusActions(schedule)}
                   </div>
@@ -422,68 +389,64 @@ const EngineerSchedule = () => {
           </div>
         )}
 
-        {/* Calendar View */}
         {viewMode === 'calendar' && (
-          <div className="calendar-view-engineer">
-            <div className="calendar-header">
+          <div className="calendar-view-esch">
+            <div className="calendar-header-esch">
               <h3>Weekly Schedule</h3>
             </div>
-            <div className="calendar-grid">
+            <div className="calendar-grid-esch">
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                <div key={day} className="calendar-day-header">
+                <div key={day} className="calendar-day-header-esch">
                   {day}
                 </div>
               ))}
-              {/* Simplified calendar view - shows upcoming schedules by day */}
               {upcomingSchedules.slice(0, 7).map((schedule, index) => (
-                <div key={index} className={`calendar-day ${schedule.status === 'completed' ? 'completed' : ''}`}>
-                  <div className="calendar-date">{formatShortDate(schedule.scheduledDate)}</div>
-                  <div className="calendar-event">
-                    <div className="event-time">{formatTime(schedule.scheduledTime)}</div>
-                    <div className="event-title">{schedule.title}</div>
-                    <div className="event-client">{schedule.clientName}</div>
+                <div key={index} className={`calendar-day-esch ${schedule.status === 'completed' ? 'completed-esch' : ''}`}>
+                  <div className="calendar-date-esch">{formatShortDate(schedule.scheduledDate)}</div>
+                  <div className="calendar-event-esch">
+                    <div className="event-time-esch">{formatTime(schedule.scheduledTime)}</div>
+                    <div className="event-title-esch">{schedule.title}</div>
+                    <div className="event-client-esch">{schedule.clientName}</div>
                     {getTypeBadge(schedule.type)}
                   </div>
                 </div>
               ))}
               {upcomingSchedules.length < 7 && [...Array(7 - upcomingSchedules.length)].map((_, i) => (
-                <div key={`empty-${i}`} className="calendar-day empty">
-                  <div className="calendar-date">No events</div>
+                <div key={`empty-${i}`} className="calendar-day-esch empty-esch">
+                  <div className="calendar-date-esch">No events</div>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="pagination-engineer">
+          <div className="pagination-esch">
             <button 
-              className="page-btn"
+              className="page-btn-esch"
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
             >
-              <FaChevronLeft /> Previous
+              Previous
             </button>
-            <span className="page-info">Page {currentPage} of {totalPages}</span>
+            <span className="page-info-esch">Page {currentPage} of {totalPages}</span>
             <button 
-              className="page-btn"
+              className="page-btn-esch"
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
             >
-              Next <FaChevronRight />
+              Next
             </button>
           </div>
         )}
 
-        {/* Detail Modal */}
         {showDetailModal && selectedSchedule && (
-          <div className="modal-overlay-engineer" onClick={() => setShowDetailModal(false)}>
-            <div className="modal-content-engineer detail-modal" onClick={e => e.stopPropagation()}>
-              <button className="modal-close" onClick={() => setShowDetailModal(false)}>×</button>
+          <div className="modal-overlay-esch" onClick={() => setShowDetailModal(false)}>
+            <div className="modal-content-esch detail-modal-esch" onClick={e => e.stopPropagation()}>
+              <button className="modal-close-esch" onClick={() => setShowDetailModal(false)}>×</button>
               <h3>Schedule Details</h3>
               
-              <div className="detail-section">
+              <div className="detail-section-esch">
                 <h4>Schedule Information</h4>
                 <p><strong>Title:</strong> {selectedSchedule.title}</p>
                 <p><strong>Type:</strong> {getTypeBadge(selectedSchedule.type)}</p>
@@ -493,7 +456,7 @@ const EngineerSchedule = () => {
                 {selectedSchedule.duration && <p><strong>Duration:</strong> {selectedSchedule.duration} hours</p>}
               </div>
 
-              <div className="detail-section">
+              <div className="detail-section-esch">
                 <h4>Client Information</h4>
                 <p><strong>Name:</strong> {selectedSchedule.clientName}</p>
                 <p><strong>Phone:</strong> {selectedSchedule.clientPhone}</p>
@@ -504,25 +467,25 @@ const EngineerSchedule = () => {
               </div>
 
               {selectedSchedule.description && (
-                <div className="detail-section">
+                <div className="detail-section-esch">
                   <h4>Description</h4>
                   <p>{selectedSchedule.description}</p>
                 </div>
               )}
 
               {selectedSchedule.notes && (
-                <div className="detail-section">
+                <div className="detail-section-esch">
                   <h4>Notes</h4>
                   <p>{selectedSchedule.notes}</p>
                 </div>
               )}
 
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowDetailModal(false)}>Close</button>
-                {selectedSchedule.status === 'scheduled' || selectedSchedule.status === 'confirmed' ? (
+              <div className="modal-actions-esch">
+                <button className="cancel-btn-esch" onClick={() => setShowDetailModal(false)}>Close</button>
+                {(selectedSchedule.status === 'scheduled' || selectedSchedule.status === 'confirmed') ? (
                   <>
                     <button 
-                      className="start-btn"
+                      className="start-btn-esch"
                       onClick={() => {
                         setShowDetailModal(false);
                         setSelectedSchedule(selectedSchedule);
@@ -530,10 +493,10 @@ const EngineerSchedule = () => {
                         setShowUpdateModal(true);
                       }}
                     >
-                      <FaPlay /> Start Visit
+                      Start Visit
                     </button>
                     <button 
-                      className="reschedule-btn"
+                      className="reschedule-btn-esch"
                       onClick={handleRequestReschedule}
                     >
                       Request Reschedule
@@ -541,7 +504,7 @@ const EngineerSchedule = () => {
                   </>
                 ) : selectedSchedule.status === 'in_progress' ? (
                   <button 
-                    className="complete-btn"
+                    className="complete-btn-esch"
                     onClick={() => {
                       setShowDetailModal(false);
                       setSelectedSchedule(selectedSchedule);
@@ -549,7 +512,7 @@ const EngineerSchedule = () => {
                       setShowUpdateModal(true);
                     }}
                   >
-                    <FaFlagCheckered /> Mark Complete
+                    Mark Complete
                   </button>
                 ) : null}
               </div>
@@ -557,17 +520,16 @@ const EngineerSchedule = () => {
           </div>
         )}
 
-        {/* Update Status Modal */}
         {showUpdateModal && selectedSchedule && (
-          <div className="modal-overlay-engineer" onClick={() => setShowUpdateModal(false)}>
-            <div className="modal-content-engineer" onClick={e => e.stopPropagation()}>
-              <button className="modal-close" onClick={() => setShowUpdateModal(false)}>×</button>
+          <div className="modal-overlay-esch" onClick={() => setShowUpdateModal(false)}>
+            <div className="modal-content-esch" onClick={e => e.stopPropagation()}>
+              <button className="modal-close-esch" onClick={() => setShowUpdateModal(false)}>×</button>
               <h3>Update Schedule Status</h3>
               <p><strong>Schedule:</strong> {selectedSchedule.title}</p>
               <p><strong>Client:</strong> {selectedSchedule.clientName}</p>
               <p><strong>Date:</strong> {formatDate(selectedSchedule.scheduledDate)}</p>
               
-              <div className="form-group">
+              <div className="form-group-esch">
                 <label>Status Update</label>
                 <select value={updateStatus} onChange={(e) => setUpdateStatus(e.target.value)}>
                   <option value="">Select status...</option>
@@ -576,7 +538,7 @@ const EngineerSchedule = () => {
                 </select>
               </div>
 
-              <div className="form-group">
+              <div className="form-group-esch">
                 <label>Notes (Optional)</label>
                 <textarea 
                   rows="3" 
@@ -586,8 +548,7 @@ const EngineerSchedule = () => {
                 />
               </div>
 
-              <div className="info-box">
-                <FaInfoCircle />
+              <div className="info-box-esch">
                 <small>
                   {updateStatus === 'in_progress' 
                     ? "Starting the site visit will notify the admin and customer." 
@@ -595,10 +556,10 @@ const EngineerSchedule = () => {
                 </small>
               </div>
 
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowUpdateModal(false)}>Cancel</button>
+              <div className="modal-actions-esch">
+                <button className="cancel-btn-esch" onClick={() => setShowUpdateModal(false)}>Cancel</button>
                 <button 
-                  className="submit-btn" 
+                  className="submit-btn-esch" 
                   onClick={handleUpdateScheduleStatus}
                   disabled={!updateStatus || isSubmitting}
                 >

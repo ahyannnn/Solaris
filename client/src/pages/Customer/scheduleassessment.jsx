@@ -19,6 +19,9 @@ const ScheduleAssessment = () => {
   const [submitted, setSubmitted] = useState(false);
   const [submittedData, setSubmittedData] = useState(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [requestFilter, setRequestFilter] = useState('all');
 
   // System Types
   const SYSTEM_TYPES = [
@@ -57,9 +60,14 @@ const ScheduleAssessment = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
 
+  // My Requests data
+  const [freeQuotes, setFreeQuotes] = useState([]);
+  const [preAssessments, setPreAssessments] = useState([]);
+
   useEffect(() => {
     fetchClientData();
     fetchClientAddresses();
+    fetchMyRequests();
   }, []);
 
   const fetchClientData = async () => {
@@ -117,6 +125,26 @@ const ScheduleAssessment = () => {
       }
     } catch (err) {
       console.error('Error fetching addresses:', err);
+    }
+  };
+
+  const fetchMyRequests = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      
+      const [freeQuotesRes, preAssessmentsRes] = await Promise.all([
+        axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes/my-quotes`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-bookings`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+
+      setFreeQuotes(freeQuotesRes.data.quotes || []);
+      setPreAssessments(preAssessmentsRes.data.assessments || []);
+    } catch (err) {
+      console.error('Error fetching requests:', err);
     }
   };
 
@@ -179,7 +207,6 @@ const ScheduleAssessment = () => {
         roofWidth: roofWidth,
         address: address
       });
-      console.log('Quote confirmation email sent successfully');
     } catch (emailError) {
       console.error('Failed to send quote confirmation email:', emailError);
     }
@@ -202,7 +229,6 @@ const ScheduleAssessment = () => {
         address: address,
         paymentMethod: paymentMethod
       });
-      console.log('Pre-assessment confirmation email sent successfully');
     } catch (emailError) {
       console.error('Failed to send pre-assessment confirmation email:', emailError);
     }
@@ -259,6 +285,7 @@ const ScheduleAssessment = () => {
       setSubmitted(true);
 
       showToast('Quote request submitted successfully!', 'success');
+      fetchMyRequests();
 
       setIsSubmitting(false);
 
@@ -334,6 +361,7 @@ const ScheduleAssessment = () => {
       setTermsAccepted(false);
 
       showToast('Pre-assessment booked successfully!', 'success');
+      fetchMyRequests();
 
       setTimeout(() => {
         navigate('/app/customer/billing', {
@@ -362,14 +390,64 @@ const ScheduleAssessment = () => {
     }).format(value);
   };
 
+  const formatDate = (date) => {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleDateString('en-PH', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
   const getSystemTypeLabel = (value) => {
     const type = SYSTEM_TYPES.find(t => t.value === value);
     return type ? type.label : 'Not specified';
   };
 
+  const getAssessmentStatusBadge = (status) => {
+    const badges = {
+      'pending_review': <span className="status-badge-schedule pending-review">Pending Review</span>,
+      'pending_payment': <span className="status-badge-schedule pending-payment">Pending Payment</span>,
+      'for_verification': <span className="status-badge-schedule for-verification">For Verification</span>,
+      'paid': <span className="status-badge-schedule paid">Paid</span>,
+      'scheduled': <span className="status-badge-schedule scheduled">Scheduled</span>,
+      'site_visit_ongoing': <span className="status-badge-schedule site-visit">Site Visit Ongoing</span>,
+      'device_deployed': <span className="status-badge-schedule device-deployed">Device Deployed</span>,
+      'data_collecting': <span className="status-badge-schedule data-collecting">Data Collecting</span>,
+      'data_analyzing': <span className="status-badge-schedule data-analyzing">Analyzing Data</span>,
+      'report_draft': <span className="status-badge-schedule report-draft">Report Draft</span>,
+      'completed': <span className="status-badge-schedule completed">Completed</span>,
+      'cancelled': <span className="status-badge-schedule cancelled">Cancelled</span>
+    };
+    return badges[status] || <span className="status-badge-schedule">{status}</span>;
+  };
+
+  const getFreeQuoteStatusBadge = (status) => {
+    const badges = {
+      'pending': <span className="status-badge-schedule pending">Pending</span>,
+      'assigned': <span className="status-badge-schedule assigned">Assigned</span>,
+      'processing': <span className="status-badge-schedule processing">Processing</span>,
+      'completed': <span className="status-badge-schedule completed">Completed</span>,
+      'cancelled': <span className="status-badge-schedule cancelled">Cancelled</span>
+    };
+    return badges[status] || <span className="status-badge-schedule">{status}</span>;
+  };
+
   const addressDisplay = getAddressDisplay();
 
-  // Skeleton Loader Component
+  // Get filtered requests
+  const getFilteredRequests = () => {
+    if (requestFilter === 'free-quotes') {
+      return { freeQuotes, preAssessments: [] };
+    } else if (requestFilter === 'pre-assessments') {
+      return { freeQuotes: [], preAssessments };
+    }
+    return { freeQuotes, preAssessments };
+  };
+
+  const { freeQuotes: filteredFreeQuotes, preAssessments: filteredPreAssessments } = getFilteredRequests();
+  const hasRequests = filteredFreeQuotes.length > 0 || filteredPreAssessments.length > 0;
+
   const SkeletonLoader = () => (
     <div className="schedule-container-cusset">
       <div className="schedule-header-skeleton-cusset">
@@ -492,9 +570,13 @@ const ScheduleAssessment = () => {
 
         <div className="schedule-container-cusset">
           <div className="schedule-header-card-cusset">
-            <h1 className="schedule-title-cusset">Get Your Solar Solution</h1>
-            <p className="schedule-subtitle-cusset">Choose how you want to proceed with your solar journey</p>
+            <div className="schedule-header-content-cusset">
+              <h1 className="schedule-title-cusset">Get Your Solar Solution</h1>
+              <p className="schedule-subtitle-cusset">Choose how you want to proceed with your solar journey</p>
+            </div>
           </div>
+
+          {/* 2 Cards */}
           <div className="service-selection-grid-cusset">
             {/* Free Quote Request Card */}
             <div className="service-card-cusset">
@@ -638,10 +720,108 @@ const ScheduleAssessment = () => {
             </div>
           </div>
 
+          {/* My Requests Section - Below the 2 cards */}
+          <div className="my-requests-section-cusset">
+            <div className="my-requests-header-cusset">
+              <h2 className="section-title-cusset">My Requests</h2>
+              
+              {/* Filter Tabs */}
+              <div className="request-filter-tabs-cusset">
+                <button
+                  className={`filter-tab-cusset ${requestFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => setRequestFilter('all')}
+                >
+                  All
+                </button>
+                <button
+                  className={`filter-tab-cusset ${requestFilter === 'free-quotes' ? 'active' : ''}`}
+                  onClick={() => setRequestFilter('free-quotes')}
+                >
+                  Free Quotes
+                </button>
+                <button
+                  className={`filter-tab-cusset ${requestFilter === 'pre-assessments' ? 'active' : ''}`}
+                  onClick={() => setRequestFilter('pre-assessments')}
+                >
+                  Pre Assessments
+                </button>
+              </div>
+            </div>
+
+            {!hasRequests ? (
+              <div className="empty-requests-cusset">
+                <p>No requests yet. Select a service above to get started.</p>
+              </div>
+            ) : (
+              <div className="requests-table-wrapper-cusset">
+                <table className="requests-table-cusset">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Reference</th>
+                      <th>Type</th>
+                      <th>Details</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {/* Free Quotes */}
+                    {filteredFreeQuotes.map(quote => (
+                      <tr key={quote._id}>
+                        <td className="date-cell">{formatDate(quote.requestedAt)}</td>
+                        <td className="reference-cell">{quote.quotationReference}</td>
+                        <td><span className="type-badge free-quote">Free Quote</span></td>
+                        <td className="details-cell">
+                          <div><strong>Monthly Bill:</strong> {formatCurrency(quote.monthlyBill)}</div>
+                          <div><strong>Property:</strong> {quote.propertyType}</div>
+                          {quote.desiredCapacity && <div><strong>Capacity:</strong> {quote.desiredCapacity}</div>}
+                        </td>
+                        <td>{getFreeQuoteStatusBadge(quote.status)}</td>
+                        <td>
+                          <button className="view-details-btn" onClick={() => {
+                            setSelectedRequest(quote);
+                            setShowDetailsModal(true);
+                          }}>
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    
+                    {/* Pre Assessments */}
+                    {filteredPreAssessments.map(assessment => (
+                      <tr key={assessment._id}>
+                        <td className="date-cell">{formatDate(assessment.bookedAt)}</td>
+                        <td className="reference-cell">{assessment.bookingReference}</td>
+                        <td><span className="type-badge pre-assessment">Pre Assessment</span></td>
+                        <td className="details-cell">
+                          <div><strong>Property:</strong> {assessment.propertyType}</div>
+                          <div><strong>Preferred Date:</strong> {formatDate(assessment.preferredDate)}</div>
+                          <div><strong>Amount:</strong> {formatCurrency(assessment.assessmentFee)}</div>
+                        </td>
+                        <td>{getAssessmentStatusBadge(assessment.assessmentStatus || assessment.paymentStatus)}</td>
+                        <td>
+                          <button className="view-details-btn" onClick={() => {
+                            setSelectedRequest(assessment);
+                            setShowDetailsModal(true);
+                          }}>
+                            View Status
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
           {/* Free Quote Confirmation Modal */}
           {showFreeQuoteConfirm && (
             <div className="schedule-modal-overlay-cusset">
               <div className="schedule-modal-cusset">
+                <button className="modal-close-cusset" onClick={() => setShowFreeQuoteConfirm(false)}>×</button>
                 <h2>Request Quotation</h2>
                 <p>Please review your request details:</p>
 
@@ -697,6 +877,152 @@ const ScheduleAssessment = () => {
             </div>
           )}
 
+          {/* Details Modal */}
+          {showDetailsModal && selectedRequest && (
+            <div className="schedule-modal-overlay-cusset" onClick={() => setShowDetailsModal(false)}>
+              <div className="schedule-modal-cusset status-modal-cusset" onClick={e => e.stopPropagation()}>
+                <button className="modal-close-cusset" onClick={() => setShowDetailsModal(false)}>×</button>
+                <h2>Request Details</h2>
+                
+                {selectedRequest.quotationReference ? (
+                  // Free Quote Details
+                  <>
+                    <div className="status-detail-section">
+                      <h3>Quote Information</h3>
+                      <div className="detail-row">
+                        <span>Reference:</span>
+                        <strong>{selectedRequest.quotationReference}</strong>
+                      </div>
+                      <div className="detail-row">
+                        <span>Requested Date:</span>
+                        <strong>{formatDate(selectedRequest.requestedAt)}</strong>
+                      </div>
+                      <div className="detail-row">
+                        <span>Status:</span>
+                        <strong>{getFreeQuoteStatusBadge(selectedRequest.status)}</strong>
+                      </div>
+                    </div>
+
+                    <div className="status-detail-section">
+                      <h3>Details</h3>
+                      <div className="detail-row">
+                        <span>Monthly Bill:</span>
+                        <strong>{formatCurrency(selectedRequest.monthlyBill)}</strong>
+                      </div>
+                      <div className="detail-row">
+                        <span>Property Type:</span>
+                        <strong>{selectedRequest.propertyType}</strong>
+                      </div>
+                      {selectedRequest.desiredCapacity && (
+                        <div className="detail-row">
+                          <span>Desired Capacity:</span>
+                          <strong>{selectedRequest.desiredCapacity}</strong>
+                        </div>
+                      )}
+                      {selectedRequest.systemType && (
+                        <div className="detail-row">
+                          <span>System Type:</span>
+                          <strong>{getSystemTypeLabel(selectedRequest.systemType)}</strong>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="status-detail-section">
+                      <h3>Address</h3>
+                      <p>{selectedRequest.address?.houseOrBuilding} {selectedRequest.address?.street}</p>
+                      <p>{selectedRequest.address?.barangay}, {selectedRequest.address?.cityMunicipality}</p>
+                      <p>{selectedRequest.address?.province} {selectedRequest.address?.zipCode}</p>
+                    </div>
+                  </>
+                ) : (
+                  // Pre Assessment Details
+                  <>
+                    <div className="status-detail-section">
+                      <h3>Booking Information</h3>
+                      <div className="detail-row">
+                        <span>Reference:</span>
+                        <strong>{selectedRequest.bookingReference}</strong>
+                      </div>
+                      <div className="detail-row">
+                        <span>Booked Date:</span>
+                        <strong>{formatDate(selectedRequest.bookedAt)}</strong>
+                      </div>
+                      <div className="detail-row">
+                        <span>Payment Status:</span>
+                        <strong>{getAssessmentStatusBadge(selectedRequest.paymentStatus)}</strong>
+                      </div>
+                      <div className="detail-row">
+                        <span>Assessment Status:</span>
+                        <strong>{getAssessmentStatusBadge(selectedRequest.assessmentStatus)}</strong>
+                      </div>
+                    </div>
+
+                    <div className="status-detail-section">
+                      <h3>Assessment Details</h3>
+                      <div className="detail-row">
+                        <span>Property Type:</span>
+                        <strong>{selectedRequest.propertyType}</strong>
+                      </div>
+                      <div className="detail-row">
+                        <span>Preferred Date:</span>
+                        <strong>{formatDate(selectedRequest.preferredDate)}</strong>
+                      </div>
+                      <div className="detail-row">
+                        <span>Assessment Fee:</span>
+                        <strong>{formatCurrency(selectedRequest.assessmentFee)}</strong>
+                      </div>
+                      {selectedRequest.desiredCapacity && (
+                        <div className="detail-row">
+                          <span>Desired Capacity:</span>
+                          <strong>{selectedRequest.desiredCapacity}</strong>
+                        </div>
+                      )}
+                      {selectedRequest.systemType && (
+                        <div className="detail-row">
+                          <span>System Type:</span>
+                          <strong>{getSystemTypeLabel(selectedRequest.systemType)}</strong>
+                        </div>
+                      )}
+                      {selectedRequest.roofType && (
+                        <div className="detail-row">
+                          <span>Roof Type:</span>
+                          <strong>{selectedRequest.roofType}</strong>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="status-detail-section">
+                      <h3>Address</h3>
+                      <p>{selectedRequest.address}</p>
+                    </div>
+
+                    {selectedRequest.paymentStatus === 'for_verification' && (
+                      <div className="status-warning">
+                        <p>Your payment is currently under review. Please wait for verification.</p>
+                      </div>
+                    )}
+
+                    {selectedRequest.paymentStatus === 'paid' && selectedRequest.assessmentStatus === 'scheduled' && (
+                      <div className="status-success">
+                        <p>Payment confirmed! Your site assessment has been scheduled.</p>
+                      </div>
+                    )}
+
+                    {selectedRequest.assessmentStatus === 'completed' && (
+                      <div className="status-success">
+                        <p>Assessment completed! Check your email for the detailed report.</p>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                <div className="modal-actions-cusset">
+                  <button className="close-btn-cusset" onClick={() => setShowDetailsModal(false)}>Close</button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <ToastNotification
             show={toast.show}
             message={toast.message}
@@ -731,15 +1057,11 @@ const ScheduleAssessment = () => {
             <div className="schedule-info-section-cusset">
               <h3 className="schedule-section-title-cusset">Contact & Address Information</h3>
 
-              {/* Combined Info Card */}
               <div
                 className="combined-info-card-cusset"
                 onClick={() => setShowInfoModal(true)}
               >
                 <div className="combined-info-header-cusset">
-                  <div className="combined-info-icon-cusset">
-                    {/* Icon removed */}
-                  </div>
                   <div className="combined-info-content-cusset">
                     <div className="combined-info-name-cusset">
                       {getFullName() || 'Not provided'}
@@ -750,9 +1072,6 @@ const ScheduleAssessment = () => {
                     <div className="combined-info-address-cusset">
                       <span className="truncate">{getFullAddress() || 'No address selected'}</span>
                     </div>
-                  </div>
-                  <div className="combined-info-arrow-cusset">
-                    {/* Icon removed */}
                   </div>
                 </div>
                 <div className="combined-info-hint-cusset">
@@ -903,13 +1222,10 @@ const ScheduleAssessment = () => {
               <div className="schedule-modal-cusset info-modal-cusset" onClick={e => e.stopPropagation()}>
                 <div className="info-modal-header-cusset">
                   <h3>Contact & Address Details</h3>
-                  <button className="modal-close-cusset" onClick={() => setShowInfoModal(false)}>
-                    ✕
-                  </button>
+                  <button className="modal-close-cusset" onClick={() => setShowInfoModal(false)}>×</button>
                 </div>
 
                 <div className="info-modal-body-cusset">
-                  {/* Personal Information Section */}
                   <div className="info-section-cusset">
                     <div className="info-section-title-cusset">
                       <h4>Personal Information</h4>
@@ -930,15 +1246,9 @@ const ScheduleAssessment = () => {
                         </div>
                       )}
                     </div>
-                    <button
-                      className="info-action-btn-cusset"
-                      onClick={handleProfileClick}
-                    >
-                      Edit Profile
-                    </button>
+                    <button className="info-action-btn-cusset" onClick={handleProfileClick}>Edit Profile</button>
                   </div>
 
-                  {/* Address Information Section */}
                   <div className="info-section-cusset">
                     <div className="info-section-title-cusset">
                       <h4>Address Information</h4>
@@ -979,22 +1289,12 @@ const ScheduleAssessment = () => {
                         <p>No address selected</p>
                       </div>
                     )}
-                    <button
-                      className="info-action-btn-cusset"
-                      onClick={handleAddressClick}
-                    >
-                      Change Address
-                    </button>
+                    <button className="info-action-btn-cusset" onClick={handleAddressClick}>Change Address</button>
                   </div>
                 </div>
 
                 <div className="info-modal-footer-cusset">
-                  <button
-                    className="info-close-btn-cusset"
-                    onClick={() => setShowInfoModal(false)}
-                  >
-                    Close
-                  </button>
+                  <button className="info-close-btn-cusset" onClick={() => setShowInfoModal(false)}>Close</button>
                 </div>
               </div>
             </div>
@@ -1004,6 +1304,7 @@ const ScheduleAssessment = () => {
           {showConfirmDialog && (
             <div className="schedule-modal-overlay-cusset" onClick={() => setShowConfirmDialog(false)}>
               <div className="schedule-modal-cusset" onClick={e => e.stopPropagation()}>
+                <button className="modal-close-cusset" onClick={() => setShowConfirmDialog(false)}>×</button>
                 <h2>Confirm Pre Assessment</h2>
                 <div className="schedule-modal-summary-cusset">
                   <div className="schedule-summary-section-cusset">

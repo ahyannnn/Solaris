@@ -35,7 +35,7 @@ const AccountSetupGuard = ({ children }) => {
 
     checkAccount();
 
-  }, [navigate]);
+  }, [navigate]); //hello
 
   if (loading) return null;
 

@@ -1,191 +1,235 @@
-/* styles/Admin/dashboard.cuspro.css - Modern Minimalist Neutral Design */
+/* dashboard.css - Admin Dashboard Styles with -adsih extension */
 
 /* ============================================
-   CONTAINER
+   BASE CONTAINER
    ============================================ */
-.cuspro-admin-dashboard {
+.adsih-admin-dashboard {
+  margin: 0 auto;
   padding: 1.5rem;
   background: #F5F5F7;
   min-height: calc(100vh - 70px);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* ============================================
-   HEADER
+   DASHBOARD HEADER
    ============================================ */
-.cuspro-dashboard-header {
+.adsih-dashboard-header {
   margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #E5E5E8;
 }
 
-.cuspro-dashboard-header h1 {
+.adsih-dashboard-header h1 {
   font-size: 1.75rem;
   font-weight: 600;
+  margin: 0 0 0.25rem 0;
   color: #1F1F1F;
-  margin: 0 0 0.5rem 0;
   letter-spacing: -0.3px;
 }
 
-.cuspro-dashboard-header p {
+.adsih-dashboard-header p {
   font-size: 0.875rem;
   color: #6B6B6F;
   margin: 0;
 }
 
 /* ============================================
-   STATS GRID
+   STATS GRID - 3 CARDS PER ROW
    ============================================ */
-.cuspro-stats-grid {
+.adsih-stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  gap: 1.25rem;
   margin-bottom: 2rem;
 }
 
-.cuspro-stat-card {
+.adsih-stat-card {
   background: #FFFFFF;
-  border-radius: 20px;
-  padding: 1.5rem;
   border: 1px solid #E5E5E8;
+  border-radius: 16px;
+  padding: 1.25rem;
+  transition: all 0.2s;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-  transition: all 0.2s ease;
 }
 
-.cuspro-stat-card:hover {
+.adsih-stat-card:hover {
   transform: translateY(-2px);
+  border-color: #D4D4D8;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
 }
 
-.cuspro-stat-header {
+.adsih-stat-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
 }
 
-.cuspro-stat-icon {
-  font-size: 2rem;
-  color: #6B6B6F;
+.adsih-stat-icon {
+  width: 48px;
+  height: 48px;
+  background: #F5F5F7;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: #1F1F1F;
 }
 
-.cuspro-stat-value {
+.adsih-stat-value {
   font-size: 2rem;
   font-weight: 700;
   color: #1F1F1F;
-  line-height: 1;
+  line-height: 1.2;
 }
 
-.cuspro-stat-title {
+.adsih-stat-title {
   font-size: 0.875rem;
   font-weight: 500;
   color: #6B6B6F;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #E5E5E8;
+  margin-bottom: 0.75rem;
 }
 
-.cuspro-stat-details {
+.adsih-stat-details {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+  padding-top: 0.75rem;
+  border-top: 1px solid #E5E5E8;
 }
 
-.cuspro-stat-detail {
+.adsih-stat-detail {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.cuspro-stat-detail span {
+.adsih-stat-detail span {
   font-size: 0.7rem;
   color: #9CA3AF;
 }
 
-.cuspro-stat-detail strong {
-  font-size: 1rem;
+.adsih-stat-detail strong {
+  font-size: 0.875rem;
   font-weight: 600;
   color: #1F1F1F;
 }
 
 /* ============================================
-   DASHBOARD ROW
+   DASHBOARD ROW - 3 COLUMN LAYOUT
    ============================================ */
-.cuspro-dashboard-row {
+.adsih-dashboard-row {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
-/* ============================================
-   CHARTS
-   ============================================ */
-.cuspro-charts-row {
+/* Charts section takes 2 columns */
+.adsih-charts-section {
+  grid-column: span 2;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.cuspro-chart-card {
+/* Quick actions takes 1 column */
+.adsih-quick-actions {
+  grid-column: span 1;
   background: #FFFFFF;
-  border-radius: 20px;
-  padding: 1.5rem;
   border: 1px solid #E5E5E8;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  border-radius: 16px;
+  padding: 1.25rem;
 }
 
-.cuspro-chart-header {
+@media (max-width: 1024px) {
+  .adsih-dashboard-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .adsih-charts-section {
+    grid-column: span 1;
+  }
+  
+  .adsih-quick-actions {
+    grid-column: span 1;
+  }
+}
+
+/* ============================================
+   CHARTS SECTION
+   ============================================ */
+.adsih-charts-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.adsih-chart-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E5E8;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.adsih-chart-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: #F8F9FA;
   border-bottom: 1px solid #E5E5E8;
 }
 
-.cuspro-chart-header h3 {
-  font-size: 1rem;
+.adsih-chart-header h3 {
+  font-size: 0.875rem;
   font-weight: 600;
-  color: #1F1F1F;
   margin: 0;
+  color: #1F1F1F;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.cuspro-export-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: #F5F5F7;
+.adsih-export-btn {
+  padding: 0.375rem 0.75rem;
+  background: #FFFFFF;
   border: 1px solid #E5E5E8;
   border-radius: 8px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 500;
   color: #6B6B6F;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
 }
 
-.cuspro-export-btn:hover {
-  background: #EEEEF2;
+.adsih-export-btn:hover {
+  background: #F5F5F7;
   color: #1F1F1F;
   border-color: #D4D4D8;
 }
 
-.cuspro-chart-body {
+.adsih-chart-body {
+  padding: 1.25rem;
+}
+
+/* Bar Chart */
+.adsih-bar-chart {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  gap: 0.5rem;
+  min-height: 200px;
   padding: 0.5rem 0;
 }
 
-.cuspro-bar-chart {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 0.5rem;
-  height: 180px;
-}
-
-.cuspro-bar-item {
+.adsih-bar-item {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -193,47 +237,40 @@
   gap: 0.5rem;
 }
 
-.cuspro-bar {
+.adsih-bar {
   width: 100%;
   max-width: 40px;
   background: #1F1F1F;
-  border-radius: 8px 8px 4px 4px;
+  border-radius: 6px 6px 0 0;
+  transition: all 0.3s;
   position: relative;
-  transition: all 0.3s ease;
   cursor: pointer;
-  min-height: 4px;
 }
 
-.cuspro-bar:hover {
+.adsih-bar:hover {
   background: #3A3A3A;
-  transform: scaleX(1.05);
 }
 
-.cuspro-revenue-bar {
-  background: #6B6B6F;
+.adsih-bar.adsih-revenue-bar {
+  background: #2E7D32;
 }
 
-.cuspro-revenue-bar:hover {
-  background: #9CA3AF;
+.adsih-bar.adsih-revenue-bar:hover {
+  background: #1B5E20;
 }
 
-.cuspro-bar-value {
+.adsih-bar-value {
   position: absolute;
-  top: -20px;
+  top: -24px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.6rem;
   font-weight: 500;
   color: #6B6B6F;
   white-space: nowrap;
-  display: none;
 }
 
-.cuspro-bar:hover .cuspro-bar-value {
-  display: block;
-}
-
-.cuspro-bar-label {
+.adsih-bar-label {
   font-size: 0.65rem;
   color: #9CA3AF;
   text-align: center;
@@ -242,68 +279,65 @@
 /* ============================================
    QUICK ACTIONS
    ============================================ */
-.cuspro-quick-actions {
-  background: #FFFFFF;
-  border-radius: 20px;
-  padding: 1.5rem;
-  border: 1px solid #E5E5E8;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-
-.cuspro-quick-actions h3 {
-  font-size: 1rem;
+.adsih-quick-actions h3 {
+  font-size: 0.875rem;
   font-weight: 600;
+  margin: 0 0 1rem 0;
   color: #1F1F1F;
-  margin: 0 0 1.25rem 0;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #E5E5E8;
 }
 
-.cuspro-actions-grid {
+.adsih-actions-grid {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.cuspro-action-btn {
+.adsih-action-btn {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  width: 100%;
   padding: 0.75rem 1rem;
   background: #F8F9FA;
   border: 1px solid #E5E5E8;
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
+  width: 100%;
   text-align: left;
 }
 
-.cuspro-action-btn:hover {
+.adsih-action-btn:hover {
   background: #F5F5F7;
   border-color: #D4D4D8;
   transform: translateX(4px);
 }
 
-.cuspro-action-icon {
-  font-size: 1rem;
-  color: #6B6B6F;
+.adsih-action-icon {
+  width: 32px;
+  height: 32px;
+  background: #FFFFFF;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  color: #1F1F1F;
 }
 
-.cuspro-action-label {
+.adsih-action-label {
   flex: 1;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: #1F1F1F;
 }
 
-.cuspro-action-arrow {
+.adsih-action-arrow {
   font-size: 0.75rem;
   color: #9CA3AF;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s;
 }
 
-.cuspro-action-btn:hover .cuspro-action-arrow {
+.adsih-action-btn:hover .adsih-action-arrow {
   transform: translateX(4px);
   color: #1F1F1F;
 }
@@ -311,241 +345,233 @@
 /* ============================================
    RECENT ACTIVITY
    ============================================ */
-.cuspro-recent-activity {
+.adsih-recent-activity {
   background: #FFFFFF;
-  border-radius: 20px;
-  padding: 1.5rem;
   border: 1px solid #E5E5E8;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  border-radius: 16px;
+  overflow: hidden;
 }
 
-.cuspro-activity-header {
+.adsih-activity-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: #F8F9FA;
   border-bottom: 1px solid #E5E5E8;
 }
 
-.cuspro-activity-header h3 {
-  font-size: 1rem;
+.adsih-activity-header h3 {
+  font-size: 0.875rem;
   font-weight: 600;
-  color: #1F1F1F;
   margin: 0;
+  color: #1F1F1F;
 }
 
-.cuspro-view-all {
+.adsih-view-all {
+  padding: 0.375rem 0.75rem;
   background: none;
   border: none;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 500;
   color: #6B6B6F;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: color 0.2s;
 }
 
-.cuspro-view-all:hover {
+.adsih-view-all:hover {
   color: #1F1F1F;
 }
 
-.cuspro-activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+.adsih-activity-list {
+  max-height: 400px;
+  overflow-y: auto;
 }
 
-.cuspro-activity-item {
+.adsih-activity-item {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.75rem;
-  background: #F8F9FA;
-  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #E5E5E8;
+  transition: background 0.2s;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.cuspro-activity-item:hover {
-  background: #F5F5F7;
-  transform: translateX(4px);
+.adsih-activity-item:hover {
+  background: #F8F9FA;
 }
 
-.cuspro-activity-icon {
+.adsih-activity-icon {
   width: 40px;
   height: 40px;
-  background: #FFFFFF;
+  background: #F5F5F7;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1rem;
-  color: #6B6B6F;
-  border: 1px solid #E5E5E8;
+  color: #1F1F1F;
+  flex-shrink: 0;
 }
 
-.cuspro-activity-content {
+.adsih-activity-content {
   flex: 1;
 }
 
-.cuspro-activity-message {
-  font-size: 0.875rem;
+.adsih-activity-message {
+  font-size: 0.75rem;
   font-weight: 500;
   color: #1F1F1F;
   margin: 0 0 0.25rem 0;
 }
 
-.cuspro-activity-time {
+.adsih-activity-time {
   font-size: 0.65rem;
   color: #9CA3AF;
 }
 
-.cuspro-activity-status {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.7rem;
+.adsih-activity-status {
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.6rem;
   font-weight: 500;
+  white-space: nowrap;
 }
 
-.cuspro-activity-status.completed {
+.adsih-activity-status.completed-adsih {
   background: #E8F5E9;
   color: #2E7D32;
 }
 
-.cuspro-activity-status.pending {
-  background: #F5F5F7;
-  color: #6B6B6F;
-}
-
-.cuspro-activity-status.for-verification {
+.adsih-activity-status.pending-adsih {
   background: #FFF3E0;
   color: #E65100;
 }
 
-.cuspro-activity-status.scheduled {
+.adsih-activity-status.for-verification-adsih {
   background: #E3F2FD;
   color: #1565C0;
 }
 
-/* ============================================
-   EMPTY STATE
-   ============================================ */
-.cuspro-empty-activity {
+.adsih-activity-status.scheduled-adsih {
+  background: #E3F2FD;
+  color: #1565C0;
+}
+
+.adsih-empty-activity {
   text-align: center;
   padding: 2rem;
   color: #9CA3AF;
-}
-
-.cuspro-empty-activity p {
-  margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
 }
 
 /* ============================================
    ERROR STATE
    ============================================ */
-.cuspro-error-state {
+.adsih-error-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 400px;
   text-align: center;
-  background: #FFFFFF;
-  border-radius: 20px;
   padding: 2rem;
-  margin: 2rem;
-  border: 1px solid #E5E5E8;
 }
 
-.cuspro-error-icon {
+.adsih-error-icon {
   font-size: 3rem;
-  color: #6B6B6F;
+  color: #C62828;
   margin-bottom: 1rem;
 }
 
-.cuspro-error-state h2 {
+.adsih-error-state h2 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1F1F1F;
   margin: 0 0 0.5rem 0;
+  color: #1F1F1F;
 }
 
-.cuspro-error-state p {
+.adsih-error-state p {
   font-size: 0.875rem;
   color: #6B6B6F;
   margin: 0 0 1.5rem 0;
 }
 
-.cuspro-retry-btn {
-  padding: 0.75rem 1.5rem;
+.adsih-retry-btn {
+  padding: 0.5rem 1.5rem;
   background: #1F1F1F;
   color: #FFFFFF;
   border: none;
-  border-radius: 12px;
-  font-size: 0.875rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s;
 }
 
-.cuspro-retry-btn:hover {
+.adsih-retry-btn:hover {
   background: #3A3A3A;
 }
 
 /* ============================================
-   SKELETON LOADER
+   SKELETON LOADING
    ============================================ */
-.cuspro-skeleton-title {
+.adsih-skeleton-title {
   width: 200px;
   height: 32px;
   background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
   background-size: 200% 100%;
-  animation: cuspro-shimmer 1.5s infinite;
+  animation: pulse-adsih 1.5s infinite;
   border-radius: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
 }
 
-.cuspro-skeleton-subtitle {
+.adsih-skeleton-subtitle {
   width: 300px;
   height: 20px;
   background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
   background-size: 200% 100%;
-  animation: cuspro-shimmer 1.5s infinite;
+  animation: pulse-adsih 1.5s infinite;
   border-radius: 8px;
 }
 
-.cuspro-skeleton-card {
+.adsih-skeleton-card {
   background: #FFFFFF;
+  border: 1px solid #E5E5E8;
+  border-radius: 16px;
+  padding: 1.25rem;
 }
 
-.cuspro-skeleton-line {
+.adsih-skeleton-line {
   height: 16px;
   background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
   background-size: 200% 100%;
-  animation: cuspro-shimmer 1.5s infinite;
+  animation: pulse-adsih 1.5s infinite;
   border-radius: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 0.5rem;
 }
 
-.cuspro-skeleton-large {
+.adsih-skeleton-large {
   height: 32px;
+  width: 80%;
+  margin-top: 0.5rem;
+}
+
+.adsih-skeleton-small {
   width: 60%;
 }
 
-.cuspro-skeleton-small {
-  height: 12px;
-  width: 40%;
-}
-
-.cuspro-skeleton-chart {
-  height: 150px;
+.adsih-skeleton-chart {
+  height: 200px;
   background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
   background-size: 200% 100%;
-  animation: cuspro-shimmer 1.5s infinite;
-  border-radius: 12px;
+  animation: pulse-adsih 1.5s infinite;
+  border-radius: 8px;
+  margin-top: 1rem;
 }
 
-@keyframes cuspro-shimmer {
+@keyframes pulse-adsih {
   0% {
     background-position: 200% 0;
   }
@@ -555,92 +581,68 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE
    ============================================ */
-@media (max-width: 1200px) {
-  .cuspro-stats-grid {
+@media (max-width: 1024px) {
+  .adsih-stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 1024px) {
-  .cuspro-dashboard-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .cuspro-quick-actions {
-    order: -1;
-  }
-}
-
 @media (max-width: 768px) {
-  .cuspro-admin-dashboard {
+  .adsih-admin-dashboard {
     padding: 1rem;
   }
   
-  .cuspro-stats-grid {
+  .adsih-stats-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
   
-  .cuspro-stat-card {
-    padding: 1.25rem;
+  .adsih-stat-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
   
-  .cuspro-stat-value {
+  .adsih-stat-value {
     font-size: 1.5rem;
   }
   
-  .cuspro-chart-card,
-  .cuspro-quick-actions,
-  .cuspro-recent-activity {
-    padding: 1rem;
+  .adsih-dashboard-row {
+    gap: 1rem;
   }
   
-  .cuspro-bar-chart {
-    height: 150px;
+  .adsih-bar-chart {
+    overflow-x: auto;
+    min-width: 560px;
   }
   
-  .cuspro-bar-value {
-    font-size: 0.5rem;
-  }
-  
-  .cuspro-activity-item {
+  .adsih-activity-item {
     flex-wrap: wrap;
   }
   
-  .cuspro-activity-status {
-    margin-left: 52px;
+  .adsih-activity-status {
+    margin-left: 48px;
   }
 }
 
 @media (max-width: 480px) {
-  .cuspro-dashboard-header h1 {
+  .adsih-dashboard-header h1 {
     font-size: 1.5rem;
   }
   
-  .cuspro-stat-details {
+  .adsih-stat-details {
     flex-direction: column;
     gap: 0.5rem;
   }
   
-  .cuspro-bar-chart {
-    gap: 0.25rem;
+  .adsih-action-btn {
+    padding: 0.625rem 0.875rem;
   }
   
-  .cuspro-bar-label {
-    font-size: 0.55rem;
-  }
-  
-  .cuspro-chart-header {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: flex-start;
-  }
-  
-  .cuspro-export-btn {
-    width: 100%;
-    justify-content: center;
+  .adsih-activity-item {
+    padding: 0.875rem 1rem;
   }
 }
 

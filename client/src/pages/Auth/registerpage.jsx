@@ -270,7 +270,6 @@ const RegisterPage = () => {
     }
   };
 
-  // GOOGLE REGISTER
   const handleGoogleRegister = async () => {
     setSocialLoading('google');
     

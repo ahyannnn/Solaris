@@ -1,42 +1,8 @@
 // pages/Customer/Quotation.cuspro.jsx
-
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import {
-  FaProjectDiagram,
-  FaFileInvoice,
-  FaSpinner,
-  FaEye,
-  FaDownload,
-  FaCheckCircle,
-  FaClock,
-  FaCalendarAlt,
-  FaUser,
-  FaEnvelope,
-  FaPhone,
-  FaMapMarkerAlt,
-  FaCreditCard,
-  FaMoneyBillWave,
-  FaTools,
-  FaSolarPanel,
-  FaMicrochip,
-  FaWifi,
-  FaRulerCombined,
-  FaHistory,
-  FaFileAlt,
-  FaUserCog,
-  FaBan,
-  FaTimesCircle,
-  FaInfoCircle,
-  FaArrowRight,
-  FaPlus,
-  FaTrash,
-  FaSave,
-  FaTimes,
-  FaQrcode
-} from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/quotation.css';
 
@@ -45,13 +11,15 @@ const Quotation = () => {
   const location = useLocation();
   const { toast, showToast, hideToast } = useToast();
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('projects');
+  const [activeTab, setActiveTab] = useState('my-bills');
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showRequestModal, setShowRequestModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showAcceptModal, setShowAcceptModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [successDetails, setSuccessDetails] = useState(null);
   const [showFullPaymentModal, setShowFullPaymentModal] = useState(false);
   const [acceptingItem, setAcceptingItem] = useState(null);
   const [acceptingLoading, setAcceptingLoading] = useState(false);
@@ -62,15 +30,8 @@ const Quotation = () => {
   const [paymentProof, setPaymentProof] = useState(null);
   const [paymentReference, setPaymentReference] = useState('');
   const [selectedPaymentPreference, setSelectedPaymentPreference] = useState('installment');
-
-  // Solar Installation Request Form
-  const [solarRequest, setSolarRequest] = useState({
-    systemSize: '',
-    propertyType: 'residential',
-    systemType: 'grid-tie',
-    notes: ''
-  });
-  const [requestErrors, setRequestErrors] = useState({});
+  const [paymentFilter, setPaymentFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // State for actual data from API
   const [freeQuotes, setFreeQuotes] = useState([]);
@@ -138,6 +99,7 @@ const Quotation = () => {
           status: assessment.paymentStatus === 'paid' ? 'paid' :
             assessment.paymentStatus === 'for_verification' ? 'for_verification' : 'pending',
           description: 'Pre Assessment Fee',
+          type: 'pre-assessment',
           bookingReference: assessment.bookingReference,
           paymentStatus: assessment.paymentStatus,
           propertyType: assessment.propertyType,
@@ -159,12 +121,33 @@ const Quotation = () => {
           batteryType: assessment.quotation?.systemDetails?.batteryType
         })) || [];
 
-      setPreAssessments(transformedBills);
-
-      const paymentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/payments`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const projectBills = [];
+      projectsRes.data.projects?.forEach(project => {
+        if (project.paymentSchedule && project.paymentSchedule.length > 0) {
+          project.paymentSchedule.forEach(payment => {
+            projectBills.push({
+              id: `${project.projectReference}_${payment.type}`,
+              date: new Date(payment.dueDate).toLocaleDateString(),
+              dueDate: new Date(payment.dueDate).toLocaleDateString(),
+              amount: payment.amount,
+              status: payment.status === 'paid' ? 'paid' : 
+                      payment.status === 'overdue' ? 'overdue' : 'pending',
+              description: `${project.projectName} - ${payment.type === 'initial' ? 'Initial Deposit (30%)' : 
+                          payment.type === 'progress' ? 'Progress Payment (40%)' : 
+                          payment.type === 'final' ? 'Final Payment (30%)' : 'Full Payment'}`,
+              type: 'project',
+              projectId: project._id,
+              projectName: project.projectName,
+              projectReference: project.projectReference,
+              paymentType: payment.type,
+              paymentPreference: project.paymentPreference
+            });
+          });
+        }
       });
-      setPayments(paymentsRes.data.payments || []);
+
+      setPreAssessments(transformedBills);
+      setPayments([...transformedBills, ...projectBills]);
 
       setLoading(false);
     } catch (err) {
@@ -174,101 +157,158 @@ const Quotation = () => {
     }
   };
 
-  const validateRequestForm = () => {
-    const errors = {};
-    if (!solarRequest.systemSize) {
-      errors.systemSize = 'Please select or enter system size';
-    }
-    if (!solarRequest.propertyType) {
-      errors.propertyType = 'Please select property type';
-    }
-    setRequestErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleRequestSolarClick = () => {
-    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-    if (!token) {
-      showToast('Please login to request installation', 'warning');
-      navigate('/login');
-      return;
-    }
-    setShowRequestModal(true);
-  };
-
-  const handleRequestSolar = async () => {
-    if (!validateRequestForm()) {
-      return;
-    }
-
-    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-    if (!token) {
-      showToast('Session expired. Please login again.', 'error');
-      navigate('/login');
-      return;
-    }
-
+  // PayMongo Card Payment Handler for Pre-assessment
+  const handlePayMongoCardPayment = async () => {
     setIsSubmitting(true);
-
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/projects/request`,
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      
+      const cardNumber = document.getElementById('card-number')?.value.replace(/\s/g, '');
+      const cardExpiry = document.getElementById('card-expiry')?.value;
+      const cardCvc = document.getElementById('card-cvc')?.value;
+
+      if (!cardNumber || !cardExpiry || !cardCvc) {
+        showToast('Please fill in all card details', 'warning');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const [expMonth, expYear] = cardExpiry.split('/');
+
+      const intentResponse = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/payments/pre-assessment/${selectedItem.assessmentId}/create-intent`,
+        { paymentMethod: 'card' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (!intentResponse.data.success) {
+        throw new Error('Failed to create payment intent');
+      }
+
+      const paymentIntentId = intentResponse.data.paymentIntentId;
+      
+      sessionStorage.setItem('pendingPaymentIntentId', paymentIntentId);
+
+      const paymentResponse = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/payments/process-card-payment`,
         {
-          systemSize: solarRequest.systemSize,
-          propertyType: solarRequest.propertyType,
-          systemType: solarRequest.systemType,
-          notes: solarRequest.notes
+          paymentIntentId: paymentIntentId,
+          cardDetails: {
+            cardNumber: cardNumber,
+            expMonth: parseInt(expMonth),
+            expYear: parseInt(expYear),
+            cvc: cardCvc
+          }
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      showToast('Solar installation request submitted successfully!', 'success');
-      setShowRequestModal(false);
-      setSolarRequest({ systemSize: '', propertyType: 'residential', systemType: 'grid-tie', notes: '' });
-      fetchData();
-
-    } catch (err) {
-      console.error('Error submitting solar request:', err);
-      if (err.response?.status === 401) {
-        showToast('Session expired. Please login again.', 'error');
-        navigate('/login');
+      if (paymentResponse.data.success) {
+        setSuccessMessage('Payment Successful!');
+        setSuccessDetails({
+          title: 'Payment Completed',
+          message: 'Your payment has been successfully processed.',
+          reference: selectedItem.bookingReference
+        });
+        setShowSuccessModal(true);
+        closeModal();
+        fetchData();
       } else {
-        showToast(err.response?.data?.message || 'Failed to submit request. Please try again.', 'error');
+        showToast(paymentResponse.data.message || 'Payment failed', 'error');
       }
+    } catch (err) {
+      console.error('Card payment error:', err);
+      showToast(err.response?.data?.message || 'Failed to process card payment', 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handlePayNowClick = (preAssessment) => {
-    handlePayNow(preAssessment);
+  // Project PayMongo Card Payment
+  const handleProjectPayMongoCardPayment = async () => {
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      
+      const cardNumber = document.getElementById('full-card-number')?.value.replace(/\s/g, '');
+      const cardExpiry = document.getElementById('full-card-expiry')?.value;
+      const cardCvc = document.getElementById('full-card-cvc')?.value;
+
+      if (!cardNumber || !cardExpiry || !cardCvc) {
+        showToast('Please fill in all card details', 'warning');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const [expMonth, expYear] = cardExpiry.split('/');
+
+      const intentResponse = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/payments/project/${selectedItem._id}/payment/full/create-intent`,
+        { paymentMethod: 'card' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (!intentResponse.data.success) {
+        throw new Error('Failed to create payment intent');
+      }
+
+      const paymentIntentId = intentResponse.data.paymentIntentId;
+
+      const paymentResponse = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/payments/process-card-payment`,
+        {
+          paymentIntentId: paymentIntentId,
+          cardDetails: {
+            cardNumber: cardNumber,
+            expMonth: parseInt(expMonth),
+            expYear: parseInt(expYear),
+            cvc: cardCvc
+          }
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (paymentResponse.data.success) {
+        setSuccessMessage('Payment Successful!');
+        setSuccessDetails({
+          title: 'Full Payment Completed',
+          message: 'Your full payment has been successfully processed.',
+          reference: selectedItem.projectReference
+        });
+        setShowSuccessModal(true);
+        closeFullPaymentModal();
+        fetchData();
+      } else {
+        showToast(paymentResponse.data.message || 'Payment failed', 'error');
+      }
+    } catch (err) {
+      console.error('Project card payment error:', err);
+      showToast(err.response?.data?.message || 'Failed to process card payment', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handlePayNow = async (preAssessment) => {
-    const assessmentId = preAssessment.assessmentId || preAssessment._id;
-    
-    if (!assessmentId) {
-      showToast('Invalid assessment data. Cannot process payment.', 'error');
-      return;
+  const handlePayNowClick = (item) => {
+    if (item.type === 'project') {
+      const project = projects.find(p => p._id === item.projectId);
+      if (project) {
+        setSelectedItem(project);
+        setShowFullPaymentModal(true);
+      }
+    } else {
+      setSelectedItem(item);
+      setPaymentMethod(null);
+      setPaymentProof(null);
+      setPaymentReference('');
+      setShowPaymentModal(true);
     }
-    
-    setSelectedItem({
-      ...preAssessment,
-      bookingReference: preAssessment.bookingReference,
-      assessmentId: assessmentId,
-    });
-    
-    setShowPaymentModal(true);
   };
 
   const handleAcceptQuotationClick = (assessment) => {
     setAcceptingItem(assessment);
     setSelectedPaymentPreference('installment');
     setShowAcceptModal(true);
-  };
-
-  const handleFullPaymentClick = (project) => {
-    setSelectedItem(project);
-    setShowFullPaymentModal(true);
   };
 
   const handleViewDetails = (item, type) => {
@@ -333,18 +373,17 @@ const Quotation = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const project = response.data.project;
-
-      if (selectedPaymentPreference === 'full') {
-        showToast('Quotation accepted! You can now proceed with full payment.', 'success');
-      } else {
-        showToast('Quotation accepted successfully!', 'success');
-      }
+      setSuccessMessage('Quotation Accepted!');
+      setSuccessDetails({
+        title: 'Quotation Accepted Successfully',
+        message: `Your quotation has been accepted. ${selectedPaymentPreference === 'full' ? 'You can now proceed with full payment.' : 'You can now proceed with installment payments.'}`,
+        reference: response.data.project?.projectReference
+      });
+      setShowSuccessModal(true);
 
       setShowAcceptModal(false);
       setAcceptingItem(null);
       fetchData();
-      setActiveTab('projects');
 
     } catch (err) {
       console.error('Error accepting quotation:', err);
@@ -354,68 +393,6 @@ const Quotation = () => {
     }
   };
 
-  // PayMongo Card Payment Handler
-  const handlePayMongoCardPayment = async () => {
-    setIsSubmitting(true);
-    try {
-      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-      
-      const cardNumber = document.getElementById('card-number')?.value.replace(/\s/g, '');
-      const cardExpiry = document.getElementById('card-expiry')?.value;
-      const cardCvc = document.getElementById('card-cvc')?.value;
-
-      if (!cardNumber || !cardExpiry || !cardCvc) {
-        showToast('Please fill in all card details', 'warning');
-        setIsSubmitting(false);
-        return;
-      }
-
-      const [expMonth, expYear] = cardExpiry.split('/');
-
-      const intentResponse = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/payments/pre-assessment/${selectedItem.assessmentId}/create-intent`,
-        { paymentMethod: 'card' },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (!intentResponse.data.success) {
-        throw new Error('Failed to create payment intent');
-      }
-
-      const paymentIntentId = intentResponse.data.paymentIntentId;
-      
-      sessionStorage.setItem('pendingPaymentIntentId', paymentIntentId);
-
-      const paymentResponse = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/payments/process-card-payment`,
-        {
-          paymentIntentId: paymentIntentId,
-          cardDetails: {
-            cardNumber: cardNumber,
-            expMonth: parseInt(expMonth),
-            expYear: parseInt(expYear),
-            cvc: cardCvc
-          }
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (paymentResponse.data.success) {
-        showToast('Payment successful!', 'success');
-        closeModal();
-        fetchData();
-      } else {
-        showToast(paymentResponse.data.message || 'Payment failed', 'error');
-      }
-    } catch (err) {
-      console.error('Card payment error:', err);
-      showToast(err.response?.data?.message || 'Failed to process card payment', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Manual GCash Payment Handler (Original Working Flow)
   const handlePaymentSubmit = async () => {
     if (!paymentMethod) {
       showToast('Please select a payment method', 'warning');
@@ -452,7 +429,13 @@ const Quotation = () => {
           }
         });
 
-        showToast('Payment submitted for verification!', 'success');
+        setSuccessMessage('Payment Submitted!');
+        setSuccessDetails({
+          title: 'Payment Submitted for Verification',
+          message: 'Your payment has been submitted and is now pending verification.',
+          reference: selectedItem.bookingReference
+        });
+        setShowSuccessModal(true);
         closeModal();
         fetchData();
       } else if (paymentMethod === 'cash') {
@@ -462,7 +445,13 @@ const Quotation = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        showToast('Cash payment selected. Please visit our office to complete payment.', 'success');
+        setSuccessMessage('Cash Payment Selected!');
+        setSuccessDetails({
+          title: 'Cash Payment Option',
+          message: 'Please visit our office to complete your payment.',
+          reference: selectedItem.bookingReference
+        });
+        setShowSuccessModal(true);
         closeModal();
         fetchData();
       }
@@ -474,7 +463,6 @@ const Quotation = () => {
     }
   };
 
-  // Cash payment for Pre-assessment
   const handleCashPaymentSubmit = async () => {
     setIsSubmitting(true);
     try {
@@ -486,90 +474,18 @@ const Quotation = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      showToast('Cash payment selected. Please visit our office to complete payment.', 'success');
+      setSuccessMessage('Cash Payment Selected!');
+      setSuccessDetails({
+        title: 'Cash Payment Option',
+        message: 'Please visit our office to complete your payment.',
+        reference: selectedItem.bookingReference
+      });
+      setShowSuccessModal(true);
       closeModal();
       fetchData();
     } catch (err) {
       console.error('Cash payment error:', err);
       showToast(err.response?.data?.message || 'Failed to process cash payment', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Project PayMongo Payment
-  const handleProjectPayMongoPayment = async (method) => {
-    setIsSubmitting(true);
-    try {
-      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/payments/project/${selectedItem._id}/payment/full/create-intent`,
-        { paymentMethod: method },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (method === 'gcash' && response.data.type === 'redirect') {
-        sessionStorage.setItem('pendingPaymentIntentId', response.data.paymentIntentId);
-        sessionStorage.setItem('paymentType', 'project');
-        window.location.href = response.data.redirectUrl;
-      } else if (method === 'card') {
-        const cardNumber = document.getElementById('full-card-number')?.value.replace(/\s/g, '');
-        const cardExpiry = document.getElementById('full-card-expiry')?.value;
-        const cardCvc = document.getElementById('full-card-cvc')?.value;
-
-        if (!cardNumber || !cardExpiry || !cardCvc) {
-          showToast('Please fill in all card details', 'warning');
-          setIsSubmitting(false);
-          return;
-        }
-
-        const [expMonth, expYear] = cardExpiry.split('/');
-
-        if (!window.Paymongo) {
-          const script = document.createElement('script');
-          script.src = 'https://js.paymongo.com/v1';
-          await new Promise((resolve) => {
-            script.onload = resolve;
-            document.head.appendChild(script);
-          });
-        }
-
-        const paymongo = window.Paymongo;
-        const paymentMethodResult = await paymongo.createPaymentMethod({
-          type: 'card',
-          card: {
-            number: cardNumber,
-            exp_month: parseInt(expMonth),
-            exp_year: parseInt(expYear),
-            cvc: cardCvc
-          }
-        });
-
-        await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/payments/attach-payment-method`,
-          {
-            paymentIntentId: response.data.paymentIntentId,
-            paymentMethodId: paymentMethodResult.data.id
-          },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        const verifyResponse = await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/payments/verify`,
-          { paymentIntentId: response.data.paymentIntentId },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        if (verifyResponse.data.success) {
-          showToast('Payment successful!', 'success');
-          closeFullPaymentModal();
-          fetchData();
-        }
-      }
-    } catch (err) {
-      console.error('Project payment error:', err);
-      showToast(err.response?.data?.message || 'Failed to process payment', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -619,8 +535,15 @@ const Quotation = () => {
           }
         );
 
-        showToast('Full payment submitted successfully!', 'success');
-
+        setSuccessMessage('Full Payment Submitted!');
+        setSuccessDetails({
+          title: 'Full Payment Submitted for Verification',
+          message: 'Your full payment has been submitted and is now pending verification.',
+          reference: selectedItem.projectReference
+        });
+        setShowSuccessModal(true);
+        closeFullPaymentModal();
+        fetchData();
       } else if (paymentMethod === 'cash') {
         await axios.post(
           `${import.meta.env.VITE_API_URL}/api/projects/${selectedItem._id}/full-payment`,
@@ -637,16 +560,19 @@ const Quotation = () => {
           }
         );
 
-        showToast('Full payment selected. Please visit our office to complete payment.', 'success');
+        setSuccessMessage('Cash Payment Selected!');
+        setSuccessDetails({
+          title: 'Cash Payment Option',
+          message: 'Please visit our office to complete your full payment.',
+          reference: selectedItem.projectReference
+        });
+        setShowSuccessModal(true);
+        closeFullPaymentModal();
+        fetchData();
       }
-
-      closeFullPaymentModal();
-      fetchData();
-
     } catch (err) {
       console.error('Payment error:', err);
-      const errorMessage = err.response?.data?.message || 'Failed to process payment. Please try again.';
-      showToast(errorMessage, 'error');
+      showToast(err.response?.data?.message || 'Failed to process payment', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -668,6 +594,12 @@ const Quotation = () => {
     setPaymentMethod(null);
   };
 
+  const closeSuccessModal = () => {
+    setShowSuccessModal(false);
+    setSuccessMessage('');
+    setSuccessDetails(null);
+  };
+
   const getStatusBadge = (status) => {
     const badges = {
       'pending': <span className="status-badge-cuspro pending-cuspro">Pending</span>,
@@ -680,7 +612,8 @@ const Quotation = () => {
       'initial_paid': <span className="status-badge-cuspro initial-paid-cuspro">Initial Paid</span>,
       'in_progress': <span className="status-badge-cuspro in-progress-cuspro">In Progress</span>,
       'completed': <span className="status-badge-cuspro completed-cuspro">Completed</span>,
-      'cancelled': <span className="status-badge-cuspro cancelled-cuspro">Cancelled</span>
+      'cancelled': <span className="status-badge-cuspro cancelled-cuspro">Cancelled</span>,
+      'overdue': <span className="status-badge-cuspro overdue-cuspro">Overdue</span>
     };
     return badges[status] || <span className="status-badge-cuspro">{status}</span>;
   };
@@ -694,6 +627,29 @@ const Quotation = () => {
     }).format(amount);
   };
 
+  // Filter payments based on selected filter and search term
+  const getFilteredPayments = () => {
+    let filtered = payments;
+    
+    // Apply status filter
+    if (paymentFilter !== 'all') {
+      filtered = filtered.filter(payment => payment.status === paymentFilter);
+    }
+    
+    // Apply search term
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(payment => 
+        payment.id?.toLowerCase().includes(term) ||
+        payment.bookingReference?.toLowerCase().includes(term) ||
+        payment.description?.toLowerCase().includes(term) ||
+        payment.projectName?.toLowerCase().includes(term)
+      );
+    }
+    
+    return filtered;
+  };
+
   const SkeletonLoader = () => (
     <div className="cuspro-quotation-container">
       <div className="cuspro-header-card skeleton-card">
@@ -701,34 +657,19 @@ const Quotation = () => {
           <div className="skeleton-line large"></div>
           <div className="skeleton-line medium"></div>
         </div>
-        <div className="skeleton-button"></div>
       </div>
 
       <div className="cuspro-tabs skeleton-tabs">
         <div className="skeleton-tab"></div>
         <div className="skeleton-tab"></div>
-        <div className="skeleton-tab"></div>
-        <div className="skeleton-tab"></div>
       </div>
 
-      <div className="cuspro-projects-section">
-        <div className="cuspro-project-card skeleton-card">
-          <div className="cuspro-project-header">
-            <div>
-              <div className="skeleton-line medium"></div>
-              <div className="skeleton-line small"></div>
-            </div>
-            <div className="skeleton-badge"></div>
-          </div>
-          <div className="skeleton-stats">
-            <div className="skeleton-stat"></div>
-            <div className="skeleton-stat"></div>
-          </div>
-          <div className="skeleton-table"></div>
-          <div className="skeleton-actions">
-            <div className="skeleton-button small"></div>
-            <div className="skeleton-button small"></div>
-          </div>
+      <div className="cuspro-bills-section">
+        <div className="cuspro-bill-card skeleton-card">
+          <div className="skeleton-line medium"></div>
+          <div className="skeleton-line small"></div>
+          <div className="skeleton-line"></div>
+          <div className="skeleton-button small"></div>
         </div>
       </div>
     </div>
@@ -738,7 +679,7 @@ const Quotation = () => {
     return (
       <>
         <Helmet>
-          <title>My Solar Journey | Salfer Engineering</title>
+          <title>My Bills | Salfer Engineering</title>
         </Helmet>
         <SkeletonLoader />
       </>
@@ -748,318 +689,161 @@ const Quotation = () => {
   return (
     <>
       <Helmet>
-        <title>My Solar Journey | Salfer Engineering</title>
+        <title>My Bills | Salfer Engineering</title>
       </Helmet>
 
       <div className="cuspro-quotation-container">
         {/* Header Card */}
         <div className="cuspro-header-card">
           <div className="cuspro-header-content">
-            <h1>My Solar Journey</h1>
-            <p>Track your projects, view quotes, and manage payments</p>
+            <h1>My Bills</h1>
+            <p>Track and manage your payments</p>
           </div>
-          <button className="cuspro-request-btn" onClick={handleRequestSolarClick}>
-            <FaTools /> Request Installation
-          </button>
         </div>
 
-        {/* Tab Navigation */}
+        {/* Tab Navigation - 2 tabs only */}
         <div className="cuspro-tabs">
           <button
-            className={`cuspro-tab ${activeTab === 'projects' ? 'active' : ''}`}
-            onClick={() => setActiveTab('projects')}
+            className={`cuspro-tab ${activeTab === 'my-bills' ? 'active' : ''}`}
+            onClick={() => setActiveTab('my-bills')}
           >
-            My Projects
+            My Bills
           </button>
           <button
-            className={`cuspro-tab ${activeTab === 'free-quotes' ? 'active' : ''}`}
-            onClick={() => setActiveTab('free-quotes')}
-          >
-            Free Quotes
-          </button>
-          <button
-            className={`cuspro-tab ${activeTab === 'pre-assessments' ? 'active' : ''}`}
-            onClick={() => setActiveTab('pre-assessments')}
-          >
-            Pre-Assessment
-          </button>
-          <button
-            className={`cuspro-tab ${activeTab === 'payments' ? 'active' : ''}`}
-            onClick={() => setActiveTab('payments')}
+            className={`cuspro-tab ${activeTab === 'payment-history' ? 'active' : ''}`}
+            onClick={() => setActiveTab('payment-history')}
           >
             Payment History
           </button>
         </div>
 
-        {/* Projects Tab */}
-        {activeTab === 'projects' && (
-          <div className="cuspro-projects-section">
-            {projects.length === 0 ? (
-              <div className="cuspro-empty-state">
-                <FaProjectDiagram className="cuspro-empty-icon" />
-                <h3>No projects yet</h3>
-                <p>Once you accept a quotation, your project will appear here.</p>
-                <button className="cuspro-primary-btn" onClick={() => setActiveTab('pre-assessments')}>
-                  View Your Quotations
-                </button>
+        {/* My Bills Tab */}
+        {activeTab === 'my-bills' && (
+          <div className="cuspro-bills-section">
+            {/* Filter and Search */}
+            <div className="cuspro-filter-search-section">
+              <div className="cuspro-filter-group">
+                <select 
+                  value={paymentFilter} 
+                  onChange={(e) => setPaymentFilter(e.target.value)}
+                  className="cuspro-filter-select"
+                >
+                  <option value="all">All Bills</option>
+                  <option value="pending">Pending Payment</option>
+                  <option value="paid">Paid</option>
+                  <option value="for_verification">For Verification</option>
+                </select>
               </div>
-            ) : (
-              projects.map(project => {
-                const hasFullPaymentOption = project.paymentPreference === 'full' && !project.fullPaymentCompleted;
-
-                return (
-                  <div key={project._id} className="cuspro-project-card">
-                    <div className="cuspro-project-header">
-                      <div className="cuspro-project-info">
-                        <h3>{project.projectName || project.projectReference}</h3>
-                        <p className="cuspro-project-ref">{project.projectReference}</p>
-                        <p className="cuspro-project-system">{project.systemSize}kW • {project.systemType === 'grid-tie' ? 'Grid-Tie' : project.systemType === 'hybrid' ? 'Hybrid' : 'Off-Grid'}</p>
-                        {project.paymentPreference === 'full' && (
-                          <p className="cuspro-payment-preference-badge">Full Payment Selected</p>
-                        )}
-                      </div>
-                      {getStatusBadge(project.status)}
-                    </div>
-
-                    <div className="cuspro-payment-info-section">
-                      <div className="cuspro-payment-stats">
-                        <div className="cuspro-stat-item">
-                          <span className="cuspro-stat-label">Total Amount</span>
-                          <span className="cuspro-stat-value">{formatCurrency(project.totalCost)}</span>
-                        </div>
-                        <div className="cuspro-stat-item">
-                          <span className="cuspro-stat-label">Amount Paid</span>
-                          <span className="cuspro-stat-value">{formatCurrency(project.amountPaid)}</span>
-                        </div>
-                        <div className="cuspro-stat-item">
-                          <span className="cuspro-stat-label">Remaining Balance</span>
-                          <span className="cuspro-stat-value">{formatCurrency(project.totalCost - project.amountPaid)}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {project.paymentPreference === 'installment' && project.paymentSchedule?.length > 0 && (
-                      <div className="cuspro-payment-table-wrapper">
-                        <h4>Installment Payment Schedule</h4>
-                        <table className="cuspro-payment-table">
-                          <thead>
-                            <tr>
-                              <th>Payment Type</th>
-                              <th>Amount</th>
-                              <th>Due Date</th>
-                              <th>Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {project.paymentSchedule.map((payment, idx) => (
-                              <tr key={idx}>
-                                <td className="cuspro-payment-type-cell">
-                                  {payment.type === 'initial' ? 'Initial Deposit (30%)' :
-                                    payment.type === 'progress' ? 'Progress Payment (40%)' :
-                                      payment.type === 'final' ? 'Final Payment (30%)' :
-                                        'Full Payment'}
-                                </td>
-                                <td>{formatCurrency(payment.amount)}</td>
-                                <td>{payment.dueDate ? new Date(payment.dueDate).toLocaleDateString() : 'TBD'}</td>
-                                <td>
-                                  <span className={`cuspro-payment-status ${payment.status}`}>
-                                    {payment.status === 'paid' ? 'Paid' :
-                                      payment.status === 'overdue' ? 'Overdue' : 'Pending'}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-
-                    {project.paymentPreference === 'full' && !project.fullPaymentCompleted && (
-                      <div className="cuspro-full-payment-section">
-                        <div className="cuspro-full-payment-info">
-                          <h4>Full Payment Option</h4>
-                          <div className="cuspro-full-payment-details">
-                            <p className="cuspro-full-amount">
-                              Total Amount: <strong>{formatCurrency(project.totalCost)}</strong>
-                            </p>
-                            <p className="cuspro-payment-note">
-                              Pay the full amount upfront to complete your project
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="cuspro-project-actions">
-                      <button className="cuspro-secondary-btn" onClick={() => handleViewDetails(project, 'project')}>
-                        <FaEye /> View Details
-                      </button>
-                      <button className="cuspro-secondary-btn">
-                        <FaFileAlt /> Contract
-                      </button>
-                      {(project.status === 'approved' || project.status === 'initial_paid' || project.status === 'quoted') && (
-                        <>
-                          {project.paymentPreference === 'full' && !project.fullPaymentCompleted ? (
-                            <button className="cuspro-primary-btn-small" onClick={() => handleFullPaymentClick(project)}>
-                              <FaMoneyBillWave /> Make Full Payment
-                            </button>
-                          ) : project.paymentPreference === 'installment' && (
-                            <button className="cuspro-primary-btn-small">
-                              <FaMoneyBillWave /> Make Payment
-                            </button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        )}
-
-        {/* Free Quotes Tab */}
-        {activeTab === 'free-quotes' && (
-          <div className="cuspro-quotes-section">
-            {freeQuotes.length === 0 ? (
-              <div className="cuspro-empty-state">
-                <FaFileInvoice className="cuspro-empty-icon" />
-                <h3>No free quotes yet</h3>
-                <p>Use our solar estimator to get a free quote</p>
-                <button className="cuspro-primary-btn" onClick={() => navigate('/app/customer/book-assessment')}>
-                  Get Free Quote
-                </button>
+              <div className="cuspro-search-group">
+                <input 
+                  type="text" 
+                  placeholder="Search by reference or description..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="cuspro-search-input"
+                />
               </div>
-            ) : (
-              freeQuotes.map(quote => (
-                <div key={quote._id} className="cuspro-quote-card">
-                  <div className="cuspro-quote-header">
-                    <div>
-                      <h3>{quote.quotationReference}</h3>
-                      <p>Requested: {new Date(quote.requestedAt).toLocaleDateString()}</p>
-                      <p>{quote.propertyType} • {quote.desiredCapacity || 'Custom'} system</p>
-                    </div>
-                    {getStatusBadge(quote.status)}
-                  </div>
-                  <div className="cuspro-quote-actions">
-                    <button className="cuspro-secondary-btn" onClick={() => handleViewDetails(quote, 'quote')}>
-                      <FaEye /> View Details
-                    </button>
-                    {quote.quotationFile && (
-                      <button className="cuspro-secondary-btn" onClick={() => window.open(quote.quotationFile, '_blank')}>
-                        <FaFileInvoice /> View PDF
-                      </button>
-                    )}
-                  </div>
+            </div>
+
+            {/* Bills List */}
+            <div className="cuspro-bills-list">
+              {getFilteredPayments().length === 0 ? (
+                <div className="cuspro-empty-state">
+                  <h3>No bills found</h3>
+                  <p>Try adjusting your search or filter criteria.</p>
                 </div>
-              ))
-            )}
-          </div>
-        )}
-
-        {/* Pre-Assessments Tab */}
-        {activeTab === 'pre-assessments' && (
-          <div className="cuspro-assessments-section">
-            {preAssessments.length === 0 ? (
-              <div className="cuspro-empty-state">
-                <FaCalendarAlt className="cuspro-empty-icon" />
-                <h3>No pre-assessments yet</h3>
-                <p>Once your booking is approved and payment is completed, you'll see the quotation here.</p>
-                <button className="cuspro-primary-btn" onClick={() => navigate('/app/customer/book-assessment')}>
-                  Book Assessment
-                </button>
-              </div>
-            ) : (
-              preAssessments.map(assessment => {
-                const hasQuotation = assessment.quotationUrl;
-                const projectExists = projects.some(project => {
-                  if (project.preAssessmentId) {
-                    const projectPreAssessmentId = typeof project.preAssessmentId === 'object'
-                      ? project.preAssessmentId._id?.toString()
-                      : project.preAssessmentId?.toString();
-                    const assessmentId = assessment.assessmentId?.toString();
-                    return projectPreAssessmentId === assessmentId;
-                  }
-                  return false;
-                });
-                const alreadyProjectCreated = assessment.assessmentStatus === 'quotation_accepted' || projectExists;
-
-                return (
-                  <div key={assessment.id} className="cuspro-assessment-card">
-                    <div className="cuspro-assessment-header">
-                      <div>
-                        <h3>{assessment.id}</h3>
-                        <p>{assessment.description}</p>
-                        <p>Due: {assessment.dueDate}</p>
+              ) : (
+                getFilteredPayments().map((bill, index) => (
+                  <div key={index} className="cuspro-bill-card">
+                    <div className="cuspro-bill-header">
+                      <div className="cuspro-bill-info">
+                        <h3>{bill.description}</h3>
+                        <p className="cuspro-bill-ref">Ref: {bill.id || bill.bookingReference}</p>
+                        {bill.projectName && <p className="cuspro-bill-project">{bill.projectName}</p>}
                       </div>
-                      {getStatusBadge(assessment.status)}
+                      {getStatusBadge(bill.status)}
                     </div>
-                    <div className="cuspro-assessment-amount">
-                      <span>Amount Due</span>
-                      <strong>{formatCurrency(assessment.amount)}</strong>
+                    
+                    <div className="cuspro-bill-details">
+                      <div className="cuspro-bill-detail-item">
+                        <span>Due Date:</span>
+                        <strong>{bill.dueDate}</strong>
+                      </div>
+                      <div className="cuspro-bill-detail-item amount">
+                        <span>Amount:</span>
+                        <strong>{formatCurrency(bill.amount)}</strong>
+                      </div>
                     </div>
-                    <div className="cuspro-assessment-actions">
-                      {(assessment.status === 'pending' && assessment.paymentStatus !== 'for_verification' && assessment.paymentStatus !== 'paid') && (
-                        <button className="cuspro-pay-btn" onClick={() => handlePayNowClick(assessment)}>
-                          <FaMoneyBillWave /> Make Payment
+                    
+                    <div className="cuspro-bill-actions">
+                      {bill.status === 'pending' && (
+                        <button 
+                          className="cuspro-pay-btn" 
+                          onClick={() => handlePayNowClick(bill)}
+                        >
+                          Pay Now
                         </button>
                       )}
-
-                      {assessment.paymentStatus === 'for_verification' && (
+                      {bill.status === 'for_verification' && (
                         <span className="cuspro-verification-badge">
-                          <FaClock /> For Verification
+                          Payment Under Review
                         </span>
                       )}
-
-                      {assessment.paymentStatus === 'paid' && (
-                        <>
-                          {hasQuotation && !alreadyProjectCreated && (
-                            <>
-                              <button className="cuspro-secondary-btn" onClick={() => handleViewQuotation(assessment)}>
-                                <FaEye /> View Quotation
-                              </button>
-                              <button className="cuspro-secondary-btn" onClick={() => handleDownloadQuotation(assessment)} disabled={pdfLoading}>
-                                <FaDownload /> {pdfLoading ? 'Downloading...' : 'Download PDF'}
-                              </button>
-                              <button className="cuspro-accept-btn" onClick={() => handleAcceptQuotationClick(assessment)}>
-                                <FaCheckCircle /> Accept Quotation
-                              </button>
-                            </>
-                          )}
-
-                          {alreadyProjectCreated && (
-                            <button className="cuspro-view-project-btn" onClick={() => setActiveTab('projects')}>
-                              <FaProjectDiagram /> View Project
-                            </button>
-                          )}
-                        </>
+                      {bill.status === 'paid' && (
+                        <span className="cuspro-paid-badge">
+                          Payment Completed
+                        </span>
                       )}
-
-                      <button className="cuspro-secondary-btn" onClick={() => handleViewDetails(assessment, 'assessment')}>
-                        <FaEye /> View Details
+                      <button 
+                        className="cuspro-secondary-btn" 
+                        onClick={() => handleViewDetails(bill, 'bill')}
+                      >
+                        View Details
                       </button>
                     </div>
-
-                    {(assessment.status === 'pending' && assessment.paymentStatus !== 'for_verification' && assessment.paymentStatus !== 'paid') && (
-                      <div className="cuspro-walkin-note">
-                        <small>For walk-in payment, please visit our office at Purok 2, Masaya, San Jose, Camarines Sur</small>
-                      </div>
-                    )}
                   </div>
-                );
-              })
-            )}
+                ))
+              )}
+            </div>
           </div>
         )}
 
-        {/* Payments Tab */}
-        {activeTab === 'payments' && (
+        {/* Payment History Tab - Table View */}
+        {activeTab === 'payment-history' && (
           <div className="cuspro-payments-section">
-            {payments.length === 0 ? (
+            <div className="cuspro-payments-header">
+              <h3>Payment History</h3>
+            </div>
+            
+            {/* Filter and Search for Payment History */}
+            <div className="cuspro-filter-search-section">
+              <div className="cuspro-filter-group">
+                <select 
+                  value={paymentFilter} 
+                  onChange={(e) => setPaymentFilter(e.target.value)}
+                  className="cuspro-filter-select"
+                >
+                  <option value="all">All Payments</option>
+                  <option value="paid">Completed</option>
+                  <option value="for_verification">For Verification</option>
+                </select>
+              </div>
+              <div className="cuspro-search-group">
+                <input 
+                  type="text" 
+                  placeholder="Search by reference or description..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="cuspro-search-input"
+                />
+              </div>
+            </div>
+
+            {/* Payment History Table */}
+            {getFilteredPayments().filter(p => p.status === 'paid' || p.status === 'for_verification').length === 0 ? (
               <div className="cuspro-empty-state">
-                <FaCreditCard className="cuspro-empty-icon" />
                 <h3>No payment history</h3>
-                <p>Your payments will appear here</p>
+                <p>Your completed payments will appear here.</p>
               </div>
             ) : (
               <div className="cuspro-payments-table-wrapper">
@@ -1067,28 +851,33 @@ const Quotation = () => {
                   <thead>
                     <tr>
                       <th>Date</th>
-                      <th>Invoice Number</th>
+                      <th>Invoice / Reference</th>
                       <th>Description</th>
                       <th>Amount</th>
-                      <th>Payment Method</th>
                       <th>Status</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {payments.map(payment => (
-                      <tr key={payment.id}>
-                        <td>{new Date(payment.date).toLocaleDateString()}</td>
-                        <td className="cuspro-invoice-cell">{payment.invoiceId}</td>
-                        <td>{payment.description || 'Pre Assessment Fee'}</td>
-                        <td className="cuspro-amount-cell">{formatCurrency(payment.amount)}</td>
-                        <td className="cuspro-method-cell">
-                          <span className={`cuspro-method-badge ${payment.method}`}>
-                            {payment.method === 'gcash' ? 'GCash' : payment.method === 'cash' ? 'Cash' : payment.method}
-                          </span>
-                        </td>
-                        <td>{getStatusBadge(payment.status)}</td>
-                      </tr>
-                    ))}
+                    {getFilteredPayments()
+                      .filter(p => p.status === 'paid' || p.status === 'for_verification')
+                      .map((payment, idx) => (
+                        <tr key={idx}>
+                          <td>{payment.date || payment.dueDate}</td>
+                          <td className="cuspro-invoice-cell">{payment.id || payment.bookingReference}</td>
+                          <td>{payment.description}</td>
+                          <td className="cuspro-amount-cell">{formatCurrency(payment.amount)}</td>
+                          <td>{getStatusBadge(payment.status)}</td>
+                          <td>
+                            <button 
+                              className="cuspro-table-action-btn"
+                              onClick={() => handleViewDetails(payment, 'payment')}
+                            >
+                              View Details
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
@@ -1096,7 +885,26 @@ const Quotation = () => {
           </div>
         )}
 
-        {/* Accept Quotation Modal with Payment Preference */}
+        {/* Success Modal */}
+        {showSuccessModal && (
+          <div className="cuspro-modal-overlay" onClick={closeSuccessModal}>
+            <div className="cuspro-modal cuspro-success-modal" onClick={e => e.stopPropagation()}>
+              <h3>{successMessage}</h3>
+              <div className="cuspro-success-content">
+                <p><strong>{successDetails?.title}</strong></p>
+                <p>{successDetails?.message}</p>
+                {successDetails?.reference && (
+                  <p className="cuspro-success-ref">Reference: {successDetails.reference}</p>
+                )}
+              </div>
+              <button className="cuspro-success-btn" onClick={closeSuccessModal}>
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Accept Quotation Modal */}
         {showAcceptModal && acceptingItem && (
           <div className="cuspro-modal-overlay" onClick={() => setShowAcceptModal(false)}>
             <div className="cuspro-modal cuspro-accept-modal" onClick={e => e.stopPropagation()}>
@@ -1127,11 +935,7 @@ const Quotation = () => {
                   className={`cuspro-preference-option ${selectedPaymentPreference === 'installment' ? 'selected' : ''}`}
                   onClick={() => setSelectedPaymentPreference('installment')}
                 >
-                  <input
-                    type="radio"
-                    checked={selectedPaymentPreference === 'installment'}
-                    onChange={() => { }}
-                  />
+                  <input type="radio" checked={selectedPaymentPreference === 'installment'} onChange={() => {}} />
                   <div className="cuspro-preference-content">
                     <strong>Installment Payment</strong>
                     <small>Pay in 3 installments (30% - 40% - 30%)</small>
@@ -1147,11 +951,7 @@ const Quotation = () => {
                   className={`cuspro-preference-option ${selectedPaymentPreference === 'full' ? 'selected' : ''}`}
                   onClick={() => setSelectedPaymentPreference('full')}
                 >
-                  <input
-                    type="radio"
-                    checked={selectedPaymentPreference === 'full'}
-                    onChange={() => { }}
-                  />
+                  <input type="radio" checked={selectedPaymentPreference === 'full'} onChange={() => {}} />
                   <div className="cuspro-preference-content">
                     <strong>Full Payment</strong>
                     <small>Pay the full amount upfront</small>
@@ -1166,11 +966,7 @@ const Quotation = () => {
 
               <div className="cuspro-modal-actions">
                 <button className="cuspro-cancel-btn" onClick={() => setShowAcceptModal(false)}>Cancel</button>
-                <button
-                  className="cuspro-confirm-btn"
-                  onClick={confirmAcceptQuotation}
-                  disabled={acceptingLoading}
-                >
+                <button className="cuspro-confirm-btn" onClick={confirmAcceptQuotation} disabled={acceptingLoading}>
                   {acceptingLoading ? 'Processing...' : 'Confirm Selection'}
                 </button>
               </div>
@@ -1199,15 +995,14 @@ const Quotation = () => {
                 <h4>Select Payment Method</h4>
                 <div className="cuspro-method-options">
                   <div className={`cuspro-method-option ${paymentMethod === 'paymongo_card' ? 'selected' : ''}`} onClick={() => setPaymentMethod('paymongo_card')}>
-                    <input type="radio" checked={paymentMethod === 'paymongo_card'} onChange={() => { }} />
+                    <input type="radio" checked={paymentMethod === 'paymongo_card'} onChange={() => {}} />
                     <div>
                       <strong>Credit/Debit Card</strong>
-                      <small>Pay securely with card</small>
+                      <small>Instant payment - No receipt needed</small>
                     </div>
                   </div>
-
                   <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
-                    <input type="radio" checked={paymentMethod === 'cash'} onChange={() => { }} />
+                    <input type="radio" checked={paymentMethod === 'cash'} onChange={() => {}} />
                     <div>
                       <strong>Cash</strong>
                       <small>Pay in cash at our office</small>
@@ -1236,10 +1031,9 @@ const Quotation = () => {
                     </div>
                     <button
                       className="cuspro-paymongo-btn card-btn"
-                      onClick={() => handleProjectPayMongoPayment('card')}
+                      onClick={handleProjectPayMongoCardPayment}
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? <FaSpinner className="spinning" /> : <FaCreditCard />}
                       {isSubmitting ? 'Processing...' : `Pay ${formatCurrency(selectedItem.totalCost)}`}
                     </button>
                   </div>
@@ -1282,7 +1076,6 @@ const Quotation = () => {
               <div className="cuspro-payment-methods">
                 <h4>Select Payment Method</h4>
                 <div className="cuspro-method-options">
-                  {/* GCash - Manual Upload (Working) */}
                   <div className={`cuspro-method-option ${paymentMethod === 'gcash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('gcash')}>
                     <input type="radio" checked={paymentMethod === 'gcash'} onChange={() => {}} />
                     <div>
@@ -1290,8 +1083,6 @@ const Quotation = () => {
                       <small>Pay via GCash - Upload receipt for verification</small>
                     </div>
                   </div>
-
-                  {/* Credit/Debit Card - PayMongo Instant */}
                   <div className={`cuspro-method-option ${paymentMethod === 'paymongo_card' ? 'selected' : ''}`} onClick={() => setPaymentMethod('paymongo_card')}>
                     <input type="radio" checked={paymentMethod === 'paymongo_card'} onChange={() => {}} />
                     <div>
@@ -1299,8 +1090,6 @@ const Quotation = () => {
                       <small>Instant payment - No receipt needed</small>
                     </div>
                   </div>
-
-                  {/* Cash - Walk-in */}
                   <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
                     <input type="radio" checked={paymentMethod === 'cash'} onChange={() => {}} />
                     <div>
@@ -1311,7 +1100,7 @@ const Quotation = () => {
                 </div>
               </div>
 
-              {/* Manual GCash Section - Working */}
+              {/* Manual GCash Section */}
               {paymentMethod === 'gcash' && (
                 <>
                   <div className="cuspro-gcash-details">
@@ -1341,31 +1130,16 @@ const Quotation = () => {
                   <div className="cuspro-card-form">
                     <div className="cuspro-form-group">
                       <label>Card Number</label>
-                      <input
-                        type="text"
-                        id="card-number"
-                        placeholder="1234 5678 9012 3456"
-                        className="cuspro-card-input"
-                      />
+                      <input type="text" id="card-number" placeholder="1234 5678 9012 3456" />
                     </div>
                     <div className="cuspro-form-row">
                       <div className="cuspro-form-group">
                         <label>Expiry Date</label>
-                        <input
-                          type="text"
-                          id="card-expiry"
-                          placeholder="MM/YY"
-                          className="cuspro-card-input-small"
-                        />
+                        <input type="text" id="card-expiry" placeholder="MM/YY" />
                       </div>
                       <div className="cuspro-form-group">
                         <label>CVC</label>
-                        <input
-                          type="text"
-                          id="card-cvc"
-                          placeholder="123"
-                          className="cuspro-card-input-small"
-                        />
+                        <input type="text" id="card-cvc" placeholder="123" />
                       </div>
                     </div>
                     <button
@@ -1373,7 +1147,6 @@ const Quotation = () => {
                       onClick={handlePayMongoCardPayment}
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? <FaSpinner className="spinning" /> : <FaCreditCard />}
                       {isSubmitting ? 'Processing...' : `Pay ${formatCurrency(selectedItem.amount)}`}
                     </button>
                   </div>
@@ -1449,23 +1222,15 @@ const Quotation = () => {
                 ) : (
                   <>
                     <div className="cuspro-details-section">
-                      <h4>Project Information</h4>
-                      <p><strong>Project Name:</strong> {detailsItem.projectName || detailsItem.projectReference}</p>
-                      <p><strong>Project Reference:</strong> {detailsItem.projectReference}</p>
+                      <h4>Bill Information</h4>
+                      <p><strong>Description:</strong> {detailsItem.description}</p>
+                      <p><strong>Reference:</strong> {detailsItem.id || detailsItem.bookingReference}</p>
+                      <p><strong>Due Date:</strong> {detailsItem.dueDate}</p>
                       <p><strong>Status:</strong> {detailsItem.status}</p>
-                      <p><strong>Payment Preference:</strong> {detailsItem.paymentPreference === 'full' ? 'Full Payment' : 'Installment'}</p>
                     </div>
                     <div className="cuspro-details-section">
-                      <h4>System Details</h4>
-                      <p><strong>System Size:</strong> {detailsItem.systemSize}kW</p>
-                      <p><strong>System Type:</strong> {detailsItem.systemType}</p>
-                      <p><strong>Property Type:</strong> {detailsItem.propertyType}</p>
-                    </div>
-                    <div className="cuspro-details-section">
-                      <h4>Financial</h4>
-                      <p><strong>Total Cost:</strong> {formatCurrency(detailsItem.totalCost)}</p>
-                      <p><strong>Amount Paid:</strong> {formatCurrency(detailsItem.amountPaid)}</p>
-                      <p><strong>Balance:</strong> {formatCurrency(detailsItem.totalCost - detailsItem.amountPaid)}</p>
+                      <h4>Amount Details</h4>
+                      <p><strong>Amount Due:</strong> {formatCurrency(detailsItem.amount)}</p>
                     </div>
                   </>
                 )}
@@ -1473,68 +1238,6 @@ const Quotation = () => {
 
               <div className="cuspro-modal-actions">
                 <button className="cuspro-cancel-btn" onClick={() => setShowDetailsModal(false)}>Close</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Request Installation Modal */}
-        {showRequestModal && (
-          <div className="cuspro-modal-overlay" onClick={() => setShowRequestModal(false)}>
-            <div className="cuspro-modal" onClick={e => e.stopPropagation()}>
-              <button className="cuspro-modal-close" onClick={() => setShowRequestModal(false)}>×</button>
-              <h3>Request Solar Installation</h3>
-              <p className="cuspro-modal-subtitle">Get a detailed quote for your solar panel system installation</p>
-
-              <div className="cuspro-request-form">
-                <div className="cuspro-form-group">
-                  <label>Desired System Size</label>
-                  <select value={solarRequest.systemSize} onChange={(e) => setSolarRequest({ ...solarRequest, systemSize: e.target.value })}>
-                    <option value="">Select system size</option>
-                    <option value="3kW">3kW (Good for small homes)</option>
-                    <option value="5kW">5kW (Recommended for average homes)</option>
-                    <option value="7kW">7kW (For larger homes)</option>
-                    <option value="10kW">10kW (For large homes / small business)</option>
-                    <option value="Custom">Custom (I'll specify in notes)</option>
-                  </select>
-                  {requestErrors.systemSize && <span className="cuspro-error-text">{requestErrors.systemSize}</span>}
-                </div>
-
-                <div className="cuspro-form-group">
-                  <label>System Type</label>
-                  <select value={solarRequest.systemType} onChange={(e) => setSolarRequest({ ...solarRequest, systemType: e.target.value })}>
-                    <option value="grid-tie">Grid-tie (No battery)</option>
-                    <option value="hybrid">Hybrid (With battery backup)</option>
-                    <option value="off-grid">Off-grid (Complete independence)</option>
-                  </select>
-                </div>
-
-                <div className="cuspro-form-group">
-                  <label>Property Type</label>
-                  <select value={solarRequest.propertyType} onChange={(e) => setSolarRequest({ ...solarRequest, propertyType: e.target.value })}>
-                    <option value="residential">Residential</option>
-                    <option value="commercial">Commercial</option>
-                    <option value="industrial">Industrial</option>
-                  </select>
-                  {requestErrors.propertyType && <span className="cuspro-error-text">{requestErrors.propertyType}</span>}
-                </div>
-
-                <div className="cuspro-form-group">
-                  <label>Additional Notes (Optional)</label>
-                  <textarea rows="4" value={solarRequest.notes} onChange={(e) => setSolarRequest({ ...solarRequest, notes: e.target.value })} placeholder="Tell us about your specific needs, roof type, or any questions..." />
-                </div>
-
-                <div className="cuspro-info-box">
-                  <FaInfoCircle />
-                  <small>Our solar specialists will review your request and provide a detailed quotation within 2-3 business days.</small>
-                </div>
-              </div>
-
-              <div className="cuspro-modal-actions">
-                <button className="cuspro-cancel-btn" onClick={() => setShowRequestModal(false)}>Cancel</button>
-                <button className="cuspro-confirm-btn" onClick={handleRequestSolar} disabled={isSubmitting}>
-                  {isSubmitting ? 'Submitting...' : 'Submit Request'}
-                </button>
               </div>
             </div>
           </div>

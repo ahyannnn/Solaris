@@ -309,34 +309,34 @@ exports.verifyPayMongoPayment = async (req, res) => {
 
     await invoice.save();
 
-    // Update project payment schedule if linked
-    // After invoice is marked as paid, update the project
+    // Update project payment schedule
     if (invoice.projectId) {
       const project = await Project.findById(invoice.projectId);
       if (project) {
-        // Find the payment schedule item
         const scheduleItem = project.paymentSchedule.find(p => p.type === invoice.invoiceType);
         if (scheduleItem) {
-          scheduleItem.status = 'paid';  // Change from 'pending' to 'paid'
+          scheduleItem.status = 'paid';
           scheduleItem.paidAt = new Date();
         }
 
-        // Update project totals
         project.amountPaid += invoice.totalAmount;
         project.balance = project.totalCost - project.amountPaid;
 
-        // Update project status
+        // ✅ FIXED: Use full_paid for full payments
         if (invoice.invoiceType === 'initial') {
           project.status = 'initial_paid';
         } else if (invoice.invoiceType === 'progress') {
           project.status = 'progress_paid';
         } else if (invoice.invoiceType === 'full') {
-          project.status = 'completed';
+          project.fullPaymentCompleted = true;
+          project.status = 'full_paid';  // Changed from 'completed' to 'full_paid'
+          // DO NOT set actualCompletionDate
         }
 
         await project.save();
       }
     }
+
     res.json({
       success: true,
       message: 'Payment verified successfully',
@@ -390,14 +390,13 @@ exports.verifySolarInvoicePayment = async (req, res) => {
       invoice.verifiedBy = adminId;
       invoice.verifiedAt = new Date();
 
-      // ✅ CRITICAL: Update the project's payment schedule
+      // ✅ CRITICAL: Update the project's payment schedule and status
       if (invoice.projectId) {
         const project = await Project.findById(invoice.projectId);
         if (project) {
-          // Find the payment schedule item - try by type first, then by invoice number
+          // Find the payment schedule item
           let scheduleItem = project.paymentSchedule.find(p => p.type === invoice.invoiceType);
           
-          // If not found by type, try by invoice number
           if (!scheduleItem && invoice.invoiceNumber) {
             scheduleItem = project.paymentSchedule.find(p => p.invoiceNumber === invoice.invoiceNumber);
           }
@@ -408,9 +407,7 @@ exports.verifySolarInvoicePayment = async (req, res) => {
             scheduleItem.paymentReference = invoice.payments.find(p => p.method === 'gcash')?.reference ||
               invoice.payments[0]?.reference ||
               `INV-${invoice.invoiceNumber}`;
-            console.log(`✅ Updated payment schedule for ${invoice.invoiceType} payment in project ${project.projectReference}`);
-          } else {
-            console.log(`⚠️ Schedule item not found for invoice type: ${invoice.invoiceType}`);
+            console.log(`✅ Updated payment schedule for ${invoice.invoiceType} payment`);
           }
 
           // Update project's amount paid and balance
@@ -418,48 +415,57 @@ exports.verifySolarInvoicePayment = async (req, res) => {
           project.amountPaid = (project.amountPaid || 0) + paymentAmount;
           project.balance = project.totalCost - project.amountPaid;
 
-          // Update project status based on payment type
+          // ✅ FIXED: Update project status based on payment type - ALWAYS use full_paid for full payments
           if (invoice.invoiceType === 'initial') {
-            project.status = 'initial_paid';
-            console.log(`✅ Project ${project.projectReference} status updated to initial_paid`);
+            if (project.status === 'approved') {
+              project.status = 'initial_paid';
+            }
           } else if (invoice.invoiceType === 'progress') {
-            project.status = 'progress_paid';
-            console.log(`✅ Project ${project.projectReference} status updated to progress_paid`);
+            if (project.status === 'in_progress') {
+              project.status = 'progress_paid';
+            }
           } else if (invoice.invoiceType === 'full') {
+            // ✅ Set to full_paid, NOT completed
             project.fullPaymentCompleted = true;
-            project.status = 'completed';
-            project.actualCompletionDate = new Date();
-            console.log(`✅ Project ${project.projectReference} status updated to completed (full payment)`);
+            project.status = 'full_paid';
+            // DO NOT set actualCompletionDate - installation hasn't started
+            console.log(`✅ Project ${project.projectReference} status updated to full_paid`);
           }
 
-          // Check if all payments are completed for installment projects
+          // For installment projects when all payments are complete
           const allPaymentsPaid = project.paymentSchedule.every(p => p.status === 'paid');
-          if (allPaymentsPaid && project.status !== 'completed' && project.paymentPreference === 'installment') {
-            project.status = 'completed';
-            project.actualCompletionDate = new Date();
-            console.log(`✅ Project ${project.projectReference} status updated to completed (all installments paid)`);
+          if (allPaymentsPaid && project.paymentPreference === 'installment') {
+            if (project.status !== 'completed' && project.status !== 'full_paid') {
+              project.status = 'full_paid';
+              console.log(`✅ Project ${project.projectReference} status updated to full_paid (all installments paid)`);
+            }
           }
 
           // Add to project updates
           project.projectUpdates = project.projectUpdates || [];
           project.projectUpdates.push({
             title: `Payment Verified - ${invoice.invoiceType.toUpperCase()}`,
-            description: `Payment of ${formatCurrencyHelper(paymentAmount)} for ${invoice.invoiceType} payment has been verified.`,
+            description: `Payment of ${formatCurrencyHelper(paymentAmount)} for ${invoice.invoiceType} payment has been verified. Project status: ${project.status}`,
             status: project.status,
             updatedBy: adminId
           });
 
           await project.save();
-          console.log(`✅ Project ${project.projectReference} updated successfully`);
         }
       }
 
     } else {
-      invoice.paymentStatus = 'failed';
-      invoice.status = 'cancelled';
-      invoice.adminRemarks = notes || 'Payment rejected';
+      // Payment rejected - reset to pending
+      invoice.paymentStatus = 'pending';
+      invoice.status = 'pending';
+      invoice.adminRemarks = notes || 'Payment rejected - please resubmit';
 
-      // Optionally update project payment schedule to mark as pending (customer needs to pay again)
+      const gcashPayment = invoice.payments.find(p => p.method === 'gcash');
+      if (gcashPayment) {
+        gcashPayment.notes = `REJECTED by admin on ${new Date().toLocaleString()}. Reason: ${notes || 'No reason provided'}`;
+      }
+
+      // Reset project payment schedule
       if (invoice.projectId) {
         const project = await Project.findById(invoice.projectId);
         if (project) {
@@ -467,6 +473,7 @@ exports.verifySolarInvoicePayment = async (req, res) => {
           if (scheduleItem && scheduleItem.status !== 'paid') {
             scheduleItem.status = 'pending';
             scheduleItem.paymentReference = null;
+            scheduleItem.paymentProof = null;
             await project.save();
           }
         }
@@ -478,7 +485,12 @@ exports.verifySolarInvoicePayment = async (req, res) => {
     res.json({
       success: true,
       message: verified ? 'Payment verified successfully' : 'Payment rejected',
-      invoice
+      invoice: {
+        id: invoice._id,
+        invoiceNumber: invoice.invoiceNumber,
+        paymentStatus: invoice.paymentStatus,
+        status: invoice.status
+      }
     });
 
   } catch (error) {

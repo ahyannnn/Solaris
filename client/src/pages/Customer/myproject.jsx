@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { 
+import {
   FaProjectDiagram,
   FaUserCircle,
   FaCalendarAlt,
@@ -58,9 +58,9 @@ const MyProject = () => {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/my-projects`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       setProjects(response.data.projects || []);
-      
+
       if (response.data.projects?.length > 0) {
         setSelectedProject(response.data.projects[0]);
       }
@@ -89,28 +89,28 @@ const MyProject = () => {
     // First check payment schedule
     const scheduleItem = project.paymentSchedule?.find(p => p.type === paymentType);
     if (scheduleItem?.status === 'paid') return true;
-    
+
     // Then check solar invoices
-    const invoice = solarInvoices.find(inv => 
-      inv.projectId?._id === project._id && 
+    const invoice = solarInvoices.find(inv =>
+      inv.projectId?._id === project._id &&
       inv.invoiceType === paymentType
     );
     if (invoice?.paymentStatus === 'paid') return true;
-    
+
     // For full payment, also check fullPaymentCompleted flag
     if (paymentType === 'full' && project.fullPaymentCompleted) return true;
-    
+
     return false;
   };
 
   // Helper function to get payment status for display
   const getPaymentStatus = (project, paymentType) => {
     const scheduleItem = project.paymentSchedule?.find(p => p.type === paymentType);
-    const invoice = solarInvoices.find(inv => 
-      inv.projectId?._id === project._id && 
+    const invoice = solarInvoices.find(inv =>
+      inv.projectId?._id === project._id &&
       inv.invoiceType === paymentType
     );
-    
+
     if (scheduleItem?.status === 'paid' || invoice?.paymentStatus === 'paid') {
       return { status: 'paid', text: 'Paid', color: '#10b981' };
     }
@@ -141,35 +141,40 @@ const MyProject = () => {
     });
   };
 
+  // pages/Customer/MyProject.cuspro.jsx - Update getProjectProgress function
+
   const getProjectProgress = (project) => {
     // For full payment projects
     if (project.paymentPreference === 'full') {
-      if (project.fullPaymentCompleted || project.status === 'completed') return 100;
-      if (project.status === 'in_progress') return 50;
-      if (project.status === 'approved') return 25;
-      if (project.status === 'quoted') return 10;
+      if (project.status === 'completed') return 100;
+      if (project.status === 'in_progress') return 60;
+      if (project.status === 'full_paid') return 30;  // ✅ Full paid but not started
+      if (project.status === 'approved') return 15;
+      if (project.status === 'quoted') return 5;
       return 5;
     }
-    
-    // For installment projects - check each payment's paid status
+
+    // For installment projects
     const initialPaid = isPaymentPaid(project, 'initial');
     const progressPaid = isPaymentPaid(project, 'progress');
     const finalPaid = isPaymentPaid(project, 'final');
-    
+
     if (finalPaid) return 100;
-    if (progressPaid) return 80;
-    if (initialPaid) return 35;
-    if (project.status === 'approved') return 20;
-    if (project.status === 'quoted') return 10;
+    if (progressPaid) return 75;
+    if (initialPaid) return 30;
+    if (project.status === 'approved') return 15;
+    if (project.status === 'quoted') return 5;
     return 5;
   };
 
-  // Get next step message based on current status
+  // pages/Customer/MyProject.cuspro.jsx - Update getNextStepMessage
+
   const getNextStepMessage = (project) => {
     const initialPaid = isPaymentPaid(project, 'initial');
     const progressPaid = isPaymentPaid(project, 'progress');
     const finalPaid = isPaymentPaid(project, 'final');
-    
+    const fullPaid = isPaymentPaid(project, 'full') || project.fullPaymentCompleted;
+
     const statusMessages = {
       'quoted': {
         message: 'Waiting for admin approval',
@@ -177,9 +182,14 @@ const MyProject = () => {
         icon: <FaHourglassHalf />
       },
       'approved': {
-        message: 'Awaiting initial payment',
-        action: 'Please make the initial payment to proceed',
+        message: 'Awaiting payment',
+        action: 'Please make the payment to proceed',
         icon: <FaMoneyBillWave />
+      },
+      'full_paid': {  // ✅ New status message
+        message: 'Full payment received',
+        action: 'We will assign an engineer and schedule your installation',
+        icon: <FaCheckCircle />
       },
       'initial_paid': {
         message: initialPaid ? 'Initial payment completed' : 'Awaiting initial payment',
@@ -202,7 +212,7 @@ const MyProject = () => {
         icon: <FaCheckCircle />
       }
     };
-    
+
     return statusMessages[project.status] || {
       message: 'Project in progress',
       action: 'Please wait for updates',
@@ -224,7 +234,9 @@ const MyProject = () => {
     const progressPaid = isPaymentPaid(project, 'progress');
     const finalPaid = isPaymentPaid(project, 'final');
     const fullPaid = isPaymentPaid(project, 'full') || project.fullPaymentCompleted;
-    
+
+    // pages/Customer/MyProject.cuspro.jsx - Update getTimelineItems for full payment
+
     if (isFullPayment) {
       return [
         {
@@ -330,7 +342,7 @@ const MyProject = () => {
       ];
     }
   };
-  
+
   // Helper function to get current step index
   const getCurrentStepIndex = (status, isFullPayment) => {
     if (isFullPayment) {
@@ -354,12 +366,19 @@ const MyProject = () => {
     }
   };
 
-  // Get payment summary text
+  // pages/Customer/MyProject.cuspro.jsx - Update getPaymentSummary
+
   const getPaymentSummary = (project) => {
     if (project.paymentPreference === 'full') {
       const fullPaid = isPaymentPaid(project, 'full') || project.fullPaymentCompleted;
-      if (fullPaid) {
-        return { text: 'Full payment completed', color: '#10b981' };
+      if (fullPaid && project.status === 'full_paid') {
+        return { text: 'Full payment completed - Awaiting installation', color: '#10b981' };
+      }
+      if (fullPaid && project.status === 'in_progress') {
+        return { text: 'Installation in progress', color: '#3b82f6' };
+      }
+      if (fullPaid && project.status === 'completed') {
+        return { text: 'Project completed!', color: '#10b981' };
       }
       if (project.status === 'approved') {
         return { text: 'Awaiting full payment to start installation', color: '#f59e0b' };
@@ -369,8 +388,8 @@ const MyProject = () => {
       const initialPaid = isPaymentPaid(project, 'initial');
       const progressPaid = isPaymentPaid(project, 'progress');
       const finalPaid = isPaymentPaid(project, 'final');
-      
-      if (finalPaid) return { text: 'All payments completed', color: '#10b981' };
+
+      if (finalPaid) return { text: 'All payments completed - Installation complete', color: '#10b981' };
       if (progressPaid) return { text: 'Progress payment completed - Final pending', color: '#f59e0b' };
       if (initialPaid) return { text: 'Initial payment completed - Progress pending', color: '#f59e0b' };
       if (project.status === 'approved') return { text: 'Initial payment pending', color: '#ef4444' };
@@ -378,7 +397,6 @@ const MyProject = () => {
       return { text: 'Payment pending', color: '#ef4444' };
     }
   };
-
   // Get engineer display name
   const getEngineerName = (project) => {
     if (project.assignedEngineerId) {
@@ -502,8 +520,8 @@ const MyProject = () => {
           <div className="cuspro-selector-card">
             <div className="cuspro-selector-card-content">
               <label>Select Project</label>
-              <select 
-                value={selectedProject?._id} 
+              <select
+                value={selectedProject?._id}
                 onChange={(e) => setSelectedProject(projects.find(p => p._id === e.target.value))}
                 className="cuspro-project-select"
               >
@@ -529,8 +547,8 @@ const MyProject = () => {
                     <FaSolarPanel /> {selectedProject.systemSize} kWp
                   </span>
                   <span className="cuspro-detail-chip">
-                    <FaTools /> {selectedProject.systemType === 'grid-tie' ? 'Grid-Tie' : 
-                             selectedProject.systemType === 'hybrid' ? 'Hybrid' : 'Off-Grid'}
+                    <FaTools /> {selectedProject.systemType === 'grid-tie' ? 'Grid-Tie' :
+                      selectedProject.systemType === 'hybrid' ? 'Hybrid' : 'Off-Grid'}
                   </span>
                   <span className="cuspro-detail-chip">
                     <FaMapMarkerAlt /> {selectedProject.addressId?.barangay || 'Location TBD'}
@@ -544,8 +562,8 @@ const MyProject = () => {
               </div>
               <div className="cuspro-hero-right">
                 <div className={`cuspro-status-badge ${selectedProject.status}`}>
-                  {selectedProject.status === 'quoted' ? 'PENDING APPROVAL' : 
-                   selectedProject.status?.replace('_', ' ').toUpperCase()}
+                  {selectedProject.status === 'quoted' ? 'PENDING APPROVAL' :
+                    selectedProject.status?.replace('_', ' ').toUpperCase()}
                 </div>
               </div>
             </div>
@@ -586,7 +604,7 @@ const MyProject = () => {
               </div>
               {/* Payment Summary Bar */}
               <div className="cuspro-payment-summary-bar">
-                <div 
+                <div
                   className="cuspro-payment-summary-text"
                   style={{ color: getPaymentSummary(selectedProject).color }}
                 >
@@ -597,31 +615,31 @@ const MyProject = () => {
 
             {/* Tab Navigation */}
             <div className="cuspro-tab-navigation">
-              <button 
+              <button
                 className={`cuspro-tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
                 onClick={() => setActiveTab('overview')}
               >
                 Overview
               </button>
-              <button 
+              <button
                 className={`cuspro-tab-btn ${activeTab === 'timeline' ? 'active' : ''}`}
                 onClick={() => setActiveTab('timeline')}
               >
                 Timeline
               </button>
-              <button 
+              <button
                 className={`cuspro-tab-btn ${activeTab === 'payments' ? 'active' : ''}`}
                 onClick={() => setActiveTab('payments')}
               >
                 Payments
               </button>
-              <button 
+              <button
                 className={`cuspro-tab-btn ${activeTab === 'documents' ? 'active' : ''}`}
                 onClick={() => setActiveTab('documents')}
               >
                 Documents
               </button>
-              <button 
+              <button
                 className={`cuspro-tab-btn ${activeTab === 'support' ? 'active' : ''}`}
                 onClick={() => setActiveTab('support')}
               >
@@ -785,7 +803,7 @@ const MyProject = () => {
                       const paymentStatus = getPaymentStatus(selectedProject, payment.type);
                       const isPaid = paymentStatus.status === 'paid';
                       const isForVerification = paymentStatus.status === 'for_verification';
-                      
+
                       return (
                         <div key={idx} className="cuspro-payment-card">
                           <div className="cuspro-payment-header">

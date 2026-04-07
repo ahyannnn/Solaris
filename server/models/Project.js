@@ -4,24 +4,24 @@ const projectSchema = new mongoose.Schema({
   // Project Identification
   projectReference: { type: String, unique: true },
   projectName: { type: String, required: true },
-  
+
   // References
   clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true, index: true },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   preAssessmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'PreAssessment' },
   addressId: { type: mongoose.Schema.Types.ObjectId, ref: 'Address', required: true },
-  
+
   // Source tracking (which type created this project)
   sourceType: { type: String, enum: ['free-quote', 'pre-assessment', 'admin'], default: 'admin' },
   sourceId: { type: mongoose.Schema.Types.ObjectId },
-  
+
   // Project Details
   systemSize: { type: Number, required: true }, // in kW
   systemType: { type: String, enum: ['grid-tie', 'hybrid', 'off-grid'], default: 'grid-tie' },
   panelsNeeded: { type: Number },
   inverterType: { type: String },
   batteryType: { type: String },
-  
+
   // Financial Details
   totalCost: { type: Number, required: true },
   initialPayment: { type: Number, default: 0 },
@@ -29,7 +29,7 @@ const projectSchema = new mongoose.Schema({
   finalPayment: { type: Number, default: 0 },
   amountPaid: { type: Number, default: 0 },
   balance: { type: Number, default: 0 },
-  
+
   // Payment Preferences
   paymentPreference: {
     type: String,
@@ -40,7 +40,7 @@ const projectSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  
+
   // Payment Schedule (Updated to include 'full' type)
   paymentSchedule: [{
     type: { type: String, enum: ['initial', 'progress', 'final', 'full'] },
@@ -53,38 +53,38 @@ const projectSchema = new mongoose.Schema({
     paymentProof: String,
     paymentReference: String
   }],
-  
+
   // Project Timeline
   startDate: Date,
   estimatedCompletionDate: Date,
   actualCompletionDate: Date,
-  
+
   // Project Status
   status: {
     type: String,
-    enum: ['quoted', 'approved', 'initial_paid', 'in_progress', 'progress_paid', 'completed', 'cancelled'],
+    enum: ['quoted', 'approved', 'initial_paid', 'full_paid', 'in_progress', 'progress_paid', 'completed', 'cancelled'],
     default: 'quoted'
   },
-  
+
   // Assigned Personnel
   assignedEngineerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   assignedTeam: [{ type: String }],
-  
+
   // Documents
   quotationFile: { type: String },
   contractFile: { type: String },
   permitFiles: [String],
   completionCertificate: { type: String },
-  
+
   // Installation Details
   installationNotes: String,
   sitePhotos: [String],
-  
+
   // Warranty
   warrantyStartDate: Date,
   warrantyEndDate: Date,
   warrantyTerms: String,
-  
+
   // Invoices
   invoices: [{
     type: { type: mongoose.Schema.Types.ObjectId, ref: 'SolarInvoice' },
@@ -104,12 +104,12 @@ const projectSchema = new mongoose.Schema({
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     createdAt: { type: Date, default: Date.now }
   }],
-  
+
   // Audit
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   approvedAt: Date,
-  
+
   // Notes
   notes: String,
   internalNotes: String
@@ -133,10 +133,12 @@ function formatCurrencyHelper(amount) {
 }
 
 // Method to calculate balance
-projectSchema.methods.calculateBalance = function() {
+projectSchema.methods.calculateBalance = function () {
   this.balance = this.totalCost - this.amountPaid;
   return this.balance;
 };
+
+// models/Project.js - Update the recordPayment method
 
 // Method to record payment (for installment payments)
 projectSchema.methods.recordPayment = async function(amount, paymentType, invoiceId, paymentProof, paymentReference) {
@@ -155,8 +157,8 @@ projectSchema.methods.recordPayment = async function(amount, paymentType, invoic
   
   // Update project status based on payments (installment logic)
   if (this.amountPaid >= this.totalCost) {
-    this.status = 'completed';
-    this.actualCompletionDate = new Date();
+    this.status = 'full_paid';  // Changed from 'completed' to 'full_paid'
+    // DO NOT set actualCompletionDate here
   } else if (this.amountPaid >= this.initialPayment && this.status === 'approved') {
     this.status = 'in_progress';
   } else if (this.amountPaid >= this.initialPayment + this.progressPayment) {
@@ -175,12 +177,14 @@ projectSchema.methods.recordPayment = async function(amount, paymentType, invoic
   return this.save();
 };
 
+// models/Project.js - Update recordFullPayment method
+
 // Method to record full payment
-projectSchema.methods.recordFullPayment = async function(amount, paymentMethod, paymentReference, paymentProof) {
+projectSchema.methods.recordFullPayment = async function (amount, paymentMethod, paymentReference, paymentProof) {
   this.amountPaid = amount;
   this.balance = this.totalCost - amount;
   this.fullPaymentCompleted = true;
-  
+
   // Update payment schedule
   const scheduleItem = this.paymentSchedule.find(p => p.type === 'full');
   if (scheduleItem) {
@@ -189,30 +193,31 @@ projectSchema.methods.recordFullPayment = async function(amount, paymentMethod, 
     scheduleItem.paymentReference = paymentReference;
     if (paymentProof) scheduleItem.paymentProof = paymentProof;
   }
-  
-  // Update project status
-  this.status = 'completed';
-  this.actualCompletionDate = new Date();
-  
+
+  // ✅ FIXED: Set status to 'full_paid' instead of 'completed'
+  // This means payment is complete but installation hasn't started yet
+  this.status = 'full_paid';
+  // DO NOT set actualCompletionDate - that's for when installation is complete
+
   // Add to project updates
   this.projectUpdates = this.projectUpdates || [];
   this.projectUpdates.push({
     title: 'Full Payment Received',
-    description: `Full payment of ${formatCurrencyHelper(amount)} received via ${paymentMethod === 'gcash' ? 'GCash' : 'Cash'}${paymentReference ? ` (Ref: ${paymentReference})` : ''}`,
+    description: `Full payment of ${formatCurrencyHelper(amount)} received via ${paymentMethod === 'gcash' ? 'GCash' : 'Cash'}${paymentReference ? ` (Ref: ${paymentReference})` : ''}. Waiting for installation to begin.`,
     status: this.status,
     updatedBy: this.clientId
   });
-  
+
   return this.save();
 };
 
 // Pre-save middleware - FIXED: removed the 'next' parameter since we're not using async operations
-projectSchema.pre('save', function() {
+projectSchema.pre('save', function () {
   // Calculate balance if totalCost or amountPaid changed
   if (this.isModified('totalCost') || this.isModified('amountPaid')) {
     this.balance = (this.totalCost || 0) - (this.amountPaid || 0);
   }
-  
+
   // Set default project reference if not provided
   if (!this.projectReference) {
     const date = new Date();

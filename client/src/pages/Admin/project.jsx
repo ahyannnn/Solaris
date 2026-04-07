@@ -230,18 +230,21 @@ const ProjectManagement = () => {
     });
   };
 
-  const getStatusBadge = (status) => {
-    const badges = {
-      'quoted': <span className="status-badge-adminproject quoted">Quoted</span>,
-      'approved': <span className="status-badge-adminproject approved">Approved</span>,
-      'initial_paid': <span className="status-badge-adminproject initial-paid">Initial Paid</span>,
-      'in_progress': <span className="status-badge-adminproject in-progress">In Progress</span>,
-      'progress_paid': <span className="status-badge-adminproject progress-paid">Progress Paid</span>,
-      'completed': <span className="status-badge-adminproject completed">Completed</span>,
-      'cancelled': <span className="status-badge-adminproject cancelled">Cancelled</span>
-    };
-    return badges[status] || <span className="status-badge-adminproject">{status}</span>;
+  // pages/Admin/Project.jsx - Update getStatusBadge function
+
+const getStatusBadge = (status) => {
+  const badges = {
+    'quoted': <span className="status-badge-adminproject quoted">Quoted</span>,
+    'approved': <span className="status-badge-adminproject approved">Approved</span>,
+    'initial_paid': <span className="status-badge-adminproject initial-paid">Initial Paid</span>,
+    'full_paid': <span className="status-badge-adminproject full-paid">Full Paid</span>,  // ✅ New badge
+    'in_progress': <span className="status-badge-adminproject in-progress">In Progress</span>,
+    'progress_paid': <span className="status-badge-adminproject progress-paid">Progress Paid</span>,
+    'completed': <span className="status-badge-adminproject completed">Completed</span>,
+    'cancelled': <span className="status-badge-adminproject cancelled">Cancelled</span>
   };
+  return badges[status] || <span className="status-badge-adminproject">{status}</span>;
+};
 
   const getProgressPercentage = (project) => {
     if (!project.totalCost || project.totalCost === 0) return 0;

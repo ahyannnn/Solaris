@@ -33,9 +33,9 @@ exports.createProjectPayMongoPaymentIntent = async (req, res) => {
       return res.status(404).json({ message: 'Client not found' });
     }
 
-    const project = await Project.findOne({ 
-      _id: id, 
-      clientId: client._id 
+    const project = await Project.findOne({
+      _id: id,
+      clientId: client._id
     });
 
     if (!project) {
@@ -88,11 +88,11 @@ exports.createProjectPayMongoPaymentIntent = async (req, res) => {
 
     if (paymentMethod === 'gcash') {
       const gcashPayment = await PayMongoService.createGCashPaymentSource(paymentIntent.paymentIntentId);
-      
+
       if (!gcashPayment.success) {
         return res.status(500).json({ message: gcashPayment.error });
       }
-      
+
       return res.json({
         success: true,
         redirectUrl: gcashPayment.redirectUrl,
@@ -128,7 +128,7 @@ exports.verifyProjectPayMongoPayment = async (req, res) => {
       return res.status(404).json({ message: 'Client not found' });
     }
 
-    const project = await Project.findOne({ 
+    const project = await Project.findOne({
       paymongoPaymentIntentId: paymentIntentId,
       clientId: client._id
     });
@@ -138,14 +138,14 @@ exports.verifyProjectPayMongoPayment = async (req, res) => {
     }
 
     const paymentIntent = await PayMongoService.getPaymentIntent(paymentIntentId);
-    
+
     if (!paymentIntent.success) {
       return res.status(500).json({ message: paymentIntent.error });
     }
 
     if (paymentIntent.status !== 'succeeded') {
-      return res.status(400).json({ 
-        message: `Payment not successful. Status: ${paymentIntent.status}` 
+      return res.status(400).json({
+        message: `Payment not successful. Status: ${paymentIntent.status}`
       });
     }
 
@@ -153,6 +153,7 @@ exports.verifyProjectPayMongoPayment = async (req, res) => {
     const paymentId = metadata.paymentId;
     const paymentTypeName = metadata.paymentType;
 
+    // In verifyProjectPayMongoPayment function, update this section:
     if (paymentId === 'full') {
       await project.recordFullPayment(
         paymentIntent.amount,
@@ -167,19 +168,20 @@ exports.verifyProjectPayMongoPayment = async (req, res) => {
         scheduleItem.status = 'paid';
         scheduleItem.paymentReference = paymentIntentId;
         scheduleItem.paymentGateway = 'paymongo';
-        
+
         project.amountPaid += scheduleItem.amount;
         project.balance = project.totalCost - project.amountPaid;
-        
+
         if (paymentTypeName === 'initial' && project.status === 'approved') {
           project.status = 'initial_paid';
         } else if (paymentTypeName === 'progress' && project.status === 'in_progress') {
           project.status = 'progress_paid';
         } else if (project.amountPaid >= project.totalCost) {
-          project.status = 'completed';
-          project.actualCompletionDate = new Date();
+          // ✅ FIXED: Set to full_paid instead of completed
+          project.status = 'full_paid';
+          // DO NOT set actualCompletionDate here
         }
-        
+
         await project.save();
       }
     }
@@ -209,7 +211,7 @@ exports.verifyProjectPayMongoPayment = async (req, res) => {
 exports.getMyProjects = async (req, res) => {
   try {
     const userId = req.user.id;
-    
+
     const client = await Client.findOne({ userId });
     if (!client) {
       return res.status(404).json({ message: 'Client not found' });
@@ -261,7 +263,7 @@ exports.createProjectFromAcceptance = async (req, res) => {
       if (!sourceData || sourceData.clientId.toString() !== client._id.toString()) {
         return res.status(404).json({ message: 'Free quote not found' });
       }
-      
+
       projectData = {
         projectReference: generateProjectReference(),
         clientId: client._id,
@@ -282,21 +284,21 @@ exports.createProjectFromAcceptance = async (req, res) => {
       if (!sourceData || sourceData.clientId.toString() !== client._id.toString()) {
         return res.status(404).json({ message: 'Pre-assessment not found' });
       }
-      
+
       const systemDetails = sourceData.quotation?.systemDetails || {};
       const totalCost = systemDetails.totalCost || sourceData.finalSystemCost || 0;
-      
+
       const parseSafeNumber = (value) => {
         if (!value) return null;
         const parsed = parseFloat(value);
         return isNaN(parsed) ? null : parsed;
       };
-      
+
       // Calculate payment schedule based on preference
       let paymentSchedule = [];
-      
+
       console.log('Payment preference received:', paymentPreference);
-      
+
       if (paymentPreference === 'full') {
         // For full payment, create a single payment entry
         paymentSchedule.push({
@@ -328,7 +330,7 @@ exports.createProjectFromAcceptance = async (req, res) => {
           });
         }
       }
-      
+
       projectData = {
         projectReference: generateProjectReference(),
         clientId: client._id,
@@ -355,7 +357,7 @@ exports.createProjectFromAcceptance = async (req, res) => {
         paymentPreference: paymentPreference || 'installment',
         fullPaymentCompleted: false
       };
-      
+
       console.log('Created project with paymentPreference:', projectData.paymentPreference);
     } else {
       return res.status(400).json({ message: 'Invalid source type' });
@@ -441,7 +443,7 @@ exports.getEngineerProjects = async (req, res) => {
   try {
     const engineerId = req.user.id;
     const { status, page = 1, limit = 10 } = req.query;
-    
+
     const query = { assignedEngineerId: engineerId };
     if (status && status !== 'all') query.status = status;
 
@@ -491,14 +493,15 @@ exports.updateProjectProgress = async (req, res) => {
     // Validate status transition
     const validTransitions = {
       'approved': ['in_progress'],
+       'full_paid': ['in_progress'],
       'initial_paid': ['in_progress'],
       'in_progress': ['progress_paid', 'completed'],
       'progress_paid': ['completed']
     };
-    
+
     if (status && validTransitions[project.status] && !validTransitions[project.status].includes(status)) {
-      return res.status(400).json({ 
-        message: `Cannot transition from ${project.status} to ${status}` 
+      return res.status(400).json({
+        message: `Cannot transition from ${project.status} to ${status}`
       });
     }
 
@@ -507,7 +510,7 @@ exports.updateProjectProgress = async (req, res) => {
     if (status) {
       const oldStatus = project.status;
       project.status = status;
-      
+
       project.projectUpdates = project.projectUpdates || [];
       project.projectUpdates.push({
         title: `Progress Updated: ${oldStatus} → ${status}`,
@@ -515,11 +518,11 @@ exports.updateProjectProgress = async (req, res) => {
         status: status,
         updatedBy: engineerId
       });
-      
+
       if (status === 'in_progress' && !project.startDate) {
         project.startDate = new Date();
       }
-      
+
       if (status === 'completed') {
         project.actualCompletionDate = new Date();
       }
@@ -588,7 +591,7 @@ exports.uploadProjectPhotos = async (req, res) => {
 exports.getAllProjects = async (req, res) => {
   try {
     const { status, page = 1, limit = 10 } = req.query;
-    
+
     const query = {};
     if (status && status !== 'all') query.status = status;
 
@@ -651,9 +654,14 @@ const getInvoiceTypeLabel = (invoiceType) => {
   return labels[invoiceType] || invoiceType;
 };
 
-// Helper function to create a solar invoice
+// controllers/projectController.js - Update the createSolarInvoice function
+
 const createSolarInvoice = async (project, invoiceType, amount, adminId, customDueDate = null) => {
   try {
+    // ✅ Ensure clientId is properly referenced
+    const clientId = project.clientId._id || project.clientId;
+    const userId = project.userId;
+
     // Set due date
     let dueDate = customDueDate;
     if (!dueDate) {
@@ -669,12 +677,12 @@ const createSolarInvoice = async (project, invoiceType, amount, adminId, customD
         dueDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
       }
     }
-    
+
     // Calculate tax (12% VAT)
     const subtotal = amount;
     const tax = subtotal * 0.12;
     const totalAmount = subtotal + tax;
-    
+
     // Create invoice items
     const invoiceItems = [{
       name: getInvoiceItemName(invoiceType, project),
@@ -683,11 +691,11 @@ const createSolarInvoice = async (project, invoiceType, amount, adminId, customD
       unitPrice: amount,
       total: amount
     }];
-    
+
     const invoice = new SolarInvoice({
       projectId: project._id,
-      clientId: project.clientId._id,
-      userId: project.userId,
+      clientId: clientId,
+      userId: userId,
       invoiceNumber: generateInvoiceNumber(),
       quotationReference: project.projectReference,
       invoiceType: invoiceType,
@@ -700,38 +708,45 @@ const createSolarInvoice = async (project, invoiceType, amount, adminId, customD
       dueDate: dueDate,
       issueDate: new Date(),
       paymentStatus: 'pending',
-      status: 'draft',
+      status: 'pending', // Changed from 'draft' to 'pending'
       amountPaid: 0,
       balance: totalAmount,
       createdBy: adminId,
       notes: `Auto-generated upon project approval`
     });
-    
+
     await invoice.save();
-    
+
     // Update project's invoices array
     project.invoices = project.invoices || [];
     project.invoices.push({
-      type: invoice._id,
+      _id: invoice._id,
       invoiceNumber: invoice.invoiceNumber,
       amount: totalAmount,
       issuedAt: new Date()
     });
-    
+
     console.log(`✅ Invoice created: ${invoice.invoiceNumber} for project ${project.projectReference}`);
     return invoice;
-    
+
   } catch (error) {
     console.error(`Error creating ${invoiceType} invoice:`, error);
     throw error;
   }
 };
 
-// Helper function to generate all invoices for a project
+// controllers/projectController.js - Update the generateProjectInvoices function
+
 const generateProjectInvoices = async (project, adminId) => {
   try {
     const invoicesCreated = [];
-    
+
+    // ✅ Verify that clientId is populated
+    if (!project.clientId || !project.clientId._id) {
+      console.error('Project clientId not populated:', project._id);
+      throw new Error('Client information not available. Make sure to populate clientId when fetching project.');
+    }
+
     // Generate invoice based on payment preference
     if (project.paymentPreference === 'full') {
       // Create single full payment invoice
@@ -739,63 +754,69 @@ const generateProjectInvoices = async (project, adminId) => {
       if (fullPayment && fullPayment.status !== 'paid') {
         const invoice = await createSolarInvoice(project, 'full', fullPayment.amount, adminId);
         invoicesCreated.push(invoice);
+
+        // Update payment schedule with invoice reference
+        fullPayment.invoiceNumber = invoice.invoiceNumber;
       }
     } else {
       // Create installment invoices (initial, progress, final)
       const initialPayment = project.paymentSchedule.find(p => p.type === 'initial');
       const progressPayment = project.paymentSchedule.find(p => p.type === 'progress');
       const finalPayment = project.paymentSchedule.find(p => p.type === 'final');
-      
+
       if (initialPayment && initialPayment.status !== 'paid') {
         const invoice = await createSolarInvoice(project, 'initial', initialPayment.amount, adminId);
         invoicesCreated.push(invoice);
-        
-        // Update the payment schedule with invoice reference
         initialPayment.invoiceNumber = invoice.invoiceNumber;
       }
-      
+
       if (progressPayment && progressPayment.status !== 'paid') {
         const invoice = await createSolarInvoice(project, 'progress', progressPayment.amount, adminId, progressPayment.dueDate);
         invoicesCreated.push(invoice);
         progressPayment.invoiceNumber = invoice.invoiceNumber;
       }
-      
+
       if (finalPayment && finalPayment.status !== 'paid') {
         const invoice = await createSolarInvoice(project, 'final', finalPayment.amount, adminId, finalPayment.dueDate);
         invoicesCreated.push(invoice);
         finalPayment.invoiceNumber = invoice.invoiceNumber;
       }
     }
-    
+
     await project.save();
     console.log(`✅ Generated ${invoicesCreated.length} invoices for project ${project.projectReference}`);
     return invoicesCreated;
-    
+
   } catch (error) {
     console.error('Error generating invoices:', error);
     throw error;
   }
 };
 
-// Update the updateProjectStatus function
+// controllers/projectController.js - Replace the updateProjectStatus function
+
 exports.updateProjectStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, notes } = req.body;
     const adminId = req.user.id;
 
+    // ✅ IMPORTANT: Populate clientId when fetching the project
     const project = await Project.findById(id)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber userId')
+      .populate('clientId', 'contactFirstName contactLastName contactNumber userId email')
       .populate('addressId');
 
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
 
+    // controllers/projectController.js - Update validTransitions
+
     // Validate status transition
     const validTransitions = {
       'quoted': ['approved', 'cancelled'],
-      'approved': ['initial_paid', 'cancelled'],
+      'approved': ['initial_paid', 'full_paid', 'cancelled'],  // Added full_paid
+      'full_paid': ['in_progress', 'cancelled'],  // Can go to in_progress from full_paid
       'initial_paid': ['in_progress', 'cancelled'],
       'in_progress': ['progress_paid', 'completed', 'cancelled'],
       'progress_paid': ['completed', 'cancelled'],
@@ -804,28 +825,37 @@ exports.updateProjectStatus = async (req, res) => {
     };
 
     if (validTransitions[project.status] && !validTransitions[project.status].includes(status)) {
-      return res.status(400).json({ 
-        message: `Cannot transition from ${project.status} to ${status}` 
+      return res.status(400).json({
+        message: `Cannot transition from ${project.status} to ${status}`
       });
     }
 
     const oldStatus = project.status;
     project.status = status;
-    
+
     if (status === 'approved') {
       project.approvedAt = new Date();
       project.approvedBy = adminId;
-      
+
       // ✅ AUTO-GENERATE INVOICES WHEN PROJECT IS APPROVED
       try {
-        await generateProjectInvoices(project, adminId);
-        console.log(`Invoices auto-generated for project ${project.projectReference}`);
+        // Pass the populated project object
+        const invoicesCreated = await generateProjectInvoices(project, adminId);
+        console.log(`✅ ${invoicesCreated.length} invoices auto-generated for project ${project.projectReference}`);
       } catch (invoiceError) {
         console.error('Failed to generate invoices:', invoiceError);
         // Don't block status update if invoice generation fails
+        // But send a warning in the response
+        return res.status(200).json({
+          success: true,
+          message: `Project status updated to ${status}, but invoice generation failed: ${invoiceError.message}`,
+          project,
+          invoicesGenerated: false,
+          invoiceError: invoiceError.message
+        });
       }
     }
-    
+
     if (status === 'completed') {
       project.actualCompletionDate = new Date();
     }
@@ -874,7 +904,7 @@ exports.assignEngineerToProject = async (req, res) => {
 
     project.assignedEngineerId = engineerId;
     if (notes) project.internalNotes = notes;
-    
+
     project.projectUpdates = project.projectUpdates || [];
     project.projectUpdates.push({
       title: 'Engineer Assigned',
@@ -934,15 +964,22 @@ exports.recordProjectPayment = async (req, res) => {
     project.amountPaid += amount;
     project.balance = project.totalCost - project.amountPaid;
 
-    // Update project status based on payment
+    // ✅ FIXED: Update project status based on payment type
     if (paymentType === 'initial' && project.status === 'approved') {
       project.status = 'initial_paid';
     } else if (paymentType === 'progress' && project.status === 'in_progress') {
       project.status = 'progress_paid';
     } else if (paymentType === 'final') {
       if (project.amountPaid >= project.totalCost) {
-        project.status = 'completed';
-        project.actualCompletionDate = new Date();
+        project.status = 'full_paid';  // ✅ Changed from 'completed' to 'full_paid'
+        // DO NOT set actualCompletionDate here
+      }
+    } else if (paymentType === 'full') {
+      // Handle full payment recording by admin
+      if (project.amountPaid >= project.totalCost) {
+        project.status = 'full_paid';  // ✅ Set to full_paid, not completed
+        project.fullPaymentCompleted = true;
+        // DO NOT set actualCompletionDate
       }
     }
 
@@ -950,7 +987,7 @@ exports.recordProjectPayment = async (req, res) => {
     if (invoice) {
       await invoice.addPayment({
         amount: amount,
-        method: 'cash', // or get from request
+        method: 'cash',
         reference: paymentReference,
         date: new Date(),
         notes: `Payment recorded by admin`,
@@ -986,7 +1023,6 @@ exports.recordProjectPayment = async (req, res) => {
     res.status(500).json({ message: 'Failed to record payment', error: error.message });
   }
 };
-
 // @desc    Get project statistics for admin dashboard
 // @route   GET /api/projects/stats
 // @access  Private (Admin)
@@ -996,6 +1032,7 @@ exports.getProjectStats = async (req, res) => {
     const quoted = await Project.countDocuments({ status: 'quoted' });
     const approved = await Project.countDocuments({ status: 'approved' });
     const initialPaid = await Project.countDocuments({ status: 'initial_paid' });
+    const fullPaid = await Project.countDocuments({ status: 'full_paid' });  // ADD THIS
     const inProgress = await Project.countDocuments({ status: 'in_progress' });
     const progressPaid = await Project.countDocuments({ status: 'progress_paid' });
     const completed = await Project.countDocuments({ status: 'completed' });
@@ -1032,6 +1069,7 @@ exports.getProjectStats = async (req, res) => {
         quoted,
         approved,
         initialPaid,
+        fullPaid,  // ADD THIS
         inProgress,
         progressPaid,
         completed,
@@ -1073,8 +1111,8 @@ exports.getProjectById = async (req, res) => {
 
     // Check authorization
     const client = await Client.findOne({ userId });
-    if (userRole !== 'admin' && userRole !== 'engineer' && 
-        project.clientId._id.toString() !== client?._id.toString()) {
+    if (userRole !== 'admin' && userRole !== 'engineer' &&
+      project.clientId._id.toString() !== client?._id.toString()) {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
@@ -1094,7 +1132,7 @@ exports.getProjectById = async (req, res) => {
 // @access  Private (Admin)
 exports.createProject = async (req, res) => {
   try {
-    const { 
+    const {
       clientId,
       userId,
       addressId,
@@ -1208,19 +1246,19 @@ exports.createProjectFromAcceptance = async (req, res) => {
       if (!sourceData || sourceData.clientId.toString() !== client._id.toString()) {
         return res.status(404).json({ message: 'Pre-assessment not found' });
       }
-      
+
       const systemDetails = sourceData.quotation?.systemDetails || {};
       const totalCost = systemDetails.totalCost || sourceData.finalSystemCost || 0;
-      
+
       const parseSafeNumber = (value) => {
         if (!value) return null;
         const parsed = parseFloat(value);
         return isNaN(parsed) ? null : parsed;
       };
-      
+
       // Calculate payment schedule based on preference
       let paymentSchedule = [];
-      
+
       if (paymentPreference === 'full') {
         // For full payment, create a single payment entry
         paymentSchedule.push({
@@ -1252,7 +1290,7 @@ exports.createProjectFromAcceptance = async (req, res) => {
           });
         }
       }
-      
+
       projectData = {
         projectReference: generateProjectReference(),
         clientId: client._id,
@@ -1320,10 +1358,10 @@ exports.processFullPayment = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
-    
+
     // Parse the request body properly
     let amount, paymentMethod, paymentReference, paymentType;
-    
+
     // Handle both FormData and JSON requests
     if (req.body.amount) {
       amount = parseFloat(req.body.amount);
@@ -1367,8 +1405,8 @@ exports.processFullPayment = async (req, res) => {
 
     // Check if full payment is applicable
     if (project.paymentPreference !== 'full') {
-      return res.status(400).json({ 
-        message: 'Full payment not selected for this project. Selected: ' + project.paymentPreference 
+      return res.status(400).json({
+        message: 'Full payment not selected for this project. Selected: ' + project.paymentPreference
       });
     }
 
@@ -1377,11 +1415,11 @@ exports.processFullPayment = async (req, res) => {
     }
 
     const expectedAmount = project.totalCost;
-    
+
     // Compare with tolerance for floating point errors
     const amountDifference = Math.abs(amount - expectedAmount);
     if (amountDifference > 0.01) { // Allow 1 cent difference
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: `Payment amount should be ${expectedAmount}, but received ${amount}`,
         expected: expectedAmount,
         received: amount

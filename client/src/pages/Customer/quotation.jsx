@@ -147,6 +147,7 @@ const Quotation = () => {
           batteryType: assessment.quotation?.systemDetails?.batteryType
         })) || [];
 
+      // Transform SOLAR INVOICES to bills - includes full payment invoices
       const projectBills = invoices.map(invoice => ({
         id: invoice.invoiceNumber,
         date: new Date(invoice.issueDate).toLocaleDateString(),
@@ -160,7 +161,7 @@ const Quotation = () => {
         projectId: invoice.projectId?._id,
         projectName: invoice.projectId?.projectName,
         projectReference: invoice.projectId?.projectReference,
-        invoiceType: invoice.invoiceType,
+        invoiceType: invoice.invoiceType,  // 'initial', 'progress', 'final', or 'full'
         invoiceId: invoice._id,
         invoiceNumber: invoice.invoiceNumber,
         paymentStatus: invoice.paymentStatus,
@@ -875,12 +876,27 @@ const Quotation = () => {
                         <h3>{bill.description}</h3>
                         <p className="cuspro-bill-ref">Invoice: {bill.id}</p>
                         {bill.projectName && <p className="cuspro-bill-project">{bill.projectName}</p>}
+                        {/* ✅ FIXED: Added 'full' to display Full Payment invoices */}
+                        {bill.invoiceType && (
+                          <span className={`invoice-type-label ${bill.invoiceType}`}>
+                            {bill.invoiceType === 'initial' && 'Initial Deposit (30%)'}
+                            {bill.invoiceType === 'progress' && 'Progress Payment (40%)'}
+                            {bill.invoiceType === 'final' && 'Final Payment (30%)'}
+                            {bill.invoiceType === 'full' && 'Full Payment'}
+                          </span>
+                        )}
                       </div>
                       {getStatusBadge(bill.status)}
                     </div>
                     <div className="cuspro-bill-details">
                       <div className="cuspro-bill-detail-item"><span>Due Date:</span><strong>{bill.dueDate}</strong></div>
                       <div className="cuspro-bill-detail-item amount"><span>Amount:</span><strong>{formatCurrency(bill.amount)}</strong></div>
+                      {bill.paymentStatus === 'partial' && (
+                        <>
+                          <div className="cuspro-bill-detail-item"><span>Paid:</span><strong>{formatCurrency(bill.amountPaid)}</strong></div>
+                          <div className="cuspro-bill-detail-item"><span>Balance:</span><strong>{formatCurrency(bill.balance)}</strong></div>
+                        </>
+                      )}
                     </div>
                     <div className="cuspro-bill-actions">
                       {(bill.status === 'pending' || bill.status === 'partial') && (

@@ -25,7 +25,8 @@ import {
   FaRulerCombined,
   FaDownload,
   FaUpload,
-  FaCamera
+  FaCamera,
+  FaMoneyBillWaveAlt
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Engineer/project.css';
@@ -151,11 +152,13 @@ const EngineerProject = () => {
     });
   };
 
+  // ✅ UPDATED: Added full_paid to status badge
   const getStatusBadge = (status) => {
     const badges = {
       'quoted': <span className="status-badge-engineerproject quoted">Quoted</span>,
       'approved': <span className="status-badge-engineerproject approved">Approved</span>,
       'initial_paid': <span className="status-badge-engineerproject initial-paid">Initial Paid</span>,
+      'full_paid': <span className="status-badge-engineerproject full-paid">Full Paid (Awaiting Installation)</span>,
       'in_progress': <span className="status-badge-engineerproject in-progress">In Progress</span>,
       'progress_paid': <span className="status-badge-engineerproject progress-paid">Progress Paid</span>,
       'completed': <span className="status-badge-engineerproject completed">Completed</span>,
@@ -164,16 +167,16 @@ const EngineerProject = () => {
     return badges[status] || <span className="status-badge-engineerproject">{status}</span>;
   };
 
-  const getProgressPercentage = (project) => {
-    if (!project.totalCost || project.totalCost === 0) return 0;
-    return Math.round((project.amountPaid / project.totalCost) * 100);
-  };
-
   const getPreAssessmentData = (project) => {
     if (project.preAssessmentId && typeof project.preAssessmentId === 'object') {
       return project.preAssessmentId;
     }
     return null;
+  };
+
+  // ✅ Helper to check if engineer can start installation
+  const canStartInstallation = (status) => {
+    return ['approved', 'initial_paid', 'full_paid'].includes(status);
   };
 
   const filteredProjects = projects.filter(project => {
@@ -234,6 +237,7 @@ const EngineerProject = () => {
               <option value="quoted">Quoted</option>
               <option value="approved">Approved</option>
               <option value="initial_paid">Initial Paid</option>
+              <option value="full_paid">Full Paid</option>
               <option value="in_progress">In Progress</option>
               <option value="progress_paid">Progress Paid</option>
               <option value="completed">Completed</option>
@@ -261,6 +265,11 @@ const EngineerProject = () => {
           ) : (
             filteredProjects.map(project => {
               const preAssessment = getPreAssessmentData(project);
+              const canStart = canStartInstallation(project.status);
+              const isInProgress = project.status === 'in_progress';
+              const isProgressPaid = project.status === 'progress_paid';
+              const isFullPaid = project.status === 'full_paid';
+              
               return (
                 <div key={project._id} className="project-card-engineerproject">
                   <div className="card-header-engineerproject">
@@ -290,15 +299,20 @@ const EngineerProject = () => {
                       <FaCalendarAlt />
                       <span>Started: {formatDate(project.startDate)}</span>
                     </div>
+                    {/* Show payment info for full_paid projects */}
+                    {isFullPaid && (
+                      <div className="detail-item full-paid-badge">
+                        <FaMoneyBillWaveAlt />
+                        <span className="full-paid-text">Full Payment Completed - Ready for Installation</span>
+                      </div>
+                    )}
                   </div>
                   
-                  <div className="progress-section-engineerproject">
-                    <div className="progress-bar-container">
-                      <div className="progress-bar" style={{ width: `${getProgressPercentage(project)}%` }}></div>
-                    </div>
-                    <div className="progress-stats">
-                      <span>Paid: {formatCurrency(project.amountPaid)}</span>
-                      <span>Total: {formatCurrency(project.totalCost)}</span>
+                  {/* Payment Info Section (no progress bar) */}
+                  <div className="payment-info-engineerproject">
+                    <div className="payment-stats">
+                      <span className="paid-amount">Paid: {formatCurrency(project.amountPaid)}</span>
+                      <span className="total-amount">Total: {formatCurrency(project.totalCost)}</span>
                     </div>
                   </div>
                   
@@ -309,7 +323,9 @@ const EngineerProject = () => {
                     >
                       <FaEye /> View Details
                     </button>
-                    {project.status === 'approved' || project.status === 'initial_paid' ? (
+                    
+                    {/* Start Installation button - for approved, initial_paid, OR full_paid */}
+                    {canStart && (
                       <button 
                         className="action-btn start"
                         onClick={() => { 
@@ -320,7 +336,10 @@ const EngineerProject = () => {
                       >
                         <FaTools /> Start Installation
                       </button>
-                    ) : project.status === 'in_progress' ? (
+                    )}
+                    
+                    {/* Update Progress button - for in_progress or progress_paid */}
+                    {(isInProgress || isProgressPaid) && (
                       <button 
                         className="action-btn update"
                         onClick={() => { 
@@ -331,7 +350,7 @@ const EngineerProject = () => {
                       >
                         <FaCheckCircle /> Update Progress
                       </button>
-                    ) : null}
+                    )}
                   </div>
                 </div>
               );
@@ -373,6 +392,9 @@ const EngineerProject = () => {
                 <p><strong>Reference:</strong> {selectedProject.projectReference}</p>
                 <p><strong>Status:</strong> {getStatusBadge(selectedProject.status)}</p>
                 <p><strong>Created:</strong> {formatDate(selectedProject.createdAt)}</p>
+                {selectedProject.paymentPreference === 'full' && (
+                  <p><strong>Payment Type:</strong> Full Payment</p>
+                )}
               </div>
 
               <div className="detail-section">
@@ -397,9 +419,6 @@ const EngineerProject = () => {
                 <p><strong>Total Cost:</strong> {formatCurrency(selectedProject.totalCost)}</p>
                 <p><strong>Amount Paid:</strong> {formatCurrency(selectedProject.amountPaid)}</p>
                 <p><strong>Balance:</strong> {formatCurrency(selectedProject.balance)}</p>
-                <div className="progress-bar-container">
-                  <div className="progress-bar" style={{ width: `${getProgressPercentage(selectedProject)}%` }}></div>
-                </div>
               </div>
 
               {selectedProject.paymentSchedule?.length > 0 && (
@@ -412,7 +431,7 @@ const EngineerProject = () => {
                     <tbody>
                       {selectedProject.paymentSchedule.map((payment, idx) => (
                         <tr key={idx}>
-                          <td>{payment.type}</td>
+                          <td className="capitalize">{payment.type === 'full' ? 'Full Payment' : payment.type}</td>
                           <td>{formatCurrency(payment.amount)}</td>
                           <td>{formatDate(payment.dueDate)}</td>
                           <td>{payment.status === 'paid' ? 'Paid' : payment.status === 'overdue' ? 'Overdue' : 'Pending'}</td>
@@ -448,7 +467,7 @@ const EngineerProject = () => {
           </div>
         )}
 
-        {/* Progress Update Modal */}
+        {/* Progress Update Modal - ORIGINAL DROPDOWN OPTIONS RESTORED */}
         {showProgressModal && selectedProject && (
           <div className="modal-overlay-engineerproject" onClick={() => setShowProgressModal(false)}>
             <div className="modal-content-engineerproject progress-modal" onClick={e => e.stopPropagation()}>
@@ -468,6 +487,7 @@ const EngineerProject = () => {
 
               <div className="form-group">
                 <label>Update Status</label>
+                {/* ✅ ORIGINAL DROPDOWN OPTIONS - RESTORED */}
                 <select 
                   value={progressForm.status} 
                   onChange={(e) => setProgressForm({ ...progressForm, status: e.target.value })}

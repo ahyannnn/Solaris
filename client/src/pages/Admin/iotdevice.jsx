@@ -36,7 +36,7 @@ import {
   FaHistory,
   FaChartLine
 } from 'react-icons/fa';
-import '../../styles/Admin/iotDevice.css';
+import '../../styles/Admin/iotdevice.css';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 
 const IoTDevice = () => {

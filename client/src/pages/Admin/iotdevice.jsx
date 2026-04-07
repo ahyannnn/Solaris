@@ -37,14 +37,17 @@ import {
   FaChartLine
 } from 'react-icons/fa';
 import '../../styles/Admin/iotDevice.css';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 
 const IoTDevice = () => {
+  const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [devices, setDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [showDeviceModal, setShowDeviceModal] = useState(false);
   const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
   const [showDataModal, setShowDataModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [modalMode, setModalMode] = useState('view');
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -89,6 +92,7 @@ const IoTDevice = () => {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching devices:', error);
+      showToast('Failed to fetch devices', 'error');
       setLoading(false);
     }
   };
@@ -114,13 +118,14 @@ const IoTDevice = () => {
       setSensorData(response.data.data || []);
     } catch (error) {
       console.error('Error fetching device data:', error);
+      showToast('Failed to fetch sensor data', 'error');
       setSensorData([]);
     }
   };
 
   const handleCreateDevice = async () => {
     if (!formData.deviceName || !formData.model) {
-      alert('Please fill in device name and model');
+      showToast('Please fill in device name and model', 'error');
       return;
     }
 
@@ -138,14 +143,14 @@ const IoTDevice = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert('Device created successfully!');
+      showToast('Device created successfully!', 'success');
       setShowDeviceModal(false);
       resetForm();
       fetchDevices();
       fetchStats();
     } catch (error) {
       console.error('Error creating device:', error);
-      alert(error.response?.data?.message || 'Failed to create device');
+      showToast(error.response?.data?.message || 'Failed to create device', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -167,23 +172,19 @@ const IoTDevice = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert('Device updated successfully!');
+      showToast('Device updated successfully!', 'success');
       setShowDeviceModal(false);
       setSelectedDevice(null);
       fetchDevices();
     } catch (error) {
       console.error('Error updating device:', error);
-      alert(error.response?.data?.message || 'Failed to update device');
+      showToast(error.response?.data?.message || 'Failed to update device', 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDeleteDevice = async () => {
-    if (!window.confirm('Are you sure you want to delete this device?')) {
-      return;
-    }
-
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
@@ -191,14 +192,14 @@ const IoTDevice = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      alert('Device deleted successfully!');
-      setShowDeviceModal(false);
+      showToast('Device deleted successfully!', 'success');
+      setShowDeleteModal(false);
       setSelectedDevice(null);
       fetchDevices();
       fetchStats();
     } catch (error) {
       console.error('Error deleting device:', error);
-      alert(error.response?.data?.message || 'Failed to delete device');
+      showToast(error.response?.data?.message || 'Failed to delete device', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -224,14 +225,14 @@ const IoTDevice = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert('Device marked for maintenance');
+      showToast('Device marked for maintenance', 'success');
       setShowMaintenanceModal(false);
       setSelectedDevice(null);
       fetchDevices();
       fetchStats();
     } catch (error) {
       console.error('Error updating maintenance:', error);
-      alert('Failed to update device status');
+      showToast('Failed to update device status', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -280,6 +281,11 @@ const IoTDevice = () => {
     setShowMaintenanceModal(true);
   };
 
+  const openDeleteModal = (device) => {
+    setSelectedDevice(device);
+    setShowDeleteModal(true);
+  };
+
   const getStatusBadge = (status) => {
     const badges = {
       'available': <span className="status-badge-adminiot available-adminiot">Available</span>,
@@ -290,22 +296,6 @@ const IoTDevice = () => {
       'retired': <span className="status-badge-adminiot retired-adminiot">Retired</span>
     };
     return badges[status] || <span className="status-badge-adminiot">{status}</span>;
-  };
-
-  const getBatteryIcon = (level) => {
-    if (!level) return <FaBatteryQuarter />;
-    if (level >= 75) return <FaBatteryFull />;
-    if (level >= 50) return <FaBatteryThreeQuarters />;
-    if (level >= 25) return <FaBatteryHalf />;
-    return <FaBatteryQuarter />;
-  };
-
-  const getBatteryClass = (level) => {
-    if (!level) return 'low';
-    if (level >= 75) return 'high';
-    if (level >= 50) return 'medium';
-    if (level >= 25) return 'low';
-    return 'critical';
   };
 
   const formatDate = (date) => {
@@ -347,6 +337,13 @@ const IoTDevice = () => {
   if (loading && devices.length === 0) {
     return (
       <div className="admin-iot-adminiot">
+        <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          position="bottom-left"
+        />
         <div className="iot-header-adminiot">
           <div>
             <div className="skeleton-line-adminiot large-adminiot"></div>
@@ -391,6 +388,14 @@ const IoTDevice = () => {
       </Helmet>
 
       <div className="admin-iot-adminiot">
+        <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          position="bottom-left"
+        />
+        
         {/* Header */}
         <div className="iot-header-adminiot">
           <div>
@@ -529,13 +534,6 @@ const IoTDevice = () => {
                           <span className="sensor-value-adminiot">{device.latestHumidity || '—'} %</span>
                         </div>
                       </div>
-                      <div className="sensor-reading-adminiot">
-                        <FaMapMarkerAlt className="sensor-icon-adminiot location-adminiot" />
-                        <div>
-                          <span className="sensor-label-adminiot">Location</span>
-                          <span className="sensor-value-adminiot">{device.latitude && device.longitude ? `${device.latitude}, ${device.longitude}` : '—'}</span>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 ) : (
@@ -544,19 +542,6 @@ const IoTDevice = () => {
                     <span>Device not collecting data</span>
                   </div>
                 )}
-
-                <div className="device-footer-adminiot">
-                  <div className="battery-status-adminiot">
-                    {getBatteryIcon(device.batteryLevel)}
-                    <span className={`battery-level-adminiot ${getBatteryClass(device.batteryLevel)}`}>
-                      {device.batteryLevel || '—'}%
-                    </span>
-                  </div>
-                  <div className="last-heartbeat-adminiot">
-                    <FaClock />
-                    <span>{formatDate(device.lastHeartbeat)}</span>
-                  </div>
-                </div>
 
                 <div className="device-actions-adminiot">
                   <button className="action-btn-adminiot view-adminiot" onClick={() => openViewModal(device)} title="View Details">
@@ -576,7 +561,7 @@ const IoTDevice = () => {
                     </button>
                   )}
                   {device.status === 'available' && (
-                    <button className="action-btn-adminiot delete-adminiot" onClick={() => { setSelectedDevice(device); if (window.confirm('Delete this device?')) handleDeleteDevice(); }} title="Delete">
+                    <button className="action-btn-adminiot delete-adminiot" onClick={() => openDeleteModal(device)} title="Delete">
                       <FaTrash />
                     </button>
                   )}
@@ -616,41 +601,6 @@ const IoTDevice = () => {
                     <p><strong>Serial Number:</strong> {selectedDevice.serialNumber || '—'}</p>
                     <p><strong>Firmware:</strong> v{selectedDevice.firmwareVersion}</p>
                     <p><strong>Status:</strong> {getStatusBadge(selectedDevice.status)}</p>
-                    <p><strong>Battery:</strong> {selectedDevice.batteryLevel || '—'}%</p>
-                    <p><strong>Last Heartbeat:</strong> {formatDateTime(selectedDevice.lastHeartbeat)}</p>
-                  </div>
-                  <div className="detail-section-adminiot">
-                    <h4>Location & Environment</h4>
-                    <p><strong>Latitude:</strong> {selectedDevice.latitude || '—'}</p>
-                    <p><strong>Longitude:</strong> {selectedDevice.longitude || '—'}</p>
-                    <p><strong>Latest Irradiance:</strong> {selectedDevice.latestIrradiance || '—'} W/m²</p>
-                    <p><strong>Latest Temperature:</strong> {selectedDevice.latestTemperature || '—'} °C</p>
-                    <p><strong>Latest Humidity:</strong> {selectedDevice.latestHumidity || '—'} %</p>
-                  </div>
-                  <div className="detail-section-adminiot">
-                    <h4>Deployment History</h4>
-                    {selectedDevice.deploymentHistory?.length > 0 ? (
-                      selectedDevice.deploymentHistory.map((h, i) => (
-                        <div key={i} className="history-item-adminiot">
-                          <p><strong>Assigned:</strong> {formatDateTime(h.assignedAt)}</p>
-                          <p><strong>Deployed:</strong> {formatDateTime(h.deployedAt) || 'Not yet deployed'}</p>
-                          <p><strong>Retrieved:</strong> {formatDateTime(h.retrievedAt) || 'Still active'}</p>
-                          <p><strong>Notes:</strong> {h.notes || '—'}</p>
-                        </div>
-                      ))
-                    ) : <p>No deployment history</p>}
-                  </div>
-                  <div className="detail-section-adminiot">
-                    <h4>Maintenance History</h4>
-                    {selectedDevice.maintenanceHistory?.length > 0 ? (
-                      selectedDevice.maintenanceHistory.map((m, i) => (
-                        <div key={i} className="history-item-adminiot">
-                          <p><strong>Type:</strong> {m.type}</p>
-                          <p><strong>Date:</strong> {formatDateTime(m.date)}</p>
-                          <p><strong>Notes:</strong> {m.notes}</p>
-                        </div>
-                      ))
-                    ) : <p>No maintenance history</p>}
                   </div>
                 </div>
               ) : (
@@ -718,6 +668,33 @@ const IoTDevice = () => {
           </div>
         )}
 
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && selectedDevice && (
+          <div className="modal-overlay-adminiot" onClick={() => setShowDeleteModal(false)}>
+            <div className="modal-content-adminiot delete-modal-adminiot" onClick={e => e.stopPropagation()}>
+              <button className="modal-close-adminiot" onClick={() => setShowDeleteModal(false)}>×</button>
+              <div className="delete-icon-container-adminiot">
+                <FaExclamationTriangle className="delete-warning-icon-adminiot" />
+              </div>
+              <h3>Confirm Delete</h3>
+              <p>Are you sure you want to delete this device?</p>
+              <div className="device-info-delete-adminiot">
+                <p><strong>Device Name:</strong> {selectedDevice.deviceName}</p>
+                <p><strong>Device ID:</strong> {selectedDevice.deviceId}</p>
+                <p><strong>Model:</strong> {selectedDevice.model}</p>
+              </div>
+              <p className="delete-warning-text-adminiot">This action cannot be undone. This will permanently delete the device and all its associated data.</p>
+              <div className="modal-actions-adminiot">
+                <button className="cancel-btn-adminiot" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+                <button className="delete-btn-adminiot" onClick={handleDeleteDevice} disabled={isSubmitting}>
+                  {isSubmitting ? <FaSpinner className="spinning" /> : <FaTrash />}
+                  {isSubmitting ? 'Deleting...' : 'Delete Device'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Sensor Data Modal */}
         {showDataModal && selectedDevice && (
           <div className="modal-overlay-adminiot" onClick={() => setShowDataModal(false)}>
@@ -755,7 +732,6 @@ const IoTDevice = () => {
                       <th>Irradiance (W/m²)</th>
                       <th>Temperature (°C)</th>
                       <th>Humidity (%)</th>
-                      <th>Battery (%)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -766,12 +742,11 @@ const IoTDevice = () => {
                           <td>{data.irradiance || '—'}</td>
                           <td>{data.temperature || '—'}</td>
                           <td>{data.humidity || '—'}</td>
-                          <td>{data.batteryLevel || '—'}</td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="5" className="empty-data-adminiot">No sensor data available</td>
+                        <td colSpan="4" className="empty-data-adminiot">No sensor data available</td>
                       </tr>
                     )}
                   </tbody>
@@ -779,7 +754,7 @@ const IoTDevice = () => {
               </div>
               <div className="modal-actions-adminiot">
                 <button className="cancel-btn-adminiot" onClick={() => setShowDataModal(false)}>Close</button>
-                <button className="export-btn-adminiot" onClick={() => alert('Exporting data...')}><FaDownload /> Export CSV</button>
+                <button className="export-btn-adminiot" onClick={() => showToast('Exporting data...', 'info')}><FaDownload /> Export CSV</button>
               </div>
             </div>
           </div>

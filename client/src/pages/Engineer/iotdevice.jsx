@@ -32,7 +32,7 @@ import {
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart, Bar } from 'recharts';
-import '../../styles/Engineer/iotDevice.css';
+import '../../styles/Engineer/iotdevice.css';
 
 const IoTDevice = () => {
   const { toast, showToast, hideToast } = useToast();

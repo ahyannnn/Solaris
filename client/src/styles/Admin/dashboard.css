@@ -661,7 +661,7 @@
 
 ::-webkit-scrollbar-thumb {
   background: #D4D4D8;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {

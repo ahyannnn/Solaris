@@ -55,8 +55,10 @@ import {
   FaBatteryFull
 } from 'react-icons/fa';
 import '../../styles/Engineer/siteassessment.css';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 
 const MyAssessments = () => {
+  const { toast, showToast, hideToast } = useToast();
   const [freeQuotes, setFreeQuotes] = useState([]);
   const [preAssessments, setPreAssessments] = useState([]);
   const [allAssessments, setAllAssessments] = useState([]);
@@ -73,7 +75,6 @@ const MyAssessments = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
   const [deployNotes, setDeployNotes] = useState('');
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [includeIoTData, setIncludeIoTData] = useState(true);
@@ -338,11 +339,6 @@ const MyAssessments = () => {
     return ASSESSMENT_TYPES[type] || ASSESSMENT_TYPES.free_quote;
   };
 
-  const showNotification = (message, type = 'success') => {
-    setNotification({ show: true, message, type });
-    setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 5000);
-  };
-
   const fetchAllAssessments = async () => {
     try {
       setLoading(true);
@@ -413,7 +409,7 @@ const MyAssessments = () => {
       setError(null);
     } catch (err) {
       console.error('Error fetching assessments:', err);
-      setError('Failed to load assessments. Please try again.');
+      showToast('Failed to load assessments. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -478,7 +474,7 @@ const MyAssessments = () => {
       });
     } catch (err) {
       console.error('Error fetching free quote details:', err);
-      showNotification('Failed to load quote details', 'error');
+      showToast('Failed to load quote details', 'error');
     }
   };
 
@@ -586,7 +582,7 @@ const MyAssessments = () => {
       }
     } catch (err) {
       console.error('Error fetching pre-assessment details:', err);
-      showNotification('Failed to load assessment details', 'error');
+      showToast('Failed to load assessment details', 'error');
     }
   };
 
@@ -603,12 +599,12 @@ const MyAssessments = () => {
       );
       
       setIotAnalysis(response.data.analysis);
-      showNotification('IoT data analysis completed successfully!', 'success');
+      showToast('IoT data analysis completed successfully!', 'success');
       
       fetchPreAssessmentDetails(selectedItem._id);
     } catch (err) {
       console.error('Error analyzing IoT data:', err);
-      showNotification(err.response?.data?.message || 'Failed to analyze IoT data', 'error');
+      showToast(err.response?.data?.message || 'Failed to analyze IoT data', 'error');
     } finally {
       setAnalyzingData(false);
     }
@@ -619,12 +615,12 @@ const MyAssessments = () => {
     const totalCost = selectedType === 'free_quote' ? freeQuoteForm.totalCost : quotationForm.totalCost;
     
     if (!systemSize || parseFloat(systemSize) <= 0) {
-      showNotification('Please enter a valid system size (greater than 0)', 'warning');
+      showToast('Please enter a valid system size (greater than 0)', 'warning');
       return;
     }
     
     if (!totalCost || parseFloat(totalCost) <= 0) {
-      showNotification('Please enter a valid total cost (greater than 0)', 'warning');
+      showToast('Please enter a valid total cost (greater than 0)', 'warning');
       return;
     }
     
@@ -674,7 +670,7 @@ const MyAssessments = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      showNotification('Quotation PDF generated and uploaded successfully!', 'success');
+      showToast('Quotation PDF generated and uploaded successfully!', 'success');
       
       if (selectedType === 'free_quote') {
         fetchFreeQuoteDetails(selectedItem._id);
@@ -683,7 +679,7 @@ const MyAssessments = () => {
       }
     } catch (err) {
       console.error('Error generating PDF:', err);
-      showNotification(err.response?.data?.message || 'Failed to generate PDF', 'error');
+      showToast(err.response?.data?.message || 'Failed to generate PDF', 'error');
     } finally {
       setGeneratingPDF(false);
     }
@@ -737,10 +733,10 @@ const MyAssessments = () => {
         }
       );
       setSiteImages([...siteImages, ...response.data.images]);
-      showNotification('Images uploaded successfully');
+      showToast('Images uploaded successfully', 'success');
     } catch (err) {
       console.error('Error uploading images:', err);
-      showNotification('Failed to upload images', 'error');
+      showToast('Failed to upload images', 'error');
     } finally {
       setUploading(false);
       setShowImageUploader(false);
@@ -760,12 +756,12 @@ const MyAssessments = () => {
         { notes: deployNotes },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      showNotification(response.data.message || 'Device deployed successfully. Data collection started!');
+      showToast(response.data.message || 'Device deployed successfully. Data collection started!', 'success');
       setDeployNotes('');
       fetchPreAssessmentDetails(selectedItem._id);
     } catch (err) {
       console.error('Error deploying device:', err);
-      showNotification(err.response?.data?.message || 'Failed to deploy device', 'error');
+      showToast(err.response?.data?.message || 'Failed to deploy device', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -780,11 +776,11 @@ const MyAssessments = () => {
         assessmentForm,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      showNotification('Site assessment saved successfully');
+      showToast('Site assessment saved successfully', 'success');
       fetchPreAssessmentDetails(selectedItem._id);
     } catch (err) {
       console.error('Error saving assessment:', err);
-      showNotification('Failed to save assessment', 'error');
+      showToast('Failed to save assessment', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -814,11 +810,11 @@ const MyAssessments = () => {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      showNotification('Final report submitted successfully');
+      showToast('Final report submitted successfully', 'success');
       fetchPreAssessmentDetails(selectedItem._id);
     } catch (err) {
       console.error('Error submitting report:', err);
-      showNotification('Failed to submit report', 'error');
+      showToast('Failed to submit report', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -836,11 +832,11 @@ const MyAssessments = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setCommentText('');
-      showNotification('Comment added successfully');
+      showToast('Comment added successfully', 'success');
       fetchPreAssessmentDetails(selectedItem._id);
     } catch (err) {
       console.error('Error adding comment:', err);
-      showNotification('Failed to add comment', 'error');
+      showToast('Failed to add comment', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -910,6 +906,13 @@ const MyAssessments = () => {
 
   const SkeletonList = () => (
     <div className="my-assessments-enad">
+      <ToastNotification
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={hideToast}
+        position="bottom-left"
+      />
       <div className="assessments-header-enad">
         <div className="skeleton-line-enad large-enad"></div>
         <div className="skeleton-line-enad medium-enad"></div>
@@ -944,6 +947,14 @@ const MyAssessments = () => {
         </Helmet>
 
         <div className="my-assessments-enad">
+          <ToastNotification
+            show={toast.show}
+            message={toast.message}
+            type={toast.type}
+            onClose={hideToast}
+            position="bottom-left"
+          />
+          
           <div className="assessments-header-enad">
             <h1>My Assessments</h1>
             <p>Manage free quotes and site assessments assigned to you</p>
@@ -1113,14 +1124,6 @@ const MyAssessments = () => {
             </div>
           )}
         </div>
-
-        {/* Notification */}
-        {notification.show && (
-          <div className={`notification-enad ${notification.type === 'success' ? 'success-enad' : 'error-enad'}`}>
-            {notification.type === 'success' ? <FaCheckCircle /> : <FaExclamationTriangle />}
-            {notification.message}
-          </div>
-        )}
       </>
     );
   }
@@ -1139,6 +1142,14 @@ const MyAssessments = () => {
         </Helmet>
 
         <div className="my-assessments-enad">
+          <ToastNotification
+            show={toast.show}
+            message={toast.message}
+            type={toast.type}
+            onClose={hideToast}
+            position="bottom-left"
+          />
+          
           <div className="detail-view-enad">
             <div className="detail-content-enad">
               <button onClick={handleBackToList} className="back-button-enad">
@@ -1407,13 +1418,6 @@ const MyAssessments = () => {
             </div>
           </div>
         </div>
-
-        {notification.show && (
-          <div className={`notification-enad ${notification.type === 'success' ? 'success-enad' : 'error-enad'}`}>
-            {notification.type === 'success' ? <FaCheckCircle /> : <FaExclamationTriangle />}
-            {notification.message}
-          </div>
-        )}
       </>
     );
   }
@@ -1434,6 +1438,14 @@ const MyAssessments = () => {
       </Helmet>
 
       <div className="my-assessments-enad">
+        <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          position="bottom-left"
+        />
+        
         <div className="detail-view-enad">
           <div className="detail-content-enad">
             <button onClick={handleBackToList} className="back-button-enad">
@@ -1476,11 +1488,11 @@ const MyAssessments = () => {
                   onClick={() => setActiveTab(tab)}
                   className={`tab-btn-enad ${activeTab === tab ? 'active-enad' : ''}`}
                 >
-                  {tab === 'overview' && <><FaEye /> Overview</>}
-                  {tab === 'site-inspection' && <><FaHardHat /> Site Inspection</>}
-                  {tab === 'quotation' && <><FaFilePdf /> Quotation</>}
-                  {tab === 'documents' && <><FaImages /> Documents</>}
-                  {tab === 'comments' && <><FaComment /> Comments</>}
+                  {tab === 'overview' && 'Overview'}
+                  {tab === 'site-inspection' && 'Site Inspection'}
+                  {tab === 'quotation' && 'Quotation'}
+                  {tab === 'documents' && 'Documents'}
+                  {tab === 'comments' && 'Comments'}
                 </button>
               ))}
             </div>
@@ -1577,9 +1589,7 @@ const MyAssessments = () => {
                 {hasDataCollection && (
                   <div className="detail-section-enad">
                     <div className="section-header-enad">
-                      <h3 className="detail-section-title-enad">
-                        <FaChartLine /> IoT Data Analysis (7-Day Monitoring)
-                      </h3>
+                      <h3 className="detail-section-title-enad">IoT Data Analysis (7-Day Monitoring)</h3>
                       {canAnalyze && (
                         <button
                           onClick={analyzeIoTData}
@@ -2180,13 +2190,6 @@ const MyAssessments = () => {
           </div>
         </div>
       </div>
-
-      {notification.show && (
-        <div className={`notification-enad ${notification.type === 'success' ? 'success-enad' : 'error-enad'}`}>
-          {notification.type === 'success' ? <FaCheckCircle /> : <FaExclamationTriangle />}
-          {notification.message}
-        </div>
-      )}
     </>
   );
 };

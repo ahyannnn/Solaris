@@ -36,7 +36,7 @@ import {
   FaWifi
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
-import '../../styles/Admin/siteAssessment.css';
+import '../../styles/Admin/siteassessment.css';
 
 const SiteAssessment = () => {
   const { toast, showToast, hideToast } = useToast();

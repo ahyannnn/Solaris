@@ -40,6 +40,6 @@ const AccountSetupGuard = ({ children }) => {
   if (loading) return null;
 
   return children;
-};
+};    
 
 export default AccountSetupGuard;

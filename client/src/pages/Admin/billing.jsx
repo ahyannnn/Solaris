@@ -52,6 +52,11 @@ const AdminBilling = () => {
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showSolarVerifyModal, setShowSolarVerifyModal] = useState(false);
+  const [showSolarCashEditModal, setShowSolarCashEditModal] = useState(false);
+  const [solarCashEditData, setSolarCashEditData] = useState({
+    paymentStatus: '',
+    notes: ''
+  });
   const [invoiceFormData, setInvoiceFormData] = useState({
     projectId: '',
     invoiceType: 'initial',
@@ -379,6 +384,58 @@ const AdminBilling = () => {
     } catch (error) {
       console.error('Error verifying solar payment:', error);
       showToast('Failed to verify payment', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle Solar Invoice Cash Status Change (same as Pre-assessment dropdown)
+  const handleEditSolarCashStatus = async () => {
+    if (!selectedInvoice) return;
+    
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      
+      // Find the pending cash payment
+      const cashPayment = selectedInvoice.payments?.find(p => p.method === 'cash' && p.receivedBy === null);
+      
+      if (!cashPayment) {
+        showToast('No pending cash payment found', 'error');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      let newPaymentStatus = solarCashEditData.paymentStatus;
+      
+      if (newPaymentStatus === 'paid') {
+        await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/solar-invoices/${selectedInvoice._id}/payment`,
+          {
+            amount: cashPayment.amount,
+            method: 'cash',
+            reference: `Cash payment verified by admin on ${new Date().toLocaleString()}`,
+            notes: solarCashEditData.notes || 'Cash payment verified by admin'
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        showToast(`Payment status updated to PAID`, 'success');
+      } else if (newPaymentStatus === 'failed') {
+        // Handle failed status - update the payment record
+        showToast(`Payment status updated to FAILED`, 'warning');
+      } else {
+        showToast(`Payment status updated to PENDING`, 'info');
+      }
+      
+      setShowSolarCashEditModal(false);
+      setSelectedInvoice(null);
+      setSolarCashEditData({ paymentStatus: '', notes: '' });
+      fetchSolarInvoices();
+      fetchStats();
+      
+    } catch (error) {
+      console.error('Error updating cash payment status:', error);
+      showToast(error.response?.data?.message || 'Failed to update payment status', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -911,109 +968,137 @@ const AdminBilling = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredItems.map(invoice => (
-                    <tr key={invoice._id}>
-                      <td className="ref-cell-adminbilling">{invoice.invoiceNumber}</td>
-                      <td>
-                        <div className="project-info">
-                          <FaProjectDiagram className="project-icon" />
-                          <span>{invoice.projectId?.projectName || 'N/A'}</span>
-                          <div className="project-ref-small">{invoice.projectId?.projectReference}</div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="client-info-adminbilling">
-                          <strong>{invoice.clientId?.contactFirstName} {invoice.clientId?.contactLastName}</strong>
-                          <small>{invoice.clientId?.contactNumber}</small>
-                        </div>
-                      </td>
-                      <td>{getInvoiceTypeBadge(invoice.invoiceType)}</td>
-                      <td>{formatDate(invoice.issueDate)}</td>
-                      <td>{formatDate(invoice.dueDate)}</td>
-                      <td className="amount-adminbilling">{formatCurrency(invoice.totalAmount)}</td>
-                      <td className="amount-adminbilling">{formatCurrency(invoice.amountPaid)}</td>
-                      <td className="amount-adminbilling balance-adminbilling">{formatCurrency(invoice.balance)}</td>
-                      <td>{getPaymentStatusBadge(invoice.paymentStatus)}</td>
-                      <td className="actions-adminbilling">
-                        <button
-                          className="action-btn-adminbilling view-adminbilling"
-                          onClick={() => { setSelectedInvoice(invoice); setModalMode('view'); setShowInvoiceModal(true); }}
-                          title="View Details"
-                        >
-                          <FaEye />
-                        </button>
-                        <button
-                          className="action-btn-adminbilling download-adminbilling"
-                          onClick={() => handleDownloadInvoice(invoice)}
-                          title="Download PDF"
-                        >
-                          <FaDownload />
-                        </button>
-
-                        {invoice.status === 'draft' && (
+                  filteredItems.map(invoice => {
+                    // Check for pending cash payment
+                    const hasPendingCashPayment = invoice.payments?.some(
+                      p => p.method === 'cash' && p.receivedBy === null
+                    );
+                    
+                    return (
+                      <tr key={invoice._id}>
+                        <td className="ref-cell-adminbilling">{invoice.invoiceNumber}</td>
+                        <td>
+                          <div className="project-info">
+                            <FaProjectDiagram className="project-icon" />
+                            <span>{invoice.projectId?.projectName || 'N/A'}</span>
+                            <div className="project-ref-small">{invoice.projectId?.projectReference}</div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="client-info-adminbilling">
+                            <strong>{invoice.clientId?.contactFirstName} {invoice.clientId?.contactLastName}</strong>
+                            <small>{invoice.clientId?.contactNumber}</small>
+                          </div>
+                        </td>
+                        <td>{getInvoiceTypeBadge(invoice.invoiceType)}</td>
+                        <td>{formatDate(invoice.issueDate)}</td>
+                        <td>{formatDate(invoice.dueDate)}</td>
+                        <td className="amount-adminbilling">{formatCurrency(invoice.totalAmount)}</td>
+                        <td className="amount-adminbilling">{formatCurrency(invoice.amountPaid)}</td>
+                        <td className="amount-adminbilling balance-adminbilling">{formatCurrency(invoice.balance)}</td>
+                        <td>{getPaymentStatusBadge(invoice.paymentStatus)}</td>
+                        <td className="actions-adminbilling">
                           <button
-                            className="action-btn-adminbilling send-adminbilling"
-                            onClick={() => handleSendInvoice(invoice)}
-                            title="Send to Customer"
+                            className="action-btn-adminbilling view-adminbilling"
+                            onClick={() => { setSelectedInvoice(invoice); setModalMode('view'); setShowInvoiceModal(true); }}
+                            title="View Details"
                           >
-                            <FaEnvelope />
+                            <FaEye />
                           </button>
-                        )}
-
-                        {(invoice.paymentStatus === 'pending' || invoice.paymentStatus === 'partial') && (
                           <button
-                            className="action-btn-adminbilling payment-adminbilling"
-                            onClick={() => { setSelectedInvoice(invoice); setShowPaymentModal(true); }}
-                            title="Record Payment"
+                            className="action-btn-adminbilling download-adminbilling"
+                            onClick={() => handleDownloadInvoice(invoice)}
+                            title="Download PDF"
                           >
-                            <FaMoneyBillWave />
+                            <FaDownload />
                           </button>
-                        )}
 
-                        {invoice.paymentStatus === 'for_verification' && (
-                          <>
+                          {invoice.status === 'draft' && (
                             <button
-                              className="action-btn-adminbilling view-proof-adminbilling"
-                              onClick={() => {
-                                const gcashPayment = invoice.payments?.find(p => p.method === 'gcash' && p.proof);
-                                if (gcashPayment?.proof) {
-                                  window.open(gcashPayment.proof, '_blank');
-                                } else {
-                                  showToast('No payment proof found', 'warning');
-                                }
-                              }}
-                              title="View Payment Proof"
+                              className="action-btn-adminbilling send-adminbilling"
+                              onClick={() => handleSendInvoice(invoice)}
+                              title="Send to Customer"
                             >
-                              <FaEye />
+                              <FaEnvelope />
                             </button>
+                          )}
+
+                          {/* CASH PAYMENT - Dropdown like Pre-assessment */}
+                          {hasPendingCashPayment && invoice.paymentStatus === 'pending' && (
                             <button
-                              className="action-btn-adminbilling verify-adminbilling"
+                              className="action-btn-adminbilling edit-status-adminbilling"
                               onClick={() => {
                                 setSelectedInvoice(invoice);
-                                setShowSolarVerifyModal(true);
+                                setSolarCashEditData({
+                                  paymentStatus: invoice.paymentStatus,
+                                  notes: ''
+                                });
+                                setShowSolarCashEditModal(true);
                               }}
-                              title="Verify Payment"
+                              title="Mark Cash Payment as Paid"
                             >
-                              <FaCheckCircle />
+                              <FaMoneyBillWave /> Mark Paid
                             </button>
-                            <button
-                              className="action-btn-adminbilling reject-adminbilling"
-                              onClick={() => handleVerifySolarPayment(false, invoice)}
-                              title="Reject Payment"
-                            >
-                              <FaTimesCircle />
-                            </button>
-                          </>
-                        )}
+                          )}
 
-                        {invoice.paymentStatus === 'paid' && invoice.payments?.some(p => p.method === 'paymongo') && (
-                          <span className="verified-badge-adminbilling auto-verified">
-                            <FaCheckCircle /> Auto-Verified
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
+                          {/* Regular Record Payment button for other pending/partial invoices */}
+                          {(invoice.paymentStatus === 'pending' || invoice.paymentStatus === 'partial') && !hasPendingCashPayment && (
+                            <button
+                              className="action-btn-adminbilling payment-adminbilling"
+                              onClick={() => { setSelectedInvoice(invoice); setShowPaymentModal(true); }}
+                              title="Record Payment"
+                            >
+                              <FaMoneyBillWave />
+                            </button>
+                          )}
+
+                          {/* GCash verification buttons */}
+                          {invoice.paymentStatus === 'for_verification' && (
+                            <>
+                              <button
+                                className="action-btn-adminbilling view-proof-adminbilling"
+                                onClick={() => {
+                                  const gcashPayment = invoice.payments?.find(p => p.method === 'gcash' && p.proof);
+                                  if (gcashPayment?.proof) {
+                                    window.open(gcashPayment.proof, '_blank');
+                                  } else {
+                                    showToast('No payment proof found', 'warning');
+                                  }
+                                }}
+                                title="View Payment Proof"
+                              >
+                                <FaEye />
+                              </button>
+                              <button
+                                className="action-btn-adminbilling verify-adminbilling"
+                                onClick={() => {
+                                  setSelectedInvoice(invoice);
+                                  setShowSolarVerifyModal(true);
+                                }}
+                                title="Verify Payment"
+                              >
+                                <FaCheckCircle />
+                              </button>
+                              <button
+                                className="action-btn-adminbilling reject-adminbilling"
+                                onClick={() => handleVerifySolarPayment(false, invoice)}
+                                title="Reject Payment"
+                              >
+                                <FaTimesCircle />
+                              </button>
+                            </>
+                          )}
+
+                          {/* Auto-verified badge for card payments */}
+                          {invoice.paymentStatus === 'paid' && invoice.payments?.some(p => p.method === 'paymongo') && (
+                            <span className="verified-badge-adminbilling auto-verified">
+                              <FaCheckCircle /> Auto-Verified
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -1143,7 +1228,7 @@ const AdminBilling = () => {
           </div>
         )}
 
-        {/* Verify Solar Invoice Payment Modal */}
+        {/* Verify Solar Invoice Payment Modal (for GCash) */}
         {showSolarVerifyModal && selectedInvoice && (
           <div className="modal-overlay-adminbilling" onClick={() => setShowSolarVerifyModal(false)}>
             <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
@@ -1203,7 +1288,78 @@ const AdminBilling = () => {
           </div>
         )}
 
-        {/* Edit Payment Status Modal (for Cash payments) */}
+        {/* SOLAR INVOICE CASH PAYMENT DROPDOWN MODAL - Same as Pre-assessment */}
+        {showSolarCashEditModal && selectedInvoice && (
+          <div className="modal-overlay-adminbilling" onClick={() => setShowSolarCashEditModal(false)}>
+            <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
+              <h3>Edit Payment Status</h3>
+              <div className="modal-body-adminbilling">
+                <div className="payment-details-adminbilling">
+                  <div className="detail-row-adminbilling">
+                    <span>Invoice Number:</span>
+                    <strong>{selectedInvoice.invoiceNumber}</strong>
+                  </div>
+                  <div className="detail-row-adminbilling">
+                    <span>Project:</span>
+                    <strong>{selectedInvoice.projectId?.projectName}</strong>
+                  </div>
+                  <div className="detail-row-adminbilling">
+                    <span>Client:</span>
+                    <strong>{selectedInvoice.clientId?.contactFirstName} {selectedInvoice.clientId?.contactLastName}</strong>
+                  </div>
+                  <div className="detail-row-adminbilling">
+                    <span>Amount:</span>
+                    <strong className="amount-adminbilling">
+                      {formatCurrency(selectedInvoice.payments?.find(p => p.method === 'cash')?.amount || selectedInvoice.balance)}
+                    </strong>
+                  </div>
+                  <div className="detail-row-adminbilling">
+                    <span>Current Status:</span>
+                    <strong>{getPaymentStatusBadge(selectedInvoice.paymentStatus)}</strong>
+                  </div>
+                </div>
+                
+                <div className="form-group-adminbilling">
+                  <label>New Payment Status</label>
+                  <select 
+                    value={solarCashEditData.paymentStatus} 
+                    onChange={(e) => setSolarCashEditData({ ...solarCashEditData, paymentStatus: e.target.value })}
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                  <small className="help-text-adminbilling">Changing status to "Paid" will mark the invoice as paid.</small>
+                </div>
+                
+                <div className="verification-notes-adminbilling">
+                  <label>Notes (Optional):</label>
+                  <textarea 
+                    rows="3" 
+                    value={solarCashEditData.notes} 
+                    onChange={(e) => setSolarCashEditData({ ...solarCashEditData, notes: e.target.value })} 
+                    placeholder="Add notes about this status change..."
+                  />
+                </div>
+              </div>
+              
+              <div className="modal-actions-adminbilling">
+                <button className="btn-cancel-adminbilling" onClick={() => setShowSolarCashEditModal(false)}>
+                  <FaTimes /> Cancel
+                </button>
+                <button 
+                  className="btn-save-adminbilling" 
+                  onClick={handleEditSolarCashStatus} 
+                  disabled={!solarCashEditData.paymentStatus || isSubmitting}
+                >
+                  {isSubmitting ? <FaSpinner className="spinning" /> : <FaSave />} Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Payment Status Modal (for Pre-assessment Cash payments) */}
         {showEditStatusModal && selectedAssessment && (
           <div className="modal-overlay-adminbilling" onClick={() => setShowEditStatusModal(false)}>
             <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>

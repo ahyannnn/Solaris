@@ -8,7 +8,7 @@ import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/quotation.css';
 
 // Import all icons
-import { 
+import {
   FaCalendarAlt,
   FaProjectDiagram,
   FaClock,
@@ -264,6 +264,14 @@ const Quotation = () => {
 
   // Project PayMongo Card Payment for Invoice
   const handleProjectPayMongoCardPayment = async () => {
+    // ✅ Check for negative amount first
+    const amountToPay = selectedItem.balance || selectedItem.totalAmount;
+
+    if (!amountToPay || amountToPay <= 0) {
+      showToast(`Invalid payment amount: ${formatCurrency(amountToPay)}. Please contact support.`, 'error');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
@@ -280,6 +288,14 @@ const Quotation = () => {
 
       const [expMonth, expYear] = cardExpiry.split('/');
 
+      if (!expMonth || !expYear || expMonth.length < 1 || expYear.length < 2) {
+        showToast('Please enter valid expiry date (MM/YY)', 'warning');
+        setIsSubmitting(false);
+        return;
+      }
+
+      console.log('Payment amount:', amountToPay);
+
       const intentResponse = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/payments/invoice/${selectedItem.invoiceId}/create-intent`,
         { paymentMethod: 'card' },
@@ -287,7 +303,7 @@ const Quotation = () => {
       );
 
       if (!intentResponse.data.success) {
-        throw new Error('Failed to create payment intent');
+        throw new Error(intentResponse.data.message || 'Failed to create payment intent');
       }
 
       const paymentIntentId = intentResponse.data.paymentIntentId;
@@ -321,7 +337,8 @@ const Quotation = () => {
       }
     } catch (err) {
       console.error('Project card payment error:', err);
-      showToast(err.response?.data?.message || 'Failed to process card payment', 'error');
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to process card payment';
+      showToast(errorMessage, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -983,7 +1000,7 @@ const Quotation = () => {
               <div className="cuspro-payment-preference-section">
                 <h4>Choose Payment Option</h4>
                 <div className={`cuspro-preference-option ${selectedPaymentPreference === 'installment' ? 'selected' : ''}`} onClick={() => setSelectedPaymentPreference('installment')}>
-                  <input type="radio" checked={selectedPaymentPreference === 'installment'} onChange={() => {}} />
+                  <input type="radio" checked={selectedPaymentPreference === 'installment'} onChange={() => { }} />
                   <div className="cuspro-preference-content">
                     <strong>Installment Payment</strong>
                     <small>Pay in 3 installments (30% - 40% - 30%)</small>
@@ -996,7 +1013,7 @@ const Quotation = () => {
                 </div>
 
                 <div className={`cuspro-preference-option ${selectedPaymentPreference === 'full' ? 'selected' : ''}`} onClick={() => setSelectedPaymentPreference('full')}>
-                  <input type="radio" checked={selectedPaymentPreference === 'full'} onChange={() => {}} />
+                  <input type="radio" checked={selectedPaymentPreference === 'full'} onChange={() => { }} />
                   <div className="cuspro-preference-content">
                     <strong>Full Payment</strong>
                     <small>Pay the full amount upfront</small>
@@ -1038,15 +1055,15 @@ const Quotation = () => {
                 <h4>Select Payment Method</h4>
                 <div className="cuspro-method-options">
                   <div className={`cuspro-method-option ${paymentMethod === 'gcash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('gcash')}>
-                    <input type="radio" checked={paymentMethod === 'gcash'} onChange={() => {}} />
+                    <input type="radio" checked={paymentMethod === 'gcash'} onChange={() => { }} />
                     <div><strong>GCash</strong><small>Pay via GCash - Upload receipt for verification</small></div>
                   </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'paymongo_card' ? 'selected' : ''}`} onClick={() => setPaymentMethod('paymongo_card')}>
-                    <input type="radio" checked={paymentMethod === 'paymongo_card'} onChange={() => {}} />
+                    <input type="radio" checked={paymentMethod === 'paymongo_card'} onChange={() => { }} />
                     <div><strong>Credit/Debit Card</strong><small>Instant payment - No receipt needed</small></div>
                   </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
-                    <input type="radio" checked={paymentMethod === 'cash'} onChange={() => {}} />
+                    <input type="radio" checked={paymentMethod === 'cash'} onChange={() => { }} />
                     <div><strong>Cash</strong><small>Pay in cash at our office</small></div>
                   </div>
                 </div>
@@ -1126,15 +1143,15 @@ const Quotation = () => {
                 <h4>Select Payment Method</h4>
                 <div className="cuspro-method-options">
                   <div className={`cuspro-method-option ${paymentMethod === 'gcash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('gcash')}>
-                    <input type="radio" checked={paymentMethod === 'gcash'} onChange={() => {}} />
+                    <input type="radio" checked={paymentMethod === 'gcash'} onChange={() => { }} />
                     <div><strong>GCash</strong><small>Pay via GCash - Upload receipt for verification</small></div>
                   </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'paymongo_card' ? 'selected' : ''}`} onClick={() => setPaymentMethod('paymongo_card')}>
-                    <input type="radio" checked={paymentMethod === 'paymongo_card'} onChange={() => {}} />
+                    <input type="radio" checked={paymentMethod === 'paymongo_card'} onChange={() => { }} />
                     <div><strong>Credit/Debit Card</strong><small>Instant payment - No receipt needed</small></div>
                   </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
-                    <input type="radio" checked={paymentMethod === 'cash'} onChange={() => {}} />
+                    <input type="radio" checked={paymentMethod === 'cash'} onChange={() => { }} />
                     <div><strong>Cash</strong><small>Pay in cash at our office</small></div>
                   </div>
                 </div>

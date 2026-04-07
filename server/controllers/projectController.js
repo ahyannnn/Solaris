@@ -6,6 +6,7 @@ const PreAssessment = require('../models/PreAssessment');
 const User = require('../models/Users');
 const mongoose = require('mongoose');
 const PayMongoService = require('../services/paymongoService');
+const SolarInvoice = require('../models/SolarInvoice');
 
 // Helper function to format currency (for internal use)
 const formatCurrency = (amount) => {
@@ -616,16 +617,177 @@ exports.getAllProjects = async (req, res) => {
   }
 };
 
-// @desc    Update project status (Admin)
-// @route   PUT /api/projects/:id/status
-// @access  Private (Admin)
+// Helper function to generate invoice number
+const generateInvoiceNumber = () => {
+  const date = new Date();
+  const year = date.getFullYear().toString().slice(-2);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  return `SOL-${year}${month}${day}-${random}`;
+};
+
+// Helper function to get invoice item name
+const getInvoiceItemName = (invoiceType, project) => {
+  const typeLabels = {
+    'initial': `Initial Deposit (30%) - ${project.projectName}`,
+    'progress': `Progress Payment (40%) - ${project.projectName}`,
+    'final': `Final Payment (30%) - ${project.projectName}`,
+    'full': `Full Payment - ${project.projectName}`,
+    'additional': `Additional Work - ${project.projectName}`
+  };
+  return typeLabels[invoiceType] || `Solar Installation Payment - ${project.projectName}`;
+};
+
+// Helper function to get invoice type label
+const getInvoiceTypeLabel = (invoiceType) => {
+  const labels = {
+    'initial': 'Initial Deposit (30%)',
+    'progress': 'Progress Payment (40%)',
+    'final': 'Final Payment (30%)',
+    'full': 'Full Payment',
+    'additional': 'Additional Work'
+  };
+  return labels[invoiceType] || invoiceType;
+};
+
+// Helper function to create a solar invoice
+const createSolarInvoice = async (project, invoiceType, amount, adminId, customDueDate = null) => {
+  try {
+    // Set due date
+    let dueDate = customDueDate;
+    if (!dueDate) {
+      if (invoiceType === 'initial') {
+        dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+      } else if (invoiceType === 'progress') {
+        dueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+      } else if (invoiceType === 'final') {
+        dueDate = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000); // 60 days from now
+      } else if (invoiceType === 'full') {
+        dueDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14 days for full payment
+      } else {
+        dueDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+      }
+    }
+    
+    // Calculate tax (12% VAT)
+    const subtotal = amount;
+    const tax = subtotal * 0.12;
+    const totalAmount = subtotal + tax;
+    
+    // Create invoice items
+    const invoiceItems = [{
+      name: getInvoiceItemName(invoiceType, project),
+      description: `${getInvoiceTypeLabel(invoiceType)} for solar installation`,
+      quantity: 1,
+      unitPrice: amount,
+      total: amount
+    }];
+    
+    const invoice = new SolarInvoice({
+      projectId: project._id,
+      clientId: project.clientId._id,
+      userId: project.userId,
+      invoiceNumber: generateInvoiceNumber(),
+      quotationReference: project.projectReference,
+      invoiceType: invoiceType,
+      description: `${getInvoiceTypeLabel(invoiceType)} for ${project.projectName}`,
+      items: invoiceItems,
+      subtotal: subtotal,
+      tax: tax,
+      discount: 0,
+      totalAmount: totalAmount,
+      dueDate: dueDate,
+      issueDate: new Date(),
+      paymentStatus: 'pending',
+      status: 'draft',
+      amountPaid: 0,
+      balance: totalAmount,
+      createdBy: adminId,
+      notes: `Auto-generated upon project approval`
+    });
+    
+    await invoice.save();
+    
+    // Update project's invoices array
+    project.invoices = project.invoices || [];
+    project.invoices.push({
+      type: invoice._id,
+      invoiceNumber: invoice.invoiceNumber,
+      amount: totalAmount,
+      issuedAt: new Date()
+    });
+    
+    console.log(`✅ Invoice created: ${invoice.invoiceNumber} for project ${project.projectReference}`);
+    return invoice;
+    
+  } catch (error) {
+    console.error(`Error creating ${invoiceType} invoice:`, error);
+    throw error;
+  }
+};
+
+// Helper function to generate all invoices for a project
+const generateProjectInvoices = async (project, adminId) => {
+  try {
+    const invoicesCreated = [];
+    
+    // Generate invoice based on payment preference
+    if (project.paymentPreference === 'full') {
+      // Create single full payment invoice
+      const fullPayment = project.paymentSchedule.find(p => p.type === 'full');
+      if (fullPayment && fullPayment.status !== 'paid') {
+        const invoice = await createSolarInvoice(project, 'full', fullPayment.amount, adminId);
+        invoicesCreated.push(invoice);
+      }
+    } else {
+      // Create installment invoices (initial, progress, final)
+      const initialPayment = project.paymentSchedule.find(p => p.type === 'initial');
+      const progressPayment = project.paymentSchedule.find(p => p.type === 'progress');
+      const finalPayment = project.paymentSchedule.find(p => p.type === 'final');
+      
+      if (initialPayment && initialPayment.status !== 'paid') {
+        const invoice = await createSolarInvoice(project, 'initial', initialPayment.amount, adminId);
+        invoicesCreated.push(invoice);
+        
+        // Update the payment schedule with invoice reference
+        initialPayment.invoiceNumber = invoice.invoiceNumber;
+      }
+      
+      if (progressPayment && progressPayment.status !== 'paid') {
+        const invoice = await createSolarInvoice(project, 'progress', progressPayment.amount, adminId, progressPayment.dueDate);
+        invoicesCreated.push(invoice);
+        progressPayment.invoiceNumber = invoice.invoiceNumber;
+      }
+      
+      if (finalPayment && finalPayment.status !== 'paid') {
+        const invoice = await createSolarInvoice(project, 'final', finalPayment.amount, adminId, finalPayment.dueDate);
+        invoicesCreated.push(invoice);
+        finalPayment.invoiceNumber = invoice.invoiceNumber;
+      }
+    }
+    
+    await project.save();
+    console.log(`✅ Generated ${invoicesCreated.length} invoices for project ${project.projectReference}`);
+    return invoicesCreated;
+    
+  } catch (error) {
+    console.error('Error generating invoices:', error);
+    throw error;
+  }
+};
+
+// Update the updateProjectStatus function
 exports.updateProjectStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, notes } = req.body;
     const adminId = req.user.id;
 
-    const project = await Project.findById(id);
+    const project = await Project.findById(id)
+      .populate('clientId', 'contactFirstName contactLastName contactNumber userId')
+      .populate('addressId');
+
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
@@ -653,6 +815,15 @@ exports.updateProjectStatus = async (req, res) => {
     if (status === 'approved') {
       project.approvedAt = new Date();
       project.approvedBy = adminId;
+      
+      // ✅ AUTO-GENERATE INVOICES WHEN PROJECT IS APPROVED
+      try {
+        await generateProjectInvoices(project, adminId);
+        console.log(`Invoices auto-generated for project ${project.projectReference}`);
+      } catch (invoiceError) {
+        console.error('Failed to generate invoices:', invoiceError);
+        // Don't block status update if invoice generation fails
+      }
     }
     
     if (status === 'completed') {
@@ -672,7 +843,8 @@ exports.updateProjectStatus = async (req, res) => {
     res.json({
       success: true,
       message: `Project status updated to ${status}`,
-      project
+      project,
+      invoicesGenerated: status === 'approved' ? true : false
     });
 
   } catch (error) {
@@ -743,6 +915,13 @@ exports.recordProjectPayment = async (req, res) => {
       return res.status(400).json({ message: 'Invalid payment amount' });
     }
 
+    // Find the corresponding invoice for this payment type
+    const invoice = await SolarInvoice.findOne({
+      projectId: id,
+      invoiceType: paymentType,
+      paymentStatus: { $in: ['pending', 'partial'] }
+    });
+
     // Update payment schedule
     const scheduleItem = project.paymentSchedule.find(p => p.type === paymentType);
     if (scheduleItem) {
@@ -767,6 +946,19 @@ exports.recordProjectPayment = async (req, res) => {
       }
     }
 
+    // ✅ Update invoice if found
+    if (invoice) {
+      await invoice.addPayment({
+        amount: amount,
+        method: 'cash', // or get from request
+        reference: paymentReference,
+        date: new Date(),
+        notes: `Payment recorded by admin`,
+        receivedBy: adminId
+      });
+      console.log(`Invoice ${invoice.invoiceNumber} updated with payment of ${amount}`);
+    }
+
     project.projectUpdates = project.projectUpdates || [];
     project.projectUpdates.push({
       title: 'Payment Received',
@@ -785,7 +977,8 @@ exports.recordProjectPayment = async (req, res) => {
         amountPaid: project.amountPaid,
         balance: project.balance,
         status: project.status
-      }
+      },
+      invoiceUpdated: !!invoice
     });
 
   } catch (error) {

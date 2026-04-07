@@ -1,4 +1,5 @@
 // models/SolarInvoice.js
+
 const mongoose = require('mongoose');
 
 const solarInvoiceSchema = new mongoose.Schema({
@@ -37,17 +38,17 @@ const solarInvoiceSchema = new mongoose.Schema({
   dueDate: { type: Date, required: true },
   issueDate: { type: Date, default: Date.now },
   
-  // Payment Status
+  // Payment Status - ✅ ADD 'for_verification'
   paymentStatus: {
     type: String,
-    enum: ['pending', 'partial', 'paid', 'overdue', 'cancelled'],
+    enum: ['pending', 'for_verification', 'partial', 'paid', 'overdue', 'cancelled'], // ✅ Added 'for_verification'
     default: 'pending'
   },
   
   // Payments Received
   payments: [{
     amount: { type: Number, required: true },
-    method: { type: String, enum: ['gcash', 'bank_transfer', 'cash', 'check'] },
+    method: { type: String, enum: ['gcash', 'bank_transfer', 'cash', 'check', 'paymongo'] },
     reference: String,
     proof: String,
     date: { type: Date, default: Date.now },
@@ -58,12 +59,15 @@ const solarInvoiceSchema = new mongoose.Schema({
   amountPaid: { type: Number, default: 0 },
   balance: { type: Number, default: 0 },
   
-  // Status
+  // Status - ✅ ADD 'pending'
   status: {
     type: String,
-    enum: ['draft', 'sent', 'approved', 'paid', 'cancelled', 'overdue'],
+    enum: ['draft', 'pending', 'sent', 'approved', 'paid', 'cancelled', 'overdue'], // ✅ Added 'pending'
     default: 'draft'
   },
+  
+  // PayMongo
+  paymongoPaymentIntentId: { type: String, index: true },
   
   // Timestamps
   sentAt: Date,
@@ -82,15 +86,15 @@ const solarInvoiceSchema = new mongoose.Schema({
 });
 
 // Pre-save middleware to generate invoice number
-solarInvoiceSchema.pre('save', function(next) {
+solarInvoiceSchema.pre('save', function() {
   if (this.isNew && !this.invoiceNumber) {
     const date = new Date();
     const year = date.getFullYear().toString().slice(-2);
     const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
     const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    this.invoiceNumber = `SOL-${year}${month}-${random}`;
+    this.invoiceNumber = `SOL-${year}${month}${day}-${random}`;
   }
-  next();
 });
 
 // Method to calculate balance

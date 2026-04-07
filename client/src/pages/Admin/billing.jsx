@@ -1,3 +1,5 @@
+// pages/Admin/Billing.jsx
+
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -17,7 +19,13 @@ import {
   FaEdit,
   FaSave,
   FaTimes,
-  FaInfoCircle
+  FaInfoCircle,
+  FaFileInvoice,
+  FaProjectDiagram,
+  FaCalendarAlt,
+  FaUser,
+  FaCreditCard,
+  FaClock
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/billing.css';
@@ -27,6 +35,7 @@ const AdminBilling = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pre-assessments');
 
+  // Pre-assessment state
   const [assessments, setAssessments] = useState([]);
   const [selectedAssessment, setSelectedAssessment] = useState(null);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
@@ -37,10 +46,12 @@ const AdminBilling = () => {
   });
   const [verificationNote, setVerificationNote] = useState('');
 
+  // Solar Invoice state (Project bills)
   const [solarInvoices, setSolarInvoices] = useState([]);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showSolarVerifyModal, setShowSolarVerifyModal] = useState(false);
   const [invoiceFormData, setInvoiceFormData] = useState({
     projectId: '',
     invoiceType: 'initial',
@@ -59,9 +70,11 @@ const AdminBilling = () => {
     notes: ''
   });
 
+  // Transaction history state
   const [transactions, setTransactions] = useState([]);
   const [projects, setProjects] = useState([]);
 
+  // Filter and pagination
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -77,7 +90,8 @@ const AdminBilling = () => {
     paidSolar: 0,
     partial: 0,
     totalRevenue: 0,
-    pendingAmount: 0
+    pendingAmount: 0,
+    projectPayments: 0
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalMode, setModalMode] = useState('view');
@@ -93,6 +107,8 @@ const AdminBilling = () => {
     }
     fetchStats();
   }, [activeTab, filter, currentPage]);
+
+  // ============ FETCH FUNCTIONS ============
 
   const fetchPreAssessments = async () => {
     try {
@@ -179,7 +195,7 @@ const AdminBilling = () => {
         .filter(i => i.paymentStatus === 'paid' || i.paymentStatus === 'partial')
         .flatMap(i => i.payments.map(p => ({
           id: p._id,
-          type: 'Solar Installation',
+          type: 'Project Payment',
           reference: i.invoiceNumber,
           invoiceNumber: i.invoiceNumber,
           amount: p.amount,
@@ -187,7 +203,9 @@ const AdminBilling = () => {
           status: i.paymentStatus,
           date: p.date,
           client: `${i.clientId?.contactFirstName} ${i.clientId?.contactLastName}`,
-          gateway: 'manual'
+          gateway: 'manual',
+          projectName: i.projectId?.projectName,
+          projectId: i.projectId?._id
         })));
 
       setTransactions([...prePayments, ...solarPayments].sort((a, b) => new Date(b.date) - new Date(a.date)));
@@ -204,7 +222,7 @@ const AdminBilling = () => {
     try {
       const token = sessionStorage.getItem('token');
 
-      const [preStatsRes, solarStatsRes, allAssessmentsRes] = await Promise.all([
+      const [preStatsRes, solarStatsRes, allAssessmentsRes, projectsRes] = await Promise.all([
         axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/stats`, {
           headers: { Authorization: `Bearer ${token}` }
         }).catch(() => ({ data: {} })),
@@ -213,12 +231,18 @@ const AdminBilling = () => {
         }).catch(() => ({ data: { stats: {} } })),
         axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
           headers: { Authorization: `Bearer ${token}` }
-        }).catch(() => ({ data: { assessments: [] } }))
+        }).catch(() => ({ data: { assessments: [] } })),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(() => ({ data: { projects: [] } }))
       ]);
 
       const assessments = allAssessmentsRes.data.assessments || [];
       const autoVerified = assessments.filter(a => a.autoVerified === true || a.paymentGateway === 'paymongo').length;
       const pendingCash = assessments.filter(a => a.paymentMethod === 'cash' && a.paymentStatus === 'pending').length;
+
+      const projectsList = projectsRes.data.projects || [];
+      const projectPayments = projectsList.reduce((sum, p) => sum + (p.amountPaid || 0), 0);
 
       setStats({
         totalPreAssessments: preStatsRes.data.total || 0,
@@ -231,7 +255,8 @@ const AdminBilling = () => {
         paidSolar: solarStatsRes.data.stats?.paid || 0,
         partial: solarStatsRes.data.stats?.partial || 0,
         totalRevenue: (preStatsRes.data.totalRevenue || 0) + (solarStatsRes.data.stats?.totalRevenue || 0),
-        pendingAmount: (preStatsRes.data.pendingRevenue || 0) + (solarStatsRes.data.stats?.pendingAmount || 0)
+        pendingAmount: (preStatsRes.data.pendingRevenue || 0) + (solarStatsRes.data.stats?.pendingAmount || 0),
+        projectPayments: projectPayments
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -249,6 +274,8 @@ const AdminBilling = () => {
       console.error('Error fetching projects:', error);
     }
   };
+
+  // ============ PRE-ASSESSMENT HANDLERS ============
 
   const handleVerifyPayment = async (verified) => {
     if (!selectedAssessment) return;
@@ -313,6 +340,45 @@ const AdminBilling = () => {
     } catch (error) {
       console.error('Error updating payment status:', error);
       showToast('Failed to update payment status', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // ============ SOLAR INVOICE HANDLERS ============
+
+  const handleVerifySolarPayment = async (verified, invoice) => {
+    if (!invoice) return;
+    
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      
+      if (verified) {
+        await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/solar-invoices/${invoice._id}/verify`,
+          { verified: true, notes: verificationNote },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        showToast('Payment verified successfully!', 'success');
+      } else {
+        await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/solar-invoices/${invoice._id}/reject-payment`,
+          { notes: verificationNote },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        showToast('Payment rejected', 'warning');
+      }
+      
+      setShowSolarVerifyModal(false);
+      setSelectedInvoice(null);
+      setVerificationNote('');
+      fetchSolarInvoices();
+      fetchStats();
+      
+    } catch (error) {
+      console.error('Error verifying solar payment:', error);
+      showToast('Failed to verify payment', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -459,6 +525,8 @@ const AdminBilling = () => {
     calculateTotals();
   };
 
+  // ============ HELPER FUNCTIONS ============
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-PH', {
       style: 'currency',
@@ -500,6 +568,17 @@ const AdminBilling = () => {
     return badges[status] || <span className="status-badge-adminbilling">{status}</span>;
   };
 
+  const getInvoiceTypeBadge = (type) => {
+    const badges = {
+      'initial': <span className="invoice-type-badge initial">Initial (30%)</span>,
+      'progress': <span className="invoice-type-badge progress">Progress (40%)</span>,
+      'final': <span className="invoice-type-badge final">Final (30%)</span>,
+      'full': <span className="invoice-type-badge full">Full (100%)</span>,
+      'additional': <span className="invoice-type-badge additional">Additional</span>
+    };
+    return badges[type] || <span className="invoice-type-badge">{type}</span>;
+  };
+
   const getGatewayBadge = (assessment) => {
     if (assessment.paymentGateway === 'paymongo' || assessment.autoVerified === true) {
       return <span className="gateway-badge paymongo">PayMongo</span>;
@@ -526,6 +605,8 @@ const AdminBilling = () => {
     }
   });
 
+  // ============ SKELETON LOADER ============
+
   const SkeletonLoader = () => (
     <div className="admin-billing-adminbilling">
       <div className="billing-header-adminbilling">
@@ -533,7 +614,7 @@ const AdminBilling = () => {
         <div className="skeleton-button-adminbilling"></div>
       </div>
       <div className="stats-cards-adminbilling">
-        {[1, 2, 3, 4].map(i => (
+        {[1, 2, 3, 4, 5].map(i => (
           <div key={i} className="stat-card-adminbilling skeleton-card-adminbilling">
             <div className="skeleton-line-adminbilling small-adminbilling"></div>
             <div className="skeleton-line-adminbilling large-adminbilling"></div>
@@ -564,6 +645,8 @@ const AdminBilling = () => {
   if (loading && (activeTab === 'pre-assessments' ? assessments.length === 0 : solarInvoices.length === 0) && activeTab !== 'transactions') {
     return <SkeletonLoader />;
   }
+
+  // ============ MAIN RENDER ============
 
   return (
     <>
@@ -616,6 +699,7 @@ const AdminBilling = () => {
               <div className="stat-detail-adminbilling">
                 <span>Paid: {stats.paidSolar}</span>
                 <span>Partial: {stats.partial}</span>
+                <span>Project Payments: {formatCurrency(stats.projectPayments)}</span>
               </div>
             </div>
           </div>
@@ -633,7 +717,7 @@ const AdminBilling = () => {
             className={`tab-btn-adminbilling ${activeTab === 'solar-invoices' ? 'active-adminbilling' : ''}`}
             onClick={() => { setActiveTab('solar-invoices'); setFilter('all'); setCurrentPage(1); }}
           >
-            Solar Invoices
+            Solar Invoices (Projects)
           </button>
           <button
             className={`tab-btn-adminbilling ${activeTab === 'transactions' ? 'active-adminbilling' : ''}`}
@@ -675,7 +759,7 @@ const AdminBilling = () => {
           </div>
         </div>
 
-        {/* Pre-Assessments Table */}
+        {/* ============ PRE-ASSESSMENTS TABLE ============ */}
         {activeTab === 'pre-assessments' && (
           <div className="payments-table-container-adminbilling">
             <table className="payments-table-adminbilling">
@@ -726,14 +810,12 @@ const AdminBilling = () => {
                       <td>{getPaymentStatusBadge(assessment.paymentStatus)}</td>
                       <td>{getAssessmentStatusBadge(assessment.assessmentStatus)}</td>
                       <td className="actions-adminbilling">
-                        {/* PayMongo Card Payments - Auto-verified (No action needed) */}
                         {(assessment.paymentGateway === 'paymongo' || assessment.autoVerified === true) && assessment.paymentStatus === 'paid' && (
                           <span className="verified-badge-adminbilling auto-verified">
                             <FaCheckCircle /> Auto-Verified
                           </span>
                         )}
 
-                        {/* ✅ FIXED: Manual GCash Payments - Need verification (Removed the !assessment.paymentGateway condition) */}
                         {assessment.paymentMethod === 'gcash' && assessment.paymentStatus === 'for_verification' && (
                           <>
                             <button
@@ -769,7 +851,6 @@ const AdminBilling = () => {
                           </>
                         )}
 
-                        {/* Cash Payments - Need manual verification */}
                         {assessment.paymentMethod === 'cash' && assessment.paymentStatus === 'pending' && (
                           <button
                             className="action-btn-adminbilling edit-status-adminbilling"
@@ -787,12 +868,10 @@ const AdminBilling = () => {
                           </button>
                         )}
 
-                        {/* Cash Payments that are paid */}
                         {assessment.paymentMethod === 'cash' && assessment.paymentStatus === 'paid' && (
                           <span className="verified-badge-adminbilling">Cash - Verified</span>
                         )}
 
-                        {/* Failed payments */}
                         {assessment.paymentStatus === 'failed' && (
                           <span className="failed-badge-adminbilling">Failed</span>
                         )}
@@ -805,7 +884,7 @@ const AdminBilling = () => {
           </div>
         )}
 
-        {/* Solar Invoices Table */}
+        {/* ============ SOLAR INVOICES TABLE (PROJECT BILLS) ============ */}
         {activeTab === 'solar-invoices' && (
           <div className="payments-table-container-adminbilling">
             <table className="payments-table-adminbilling">
@@ -820,7 +899,7 @@ const AdminBilling = () => {
                   <th>Amount</th>
                   <th>Paid</th>
                   <th>Balance</th>
-                  <th>Status</th>
+                  <th>Payment Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -835,14 +914,20 @@ const AdminBilling = () => {
                   filteredItems.map(invoice => (
                     <tr key={invoice._id}>
                       <td className="ref-cell-adminbilling">{invoice.invoiceNumber}</td>
-                      <td>{invoice.projectId?.projectName || 'N/A'}</td>
+                      <td>
+                        <div className="project-info">
+                          <FaProjectDiagram className="project-icon" />
+                          <span>{invoice.projectId?.projectName || 'N/A'}</span>
+                          <div className="project-ref-small">{invoice.projectId?.projectReference}</div>
+                        </div>
+                      </td>
                       <td>
                         <div className="client-info-adminbilling">
                           <strong>{invoice.clientId?.contactFirstName} {invoice.clientId?.contactLastName}</strong>
                           <small>{invoice.clientId?.contactNumber}</small>
                         </div>
                       </td>
-                      <td><span className={`invoice-type-adminbilling ${invoice.invoiceType}`}>{invoice.invoiceType}</span></td>
+                      <td>{getInvoiceTypeBadge(invoice.invoiceType)}</td>
                       <td>{formatDate(invoice.issueDate)}</td>
                       <td>{formatDate(invoice.dueDate)}</td>
                       <td className="amount-adminbilling">{formatCurrency(invoice.totalAmount)}</td>
@@ -864,6 +949,7 @@ const AdminBilling = () => {
                         >
                           <FaDownload />
                         </button>
+
                         {invoice.status === 'draft' && (
                           <button
                             className="action-btn-adminbilling send-adminbilling"
@@ -873,6 +959,7 @@ const AdminBilling = () => {
                             <FaEnvelope />
                           </button>
                         )}
+
                         {(invoice.paymentStatus === 'pending' || invoice.paymentStatus === 'partial') && (
                           <button
                             className="action-btn-adminbilling payment-adminbilling"
@@ -881,6 +968,48 @@ const AdminBilling = () => {
                           >
                             <FaMoneyBillWave />
                           </button>
+                        )}
+
+                        {invoice.paymentStatus === 'for_verification' && (
+                          <>
+                            <button
+                              className="action-btn-adminbilling view-proof-adminbilling"
+                              onClick={() => {
+                                const gcashPayment = invoice.payments?.find(p => p.method === 'gcash' && p.proof);
+                                if (gcashPayment?.proof) {
+                                  window.open(gcashPayment.proof, '_blank');
+                                } else {
+                                  showToast('No payment proof found', 'warning');
+                                }
+                              }}
+                              title="View Payment Proof"
+                            >
+                              <FaEye />
+                            </button>
+                            <button
+                              className="action-btn-adminbilling verify-adminbilling"
+                              onClick={() => {
+                                setSelectedInvoice(invoice);
+                                setShowSolarVerifyModal(true);
+                              }}
+                              title="Verify Payment"
+                            >
+                              <FaCheckCircle />
+                            </button>
+                            <button
+                              className="action-btn-adminbilling reject-adminbilling"
+                              onClick={() => handleVerifySolarPayment(false, invoice)}
+                              title="Reject Payment"
+                            >
+                              <FaTimesCircle />
+                            </button>
+                          </>
+                        )}
+
+                        {invoice.paymentStatus === 'paid' && invoice.payments?.some(p => p.method === 'paymongo') && (
+                          <span className="verified-badge-adminbilling auto-verified">
+                            <FaCheckCircle /> Auto-Verified
+                          </span>
                         )}
                       </td>
                     </tr>
@@ -891,7 +1020,7 @@ const AdminBilling = () => {
           </div>
         )}
 
-        {/* Transactions Table */}
+        {/* ============ TRANSACTIONS TABLE ============ */}
         {activeTab === 'transactions' && (
           <div className="payments-table-container-adminbilling">
             <table className="payments-table-adminbilling">
@@ -901,7 +1030,7 @@ const AdminBilling = () => {
                   <th>Type</th>
                   <th>Reference</th>
                   <th>Invoice</th>
-                  <th>Client</th>
+                  <th>Client / Project</th>
                   <th>Amount</th>
                   <th>Method</th>
                   <th>Gateway</th>
@@ -919,10 +1048,22 @@ const AdminBilling = () => {
                   transactions.map(transaction => (
                     <tr key={transaction.id}>
                       <td>{formatDate(transaction.date)}</td>
-                      <td><span className={`transaction-type-adminbilling ${transaction.type === 'Pre-Assessment' ? 'pre-adminbilling' : 'solar-adminbilling'}`}>{transaction.type}</span></td>
+                      <td>
+                        <span className={`transaction-type-adminbilling ${transaction.type === 'Pre-Assessment' ? 'pre-adminbilling' : 'project-adminbilling'}`}>
+                          {transaction.type === 'Pre-Assessment' ? <FaFileInvoice /> : <FaProjectDiagram />}
+                          {transaction.type}
+                        </span>
+                      </td>
                       <td>{transaction.reference}</td>
                       <td>{transaction.invoiceNumber}</td>
-                      <td>{transaction.client}</td>
+                      <td>
+                        <div>
+                          <strong>{transaction.client}</strong>
+                          {transaction.projectName && (
+                            <div className="project-name-small">{transaction.projectName}</div>
+                          )}
+                        </div>
+                      </td>
                       <td className="amount-adminbilling">{formatCurrency(transaction.amount)}</td>
                       <td><span className="payment-method-adminbilling">{transaction.method?.toUpperCase()}</span></td>
                       <td>
@@ -962,12 +1103,13 @@ const AdminBilling = () => {
           </div>
         )}
 
-        {/* Verify Payment Modal (for legacy manual GCash) */}
+        {/* ============ MODALS ============ */}
+
+        {/* Verify Payment Modal (for Pre-assessment manual GCash) */}
         {showVerifyModal && selectedAssessment && (
           <div className="modal-overlay-adminbilling" onClick={() => setShowVerifyModal(false)}>
             <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
-              <h3>Verify Payment</h3>
-
+              <h3>Verify Pre-Assessment Payment</h3>
               <div className="modal-body-adminbilling">
                 <div className="payment-details-adminbilling">
                   <div className="detail-row-adminbilling"><span>Booking Reference:</span><strong>{selectedAssessment.bookingReference}</strong></div>
@@ -979,7 +1121,6 @@ const AdminBilling = () => {
                     <div className="detail-row-adminbilling"><span>Reference Number:</span><strong>{selectedAssessment.paymentReference}</strong></div>
                   )}
                 </div>
-
                 {selectedAssessment.paymentProof && (
                   <div className="payment-proof-adminbilling">
                     <label>Payment Proof:</label>
@@ -988,17 +1129,75 @@ const AdminBilling = () => {
                     </button>
                   </div>
                 )}
-
                 <div className="verification-notes-adminbilling">
                   <label>Verification Notes (Optional):</label>
                   <textarea rows="3" value={verificationNote} onChange={(e) => setVerificationNote(e.target.value)} placeholder="Add any notes about this verification..." />
                 </div>
               </div>
-
               <div className="modal-actions-adminbilling">
                 <button className="btn-cancel-adminbilling" onClick={() => setShowVerifyModal(false)}>Cancel</button>
                 <button className="btn-reject-adminbilling" onClick={() => handleVerifyPayment(false)}><FaTimesCircle /> Reject Payment</button>
                 <button className="btn-verify-adminbilling" onClick={() => handleVerifyPayment(true)}><FaCheckCircle /> Verify & Confirm</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Verify Solar Invoice Payment Modal */}
+        {showSolarVerifyModal && selectedInvoice && (
+          <div className="modal-overlay-adminbilling" onClick={() => setShowSolarVerifyModal(false)}>
+            <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
+              <h3>Verify Solar Invoice Payment</h3>
+              
+              <div className="modal-body-adminbilling">
+                <div className="payment-details-adminbilling">
+                  <div className="detail-row-adminbilling"><span>Invoice Number:</span><strong>{selectedInvoice.invoiceNumber}</strong></div>
+                  <div className="detail-row-adminbilling"><span>Project:</span><strong>{selectedInvoice.projectId?.projectName}</strong></div>
+                  <div className="detail-row-adminbilling"><span>Client:</span><strong>{selectedInvoice.clientId?.contactFirstName} {selectedInvoice.clientId?.contactLastName}</strong></div>
+                  <div className="detail-row-adminbilling"><span>Amount:</span><strong className="amount-adminbilling">{formatCurrency(selectedInvoice.totalAmount)}</strong></div>
+                  <div className="detail-row-adminbilling"><span>Amount Paid:</span><strong>{formatCurrency(selectedInvoice.amountPaid)}</strong></div>
+                  <div className="detail-row-adminbilling"><span>Balance:</span><strong>{formatCurrency(selectedInvoice.balance)}</strong></div>
+                  
+                  {selectedInvoice.payments?.map((payment, idx) => (
+                    payment.method === 'gcash' && payment.proof && (
+                      <div key={idx} className="payment-proof-adminbilling">
+                        <label>Payment Proof #{idx + 1}:</label>
+                        <button 
+                          className="view-proof-btn-adminbilling" 
+                          onClick={() => window.open(payment.proof, '_blank')}
+                        >
+                          <FaEye /> View Screenshot
+                        </button>
+                        {payment.reference && (
+                          <p><strong>Reference:</strong> {payment.reference}</p>
+                        )}
+                        {payment.amount && (
+                          <p><strong>Amount:</strong> {formatCurrency(payment.amount)}</p>
+                        )}
+                      </div>
+                    )
+                  ))}
+                </div>
+
+                <div className="verification-notes-adminbilling">
+                  <label>Verification Notes (Optional):</label>
+                  <textarea 
+                    rows="3" 
+                    value={verificationNote} 
+                    onChange={(e) => setVerificationNote(e.target.value)} 
+                    placeholder="Add any notes about this verification..."
+                  />
+                </div>
+              </div>
+
+              <div className="modal-actions-adminbilling">
+                <button className="btn-cancel-adminbilling" onClick={() => setShowSolarVerifyModal(false)}>Cancel</button>
+                <button className="btn-reject-adminbilling" onClick={() => handleVerifySolarPayment(false, selectedInvoice)}>
+                  <FaTimesCircle /> Reject Payment
+                </button>
+                <button className="btn-verify-adminbilling" onClick={() => handleVerifySolarPayment(true, selectedInvoice)}>
+                  <FaCheckCircle /> Verify & Confirm
+                </button>
               </div>
             </div>
           </div>
@@ -1009,7 +1208,6 @@ const AdminBilling = () => {
           <div className="modal-overlay-adminbilling" onClick={() => setShowEditStatusModal(false)}>
             <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>Edit Payment Status</h3>
-
               <div className="modal-body-adminbilling">
                 <div className="payment-details-adminbilling">
                   <div className="detail-row-adminbilling"><span>Booking Reference:</span><strong>{selectedAssessment.bookingReference}</strong></div>
@@ -1019,42 +1217,24 @@ const AdminBilling = () => {
                     <strong>{getPaymentStatusBadge(selectedAssessment.paymentStatus)}</strong>
                   </div>
                 </div>
-
                 <div className="form-group-adminbilling">
                   <label>New Payment Status</label>
-                  <select
-                    value={editStatusData.paymentStatus}
-                    onChange={(e) => setEditStatusData({ ...editStatusData, paymentStatus: e.target.value })}
-                  >
+                  <select value={editStatusData.paymentStatus} onChange={(e) => setEditStatusData({ ...editStatusData, paymentStatus: e.target.value })}>
                     <option value="pending">Pending</option>
                     <option value="paid">Paid</option>
                     <option value="failed">Failed</option>
                   </select>
                   <small className="help-text-adminbilling">Changing status to "Paid" will mark the assessment as scheduled.</small>
                 </div>
-
                 <div className="verification-notes-adminbilling">
                   <label>Notes (Optional):</label>
-                  <textarea
-                    rows="3"
-                    value={editStatusData.notes}
-                    onChange={(e) => setEditStatusData({ ...editStatusData, notes: e.target.value })}
-                    placeholder="Add notes about this status change..."
-                  />
+                  <textarea rows="3" value={editStatusData.notes} onChange={(e) => setEditStatusData({ ...editStatusData, notes: e.target.value })} placeholder="Add notes about this status change..." />
                 </div>
               </div>
-
               <div className="modal-actions-adminbilling">
-                <button className="btn-cancel-adminbilling" onClick={() => setShowEditStatusModal(false)}>
-                  <FaTimes /> Cancel
-                </button>
-                <button
-                  className="btn-save-adminbilling"
-                  onClick={handleEditPaymentStatus}
-                  disabled={!editStatusData.paymentStatus || isSubmitting}
-                >
-                  {isSubmitting ? <FaSpinner className="spinning" /> : <FaSave />}
-                  Save Changes
+                <button className="btn-cancel-adminbilling" onClick={() => setShowEditStatusModal(false)}><FaTimes /> Cancel</button>
+                <button className="btn-save-adminbilling" onClick={handleEditPaymentStatus} disabled={!editStatusData.paymentStatus || isSubmitting}>
+                  {isSubmitting ? <FaSpinner className="spinning" /> : <FaSave />} Save Changes
                 </button>
               </div>
             </div>
@@ -1066,7 +1246,6 @@ const AdminBilling = () => {
           <div className="modal-overlay-adminbilling" onClick={() => setShowInvoiceModal(false)}>
             <div className="modal-content-adminbilling invoice-modal-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>{modalMode === 'create' ? 'Create Solar Invoice' : 'Invoice Details'}</h3>
-
               {modalMode === 'create' ? (
                 <div className="invoice-form-adminbilling">
                   <div className="form-group-adminbilling">
@@ -1074,7 +1253,10 @@ const AdminBilling = () => {
                     <select value={invoiceFormData.projectId} onChange={(e) => setInvoiceFormData({ ...invoiceFormData, projectId: e.target.value })}>
                       <option value="">Select a project...</option>
                       {projects.map(project => (
-                        <option key={project._id} value={project._id}>{project.projectName} - {project.projectReference}</option>
+                        <option key={project._id} value={project._id}>
+                          {project.projectName} - {project.projectReference}
+                          {project.paymentPreference === 'full' ? ' (Full Payment)' : ' (Installment)'}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -1086,7 +1268,7 @@ const AdminBilling = () => {
                         <option value="initial">Initial Payment (30%)</option>
                         <option value="progress">Progress Payment (40%)</option>
                         <option value="final">Final Payment (30%)</option>
-                        <option value="full">Full Payment</option>
+                        <option value="full">Full Payment (100%)</option>
                         <option value="additional">Additional Work</option>
                       </select>
                     </div>
@@ -1152,6 +1334,7 @@ const AdminBilling = () => {
                     <div className="detail-section-adminbilling"><h4>Invoice Information</h4>
                       <p><strong>Invoice #:</strong> {selectedInvoice.invoiceNumber}</p>
                       <p><strong>Project:</strong> {selectedInvoice.projectId?.projectName}</p>
+                      <p><strong>Project Reference:</strong> {selectedInvoice.projectId?.projectReference}</p>
                       <p><strong>Type:</strong> {selectedInvoice.invoiceType}</p>
                       <p><strong>Status:</strong> {getPaymentStatusBadge(selectedInvoice.paymentStatus)}</p>
                       <p><strong>Issue Date:</strong> {formatDate(selectedInvoice.issueDate)}</p>
@@ -1185,6 +1368,34 @@ const AdminBilling = () => {
                         <div className="grand-adminbilling"><strong>Total: {formatCurrency(selectedInvoice.totalAmount)}</strong></div>
                       </div>
                     </div>
+                    <div className="detail-section-adminbilling"><h4>Payment History</h4>
+                      {selectedInvoice.payments?.length > 0 ? (
+                        <table className="payment-history-table">
+                          <thead>
+                            <tr>
+                              <th>Date</th>
+                              <th>Amount</th>
+                              <th>Method</th>
+                              <th>Reference</th>
+                              <th>Notes</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {selectedInvoice.payments.map((payment, idx) => (
+                              <tr key={idx}>
+                                <td>{formatDate(payment.date)}</td>
+                                <td className="amount">{formatCurrency(payment.amount)}</td>
+                                <td>{payment.method?.toUpperCase()}</td>
+                                <td>{payment.reference || '-'}</td>
+                                <td>{payment.notes || '-'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      ) : (
+                        <p className="no-payments">No payments recorded yet.</p>
+                      )}
+                    </div>
                     <div className="modal-actions-adminbilling">
                       <button className="cancel-btn-adminbilling" onClick={() => setShowInvoiceModal(false)}>Close</button>
                     </div>
@@ -1195,13 +1406,14 @@ const AdminBilling = () => {
           </div>
         )}
 
-        {/* Record Payment Modal */}
+        {/* Record Payment Modal (for Solar Invoices) */}
         {showPaymentModal && selectedInvoice && (
           <div className="modal-overlay-adminbilling" onClick={() => setShowPaymentModal(false)}>
             <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>Record Payment</h3>
               <div className="payment-info-adminbilling">
                 <p><strong>Invoice:</strong> {selectedInvoice.invoiceNumber}</p>
+                <p><strong>Project:</strong> {selectedInvoice.projectId?.projectName}</p>
                 <p><strong>Total Amount:</strong> {formatCurrency(selectedInvoice.totalAmount)}</p>
                 <p><strong>Paid:</strong> {formatCurrency(selectedInvoice.amountPaid)}</p>
                 <p><strong>Balance:</strong> {formatCurrency(selectedInvoice.balance)}</p>
@@ -1209,6 +1421,7 @@ const AdminBilling = () => {
               <div className="form-group-adminbilling">
                 <label>Payment Amount *</label>
                 <input type="number" value={paymentData.amount} onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })} placeholder="Enter amount" />
+                <small className="help-text">Maximum: {formatCurrency(selectedInvoice.balance)}</small>
               </div>
               <div className="form-group-adminbilling">
                 <label>Payment Method</label>

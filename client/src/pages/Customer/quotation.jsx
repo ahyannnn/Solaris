@@ -1,4 +1,5 @@
 // pages/Customer/Quotation.cuspro.jsx
+
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -6,12 +7,30 @@ import axios from 'axios';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/quotation.css';
 
+// Import all icons
+import { 
+  FaCalendarAlt,
+  FaProjectDiagram,
+  FaClock,
+  FaCheckCircle,
+  FaEye,
+  FaDownload,
+  FaMoneyBillWave,
+  FaCreditCard,
+  FaInfoCircle,
+  FaSpinner,
+  FaQrcode,
+  FaTimes,
+  FaFileInvoice,
+  FaTools
+} from 'react-icons/fa';
+
 const Quotation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast, showToast, hideToast } = useToast();
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('my-bills');
+  const [activeTab, setActiveTab] = useState('pre-assessments');
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -37,6 +56,7 @@ const Quotation = () => {
   const [freeQuotes, setFreeQuotes] = useState([]);
   const [projects, setProjects] = useState([]);
   const [preAssessments, setPreAssessments] = useState([]);
+  const [solarInvoices, setSolarInvoices] = useState([]);
   const [payments, setPayments] = useState([]);
 
   useEffect(() => {
@@ -85,6 +105,12 @@ const Quotation = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
+      const invoicesRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/solar-invoices/my-invoices`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const invoices = invoicesRes.data.invoices || [];
+      setSolarInvoices(invoices);
+
       const transformedBills = preAssessmentsRes.data.assessments
         ?.filter(assessment =>
           assessment.invoiceNumber &&
@@ -121,30 +147,28 @@ const Quotation = () => {
           batteryType: assessment.quotation?.systemDetails?.batteryType
         })) || [];
 
-      const projectBills = [];
-      projectsRes.data.projects?.forEach(project => {
-        if (project.paymentSchedule && project.paymentSchedule.length > 0) {
-          project.paymentSchedule.forEach(payment => {
-            projectBills.push({
-              id: `${project.projectReference}_${payment.type}`,
-              date: new Date(payment.dueDate).toLocaleDateString(),
-              dueDate: new Date(payment.dueDate).toLocaleDateString(),
-              amount: payment.amount,
-              status: payment.status === 'paid' ? 'paid' : 
-                      payment.status === 'overdue' ? 'overdue' : 'pending',
-              description: `${project.projectName} - ${payment.type === 'initial' ? 'Initial Deposit (30%)' : 
-                          payment.type === 'progress' ? 'Progress Payment (40%)' : 
-                          payment.type === 'final' ? 'Final Payment (30%)' : 'Full Payment'}`,
-              type: 'project',
-              projectId: project._id,
-              projectName: project.projectName,
-              projectReference: project.projectReference,
-              paymentType: payment.type,
-              paymentPreference: project.paymentPreference
-            });
-          });
-        }
-      });
+      const projectBills = invoices.map(invoice => ({
+        id: invoice.invoiceNumber,
+        date: new Date(invoice.issueDate).toLocaleDateString(),
+        dueDate: new Date(invoice.dueDate).toLocaleDateString(),
+        amount: invoice.totalAmount,
+        status: invoice.paymentStatus === 'paid' ? 'paid' :
+          invoice.paymentStatus === 'partial' ? 'partial' :
+            invoice.paymentStatus === 'overdue' ? 'overdue' : 'pending',
+        description: invoice.description,
+        type: 'project',
+        projectId: invoice.projectId?._id,
+        projectName: invoice.projectId?.projectName,
+        projectReference: invoice.projectId?.projectReference,
+        invoiceType: invoice.invoiceType,
+        invoiceId: invoice._id,
+        invoiceNumber: invoice.invoiceNumber,
+        paymentStatus: invoice.paymentStatus,
+        totalAmount: invoice.totalAmount,
+        amountPaid: invoice.amountPaid,
+        balance: invoice.balance,
+        payments: invoice.payments
+      }));
 
       setPreAssessments(transformedBills);
       setPayments([...transformedBills, ...projectBills]);
@@ -162,7 +186,7 @@ const Quotation = () => {
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-      
+
       const cardNumber = document.getElementById('card-number')?.value.replace(/\s/g, '');
       const cardExpiry = document.getElementById('card-expiry')?.value;
       const cardCvc = document.getElementById('card-cvc')?.value;
@@ -186,7 +210,7 @@ const Quotation = () => {
       }
 
       const paymentIntentId = intentResponse.data.paymentIntentId;
-      
+
       sessionStorage.setItem('pendingPaymentIntentId', paymentIntentId);
 
       const paymentResponse = await axios.post(
@@ -224,12 +248,25 @@ const Quotation = () => {
     }
   };
 
-  // Project PayMongo Card Payment
+  // Project Invoice Payment Handler
+  const handleProjectInvoicePayment = async (invoice) => {
+    setSelectedItem({
+      ...invoice,
+      _id: invoice.projectId,
+      projectId: invoice.projectId,
+      projectName: invoice.projectName,
+      totalCost: invoice.totalAmount,
+      invoiceId: invoice.invoiceId
+    });
+    setShowFullPaymentModal(true);
+  };
+
+  // Project PayMongo Card Payment for Invoice
   const handleProjectPayMongoCardPayment = async () => {
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-      
+
       const cardNumber = document.getElementById('full-card-number')?.value.replace(/\s/g, '');
       const cardExpiry = document.getElementById('full-card-expiry')?.value;
       const cardCvc = document.getElementById('full-card-cvc')?.value;
@@ -243,7 +280,7 @@ const Quotation = () => {
       const [expMonth, expYear] = cardExpiry.split('/');
 
       const intentResponse = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/payments/project/${selectedItem._id}/payment/full/create-intent`,
+        `${import.meta.env.VITE_API_URL}/api/payments/invoice/${selectedItem.invoiceId}/create-intent`,
         { paymentMethod: 'card' },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -271,9 +308,9 @@ const Quotation = () => {
       if (paymentResponse.data.success) {
         setSuccessMessage('Payment Successful!');
         setSuccessDetails({
-          title: 'Full Payment Completed',
-          message: 'Your full payment has been successfully processed.',
-          reference: selectedItem.projectReference
+          title: 'Payment Completed',
+          message: 'Your payment has been successfully processed.',
+          reference: selectedItem.invoiceNumber
         });
         setShowSuccessModal(true);
         closeFullPaymentModal();
@@ -291,11 +328,7 @@ const Quotation = () => {
 
   const handlePayNowClick = (item) => {
     if (item.type === 'project') {
-      const project = projects.find(p => p._id === item.projectId);
-      if (project) {
-        setSelectedItem(project);
-        setShowFullPaymentModal(true);
-      }
+      handleProjectInvoicePayment(item);
     } else {
       setSelectedItem(item);
       setPaymentMethod(null);
@@ -376,7 +409,7 @@ const Quotation = () => {
       setSuccessMessage('Quotation Accepted!');
       setSuccessDetails({
         title: 'Quotation Accepted Successfully',
-        message: `Your quotation has been accepted. ${selectedPaymentPreference === 'full' ? 'You can now proceed with full payment.' : 'You can now proceed with installment payments.'}`,
+        message: `Your quotation has been accepted. ${selectedPaymentPreference === 'full' ? 'You can now proceed with full payment.' : 'Invoices will be generated for each payment milestone.'}`,
         reference: response.data.project?.projectReference
       });
       setShowSuccessModal(true);
@@ -512,7 +545,7 @@ const Quotation = () => {
 
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-      const fullAmount = parseFloat(selectedItem.totalCost);
+      const fullAmount = parseFloat(selectedItem.totalAmount);
 
       if (paymentMethod === 'gcash') {
         const formData = new FormData();
@@ -520,12 +553,13 @@ const Quotation = () => {
         formData.append('paymentMethod', 'gcash');
         formData.append('paymentReference', paymentReference);
         formData.append('paymentType', 'full');
+        formData.append('invoiceId', selectedItem.invoiceId);
         if (paymentProof) {
           formData.append('paymentProof', paymentProof);
         }
 
         await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/projects/${selectedItem._id}/full-payment`,
+          `${import.meta.env.VITE_API_URL}/api/solar-invoices/${selectedItem.invoiceId}/pay`,
           formData,
           {
             headers: {
@@ -535,22 +569,20 @@ const Quotation = () => {
           }
         );
 
-        setSuccessMessage('Full Payment Submitted!');
+        setSuccessMessage('Payment Submitted!');
         setSuccessDetails({
-          title: 'Full Payment Submitted for Verification',
-          message: 'Your full payment has been submitted and is now pending verification.',
-          reference: selectedItem.projectReference
+          title: 'Payment Submitted for Verification',
+          message: 'Your payment has been submitted and is now pending verification.',
+          reference: selectedItem.invoiceNumber
         });
         setShowSuccessModal(true);
         closeFullPaymentModal();
         fetchData();
       } else if (paymentMethod === 'cash') {
         await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/projects/${selectedItem._id}/full-payment`,
+          `${import.meta.env.VITE_API_URL}/api/solar-invoices/${selectedItem.invoiceId}/pay-cash`,
           {
-            amount: fullAmount,
-            paymentMethod: 'cash',
-            paymentType: 'full'
+            amount: fullAmount
           },
           {
             headers: {
@@ -563,8 +595,8 @@ const Quotation = () => {
         setSuccessMessage('Cash Payment Selected!');
         setSuccessDetails({
           title: 'Cash Payment Option',
-          message: 'Please visit our office to complete your full payment.',
-          reference: selectedItem.projectReference
+          message: 'Please visit our office to complete your payment.',
+          reference: selectedItem.invoiceNumber
         });
         setShowSuccessModal(true);
         closeFullPaymentModal();
@@ -613,7 +645,8 @@ const Quotation = () => {
       'in_progress': <span className="status-badge-cuspro in-progress-cuspro">In Progress</span>,
       'completed': <span className="status-badge-cuspro completed-cuspro">Completed</span>,
       'cancelled': <span className="status-badge-cuspro cancelled-cuspro">Cancelled</span>,
-      'overdue': <span className="status-badge-cuspro overdue-cuspro">Overdue</span>
+      'overdue': <span className="status-badge-cuspro overdue-cuspro">Overdue</span>,
+      'partial': <span className="status-badge-cuspro partial-cuspro">Partial</span>
     };
     return badges[status] || <span className="status-badge-cuspro">{status}</span>;
   };
@@ -627,26 +660,20 @@ const Quotation = () => {
     }).format(amount);
   };
 
-  // Filter payments based on selected filter and search term
   const getFilteredPayments = () => {
     let filtered = payments;
-    
-    // Apply status filter
     if (paymentFilter !== 'all') {
       filtered = filtered.filter(payment => payment.status === paymentFilter);
     }
-    
-    // Apply search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(payment => 
+      filtered = filtered.filter(payment =>
         payment.id?.toLowerCase().includes(term) ||
         payment.bookingReference?.toLowerCase().includes(term) ||
         payment.description?.toLowerCase().includes(term) ||
         payment.projectName?.toLowerCase().includes(term)
       );
     }
-    
     return filtered;
   };
 
@@ -658,12 +685,11 @@ const Quotation = () => {
           <div className="skeleton-line medium"></div>
         </div>
       </div>
-
       <div className="cuspro-tabs skeleton-tabs">
         <div className="skeleton-tab"></div>
         <div className="skeleton-tab"></div>
+        <div className="skeleton-tab"></div>
       </div>
-
       <div className="cuspro-bills-section">
         <div className="cuspro-bill-card skeleton-card">
           <div className="skeleton-line medium"></div>
@@ -679,7 +705,7 @@ const Quotation = () => {
     return (
       <>
         <Helmet>
-          <title>My Bills | Salfer Engineering</title>
+          <title>My Solar Journey | Salfer Engineering</title>
         </Helmet>
         <SkeletonLoader />
       </>
@@ -689,20 +715,26 @@ const Quotation = () => {
   return (
     <>
       <Helmet>
-        <title>My Bills | Salfer Engineering</title>
+        <title>My Solar Journey | Salfer Engineering</title>
       </Helmet>
 
       <div className="cuspro-quotation-container">
         {/* Header Card */}
         <div className="cuspro-header-card">
           <div className="cuspro-header-content">
-            <h1>My Bills</h1>
-            <p>Track and manage your payments</p>
+            <h1>My Solar Journey</h1>
+            <p>Track your projects, view quotes, and manage payments</p>
           </div>
         </div>
 
-        {/* Tab Navigation - 2 tabs only */}
+        {/* Tab Navigation - 3 tabs */}
         <div className="cuspro-tabs">
+          <button
+            className={`cuspro-tab ${activeTab === 'pre-assessments' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pre-assessments')}
+          >
+            Pre-Assessments
+          </button>
           <button
             className={`cuspro-tab ${activeTab === 'my-bills' ? 'active' : ''}`}
             onClick={() => setActiveTab('my-bills')}
@@ -717,17 +749,107 @@ const Quotation = () => {
           </button>
         </div>
 
-        {/* My Bills Tab */}
+        {/* ============ PRE-ASSESSMENTS TAB ============ */}
+        {activeTab === 'pre-assessments' && (
+          <div className="cuspro-assessments-section">
+            {preAssessments.length === 0 ? (
+              <div className="cuspro-empty-state">
+                <FaCalendarAlt className="cuspro-empty-icon" />
+                <h3>No pre-assessments yet</h3>
+                <p>Once your booking is approved and payment is completed, you'll see the quotation here.</p>
+                <button className="cuspro-primary-btn" onClick={() => navigate('/app/customer/book-assessment')}>
+                  Book Assessment
+                </button>
+              </div>
+            ) : (
+              preAssessments.map(assessment => {
+                const hasQuotation = assessment.quotationUrl;
+                const projectExists = projects.some(project => {
+                  if (project.preAssessmentId) {
+                    const projectPreAssessmentId = typeof project.preAssessmentId === 'object'
+                      ? project.preAssessmentId._id?.toString()
+                      : project.preAssessmentId?.toString();
+                    const assessmentId = assessment.assessmentId?.toString();
+                    return projectPreAssessmentId === assessmentId;
+                  }
+                  return false;
+                });
+                const alreadyProjectCreated = assessment.assessmentStatus === 'quotation_accepted' || projectExists;
+
+                return (
+                  <div key={assessment.id} className="cuspro-assessment-card">
+                    <div className="cuspro-assessment-header">
+                      <div>
+                        <h3>{assessment.id}</h3>
+                        <p>{assessment.description}</p>
+                        <p>Due: {assessment.dueDate}</p>
+                      </div>
+                      {getStatusBadge(assessment.status)}
+                    </div>
+                    <div className="cuspro-assessment-amount">
+                      <span>Amount Due</span>
+                      <strong>{formatCurrency(assessment.amount)}</strong>
+                    </div>
+                    <div className="cuspro-assessment-actions">
+                      {(assessment.status === 'pending' && assessment.paymentStatus !== 'for_verification' && assessment.paymentStatus !== 'paid') && (
+                        <button className="cuspro-pay-btn" onClick={() => handlePayNowClick(assessment)}>
+                          <FaMoneyBillWave /> Make Payment
+                        </button>
+                      )}
+
+                      {assessment.paymentStatus === 'for_verification' && (
+                        <span className="cuspro-verification-badge">
+                          <FaClock /> For Verification
+                        </span>
+                      )}
+
+                      {assessment.paymentStatus === 'paid' && (
+                        <>
+                          {hasQuotation && !alreadyProjectCreated && (
+                            <>
+                              <button className="cuspro-secondary-btn" onClick={() => handleViewQuotation(assessment)}>
+                                <FaEye /> View Quotation
+                              </button>
+                              <button className="cuspro-secondary-btn" onClick={() => handleDownloadQuotation(assessment)} disabled={pdfLoading}>
+                                <FaDownload /> {pdfLoading ? 'Downloading...' : 'Download PDF'}
+                              </button>
+                              <button className="cuspro-accept-btn" onClick={() => handleAcceptQuotationClick(assessment)}>
+                                <FaCheckCircle /> Accept Quotation
+                              </button>
+                            </>
+                          )}
+
+                          {alreadyProjectCreated && (
+                            <button className="cuspro-view-project-btn" onClick={() => navigate('/app/customer/my-project')}>
+                              <FaProjectDiagram /> View Project
+                            </button>
+                          )}
+                        </>
+                      )}
+
+                      <button className="cuspro-secondary-btn" onClick={() => handleViewDetails(assessment, 'assessment')}>
+                        <FaEye /> View Details
+                      </button>
+                    </div>
+
+                    {(assessment.status === 'pending' && assessment.paymentStatus !== 'for_verification' && assessment.paymentStatus !== 'paid') && (
+                      <div className="cuspro-walkin-note">
+                        <small>For walk-in payment, please visit our office at Purok 2, Masaya, San Jose, Camarines Sur</small>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        {/* ============ MY BILLS TAB ============ */}
         {activeTab === 'my-bills' && (
           <div className="cuspro-bills-section">
-            {/* Filter and Search */}
             <div className="cuspro-filter-search-section">
               <div className="cuspro-filter-group">
-                <select 
-                  value={paymentFilter} 
-                  onChange={(e) => setPaymentFilter(e.target.value)}
-                  className="cuspro-filter-select"
-                >
+                <select value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)} className="cuspro-filter-select">
                   <option value="all">All Bills</option>
                   <option value="pending">Pending Payment</option>
                   <option value="paid">Paid</option>
@@ -735,17 +857,10 @@ const Quotation = () => {
                 </select>
               </div>
               <div className="cuspro-search-group">
-                <input 
-                  type="text" 
-                  placeholder="Search by reference or description..." 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="cuspro-search-input"
-                />
+                <input type="text" placeholder="Search by reference or description..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="cuspro-search-input" />
               </div>
             </div>
 
-            {/* Bills List */}
             <div className="cuspro-bills-list">
               {getFilteredPayments().length === 0 ? (
                 <div className="cuspro-empty-state">
@@ -758,48 +873,22 @@ const Quotation = () => {
                     <div className="cuspro-bill-header">
                       <div className="cuspro-bill-info">
                         <h3>{bill.description}</h3>
-                        <p className="cuspro-bill-ref">Ref: {bill.id || bill.bookingReference}</p>
+                        <p className="cuspro-bill-ref">Invoice: {bill.id}</p>
                         {bill.projectName && <p className="cuspro-bill-project">{bill.projectName}</p>}
                       </div>
                       {getStatusBadge(bill.status)}
                     </div>
-                    
                     <div className="cuspro-bill-details">
-                      <div className="cuspro-bill-detail-item">
-                        <span>Due Date:</span>
-                        <strong>{bill.dueDate}</strong>
-                      </div>
-                      <div className="cuspro-bill-detail-item amount">
-                        <span>Amount:</span>
-                        <strong>{formatCurrency(bill.amount)}</strong>
-                      </div>
+                      <div className="cuspro-bill-detail-item"><span>Due Date:</span><strong>{bill.dueDate}</strong></div>
+                      <div className="cuspro-bill-detail-item amount"><span>Amount:</span><strong>{formatCurrency(bill.amount)}</strong></div>
                     </div>
-                    
                     <div className="cuspro-bill-actions">
-                      {bill.status === 'pending' && (
-                        <button 
-                          className="cuspro-pay-btn" 
-                          onClick={() => handlePayNowClick(bill)}
-                        >
-                          Pay Now
-                        </button>
+                      {(bill.status === 'pending' || bill.status === 'partial') && (
+                        <button className="cuspro-pay-btn" onClick={() => handlePayNowClick(bill)}>Pay Now</button>
                       )}
-                      {bill.status === 'for_verification' && (
-                        <span className="cuspro-verification-badge">
-                          Payment Under Review
-                        </span>
-                      )}
-                      {bill.status === 'paid' && (
-                        <span className="cuspro-paid-badge">
-                          Payment Completed
-                        </span>
-                      )}
-                      <button 
-                        className="cuspro-secondary-btn" 
-                        onClick={() => handleViewDetails(bill, 'bill')}
-                      >
-                        View Details
-                      </button>
+                      {bill.status === 'for_verification' && <span className="cuspro-verification-badge">Payment Under Review</span>}
+                      {bill.status === 'paid' && <span className="cuspro-paid-badge">Payment Completed</span>}
+                      <button className="cuspro-secondary-btn" onClick={() => handleViewDetails(bill, 'bill')}>View Details</button>
                     </div>
                   </div>
                 ))
@@ -808,43 +897,25 @@ const Quotation = () => {
           </div>
         )}
 
-        {/* Payment History Tab - Table View */}
+        {/* ============ PAYMENT HISTORY TAB ============ */}
         {activeTab === 'payment-history' && (
           <div className="cuspro-payments-section">
-            <div className="cuspro-payments-header">
-              <h3>Payment History</h3>
-            </div>
-            
-            {/* Filter and Search for Payment History */}
+            <div className="cuspro-payments-header"><h3>Payment History</h3></div>
             <div className="cuspro-filter-search-section">
               <div className="cuspro-filter-group">
-                <select 
-                  value={paymentFilter} 
-                  onChange={(e) => setPaymentFilter(e.target.value)}
-                  className="cuspro-filter-select"
-                >
+                <select value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)} className="cuspro-filter-select">
                   <option value="all">All Payments</option>
                   <option value="paid">Completed</option>
                   <option value="for_verification">For Verification</option>
                 </select>
               </div>
               <div className="cuspro-search-group">
-                <input 
-                  type="text" 
-                  placeholder="Search by reference or description..." 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="cuspro-search-input"
-                />
+                <input type="text" placeholder="Search by reference or description..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="cuspro-search-input" />
               </div>
             </div>
 
-            {/* Payment History Table */}
             {getFilteredPayments().filter(p => p.status === 'paid' || p.status === 'for_verification').length === 0 ? (
-              <div className="cuspro-empty-state">
-                <h3>No payment history</h3>
-                <p>Your completed payments will appear here.</p>
-              </div>
+              <div className="cuspro-empty-state"><h3>No payment history</h3><p>Your completed payments will appear here.</p></div>
             ) : (
               <div className="cuspro-payments-table-wrapper">
                 <table className="cuspro-payments-table">
@@ -859,48 +930,22 @@ const Quotation = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {getFilteredPayments()
-                      .filter(p => p.status === 'paid' || p.status === 'for_verification')
-                      .map((payment, idx) => (
-                        <tr key={idx}>
-                          <td>{payment.date || payment.dueDate}</td>
-                          <td className="cuspro-invoice-cell">{payment.id || payment.bookingReference}</td>
-                          <td>{payment.description}</td>
-                          <td className="cuspro-amount-cell">{formatCurrency(payment.amount)}</td>
-                          <td>{getStatusBadge(payment.status)}</td>
-                          <td>
-                            <button 
-                              className="cuspro-table-action-btn"
-                              onClick={() => handleViewDetails(payment, 'payment')}
-                            >
-                              View Details
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                    {getFilteredPayments().filter(p => p.status === 'paid' || p.status === 'for_verification').map((payment, idx) => (
+                      <tr key={idx}>
+                        <td>{payment.date || payment.dueDate}</td>
+                        <td className="cuspro-invoice-cell">{payment.id}</td>
+                        <td>{payment.description}</td>
+                        <td className="cuspro-amount-cell">{formatCurrency(payment.amount)}</td>
+                        <td>{getStatusBadge(payment.status)}</td>
+                        <td>
+                          <button className="cuspro-table-action-btn" onClick={() => handleViewDetails(payment, 'payment')}>View Details</button>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
             )}
-          </div>
-        )}
-
-        {/* Success Modal */}
-        {showSuccessModal && (
-          <div className="cuspro-modal-overlay" onClick={closeSuccessModal}>
-            <div className="cuspro-modal cuspro-success-modal" onClick={e => e.stopPropagation()}>
-              <h3>{successMessage}</h3>
-              <div className="cuspro-success-content">
-                <p><strong>{successDetails?.title}</strong></p>
-                <p>{successDetails?.message}</p>
-                {successDetails?.reference && (
-                  <p className="cuspro-success-ref">Reference: {successDetails.reference}</p>
-                )}
-              </div>
-              <button className="cuspro-success-btn" onClick={closeSuccessModal}>
-                Close
-              </button>
-            </div>
           </div>
         )}
 
@@ -914,27 +959,14 @@ const Quotation = () => {
 
               <div className="cuspro-quotation-summary">
                 <h4>Quotation Summary</h4>
-                <div className="cuspro-summary-row">
-                  <span>System Size:</span>
-                  <strong>{acceptingItem.systemSize || 'To be determined'} kWp</strong>
-                </div>
-                <div className="cuspro-summary-row">
-                  <span>System Type:</span>
-                  <strong>{acceptingItem.systemType || 'Grid-Tie'}</strong>
-                </div>
-                <div className="cuspro-summary-row">
-                  <span>Total Cost:</span>
-                  <strong>{formatCurrency(acceptingItem.totalCost || acceptingItem.amount)}</strong>
-                </div>
+                <div className="cuspro-summary-row"><span>System Size:</span><strong>{acceptingItem.systemSize || 'To be determined'} kWp</strong></div>
+                <div className="cuspro-summary-row"><span>System Type:</span><strong>{acceptingItem.systemType || 'Grid-Tie'}</strong></div>
+                <div className="cuspro-summary-row"><span>Total Cost:</span><strong>{formatCurrency(acceptingItem.totalCost || acceptingItem.amount)}</strong></div>
               </div>
 
               <div className="cuspro-payment-preference-section">
                 <h4>Choose Payment Option</h4>
-
-                <div
-                  className={`cuspro-preference-option ${selectedPaymentPreference === 'installment' ? 'selected' : ''}`}
-                  onClick={() => setSelectedPaymentPreference('installment')}
-                >
+                <div className={`cuspro-preference-option ${selectedPaymentPreference === 'installment' ? 'selected' : ''}`} onClick={() => setSelectedPaymentPreference('installment')}>
                   <input type="radio" checked={selectedPaymentPreference === 'installment'} onChange={() => {}} />
                   <div className="cuspro-preference-content">
                     <strong>Installment Payment</strong>
@@ -947,18 +979,13 @@ const Quotation = () => {
                   </div>
                 </div>
 
-                <div
-                  className={`cuspro-preference-option ${selectedPaymentPreference === 'full' ? 'selected' : ''}`}
-                  onClick={() => setSelectedPaymentPreference('full')}
-                >
+                <div className={`cuspro-preference-option ${selectedPaymentPreference === 'full' ? 'selected' : ''}`} onClick={() => setSelectedPaymentPreference('full')}>
                   <input type="radio" checked={selectedPaymentPreference === 'full'} onChange={() => {}} />
                   <div className="cuspro-preference-content">
                     <strong>Full Payment</strong>
                     <small>Pay the full amount upfront</small>
                     <div className="cuspre-preference-details full-payment-details">
-                      <span className="full-amount">
-                        Amount: {formatCurrency(acceptingItem.totalCost || acceptingItem.amount)}
-                      </span>
+                      <span className="full-amount">Amount: {formatCurrency(acceptingItem.totalCost || acceptingItem.amount)}</span>
                     </div>
                   </div>
                 </div>
@@ -974,73 +1001,79 @@ const Quotation = () => {
           </div>
         )}
 
-        {/* Full Payment Modal for Projects */}
+        {/* Full Payment Modal for Project Invoices */}
         {showFullPaymentModal && selectedItem && (
           <div className="cuspro-modal-overlay" onClick={closeFullPaymentModal}>
             <div className="cuspro-modal" onClick={e => e.stopPropagation()}>
               <button className="cuspro-modal-close" onClick={closeFullPaymentModal}>×</button>
-              <h3>Make Full Payment</h3>
+              <h3>Pay Invoice</h3>
 
               <div className="cuspro-payment-summary">
+                <p><strong>Invoice:</strong> {selectedItem.invoiceNumber}</p>
                 <p><strong>Project:</strong> {selectedItem.projectName}</p>
-                <p><strong>Reference:</strong> {selectedItem.projectReference}</p>
+                <p><strong>Description:</strong> {selectedItem.description}</p>
                 <div className="cuspro-payment-breakdown">
-                  <p className="cuspro-total-amount">
-                    <strong>Total Amount to Pay:</strong> {formatCurrency(selectedItem.totalCost)}
-                  </p>
+                  <p className="cuspro-total-amount"><strong>Amount Due:</strong> {formatCurrency(selectedItem.balance || selectedItem.totalAmount)}</p>
+                  {selectedItem.amountPaid > 0 && <p className="cuspro-paid-amount">Amount Paid: {formatCurrency(selectedItem.amountPaid)}</p>}
                 </div>
               </div>
 
               <div className="cuspro-payment-methods">
                 <h4>Select Payment Method</h4>
                 <div className="cuspro-method-options">
+                  <div className={`cuspro-method-option ${paymentMethod === 'gcash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('gcash')}>
+                    <input type="radio" checked={paymentMethod === 'gcash'} onChange={() => {}} />
+                    <div><strong>GCash</strong><small>Pay via GCash - Upload receipt for verification</small></div>
+                  </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'paymongo_card' ? 'selected' : ''}`} onClick={() => setPaymentMethod('paymongo_card')}>
                     <input type="radio" checked={paymentMethod === 'paymongo_card'} onChange={() => {}} />
-                    <div>
-                      <strong>Credit/Debit Card</strong>
-                      <small>Instant payment - No receipt needed</small>
-                    </div>
+                    <div><strong>Credit/Debit Card</strong><small>Instant payment - No receipt needed</small></div>
                   </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
                     <input type="radio" checked={paymentMethod === 'cash'} onChange={() => {}} />
-                    <div>
-                      <strong>Cash</strong>
-                      <small>Pay in cash at our office</small>
-                    </div>
+                    <div><strong>Cash</strong><small>Pay in cash at our office</small></div>
                   </div>
                 </div>
               </div>
 
-              {/* PayMongo Card Section */}
+              {paymentMethod === 'gcash' && (
+                <>
+                  <div className="cuspro-gcash-details">
+                    <h4>GCash Details</h4>
+                    <p>Number: <strong>0917XXXXXXX</strong></p>
+                    <p>Name: <strong>SALFER ENGINEERING CORP</strong></p>
+                    <p>Amount: <strong>{formatCurrency(selectedItem.balance || selectedItem.totalAmount)}</strong></p>
+                  </div>
+                  <div className="cuspro-form-group">
+                    <label>Reference Number</label>
+                    <input type="text" value={paymentReference} onChange={(e) => setPaymentReference(e.target.value)} placeholder="Enter GCash reference number" />
+                  </div>
+                  <div className="cuspro-form-group">
+                    <label>Upload Payment Screenshot</label>
+                    <input type="file" accept="image/*" onChange={(e) => setPaymentProof(e.target.files[0])} />
+                    {paymentProof && <small>Selected: {paymentProof.name}</small>}
+                  </div>
+                  <button className="cuspro-confirm-btn" onClick={handleFullPaymentSubmit} disabled={isSubmitting}>
+                    {isSubmitting ? 'Processing...' : 'Submit Payment'}
+                  </button>
+                </>
+              )}
+
               {paymentMethod === 'paymongo_card' && (
                 <div className="cuspro-paymongo-section">
                   <div className="cuspro-card-form">
-                    <div className="cuspro-form-group">
-                      <label>Card Number</label>
-                      <input type="text" id="full-card-number" placeholder="1234 5678 9012 3456" />
-                    </div>
+                    <div className="cuspro-form-group"><label>Card Number</label><input type="text" id="full-card-number" placeholder="1234 5678 9012 3456" /></div>
                     <div className="cuspro-form-row">
-                      <div className="cuspro-form-group">
-                        <label>Expiry</label>
-                        <input type="text" id="full-card-expiry" placeholder="MM/YY" />
-                      </div>
-                      <div className="cuspro-form-group">
-                        <label>CVC</label>
-                        <input type="text" id="full-card-cvc" placeholder="123" />
-                      </div>
+                      <div className="cuspro-form-group"><label>Expiry</label><input type="text" id="full-card-expiry" placeholder="MM/YY" /></div>
+                      <div className="cuspro-form-group"><label>CVC</label><input type="text" id="full-card-cvc" placeholder="123" /></div>
                     </div>
-                    <button
-                      className="cuspro-paymongo-btn card-btn"
-                      onClick={handleProjectPayMongoCardPayment}
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? 'Processing...' : `Pay ${formatCurrency(selectedItem.totalCost)}`}
+                    <button className="cuspro-paymongo-btn card-btn" onClick={handleProjectPayMongoCardPayment} disabled={isSubmitting}>
+                      {isSubmitting ? 'Processing...' : `Pay ${formatCurrency(selectedItem.balance || selectedItem.totalAmount)}`}
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* Cash Section */}
               {paymentMethod === 'cash' && (
                 <div className="cuspro-cash-details">
                   <div className="cuspro-info-box">
@@ -1078,29 +1111,19 @@ const Quotation = () => {
                 <div className="cuspro-method-options">
                   <div className={`cuspro-method-option ${paymentMethod === 'gcash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('gcash')}>
                     <input type="radio" checked={paymentMethod === 'gcash'} onChange={() => {}} />
-                    <div>
-                      <strong>GCash</strong>
-                      <small>Pay via GCash - Upload receipt for verification</small>
-                    </div>
+                    <div><strong>GCash</strong><small>Pay via GCash - Upload receipt for verification</small></div>
                   </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'paymongo_card' ? 'selected' : ''}`} onClick={() => setPaymentMethod('paymongo_card')}>
                     <input type="radio" checked={paymentMethod === 'paymongo_card'} onChange={() => {}} />
-                    <div>
-                      <strong>Credit/Debit Card</strong>
-                      <small>Instant payment - No receipt needed</small>
-                    </div>
+                    <div><strong>Credit/Debit Card</strong><small>Instant payment - No receipt needed</small></div>
                   </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
                     <input type="radio" checked={paymentMethod === 'cash'} onChange={() => {}} />
-                    <div>
-                      <strong>Cash</strong>
-                      <small>Pay in cash at our office</small>
-                    </div>
+                    <div><strong>Cash</strong><small>Pay in cash at our office</small></div>
                   </div>
                 </div>
               </div>
 
-              {/* Manual GCash Section */}
               {paymentMethod === 'gcash' && (
                 <>
                   <div className="cuspro-gcash-details">
@@ -1109,51 +1132,27 @@ const Quotation = () => {
                     <p>Name: <strong>SALFER ENGINEERING CORP</strong></p>
                     <p>Amount: <strong>{formatCurrency(selectedItem.amount)}</strong></p>
                   </div>
-                  <div className="cuspro-form-group">
-                    <label>Reference Number</label>
-                    <input type="text" value={paymentReference} onChange={(e) => setPaymentReference(e.target.value)} placeholder="Enter GCash reference number" />
-                  </div>
-                  <div className="cuspro-form-group">
-                    <label>Upload Payment Screenshot</label>
-                    <input type="file" accept="image/*" onChange={(e) => setPaymentProof(e.target.files[0])} />
-                    {paymentProof && <small>Selected: {paymentProof.name}</small>}
-                  </div>
-                  <button className="cuspro-confirm-btn" onClick={handlePaymentSubmit} disabled={isSubmitting}>
-                    {isSubmitting ? 'Processing...' : 'Submit Payment'}
-                  </button>
+                  <div className="cuspro-form-group"><label>Reference Number</label><input type="text" value={paymentReference} onChange={(e) => setPaymentReference(e.target.value)} placeholder="Enter GCash reference number" /></div>
+                  <div className="cuspro-form-group"><label>Upload Payment Screenshot</label><input type="file" accept="image/*" onChange={(e) => setPaymentProof(e.target.files[0])} />{paymentProof && <small>Selected: {paymentProof.name}</small>}</div>
+                  <button className="cuspro-confirm-btn" onClick={handlePaymentSubmit} disabled={isSubmitting}>{isSubmitting ? 'Processing...' : 'Submit Payment'}</button>
                 </>
               )}
 
-              {/* PayMongo Card Payment Section */}
               {paymentMethod === 'paymongo_card' && (
                 <div className="cuspro-paymongo-section">
                   <div className="cuspro-card-form">
-                    <div className="cuspro-form-group">
-                      <label>Card Number</label>
-                      <input type="text" id="card-number" placeholder="1234 5678 9012 3456" />
-                    </div>
+                    <div className="cuspro-form-group"><label>Card Number</label><input type="text" id="card-number" placeholder="1234 5678 9012 3456" /></div>
                     <div className="cuspro-form-row">
-                      <div className="cuspro-form-group">
-                        <label>Expiry Date</label>
-                        <input type="text" id="card-expiry" placeholder="MM/YY" />
-                      </div>
-                      <div className="cuspro-form-group">
-                        <label>CVC</label>
-                        <input type="text" id="card-cvc" placeholder="123" />
-                      </div>
+                      <div className="cuspro-form-group"><label>Expiry Date</label><input type="text" id="card-expiry" placeholder="MM/YY" /></div>
+                      <div className="cuspro-form-group"><label>CVC</label><input type="text" id="card-cvc" placeholder="123" /></div>
                     </div>
-                    <button
-                      className="cuspro-paymongo-btn card-btn"
-                      onClick={handlePayMongoCardPayment}
-                      disabled={isSubmitting}
-                    >
+                    <button className="cuspro-paymongo-btn card-btn" onClick={handlePayMongoCardPayment} disabled={isSubmitting}>
                       {isSubmitting ? 'Processing...' : `Pay ${formatCurrency(selectedItem.amount)}`}
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* Cash Payment Section */}
               {paymentMethod === 'cash' && (
                 <div className="cuspro-cash-details">
                   <div className="cuspro-info-box">
@@ -1161,13 +1160,7 @@ const Quotation = () => {
                     <p>Purok 2, Masaya, San Jose, Camarines Sur</p>
                     <p>Business Hours: Monday-Friday, 8:00 AM - 5:00 PM</p>
                   </div>
-                  <button
-                    className="cuspro-confirm-btn"
-                    onClick={handleCashPaymentSubmit}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? 'Processing...' : 'Confirm Cash Payment'}
-                  </button>
+                  <button className="cuspro-confirm-btn" onClick={handleCashPaymentSubmit} disabled={isSubmitting}>{isSubmitting ? 'Processing...' : 'Confirm Cash Payment'}</button>
                 </div>
               )}
 
@@ -1188,50 +1181,25 @@ const Quotation = () => {
               <div className="cuspro-details-content">
                 {detailsItem.quotationReference ? (
                   <>
-                    <div className="cuspro-details-section">
-                      <h4>Quote Information</h4>
-                      <p><strong>Reference Number:</strong> {detailsItem.quotationReference}</p>
-                      <p><strong>Request Date:</strong> {new Date(detailsItem.requestedAt).toLocaleDateString()}</p>
-                      <p><strong>Status:</strong> {detailsItem.status}</p>
-                    </div>
-                    <div className="cuspro-details-section">
-                      <h4>Details</h4>
-                      <p><strong>Property Type:</strong> {detailsItem.propertyType}</p>
-                      <p><strong>Monthly Bill:</strong> {formatCurrency(detailsItem.monthlyBill)}</p>
-                      <p><strong>Desired Capacity:</strong> {detailsItem.desiredCapacity || 'Not specified'}</p>
-                    </div>
+                    <div className="cuspro-details-section"><h4>Quote Information</h4><p><strong>Reference Number:</strong> {detailsItem.quotationReference}</p><p><strong>Request Date:</strong> {new Date(detailsItem.requestedAt).toLocaleDateString()}</p><p><strong>Status:</strong> {detailsItem.status}</p></div>
+                    <div className="cuspro-details-section"><h4>Details</h4><p><strong>Property Type:</strong> {detailsItem.propertyType}</p><p><strong>Monthly Bill:</strong> {formatCurrency(detailsItem.monthlyBill)}</p><p><strong>Desired Capacity:</strong> {detailsItem.desiredCapacity || 'Not specified'}</p></div>
                   </>
                 ) : detailsItem.bookingReference ? (
                   <>
-                    <div className="cuspro-details-section">
-                      <h4>Booking Information</h4>
-                      <p><strong>Invoice Number:</strong> {detailsItem.id}</p>
-                      <p><strong>Booking Reference:</strong> {detailsItem.bookingReference}</p>
-                      <p><strong>Booked Date:</strong> {new Date(detailsItem.bookedAt).toLocaleDateString()}</p>
-                      <p><strong>Status:</strong> {detailsItem.paymentStatus === 'paid' ? 'Paid' : detailsItem.paymentStatus === 'for_verification' ? 'For Verification' : 'Pending'}</p>
-                    </div>
-                    <div className="cuspro-details-section">
-                      <h4>Assessment Details</h4>
-                      <p><strong>Property Type:</strong> {detailsItem.propertyType}</p>
-                      <p><strong>Desired Capacity:</strong> {detailsItem.desiredCapacity || 'Not specified'}</p>
-                      <p><strong>Roof Type:</strong> {detailsItem.roofType || 'Not specified'}</p>
-                      <p><strong>Preferred Date:</strong> {new Date(detailsItem.preferredDate).toLocaleDateString()}</p>
-                      <p><strong>Amount:</strong> {formatCurrency(detailsItem.amount)}</p>
-                    </div>
+                    <div className="cuspro-details-section"><h4>Booking Information</h4><p><strong>Invoice Number:</strong> {detailsItem.id}</p><p><strong>Booking Reference:</strong> {detailsItem.bookingReference}</p><p><strong>Booked Date:</strong> {new Date(detailsItem.bookedAt).toLocaleDateString()}</p><p><strong>Status:</strong> {detailsItem.paymentStatus === 'paid' ? 'Paid' : detailsItem.paymentStatus === 'for_verification' ? 'For Verification' : 'Pending'}</p></div>
+                    <div className="cuspro-details-section"><h4>Assessment Details</h4><p><strong>Property Type:</strong> {detailsItem.propertyType}</p><p><strong>Desired Capacity:</strong> {detailsItem.desiredCapacity || 'Not specified'}</p><p><strong>Roof Type:</strong> {detailsItem.roofType || 'Not specified'}</p><p><strong>Preferred Date:</strong> {new Date(detailsItem.preferredDate).toLocaleDateString()}</p><p><strong>Amount:</strong> {formatCurrency(detailsItem.amount)}</p></div>
                   </>
                 ) : (
                   <>
-                    <div className="cuspro-details-section">
-                      <h4>Bill Information</h4>
-                      <p><strong>Description:</strong> {detailsItem.description}</p>
-                      <p><strong>Reference:</strong> {detailsItem.id || detailsItem.bookingReference}</p>
-                      <p><strong>Due Date:</strong> {detailsItem.dueDate}</p>
-                      <p><strong>Status:</strong> {detailsItem.status}</p>
-                    </div>
-                    <div className="cuspro-details-section">
-                      <h4>Amount Details</h4>
-                      <p><strong>Amount Due:</strong> {formatCurrency(detailsItem.amount)}</p>
-                    </div>
+                    <div className="cuspro-details-section"><h4>Bill Information</h4><p><strong>Invoice Number:</strong> {detailsItem.id}</p><p><strong>Description:</strong> {detailsItem.description}</p><p><strong>Project:</strong> {detailsItem.projectName}</p><p><strong>Due Date:</strong> {detailsItem.dueDate}</p><p><strong>Status:</strong> {detailsItem.status}</p></div>
+                    <div className="cuspro-details-section"><h4>Amount Details</h4><p><strong>Total Amount:</strong> {formatCurrency(detailsItem.totalAmount || detailsItem.amount)}</p>{detailsItem.amountPaid > 0 && <p><strong>Amount Paid:</strong> {formatCurrency(detailsItem.amountPaid)}</p>}{detailsItem.balance > 0 && detailsItem.balance !== detailsItem.totalAmount && <p><strong>Remaining Balance:</strong> {formatCurrency(detailsItem.balance)}</p>}</div>
+                    {detailsItem.payments?.length > 0 && (
+                      <div className="cuspro-details-section"><h4>Payment History</h4>
+                        {detailsItem.payments.map((payment, idx) => (
+                          <div key={idx} className="payment-history-item"><p><strong>Date:</strong> {new Date(payment.date).toLocaleDateString()}</p><p><strong>Amount:</strong> {formatCurrency(payment.amount)}</p><p><strong>Method:</strong> {payment.method?.toUpperCase()}</p>{payment.reference && <p><strong>Reference:</strong> {payment.reference}</p>}</div>
+                        ))}
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -1239,6 +1207,21 @@ const Quotation = () => {
               <div className="cuspro-modal-actions">
                 <button className="cuspro-cancel-btn" onClick={() => setShowDetailsModal(false)}>Close</button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Success Modal */}
+        {showSuccessModal && (
+          <div className="cuspro-modal-overlay" onClick={closeSuccessModal}>
+            <div className="cuspro-modal cuspro-success-modal" onClick={e => e.stopPropagation()}>
+              <h3>{successMessage}</h3>
+              <div className="cuspro-success-content">
+                <p><strong>{successDetails?.title}</strong></p>
+                <p>{successDetails?.message}</p>
+                {successDetails?.reference && <p className="cuspro-success-ref">Reference: {successDetails.reference}</p>}
+              </div>
+              <button className="cuspro-success-btn" onClick={closeSuccessModal}>Close</button>
             </div>
           </div>
         )}

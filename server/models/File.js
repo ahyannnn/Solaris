@@ -42,7 +42,7 @@ const fileSchema = new mongoose.Schema({
   },
   relatedTo: {
     type: String,
-     enum: ['pre_assessment', 'project', 'report', 'invoice', 'customer', 'free_quote'],
+     enum: ['pre_assessment', 'solar_invoice', 'project', 'report', 'invoice', 'customer', 'free_quote'],
     required: true
   },
   relatedId: {

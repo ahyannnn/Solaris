@@ -440,30 +440,31 @@ const LandingPage = () => {
           <div className="footer-grid-land">
             <div className="footer-info-land">
               <div className="footer-logo-land"><img src={logo} alt="Salfer Engineering" /><div><h3>Salfer Engineering</h3><p>Solar Technology Enterprise</p></div></div>
-              <p>DTI & BIR Registered since 2017</p><p>Purok 2, Masaya, San Jose, Camarines Sur</p><p>0951-907-9171</p><p>salfer.engineering@gmail.com</p>
+              <p>DTI & BIR Registered since 2017</p><p>San Nicolas St. Bunsuran 3rd, Pandi, Bulacan </p><p>0997-9652-4065</p><p>salfer.engineering05@gmail.com</p><p>hello@solartap.com</p><p>sales@salfersolartech.com</p>
             </div>
             <div className="footer-links-land">
               <h4>Quick Links</h4>
               <button onClick={() => scrollToSection('about')}>About</button>
               <button onClick={() => scrollToSection('services')}>Services</button>
-              <button onClick={() => scrollToSection('how-it-works')}>How It Works</button>
-              <button onClick={() => scrollToSection('why-us')}>Why Us</button>
               <button onClick={() => scrollToSection('solar-estimator')}>Estimator</button>
+              <button onClick={() => scrollToSection('why-us')}>Why Us</button>
+              <button onClick={() => scrollToSection('how-it-works')}>How It Works</button>
+              
             </div>
             <div className="footer-links-land">
               <h4>Legal</h4>
               <button onClick={handleOpenTerms}>Terms & Conditions</button>
-              <button onClick={() => alert('Privacy Policy - Coming Soon')}>Privacy Policy</button>
+              {/* <button onClick={() => alert('Privacy Policy - Coming Soon')}>Privacy Policy</button> */}
             </div>
             <div className="footer-cta-land">
               <h4>Ready to save?</h4>
               <button className="btn-primary-land" onClick={() => scrollToSection('solar-estimator')}>Get Free Estimate</button>
               <div className="social-links-land">
-                <a href="#" target="_blank" rel="noopener noreferrer">Facebook</a>
+                <a href="https://www.facebook.com/lightupsolartech" target="_blank" rel="noopener noreferrer">Facebook</a>
               </div>
             </div>
           </div>
-          <div className="footer-bottom-land"><p>© 2025 Salfer Engineering & Solar Technology Enterprise. All rights reserved.</p></div>
+          <div className="footer-bottom-land"><p>© 2026 Salfer Engineering & Solar Technology Enterprise. All rights reserved.</p></div>
         </div>
       </footer>
     </div>

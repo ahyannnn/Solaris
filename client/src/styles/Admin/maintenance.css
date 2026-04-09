@@ -38,7 +38,582 @@
 }
 
 /* ============================================
-   TOGGLE CARD
+   MAIN TABS
+   ============================================ */
+.main-tabs-admain {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #E5E5E8;
+  flex-wrap: wrap;
+}
+
+.main-tab-btn-admain {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: none;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6B6B6F;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.main-tab-btn-admain:hover {
+  background: #F5F5F7;
+  color: #1F1F1F;
+}
+
+.main-tab-btn-admain.active-admain {
+  background: #1F1F1F;
+  color: #FFFFFF;
+}
+
+/* ============================================
+   SYSTEM CONFIG INTEGRATED
+   ============================================ */
+.system-config-integrated {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid #E5E5E8;
+  padding: 1.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.config-actions-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.reset-config-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #FFEBEE;
+  color: #C62828;
+  border: 1px solid #FFCDD2;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.reset-config-btn:hover:not(:disabled) {
+  background: #FFCDD2;
+}
+
+.reset-config-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Config Sub-tabs */
+.config-subtabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #E5E5E8;
+  flex-wrap: wrap;
+}
+
+.subtab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #6B6B6F;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.subtab-btn:hover {
+  background: #F5F5F7;
+  color: #1F1F1F;
+}
+
+.subtab-btn.active {
+  background: #1F1F1F;
+  color: #FFFFFF;
+}
+
+/* ============================================
+   EQUIPMENT CATALOG
+   ============================================ */
+.equipment-catalog-integrated {
+  padding: 0.5rem 0;
+}
+
+.form-group-integrated {
+  margin-bottom: 1.25rem;
+}
+
+.form-group-integrated label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6B6B6F;
+  margin-bottom: 0.375rem;
+}
+
+.input-group-integrated {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #F8F9FA;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
+  padding: 0 0.75rem;
+}
+
+.input-group-integrated span {
+  font-size: 0.875rem;
+  color: #6B6B6F;
+}
+
+.input-group-integrated input {
+  flex: 1;
+  padding: 0.625rem 0;
+  background: transparent;
+  border: none;
+  font-size: 0.875rem;
+  color: #1F1F1F;
+}
+
+.input-group-integrated input:focus {
+  outline: none;
+}
+
+.form-group-integrated input,
+.form-group-integrated select,
+.form-group-integrated textarea {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background: #F8F9FA;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #1F1F1F;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.form-group-integrated input:focus,
+.form-group-integrated select:focus,
+.form-group-integrated textarea:focus {
+  outline: none;
+  border-color: #D4D4D8;
+  background: #FFFFFF;
+}
+
+.form-row-integrated {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 640px) {
+  .form-row-integrated {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Equipment Section */
+.equipment-section-integrated {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #E5E5E8;
+}
+
+.equipment-section-integrated:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.section-header-integrated {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.section-title-integrated {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-title-integrated svg {
+  font-size: 1rem;
+  color: #6B6B6F;
+}
+
+.section-title-integrated h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 0;
+}
+
+.item-count-integrated {
+  font-size: 0.65rem;
+  color: #9CA3AF;
+  background: #F5F5F7;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+}
+
+.btn-add-integrated {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.875rem;
+  background: #E3F2FD;
+  color: #1565C0;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.btn-add-integrated:hover {
+  background: #BBDEFB;
+}
+
+/* Equipment List */
+.equipment-list-integrated {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.empty-equipment-integrated {
+  text-align: center;
+  padding: 1.5rem;
+  background: #F8F9FA;
+  border-radius: 10px;
+  color: #9CA3AF;
+  font-size: 0.75rem;
+}
+
+/* Equipment Card */
+.equipment-card-integrated {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: #F8F9FA;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.equipment-card-integrated:hover {
+  background: #F5F5F7;
+  border-color: #D4D4D8;
+}
+
+.equipment-icon-integrated {
+  width: 36px;
+  height: 36px;
+  background: #FFFFFF;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6B6B6F;
+  font-size: 1rem;
+  border: 1px solid #E5E5E8;
+}
+
+.equipment-info-integrated {
+  flex: 1;
+}
+
+.equipment-name-integrated {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin-bottom: 0.25rem;
+}
+
+.equipment-details-integrated {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.equipment-details-integrated span {
+  font-size: 0.65rem;
+}
+
+.price-integrated {
+  color: #2E7D32;
+  font-weight: 600;
+}
+
+.unit-integrated {
+  color: #6B6B6F;
+}
+
+.brand-integrated {
+  color: #1565C0;
+}
+
+.warranty-integrated {
+  color: #E65100;
+}
+
+.equipment-actions-integrated {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-edit-integrated,
+.btn-remove-integrated {
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-edit-integrated {
+  background: #E3F2FD;
+  color: #1565C0;
+}
+
+.btn-edit-integrated:hover {
+  background: #BBDEFB;
+}
+
+.btn-remove-integrated {
+  background: #FFEBEE;
+  color: #C62828;
+}
+
+.btn-remove-integrated:hover {
+  background: #FFCDD2;
+}
+
+/* Config Section */
+.config-section-integrated {
+  padding: 0.5rem 0;
+}
+
+.config-section-integrated h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #E5E5E8;
+}
+
+/* Save Config Button */
+.save-config-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem;
+  background: #1F1F1F;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 1.5rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.save-config-btn:hover:not(:disabled) {
+  background: #3A3A3A;
+}
+
+.save-config-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   MODAL
+   ============================================ */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-content h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #E5E5E8;
+}
+
+.modal-content .form-group {
+  margin-bottom: 1rem;
+}
+
+.modal-content .form-group label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6B6B6F;
+  margin-bottom: 0.375rem;
+}
+
+.modal-content .form-group input,
+.modal-content .form-group select,
+.modal-content .form-group textarea {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background: #F8F9FA;
+  border: 1px solid #E5E5E8;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #1F1F1F;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.modal-content .form-group input:focus,
+.modal-content .form-group select:focus,
+.modal-content .form-group textarea:focus {
+  outline: none;
+  border-color: #D4D4D8;
+  background: #FFFFFF;
+}
+
+.modal-content .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .modal-content .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E5E5E8;
+}
+
+.modal-actions button {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.modal-actions button:first-child {
+  background: #F5F5F7;
+  border: 1px solid #E5E5E8;
+  color: #6B6B6F;
+}
+
+.modal-actions button:first-child:hover {
+  background: #EEEEF2;
+  color: #1F1F1F;
+}
+
+.modal-actions button:last-child {
+  background: #1F1F1F;
+  border: none;
+  color: #FFFFFF;
+}
+
+.modal-actions button:last-child:hover:not(:disabled) {
+  background: #3A3A3A;
+}
+
+.modal-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   TOGGLE CARD (Existing styles maintained)
    ============================================ */
 .toggle-card-admain {
   background: #FFFFFF;
@@ -79,18 +654,6 @@
   gap: 0.375rem;
   background: #FFEBEE;
   color: #C62828;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.7rem;
-  font-weight: 500;
-}
-
-.last-maintenance-admain {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  background: #F5F5F7;
-  color: #6B6B6F;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.7rem;
@@ -138,19 +701,6 @@
   cursor: not-allowed;
 }
 
-.spinner-admain {
-  animation: spin-admain 1s linear infinite;
-}
-
-@keyframes spin-admain {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* ============================================
    SETTINGS CARD
    ============================================ */
@@ -170,14 +720,6 @@
   margin-bottom: 1.25rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid #E5E5E8;
-}
-
-.social-links-section-admain h4 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1F1F1F;
-  margin-bottom: 1rem;
-  margin-top: 0.5rem;
 }
 
 .form-group-admain {
@@ -212,13 +754,6 @@
   background: #FFFFFF;
 }
 
-.form-group-admain small {
-  display: block;
-  font-size: 0.65rem;
-  color: #9CA3AF;
-  margin-top: 0.25rem;
-}
-
 .form-row-admain {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -232,7 +767,6 @@
   }
 }
 
-/* Checkbox Group */
 .checkbox-group-admain {
   display: flex;
   gap: 1.5rem;
@@ -256,18 +790,6 @@
   cursor: pointer;
 }
 
-.checkbox-label-admain span {
-  color: #1F1F1F;
-}
-
-/* Social Links Section */
-.social-links-section-admain {
-  margin-top: 1.25rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid #E5E5E8;
-}
-
-/* Save Button */
 .save-btn-admain {
   display: flex;
   align-items: center;
@@ -359,7 +881,6 @@
   background: #3A3A3A;
 }
 
-/* IP List */
 .ip-list-admain {
   border: 1px solid #E5E5E8;
   border-radius: 12px;
@@ -459,36 +980,14 @@
   margin-bottom: 0;
 }
 
-.history-date-admain {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.7rem;
-  color: #9CA3AF;
-  margin-bottom: 0.5rem;
-}
-
-.history-details-admain p {
+.history-item-admain div {
   font-size: 0.75rem;
   color: #6B6B6F;
   margin-bottom: 0.25rem;
 }
 
-.history-details-admain p:last-child {
+.history-item-admain div:last-child {
   margin-bottom: 0;
-}
-
-.history-details-admain strong {
-  color: #1F1F1F;
-  font-weight: 500;
-}
-
-.no-history-admain {
-  text-align: center;
-  padding: 1.5rem;
-  color: #9CA3AF;
-  font-size: 0.875rem;
-  margin: 0;
 }
 
 /* ============================================
@@ -563,6 +1062,19 @@
   margin-bottom: 0.5rem;
 }
 
+.spinner-admain {
+  animation: spin-admain 1s linear infinite;
+}
+
+@keyframes spin-admain {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes shimmer-admain {
   0% {
     background-position: 200% 0;
@@ -608,8 +1120,40 @@
     gap: 0.75rem;
   }
   
-  .history-item-admain {
-    padding: 0.75rem;
+  .system-config-integrated {
+    padding: 1rem;
+  }
+  
+  .config-subtabs {
+    flex-wrap: wrap;
+  }
+  
+  .subtab-btn {
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .section-header-integrated {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .equipment-card-integrated {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .equipment-info-integrated {
+    text-align: center;
+  }
+  
+  .equipment-details-integrated {
+    justify-content: center;
+  }
+  
+  .equipment-actions-integrated {
+    width: 100%;
+    justify-content: center;
   }
 }
 
@@ -638,6 +1182,15 @@
     flex-direction: column;
     gap: 0.5rem;
     text-align: center;
+  }
+  
+  .modal-content {
+    padding: 1rem;
+  }
+  
+  .main-tab-btn-admain {
+    flex: 1;
+    justify-content: center;
   }
 }
 

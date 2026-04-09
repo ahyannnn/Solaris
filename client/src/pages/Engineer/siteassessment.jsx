@@ -57,7 +57,40 @@ import {
 import '../../styles/Engineer/siteassessment.css';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 
+// Debug logger utility
+const DEBUG = true; // Set to false to disable debug logs in production
+const logger = {
+  info: (message, data = null) => {
+    if (DEBUG) {
+      console.log(`%c[INFO] ${message}`, 'color: #00a8ff', data || '');
+    }
+  },
+  success: (message, data = null) => {
+    if (DEBUG) {
+      console.log(`%c[SUCCESS] ${message}`, 'color: #4cd964', data || '');
+    }
+  },
+  error: (message, error = null) => {
+    if (DEBUG) {
+      console.error(`%c[ERROR] ${message}`, 'color: #ff3b30', error);
+    }
+  },
+  warn: (message, data = null) => {
+    if (DEBUG) {
+      console.warn(`%c[WARN] ${message}`, 'color: #ff9500', data || '');
+    }
+  },
+  api: (method, url, data = null) => {
+    if (DEBUG) {
+      console.log(`%c[API ${method}] ${url}`, 'color: #5856d6', data || '');
+    }
+  }
+};
+
 const MyAssessments = () => {
+  // Log component mount
+  logger.info('MyAssessments component mounted');
+
   const { toast, showToast, hideToast } = useToast();
   const [freeQuotes, setFreeQuotes] = useState([]);
   const [preAssessments, setPreAssessments] = useState([]);
@@ -131,6 +164,7 @@ const MyAssessments = () => {
     roofLength: '',
     roofWidth: ''
   });
+
   // Add this helper function inside the component, before the useState declarations
   const generateQuotationNumber = () => {
     const prefix = 'Q';
@@ -146,6 +180,7 @@ const MyAssessments = () => {
     date.setDate(date.getDate() + 30);
     return date.toISOString().split('T')[0];
   };
+  
   // Pre-Assessment Form State
   const [assessmentForm, setAssessmentForm] = useState({
     roofCondition: '',
@@ -176,6 +211,25 @@ const MyAssessments = () => {
   });
 
   const [siteImages, setSiteImages] = useState([]);
+
+  // Get API base URL from environment with logging
+  const getApiBaseUrl = () => {
+    const url = import.meta.env.VITE_API_URL || '';
+    logger.info('API Base URL configuration', {
+      VITE_API_URL: import.meta.env.VITE_API_URL,
+      resolvedUrl: url,
+      mode: import.meta.env.MODE,
+      isProduction: import.meta.env.PROD
+    });
+    
+    if (!url && import.meta.env.PROD) {
+      logger.warn('VITE_API_URL is not set in production! API calls may fail.');
+    }
+    
+    return url;
+  };
+
+  const API_BASE_URL = getApiBaseUrl();
 
   const ASSESSMENT_TYPES = {
     free_quote: {
@@ -234,29 +288,42 @@ const MyAssessments = () => {
 
   // Fetch all equipment from system config
   const fetchAllEquipment = async () => {
+    logger.info('fetchAllEquipment started');
     try {
       const token = sessionStorage.getItem('token');
+      logger.info('Token exists:', { hasToken: !!token, tokenLength: token?.length });
+
+      if (!token) {
+        logger.error('No token found in sessionStorage');
+        showToast('Authentication token not found. Please login again.', 'error');
+        return;
+      }
+
+      const endpoints = [
+        `${API_BASE_URL}/api/maintenance/config/equipment/solarPanels`,
+        `${API_BASE_URL}/api/maintenance/config/equipment/inverters`,
+        `${API_BASE_URL}/api/maintenance/config/equipment/batteries`,
+        `${API_BASE_URL}/api/maintenance/config/equipment/mountingStructures`,
+        `${API_BASE_URL}/api/maintenance/config/equipment/electricalComponents`,
+        `${API_BASE_URL}/api/maintenance/config/equipment/cablesAndWiring`
+      ];
+
+      logger.info('Fetching equipment from endpoints:', endpoints);
 
       const [panelsRes, invertersRes, batteriesRes, mountingRes, electricalRes, cablesRes] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/solarPanels`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/inverters`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/batteries`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/mountingStructures`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/electricalComponents`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/cablesAndWiring`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        axios.get(endpoints[0], { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(endpoints[1], { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(endpoints[2], { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(endpoints[3], { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(endpoints[4], { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(endpoints[5], { headers: { Authorization: `Bearer ${token}` } })
       ]);
+
+      logger.success('Equipment fetched successfully', {
+        panels: panelsRes.data.items?.length || 0,
+        inverters: invertersRes.data.items?.length || 0,
+        batteries: batteriesRes.data.items?.length || 0
+      });
 
       setAvailablePanels(panelsRes.data.items || []);
       setAvailableInverters(invertersRes.data.items || []);
@@ -266,7 +333,13 @@ const MyAssessments = () => {
       setAvailableCables(cablesRes.data.items || []);
 
     } catch (error) {
-      console.error('Error fetching equipment:', error);
+      logger.error('Error fetching equipment:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        config: error.config
+      });
+      showToast('Failed to load equipment data', 'error');
     }
   };
 
@@ -447,16 +520,45 @@ const MyAssessments = () => {
   };
 
   const fetchAllAssessments = async () => {
+    logger.info('fetchAllAssessments started');
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token');
-
-      const freeQuotesRes = await axios.get('/api/free-quotes/engineer/my-quotes', {
-        headers: { Authorization: `Bearer ${token}` }
+      
+      logger.info('Session check:', {
+        hasToken: !!token,
+        tokenLength: token?.length,
+        apiBaseUrl: API_BASE_URL,
+        fullUrl: `${API_BASE_URL}/api/free-quotes/engineer/my-quotes`
       });
 
-      const preAssessmentsRes = await axios.get('/api/pre-assessments/engineer/my-assessments', {
-        headers: { Authorization: `Bearer ${token}` }
+      if (!token) {
+        logger.error('No authentication token found');
+        showToast('Please login again to continue', 'error');
+        setLoading(false);
+        return;
+      }
+
+      const freeQuotesUrl = `${API_BASE_URL}/api/free-quotes/engineer/my-quotes`;
+      const preAssessmentsUrl = `${API_BASE_URL}/api/pre-assessments/engineer/my-assessments`;
+      
+      logger.api('GET', freeQuotesUrl);
+      logger.api('GET', preAssessmentsUrl);
+
+      const [freeQuotesRes, preAssessmentsRes] = await Promise.all([
+        axios.get(freeQuotesUrl, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(preAssessmentsUrl, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+
+      logger.success('API Responses received', {
+        freeQuotesStatus: freeQuotesRes.status,
+        freeQuotesCount: freeQuotesRes.data.quotes?.length || 0,
+        preAssessmentsStatus: preAssessmentsRes.status,
+        preAssessmentsCount: preAssessmentsRes.data.assessments?.length || 0
       });
 
       const formattedFreeQuotes = (freeQuotesRes.data.quotes || []).map(quote => ({
@@ -510,24 +612,72 @@ const MyAssessments = () => {
         totalReadings: assessment.totalReadings
       }));
 
+      logger.info('Formatted data', {
+        freeQuotesCount: formattedFreeQuotes.length,
+        preAssessmentsCount: formattedPreAssessments.length,
+        sampleFreeQuote: formattedFreeQuotes[0] ? {
+          id: formattedFreeQuotes[0].id,
+          status: formattedFreeQuotes[0].status,
+          clientName: formattedFreeQuotes[0].clientName
+        } : null
+      });
+
       setFreeQuotes(formattedFreeQuotes);
       setPreAssessments(formattedPreAssessments);
       setAllAssessments([...formattedFreeQuotes, ...formattedPreAssessments]);
       setError(null);
+      
+      logger.success('All assessments loaded successfully', {
+        total: formattedFreeQuotes.length + formattedPreAssessments.length
+      });
+      
     } catch (err) {
-      console.error('Error fetching assessments:', err);
-      showToast('Failed to load assessments. Please try again.', 'error');
+      logger.error('Error fetching assessments:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        config: {
+          url: err.config?.url,
+          method: err.config?.method,
+          headers: err.config?.headers
+        }
+      });
+      
+      let errorMessage = 'Failed to load assessments. ';
+      if (err.response?.status === 401) {
+        errorMessage += 'Authentication failed. Please login again.';
+        logger.warn('Authentication failed - token may be expired');
+      } else if (err.response?.status === 404) {
+        errorMessage += 'API endpoint not found. Please check API configuration.';
+        logger.warn('API endpoint not found - check VITE_API_URL');
+      } else if (err.code === 'ERR_NETWORK') {
+        errorMessage += 'Network error. Cannot connect to server.';
+        logger.error('Network error - cannot reach API server');
+      } else {
+        errorMessage += err.response?.data?.message || err.message;
+      }
+      
+      showToast(errorMessage, 'error');
+      setError(errorMessage);
     } finally {
       setLoading(false);
+      logger.info('fetchAllAssessments completed');
     }
   };
 
   const fetchFreeQuoteDetails = async (quoteId) => {
+    logger.info('fetchFreeQuoteDetails started', { quoteId });
     try {
       const token = sessionStorage.getItem('token');
-      const response = await axios.get(`/api/free-quotes/${quoteId}`, {
+      const url = `${API_BASE_URL}/api/free-quotes/${quoteId}`;
+      logger.api('GET', url);
+      
+      const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      logger.success('Free quote details fetched', { quoteId, status: response.status });
       const quote = response.data.quote;
 
       let addressData = null;
@@ -579,18 +729,31 @@ const MyAssessments = () => {
         roofLength: formattedQuote.roofLength || '',
         roofWidth: formattedQuote.roofWidth || ''
       });
+      
+      logger.info('Free quote form populated');
     } catch (err) {
-      console.error('Error fetching free quote details:', err);
+      logger.error('Error fetching free quote details:', {
+        quoteId,
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
+      });
       showToast('Failed to load quote details', 'error');
     }
   };
 
   const fetchPreAssessmentDetails = async (assessmentId) => {
+    logger.info('fetchPreAssessmentDetails started', { assessmentId });
     try {
       const token = sessionStorage.getItem('token');
-      const response = await axios.get(`/api/pre-assessments/${assessmentId}`, {
+      const url = `${API_BASE_URL}/api/pre-assessments/${assessmentId}`;
+      logger.api('GET', url);
+      
+      const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      logger.success('Pre-assessment details fetched', { assessmentId, status: response.status });
       const assessment = response.data.assessment;
 
       let addressData = null;
@@ -703,8 +866,19 @@ const MyAssessments = () => {
       if (assessment.sitePhotos) {
         setSiteImages(assessment.sitePhotos);
       }
+      
+      logger.info('Pre-assessment form populated', {
+        hasIoTData: !!assessment.assessmentResults,
+        hasPhotos: assessment.sitePhotos?.length > 0
+      });
+      
     } catch (err) {
-      console.error('Error fetching pre-assessment details:', err);
+      logger.error('Error fetching pre-assessment details:', {
+        assessmentId,
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
+      });
       showToast('Failed to load assessment details', 'error');
     }
   };
@@ -715,8 +889,11 @@ const MyAssessments = () => {
     setAnalyzingData(true);
     try {
       const token = sessionStorage.getItem('token');
+      const url = `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/analyze-iot-data`;
+      logger.api('POST', url);
+      
       const response = await axios.post(
-        `/api/pre-assessments/${selectedItem._id}/analyze-iot-data`,
+        url,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -726,7 +903,7 @@ const MyAssessments = () => {
 
       fetchPreAssessmentDetails(selectedItem._id);
     } catch (err) {
-      console.error('Error analyzing IoT data:', err);
+      logger.error('Error analyzing IoT data:', err);
       showToast(err.response?.data?.message || 'Failed to analyze IoT data', 'error');
     } finally {
       setAnalyzingData(false);
@@ -751,8 +928,8 @@ const MyAssessments = () => {
     try {
       const token = sessionStorage.getItem('token');
       const endpoint = selectedType === 'free_quote'
-        ? `/api/free-quotes/${selectedItem._id}/generate-quotation`
-        : `/api/pre-assessments/${selectedItem._id}/generate-quotation`;
+        ? `${API_BASE_URL}/api/free-quotes/${selectedItem._id}/generate-quotation`
+        : `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/generate-quotation`;
 
       const payload = selectedType === 'free_quote' ? {
         quotationNumber: freeQuoteForm.quotationNumber,
@@ -796,6 +973,7 @@ const MyAssessments = () => {
         }
       };
 
+      logger.api('POST', endpoint, payload);
       const response = await axios.post(
         endpoint,
         payload,
@@ -810,7 +988,7 @@ const MyAssessments = () => {
         fetchPreAssessmentDetails(selectedItem._id);
       }
     } catch (err) {
-      console.error('Error generating PDF:', err);
+      logger.error('Error generating PDF:', err);
       showToast(err.response?.data?.message || 'Failed to generate PDF', 'error');
     } finally {
       setGeneratingPDF(false);
@@ -818,6 +996,7 @@ const MyAssessments = () => {
   };
 
   const handleSelectItem = (item) => {
+    logger.info('Selected item', { type: item.type, id: item.id });
     if (item.type === 'free_quote') {
       fetchFreeQuoteDetails(item.id);
     } else {
@@ -854,8 +1033,11 @@ const MyAssessments = () => {
 
     try {
       const token = sessionStorage.getItem('token');
+      const url = `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/upload-images`;
+      logger.api('POST', url, { filesCount: files.length });
+      
       const response = await axios.post(
-        `/api/pre-assessments/${selectedItem._id}/upload-images`,
+        url,
         formData,
         {
           headers: {
@@ -867,7 +1049,7 @@ const MyAssessments = () => {
       setSiteImages([...siteImages, ...response.data.images]);
       showToast('Images uploaded successfully', 'success');
     } catch (err) {
-      console.error('Error uploading images:', err);
+      logger.error('Error uploading images:', err);
       showToast('Failed to upload images', 'error');
     } finally {
       setUploading(false);
@@ -883,8 +1065,11 @@ const MyAssessments = () => {
     setSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
+      const url = `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/deploy-device`;
+      logger.api('POST', url, { notes: deployNotes });
+      
       const response = await axios.post(
-        `/api/pre-assessments/${selectedItem._id}/deploy-device`,
+        url,
         { notes: deployNotes },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -892,7 +1077,7 @@ const MyAssessments = () => {
       setDeployNotes('');
       fetchPreAssessmentDetails(selectedItem._id);
     } catch (err) {
-      console.error('Error deploying device:', err);
+      logger.error('Error deploying device:', err);
       showToast(err.response?.data?.message || 'Failed to deploy device', 'error');
     } finally {
       setSubmitting(false);
@@ -903,15 +1088,18 @@ const MyAssessments = () => {
     setSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
+      const url = `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/update-assessment`;
+      logger.api('PUT', url, assessmentForm);
+      
       await axios.put(
-        `/api/pre-assessments/${selectedItem._id}/update-assessment`,
+        url,
         assessmentForm,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       showToast('Site assessment saved successfully', 'success');
       fetchPreAssessmentDetails(selectedItem._id);
     } catch (err) {
-      console.error('Error saving assessment:', err);
+      logger.error('Error saving assessment:', err);
       showToast('Failed to save assessment', 'error');
     } finally {
       setSubmitting(false);
@@ -926,8 +1114,11 @@ const MyAssessments = () => {
     setSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
+      const url = `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/submit-report`;
+      logger.api('POST', url);
+      
       await axios.post(
-        `/api/pre-assessments/${selectedItem._id}/submit-report`,
+        url,
         {
           finalSystemSize: quotationForm.systemSize,
           finalSystemCost: calculatedCosts.totalSystemCost,
@@ -954,7 +1145,7 @@ const MyAssessments = () => {
       showToast('Final report submitted successfully', 'success');
       fetchPreAssessmentDetails(selectedItem._id);
     } catch (err) {
-      console.error('Error submitting report:', err);
+      logger.error('Error submitting report:', err);
       showToast('Failed to submit report', 'error');
     } finally {
       setSubmitting(false);
@@ -967,8 +1158,11 @@ const MyAssessments = () => {
     setSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
+      const url = `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/add-comment`;
+      logger.api('POST', url, { comment: commentText });
+      
       await axios.post(
-        `/api/pre-assessments/${selectedItem._id}/add-comment`,
+        url,
         { comment: commentText, isPublic: true },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -976,7 +1170,7 @@ const MyAssessments = () => {
       showToast('Comment added successfully', 'success');
       fetchPreAssessmentDetails(selectedItem._id);
     } catch (err) {
-      console.error('Error adding comment:', err);
+      logger.error('Error adding comment:', err);
       showToast('Failed to add comment', 'error');
     } finally {
       setSubmitting(false);
@@ -985,19 +1179,42 @@ const MyAssessments = () => {
 
   // Fetch system config
   const fetchSystemConfig = async () => {
+    logger.info('fetchSystemConfig started');
     try {
       const token = sessionStorage.getItem('token');
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/maintenance/config`, {
+      const url = `${API_BASE_URL}/api/maintenance/config`;
+      logger.api('GET', url);
+      
+      const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const configData = response.data.config;
       setConfig(configData);
+      logger.success('System config fetched', { hasLaborRates: !!configData?.laborRates });
 
       await fetchAllEquipment();
     } catch (error) {
-      console.error('Error fetching config:', error);
+      logger.error('Error fetching config:', error);
     }
   };
+
+  // Log environment on mount
+  useEffect(() => {
+    logger.info('=== APPLICATION STARTUP ===');
+    logger.info('Environment:', {
+      mode: import.meta.env.MODE,
+      isProd: import.meta.env.PROD,
+      isDev: import.meta.env.DEV,
+      apiUrl: API_BASE_URL,
+      hasApiUrl: !!API_BASE_URL,
+      userAgent: navigator.userAgent,
+      url: window.location.href
+    });
+    
+    if (!API_BASE_URL && import.meta.env.PROD) {
+      logger.warn('CRITICAL: VITE_API_URL is not set! API calls will use relative paths which will fail in production.');
+    }
+  }, []);
 
   useEffect(() => {
     fetchAllAssessments();

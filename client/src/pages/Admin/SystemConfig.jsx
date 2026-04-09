@@ -6,7 +6,21 @@ import {
   FaSpinner,
   FaCheckCircle,
   FaSave,
-  FaUndo
+  FaUndo,
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaTimes,
+  FaSolarPanel,
+  FaBolt,
+  FaBatteryFull,
+  FaTools,
+  FaPlug,
+  FaWrench,
+  FaHardHat,
+  FaBox,
+  FaPowerOff,
+  FaChartLine
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/systemconfig.css';
@@ -20,6 +34,19 @@ const SystemConfig = () => {
   const [reason, setReason] = useState('');
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [pendingUpdates, setPendingUpdates] = useState(null);
+  
+  // Equipment modal states
+  const [showEquipmentModal, setShowEquipmentModal] = useState(false);
+  const [equipmentType, setEquipmentType] = useState('');
+  const [editingItem, setEditingItem] = useState(null);
+  const [equipmentForm, setEquipmentForm] = useState({
+    name: '',
+    price: 0,
+    brand: '',
+    warranty: 0,
+    unit: 'piece',
+    notes: ''
+  });
 
   useEffect(() => {
     fetchConfig();
@@ -110,6 +137,202 @@ const SystemConfig = () => {
     setConfig(newConfig);
   };
 
+  // Equipment Management Functions
+  const openAddModal = (type) => {
+    setEquipmentType(type);
+    setEditingItem(null);
+    setEquipmentForm({
+      name: '',
+      price: 0,
+      brand: '',
+      warranty: 0,
+      unit: 'piece',
+      notes: ''
+    });
+    setShowEquipmentModal(true);
+  };
+
+  const openEditModal = (type, item) => {
+    setEquipmentType(type);
+    setEditingItem(item);
+    setEquipmentForm({
+      name: item.name || '',
+      price: item.price || 0,
+      brand: item.brand || '',
+      warranty: item.warranty || 0,
+      unit: item.unit || 'piece',
+      notes: item.notes || ''
+    });
+    setShowEquipmentModal(true);
+  };
+
+  const handleAddEquipment = async () => {
+    if (!equipmentForm.name || equipmentForm.price <= 0) {
+      showToast('Please enter name and valid price', 'warning');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const reasonText = prompt('Reason for adding this item:', `Added new ${equipmentType.slice(0, -1)}: ${equipmentForm.name}`);
+      
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment?reason=${encodeURIComponent(reasonText || 'Added new equipment')}`,
+        { 
+          type: equipmentType, 
+          ...equipmentForm 
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      showToast(response.data.message, 'success');
+      setShowEquipmentModal(false);
+      fetchConfig();
+    } catch (error) {
+      console.error('Error adding equipment:', error);
+      showToast(error.response?.data?.message || 'Failed to add equipment', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdateEquipment = async () => {
+    if (!equipmentForm.name || equipmentForm.price <= 0) {
+      showToast('Please enter name and valid price', 'warning');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const reasonText = prompt('Reason for updating this item:', `Updated ${equipmentType.slice(0, -1)}: ${equipmentForm.name}`);
+      
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/${equipmentType}/${editingItem._id}?reason=${encodeURIComponent(reasonText || 'Updated equipment')}`,
+        equipmentForm,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      showToast(response.data.message, 'success');
+      setShowEquipmentModal(false);
+      fetchConfig();
+    } catch (error) {
+      console.error('Error updating equipment:', error);
+      showToast(error.response?.data?.message || 'Failed to update equipment', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRemoveEquipment = async (type, item) => {
+    if (!window.confirm(`Are you sure you want to remove "${item.name}"? This will hide it from selection.`)) {
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const reasonText = prompt('Reason for removing this item:', `Removed ${type.slice(0, -1)}: ${item.name}`);
+      
+      const response = await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/${type}/${item._id}`,
+        { 
+          headers: { Authorization: `Bearer ${token}` },
+          data: { reason: reasonText || 'Removed equipment' }
+        }
+      );
+      
+      showToast(response.data.message, 'success');
+      fetchConfig();
+    } catch (error) {
+      console.error('Error removing equipment:', error);
+      showToast(error.response?.data?.message || 'Failed to remove equipment', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Equipment Card Component
+  const EquipmentCard = ({ item, type, onEdit, onRemove }) => {
+    const getIcon = () => {
+      switch(type) {
+        case 'solarPanels': return <FaSolarPanel />;
+        case 'inverters': return <FaBolt />;
+        case 'batteries': return <FaBatteryFull />;
+        case 'mountingStructures': return <FaTools />;
+        case 'electricalComponents': return <FaPlug />;
+        case 'cablesAndWiring': return <FaWrench />;
+        case 'safetyEquipment': return <FaHardHat />;
+        case 'junctionBoxes': return <FaBox />;
+        case 'disconnectSwitches': return <FaPowerOff />;
+        case 'meters': return <FaChartLine />;
+        default: return <FaTools />;
+      }
+    };
+
+    return (
+      <div className="equipment-card-adsycon">
+        <div className="equipment-icon-adsycon">{getIcon()}</div>
+        <div className="equipment-info-adsycon">
+          <div className="equipment-name-adsycon">{item.name}</div>
+          <div className="equipment-details-adsycon">
+            <span className="price-adsycon">₱{item.price.toLocaleString()}</span>
+            {item.unit && <span className="unit-adsycon">per {item.unit}</span>}
+            {item.brand && <span className="brand-adsycon">{item.brand}</span>}
+            {item.warranty > 0 && <span className="warranty-adsycon">{item.warranty} yrs</span>}
+          </div>
+          {item.notes && <div className="equipment-notes-adsycon">{item.notes}</div>}
+        </div>
+        <div className="equipment-actions-adsycon">
+          <button className="btn-edit-equipment-adsycon" onClick={() => onEdit(type, item)}>
+            <FaEdit /> Edit
+          </button>
+          <button className="btn-remove-equipment-adsycon" onClick={() => onRemove(type, item)}>
+            <FaTrash /> Remove
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Equipment Section Component
+  const EquipmentSection = ({ title, type, icon: Icon, items }) => {
+    const activeItems = items?.filter(item => item.isActive !== false) || [];
+    
+    return (
+      <div className="equipment-section-adsycon">
+        <div className="section-header-adsycon">
+          <div className="section-title-adsycon">
+            <Icon className="section-icon-adsycon" />
+            <h4>{title}</h4>
+            <span className="item-count-adsycon">{activeItems.length} items</span>
+          </div>
+          <button className="btn-add-equipment-adsycon" onClick={() => openAddModal(type)}>
+            <FaPlus /> Add {title}
+          </button>
+        </div>
+        <div className="equipment-list-adsycon">
+          {activeItems.length === 0 ? (
+            <div className="empty-equipment-adsycon">
+              <p>No {title.toLowerCase()} added yet. Click "Add {title}" to get started.</p>
+            </div>
+          ) : (
+            activeItems.map((item) => (
+              <EquipmentCard 
+                key={item._id} 
+                item={item} 
+                type={type}
+                onEdit={openEditModal}
+                onRemove={handleRemoveEquipment}
+              />
+            ))
+          )}
+        </div>
+      </div>
+    );
+  };
+
   // Skeleton Loader Component
   const SkeletonLoader = () => (
     <div className="system-config-container-adsycon">
@@ -158,7 +381,7 @@ const SystemConfig = () => {
         <div className="config-header-adsycon">
           <div>
             <h1>System Configuration</h1>
-            <p>Manage system parameters, prices, and calculation settings</p>
+            <p>Manage system parameters, equipment catalog, and calculation settings</p>
           </div>
           <div className="header-actions-adsycon">
             <button className="btn-reset-adsycon" onClick={handleReset} disabled={saving}>
@@ -169,7 +392,7 @@ const SystemConfig = () => {
 
         <div className="config-tabs-adsycon">
           <button className={`tab-btn-adsycon ${activeTab === 'prices' ? 'active-adsycon' : ''}`} onClick={() => setActiveTab('prices')}>
-            Prices & Fees
+            Equipment Catalog
           </button>
           <button className={`tab-btn-adsycon ${activeTab === 'calculations' ? 'active-adsycon' : ''}`} onClick={() => setActiveTab('calculations')}>
             Calculations
@@ -186,11 +409,9 @@ const SystemConfig = () => {
         </div>
 
         <div className="config-content-adsycon">
-          {/* Prices & Fees Tab */}
+          {/* Equipment Catalog Tab */}
           {activeTab === 'prices' && config && (
             <div className="config-section-adsycon">
-              <h3>Assessment & Equipment Prices</h3>
-              
               <div className="form-group-adsycon">
                 <label>Pre-Assessment Fee</label>
                 <div className="input-group-adsycon">
@@ -203,66 +424,78 @@ const SystemConfig = () => {
                 </div>
               </div>
 
-              <h4>Solar Panel Prices</h4>
-              <div className="form-group-adsycon">
-                <label>Price per Watt (₱)</label>
-                <input
-                  type="number"
-                  step="0.5"
-                  value={config.equipmentPrices?.solarPanel?.pricePerWatt || 25}
-                  onChange={(e) => updateNestedValue('equipmentPrices.solarPanel.pricePerWatt', parseFloat(e.target.value))}
-                />
-              </div>
+              {/* 10 Equipment Categories */}
+              <EquipmentSection 
+                title="Solar Panels" 
+                type="solarPanels" 
+                icon={FaSolarPanel}
+                items={config.equipmentPrices?.solarPanels}
+              />
 
-              <h4>Inverter Prices</h4>
-              <div className="form-row-adsycon">
-                <div className="form-group-adsycon">
-                  <label>Grid-Tie Inverter (₱)</label>
-                  <input
-                    type="number"
-                    value={config.equipmentPrices?.inverter?.gridTie || 15000}
-                    onChange={(e) => updateNestedValue('equipmentPrices.inverter.gridTie', parseFloat(e.target.value))}
-                  />
-                </div>
-                <div className="form-group-adsycon">
-                  <label>Hybrid Inverter (₱)</label>
-                  <input
-                    type="number"
-                    value={config.equipmentPrices?.inverter?.hybrid || 25000}
-                    onChange={(e) => updateNestedValue('equipmentPrices.inverter.hybrid', parseFloat(e.target.value))}
-                  />
-                </div>
-                <div className="form-group-adsycon">
-                  <label>Off-Grid Inverter (₱)</label>
-                  <input
-                    type="number"
-                    value={config.equipmentPrices?.inverter?.offGrid || 20000}
-                    onChange={(e) => updateNestedValue('equipmentPrices.inverter.offGrid', parseFloat(e.target.value))}
-                  />
-                </div>
-              </div>
+              <EquipmentSection 
+                title="Inverters" 
+                type="inverters" 
+                icon={FaBolt}
+                items={config.equipmentPrices?.inverters}
+              />
 
-              <h4>Battery Prices</h4>
-              <div className="form-row-adsycon">
-                <div className="form-group-adsycon">
-                  <label>Lead Acid Battery (₱)</label>
-                  <input
-                    type="number"
-                    value={config.equipmentPrices?.battery?.leadAcid || 8000}
-                    onChange={(e) => updateNestedValue('equipmentPrices.battery.leadAcid', parseFloat(e.target.value))}
-                  />
-                </div>
-                <div className="form-group-adsycon">
-                  <label>Lithium Battery (₱)</label>
-                  <input
-                    type="number"
-                    value={config.equipmentPrices?.battery?.lithium || 15000}
-                    onChange={(e) => updateNestedValue('equipmentPrices.battery.lithium', parseFloat(e.target.value))}
-                  />
-                </div>
-              </div>
+              <EquipmentSection 
+                title="Batteries" 
+                type="batteries" 
+                icon={FaBatteryFull}
+                items={config.equipmentPrices?.batteries}
+              />
 
-              <h4>Labor Rates</h4>
+              <EquipmentSection 
+                title="Mounting Structures" 
+                type="mountingStructures" 
+                icon={FaTools}
+                items={config.equipmentPrices?.mountingStructures}
+              />
+
+              <EquipmentSection 
+                title="Electrical Components" 
+                type="electricalComponents" 
+                icon={FaPlug}
+                items={config.equipmentPrices?.electricalComponents}
+              />
+
+              <EquipmentSection 
+                title="Cables & Wiring" 
+                type="cablesAndWiring" 
+                icon={FaWrench}
+                items={config.equipmentPrices?.cablesAndWiring}
+              />
+
+              <EquipmentSection 
+                title="Safety Equipment" 
+                type="safetyEquipment" 
+                icon={FaHardHat}
+                items={config.equipmentPrices?.safetyEquipment}
+              />
+
+              <EquipmentSection 
+                title="Junction Boxes" 
+                type="junctionBoxes" 
+                icon={FaBox}
+                items={config.equipmentPrices?.junctionBoxes}
+              />
+
+              <EquipmentSection 
+                title="Disconnect Switches" 
+                type="disconnectSwitches" 
+                icon={FaPowerOff}
+                items={config.equipmentPrices?.disconnectSwitches}
+              />
+
+              <EquipmentSection 
+                title="Meters" 
+                type="meters" 
+                icon={FaChartLine}
+                items={config.equipmentPrices?.meters}
+              />
+
+              <h4>👷 Labor Rates</h4>
               <div className="form-row-adsycon">
                 <div className="form-group-adsycon">
                   <label>Per kW Installation (₱)</label>
@@ -291,7 +524,11 @@ const SystemConfig = () => {
               </div>
 
               <div className="config-actions-adsycon">
-                <button className="btn-save-adsycon" onClick={() => handleSave({ assessmentFee: config.assessmentFee, equipmentPrices: config.equipmentPrices, laborRates: config.laborRates })}>
+                <button className="btn-save-adsycon" onClick={() => handleSave({ 
+                  assessmentFee: config.assessmentFee, 
+                  equipmentPrices: config.equipmentPrices, 
+                  laborRates: config.laborRates 
+                })}>
                   <FaSave /> Save Changes
                 </button>
               </div>
@@ -551,6 +788,106 @@ const SystemConfig = () => {
             </div>
           )}
         </div>
+
+        {/* Equipment Modal (Add/Edit) */}
+        {showEquipmentModal && (
+          <div className="modal-overlay-adsycon" onClick={() => setShowEquipmentModal(false)}>
+            <div className="modal-content-adsycon equipment-modal-adsycon" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-adsycon">
+                <h3>{editingItem ? 'Edit' : 'Add'} {equipmentType?.slice(0, -1)}</h3>
+                <button className="modal-close-adsycon" onClick={() => setShowEquipmentModal(false)}>
+                  <FaTimes />
+                </button>
+              </div>
+              
+              <div className="modal-body-adsycon">
+                <div className="form-group-adsycon">
+                  <label>Name *</label>
+                  <input
+                    type="text"
+                    value={equipmentForm.name}
+                    onChange={(e) => setEquipmentForm({ ...equipmentForm, name: e.target.value })}
+                    placeholder="e.g., Standard Monocrystalline 450W"
+                  />
+                </div>
+
+                <div className="form-group-adsycon">
+                  <label>Price *</label>
+                  <div className="input-group-adsycon">
+                    <span className="currency-adsycon">₱</span>
+                    <input
+                      type="number"
+                      value={equipmentForm.price}
+                      onChange={(e) => setEquipmentForm({ ...equipmentForm, price: parseFloat(e.target.value) })}
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row-adsycon">
+                  <div className="form-group-adsycon">
+                    <label>Unit</label>
+                    <select
+                      value={equipmentForm.unit}
+                      onChange={(e) => setEquipmentForm({ ...equipmentForm, unit: e.target.value })}
+                    >
+                      <option value="piece">Piece</option>
+                      <option value="watt">Watt</option>
+                      <option value="kw">kW</option>
+                      <option value="meter">Meter</option>
+                      <option value="set">Set</option>
+                      <option value="pair">Pair</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group-adsycon">
+                    <label>Warranty (years)</label>
+                    <input
+                      type="number"
+                      value={equipmentForm.warranty}
+                      onChange={(e) => setEquipmentForm({ ...equipmentForm, warranty: parseInt(e.target.value) })}
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group-adsycon">
+                  <label>Brand</label>
+                  <input
+                    type="text"
+                    value={equipmentForm.brand}
+                    onChange={(e) => setEquipmentForm({ ...equipmentForm, brand: e.target.value })}
+                    placeholder="Brand name (optional)"
+                  />
+                </div>
+
+                <div className="form-group-adsycon">
+                  <label>Notes</label>
+                  <textarea
+                    rows="2"
+                    value={equipmentForm.notes}
+                    onChange={(e) => setEquipmentForm({ ...equipmentForm, notes: e.target.value })}
+                    placeholder="Additional notes (optional)"
+                  />
+                </div>
+              </div>
+
+              <div className="modal-actions-adsycon">
+                <button className="btn-cancel-adsycon" onClick={() => setShowEquipmentModal(false)}>
+                  Cancel
+                </button>
+                <button 
+                  className="btn-confirm-adsycon" 
+                  onClick={editingItem ? handleUpdateEquipment : handleAddEquipment}
+                  disabled={saving}
+                >
+                  {saving ? <FaSpinner className="spinner-adsycon" /> : <FaCheckCircle />}
+                  {editingItem ? ' Update' : ' Add'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Reason Modal */}
         {showReasonModal && (

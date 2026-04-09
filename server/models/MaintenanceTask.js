@@ -65,18 +65,6 @@ const maintenanceTaskSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now }
 });
 
-// Pre-save middleware to generate task ID
-maintenanceTaskSchema.pre('save', function(next) {
-  if (this.isNew && !this.taskId) {
-    const date = new Date();
-    const year = date.getFullYear().toString().slice(-2);
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    this.taskId = `MT-${year}${month}${day}-${random}`;
-  }
-  this.updatedAt = new Date();
-  next();
-});
+// ❌ NO pre-save middleware - removed completely
 
 module.exports = mongoose.model('MaintenanceTask', maintenanceTaskSchema);

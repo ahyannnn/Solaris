@@ -86,7 +86,7 @@ const Dashboard = () => {
       { icon: <FaUsers />, label: 'User Management', path: '/app/admin/usermanagement' },
       { icon: <FaTools />, label: 'Maintenance', path: '/app/admin/maintenance' },
       // In dashboard.jsx, add to admin menu items
-      { icon: <FaCog />, label: 'System Config', path: '/app/admin/system-config' },
+      //{ icon: <FaCog />, label: 'System Config', path: '/app/admin/system-config' },
       { icon: <FaCog />, label: 'Settings', path: '/app/admin/settings' },
     ],
 

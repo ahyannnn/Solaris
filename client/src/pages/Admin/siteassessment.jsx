@@ -591,7 +591,7 @@ const SiteAssessment = () => {
                 <th>Date</th>
                 {activeTab === 'free-quotes' ? <th>Monthly Bill</th> : <th>Property Type</th>}
                 {activeTab === 'free-quotes' ? <th>Capacity</th> : <th>Amount</th>}
-                <th>Payment Method</th>
+                {/* REMOVED: Payment Method column */}
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -599,7 +599,7 @@ const SiteAssessment = () => {
             <tbody>
               {filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="empty-state-siteassesad">
+                  <td colSpan="8" className="empty-state-siteassesad">
                     <p>No {activeTab === 'free-quotes' ? 'free quotes' : 'pre-assessments'} found</p>
                   </td>
                 </tr>
@@ -628,17 +628,7 @@ const SiteAssessment = () => {
                         <td className="amount-cell-siteassesad">{formatCurrency(item.assessmentFee)}</td>
                       </>
                     )}
-                    <td>
-                      {item.paymentGateway === 'paymongo' ? (
-                        <span className="payment-method-badge paymongo">PayMongo</span>
-                      ) : item.paymentMethod === 'cash' ? (
-                        <span className="payment-method-badge cash">Cash</span>
-                      ) : item.paymentMethod === 'gcash' ? (
-                        <span className="payment-method-badge gcash">GCash</span>
-                      ) : (
-                        <span className="payment-method-badge">-</span>
-                      )}
-                    </td>
+                    {/* REMOVED: Payment Method column content */}
                     <td>{getStatusBadge(getDisplayStatus(item), activeTab === 'free-quotes' ? 'free-quote' : 'pre-assessment')}</td>
                     <td className="actions-cell-siteassesad">
                       <button

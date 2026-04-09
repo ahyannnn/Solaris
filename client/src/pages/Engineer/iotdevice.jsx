@@ -35,39 +35,7 @@ import { useToast, ToastNotification } from '../../assets/toastnotification';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart, Bar } from 'recharts';
 import '../../styles/Engineer/iotdevice.css';
 
-// Debug logger utility
-const DEBUG = true;
-const logger = {
-  info: (message, data = null) => {
-    if (DEBUG) {
-      console.log(`%c[INFO] ${message}`, 'color: #00a8ff', data || '');
-    }
-  },
-  success: (message, data = null) => {
-    if (DEBUG) {
-      console.log(`%c[SUCCESS] ${message}`, 'color: #4cd964', data || '');
-    }
-  },
-  error: (message, error = null) => {
-    if (DEBUG) {
-      console.error(`%c[ERROR] ${message}`, 'color: #ff3b30', error);
-    }
-  },
-  warn: (message, data = null) => {
-    if (DEBUG) {
-      console.warn(`%c[WARN] ${message}`, 'color: #ff9500', data || '');
-    }
-  },
-  api: (method, url, data = null) => {
-    if (DEBUG) {
-      console.log(`%c[API ${method}] ${url}`, 'color: #5856d6', data || '');
-    }
-  }
-};
-
 const IoTDevice = () => {
-  logger.info('IoTDevice component mounted');
-
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [devices, setDevices] = useState([]);
@@ -84,40 +52,10 @@ const IoTDevice = () => {
 
   // Get API base URL from environment
   const getApiBaseUrl = () => {
-    const url = import.meta.env.VITE_API_URL || '';
-    logger.info('API Base URL configuration', {
-      VITE_API_URL: import.meta.env.VITE_API_URL,
-      resolvedUrl: url,
-      mode: import.meta.env.MODE,
-      isProduction: import.meta.env.PROD
-    });
-    
-    if (!url && import.meta.env.PROD) {
-      logger.warn('VITE_API_URL is not set in production! API calls may fail.');
-    }
-    
-    return url;
+    return import.meta.env.VITE_API_URL || '';
   };
 
   const API_BASE_URL = getApiBaseUrl();
-
-  // Log environment on mount
-  useEffect(() => {
-    logger.info('=== IOT DEVICE COMPONENT STARTUP ===');
-    logger.info('Environment:', {
-      mode: import.meta.env.MODE,
-      isProd: import.meta.env.PROD,
-      isDev: import.meta.env.DEV,
-      apiUrl: API_BASE_URL,
-      hasApiUrl: !!API_BASE_URL,
-      userAgent: navigator.userAgent,
-      url: window.location.href
-    });
-    
-    if (!API_BASE_URL && import.meta.env.PROD) {
-      logger.warn('CRITICAL: VITE_API_URL is not set! API calls will use relative paths which will fail in production.');
-    }
-  }, []);
 
   useEffect(() => {
     fetchMyDevices();
@@ -133,34 +71,18 @@ const IoTDevice = () => {
   }, [autoRefresh, selectedDevice, dataRange]);
 
   const fetchMyDevices = async () => {
-    logger.info('fetchMyDevices started');
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token');
-      
-      logger.info('Session check:', {
-        hasToken: !!token,
-        tokenLength: token?.length,
-        apiBaseUrl: API_BASE_URL
-      });
 
       if (!token) {
-        logger.error('No authentication token found');
         showToast('Please login again to continue', 'error');
         setLoading(false);
         return;
       }
 
-      const url = `${API_BASE_URL}/api/pre-assessments/engineer/my-assessments`;
-      logger.api('GET', url);
-      
-      const response = await axios.get(url, {
+      const response = await axios.get(`${API_BASE_URL}/api/pre-assessments/engineer/my-assessments`, {
         headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      logger.success('API Response received', {
-        status: response.status,
-        assessmentsCount: response.data.assessments?.length || 0
       });
       
       // Filter assessments that have IoT devices deployed
@@ -168,11 +90,6 @@ const IoTDevice = () => {
         assessment => assessment.iotDeviceId && 
         (assessment.assessmentStatus === 'device_deployed' || assessment.assessmentStatus === 'data_collecting')
       );
-      
-      logger.info('Filtered assessments with devices', {
-        totalAssessments: response.data.assessments?.length || 0,
-        assessmentsWithDevices: assessmentsWithDevices.length
-      });
       
       // Extract device information
       const deviceList = assessmentsWithDevices.map(assessment => ({
@@ -193,41 +110,19 @@ const IoTDevice = () => {
         dataCollectionEnd: assessment.dataCollectionEnd
       }));
       
-      logger.success('Devices extracted successfully', {
-        deviceCount: deviceList.length,
-        sampleDevice: deviceList[0] ? {
-          deviceId: deviceList[0].deviceId,
-          deviceName: deviceList[0].deviceName,
-          clientName: deviceList[0].clientName
-        } : null
-      });
-      
       setDevices(deviceList);
       setTotalPages(Math.ceil(deviceList.length / 10));
       setLoading(false);
     } catch (error) {
-      logger.error('Error fetching devices:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        config: {
-          url: error.config?.url,
-          method: error.config?.method,
-          headers: error.config?.headers
-        }
-      });
+      console.error('Error fetching devices:', error);
       
       let errorMessage = 'Failed to fetch your devices. ';
       if (error.response?.status === 401) {
         errorMessage += 'Authentication failed. Please login again.';
-        logger.warn('Authentication failed - token may be expired');
       } else if (error.response?.status === 404) {
         errorMessage += 'API endpoint not found. Please check API configuration.';
-        logger.warn('API endpoint not found - check VITE_API_URL');
       } else if (error.code === 'ERR_NETWORK') {
         errorMessage += 'Network error. Cannot connect to server.';
-        logger.error('Network error - cannot reach API server');
       } else {
         errorMessage += error.response?.data?.message || error.message;
       }
@@ -238,78 +133,41 @@ const IoTDevice = () => {
   };
 
   const fetchSensorData = async () => {
-    if (!selectedDevice) {
-      logger.warn('fetchSensorData called but no device selected');
-      return;
-    }
-    
-    logger.info('fetchSensorData started', {
-      assessmentId: selectedDevice.assessmentId,
-      deviceId: selectedDevice.deviceId,
-      dataRange
-    });
+    if (!selectedDevice) return;
     
     try {
       const token = sessionStorage.getItem('token');
       
       if (!token) {
-        logger.error('No token found for sensor data fetch');
         showToast('Authentication failed. Please login again.', 'error');
         return;
       }
       
-      const url = `${API_BASE_URL}/api/pre-assessments/${selectedDevice.assessmentId}/iot-data`;
-      logger.api('GET', url, { params: { range: dataRange, limit: 1000 } });
-      
       const response = await axios.get(
-        url,
+        `${API_BASE_URL}/api/pre-assessments/${selectedDevice.assessmentId}/iot-data`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { range: dataRange, limit: 1000 }
         }
       );
       
-      logger.success('Sensor data fetched successfully', {
-        readingsCount: response.data.readings?.length || 0,
-        hasStats: !!response.data.stats
-      });
-      
       setSensorData(response.data.readings || []);
       setSensorStats(response.data.stats || {});
       setLastUpdated(new Date());
     } catch (error) {
-      logger.error('Error fetching sensor data:', {
-        assessmentId: selectedDevice.assessmentId,
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
+      console.error('Error fetching sensor data:', error);
       showToast('Failed to fetch sensor data', 'error');
     }
   };
 
   const handleViewDeviceData = async (device) => {
-    logger.info('View device data clicked', {
-      deviceId: device.deviceId,
-      deviceName: device.deviceName,
-      assessmentId: device.assessmentId
-    });
-    
     setSelectedDevice(device);
     setShowDataModal(true);
     await fetchSensorData();
   };
 
   const downloadData = () => {
-    if (!sensorData.length) {
-      logger.warn('Download attempted but no data available');
-      return;
-    }
-    
-    logger.info('Downloading sensor data', {
-      deviceId: selectedDevice?.deviceId,
-      dataPoints: sensorData.length
-    });
+    if (!sensorData.length) return;
     
     const csvData = sensorData.map(reading => ({
       timestamp: new Date(reading.timestamp).toISOString(),
@@ -335,8 +193,6 @@ const IoTDevice = () => {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-    
-    logger.success('CSV download initiated');
   };
 
   const getBatteryIcon = (level) => {

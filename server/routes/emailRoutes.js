@@ -475,10 +475,12 @@ router.post("/send-verification", async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ success: false, message: "Email required" });
-
+    
+    const normalizedEmail = email.toLowerCase(); // ← Add this
     const code = generateCode();
-    verificationCodes.set(email, { code, timestamp: Date.now(), type: 'verification' });
-
+    verificationCodes.set(normalizedEmail, { code, timestamp: Date.now(), type: 'verification' }); // ← Use normalized
+    
+    // Send email to original email (not normalized for display)
     await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],

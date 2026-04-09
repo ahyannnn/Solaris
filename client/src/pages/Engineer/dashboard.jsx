@@ -50,11 +50,7 @@ const EngineerDashboard = () => {
       setLoading(true);
       const token = sessionStorage.getItem('token');
 
-      // Get user info
-      const userRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUserName(userRes.data.user?.fullName || 'Engineer');
+      // Fetch MY projects (assigned to this engineer)
 
       // Fetch MY projects (assigned to this engineer)
       const projectsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/engineer/my-projects`, {
@@ -116,7 +112,7 @@ const EngineerDashboard = () => {
   const formatTime = (time) => {
     if (!time) return 'N/A';
     return time;
-  };
+  }; 
 
   const getAssessmentStatusBadge = (status) => {
     const badges = {

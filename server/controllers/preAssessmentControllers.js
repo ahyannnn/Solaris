@@ -103,9 +103,9 @@ exports.createPayMongoPaymentIntent = async (req, res) => {
 exports.getPayMongoPaymentStatus = async (req, res) => {
   try {
     const { paymentIntentId } = req.params;
-    
+
     const paymentIntent = await PayMongoService.getPaymentIntent(paymentIntentId);
-    
+
     if (!paymentIntent.success) {
       return res.status(500).json({ message: paymentIntent.error });
     }
@@ -180,7 +180,7 @@ exports.verifyPayMongoPayment = async (req, res) => {
     res.status(500).json({ message: 'Failed to verify payment', error: error.message });
   }
 };
-// @desc    Generate and upload quotation PDF (Engineer)
+// @desc    Generate Quotation PDF for Pre-Assessment
 // @route   POST /api/pre-assessments/:id/generate-quotation
 // @access  Private (Engineer)
 exports.generateQuotationPDF = async (req, res) => {
@@ -193,6 +193,7 @@ exports.generateQuotationPDF = async (req, res) => {
       systemSize,
       systemType,
       panelsNeeded,
+      panelType,
       inverterType,
       batteryType,
       installationCost,
@@ -200,7 +201,8 @@ exports.generateQuotationPDF = async (req, res) => {
       totalCost,
       paymentTerms,
       warrantyYears,
-      includeIoTData
+      includeIoTData,
+      equipmentDetails  // NEW: detailed equipment breakdown
     } = req.body;
 
     const assessment = await PreAssessment.findById(id)
@@ -218,28 +220,104 @@ exports.generateQuotationPDF = async (req, res) => {
     // Fetch IoT data if requested
     let iotAnalysis = null;
     if (includeIoTData && assessment.dataCollectionEnd) {
-      const sensorData = await SensorData.find({ preAssessmentId: assessment._id });
-      if (sensorData.length > 0) {
-        const irradianceValues = sensorData.map(d => d.irradiance || 0).filter(v => v > 0);
-        const temperatureValues = sensorData.map(d => d.temperature || 0);
-        const humidityValues = sensorData.map(d => d.humidity || 0);
+      const device = await IoTDevice.findOne({ deviceId: assessment.iotDeviceId?.deviceId });
+      if (device) {
+        const sensorData = await SensorData.find({ deviceId: device.deviceId });
+        if (sensorData.length > 0) {
+          const irradianceValues = sensorData.map(d => d.irradiance || 0).filter(v => v > 0);
+          const temperatureValues = sensorData.map(d => d.temperature || 0);
+          const humidityValues = sensorData.map(d => d.humidity || 0);
 
-        iotAnalysis = {
-          totalReadings: sensorData.length,
-          averageIrradiance: irradianceValues.reduce((a, b) => a + b, 0) / irradianceValues.length,
-          maxIrradiance: Math.max(...irradianceValues),
-          peakSunHours: (irradianceValues.reduce((a, b) => a + b, 0) / 1000).toFixed(1),
-          averageTemperature: temperatureValues.reduce((a, b) => a + b, 0) / temperatureValues.length,
-          minTemperature: Math.min(...temperatureValues),
-          maxTemperature: Math.max(...temperatureValues),
-          efficiencyLoss: ((temperatureValues.reduce((a, b) => a + b, 0) / temperatureValues.length - 25) * 0.004 * 100).toFixed(1),
-          averageHumidity: humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length,
-          minHumidity: Math.min(...humidityValues),
-          maxHumidity: Math.max(...humidityValues),
-          recommendedSystemSize: (iotAnalysis?.peakSunHours * 0.8).toFixed(1)
-        };
+          iotAnalysis = {
+            totalReadings: sensorData.length,
+            averageIrradiance: irradianceValues.reduce((a, b) => a + b, 0) / irradianceValues.length,
+            maxIrradiance: Math.max(...irradianceValues),
+            peakSunHours: (irradianceValues.reduce((a, b) => a + b, 0) / 1000).toFixed(1),
+            averageTemperature: temperatureValues.reduce((a, b) => a + b, 0) / temperatureValues.length,
+            minTemperature: Math.min(...temperatureValues),
+            maxTemperature: Math.max(...temperatureValues),
+            efficiencyLoss: ((temperatureValues.reduce((a, b) => a + b, 0) / temperatureValues.length - 25) * 0.004 * 100).toFixed(1),
+            averageHumidity: humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length,
+            minHumidity: Math.min(...humidityValues),
+            maxHumidity: Math.max(...humidityValues),
+            recommendedSystemSize: ((irradianceValues.reduce((a, b) => a + b, 0) / 1000) * 0.8).toFixed(1)
+          };
+        }
       }
     }
+
+    // Prepare cost breakdown
+    const costBreakdown = {
+      equipment: {
+        panels: {
+          name: equipmentDetails?.panel?.name || panelType || 'Solar Panels',
+          quantity: equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0,
+          unitPrice: equipmentDetails?.panel?.price || 0,
+          total: (equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) * (equipmentDetails?.panel?.price || 0)
+        },
+        inverter: {
+          name: equipmentDetails?.inverter?.name || inverterType || 'Inverter',
+          quantity: equipmentDetails?.inverterQuantity || 1,
+          unitPrice: equipmentDetails?.inverter?.price || 0,
+          total: (equipmentDetails?.inverterQuantity || 1) * (equipmentDetails?.inverter?.price || 0)
+        },
+        battery: {
+          name: equipmentDetails?.battery?.name || batteryType || 'No Battery',
+          quantity: equipmentDetails?.batteryQuantity || 0,
+          unitPrice: equipmentDetails?.battery?.price || 0,
+          total: (equipmentDetails?.batteryQuantity || 0) * (equipmentDetails?.battery?.price || 0)
+        },
+        mounting: {
+          name: 'Mounting Structure',
+          quantity: Math.ceil((equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) / 4),
+          unitPrice: 3500,
+          total: Math.ceil((equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) / 4) * 3500
+        },
+        electrical: {
+          name: 'Electrical Components (Breakers, Connectors, etc.)',
+          quantity: 1,
+          unitPrice: 2500,
+          total: 2500
+        },
+        cables: {
+          name: 'Cables & Wiring',
+          quantity: (systemSize || 5) * 15,
+          unitPrice: 95,
+          total: (systemSize || 5) * 15 * 95
+        },
+        additional: equipmentDetails?.additionalEquipment || []
+      },
+      installation: {
+        perKw: {
+          rate: 5000,
+          quantity: systemSize || 0,
+          total: (systemSize || 0) * 5000
+        },
+        perPanel: {
+          rate: 1000,
+          quantity: equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0,
+          total: (equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) * 1000
+        },
+        minimumFee: 10000,
+        total: Math.max(
+          ((systemSize || 0) * 5000) + ((equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) * 1000),
+          10000
+        )
+      }
+    };
+
+    // Calculate totals
+    const calculatedEquipmentTotal =
+      costBreakdown.equipment.panels.total +
+      costBreakdown.equipment.inverter.total +
+      costBreakdown.equipment.battery.total +
+      costBreakdown.equipment.mounting.total +
+      costBreakdown.equipment.electrical.total +
+      costBreakdown.equipment.cables.total +
+      costBreakdown.equipment.additional.reduce((sum, item) => sum + (item.total || 0), 0);
+
+    const calculatedInstallationTotal = costBreakdown.installation.total;
+    const calculatedTotalCost = calculatedEquipmentTotal + calculatedInstallationTotal;
 
     // Prepare data for PDF
     const pdfData = {
@@ -250,17 +328,20 @@ exports.generateQuotationPDF = async (req, res) => {
       propertyType: assessment.propertyType,
       address: assessment.addressId ?
         `${assessment.addressId.houseOrBuilding} ${assessment.addressId.street}, ${assessment.addressId.barangay}, ${assessment.addressId.cityMunicipality}` : null,
-      quotationExpiryDate,
-      systemSize,
+      quotationNumber: quotationNumber || `Q-${assessment.bookingReference}`,
+      quotationExpiryDate: quotationExpiryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      systemSize: parseFloat(systemSize),
       systemTypeLabel: SYSTEM_TYPES.find(t => t.value === systemType)?.label || systemType,
-      panelsNeeded,
-      inverterType,
-      batteryType,
-      installationCost,
-      equipmentCost,
-      totalCost,
-      paymentTerms,
-      warrantyYears,
+      panelsNeeded: parseInt(panelsNeeded) || 0,
+      panelType: equipmentDetails?.panel?.name || panelType,
+      inverterType: equipmentDetails?.inverter?.name || inverterType,
+      batteryType: equipmentDetails?.battery?.name || batteryType,
+      warrantyYears: parseInt(warrantyYears) || 10,
+      paymentTerms: paymentTerms || '',
+      costBreakdown,
+      calculatedEquipmentTotal,
+      calculatedInstallationTotal,
+      calculatedTotalCost,
       iotAnalysis,
       siteAssessment: {
         roofCondition: assessment.engineerAssessment?.roofCondition,
@@ -272,8 +353,8 @@ exports.generateQuotationPDF = async (req, res) => {
       },
       performanceEstimates: {
         annualProduction: (systemSize || 0) * 1200,
-        annualSavings: (totalCost || 0) * 0.15,
-        paybackPeriod: Math.ceil((totalCost || 0) / ((systemSize || 1) * 1200 * 0.1)),
+        annualSavings: (calculatedTotalCost || 0) * 0.15,
+        paybackPeriod: Math.ceil((calculatedTotalCost || 0) / ((systemSize || 1) * 1200 * 0.1)),
         co2Offset: (systemSize || 0) * 800
       },
       dataCollectionStart: assessment.dataCollectionStart,
@@ -319,7 +400,7 @@ exports.generateQuotationPDF = async (req, res) => {
         quotationNumber: quotationNumber || `Q-${assessment.bookingReference}`,
         systemSize,
         systemType,
-        totalCost,
+        totalCost: calculatedTotalCost,
         includeIoTData: !!includeIoTData,
         generatedAt: new Date().toISOString()
       }
@@ -338,13 +419,15 @@ exports.generateQuotationPDF = async (req, res) => {
         systemSize: parseFloat(systemSize),
         systemType,
         panelsNeeded: parseInt(panelsNeeded) || 0,
-        inverterType,
-        batteryType,
-        installationCost: parseFloat(installationCost) || 0,
-        equipmentCost: parseFloat(equipmentCost) || 0,
-        totalCost: parseFloat(totalCost) || 0,
+        panelType: equipmentDetails?.panel?.name || panelType,
+        inverterType: equipmentDetails?.inverter?.name || inverterType,
+        batteryType: equipmentDetails?.battery?.name || batteryType,
+        installationCost: calculatedInstallationTotal,
+        equipmentCost: calculatedEquipmentTotal,
+        totalCost: calculatedTotalCost,
         paymentTerms,
-        warrantyYears: parseInt(warrantyYears) || 10
+        warrantyYears: parseInt(warrantyYears) || 10,
+        equipmentBreakdown: costBreakdown.equipment
       },
       generatedAt: new Date(),
       generatedBy: engineerId
@@ -362,7 +445,9 @@ exports.generateQuotationPDF = async (req, res) => {
         id: fileRecord._id,
         url: result.secure_url,
         quotationNumber: assessment.quotation.quotationNumber,
-        totalCost: assessment.quotation.systemDetails.totalCost,
+        totalCost: calculatedTotalCost,
+        equipmentCost: calculatedEquipmentTotal,
+        installationCost: calculatedInstallationTotal,
         size: `${(pdfBuffer.length / 1024).toFixed(1)} KB`
       }
     });
@@ -883,12 +968,12 @@ exports.verifyPayment = async (req, res) => {
     // ✅ REMOVED the restriction that was blocking GCash verification
     // The old code had: if (preAssessment.paymentGateway === 'paymongo') { return error }
     // Now we allow verification for manual GCash payments
-    
+
     // Only allow verification for manual payments (GCash manual upload, Cash)
     // Skip for PayMongo auto-verified payments
     if (preAssessment.paymentGateway === 'paymongo' && preAssessment.autoVerified === true) {
-      return res.status(400).json({ 
-        message: 'PayMongo payments are auto-verified and cannot be manually verified' 
+      return res.status(400).json({
+        message: 'PayMongo payments are auto-verified and cannot be manually verified'
       });
     }
 
@@ -898,7 +983,7 @@ exports.verifyPayment = async (req, res) => {
       preAssessment.assessmentStatus = 'scheduled';
       preAssessment.confirmedAt = new Date();
       preAssessment.adminRemarks = notes || 'Payment verified by admin';
-      
+
       // If this is a GCash manual payment, mark it as verified
       if (preAssessment.paymentMethod === 'gcash') {
         preAssessment.autoVerified = false; // Manual verification, not auto
@@ -1063,14 +1148,28 @@ exports.getEngineerAssessments = async (req, res) => {
     if (status) query.assessmentStatus = status;
 
     const assessments = await PreAssessment.find(query)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber userId.email')
+      .populate({
+        path: 'clientId',
+        select: 'contactFirstName contactLastName contactNumber userId',
+        populate: {
+          path: 'userId',
+          select: 'email'
+        }
+      })
       .populate('addressId')
-      .populate('iotDeviceId')  // Add this to populate device data
+      .populate('iotDeviceId')
       .sort({ siteVisitDate: -1, bookedAt: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
 
     const total = await PreAssessment.countDocuments(query);
+
+    // Console log collected emails
+    assessments.forEach((assessment, index) => {
+      const email = assessment.clientId?.userId?.email;
+
+    
+    });
 
     res.json({
       success: true,
@@ -1082,7 +1181,10 @@ exports.getEngineerAssessments = async (req, res) => {
 
   } catch (error) {
     console.error('Get engineer assessments error:', error);
-    res.status(500).json({ message: 'Failed to fetch assessments', error: error.message });
+    res.status(500).json({
+      message: 'Failed to fetch assessments',
+      error: error.message
+    });
   }
 };
 
@@ -1662,7 +1764,7 @@ exports.getAllPreAssessments = async (req, res) => {
 exports.getMyPreAssessments = async (req, res) => {
   try {
     const userId = req.user.id;
-    
+
     const client = await Client.findOne({ userId });
     if (!client) {
       return res.status(404).json({ message: 'Client not found' });
@@ -1991,7 +2093,14 @@ exports.getPreAssessmentById = async (req, res) => {
     const userRole = req.user.role;
 
     const assessment = await PreAssessment.findById(id)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber')
+      .populate({
+        path: 'clientId',
+        select: 'contactFirstName contactLastName contactNumber client_type userId',
+        populate: {
+          path: 'userId',
+          select: 'email'
+        }
+      })
       .populate('addressId')
       .populate('iotDeviceId')
       .populate('assignedEngineerId', 'email firstName lastName')

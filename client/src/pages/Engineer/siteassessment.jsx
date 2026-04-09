@@ -52,7 +52,11 @@ import {
   FaTint,
   FaChartBar,
   FaBolt,
-  FaBatteryFull
+  FaBatteryFull,
+  FaPercent,
+  FaMapMarkerAlt as FaLocation,
+  FaMoneyBillWave,
+  FaLeaf
 } from 'react-icons/fa';
 import '../../styles/Engineer/siteassessment.css';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
@@ -81,6 +85,7 @@ const MyAssessments = () => {
   const [analyzingData, setAnalyzingData] = useState(false);
   const [iotAnalysis, setIotAnalysis] = useState(null);
   const [config, setConfig] = useState(null);
+  const [assessmentResults, setAssessmentResults] = useState(null);
 
   // New Quotation State with Equipment Selection
   const [selectedPanel, setSelectedPanel] = useState(null);
@@ -185,6 +190,87 @@ const MyAssessments = () => {
   };
 
   const API_BASE_URL = getApiBaseUrl();
+
+  // Function to calculate system metrics from IoT data
+  const calculateSystemMetrics = (iotData) => {
+    if (!iotData) return null;
+    
+    const peakSunHours = iotData.peakSunHours || 4.5;
+    const shadingPercentage = iotData.shadingPercentage || 0;
+    const avgTemp = iotData.averageTemperature || 25;
+    const tempDerating = Math.max(0, (avgTemp - 25) * -0.004) * 100;
+    
+    // Calculate recommended system size (kWp)
+    const dailyEnergyNeed = 20; // kWh per day average
+    const systemEfficiency = 0.8;
+    const recommendedSystemSize = dailyEnergyNeed / (peakSunHours * systemEfficiency);
+    
+    // Calculate number of panels needed (assuming 550W panels = 0.55 kW)
+    const panelWattage = 0.55; // kW per panel
+    const panelsNeeded = Math.ceil(recommendedSystemSize / panelWattage);
+    
+    // Calculate inverter size (1.2x system size for safety)
+    const inverterSize = Math.ceil(recommendedSystemSize * 1.2);
+    
+    // Calculate performance ratio
+    const performanceRatio = 0.85 - (shadingPercentage / 100) - (tempDerating / 100);
+    
+    // Calculate optimal orientation based on peak sun hours
+    let optimalOrientation = 'South';
+    if (peakSunHours > 5.5) optimalOrientation = 'South';
+    else if (peakSunHours > 4.5) optimalOrientation = 'South-East';
+    else if (peakSunHours > 3.5) optimalOrientation = 'East-West';
+    else optimalOrientation = 'East';
+    
+    // Calculate optimal tilt (based on latitude approximation for Philippines)
+    const optimalTilt = Math.min(30, Math.max(10, Math.floor(peakSunHours * 2.5)));
+    
+    // Calculate available roof area (m²) - estimate from assessment form
+    const roofArea = (assessmentForm.roofLength || 10) * (assessmentForm.roofWidth || 8);
+    
+    // Calculate estimated installation time (days)
+    const estimatedInstallationTime = Math.ceil(panelsNeeded / 4) + 1;
+    
+    // Calculate estimated total cost (₱)
+    const equipmentCost = panelsNeeded * 15000 + inverterSize * 8000;
+    const installationCost = panelsNeeded * 2000;
+    const totalCost = equipmentCost + installationCost;
+    
+    // Calculate estimated monthly savings (₱)
+    const electricityRate = 12; // ₱ per kWh
+    const annualProduction = recommendedSystemSize * peakSunHours * 365 * systemEfficiency;
+    const monthlySavings = (annualProduction * electricityRate) / 12;
+    
+    // Calculate payback period (years)
+    const paybackPeriod = totalCost / (monthlySavings * 12);
+    
+    // Calculate CO2 offset (kg/year)
+    const co2Offset = annualProduction * 0.5;
+    
+    return {
+      peakSunHours,
+      shadingPercentage,
+      averageIrradiance: iotData.averageIrradiance || 0,
+      averageTemperature: iotData.averageTemperature || 0,
+      averageHumidity: iotData.averageHumidity || 0,
+      temperatureRange: `${iotData.minTemperature?.toFixed(1) || 0}°C - ${iotData.maxTemperature?.toFixed(1) || 0}°C`,
+      temperatureDerating: tempDerating.toFixed(1),
+      gpsLocation: iotData.gpsCoordinates,
+      recommendedSystemSize: recommendedSystemSize.toFixed(1),
+      panelsNeeded,
+      inverterSize,
+      performanceRatio: (performanceRatio * 100).toFixed(1),
+      optimalOrientation,
+      optimalTilt,
+      availableRoofArea: roofArea.toFixed(1),
+      estimatedInstallationTime,
+      estimatedTotalCost: totalCost,
+      estimatedMonthlySavings: monthlySavings,
+      paybackPeriod: paybackPeriod.toFixed(1),
+      co2Offset: co2Offset.toFixed(0),
+      annualProduction: annualProduction.toFixed(0)
+    };
+  };
 
   const ASSESSMENT_TYPES = {
     free_quote: {
@@ -733,7 +819,16 @@ const MyAssessments = () => {
       }
 
       if (assessment.assessmentResults) {
-        setIotAnalysis(assessment.assessmentResults);
+        setAssessmentResults(assessment.assessmentResults);
+        // Auto-populate quotation form with calculated metrics
+        const metrics = calculateSystemMetrics(assessment.assessmentResults);
+        if (metrics && !quotationForm.systemSize) {
+          setQuotationForm(prev => ({
+            ...prev,
+            systemSize: metrics.recommendedSystemSize,
+            panelsNeeded: metrics.panelsNeeded.toString()
+          }));
+        }
       }
 
       if (assessment.sitePhotos) {
@@ -911,8 +1006,78 @@ const MyAssessments = () => {
     }
   };
 
+  // VALIDATION FUNCTION FOR SAVE DRAFT
+  const validateAssessmentForm = () => {
+    const requiredFields = [
+      { field: assessmentForm.roofCondition, name: 'Roof Condition' },
+      { field: assessmentForm.roofLength, name: 'Roof Length' },
+      { field: assessmentForm.roofWidth, name: 'Roof Width' },
+      { field: assessmentForm.structuralIntegrity, name: 'Structural Integrity' },
+      { field: assessmentForm.estimatedInstallationTime, name: 'Estimated Installation Time' },
+      { field: assessmentForm.recommendations, name: 'Engineer Recommendations' },
+      { field: assessmentForm.technicalFindings, name: 'Technical Findings' },
+      { field: assessmentForm.siteVisitNotes, name: 'Site Visit Notes' }
+    ];
+
+    const missingFields = requiredFields.filter(item => !item.field || item.field === '' || item.field === 0);
+    
+    if (missingFields.length > 0) {
+      const fieldNames = missingFields.map(item => item.name).join(', ');
+      showToast(`Please fill in all required fields: ${fieldNames}`, 'warning');
+      return false;
+    }
+    
+    return true;
+  };
+
+  // UPDATED SAVE SITE ASSESSMENT WITH VALIDATION
+  const saveSiteAssessment = async () => {
+    // Validate all fields are filled
+    if (!validateAssessmentForm()) {
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      await axios.put(
+        `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/update-assessment`,
+        assessmentForm,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      showToast('Site assessment saved successfully', 'success');
+      fetchPreAssessmentDetails(selectedItem._id);
+    } catch (err) {
+      console.error('Error saving assessment:', err);
+      showToast('Failed to save assessment', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // UPDATED DEPLOY DEVICE WITH ENHANCED CONFIRMATION
   const deployDevice = async () => {
-    if (!window.confirm('Are you sure you want to deploy the device on site? This will start 7-day data collection.')) {
+    // Validate deployment notes
+    if (!deployNotes || deployNotes.trim() === '') {
+      showToast('Please enter deployment notes before deploying the device', 'warning');
+      return;
+    }
+
+    // Show confirmation dialog with details
+    const confirmed = window.confirm(
+      `⚠️ DEPLOY DEVICE CONFIRMATION ⚠️\n\n` +
+      `Are you sure you want to deploy the device on site?\n\n` +
+      `📋 Device Details:\n` +
+      `• Device ID: ${selectedItem.iotDeviceId?.deviceId || selectedItem.assignedDeviceId || 'N/A'}\n` +
+      `• Device Name: ${selectedItem.iotDeviceId?.deviceName || selectedItem.assignedDevice?.deviceName || 'IoT Device'}\n\n` +
+      `📍 Location: ${getFullAddress(selectedItem.address)}\n\n` +
+      `📝 Deployment Notes:\n${deployNotes}\n\n` +
+      `⚠️ This will start 7-day data collection period.\n` +
+      `The device cannot be reassigned during this period.\n\n` +
+      `Click OK to confirm deployment.`
+    );
+    
+    if (!confirmed) {
       return;
     }
 
@@ -930,25 +1095,6 @@ const MyAssessments = () => {
     } catch (err) {
       console.error('Error deploying device:', err);
       showToast(err.response?.data?.message || 'Failed to deploy device', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const saveSiteAssessment = async () => {
-    setSubmitting(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      await axios.put(
-        `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/update-assessment`,
-        assessmentForm,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      showToast('Site assessment saved successfully', 'success');
-      fetchPreAssessmentDetails(selectedItem._id);
-    } catch (err) {
-      console.error('Error saving assessment:', err);
-      showToast('Failed to save assessment', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -1081,6 +1227,9 @@ const MyAssessments = () => {
       calculateTotalCosts();
     }
   }, [selectedPanel, selectedInverter, selectedBattery, panelQuantity, inverterQuantity, batteryQuantity, quotationForm.systemSize, config]);
+
+  // Get metrics for display
+  const systemMetrics = assessmentResults ? calculateSystemMetrics(assessmentResults) : null;
 
   // Skeleton Loader Components
   const SkeletonCard = () => (
@@ -1804,7 +1953,6 @@ const MyAssessments = () => {
                             <span className="device-info-label-enad">Deployed At</span>
                             <span className="device-info-value-enad">{formatDateTime(selectedItem.deviceDeployedAt)}</span>
                           </div>
-                          
                         </>
                       )}
                     </div>
@@ -1833,8 +1981,9 @@ const MyAssessments = () => {
                     deviceAssigned && (
                       <button
                         onClick={deployDevice}
-                        disabled={submitting}
+                        disabled={submitting || !deployNotes || deployNotes.trim() === ''}
                         className="btn-success-enad"
+                        style={{ opacity: (!deployNotes || deployNotes.trim() === '') ? 0.5 : 1 }}
                       >
                         {submitting ? <FaSpinner className="spinner-enad" /> : <FaMicrochip />} Deploy Device (Start 7-day Monitoring)
                       </button>
@@ -1859,7 +2008,7 @@ const MyAssessments = () => {
 
                 <div className="form-group-enad">
                   <label className="form-label-enad">
-                    <FaRulerCombined className="inline-icon" /> Roof Dimensions (meters)
+                    <FaRulerCombined className="inline-icon" /> Roof Dimensions (meters) <span style={{ color: '#C62828' }}>*</span>
                   </label>
                   <div className="form-row-enad">
                     <div className="dimension-input-enad">
@@ -1871,6 +2020,7 @@ const MyAssessments = () => {
                         onChange={(e) => handleAssessmentFormChange('roofLength', parseFloat(e.target.value))}
                         className="form-input-enad"
                         placeholder="Length (m)"
+                        required
                       />
                     </div>
                     <div className="dimension-input-enad">
@@ -1882,10 +2032,11 @@ const MyAssessments = () => {
                         onChange={(e) => handleAssessmentFormChange('roofWidth', parseFloat(e.target.value))}
                         className="form-input-enad"
                         placeholder="Width (m)"
+                        required
                       />
                     </div>
                   </div>
-                  <small className="form-hint-enad">Measured during site inspection</small>
+                  <small className="form-hint-enad">Measured during site inspection (Required)</small>
                 </div>
 
                 <div className="form-group-enad">
@@ -1912,19 +2063,28 @@ const MyAssessments = () => {
                     onChange={(e) => handleAssessmentFormChange('estimatedInstallationTime', e.target.value)}
                     className="form-input-enad"
                     style={{ width: '150px' }}
+                    required
                   />
                 </div>
 
                 {deviceAssigned && (
                   <div className="form-group-enad">
-                    <label className="form-label-enad">Deployment Notes</label>
+                    <label className="form-label-enad">
+                      Deployment Notes <span style={{ color: '#C62828' }}>*</span>
+                    </label>
                     <textarea
                       value={deployNotes}
                       onChange={(e) => setDeployNotes(e.target.value)}
                       rows={3}
                       className="form-textarea-enad"
-                      placeholder="Enter deployment notes, device placement location, etc..."
+                      placeholder="Enter deployment notes, device placement location, etc... (Required)"
+                      required
                     />
+                    {!deployNotes && (
+                      <small className="form-hint-enad" style={{ color: '#C62828' }}>
+                        Deployment notes are required before deploying the device
+                      </small>
+                    )}
                   </div>
                 )}
 
@@ -1936,6 +2096,7 @@ const MyAssessments = () => {
                     rows={4}
                     className="form-textarea-enad"
                     placeholder="Additional notes, observations, recommendations..."
+                    required
                   />
                 </div>
 
@@ -1947,6 +2108,7 @@ const MyAssessments = () => {
                     rows={3}
                     className="form-textarea-enad"
                     placeholder="Summary of recommendations for the client..."
+                    required
                   />
                 </div>
 
@@ -1958,12 +2120,13 @@ const MyAssessments = () => {
                     rows={3}
                     className="form-textarea-enad"
                     placeholder="Technical observations, electrical assessment, structural findings..."
+                    required
                   />
                 </div>
               </div>
             )}
 
-            {/* Quotation Tab with Equipment Selection */}
+            {/* Quotation Tab with Equipment Selection and IoT Data Integration */}
             {activeTab === 'quotation' && (
               <div className="quotation-tab-enhanced">
                 <div className="action-buttons-enad">
@@ -1994,6 +2157,131 @@ const MyAssessments = () => {
                     </small>
                   )}
                 </div>
+
+                {/* IoT Metrics Section - Display 7-day monitoring results */}
+                {assessmentResults && (
+                  <div className="iot-metrics-section">
+                    <h4>📊 IoT Monitoring Results (7-Day Data)</h4>
+                    <div className="iot-metrics-grid">
+                      <div className="metric-item">
+                        <FaSun />
+                        <div>
+                          <label>Peak Sun Hours</label>
+                          <span>{assessmentResults.peakSunHours?.toFixed(1) || '—'} hrs/day</span>
+                        </div>
+                      </div>
+                      <div className="metric-item">
+                        <FaPercent />
+                        <div>
+                          <label>Shading Percentage</label>
+                          <span>{assessmentResults.shadingPercentage?.toFixed(0) || '—'}%</span>
+                        </div>
+                      </div>
+                      <div className="metric-item">
+                        <FaThermometerHalf />
+                        <div>
+                          <label>Avg Temperature</label>
+                          <span>{assessmentResults.averageTemperature?.toFixed(1) || '—'}°C</span>
+                        </div>
+                      </div>
+                      <div className="metric-item">
+                        <FaTint />
+                        <div>
+                          <label>Avg Humidity</label>
+                          <span>{assessmentResults.averageHumidity?.toFixed(0) || '—'}%</span>
+                        </div>
+                      </div>
+                      <div className="metric-item">
+                        <FaChartLine />
+                        <div>
+                          <label>Temp Derating</label>
+                          <span>{systemMetrics?.temperatureDerating || '—'}%</span>
+                        </div>
+                      </div>
+                      <div className="metric-item">
+                        <FaLocation />
+                        <div>
+                          <label>GPS Location</label>
+                          <span>
+                            {assessmentResults.gpsCoordinates?.latitude && assessmentResults.gpsCoordinates?.longitude 
+                              ? `${assessmentResults.gpsCoordinates.latitude.toFixed(4)}, ${assessmentResults.gpsCoordinates.longitude.toFixed(4)}`
+                              : 'Not available'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* System Recommendation Summary */}
+                {systemMetrics && (
+                  <div className="system-recommendations">
+                    <h4>🎯 System Recommendation (Based on IoT Data)</h4>
+                    <div className="recommendations-grid">
+                      <div className="rec-item">
+                        <label>Recommended System Size</label>
+                        <strong>{systemMetrics.recommendedSystemSize} kWp</strong>
+                      </div>
+                      <div className="rec-item">
+                        <label>Number of Panels Needed</label>
+                        <strong>{systemMetrics.panelsNeeded} pcs</strong>
+                      </div>
+                      <div className="rec-item">
+                        <label>Inverter Size</label>
+                        <strong>{systemMetrics.inverterSize} kW</strong>
+                      </div>
+                      <div className="rec-item">
+                        <label>Performance Ratio</label>
+                        <strong>{systemMetrics.performanceRatio}%</strong>
+                      </div>
+                      <div className="rec-item">
+                        <label>Optimal Orientation</label>
+                        <strong>{systemMetrics.optimalOrientation}</strong>
+                      </div>
+                      <div className="rec-item">
+                        <label>Optimal Tilt Angle</label>
+                        <strong>{systemMetrics.optimalTilt}°</strong>
+                      </div>
+                      <div className="rec-item">
+                        <label>Available Roof Area</label>
+                        <strong>{systemMetrics.availableRoofArea} m²</strong>
+                      </div>
+                      <div className="rec-item">
+                        <label>Est. Installation Time</label>
+                        <strong>{systemMetrics.estimatedInstallationTime} days</strong>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Financial Projections */}
+                {systemMetrics && (
+                  <div className="financial-projections">
+                    <h4>💰 Financial Projections</h4>
+                    <div className="financial-grid">
+                      <div className="fin-item">
+                        <label>Estimated Total Cost</label>
+                        <strong>{formatCurrency(systemMetrics.estimatedTotalCost)}</strong>
+                      </div>
+                      <div className="fin-item">
+                        <label>Estimated Monthly Savings</label>
+                        <strong>{formatCurrency(systemMetrics.estimatedMonthlySavings)}</strong>
+                      </div>
+                      <div className="fin-item">
+                        <label>Payback Period</label>
+                        <strong>{systemMetrics.paybackPeriod} years</strong>
+                      </div>
+                      <div className="fin-item">
+                        <label>CO2 Offset</label>
+                        <strong>{systemMetrics.co2Offset} kg/year</strong>
+                      </div>
+                      <div className="fin-item">
+                        <label>Annual Production</label>
+                        <strong>{systemMetrics.annualProduction} kWh</strong>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Basic Info Section */}
                 <div className="quotation-section">

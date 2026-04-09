@@ -155,7 +155,7 @@
   }
 }
 
-/* Assessment Card */
+/* Assessment Card - FIXED ALIGNMENT */
 .assessment-card-enad {
   background: #FFFFFF;
   border: 1px solid #E5E5E8;
@@ -163,6 +163,9 @@
   transition: all 0.2s ease;
   cursor: pointer;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .assessment-card-enad:hover {
@@ -173,15 +176,19 @@
 
 .card-content-enad {
   padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .card-header-enad {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 0.75rem;
   flex-wrap: wrap;
   gap: 0.5rem;
+  min-height: 56px;
 }
 
 /* Badges - Consistent with Dashboard */
@@ -195,6 +202,7 @@
   font-size: 0.7rem;
   font-weight: 500;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  white-space: nowrap;
 }
 
 .type-badge-enad svg,
@@ -282,6 +290,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  flex: 1;
 }
 
 .detail-item-enad {
@@ -313,6 +322,12 @@
   margin-top: 0.75rem;
   padding-top: 0.75rem;
   border-top: 1px solid #E5E5E8;
+}
+
+.card-badges-enad {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .badge-small-enad {
@@ -354,6 +369,8 @@
   border-radius: 6px;
   transition: all 0.2s;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .view-link-enad:hover {
@@ -1476,6 +1493,93 @@
   }
 }
 
+/* Skeleton Loader */
+.skeleton-line-enad {
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-enad 1.5s infinite;
+  border-radius: 8px;
+}
+
+.skeleton-line-enad.large-enad {
+  width: 250px;
+  height: 32px;
+  margin-bottom: 8px;
+}
+
+.skeleton-line-enad.medium-enad {
+  width: 180px;
+  height: 20px;
+  margin-bottom: 8px;
+}
+
+.skeleton-line-enad.small-enad {
+  width: 120px;
+  height: 16px;
+  margin-bottom: 6px;
+}
+
+.skeleton-line-enad.tiny-enad {
+  width: 80px;
+  height: 12px;
+  margin-bottom: 4px;
+}
+
+.skeleton-badge-enad {
+  width: 70px;
+  height: 24px;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-enad 1.5s infinite;
+  border-radius: 20px;
+}
+
+.skeleton-button-enad {
+  height: 32px;
+  width: 80px;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-enad 1.5s infinite;
+  border-radius: 8px;
+}
+
+.skeleton-button-enad.small-enad {
+  width: 60px;
+}
+
+.skeleton-card-enad {
+  background: #FFFFFF;
+  border: 1px solid #E5E5E8;
+  border-radius: 20px;
+}
+
+.skeleton-search-enad {
+  height: 42px;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-enad 1.5s infinite;
+  border-radius: 12px;
+  flex: 1;
+}
+
+.skeleton-select-enad {
+  height: 42px;
+  width: 160px;
+  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer-enad 1.5s infinite;
+  border-radius: 12px;
+}
+
+@keyframes shimmer-enad {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 /* ============================================
    RESPONSIVE
    ============================================ */
@@ -1544,6 +1648,20 @@
   .form-grid-enad {
     grid-template-columns: 1fr;
   }
+  
+  .card-footer-enad {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+  
+  .card-badges-enad {
+    width: 100%;
+  }
+  
+  .view-link-enad {
+    align-self: flex-end;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1557,6 +1675,15 @@
   
   .assessments-grid-enad {
     grid-template-columns: 1fr;
+  }
+  
+  .card-footer-enad {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .view-link-enad {
+    justify-content: center;
   }
 }
 
@@ -1580,4 +1707,298 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #9CA3AF;
+}
+
+/* Add to siteassessment.css */
+
+/* IoT Metrics Section */
+.iot-metrics-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.iot-metrics-section h4 {
+  color: white;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.iot-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.metric-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 0.75rem;
+  backdrop-filter: blur(10px);
+}
+
+.metric-item svg {
+  font-size: 1.25rem;
+  color: white;
+}
+
+.metric-item div {
+  flex: 1;
+}
+
+.metric-item label {
+  display: block;
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.25rem;
+}
+
+.metric-item span {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+}
+
+/* System Recommendations */
+.system-recommendations {
+  background: #F8F9FA;
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #E5E5E8;
+}
+
+.system-recommendations h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin-bottom: 1rem;
+}
+
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.rec-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rec-item label {
+  font-size: 0.65rem;
+  color: #9CA3AF;
+}
+
+.rec-item strong {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1F1F1F;
+}
+
+/* Financial Projections */
+.financial-projections {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.financial-projections h4 {
+  color: white;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.financial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.fin-item {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 0.75rem;
+  backdrop-filter: blur(10px);
+}
+
+.fin-item label {
+  display: block;
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.25rem;
+}
+
+.fin-item strong {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+}
+/* IoT Metrics Section */
+.iot-metrics-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.iot-metrics-section h4 {
+  color: white;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.iot-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.metric-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 0.75rem;
+  backdrop-filter: blur(10px);
+}
+
+.metric-item svg {
+  font-size: 1.25rem;
+  color: white;
+}
+
+.metric-item div {
+  flex: 1;
+}
+
+.metric-item label {
+  display: block;
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.25rem;
+}
+
+.metric-item span {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+}
+
+/* System Recommendations */
+.system-recommendations {
+  background: #F8F9FA;
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #E5E5E8;
+}
+
+.system-recommendations h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin-bottom: 1rem;
+}
+
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.rec-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rec-item label {
+  font-size: 0.65rem;
+  color: #9CA3AF;
+}
+
+.rec-item strong {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1F1F1F;
+}
+
+/* Financial Projections */
+.financial-projections {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.financial-projections h4 {
+  color: white;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.financial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.fin-item {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 0.75rem;
+  backdrop-filter: blur(10px);
+}
+
+.fin-item label {
+  display: block;
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.25rem;
+}
+
+.fin-item strong {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .iot-metrics-grid,
+  .recommendations-grid,
+  .financial-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .metric-item,
+  .rec-item,
+  .fin-item {
+    width: 100%;
+  }
 }

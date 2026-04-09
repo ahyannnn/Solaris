@@ -46,7 +46,6 @@ const IoTDevice = () => {
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [showDeviceModal, setShowDeviceModal] = useState(false);
   const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
-  const [showDataModal, setShowDataModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [modalMode, setModalMode] = useState('view');
   const [filter, setFilter] = useState('all');
@@ -54,7 +53,6 @@ const IoTDevice = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sensorData, setSensorData] = useState([]);
   const [formData, setFormData] = useState({
     deviceName: '',
     model: '',
@@ -69,9 +67,7 @@ const IoTDevice = () => {
     available: 0,
     assigned: 0,
     deployed: 0,
-    data_collecting: 0,
-    maintenance: 0,
-    retired: 0
+    maintenance: 0
   });
 
   useEffect(() => {
@@ -106,20 +102,6 @@ const IoTDevice = () => {
       setStats(response.data.stats);
     } catch (error) {
       console.error('Error fetching stats:', error);
-    }
-  };
-
-  const fetchDeviceData = async (deviceId) => {
-    try {
-      const token = sessionStorage.getItem('token');
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/sensor/device-data/${deviceId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setSensorData(response.data.data || []);
-    } catch (error) {
-      console.error('Error fetching device data:', error);
-      showToast('Failed to fetch sensor data', 'error');
-      setSensorData([]);
     }
   };
 
@@ -270,12 +252,6 @@ const IoTDevice = () => {
     setShowDeviceModal(true);
   };
 
-  const openDataModal = async (device) => {
-    setSelectedDevice(device);
-    await fetchDeviceData(device._id);
-    setShowDataModal(true);
-  };
-
   const openMaintenanceModal = (device) => {
     setSelectedDevice(device);
     setShowMaintenanceModal(true);
@@ -291,9 +267,7 @@ const IoTDevice = () => {
       'available': <span className="status-badge-adminiot available-adminiot">Available</span>,
       'assigned': <span className="status-badge-adminiot assigned-adminiot">Assigned</span>,
       'deployed': <span className="status-badge-adminiot deployed-adminiot">Deployed</span>,
-      'data_collecting': <span className="status-badge-adminiot data-collecting-adminiot">Data Collecting</span>,
-      'maintenance': <span className="status-badge-adminiot maintenance-adminiot">Maintenance</span>,
-      'retired': <span className="status-badge-adminiot retired-adminiot">Retired</span>
+      'maintenance': <span className="status-badge-adminiot maintenance-adminiot">Maintenance</span>
     };
     return badges[status] || <span className="status-badge-adminiot">{status}</span>;
   };
@@ -307,22 +281,6 @@ const IoTDevice = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
-  };
-
-  const formatDateTime = (date) => {
-    if (!date) return 'N/A';
-    return new Date(date).toLocaleString('en-PH', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getLatestSensorReading = () => {
-    if (!sensorData.length) return null;
-    return sensorData[0];
   };
 
   const filteredDevices = devices.filter(device => {
@@ -400,14 +358,14 @@ const IoTDevice = () => {
         <div className="iot-header-adminiot">
           <div>
             <h1>IoT Device Management</h1>
-            <p>Monitor and manage IoT devices, view real-time sensor data</p>
+            <p>Monitor and manage IoT devices</p>
           </div>
           <button className="create-device-btn-adminiot" onClick={() => { setModalMode('create'); resetForm(); setShowDeviceModal(true); }}>
             <FaPlus /> Add New Device
           </button>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - 4 statuses only */}
         <div className="stats-cards-adminiot">
           <div className="stat-card-adminiot total-adminiot">
             <div className="stat-info-adminiot">
@@ -429,20 +387,14 @@ const IoTDevice = () => {
           </div>
           <div className="stat-card-adminiot deployed-adminiot">
             <div className="stat-info-adminiot">
-              <span className="stat-value-adminiot">{(stats.deployed || 0) + (stats.data_collecting || 0)}</span>
-              <span className="stat-label-adminiot">Active / Deployed</span>
+              <span className="stat-value-adminiot">{stats.deployed || 0}</span>
+              <span className="stat-label-adminiot">Deployed</span>
             </div>
           </div>
           <div className="stat-card-adminiot maintenance-adminiot">
             <div className="stat-info-adminiot">
               <span className="stat-value-adminiot">{stats.maintenance || 0}</span>
               <span className="stat-label-adminiot">Maintenance</span>
-            </div>
-          </div>
-          <div className="stat-card-adminiot retired-adminiot">
-            <div className="stat-info-adminiot">
-              <span className="stat-value-adminiot">{stats.retired || 0}</span>
-              <span className="stat-label-adminiot">Retired</span>
             </div>
           </div>
         </div>
@@ -455,9 +407,7 @@ const IoTDevice = () => {
               <option value="available">Available</option>
               <option value="assigned">Assigned</option>
               <option value="deployed">Deployed</option>
-              <option value="data_collecting">Data Collecting</option>
               <option value="maintenance">Maintenance</option>
-              <option value="retired">Retired</option>
             </select>
           </div>
           <div className="search-group-adminiot">
@@ -471,7 +421,7 @@ const IoTDevice = () => {
           </div>
         </div>
 
-        {/* Devices Grid - Cards Layout */}
+        {/* Devices Grid - Simple Cards without sensor data */}
         <div className="devices-grid-adminiot">
           {filteredDevices.length === 0 ? (
             <div className="empty-state-adminiot">
@@ -505,58 +455,23 @@ const IoTDevice = () => {
                     <span className="spec-label-adminiot">Serial</span>
                     <span className="spec-value-adminiot">{device.serialNumber || '—'}</span>
                   </div>
+                  <div className="spec-item-adminiot">
+                    <span className="spec-label-adminiot">Created</span>
+                    <span className="spec-value-adminiot">{formatDate(device.createdAt)}</span>
+                  </div>
                 </div>
-
-                {/* Sensor Data Section */}
-                {device.status === 'data_collecting' || device.status === 'deployed' ? (
-                  <div className="sensor-data-adminiot">
-                    <div className="sensor-row-adminiot">
-                      <div className="sensor-reading-adminiot">
-                        <FaSun className="sensor-icon-adminiot irradiance-adminiot" />
-                        <div>
-                          <span className="sensor-label-adminiot">Irradiance</span>
-                          <span className="sensor-value-adminiot">{device.latestIrradiance || '—'} W/m²</span>
-                        </div>
-                      </div>
-                      <div className="sensor-reading-adminiot">
-                        <FaThermometerHalf className="sensor-icon-adminiot temp-adminiot" />
-                        <div>
-                          <span className="sensor-label-adminiot">Temperature</span>
-                          <span className="sensor-value-adminiot">{device.latestTemperature || '—'} °C</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="sensor-row-adminiot">
-                      <div className="sensor-reading-adminiot">
-                        <FaTint className="sensor-icon-adminiot humidity-adminiot" />
-                        <div>
-                          <span className="sensor-label-adminiot">Humidity</span>
-                          <span className="sensor-value-adminiot">{device.latestHumidity || '—'} %</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="sensor-placeholder-adminiot">
-                    <FaClock />
-                    <span>Device not collecting data</span>
-                  </div>
-                )}
 
                 <div className="device-actions-adminiot">
                   <button className="action-btn-adminiot view-adminiot" onClick={() => openViewModal(device)} title="View Details">
                     <FaEye />
-                  </button>
-                  <button className="action-btn-adminiot data-adminiot" onClick={() => openDataModal(device)} title="View Sensor Data">
-                    <FaChartLine />
                   </button>
                   {(device.status === 'available' || device.status === 'maintenance') && (
                     <button className="action-btn-adminiot edit-adminiot" onClick={() => openEditModal(device)} title="Edit">
                       <FaEdit />
                     </button>
                   )}
-                  {device.status !== 'retired' && device.status !== 'assigned' && device.status !== 'deployed' && device.status !== 'data_collecting' && device.status !== 'available' && (
-                    <button className="action-btn-adminiot maintenance-adminiot" onClick={() => openMaintenanceModal(device)} title="Maintenance">
+                  {device.status !== 'retired' && device.status !== 'assigned' && device.status !== 'deployed' && device.status !== 'available' && (
+                    <button className="action-btn-adminiot maintenance-btn-adminiot" onClick={() => openMaintenanceModal(device)} title="Maintenance">
                       <FaTools />
                     </button>
                   )}
@@ -584,7 +499,7 @@ const IoTDevice = () => {
           </div>
         )}
 
-        {/* Device Modal (Create/Edit/View) */}
+        {/* Device Modal (Create/Edit/View) - RETAINED */}
         {showDeviceModal && (
           <div className="modal-overlay-adminiot" onClick={() => setShowDeviceModal(false)}>
             <div className="modal-content-adminiot" onClick={e => e.stopPropagation()}>
@@ -601,7 +516,20 @@ const IoTDevice = () => {
                     <p><strong>Serial Number:</strong> {selectedDevice.serialNumber || '—'}</p>
                     <p><strong>Firmware:</strong> v{selectedDevice.firmwareVersion}</p>
                     <p><strong>Status:</strong> {getStatusBadge(selectedDevice.status)}</p>
+                    <p><strong>Created:</strong> {formatDate(selectedDevice.createdAt)}</p>
+                    <p><strong>Last Updated:</strong> {formatDate(selectedDevice.updatedAt)}</p>
                   </div>
+                  {selectedDevice.maintenanceHistory?.length > 0 && (
+                    <div className="detail-section-adminiot">
+                      <h4>Maintenance History</h4>
+                      {selectedDevice.maintenanceHistory.map((record, idx) => (
+                        <div key={idx} className="maintenance-record-adminiot">
+                          <p><strong>{record.type}:</strong> {record.notes}</p>
+                          <small>{formatDate(record.date)}</small>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="device-form-adminiot">
@@ -690,71 +618,6 @@ const IoTDevice = () => {
                   {isSubmitting ? <FaSpinner className="spinning" /> : <FaTrash />}
                   {isSubmitting ? 'Deleting...' : 'Delete Device'}
                 </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Sensor Data Modal */}
-        {showDataModal && selectedDevice && (
-          <div className="modal-overlay-adminiot" onClick={() => setShowDataModal(false)}>
-            <div className="modal-content-adminiot data-modal-adminiot" onClick={e => e.stopPropagation()}>
-              <button className="modal-close-adminiot" onClick={() => setShowDataModal(false)}>×</button>
-              <h3>Sensor Data - {selectedDevice.deviceName}</h3>
-              <div className="data-summary-adminiot">
-                <div className="summary-card-adminiot">
-                  <FaSun />
-                  <div>
-                    <span>Latest Irradiance</span>
-                    <strong>{getLatestSensorReading()?.irradiance || '—'} W/m²</strong>
-                  </div>
-                </div>
-                <div className="summary-card-adminiot">
-                  <FaThermometerHalf />
-                  <div>
-                    <span>Latest Temperature</span>
-                    <strong>{getLatestSensorReading()?.temperature || '—'} °C</strong>
-                  </div>
-                </div>
-                <div className="summary-card-adminiot">
-                  <FaTint />
-                  <div>
-                    <span>Latest Humidity</span>
-                    <strong>{getLatestSensorReading()?.humidity || '—'} %</strong>
-                  </div>
-                </div>
-              </div>
-              <div className="data-table-container-adminiot">
-                <table className="data-table-adminiot">
-                  <thead>
-                    <tr>
-                      <th>Date & Time</th>
-                      <th>Irradiance (W/m²)</th>
-                      <th>Temperature (°C)</th>
-                      <th>Humidity (%)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sensorData.length > 0 ? (
-                      sensorData.slice(0, 20).map((data, idx) => (
-                        <tr key={idx}>
-                          <td>{formatDateTime(data.timestamp)}</td>
-                          <td>{data.irradiance || '—'}</td>
-                          <td>{data.temperature || '—'}</td>
-                          <td>{data.humidity || '—'}</td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="4" className="empty-data-adminiot">No sensor data available</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              <div className="modal-actions-adminiot">
-                <button className="cancel-btn-adminiot" onClick={() => setShowDataModal(false)}>Close</button>
-                <button className="export-btn-adminiot" onClick={() => showToast('Exporting data...', 'info')}><FaDownload /> Export CSV</button>
               </div>
             </div>
           </div>

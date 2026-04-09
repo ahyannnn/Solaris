@@ -106,17 +106,24 @@ const SiteAssessment = () => {
     }
   };
 
-  const fetchEngineers = async () => {
-    try {
-      const token = sessionStorage.getItem('token');
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users?role=engineer`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setEngineers(response.data.users || []);
-    } catch (error) {
-      console.error('Error fetching engineers:', error);
-    }
-  };
+ const fetchEngineers = async () => {
+  try {
+    const token = sessionStorage.getItem('token');
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users?role=engineer`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    // The response.users already contains the User data with fullName
+    // Engineers don't have clientInfo because they're not clients
+    setEngineers(response.data.users || []);
+    
+    // Debug log to see what fields are available
+    console.log('Engineers data sample:', response.data.users[0]);
+    
+  } catch (error) {
+    console.error('Error fetching engineers:', error);
+  }
+};
 
   const fetchDevices = async () => {
     try {
@@ -440,12 +447,29 @@ const SiteAssessment = () => {
   });
 
   const getEngineerName = (engineer) => {
-    if (!engineer) return 'Not assigned';
-    if (typeof engineer === 'object') {
-      return engineer.name || engineer.fullName || engineer.email || 'Engineer assigned';
+  if (!engineer) return 'Not assigned';
+  
+  // If engineer is an object with fullName (from populated data)
+  if (typeof engineer === 'object') {
+    // Directly check for fullName - ito ang laman ng engineer object
+    if (engineer.fullName) return engineer.fullName;
+    if (engineer.name) return engineer.name;
+    if (engineer.firstName && engineer.lastName) return `${engineer.firstName} ${engineer.lastName}`;
+    if (engineer.email) return engineer.email;
+    return 'Engineer assigned';
+  }
+  
+  // If engineer is a string (ID), find from engineers array
+  if (typeof engineer === 'string') {
+    const foundEngineer = engineers.find(eng => eng._id === engineer || eng.id === engineer);
+    if (foundEngineer) {
+      return foundEngineer.fullName || foundEngineer.name || foundEngineer.email || 'Engineer assigned';
     }
-    return engineer;
-  };
+    return 'Not assigned';
+  }
+  
+  return 'Not assigned';
+};
 
   const getDeviceId = (device) => {
     if (!device) return 'Not assigned';

@@ -22,6 +22,7 @@ const {
   getEngineerAssessments,
   updateSiteAssessment,
   uploadQuotationPDF,
+
   submitPayment,
   submitAssessmentReport,
   getAssessmentDocuments,
@@ -56,8 +57,9 @@ router.put('/:id/approve-booking', verifyToken, admin, approveBooking);
 
 // ============ ENGINEER DEVICE FUNCTIONS ============
 router.post('/:id/deploy-device', verifyToken, engineer, deployDevice);
-router.post('/:id/retrieve-device', verifyToken, engineer, retrieveDevice);
+router.put('/:id/retrieve-device', verifyToken, engineer, retrieveDevice);
 router.get('/:id/iot-data', verifyToken, engineer, getIoTData);
+
 
 // ============ ENGINEER FUNCTIONS ============
 router.get('/engineer/my-assessments', verifyToken, engineer, getEngineerAssessments);

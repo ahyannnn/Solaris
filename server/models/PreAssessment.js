@@ -8,9 +8,8 @@ const preAssessmentSchema = new mongoose.Schema({
   propertyType: { type: String, enum: ['residential', 'commercial', 'industrial'], required: true },
   desiredCapacity: { type: String },
   roofType: { type: String, enum: ['concrete', 'metal', 'tile', 'other'] },
-  roofLength: { type: Number, default: null },    // Add this
-  roofWidth: { type: Number, default: null },     // Add this
-   // System Preference
+  roofLength: { type: Number, default: null },
+  roofWidth: { type: Number, default: null },
   systemType: { 
     type: String, 
     enum: ['grid-tie', 'hybrid', 'off-grid'],
@@ -21,34 +20,33 @@ const preAssessmentSchema = new mongoose.Schema({
   // Payment
   assessmentFee: { type: Number, default: 1500 },
   bookingReference: { type: String, unique: true },
- invoiceNumber: { 
+  invoiceNumber: { 
     type: String, 
     unique: true, 
-    sparse: true  // Add sparse: true to ignore null values
+    sparse: true
   },
   paymentMethod: { type: String, enum: ['gcash', 'card', 'cash'], default: null },
   paymentProof: { type: String },
   paymentProofFileId: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
   paymentReference: { type: String },
-// Add after paymentReference field (around line 30)
   paymongoPaymentIntentId: { type: String, index: true },
   paymentGateway: { type: String, enum: ['paymongo', 'manual'], default: 'manual' },
   autoVerified: { type: Boolean, default: false },
   paymentCompletedAt: Date,
-  // Status
+  
   paymentStatus: {
     type: String,
     enum: ['pending', 'for_verification', 'paid', 'failed'],
     default: 'pending'
   },
-  // Find the assessmentStatus enum and add 'device_deployed'
+  
   assessmentStatus: {
     type: String,
-     enum: ['pending_review', 'pending_payment', 'scheduled', 'site_visit_ongoing', 
-         'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft', 
-         'quotation_generated', 'quotation_accepted', 'completed', 'cancelled'],
+    enum: ['pending_review', 'pending_payment', 'scheduled', 'site_visit_ongoing', 
+           'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft', 
+           'quotation_generated', 'quotation_accepted', 'completed', 'cancelled'],
     default: 'pending_review'
-  },
+  }, 
 
   // IoT Device Integration
   iotDeviceId: { type: mongoose.Schema.Types.ObjectId, ref: 'IoTDevice' },
@@ -58,8 +56,6 @@ const preAssessmentSchema = new mongoose.Schema({
   deviceRetrievedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   dataCollectionStart: Date,
   dataCollectionEnd: Date,
-
-  // Data Collection Stats
   totalReadings: { type: Number, default: 0 },
 
   // Site Visit
@@ -76,15 +72,15 @@ const preAssessmentSchema = new mongoose.Schema({
       type: String,
       enum: ['excellent', 'good', 'fair', 'poor']
     },
-    roofLength: { type: Number, default: null },    // Add this
-    roofWidth: { type: Number, default: null },     // Add this
+    roofLength: { type: Number, default: null },
+    roofWidth: { type: Number, default: null },
     structuralIntegrity: {
       type: String,
       enum: ['excellent', 'good', 'fair', 'poor']
     },
     shadingAnalysis: String,
     recommendedPanelPlacement: String,
-    estimatedInstallationTime: Number, // in days
+    estimatedInstallationTime: Number,
     additionalMaterials: [{
       name: String,
       quantity: Number,
@@ -94,7 +90,7 @@ const preAssessmentSchema = new mongoose.Schema({
     recommendations: String
   },
 
-  // Assessment Documents (Quotation PDF, etc.)
+  // Assessment Documents
   assessmentDocuments: [{
     fileId: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
     documentType: {
@@ -163,11 +159,11 @@ const preAssessmentSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes for faster queries
+// Indexes
 preAssessmentSchema.index({ assignedEngineerId: 1, assessmentStatus: 1 });
-
 preAssessmentSchema.index({ clientId: 1, assessmentStatus: 1 });
-// models/PreAssessment.js - Add these fields if not present
+
+// ============ ADDED SCHEMAS (MINIMAL CHANGES) ============
 preAssessmentSchema.add({
   // Engineer Site Visit Details
   engineerSiteVisit: {
@@ -192,16 +188,54 @@ preAssessmentSchema.add({
     calibrationNotes: String
   },
 
-  // Assessment Results
+  // Assessment Results - EXPANDED to include all IoT data
   assessmentResults: {
-    totalIrradiance: Number,
-    averageTemperature: Number,
-    shadingPercentage: Number,
-    recommendedPanelCount: Number,
-    estimatedSystemSize: Number,
+    // Basic Info
+    dataCollectionStart: Date,
+    dataCollectionEnd: Date,
+    totalReadings: { type: Number, default: 0 },
+    
+    // Irradiance Metrics
+    averageIrradiance: { type: Number, default: 0 },
+    maxIrradiance: { type: Number, default: 0 },
+    minIrradiance: { type: Number, default: 0 },
+    peakSunHours: { type: Number, default: 0 },
+    
+    // Temperature Metrics
+    averageTemperature: { type: Number, default: 0 },
+    maxTemperature: { type: Number, default: 0 },
+    minTemperature: { type: Number, default: 0 },
+    temperatureDerating: { type: Number, default: 0 },
+    
+    // Humidity Metrics
+    averageHumidity: { type: Number, default: 0 },
+    maxHumidity: { type: Number, default: 0 },
+    minHumidity: { type: Number, default: 0 },
+    
+    // Site Analysis
+    shadingPercentage: { type: Number, default: 0 },
+    gpsCoordinates: {
+      latitude: Number,
+      longitude: Number
+    },
+    
+    // Legacy fields (keep for compatibility)
+    totalIrradiance: { type: Number, default: 0 },
+    recommendedPanelCount: { type: Number, default: 0 },
+    estimatedSystemSize: { type: Number, default: 0 },
     structuralAssessment: String,
     electricalAssessment: String,
-    safetyAssessment: String
+    safetyAssessment: String,
+    
+    // Summary Calculations
+    summary: {
+      totalDays: { type: Number, default: 0 },
+      dataPointsPerDay: { type: Number, default: 0 },
+      siteSuitabilityScore: { type: Number, default: 0 },
+      recommendedSystemSize: { type: Number, default: 0 },
+      estimatedAnnualProduction: { type: Number, default: 0 },
+      estimatedAnnualSavings: { type: Number, default: 0 }
+    }
   }
 });
 

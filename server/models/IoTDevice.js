@@ -14,7 +14,7 @@ const iotDeviceSchema = new mongoose.Schema({
   // Device Status
   status: {
     type: String,
-    enum: ['available', 'assigned', 'deployed', 'data_collecting', 'maintenance', 'retired'],
+    enum: ['available', 'assigned', 'deployed', 'data_collecting', 'retrieved', 'maintenance', 'retired'],
     default: 'available',
     index: true
   },

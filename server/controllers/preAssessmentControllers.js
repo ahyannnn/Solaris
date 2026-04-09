@@ -1732,7 +1732,14 @@ exports.getAllPreAssessments = async (req, res) => {
     if (status) query.assessmentStatus = status;
 
     const assessments = await PreAssessment.find(query)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber')
+      .populate({
+        path: 'clientId',
+        select: 'contactFirstName contactLastName contactNumber userId',
+        populate: {
+          path: 'userId',
+          select: 'email'
+        }
+      })
       .populate('addressId')
       .populate('iotDeviceId')
       .populate('assignedEngineerId', 'email firstName lastName')
@@ -1985,84 +1992,6 @@ exports.deployDevice = async (req, res) => {
   }
 };
 
-// @desc    Engineer retrieves device after 7 days (Engineer only)
-// @route   POST /api/pre-assessments/:id/retrieve-device
-// @access  Private (Engineer)
-exports.retrieveDevice = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { notes } = req.body;
-    const engineerId = req.user.id;
-
-    console.log('Engineer retrieve device request:', { id, engineerId });
-
-    const assessment = await PreAssessment.findById(id);
-    if (!assessment) {
-      return res.status(404).json({ message: 'Pre-assessment not found' });
-    }
-
-    // Check if engineer is assigned
-    if (assessment.assignedEngineerId.toString() !== engineerId) {
-      return res.status(403).json({ message: 'Not authorized for this assessment' });
-    }
-
-    // Check if device is deployed
-    if (assessment.assessmentStatus !== 'device_deployed' && assessment.assessmentStatus !== 'data_collecting') {
-      return res.status(400).json({
-        message: `No device deployed to retrieve. Current status: ${assessment.assessmentStatus}`
-      });
-    }
-
-    // Find the device
-    const device = await IoTDevice.findById(assessment.iotDeviceId);
-    if (!device) {
-      return res.status(404).json({ message: 'Device not found' });
-    }
-
-    // Engineer retrieves device
-    device.status = 'available';
-    device.retrievedAt = new Date();
-    device.retrievedBy = engineerId;
-    device.retrievalNotes = notes;
-
-    // Clear assignment
-    device.assignedToEngineerId = null;
-    device.assignedToPreAssessmentId = null;
-
-    // Update deployment history
-    if (device.deploymentHistory.length > 0) {
-      const lastDeployment = device.deploymentHistory[device.deploymentHistory.length - 1];
-      lastDeployment.retrievedAt = new Date();
-      lastDeployment.retrievedBy = engineerId;
-      lastDeployment.notes = notes;
-    }
-
-    await device.save();
-
-    // Update assessment
-    assessment.deviceRetrievedAt = new Date();
-    assessment.deviceRetrievedBy = engineerId;
-    assessment.dataCollectionEnd = new Date();
-    assessment.assessmentStatus = 'data_analyzing';
-    await assessment.save();
-
-    res.json({
-      success: true,
-      message: 'Device retrieved successfully after data collection',
-      assessment: {
-        id: assessment._id,
-        bookingReference: assessment.bookingReference,
-        assessmentStatus: assessment.assessmentStatus,
-        totalReadings: assessment.totalReadings || 0,
-        dataCollectionDays: Math.ceil((assessment.dataCollectionEnd - assessment.dataCollectionStart) / (1000 * 60 * 60 * 24))
-      }
-    });
-
-  } catch (error) {
-    console.error('Retrieve device error:', error);
-    res.status(500).json({ message: 'Failed to retrieve device', error: error.message });
-  }
-};
 // Add this to preAssessmentControllers.js
 exports.uploadSiteImages = async (req, res) => {
   try {
@@ -2203,51 +2132,468 @@ exports.getIoTData = async (req, res) => {
   try {
     const { id } = req.params;
     const engineerId = req.user.id;
+    const { range = '7days', limit = 1000 } = req.query;
 
-    const assessment = await PreAssessment.findById(id);
+    console.log('=== getIoTData Called ===');
+    console.log('Assessment ID:', id);
+    console.log('Engineer ID:', engineerId);
+
+    // IMPORTANT: Populate the iotDeviceId to get the full device object
+    const assessment = await PreAssessment.findById(id).populate('iotDeviceId');
+    
     if (!assessment) {
+      console.log('❌ Pre-assessment not found for ID:', id);
       return res.status(404).json({ message: 'Pre-assessment not found' });
     }
 
+    console.log('✅ Pre-assessment found:', {
+      bookingReference: assessment.bookingReference,
+      assessmentStatus: assessment.assessmentStatus,
+      iotDeviceId: assessment.iotDeviceId?._id,
+      iotDeviceIdString: assessment.iotDeviceId?.deviceId,
+      assignedEngineerId: assessment.assignedEngineerId
+    });
+
     // Check if engineer is assigned to this assessment
     if (assessment.assignedEngineerId.toString() !== engineerId) {
+      console.log('❌ Authorization failed');
       return res.status(403).json({ message: 'Not authorized to view this data' });
     }
 
-    // Get IoT data
-    const sensorData = await SensorData.find({ preAssessmentId: assessment._id })
-      .sort({ timestamp: -1 })
-      .limit(1000);
+    // Get the actual deviceId from the populated iotDeviceId object
+    const deviceId = assessment.iotDeviceId?.deviceId;
+    
+    if (!deviceId) {
+      console.log('❌ No deviceId found in iotDeviceId');
+      return res.status(404).json({ message: 'No device associated with this assessment' });
+    }
 
-    // Get statistics
+    console.log('✅ Using deviceId:', deviceId);
+
+    // Build date range query
+    let dateQuery = {};
+    const now = new Date();
+    
+    switch (range) {
+      case '24h':
+        dateQuery = { timestamp: { $gte: new Date(now.setHours(now.getHours() - 24)) } };
+        break;
+      case '7days':
+        dateQuery = { timestamp: { $gte: new Date(now.setDate(now.getDate() - 7)) } };
+        break;
+      case '30days':
+        dateQuery = { timestamp: { $gte: new Date(now.setDate(now.getDate() - 30)) } };
+        break;
+      case 'all':
+      default:
+        dateQuery = {};
+        break;
+    }
+
+    console.log('Searching SensorData for deviceId:', deviceId);
+    console.log('Date query:', dateQuery);
+
+    // Get IoT data from SensorData table
+    const sensorData = await SensorData.find({ 
+      deviceId: deviceId,
+      ...dateQuery
+    })
+    .sort({ timestamp: -1 })
+    .limit(parseInt(limit));
+
+    console.log(`📊 Found ${sensorData.length} sensor readings`);
+
+    if (sensorData.length > 0) {
+      console.log('Sample reading:', {
+        timestamp: sensorData[0].timestamp,
+        irradiance: sensorData[0].irradiance,
+        temperature: sensorData[0].temperature,
+        humidity: sensorData[0].humidity
+      });
+    }
+
+    // Get device for GPS data
+    const device = assessment.iotDeviceId;
+    
+    // Get GPS reading from the latest sensor data
+    let gpsData = null;
+    if (sensorData.length > 0) {
+      // Find the latest reading with GPS data
+      const readingWithGps = sensorData.find(r => r.gps && (r.gps.latitude || r.gps.longitude));
+      if (readingWithGps && readingWithGps.gps) {
+        gpsData = readingWithGps.gps;
+        console.log('✅ GPS data found in sensor readings:', gpsData);
+      }
+    }
+    
+    // If no GPS from sensor, use assessment address
+    if (!gpsData && assessment.addressId) {
+      console.log('No GPS data from sensor, using assessment address');
+      gpsData = { latitude: null, longitude: null };
+    }
+
+    // Calculate statistics
     const stats = {
-      totalReadings: assessment.totalReadings || 0,
+      totalReadings: sensorData.length,
       dataCollectionStart: assessment.dataCollectionStart,
       dataCollectionEnd: assessment.dataCollectionEnd,
-      averageVoltage: 0,
-      averageCurrent: 0,
-      averagePower: 0,
-      maxPower: 0,
-      averageTemperature: 0
+      averageIrradiance: 0,
+      maxIrradiance: 0,
+      averageTemperature: 0,
+      minTemperature: 0,
+      maxTemperature: 0,
+      averageHumidity: 0,
+      minHumidity: 0,
+      maxHumidity: 0,
+      peakSunHours: 0,
+      gps: gpsData
     };
 
     if (sensorData.length > 0) {
-      stats.averageVoltage = sensorData.reduce((sum, d) => sum + (d.voltage || 0), 0) / sensorData.length;
-      stats.averageCurrent = sensorData.reduce((sum, d) => sum + (d.current || 0), 0) / sensorData.length;
-      stats.averagePower = sensorData.reduce((sum, d) => sum + (d.power || 0), 0) / sensorData.length;
-      stats.maxPower = Math.max(...sensorData.map(d => d.power || 0));
-      stats.averageTemperature = sensorData.reduce((sum, d) => sum + (d.temperature || 0), 0) / sensorData.length;
+      console.log('Calculating statistics...');
+      
+      // Irradiance stats
+      const irradianceValues = sensorData.map(d => d.irradiance || 0);
+      stats.averageIrradiance = irradianceValues.reduce((a, b) => a + b, 0) / irradianceValues.length;
+      stats.maxIrradiance = Math.max(...irradianceValues);
+      
+      // Temperature stats
+      const tempValues = sensorData.map(d => d.temperature).filter(t => t && t !== 0);
+      if (tempValues.length > 0) {
+        stats.averageTemperature = tempValues.reduce((a, b) => a + b, 0) / tempValues.length;
+        stats.minTemperature = Math.min(...tempValues);
+        stats.maxTemperature = Math.max(...tempValues);
+      }
+      
+      // Humidity stats
+      const humidityValues = sensorData.map(d => d.humidity).filter(h => h && h !== 0);
+      if (humidityValues.length > 0) {
+        stats.averageHumidity = humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length;
+        stats.minHumidity = Math.min(...humidityValues);
+        stats.maxHumidity = Math.max(...humidityValues);
+      }
+      
+      // Calculate peak sun hours
+      const peakReadings = irradianceValues.filter(i => i > 200).length;
+      stats.peakSunHours = Math.round((peakReadings / 4) * 10) / 10;
     }
+
+    // Format readings for frontend
+    const formattedReadings = sensorData.map(reading => ({
+      timestamp: reading.timestamp,
+      irradiance: reading.irradiance || 0,
+      temperature: reading.temperature || 0,
+      humidity: reading.humidity || 0
+    }));
+
+    console.log('=== Response Summary ===');
+    console.log(`Sending ${formattedReadings.length} readings to frontend`);
+    console.log('=======================\n');
 
     res.json({
       success: true,
-      readings: sensorData,
-      stats
+      readings: formattedReadings,
+      stats,
+      device: {
+        deviceId: assessment.iotDeviceId?.deviceId,
+        deviceName: assessment.iotDeviceId?.deviceName,
+        batteryLevel: assessment.iotDeviceId?.batteryLevel,
+        lastHeartbeat: assessment.iotDeviceId?.lastHeartbeat
+      }
     });
 
   } catch (error) {
-    console.error('Get IoT data error:', error);
+    console.error('❌ Get IoT data error:', error);
     res.status(500).json({ message: 'Failed to fetch IoT data', error: error.message });
+  }
+};
+
+// @desc    Retrieve device after data collection and save data to pre-assessment
+// @route   PUT /api/pre-assessments/:id/retrieve-device
+// @access  Private (Engineer)
+exports.retrieveDevice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const engineerId = req.user.id;
+
+    console.log('=== RETRIEVE DEVICE STARTED ===');
+    console.log('Assessment ID:', id);
+    console.log('Engineer ID:', engineerId);
+
+    const assessment = await PreAssessment.findById(id);
+    if (!assessment) {
+      console.log('❌ Pre-assessment not found');
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    console.log('Current assessment status:', assessment.assessmentStatus);
+    console.log('Current dataCollectionStart:', assessment.dataCollectionStart);
+
+    // Check if engineer is assigned
+    if (assessment.assignedEngineerId.toString() !== engineerId) {
+      console.log('❌ Not authorized');
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // Check if device exists
+    if (!assessment.iotDeviceId) {
+      console.log('❌ No device associated');
+      return res.status(400).json({ message: 'No device associated with this assessment' });
+    }
+
+    // Get all sensor data for this device
+    const device = await IoTDevice.findById(assessment.iotDeviceId);
+    if (!device) {
+      console.log('❌ IoT Device not found');
+      return res.status(404).json({ message: 'IoT Device not found' });
+    }
+
+    const deviceId = device.deviceId;
+    console.log('Device ID:', deviceId);
+    console.log('Device status before:', device.status);
+
+    // Calculate date range for sensor data
+    const startDate = assessment.dataCollectionStart || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    console.log('Start date for sensor query:', startDate);
+
+    const sensorData = await SensorData.find({ 
+      deviceId: deviceId,
+      timestamp: { $gte: startDate }
+    }).sort({ timestamp: 1 });
+
+    console.log(`Found ${sensorData.length} sensor readings`);
+
+    // Calculate statistics from sensor data
+    const irradianceValues = sensorData.map(d => d.irradiance || 0);
+    const tempValues = sensorData.map(d => d.temperature).filter(t => t && t !== 0);
+    const humidityValues = sensorData.map(d => d.humidity).filter(h => h && h !== 0);
+    
+    // Calculate peak sun hours (irradiance > 200 W/m²)
+    const peakReadings = irradianceValues.filter(i => i > 200).length;
+    const peakSunHours = Math.round((peakReadings / 4) * 10) / 10;
+    
+    // Calculate shading percentage
+    const daylightReadings = irradianceValues.filter(i => i > 10);
+    const shadedReadings = irradianceValues.filter(i => i > 10 && i < 100);
+    const shadingPercentage = daylightReadings.length > 0 
+      ? Math.round((shadedReadings.length / daylightReadings.length) * 100) 
+      : 0;
+    
+    // Calculate temperature derating
+    const avgTemp = tempValues.length > 0 
+      ? tempValues.reduce((a, b) => a + b, 0) / tempValues.length 
+      : 25;
+    const tempDerating = Math.max(0, (avgTemp - 25) * -0.004) * 100;
+
+    // Get GPS data
+    const readingWithGps = sensorData.find(r => r.gps && (r.gps.latitude || r.gps.longitude));
+    const gpsCoordinates = readingWithGps?.gps || null;
+
+    // Helper functions
+    function calculateSuitabilityScore(psh, shading, derating) {
+      let score = 100;
+      if (psh < 4) score -= 30;
+      else if (psh < 4.5) score -= 15;
+      else if (psh < 5) score -= 5;
+      
+      if (shading > 20) score -= 20;
+      else if (shading > 10) score -= 10;
+      else if (shading > 5) score -= 5;
+      
+      if (derating < -8) score -= 15;
+      else if (derating < -5) score -= 8;
+      else if (derating < -3) score -= 3;
+      
+      return Math.max(0, Math.min(100, score));
+    }
+    
+    function calculateRecommendedSystemSize(psh) {
+      const dailyConsumption = 20;
+      const systemEfficiency = 0.8;
+      const recommendedSize = dailyConsumption / (psh * systemEfficiency);
+      return Math.round(recommendedSize * 10) / 10;
+    }
+    
+    function calculateAnnualProduction(psh) {
+      const systemSize = calculateRecommendedSystemSize(psh);
+      return Math.round(systemSize * psh * 365 * 0.8);
+    }
+    
+    function calculateAnnualSavings(psh) {
+      const electricityRate = 12;
+      const annualProduction = calculateAnnualProduction(psh);
+      return Math.round(annualProduction * electricityRate);
+    }
+
+    function generateRecommendations(psh, shading, derating) {
+      const recommendations = [];
+      
+      if (psh >= 5) {
+        recommendations.push("Excellent solar resource - system will perform optimally");
+      } else if (psh >= 4) {
+        recommendations.push("Good solar resource - system will perform well");
+      } else {
+        recommendations.push("Fair solar resource - consider larger system size to meet energy needs");
+      }
+      
+      if (shading > 15) {
+        recommendations.push("Significant shading detected - consider micro-inverters or optimizers");
+        recommendations.push("Trim or remove identified shading obstacles if possible");
+      } else if (shading > 5) {
+        recommendations.push("Minor shading detected - monitor impact on production");
+      }
+      
+      if (derating < -8) {
+        recommendations.push("High temperature derating - ensure proper ventilation for panels");
+        recommendations.push("Consider panels with better temperature coefficient");
+      } else if (derating < -5) {
+        recommendations.push("Moderate temperature impact - standard ventilation recommended");
+      }
+      
+      return recommendations.join('. ');
+    }
+
+    // Calculate total irradiance (sum of all irradiance values)
+    const totalIrradiance = irradianceValues.reduce((a, b) => a + b, 0);
+    
+    // Calculate recommended panel count
+    const recommendedSystemSize = calculateRecommendedSystemSize(peakSunHours);
+    const recommendedPanelCount = Math.ceil(recommendedSystemSize * 1000 / 400); // Assuming 400W panels
+
+    // Save all data to assessment.assessmentResults (matching the schema exactly)
+    assessment.assessmentResults = {
+      // Basic Info
+      dataCollectionStart: assessment.dataCollectionStart,
+      dataCollectionEnd: new Date(),
+      totalReadings: sensorData.length,
+      
+      // Irradiance Metrics
+      averageIrradiance: irradianceValues.length > 0 
+        ? irradianceValues.reduce((a, b) => a + b, 0) / irradianceValues.length 
+        : 0,
+      maxIrradiance: Math.max(...irradianceValues, 0),
+      minIrradiance: Math.min(...irradianceValues.filter(i => i > 0), 0),
+      peakSunHours: peakSunHours,
+      
+      // Temperature Metrics
+      averageTemperature: tempValues.length > 0 
+        ? tempValues.reduce((a, b) => a + b, 0) / tempValues.length 
+        : 0,
+      maxTemperature: Math.max(...tempValues, 0),
+      minTemperature: Math.min(...tempValues, 0),
+      temperatureDerating: tempDerating,
+      
+      // Humidity Metrics
+      averageHumidity: humidityValues.length > 0 
+        ? humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length 
+        : 0,
+      maxHumidity: Math.max(...humidityValues, 0),
+      minHumidity: Math.min(...humidityValues, 0),
+      
+      // Site Analysis
+      shadingPercentage: shadingPercentage,
+      gpsCoordinates: {
+        latitude: gpsCoordinates?.latitude || null,
+        longitude: gpsCoordinates?.longitude || null
+      },
+      
+      // Legacy fields (for compatibility)
+      totalIrradiance: totalIrradiance,
+      recommendedPanelCount: recommendedPanelCount,
+      estimatedSystemSize: recommendedSystemSize,
+      structuralAssessment: assessment.engineerAssessment?.structuralIntegrity || 'Pending',
+      electricalAssessment: 'Based on site inspection and 7-day monitoring',
+      safetyAssessment: 'Standard safety protocols applicable',
+      
+      // Summary fields (flattened, not nested)
+      totalDays: Math.ceil((new Date() - new Date(assessment.dataCollectionStart || Date.now())) / (1000 * 60 * 60 * 24)),
+      dataPointsPerDay: Math.round(sensorData.length / Math.max(1, Math.ceil((new Date() - new Date(assessment.dataCollectionStart || Date.now())) / (1000 * 60 * 60 * 24)))),
+      siteSuitabilityScore: calculateSuitabilityScore(peakSunHours, shadingPercentage, tempDerating),
+      estimatedAnnualProduction: calculateAnnualProduction(peakSunHours),
+      estimatedAnnualSavings: calculateAnnualSavings(peakSunHours)
+    };
+
+    // ✅ UPDATE ASSESSMENT STATUS
+    assessment.assessmentStatus = 'data_analyzing';
+    assessment.dataCollectionEnd = new Date();
+    assessment.totalReadings = sensorData.length;
+    assessment.deviceRetrievedAt = new Date();
+    assessment.deviceRetrievedBy = engineerId;
+    
+    console.log('Updated assessment status to:', assessment.assessmentStatus);
+    
+    // Update engineer assessment fields
+    if (!assessment.engineerAssessment) {
+      assessment.engineerAssessment = {};
+    }
+    assessment.engineerAssessment.shadingAnalysis = `${shadingPercentage}% shading detected during 7-day monitoring period`;
+    assessment.engineerAssessment.recommendations = generateRecommendations(peakSunHours, shadingPercentage, tempDerating);
+
+    // Also update the main results fields (for backward compatibility)
+    assessment.finalSystemSize = recommendedSystemSize;
+    assessment.panelsNeeded = recommendedPanelCount;
+    assessment.estimatedAnnualProduction = calculateAnnualProduction(peakSunHours);
+    assessment.estimatedAnnualSavings = calculateAnnualSavings(peakSunHours);
+    assessment.paybackPeriod = (assessment.assessmentFee + (recommendedSystemSize * 80000)) / calculateAnnualSavings(peakSunHours);
+    assessment.co2Offset = calculateAnnualProduction(peakSunHours) * 0.5;
+
+    // Update device status to retrieved
+    if (device) {
+      device.status = 'retrieved';
+      device.retrievedAt = new Date();
+      device.retrievedBy = engineerId;
+      device.retrievalNotes = `Device retrieved after ${assessment.assessmentResults.totalDays || 7}-day data collection period`;
+      device.latestSensorData = sensorData[sensorData.length - 1]?._id;
+      
+      if (!device.deploymentHistory) device.deploymentHistory = [];
+      device.deploymentHistory.push({
+        preAssessmentId: assessment._id,
+        assignedAt: device.assignedAt,
+        deployedAt: device.deployedAt,
+        retrievedAt: new Date(),
+        assignedBy: device.assignedBy,
+        deployedBy: device.deployedBy,
+        retrievedBy: engineerId,
+        notes: `Device retrieved. Total readings: ${sensorData.length}. Peak sun hours: ${peakSunHours}. Shading: ${shadingPercentage}%`
+      });
+      
+      await device.save();
+      console.log('Device status updated to:', device.status);
+    }
+
+    // ✅ SAVE ASSESSMENT
+    await assessment.save();
+    console.log('Assessment saved successfully with new status');
+
+    // Verify the status was saved
+    const verifyAssessment = await PreAssessment.findById(id);
+    console.log('Verification - Assessment status after save:', verifyAssessment.assessmentStatus);
+
+    res.json({
+      success: true,
+      message: 'Device retrieved successfully. Data analysis can now begin.',
+      assessment: {
+        id: assessment._id,
+        status: assessment.assessmentStatus,
+        deviceStatus: device?.status,
+        assessmentResults: {
+          peakSunHours: assessment.assessmentResults.peakSunHours,
+          averageIrradiance: assessment.assessmentResults.averageIrradiance,
+          averageTemperature: assessment.assessmentResults.averageTemperature,
+          shadingPercentage: assessment.assessmentResults.shadingPercentage,
+          temperatureDerating: assessment.assessmentResults.temperatureDerating,
+          totalReadings: assessment.assessmentResults.totalReadings,
+          siteSuitabilityScore: assessment.assessmentResults.siteSuitabilityScore,
+          recommendedSystemSize: assessment.assessmentResults.estimatedSystemSize,
+          estimatedAnnualSavings: assessment.assessmentResults.estimatedAnnualSavings,
+          gpsCoordinates: assessment.assessmentResults.gpsCoordinates
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Retrieve device error:', error);
+    res.status(500).json({ message: 'Failed to retrieve device', error: error.message });
   }
 };
 
@@ -2265,6 +2611,10 @@ exports.getIoTData = async (req, res) => {
 //   cancelPreAssessment,
 //   // Engineer assessment functions
 //   getEngineerAssessments,
+//   deployDevice,
+//   getIoTData,
+//   retrieveDevice,
+//   uploadSiteImages,
 //   startAssessment,
 //   updateSiteAssessment,
 //   uploadQuotationPDF,

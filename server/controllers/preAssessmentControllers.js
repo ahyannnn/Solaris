@@ -180,7 +180,7 @@ exports.verifyPayMongoPayment = async (req, res) => {
     res.status(500).json({ message: 'Failed to verify payment', error: error.message });
   }
 };
-// @desc    Generate Quotation PDF for Pre-Assessment
+// @desc    Generate Quotation PDF for Pre-Assessment (ENHANCED with ALL equipment)
 // @route   POST /api/pre-assessments/:id/generate-quotation
 // @access  Private (Engineer)
 exports.generateQuotationPDF = async (req, res) => {
@@ -202,11 +202,12 @@ exports.generateQuotationPDF = async (req, res) => {
       paymentTerms,
       warrantyYears,
       includeIoTData,
-      equipmentDetails  // NEW: detailed equipment breakdown
+      iotData,  // NEW: IoT data from frontend
+      equipmentDetails  // Detailed equipment breakdown
     } = req.body;
 
     const assessment = await PreAssessment.findById(id)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber')
+      .populate('clientId', 'contactFirstName contactLastName contactNumber userId')
       .populate('addressId');
 
     if (!assessment) {
@@ -217,9 +218,10 @@ exports.generateQuotationPDF = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    // Fetch IoT data if requested
-    let iotAnalysis = null;
-    if (includeIoTData && assessment.dataCollectionEnd) {
+    // Use IoT data from frontend if provided, otherwise fetch from database
+    let iotAnalysis = iotData || null;
+    
+    if (includeIoTData && !iotAnalysis && assessment.dataCollectionEnd) {
       const device = await IoTDevice.findOne({ deviceId: assessment.iotDeviceId?.deviceId });
       if (device) {
         const sensorData = await SensorData.find({ deviceId: device.deviceId });
@@ -240,13 +242,20 @@ exports.generateQuotationPDF = async (req, res) => {
             averageHumidity: humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length,
             minHumidity: Math.min(...humidityValues),
             maxHumidity: Math.max(...humidityValues),
-            recommendedSystemSize: ((irradianceValues.reduce((a, b) => a + b, 0) / 1000) * 0.8).toFixed(1)
+            recommendedSystemSize: ((irradianceValues.reduce((a, b) => a + b, 0) / 1000) * 0.8).toFixed(1),
+            optimalOrientation: iotData?.optimalOrientation || 'South-facing',
+            optimalTiltAngle: iotData?.optimalTiltAngle || 15,
+            estimatedMonthlySavings: iotData?.estimatedMonthlySavings || 0,
+            paybackPeriod: iotData?.paybackPeriod || 0,
+            co2Offset: iotData?.co2Offset || 0,
+            annualProduction: iotData?.estimatedAnnualProduction || 0,
+            siteSuitabilityScore: iotData?.siteSuitabilityScore || 85
           };
         }
       }
     }
 
-    // Prepare cost breakdown
+    // Prepare ENHANCED cost breakdown with ALL equipment types
     const costBreakdown = {
       equipment: {
         panels: {
@@ -267,23 +276,31 @@ exports.generateQuotationPDF = async (req, res) => {
           unitPrice: equipmentDetails?.battery?.price || 0,
           total: (equipmentDetails?.batteryQuantity || 0) * (equipmentDetails?.battery?.price || 0)
         },
-        mounting: {
-          name: 'Mounting Structure',
-          quantity: Math.ceil((equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) / 4),
-          unitPrice: 3500,
-          total: Math.ceil((equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) / 4) * 3500
+        mountingStructure: {
+          name: equipmentDetails?.mountingStructure?.name || 'Mounting Structure',
+          quantity: equipmentDetails?.mountingStructureQuantity || Math.ceil((equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) / 4),
+          unitPrice: equipmentDetails?.mountingStructure?.price || 3500,
+          total: (equipmentDetails?.mountingStructureQuantity || Math.ceil((equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) / 4)) * (equipmentDetails?.mountingStructure?.price || 3500)
         },
-        electrical: {
-          name: 'Electrical Components (Breakers, Connectors, etc.)',
-          quantity: 1,
-          unitPrice: 2500,
-          total: 2500
+        electricalComponents: {
+          items: equipmentDetails?.electricalComponents || [],
+          total: (equipmentDetails?.electricalComponents || []).reduce((sum, item) => sum + (item.total || 0), 0)
         },
         cables: {
-          name: 'Cables & Wiring',
-          quantity: (systemSize || 5) * 15,
-          unitPrice: 95,
-          total: (systemSize || 5) * 15 * 95
+          items: equipmentDetails?.cables || [],
+          total: (equipmentDetails?.cables || []).reduce((sum, item) => sum + (item.total || 0), 0)
+        },
+        junctionBoxes: {
+          items: equipmentDetails?.junctionBoxes || [],
+          total: (equipmentDetails?.junctionBoxes || []).reduce((sum, item) => sum + (item.total || 0), 0)
+        },
+        disconnectSwitches: {
+          items: equipmentDetails?.disconnectSwitches || [],
+          total: (equipmentDetails?.disconnectSwitches || []).reduce((sum, item) => sum + (item.total || 0), 0)
+        },
+        meters: {
+          items: equipmentDetails?.meters || [],
+          total: (equipmentDetails?.meters || []).reduce((sum, item) => sum + (item.total || 0), 0)
         },
         additional: equipmentDetails?.additionalEquipment || []
       },
@@ -306,20 +323,23 @@ exports.generateQuotationPDF = async (req, res) => {
       }
     };
 
-    // Calculate totals
+    // Calculate totals with ALL equipment
     const calculatedEquipmentTotal =
       costBreakdown.equipment.panels.total +
       costBreakdown.equipment.inverter.total +
       costBreakdown.equipment.battery.total +
-      costBreakdown.equipment.mounting.total +
-      costBreakdown.equipment.electrical.total +
+      costBreakdown.equipment.mountingStructure.total +
+      costBreakdown.equipment.electricalComponents.total +
       costBreakdown.equipment.cables.total +
+      costBreakdown.equipment.junctionBoxes.total +
+      costBreakdown.equipment.disconnectSwitches.total +
+      costBreakdown.equipment.meters.total +
       costBreakdown.equipment.additional.reduce((sum, item) => sum + (item.total || 0), 0);
 
     const calculatedInstallationTotal = costBreakdown.installation.total;
     const calculatedTotalCost = calculatedEquipmentTotal + calculatedInstallationTotal;
 
-    // Prepare data for PDF
+    // Prepare data for PDF with IoT metrics
     const pdfData = {
       bookingReference: assessment.bookingReference,
       clientName: `${assessment.clientId.contactFirstName} ${assessment.clientId.contactLastName}`,
@@ -332,7 +352,7 @@ exports.generateQuotationPDF = async (req, res) => {
       quotationExpiryDate: quotationExpiryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       systemSize: parseFloat(systemSize),
       systemTypeLabel: SYSTEM_TYPES.find(t => t.value === systemType)?.label || systemType,
-      panelsNeeded: parseInt(panelsNeeded) || 0,
+      panelsNeeded: equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0,
       panelType: equipmentDetails?.panel?.name || panelType,
       inverterType: equipmentDetails?.inverter?.name || inverterType,
       batteryType: equipmentDetails?.battery?.name || batteryType,
@@ -351,14 +371,32 @@ exports.generateQuotationPDF = async (req, res) => {
         estimatedInstallationTime: assessment.engineerAssessment?.estimatedInstallationTime,
         recommendations: assessment.engineerAssessment?.recommendations
       },
-      performanceEstimates: {
+      performanceEstimates: iotAnalysis ? {
+        annualProduction: iotAnalysis.annualProduction || (systemSize || 0) * 1200,
+        annualSavings: iotAnalysis.estimatedAnnualSavings || (calculatedTotalCost || 0) * 0.15,
+        monthlySavings: iotAnalysis.estimatedMonthlySavings || 0,
+        paybackPeriod: iotAnalysis.paybackPeriod || Math.ceil((calculatedTotalCost || 0) / ((systemSize || 1) * 1200 * 0.1)),
+        co2Offset: iotAnalysis.co2Offset || (systemSize || 0) * 800,
+        siteSuitabilityScore: iotAnalysis.siteSuitabilityScore || 85
+      } : {
         annualProduction: (systemSize || 0) * 1200,
         annualSavings: (calculatedTotalCost || 0) * 0.15,
+        monthlySavings: 0,
         paybackPeriod: Math.ceil((calculatedTotalCost || 0) / ((systemSize || 1) * 1200 * 0.1)),
-        co2Offset: (systemSize || 0) * 800
+        co2Offset: (systemSize || 0) * 800,
+        siteSuitabilityScore: 85
       },
       dataCollectionStart: assessment.dataCollectionStart,
-      dataCollectionEnd: assessment.dataCollectionEnd
+      dataCollectionEnd: assessment.dataCollectionEnd,
+      // Include IoT recommendations if available
+      iotRecommendations: iotAnalysis ? {
+        optimalOrientation: iotAnalysis.optimalOrientation,
+        optimalTiltAngle: iotAnalysis.optimalTiltAngle,
+        peakSunHours: iotAnalysis.peakSunHours,
+        shadingPercentage: iotAnalysis.shadingPercentage,
+        averageTemperature: iotAnalysis.averageTemperature,
+        temperatureDerating: iotAnalysis.efficiencyLoss
+      } : null
     };
 
     // Generate PDF
@@ -402,6 +440,7 @@ exports.generateQuotationPDF = async (req, res) => {
         systemType,
         totalCost: calculatedTotalCost,
         includeIoTData: !!includeIoTData,
+        hasIoTData: !!iotAnalysis,
         generatedAt: new Date().toISOString()
       }
     });
@@ -418,7 +457,7 @@ exports.generateQuotationPDF = async (req, res) => {
       systemDetails: {
         systemSize: parseFloat(systemSize),
         systemType,
-        panelsNeeded: parseInt(panelsNeeded) || 0,
+        panelsNeeded: equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0,
         panelType: equipmentDetails?.panel?.name || panelType,
         inverterType: equipmentDetails?.inverter?.name || inverterType,
         batteryType: equipmentDetails?.battery?.name || batteryType,
@@ -427,7 +466,18 @@ exports.generateQuotationPDF = async (req, res) => {
         totalCost: calculatedTotalCost,
         paymentTerms,
         warrantyYears: parseInt(warrantyYears) || 10,
-        equipmentBreakdown: costBreakdown.equipment
+        equipmentBreakdown: {
+          panels: costBreakdown.equipment.panels,
+          inverter: costBreakdown.equipment.inverter,
+          battery: costBreakdown.equipment.battery,
+          mountingStructure: costBreakdown.equipment.mountingStructure,
+          electricalComponents: costBreakdown.equipment.electricalComponents,
+          cables: costBreakdown.equipment.cables,
+          junctionBoxes: costBreakdown.equipment.junctionBoxes,
+          disconnectSwitches: costBreakdown.equipment.disconnectSwitches,
+          meters: costBreakdown.equipment.meters,
+          additional: costBreakdown.equipment.additional
+        }
       },
       generatedAt: new Date(),
       generatedBy: engineerId

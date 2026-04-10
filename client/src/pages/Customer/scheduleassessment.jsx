@@ -192,6 +192,34 @@ const ScheduleAssessment = () => {
     };
   };
 
+  // Helper to get formatted address from request
+  const getRequestAddress = (request) => {
+    let address = null;
+    
+    if (request.address && typeof request.address === 'object') {
+      address = request.address;
+    } else if (request.addressId && typeof request.addressId === 'object') {
+      address = request.addressId;
+    } else if (request.address && typeof request.address === 'string') {
+      return request.address;
+    }
+    
+    if (address) {
+      const parts = [
+        address.houseOrBuilding,
+        address.street,
+        address.barangay,
+        address.cityMunicipality,
+        address.province,
+        address.zipCode
+      ].filter(part => part && part.trim());
+      
+      return parts.length > 0 ? parts.join(', ') : 'Address not available';
+    }
+    
+    return 'Address not available';
+  };
+
   // Send email function
   const sendQuoteConfirmationEmail = async (quoteReference, monthlyBill, propertyType, desiredCapacity, systemType, roofLength, roofWidth, address) => {
     try {
@@ -431,6 +459,15 @@ const ScheduleAssessment = () => {
       'cancelled': <span className="status-badge-schedule cancelled">Cancelled</span>
     };
     return badges[status] || <span className="status-badge-schedule">{status}</span>;
+  };
+
+  // View Quotation function
+  const viewQuotation = (quotationUrl) => {
+    if (quotationUrl) {
+      window.open(quotationUrl, '_blank');
+    } else {
+      showToast('No quotation PDF available yet. Please wait for the engineer to generate it.', 'info');
+    }
   };
 
   const addressDisplay = getAddressDisplay();
@@ -877,7 +914,7 @@ const ScheduleAssessment = () => {
             </div>
           )}
 
-          {/* Details Modal */}
+          {/* Details Modal - COMPLETE FIXED VERSION */}
           {showDetailsModal && selectedRequest && (
             <div className="schedule-modal-overlay-cusset" onClick={() => setShowDetailsModal(false)}>
               <div className="schedule-modal-cusset status-modal-cusset" onClick={e => e.stopPropagation()}>
@@ -929,10 +966,34 @@ const ScheduleAssessment = () => {
 
                     <div className="status-detail-section">
                       <h3>Address</h3>
-                      <p>{selectedRequest.address?.houseOrBuilding} {selectedRequest.address?.street}</p>
-                      <p>{selectedRequest.address?.barangay}, {selectedRequest.address?.cityMunicipality}</p>
-                      <p>{selectedRequest.address?.province} {selectedRequest.address?.zipCode}</p>
+                      <p>{getRequestAddress(selectedRequest)}</p>
                     </div>
+
+                    {/* View Quotation Button for Free Quote */}
+                    {(() => {
+                      const quotationUrl = selectedRequest.quotationFile;
+                      const isCompleted = selectedRequest.status === 'completed';
+                      
+                      if (isCompleted && quotationUrl) {
+                        return (
+                          <div className="status-detail-section">
+                            <button 
+                              className="view-quotation-btn-cusset"
+                              onClick={() => viewQuotation(quotationUrl)}
+                            >
+                              <span>📄</span> View Quotation PDF
+                            </button>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                    
+                    {selectedRequest.status === 'completed' && !selectedRequest.quotationFile && (
+                      <div className="status-info">
+                        <p>Your quotation is being prepared. Please check back later.</p>
+                      </div>
+                    )}
                   </>
                 ) : (
                   // Pre Assessment Details
@@ -993,8 +1054,35 @@ const ScheduleAssessment = () => {
 
                     <div className="status-detail-section">
                       <h3>Address</h3>
-                      <p>{selectedRequest.address}</p>
+                      <p>{getRequestAddress(selectedRequest)}</p>
                     </div>
+
+                    {/* View Assessment Report Button for Pre Assessment - FIXED */}
+                    {(() => {
+                      // Check for quotation URL in multiple possible locations
+                      const quotationUrl = 
+                        selectedRequest.quotation?.quotationUrl || 
+                        selectedRequest.quotation?.url || 
+                        selectedRequest.finalQuotation ||
+                        selectedRequest.quotationFile;
+                      
+                      const isCompleted = selectedRequest.assessmentStatus === 'completed' || 
+                                          selectedRequest.status === 'completed';
+                      
+                      if (isCompleted && quotationUrl) {
+                        return (
+                          <div className="status-detail-section">
+                            <button 
+                              className="view-quotation-btn-cusset"
+                              onClick={() => viewQuotation(quotationUrl)}
+                            >
+                              <span>📄</span> View Assessment Report
+                            </button>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
 
                     {selectedRequest.paymentStatus === 'for_verification' && (
                       <div className="status-warning">
@@ -1008,9 +1096,12 @@ const ScheduleAssessment = () => {
                       </div>
                     )}
 
-                    {selectedRequest.assessmentStatus === 'completed' && (
-                      <div className="status-success">
-                        <p>Assessment completed! Check your email for the detailed report.</p>
+                    {selectedRequest.assessmentStatus === 'completed' && 
+                     !selectedRequest.quotation?.quotationUrl && 
+                     !selectedRequest.finalQuotation && 
+                     !selectedRequest.quotationFile && (
+                      <div className="status-info">
+                        <p>Assessment completed! The report is being prepared. Please check back later.</p>
                       </div>
                     )}
                   </>

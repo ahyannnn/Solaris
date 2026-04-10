@@ -542,12 +542,11 @@ exports.engineerUpdateStatus = async (req, res) => {
   }
 };
 
-// @desc    Generate and upload free quote PDF (Engineer)
+// @desc    Generate and upload free quote PDF with ALL equipment
 // @route   POST /api/free-quotes/:id/generate-quotation
 // @access  Private (Engineer)
 exports.generateFreeQuotePDF = async (req, res) => {
   try {
-
     const { id } = req.params;
     const engineerId = req.user.id;
     const {
@@ -556,6 +555,7 @@ exports.generateFreeQuotePDF = async (req, res) => {
       systemSize,
       systemType,
       panelsNeeded,
+      panelType,
       inverterType,
       batteryType,
       installationCost,
@@ -563,28 +563,108 @@ exports.generateFreeQuotePDF = async (req, res) => {
       totalCost,
       paymentTerms,
       warrantyYears,
-      remarks
+      remarks,
+      equipmentDetails  // NEW: Include all equipment details
     } = req.body;
 
-    console.log('Generating free quote PDF for:', id);
-    console.log('Request body:', req.body);
-
     const quote = await FreeQuote.findById(id)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber')
+      .populate('clientId', 'contactFirstName contactLastName contactNumber userId')
       .populate('addressId');
 
     if (!quote) {
       return res.status(404).json({ message: 'Free quote not found' });
     }
 
-    // Check if engineer is assigned to this quote
     if (quote.assignedEngineerId?.toString() !== engineerId) {
-      return res.status(403).json({ message: 'Not authorized to generate PDF for this quote' });
+      return res.status(403).json({ message: 'Not authorized' });
     }
 
     // Get system type label
     const systemTypeObj = SYSTEM_TYPES.find(t => t.value === systemType);
     const systemTypeLabel = systemTypeObj ? systemTypeObj.label : systemType;
+
+    // Prepare cost breakdown with ALL equipment for free quote
+    const costBreakdown = {
+      equipment: {
+        panels: {
+          name: equipmentDetails?.panel?.name || panelType || 'Solar Panels',
+          quantity: equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0,
+          unitPrice: equipmentDetails?.panel?.price || 0,
+          total: (equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) * (equipmentDetails?.panel?.price || 0)
+        },
+        inverter: {
+          name: equipmentDetails?.inverter?.name || inverterType || 'Inverter',
+          quantity: equipmentDetails?.inverterQuantity || 1,
+          unitPrice: equipmentDetails?.inverter?.price || 0,
+          total: (equipmentDetails?.inverterQuantity || 1) * (equipmentDetails?.inverter?.price || 0)
+        },
+        battery: {
+          name: equipmentDetails?.battery?.name || batteryType || 'No Battery',
+          quantity: equipmentDetails?.batteryQuantity || 0,
+          unitPrice: equipmentDetails?.battery?.price || 0,
+          total: (equipmentDetails?.batteryQuantity || 0) * (equipmentDetails?.battery?.price || 0)
+        },
+        mountingStructure: {
+          name: equipmentDetails?.mountingStructure?.name || 'Mounting Structure',
+          quantity: equipmentDetails?.mountingStructureQuantity || Math.ceil((equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) / 4),
+          unitPrice: equipmentDetails?.mountingStructure?.price || 3500,
+          total: (equipmentDetails?.mountingStructureQuantity || Math.ceil((equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) / 4)) * (equipmentDetails?.mountingStructure?.price || 3500)
+        },
+        electricalComponents: {
+          items: equipmentDetails?.electricalComponents || [],
+          total: (equipmentDetails?.electricalComponents || []).reduce((sum, item) => sum + (item.total || 0), 0)
+        },
+        cables: {
+          items: equipmentDetails?.cables || [],
+          total: (equipmentDetails?.cables || []).reduce((sum, item) => sum + (item.total || 0), 0)
+        },
+        junctionBoxes: {
+          items: equipmentDetails?.junctionBoxes || [],
+          total: (equipmentDetails?.junctionBoxes || []).reduce((sum, item) => sum + (item.total || 0), 0)
+        },
+        disconnectSwitches: {
+          items: equipmentDetails?.disconnectSwitches || [],
+          total: (equipmentDetails?.disconnectSwitches || []).reduce((sum, item) => sum + (item.total || 0), 0)
+        },
+        meters: {
+          items: equipmentDetails?.meters || [],
+          total: (equipmentDetails?.meters || []).reduce((sum, item) => sum + (item.total || 0), 0)
+        },
+        additional: equipmentDetails?.additionalEquipment || []
+      },
+      installation: {
+        perKw: {
+          rate: 5000,
+          quantity: systemSize || 0,
+          total: (systemSize || 0) * 5000
+        },
+        perPanel: {
+          rate: 1000,
+          quantity: equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0,
+          total: (equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) * 1000
+        },
+        minimumFee: 10000,
+        total: Math.max(
+          ((systemSize || 0) * 5000) + ((equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) * 1000),
+          10000
+        )
+      }
+    };
+
+    const calculatedEquipmentTotal =
+      costBreakdown.equipment.panels.total +
+      costBreakdown.equipment.inverter.total +
+      costBreakdown.equipment.battery.total +
+      costBreakdown.equipment.mountingStructure.total +
+      costBreakdown.equipment.electricalComponents.total +
+      costBreakdown.equipment.cables.total +
+      costBreakdown.equipment.junctionBoxes.total +
+      costBreakdown.equipment.disconnectSwitches.total +
+      costBreakdown.equipment.meters.total +
+      costBreakdown.equipment.additional.reduce((sum, item) => sum + (item.total || 0), 0);
+
+    const calculatedInstallationTotal = costBreakdown.installation.total;
+    const calculatedTotalCost = calculatedEquipmentTotal + calculatedInstallationTotal;
 
     // Prepare data for PDF
     const pdfData = {
@@ -595,18 +675,21 @@ exports.generateFreeQuotePDF = async (req, res) => {
       propertyType: quote.propertyType,
       address: quote.addressId ?
         `${quote.addressId.houseOrBuilding || ''} ${quote.addressId.street || ''}, ${quote.addressId.barangay || ''}, ${quote.addressId.cityMunicipality || ''}` : null,
+      quotationNumber: quotationNumber || `Q-${quote.quotationReference}`,
       quotationExpiryDate,
-      systemSize,
+      systemSize: parseFloat(systemSize),
       systemTypeLabel,
-      panelsNeeded,
-      inverterType,
-      batteryType,
-      installationCost: parseFloat(installationCost) || 0,
-      equipmentCost: parseFloat(equipmentCost) || 0,
-      totalCost: parseFloat(totalCost) || 0,
-      paymentTerms,
+      panelsNeeded: equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0,
+      panelType: equipmentDetails?.panel?.name || panelType,
+      inverterType: equipmentDetails?.inverter?.name || inverterType,
+      batteryType: equipmentDetails?.battery?.name || batteryType,
       warrantyYears: parseInt(warrantyYears) || 10,
-      remarks
+      paymentTerms: paymentTerms || '',
+      remarks,
+      costBreakdown,
+      calculatedEquipmentTotal,
+      calculatedInstallationTotal,
+      calculatedTotalCost
     };
 
     // Generate PDF
@@ -621,7 +704,7 @@ exports.generateFreeQuotePDF = async (req, res) => {
           public_id: `quotation_${quotationNumber || quote.quotationReference}`,
           format: 'pdf',
           type: 'upload',
-          access_mode: 'public' // Make it publicly accessible
+          access_mode: 'public'
         },
         (error, result) => {
           if (error) reject(error);
@@ -648,19 +731,34 @@ exports.generateFreeQuotePDF = async (req, res) => {
         quotationNumber: quotationNumber || quote.quotationReference,
         systemSize,
         systemType,
-        totalCost,
+        totalCost: calculatedTotalCost,
+        hasEquipmentDetails: !!equipmentDetails,
         generatedAt: new Date().toISOString()
       }
     });
 
     await fileRecord.save();
 
-    // Update quote
+    // Update quote with full equipment details
     quote.quotationFile = result.secure_url;
     quote.status = 'completed';
     quote.quotationSentAt = new Date();
     quote.processedBy = engineerId;
     quote.processedAt = new Date();
+    
+    // Store equipment breakdown in quote
+    quote.quotationDetails = {
+      quotationNumber: quotationNumber || `Q-${quote.quotationReference}`,
+      systemSize: parseFloat(systemSize),
+      systemType,
+      equipmentBreakdown: costBreakdown.equipment,
+      installationCost: calculatedInstallationTotal,
+      equipmentCost: calculatedEquipmentTotal,
+      totalCost: calculatedTotalCost,
+      paymentTerms,
+      warrantyYears: parseInt(warrantyYears) || 10,
+      remarks
+    };
 
     await quote.save();
 
@@ -671,7 +769,9 @@ exports.generateFreeQuotePDF = async (req, res) => {
         id: fileRecord._id,
         url: result.secure_url,
         quotationNumber: quotationNumber || quote.quotationReference,
-        totalCost: totalCost,
+        totalCost: calculatedTotalCost,
+        equipmentCost: calculatedEquipmentTotal,
+        installationCost: calculatedInstallationTotal,
         size: `${(pdfBuffer.length / 1024).toFixed(1)} KB`
       }
     });

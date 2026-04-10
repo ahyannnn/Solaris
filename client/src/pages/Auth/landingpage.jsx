@@ -240,7 +240,7 @@ const LandingPage = () => {
 
       {/* Hero Section */}
       <section id="hero" className="hero-section-land" style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${images.hero})`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${images.hero})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}>

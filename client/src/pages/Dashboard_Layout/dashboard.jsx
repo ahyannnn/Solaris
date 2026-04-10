@@ -41,6 +41,7 @@ import {
   FaTools
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
+import profileImage from '../../assets/profile.png';
 import '../../styles/Dashboard/dashboard.css';
 
 const Dashboard = () => {
@@ -55,12 +56,16 @@ const Dashboard = () => {
   const notificationsRef = useRef(null);
   const settingsDropdownRef = useRef(null);
   const supportDropdownRef = useRef(null);
+  const sidebarSettingsDropdownRef = useRef(null);
+  const sidebarSupportDropdownRef = useRef(null);
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [settingsDropdownOpen, setSettingsDropdownOpen] = useState(false);
   const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
+  const [sidebarSettingsOpen, setSidebarSettingsOpen] = useState(false);
+  const [sidebarSupportOpen, setSidebarSupportOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [userRole, setUserRole] = useState('user');
   const [userName, setUserName] = useState('Customer User');
@@ -85,8 +90,6 @@ const Dashboard = () => {
       { icon: <FaClipboardList />, label: 'Schedule', path: '/app/admin/schedule' },
       { icon: <FaUsers />, label: 'User Management', path: '/app/admin/usermanagement' },
       { icon: <FaTools />, label: 'Maintenance', path: '/app/admin/maintenance' },
-      // In dashboard.jsx, add to admin menu items
-      //{ icon: <FaCog />, label: 'System Config', path: '/app/admin/system-config' },
       { icon: <FaCog />, label: 'Settings', path: '/app/admin/settings' },
     ],
 
@@ -127,6 +130,7 @@ const Dashboard = () => {
   const isCustomer = userRole === 'user';
   const isAdmin = userRole === 'admin';
   const isEngineer = userRole === 'engineer';
+  const isMobile = () => window.innerWidth <= 768;
 
   // Update datetime every second
   useEffect(() => {
@@ -172,6 +176,12 @@ const Dashboard = () => {
       if (supportDropdownRef.current && !supportDropdownRef.current.contains(event.target)) {
         setSupportDropdownOpen(false);
       }
+      if (sidebarSettingsDropdownRef.current && !sidebarSettingsDropdownRef.current.contains(event.target)) {
+        setSidebarSettingsOpen(false);
+      }
+      if (sidebarSupportDropdownRef.current && !sidebarSupportDropdownRef.current.contains(event.target)) {
+        setSidebarSupportOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -183,17 +193,22 @@ const Dashboard = () => {
   // Handle window resize for sidebar
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth > 768) {
-        setSidebarOpen(true);
-      } else {
+      if (isCustomer) {
         setSidebarOpen(false);
+      } else {
+        if (window.innerWidth > 768) {
+          setSidebarOpen(true);
+        } else {
+          setSidebarOpen(false);
+        }
       }
+      setProfileOpen(false);
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [isCustomer]);
 
   // Handle user authentication and initial redirect
   useEffect(() => {
@@ -214,12 +229,6 @@ const Dashboard = () => {
       setIsNavigating(true);
       navigate('/login');
       return;
-    }
-
-    if (window.innerWidth <= 768) {
-      setSidebarOpen(false);
-    } else {
-      setSidebarOpen(true);
     }
 
     if (!initialized && location.pathname === '/app') {
@@ -341,6 +350,7 @@ const Dashboard = () => {
     setIsNavigating(true);
     navigate(path);
     setSettingsDropdownOpen(false);
+    setSidebarSettingsOpen(false);
     setTimeout(() => setIsNavigating(false), 500);
   };
 
@@ -349,6 +359,7 @@ const Dashboard = () => {
     setIsNavigating(true);
     navigate(path);
     setSupportDropdownOpen(false);
+    setSidebarSupportOpen(false);
     setTimeout(() => setIsNavigating(false), 500);
   };
 
@@ -369,13 +380,15 @@ const Dashboard = () => {
     setIsNavigating(true);
 
     navigate(path);
-    if (window.innerWidth <= 768) {
+    if (isMobile()) {
       setSidebarOpen(false);
     }
     setProfileOpen(false);
     setNotificationsOpen(false);
     setSettingsDropdownOpen(false);
     setSupportDropdownOpen(false);
+    setSidebarSettingsOpen(false);
+    setSidebarSupportOpen(false);
 
     setTimeout(() => setIsNavigating(false), 500);
   };
@@ -398,19 +411,162 @@ const Dashboard = () => {
     ));
   };
 
+  const handleProfileClick = () => {
+    if (isMobile()) return;
+    if (isCustomer) {
+      setProfileOpen(!profileOpen);
+    }
+  };
+
   // ========== CUSTOMER LAYOUT ==========
   if (isCustomer) {
     return (
       <div className="dashboard-layout-dashboard customer-dashboard-layout-dashboard">
+        {/* Sidebar Overlay */}
+        {sidebarOpen && isMobile() && <div className="sidebar-overlay-layout-dashboard" onClick={() => setSidebarOpen(false)} />}
+        
+        {/* Sidebar Drawer - ONLY for mobile, contains profile and all navigation */}
+        <aside className={`customer-sidebar-layout-dashboard ${sidebarOpen && isMobile() ? 'open-layout-dashboard' : ''}`}>
+          <div className="sidebar-header-layout-dashboard">
+            <div className="logo-container-layout-dashboard">
+              <div className="logo-icon-layout-dashboard">
+                <img src={logo} alt="Salfer Engineering" className="sidebar-logo-img-layout-dashboard" />
+              </div>
+              <h1 className="logo-text-layout-dashboard">Salfer Engineering</h1>
+            </div>
+            <button 
+              className="sidebar-close-btn"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FaTimes />
+            </button>
+          </div>
+
+          {/* Profile Section in Sidebar - Mobile only */}
+          <div className="sidebar-user-info-layout-dashboard">
+            <div className="sidebar-user-avatar-layout-dashboard">
+              <img
+                src={userPhoto || profileImage}
+                alt={userName}
+                className="sidebar-profile-image-layout-dashboard"
+              />
+            </div>
+            <div className="sidebar-user-details-layout-dashboard">
+              <span className="sidebar-user-name-layout-dashboard">{userName}</span>
+              <span className="sidebar-user-role-layout-dashboard">{getRoleDisplay()}</span>
+            </div>
+          </div>
+
+          <nav className="sidebar-nav-layout-dashboard">
+            {currentMenu.map((item, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  handleNavigation(item.path);
+                  setSidebarOpen(false);
+                }}
+                className={`nav-item-layout-dashboard ${isActive(item.path) ? 'active-layout-dashboard' : ''}`}
+                disabled={isNavigating}
+              >
+                <span className="nav-icon-layout-dashboard">{item.icon}</span>
+                <span className="nav-label-layout-dashboard">{item.label}</span>
+              </button>
+            ))}
+            
+            {/* Settings dropdown in sidebar */}
+            <div className="settings-dropdown-wrapper-layout-dashboard" ref={sidebarSettingsDropdownRef}>
+              <button
+                onClick={() => setSidebarSettingsOpen(!sidebarSettingsOpen)}
+                className={`nav-item-layout-dashboard ${isSettingsActive() ? 'active-layout-dashboard' : ''}`}
+                disabled={isNavigating}
+              >
+                <span className="nav-icon-layout-dashboard"><FaCog /></span>
+                <span className="nav-label-layout-dashboard">Settings</span>
+                <FaChevronDown className={`dropdown-arrow-layout-dashboard ${sidebarSettingsOpen ? 'open-layout-dashboard' : ''}`} />
+              </button>
+              {sidebarSettingsOpen && (
+                <div className="sidebar-dropdown-menu">
+                  {settingsSubmenu.map((item, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        handleSettingsNavigation(item.path);
+                        setSidebarOpen(false);
+                      }}
+                      className="sidebar-dropdown-item"
+                      disabled={isNavigating}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Support dropdown in sidebar */}
+            <div className="settings-dropdown-wrapper-layout-dashboard" ref={sidebarSupportDropdownRef}>
+              <button
+                onClick={() => setSidebarSupportOpen(!sidebarSupportOpen)}
+                className={`nav-item-layout-dashboard ${isSupportActive() ? 'active-layout-dashboard' : ''}`}
+                disabled={isNavigating}
+              >
+                <span className="nav-icon-layout-dashboard"><FaHeadset /></span>
+                <span className="nav-label-layout-dashboard">Support</span>
+                <FaChevronDown className={`dropdown-arrow-layout-dashboard ${sidebarSupportOpen ? 'open-layout-dashboard' : ''}`} />
+              </button>
+              {sidebarSupportOpen && (
+                <div className="sidebar-dropdown-menu">
+                  {supportSubmenu.map((item, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        handleSupportNavigation(item.path);
+                        setSidebarOpen(false);
+                      }}
+                      className="sidebar-dropdown-item"
+                      disabled={isNavigating}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Logout button */}
+            <button
+              onClick={() => {
+                handleLogout();
+                setSidebarOpen(false);
+              }}
+              className="nav-item-layout-dashboard logout-sidebar-btn"
+              disabled={isNavigating}
+            >
+              <span className="nav-icon-layout-dashboard"><FaSignOutAlt /></span>
+              <span className="nav-label-layout-dashboard">Logout</span>
+            </button>
+          </nav>
+        </aside>
+
         <main className="customer-main-content-layout-dashboard">
           <header className="customer-header-layout-dashboard">
             <div className="customer-header-left-layout-dashboard">
               <div className="customer-logo-layout-dashboard">
+                {/* Hamburger button INSIDE sidebar for mobile */}
+                {isMobile() && (
+                  <button 
+                    className="mobile-hamburger-btn-sidebar"
+                    onClick={() => setSidebarOpen(true)}
+                  >
+                    <FaBars />
+                  </button>
+                )}
                 <img src={logo} alt="Salfer Engineering" className="customer-logo-img-layout-dashboard" />
                 <span className="customer-logo-text-layout-dashboard">Salfer Engineering</span>
               </div>
 
-              <nav className="customer-nav-links-layout-dashboard">
+              {/* Desktop Navigation - Visible on desktop only */}
+              <nav className="customer-nav-links-layout-dashboard desktop-nav">
                 {currentMenu.map((item, index) => (
                   <button
                     key={index}
@@ -422,6 +578,7 @@ const Dashboard = () => {
                   </button>
                 ))}
 
+                {/* Support Dropdown in Header */}
                 <div className="settings-dropdown-wrapper-layout-dashboard" ref={supportDropdownRef}>
                   <button
                     onClick={() => setSupportDropdownOpen(!supportDropdownOpen)}
@@ -448,6 +605,7 @@ const Dashboard = () => {
                   )}
                 </div>
 
+                {/* Settings Dropdown in Header */}
                 <div className="settings-dropdown-wrapper-layout-dashboard" ref={settingsDropdownRef}>
                   <button
                     onClick={() => setSettingsDropdownOpen(!settingsDropdownOpen)}
@@ -477,6 +635,7 @@ const Dashboard = () => {
             </div>
 
             <div className="customer-header-right-layout-dashboard">
+              {/* Notifications */}
               <div className="notification-wrapper-layout-dashboard" ref={notificationsRef}>
                 <button
                   className="notification-btn-layout-dashboard"
@@ -525,50 +684,33 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div className="profile-wrapper-layout-dashboard" ref={profileRef}>
-                <button
-                  className="profile-btn-layout-dashboard"
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  disabled={isNavigating}
-                >
-                  {userPhoto ? (
+              {/* Profile - Desktop only, hidden on mobile */}
+              {!isMobile() && (
+                <div className="profile-wrapper-layout-dashboard" ref={profileRef}>
+                  <div
+                    className={`profile-btn-layout-dashboard clickable-profile`}
+                    onClick={handleProfileClick}
+                  >
                     <img
-                      src={userPhoto}
+                      src={userPhoto || profileImage}
                       alt={userName}
-                      className="customer-profile-img-layout-dashboard"
+                      className="profile-image-layout-dashboard"
                     />
-                  ) : (
-                    <FaUserCircle className="profile-icon-layout-dashboard" />
-                  )}
-                  <span className="profile-name-layout-dashboard">{userName}</span>
-                  <FaChevronDown className={`dropdown-icon-layout-dashboard ${profileOpen ? 'open-layout-dashboard' : ''}`} />
-                </button>
-
-                {profileOpen && (
-                  <div className="profile-dropdown-layout-dashboard">
-                    <div className="profile-menu-layout-dashboard">
-                      <button
-                        onClick={() => handleProfileNavigation('/app/customer/settings?tab=profile')}
-                        className="dropdown-item-layout-dashboard"
-                        disabled={isNavigating}
-                      >
-                        <FaUserCircle /> My Profile
-                      </button>
-                      <button
-                        onClick={() => handleProfileNavigation('/app/customer/settings?tab=preferences')}
-                        className="dropdown-item-layout-dashboard"
-                        disabled={isNavigating}
-                      >
-                        <FaCog /> Settings
-                      </button>
-                      <hr />
-                      <button onClick={handleLogout} className="dropdown-item-layout-dashboard logout-layout-dashboard" disabled={isNavigating}>
-                        <FaSignOutAlt /> Logout
-                      </button>
-                    </div>
+                    <span className="profile-name-layout-dashboard">{userName}</span>
+                    <FaChevronDown className={`dropdown-icon-layout-dashboard ${profileOpen ? 'open-layout-dashboard' : ''}`} />
                   </div>
-                )}
-              </div>
+
+                  {profileOpen && (
+                    <div className="profile-dropdown-layout-dashboard">
+                      <div className="profile-menu-layout-dashboard">
+                        <button onClick={handleLogout} className="dropdown-item-layout-dashboard logout-layout-dashboard" disabled={isNavigating}>
+                          <FaSignOutAlt /> Logout
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </header>
 
@@ -583,6 +725,15 @@ const Dashboard = () => {
   // ========== ADMIN/ENGINEER LAYOUT ==========
   return (
     <div className="dashboard-layout-dashboard">
+      {/* Mobile Hamburger Button */}
+      <button 
+        className="mobile-hamburger-btn"
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open menu"
+      >
+        <FaBars />
+      </button>
+
       {sidebarOpen && <div className="sidebar-overlay-layout-dashboard" onClick={() => setSidebarOpen(false)} />}
 
       <aside className={`sidebar-layout-dashboard ${sidebarOpen ? 'open-layout-dashboard' : ''} ${isAdmin ? 'admin-sidebar-layout-dashboard' : 'engineer-sidebar-layout-dashboard'}`}>
@@ -593,9 +744,6 @@ const Dashboard = () => {
             </div>
             <h1 className="logo-text-layout-dashboard">Salfer Engineering</h1>
           </div>
-          <button className="sidebar-close-layout-dashboard" onClick={() => setSidebarOpen(false)}>
-            <FaTimes />
-          </button>
         </div>
 
         <div className="user-info-layout-dashboard">
@@ -607,7 +755,11 @@ const Dashboard = () => {
                 style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }}
               />
             ) : (
-              <FaUserCircle style={{ fontSize: '50px' }} />
+              <img
+                src={profileImage}
+                alt="Profile"
+                style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }}
+              />
             )}
           </div>
           <div className="user-details-layout-dashboard">
@@ -620,7 +772,10 @@ const Dashboard = () => {
           {currentMenu.map((item, index) => (
             <button
               key={index}
-              onClick={() => handleNavigation(item.path)}
+              onClick={() => {
+                handleNavigation(item.path);
+                if (isMobile()) setSidebarOpen(false);
+              }}
               className={`nav-item-layout-dashboard ${isActive(item.path) ? 'active-layout-dashboard' : ''}`}
               disabled={isNavigating}
             >
@@ -628,12 +783,22 @@ const Dashboard = () => {
               <span className="nav-label-layout-dashboard">{item.label}</span>
             </button>
           ))}
+          <button
+            onClick={() => {
+              handleLogout();
+              if (isMobile()) setSidebarOpen(false);
+            }}
+            className="nav-item-layout-dashboard logout-sidebar-btn"
+            disabled={isNavigating}
+          >
+            <span className="nav-icon-layout-dashboard"><FaSignOutAlt /></span>
+            <span className="nav-label-layout-dashboard">Logout</span>
+          </button>
         </nav>
       </aside>
 
       <main className="main-content-layout-dashboard">
         <header className="dashboard-header-layout-dashboard">
-          {/* Left side - Breadcrumb and Role Badge */}
           <div className="header-left-layout-dashboard">
             <div className="breadcrumb-layout-dashboard">
               <FaHome className="breadcrumb-home-icon" />
@@ -654,7 +819,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Center - Search Bar (Admin/Engineer only) */}
           <div className="header-search-layout-dashboard">
             <FaSearch className="search-icon-layout-dashboard" />
             <input
@@ -666,14 +830,12 @@ const Dashboard = () => {
             />
           </div>
 
-          {/* Right side - DateTime, Maintenance Warning, Notifications, Profile */}
           <div className="header-right-layout-dashboard">
             <div className="datetime-layout-dashboard">
               <FaRegCalendarAlt className="datetime-icon" />
               <span className="datetime-text">{formatDateTime()}</span>
             </div>
 
-            {/* Maintenance Warning Indicator */}
             {isAdmin && maintenanceStatus.isUnderMaintenance && (
               <div className="maintenance-warning">
                 <FaTools className="maintenance-icon" />
@@ -724,48 +886,14 @@ const Dashboard = () => {
               </div>
 
               <div className="profile-wrapper-layout-dashboard" ref={profileRef}>
-                <button
-                  className="profile-btn-layout-dashboard"
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  disabled={isNavigating}
-                >
-                  {userPhoto ? (
-                    <img
-                      src={userPhoto}
-                      alt={userName}
-                      style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', marginRight: '8px' }}
-                    />
-                  ) : (
-                    <FaUserCircle className="profile-icon-layout-dashboard" />
-                  )}
+                <div className="profile-btn-layout-dashboard">
+                  <img
+                    src={userPhoto || profileImage}
+                    alt={userName}
+                    className="profile-image-layout-dashboard"
+                  />
                   <span className="profile-name-layout-dashboard">{userName}</span>
-                  <FaChevronDown className={`dropdown-icon-layout-dashboard ${profileOpen ? 'open-layout-dashboard' : ''}`} />
-                </button>
-
-                {profileOpen && (
-                  <div className="profile-dropdown-layout-dashboard">
-                    <div className="profile-menu-layout-dashboard">
-                      <button
-                        onClick={() => handleProfileNavigation(getProfilePath())}
-                        className="dropdown-item-layout-dashboard"
-                        disabled={isNavigating}
-                      >
-                        <FaUserCircle /> My Profile
-                      </button>
-                      <button
-                        onClick={() => handleProfileNavigation(getSettingsPath())}
-                        className="dropdown-item-layout-dashboard"
-                        disabled={isNavigating}
-                      >
-                        <FaCog /> Settings
-                      </button>
-                      <hr />
-                      <button onClick={handleLogout} className="dropdown-item-layout-dashboard logout-layout-dashboard" disabled={isNavigating}>
-                        <FaSignOutAlt /> Logout
-                      </button>
-                    </div>
-                  </div>
-                )}
+                </div>
               </div>
             </div>
           </div>

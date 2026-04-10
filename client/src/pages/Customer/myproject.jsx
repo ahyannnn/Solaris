@@ -1,5 +1,4 @@
 // pages/Customer/MyProject.cuspro.jsx
-
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
@@ -84,26 +83,21 @@ const MyProject = () => {
     }
   };
 
-  // Helper function to check if a payment type is already paid
   const isPaymentPaid = (project, paymentType) => {
-    // First check payment schedule
     const scheduleItem = project.paymentSchedule?.find(p => p.type === paymentType);
     if (scheduleItem?.status === 'paid') return true;
 
-    // Then check solar invoices
     const invoice = solarInvoices.find(inv =>
       inv.projectId?._id === project._id &&
       inv.invoiceType === paymentType
     );
     if (invoice?.paymentStatus === 'paid') return true;
 
-    // For full payment, also check fullPaymentCompleted flag
     if (paymentType === 'full' && project.fullPaymentCompleted) return true;
 
     return false;
   };
 
-  // Helper function to get payment status for display
   const getPaymentStatus = (project, paymentType) => {
     const scheduleItem = project.paymentSchedule?.find(p => p.type === paymentType);
     const invoice = solarInvoices.find(inv =>
@@ -141,20 +135,16 @@ const MyProject = () => {
     });
   };
 
-  // pages/Customer/MyProject.cuspro.jsx - Update getProjectProgress function
-
   const getProjectProgress = (project) => {
-    // For full payment projects
     if (project.paymentPreference === 'full') {
       if (project.status === 'completed') return 100;
       if (project.status === 'in_progress') return 60;
-      if (project.status === 'full_paid') return 30;  // ✅ Full paid but not started
+      if (project.status === 'full_paid') return 30;
       if (project.status === 'approved') return 15;
       if (project.status === 'quoted') return 5;
       return 5;
     }
 
-    // For installment projects
     const initialPaid = isPaymentPaid(project, 'initial');
     const progressPaid = isPaymentPaid(project, 'progress');
     const finalPaid = isPaymentPaid(project, 'final');
@@ -166,8 +156,6 @@ const MyProject = () => {
     if (project.status === 'quoted') return 5;
     return 5;
   };
-
-  // pages/Customer/MyProject.cuspro.jsx - Update getNextStepMessage
 
   const getNextStepMessage = (project) => {
     const initialPaid = isPaymentPaid(project, 'initial');
@@ -186,7 +174,7 @@ const MyProject = () => {
         action: 'Please make the payment to proceed',
         icon: <FaMoneyBillWave />
       },
-      'full_paid': {  // ✅ New status message
+      'full_paid': {
         message: 'Full payment received',
         action: 'We will assign an engineer and schedule your installation',
         icon: <FaCheckCircle />
@@ -227,15 +215,12 @@ const MyProject = () => {
     return null;
   };
 
-  // Get timeline items based on payment preference and actual payment status
   const getTimelineItems = (project) => {
     const isFullPayment = project.paymentPreference === 'full';
     const initialPaid = isPaymentPaid(project, 'initial');
     const progressPaid = isPaymentPaid(project, 'progress');
     const finalPaid = isPaymentPaid(project, 'final');
     const fullPaid = isPaymentPaid(project, 'full') || project.fullPaymentCompleted;
-
-    // pages/Customer/MyProject.cuspro.jsx - Update getTimelineItems for full payment
 
     if (isFullPayment) {
       return [
@@ -281,7 +266,6 @@ const MyProject = () => {
         }
       ];
     } else {
-      // Installment timeline - show actual payment status
       return [
         {
           key: 'quotation',
@@ -343,30 +327,20 @@ const MyProject = () => {
     }
   };
 
-  // Helper function to get current step index
-  const getCurrentStepIndex = (status, isFullPayment) => {
-    if (isFullPayment) {
-      const stepMap = {
-        'quoted': 'quotation',
-        'approved': 'accepted',
-        'in_progress': 'installation_started',
-        'completed': 'installation_completed'
-      };
-      return stepMap[status] || 'quotation';
-    } else {
-      const stepMap = {
-        'quoted': 'quotation',
-        'approved': 'approved',
-        'initial_paid': 'initial_payment',
-        'in_progress': 'installation_started',
-        'progress_paid': 'progress_payment',
-        'completed': 'installation_completed'
-      };
-      return stepMap[status] || 'quotation';
+  const getEngineerName = (project) => {
+    if (project.assignedEngineerId) {
+      if (typeof project.assignedEngineerId === 'object') {
+        const firstName = project.assignedEngineerId.firstName || '';
+        const lastName = project.assignedEngineerId.lastName || '';
+        if (firstName || lastName) {
+          return `${firstName} ${lastName}`.trim();
+        }
+        return project.assignedEngineerId.email || 'Assigned';
+      }
+      return 'Engineer Assigned';
     }
+    return null;
   };
-
-  // pages/Customer/MyProject.cuspro.jsx - Update getPaymentSummary
 
   const getPaymentSummary = (project) => {
     if (project.paymentPreference === 'full') {
@@ -397,25 +371,9 @@ const MyProject = () => {
       return { text: 'Payment pending', color: '#ef4444' };
     }
   };
-  // Get engineer display name
-  const getEngineerName = (project) => {
-    if (project.assignedEngineerId) {
-      if (typeof project.assignedEngineerId === 'object') {
-        const firstName = project.assignedEngineerId.firstName || '';
-        const lastName = project.assignedEngineerId.lastName || '';
-        if (firstName || lastName) {
-          return `${firstName} ${lastName}`.trim();
-        }
-        return project.assignedEngineerId.email || 'Assigned';
-      }
-      return 'Engineer Assigned';
-    }
-    return null;
-  };
 
   const nextStep = getNextStepMessage(selectedProject || {});
 
-  // Skeleton Loader Component
   const SkeletonLoader = () => (
     <div className="cuspro-page">
       <div className="cuspro-header-card skeleton-card">
@@ -537,7 +495,7 @@ const MyProject = () => {
 
         {selectedProject && (
           <>
-            {/* Hero Card with Payment Preference Badge */}
+            {/* Hero Card */}
             <div className="cuspro-hero-card">
               <div className="cuspro-hero-left">
                 <h2>{selectedProject.projectName}</h2>
@@ -602,7 +560,6 @@ const MyProject = () => {
                   <strong className="cuspro-stat-value">{formatCurrency(selectedProject.balance)}</strong>
                 </div>
               </div>
-              {/* Payment Summary Bar */}
               <div className="cuspro-payment-summary-bar">
                 <div
                   className="cuspro-payment-summary-text"
@@ -652,7 +609,6 @@ const MyProject = () => {
               {/* Overview Tab */}
               {activeTab === 'overview' && (
                 <div className="cuspro-overview-tab">
-                  {/* System Specs */}
                   <div className="cuspro-info-card">
                     <h3>System Specifications</h3>
                     <div className="cuspro-specs-grid">
@@ -681,7 +637,6 @@ const MyProject = () => {
                     </div>
                   </div>
 
-                  {/* Installation Address */}
                   <div className="cuspro-info-card">
                     <h3>Installation Address</h3>
                     <div className="cuspro-address-block">
@@ -695,7 +650,6 @@ const MyProject = () => {
                     </div>
                   </div>
 
-                  {/* Assigned Personnel */}
                   <div className="cuspro-info-card">
                     <h3>Assigned Personnel</h3>
                     <div className="cuspro-personnel-list">
@@ -739,7 +693,6 @@ const MyProject = () => {
                     </div>
                   </div>
 
-                  {/* Quick Actions */}
                   <div className="cuspro-action-buttons">
                     {selectedProject.status === 'approved' && !isPaymentPaid(selectedProject, 'initial') && (
                       <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>
@@ -795,7 +748,7 @@ const MyProject = () => {
                 </div>
               )}
 
-              {/* Payments Tab - Updated to show actual payment status */}
+              {/* Payments Tab */}
               {activeTab === 'payments' && (
                 <div className="cuspro-payments-tab">
                   {selectedProject.paymentSchedule?.length > 0 ? (

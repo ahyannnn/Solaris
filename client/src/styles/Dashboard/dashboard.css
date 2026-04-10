@@ -11,7 +11,40 @@
 }
 
 /* ============================================
-   SIDEBAR (Dark Blue - Centered Logo)
+   MOBILE HAMBURGER BUTTON - 3 lines
+   ============================================ */
+.mobile-hamburger-btn {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1100;
+  background: #1e2a3e;
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+
+.mobile-hamburger-btn:hover {
+  background: #2d3e54;
+}
+
+@media (max-width: 768px) {
+  .mobile-hamburger-btn {
+    display: flex;
+  }
+}
+
+/* ============================================
+   SIDEBAR (Admin/Engineer)
    ============================================ */
 .sidebar-layout-dashboard {
   width: 280px;
@@ -31,66 +64,33 @@
 .sidebar-layout-dashboard:not(.open-layout-dashboard) {
   transform: translateX(-100%);
 }
-/* Add to dashboard.css - Maintenance Warning Indicator */
 
-.maintenance-warning {
+/* Customer Sidebar - Mobile only */
+.customer-sidebar-layout-dashboard {
+  width: 280px;
+  background: #1e2a3e;
+  border-right: none;
   display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #fff3cd;
-  color: #856404;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  margin-right: 16px;
-  animation: fadeIn 0.3s ease;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+  transform: translateX(-100%);
 }
 
-.maintenance-icon {
-  font-size: 14px;
-  animation: pulse-warning 1.5s infinite;
+.customer-sidebar-layout-dashboard.open-layout-dashboard {
+  transform: translateX(0);
 }
 
-.maintenance-text {
-  font-size: 12px;
-}
-
-@keyframes pulse-warning {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateX(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* For mobile responsiveness */
-@media (max-width: 768px) {
-  .maintenance-warning {
-    margin-right: 8px;
-    padding: 4px 8px;
-  }
-  
-  .maintenance-text {
+@media (min-width: 769px) {
+  .customer-sidebar-layout-dashboard {
     display: none;
   }
-  
-  .maintenance-icon {
-    margin: 0;
-  }
 }
+
 .sidebar-overlay-layout-dashboard {
   position: fixed;
   top: 0;
@@ -108,7 +108,7 @@
   }
 }
 
-/* Sidebar Header - Centered */
+/* Sidebar Header */
 .sidebar-header-layout-dashboard {
   padding: 1.5rem 1rem;
   border-bottom: 1px solid #2d3e54;
@@ -151,29 +151,7 @@
   letter-spacing: 0.5px;
 }
 
-.sidebar-close-layout-dashboard {
-  display: none;
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  cursor: pointer;
-  color: #a0aec0;
-  position: absolute;
-  right: 1rem;
-  top: 1.5rem;
-}
-
-@media (max-width: 768px) {
-  .sidebar-close-layout-dashboard {
-    display: block;
-  }
-}
-
-.sidebar-close-layout-dashboard:hover {
-  color: #FFFFFF;
-}
-
-/* User Info */
+/* User Info - Admin/Engineer only */
 .user-info-layout-dashboard {
   padding: 1.5rem 1rem;
   border-bottom: 1px solid #2d3e54;
@@ -219,6 +197,8 @@
   flex: 1;
   padding: 1rem 0;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .nav-item-layout-dashboard {
@@ -261,8 +241,48 @@
   flex: 1;
 }
 
+/* Sidebar Logout Button */
+.nav-item-layout-dashboard.logout-sidebar-btn {
+  margin-top: auto;
+  border-top: 1px solid #2d3e54;
+  margin-top: 1rem;
+  color: #a0aec0;
+}
+
+.nav-item-layout-dashboard.logout-sidebar-btn:hover {
+  background: #2d3e54;
+  color: #ff6b6b;
+}
+
+/* Sidebar Dropdown Menu */
+.sidebar-dropdown-menu {
+  margin-left: 2.5rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  border-left: 1px solid #2d3e54;
+}
+
+.sidebar-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  color: #a0aec0;
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.sidebar-dropdown-item:hover {
+  color: #FFFFFF;
+  background: #2d3e54;
+}
+
 /* ============================================
-   MAIN CONTENT
+   MAIN CONTENT - Admin/Engineer
    ============================================ */
 .main-content-layout-dashboard {
   flex: 1;
@@ -280,7 +300,7 @@
   }
 }
 
-/* Dashboard Header - With Breadcrumb, Search, DateTime */
+/* Dashboard Header */
 .dashboard-header-layout-dashboard {
   background: #F5F5F7;
   padding: 0.75rem 1.5rem;
@@ -294,7 +314,15 @@
   flex-wrap: wrap;
 }
 
-/* Header Left - Breadcrumb and Role Badge */
+@media (max-width: 768px) {
+  .dashboard-header-layout-dashboard {
+    padding-top: 4rem;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Header Left */
 .header-left-layout-dashboard {
   display: flex;
   align-items: center;
@@ -302,7 +330,7 @@
   flex-wrap: wrap;
 }
 
-/* Breadcrumb Styles */
+/* Breadcrumb */
 .breadcrumb-layout-dashboard {
   display: flex;
   align-items: center;
@@ -333,7 +361,7 @@
   color: #1F1F1F;
 }
 
-/* Role Badge Styles */
+/* Role Badge */
 .role-badge-layout-dashboard {
   display: inline-block;
   padding: 0.25rem 0.75rem;
@@ -359,11 +387,17 @@
   color: #1F1F1F;
 }
 
-/* Header Center - Search Bar */
+/* Search Bar - Desktop only */
 .header-search-layout-dashboard {
   flex: 1;
   max-width: 400px;
   position: relative;
+}
+
+@media (max-width: 768px) {
+  .header-search-layout-dashboard {
+    display: none;
+  }
 }
 
 .header-search-layout-dashboard input {
@@ -396,14 +430,20 @@
   font-size: 0.875rem;
 }
 
-/* Header Right - DateTime, Notifications, Profile */
+/* Header Right */
 .header-right-layout-dashboard {
   display: flex;
   align-items: center;
   gap: 1.5rem;
 }
 
-/* DateTime Styles */
+@media (max-width: 768px) {
+  .header-right-layout-dashboard {
+    justify-content: space-between;
+  }
+}
+
+/* DateTime - Desktop only */
 .datetime-layout-dashboard {
   display: flex;
   align-items: center;
@@ -412,6 +452,12 @@
   background: #FFFFFF;
   border-radius: 10px;
   border: 1px solid #E5E5E8;
+}
+
+@media (max-width: 768px) {
+  .datetime-layout-dashboard {
+    display: none;
+  }
 }
 
 .datetime-icon {
@@ -433,7 +479,7 @@
   gap: 1rem;
 }
 
-/* Notification - RED BADGE */
+/* Notification */
 .notification-wrapper-layout-dashboard {
   position: relative;
 }
@@ -469,6 +515,20 @@
   text-align: center;
 }
 
+.notification-badge-layout-dashboard {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #DC2626;
+  color: #FFFFFF;
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 0.125rem 0.375rem;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
 /* Notification Dropdown */
 .notification-dropdown-layout-dashboard {
   position: absolute;
@@ -481,6 +541,13 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   z-index: 1000;
   margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .notification-dropdown-layout-dashboard {
+    width: 280px;
+    right: -80px;
+  }
 }
 
 .notification-header-layout-dashboard {
@@ -598,15 +665,24 @@
   background: #EEEEF2;
 }
 
-.profile-icon-layout-dashboard {
-  font-size: 1.5rem;
-  color: #6B6B6F;
+.profile-image-layout-dashboard {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 8px;
 }
 
 .profile-name-layout-dashboard {
   font-size: 0.875rem;
   color: #1F1F1F;
   font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .profile-name-layout-dashboard {
+    display: none;
+  }
 }
 
 .dropdown-icon-layout-dashboard {
@@ -631,6 +707,12 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   z-index: 1000;
   margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .profile-dropdown-layout-dashboard {
+    right: -60px;
+  }
 }
 
 .profile-menu-layout-dashboard {
@@ -672,6 +754,11 @@
   border-top: 1px solid #E5E5E8;
 }
 
+/* Clickable profile for Customer desktop */
+.profile-btn-layout-dashboard.clickable-profile {
+  cursor: pointer;
+}
+
 /* Content Area */
 .content-area-layout-dashboard {
   flex: 1;
@@ -680,8 +767,14 @@
   background: #F5F5F7;
 }
 
+@media (max-width: 768px) {
+  .content-area-layout-dashboard {
+    padding: 1rem;
+  }
+}
+
 /* ============================================
-   CUSTOMER LAYOUT (Horizontal Navigation)
+   CUSTOMER LAYOUT
    ============================================ */
 .customer-dashboard-layout-dashboard {
   background: #F5F5F7;
@@ -711,11 +804,28 @@
   flex-wrap: wrap;
 }
 
+@media (max-width: 768px) {
+  .customer-header-layout-dashboard {
+    padding: 0.75rem 1rem;
+    padding-top: 4rem;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 .customer-header-left-layout-dashboard {
   display: flex;
   align-items: center;
   gap: 2rem;
   flex: 1;
+}
+
+@media (max-width: 768px) {
+  .customer-header-left-layout-dashboard {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
 }
 
 .customer-logo-layout-dashboard {
@@ -736,7 +846,17 @@
   color: #1F1F1F;
 }
 
-/* Customer Navigation */
+/* Desktop Navigation - Visible on desktop only */
+.desktop-nav {
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  .desktop-nav {
+    display: none;
+  }
+}
+
 .customer-nav-links-layout-dashboard {
   display: flex;
   align-items: center;
@@ -753,6 +873,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border-radius: 8px;
+  position: relative;
 }
 
 .customer-nav-link-layout-dashboard:hover {
@@ -763,10 +884,8 @@
 .customer-nav-link-layout-dashboard.active-layout-dashboard {
   color: #1F1F1F;
   font-weight: 500;
-  position: relative;
 }
 
-/* UNDERLINE FOR ACTIVE BUTTON */
 .customer-nav-link-layout-dashboard.active-layout-dashboard::after {
   content: '';
   position: absolute;
@@ -795,6 +914,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border-radius: 8px;
+  position: relative;
 }
 
 .settings-dropdown-btn-layout-dashboard:hover {
@@ -805,7 +925,6 @@
 .settings-dropdown-btn-layout-dashboard.active-layout-dashboard {
   color: #1F1F1F;
   font-weight: 500;
-  position: relative;
 }
 
 .settings-dropdown-btn-layout-dashboard.active-layout-dashboard::after {
@@ -841,6 +960,13 @@
   margin-top: 0.5rem;
 }
 
+@media (max-width: 768px) {
+  .settings-dropdown-menu-layout-dashboard {
+    left: auto;
+    right: 0;
+  }
+}
+
 .settings-dropdown-item-layout-dashboard {
   display: flex;
   align-items: center;
@@ -872,13 +998,6 @@
   gap: 1rem;
 }
 
-.customer-profile-img-layout-dashboard {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
 .customer-content-area-layout-dashboard {
   flex: 1;
   padding: 1.5rem;
@@ -886,131 +1005,152 @@
   background: #F5F5F7;
 }
 
+@media (max-width: 768px) {
+  .customer-content-area-layout-dashboard {
+    padding: 1rem;
+  }
+}
+
+/* Customer profile wrapper */
+.customer-header-right-layout-dashboard .profile-wrapper-layout-dashboard {
+  position: relative;
+}
+
+.customer-header-right-layout-dashboard .profile-btn-layout-dashboard {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+}
+
+.customer-header-right-layout-dashboard .profile-btn-layout-dashboard.clickable-profile:hover {
+  background: #F5F5F7;
+}
+
+.customer-header-right-layout-dashboard .profile-image-layout-dashboard {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.customer-header-right-layout-dashboard .profile-dropdown-layout-dashboard {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 180px;
+  background: #FFFFFF;
+  border: 1px solid #E5E5E8;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  z-index: 1000;
+  margin-top: 0.5rem;
+}
+
 /* ============================================
-   RESPONSIVE DESIGN
+   MAINTENANCE WARNING
    ============================================ */
-@media (max-width: 1024px) {
-  .customer-header-layout-dashboard {
-    padding: 0.75rem 1rem;
-    flex-direction: column;
-    align-items: stretch;
+.maintenance-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff3cd;
+  color: #856404;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-right: 16px;
+  animation: fadeIn 0.3s ease;
+}
+
+.maintenance-icon {
+  font-size: 14px;
+  animation: pulse-warning 1.5s infinite;
+}
+
+.maintenance-text {
+  font-size: 12px;
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    opacity: 1;
   }
-  
-  .customer-header-left-layout-dashboard {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
+  50% {
+    opacity: 0.6;
   }
-  
-  .customer-logo-layout-dashboard {
-    justify-content: center;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
   }
-  
-  .customer-nav-links-layout-dashboard {
-    justify-content: center;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-  }
-  
-  .customer-nav-link-layout-dashboard.active-layout-dashboard::after {
-    bottom: -0.5rem;
-  }
-  
-  .settings-dropdown-btn-layout-dashboard.active-layout-dashboard::after {
-    bottom: -0.5rem;
-  }
-  
-  .customer-header-right-layout-dashboard {
-    justify-content: flex-end;
-  }
-  
-  .dashboard-header-layout-dashboard {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .header-search-layout-dashboard {
-    max-width: 100%;
-  }
-  
-  .header-right-layout-dashboard {
-    justify-content: space-between;
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
 @media (max-width: 768px) {
-  .sidebar-layout-dashboard {
-    width: 260px;
+  .maintenance-warning {
+    margin-right: 8px;
+    padding: 4px 8px;
   }
   
-  .dashboard-header-layout-dashboard {
-    padding: 0.5rem 1rem;
-  }
-  
-  .datetime-text {
+  .maintenance-text {
     display: none;
   }
   
-  .datetime-icon {
+  .maintenance-icon {
     margin: 0;
   }
-  
-  .profile-name-layout-dashboard {
-    display: none;
-  }
-  
-  .content-area-layout-dashboard,
-  .customer-content-area-layout-dashboard {
-    padding: 1rem;
-  }
-  
-  .notification-dropdown-layout-dashboard {
-    width: 280px;
-    right: -80px;
-  }
-  
-  .profile-dropdown-layout-dashboard {
-    right: -60px;
-  }
-  
-  .settings-dropdown-menu-layout-dashboard {
-    left: auto;
-    right: 0;
-  }
-  
+}
+
+/* ============================================
+   MOBILE SPECIFIC OVERRIDES
+   ============================================ */
+@media (max-width: 768px) {
   .header-left-layout-dashboard {
     flex-direction: column;
     align-items: flex-start;
   }
-}
-
-@media (max-width: 480px) {
-  .notification-dropdown-layout-dashboard {
-    width: 260px;
-    right: -100px;
+  
+  .dashboard-layout-dashboard,
+  .customer-dashboard-layout-dashboard {
+    overflow-x: hidden;
+  }
+  
+  .content-area-layout-dashboard,
+  .customer-content-area-layout-dashboard {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  /* Profile not clickable on mobile */
+  .profile-btn-layout-dashboard {
+    cursor: default;
+  }
+  
+  .profile-btn-layout-dashboard.clickable-profile {
+    cursor: default;
+  }
+  
+  .dropdown-icon-layout-dashboard {
+    display: none;
   }
   
   .profile-dropdown-layout-dashboard {
-    width: 200px;
-    right: -80px;
+    display: none !important;
   }
   
-  .customer-nav-link-layout-dashboard {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.75rem;
-  }
-  
-  .settings-dropdown-btn-layout-dashboard {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.75rem;
-  }
-  
-  .breadcrumb-layout-dashboard {
-    font-size: 0.75rem;
-  }
-  
-  .role-badge-layout-dashboard {
-    font-size: 0.6rem;
+  .nav-item-layout-dashboard.logout-sidebar-btn {
+    margin-bottom: 1rem;
   }
 }
 
@@ -1056,4 +1196,121 @@
 
 .font-bold-dashboard {
   font-weight: 600;
+}
+
+/* Add these styles to your existing dashboard.css */
+
+/* Mobile Hamburger Button inside sidebar */
+.mobile-hamburger-btn-sidebar {
+  display: none;
+  background: none;
+  border: none;
+  color: #1F1F1F;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-right: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.mobile-hamburger-btn-sidebar:hover {
+  background: #F5F5F7;
+}
+
+@media (max-width: 768px) {
+  .mobile-hamburger-btn-sidebar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Sidebar Close Button */
+.sidebar-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #a0aec0;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  z-index: 10;
+}
+
+.sidebar-close-btn:hover {
+  color: #FFFFFF;
+}
+
+@media (min-width: 769px) {
+  .sidebar-close-btn {
+    display: none;
+  }
+}
+
+/* Sidebar User Info for Customer Mobile */
+.sidebar-user-info-layout-dashboard {
+  padding: 1.5rem 1rem;
+  border-bottom: 1px solid #2d3e54;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sidebar-user-avatar-layout-dashboard {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #2d3e54;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.sidebar-profile-image-layout-dashboard {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.sidebar-user-details-layout-dashboard {
+  flex: 1;
+}
+
+.sidebar-user-name-layout-dashboard {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #FFFFFF;
+  margin-bottom: 0.25rem;
+}
+
+.sidebar-user-role-layout-dashboard {
+  display: block;
+  font-size: 0.7rem;
+  color: #a0aec0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Customer logo layout fix */
+.customer-logo-layout-dashboard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Hide desktop profile on mobile */
+@media (max-width: 768px) {
+  .customer-header-right-layout-dashboard .profile-wrapper-layout-dashboard {
+    display: none;
+  }
 }

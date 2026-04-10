@@ -9,10 +9,13 @@ import {
   FaCalendarAlt,
   FaChartLine,
   FaHome,
-  FaUser
+  FaUser,
+  FaChevronDown,
+  FaArrowRight
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
-import '../../styles/Customer/dashboard.css';
+// Assuming CSS is imported, but we will use inline styles or a separate CSS module. For this refactor, we'll use className with -cusdash suffix.
+// import '../../styles/Customer/dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -23,6 +26,8 @@ const Dashboard = () => {
   const [recentQuotes, setRecentQuotes] = useState([]);
   const [pendingPayments, setPendingPayments] = useState([]);
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [activeProjectId, setActiveProjectId] = useState(null);
+  const [projectsList, setProjectsList] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -46,8 +51,11 @@ const Dashboard = () => {
       const projectsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/my-projects`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const activeProject = projectsRes.data.projects?.find(p => p.status !== 'completed');
+      const projects = projectsRes.data.projects || [];
+      setProjectsList(projects);
+      const activeProject = projects.find(p => p.status !== 'completed');
       setProject(activeProject || null);
+      if (activeProject) setActiveProjectId(activeProject._id);
 
       // Get quotes and sort by date (newest first) then take first 3
       const quotesRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes/my-quotes`, {
@@ -85,6 +93,12 @@ const Dashboard = () => {
     }
   };
 
+  const handleProjectChange = (projectId) => {
+    const selected = projectsList.find(p => p._id === projectId);
+    setProject(selected);
+    setActiveProjectId(projectId);
+  };
+
   const getFullName = () => {
     if (!user) return '';
     return [user.contactFirstName, user.contactMiddleName, user.contactLastName].filter(n => n).join(' ');
@@ -107,69 +121,69 @@ const Dashboard = () => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      'pending': <span className="status-badge-dash pending-dash">Pending</span>,
-      'paid': <span className="status-badge-dash paid-dash">Paid</span>,
-      'for_verification': <span className="status-badge-dash for-verification-dash">For Verification</span>,
-      'processing': <span className="status-badge-dash processing-dash">Processing</span>,
-      'quoted': <span className="status-badge-dash quoted-dash">Quoted</span>,
-      'approved': <span className="status-badge-dash approved-dash">Approved</span>,
-      'in_progress': <span className="status-badge-dash in-progress-dash">In Progress</span>,
-      'completed': <span className="status-badge-dash completed-dash">Completed</span>
+      'pending': <span className="status-badge-cusdash status-pending-cusdash">Pending</span>,
+      'paid': <span className="status-badge-cusdash status-paid-cusdash">Paid</span>,
+      'for_verification': <span className="status-badge-cusdash status-verification-cusdash">For Verification</span>,
+      'processing': <span className="status-badge-cusdash status-processing-cusdash">Processing</span>,
+      'quoted': <span className="status-badge-cusdash status-quoted-cusdash">Quoted</span>,
+      'approved': <span className="status-badge-cusdash status-approved-cusdash">Approved</span>,
+      'in_progress': <span className="status-badge-cusdash status-progress-cusdash">In Progress</span>,
+      'completed': <span className="status-badge-cusdash status-completed-cusdash">Completed</span>
     };
-    return badges[status] || <span className="status-badge-dash">{status}</span>;
+    return badges[status] || <span className="status-badge-cusdash">{status}</span>;
   };
 
   // Skeleton Components
   const WelcomeSkeleton = () => (
-    <div className="welcome-section-dash">
-      <div className="welcome-content-dash">
-        <div className="skeleton-line-dash large-dash"></div>
-        <div className="skeleton-line-dash medium-dash"></div>
+    <div className="welcome-section-cusdash">
+      <div className="welcome-content-cusdash">
+        <div className="skeleton-line-cusdash large-cusdash"></div>
+        <div className="skeleton-line-cusdash medium-cusdash"></div>
       </div>
-      <div className="welcome-actions-dash">
-        <div className="skeleton-button-dash"></div>
-        <div className="skeleton-button-dash"></div>
+      <div className="welcome-actions-cusdash">
+        <div className="skeleton-button-cusdash"></div>
+        <div className="skeleton-button-cusdash"></div>
       </div>
     </div>
   );
 
   const StatsSkeleton = () => (
-    <div className="stats-grid-dash">
+    <div className="stats-grid-cusdash">
       {[1, 2, 3, 4].map((item) => (
-        <div key={item} className="stat-card-dash skeleton-card-dash">
-          <div className="skeleton-line-dash small-dash"></div>
-          <div className="skeleton-line-dash large-dash"></div>
-          <div className="skeleton-line-dash tiny-dash"></div>
+        <div key={item} className="stat-card-cusdash skeleton-card-cusdash">
+          <div className="skeleton-line-cusdash small-cusdash"></div>
+          <div className="skeleton-line-cusdash large-cusdash"></div>
+          <div className="skeleton-line-cusdash tiny-cusdash"></div>
         </div>
       ))}
     </div>
   );
 
   const ProjectSkeleton = () => (
-    <div className="project-card-dash skeleton-card-dash">
-      <div className="project-header-dash">
-        <div className="skeleton-line-dash medium-dash"></div>
-        <div className="skeleton-badge-dash"></div>
+    <div className="project-card-cusdash skeleton-card-cusdash">
+      <div className="project-header-cusdash">
+        <div className="skeleton-line-cusdash medium-cusdash"></div>
+        <div className="skeleton-badge-cusdash"></div>
       </div>
-      <div className="project-progress-dash">
-        <div className="skeleton-progress-dash"></div>
-        <div className="skeleton-line-dash small-dash"></div>
+      <div className="project-progress-cusdash">
+        <div className="skeleton-progress-cusdash"></div>
+        <div className="skeleton-line-cusdash small-cusdash"></div>
       </div>
-      <div className="project-actions-dash">
-        <div className="skeleton-button-dash small-dash"></div>
+      <div className="project-actions-cusdash">
+        <div className="skeleton-button-cusdash small-cusdash"></div>
       </div>
     </div>
   );
 
   const InfoCardSkeleton = () => (
-    <div className="info-card-dash skeleton-card-dash">
-      <div className="skeleton-line-dash medium-dash"></div>
-      <div className="info-list-dash">
+    <div className="info-card-cusdash skeleton-card-cusdash">
+      <div className="skeleton-line-cusdash medium-cusdash"></div>
+      <div className="info-list-cusdash">
         {[1, 2, 3].map((item) => (
-          <div key={item} className="info-item-dash">
-            <div className="skeleton-line-dash small-dash"></div>
-            <div className="skeleton-line-dash tiny-dash"></div>
-            <div className="skeleton-badge-dash small-dash"></div>
+          <div key={item} className="info-item-cusdash">
+            <div className="skeleton-line-cusdash small-cusdash"></div>
+            <div className="skeleton-line-cusdash tiny-cusdash"></div>
+            <div className="skeleton-badge-cusdash small-cusdash"></div>
           </div>
         ))}
       </div>
@@ -182,18 +196,18 @@ const Dashboard = () => {
         <Helmet>
           <title>Dashboard | Salfer Engineering</title>
         </Helmet>
-        <div className="dashboard-container-dash">
+        <div className="dashboard-container-cusdash">
           <WelcomeSkeleton />
           <StatsSkeleton />
           
-          <div className="dashboard-main-dash">
-            <div className="section-header-dash">
-              <div className="skeleton-line-dash medium-dash"></div>
+          <div className="dashboard-main-cusdash">
+            <div className="section-header-cusdash">
+              <div className="skeleton-line-cusdash medium-cusdash"></div>
             </div>
             <ProjectSkeleton />
           </div>
           
-          <div className="info-grid-dash">
+          <div className="info-grid-cusdash">
             <InfoCardSkeleton />
             <InfoCardSkeleton />
             <InfoCardSkeleton />
@@ -209,123 +223,154 @@ const Dashboard = () => {
         <title>Dashboard | Salfer Engineering</title>
       </Helmet>
 
-      <div className="dashboard-container-dash">
+      <div className="dashboard-container-cusdash">
         {/* Welcome Section */}
-        <div className="welcome-section-dash">
-          <div className="welcome-content-dash">
-            <h1>Welcome back, {getFullName() || 'Valued Customer'}!</h1>
-            <p>Track your solar journey and manage your projects</p>
+        <div className="welcome-section-cusdash">
+          <div className="welcome-content-cusdash">
+            <h1 className="page-title-cusdash">Dashboard</h1>
+            <p className="welcome-greeting-cusdash">Welcome back, {getFullName() || 'Valued Customer'}!</p>
           </div>
-          <div className="welcome-actions-dash">
-            <Link to="book-assessment" className="btn-primary-dash">
+          <div className="welcome-actions-cusdash">
+            <Link to="book-assessment" className="btn-primary-cusdash">
               Book Assessment
             </Link>
-            <Link to="book-assessment" className="btn-secondary-dash">
+            <Link to="book-assessment" className="btn-secondary-cusdash">
               Request Quote
             </Link>
           </div>
         </div>
 
-        {/* Stats Cards - With Minimal Icons */}
-        <div className="stats-grid-dash">
-          <div className="stat-card-dash">
-            <FaHome className="stat-icon-dash" />
-            <div className="stat-content-dash">
-              <span className="stat-label-dash">Active Projects</span>
-              <span className="stat-value-dash">{project ? 1 : 0}</span>
-              <span className="stat-trend-dash">
+        {/* Project Selector */}
+        {projectsList.length > 1 && (
+          <div className="project-selector-container-cusdash">
+            <label className="selector-label-cusdash">Active Project</label>
+            <div className="custom-select-cusdash">
+              <select 
+                value={activeProjectId || ''} 
+                onChange={(e) => handleProjectChange(e.target.value)}
+                className="project-select-cusdash"
+              >
+                {projectsList.map(p => (
+                  <option key={p._id} value={p._id}>
+                    {p.projectName || p.projectReference} - {p.status}
+                  </option>
+                ))}
+              </select>
+              <FaChevronDown className="select-icon-cusdash" />
+            </div>
+          </div>
+        )}
+
+        {/* Stats Cards */}
+        <div className="stats-grid-cusdash">
+          <div className="stat-card-cusdash">
+            <div className="stat-icon-wrapper-cusdash">
+              <FaHome className="stat-icon-cusdash" />
+            </div>
+            <div className="stat-content-cusdash">
+              <span className="stat-label-cusdash">Active Projects</span>
+              <span className="stat-value-cusdash">{project ? 1 : 0}</span>
+              <span className="stat-trend-cusdash">
                 {project ? `${getProjectProgress()}% Complete` : 'No active projects'}
               </span>
             </div>
           </div>
-          <div className="stat-card-dash">
-            <FaFileInvoice className="stat-icon-dash" />
-            <div className="stat-content-dash">
-              <span className="stat-label-dash">Free Quotes</span>
-              <span className="stat-value-dash">{recentQuotes.length}</span>
-              <span className="stat-trend-dash">Recent requests</span>
+          <div className="stat-card-cusdash">
+            <div className="stat-icon-wrapper-cusdash">
+              <FaFileInvoice className="stat-icon-cusdash" />
+            </div>
+            <div className="stat-content-cusdash">
+              <span className="stat-label-cusdash">Free Quotes</span>
+              <span className="stat-value-cusdash">{recentQuotes.length}</span>
+              <span className="stat-trend-cusdash">Recent requests</span>
             </div>
           </div>
-          <div className="stat-card-dash">
-            <FaClock className="stat-icon-dash" />
-            <div className="stat-content-dash">
-              <span className="stat-label-dash">Pending Payments</span>
-              <span className="stat-value-dash">{pendingPayments.length}</span>
-              <span className="stat-trend-dash">Awaiting payment</span>
+          <div className="stat-card-cusdash">
+            <div className="stat-icon-wrapper-cusdash">
+              <FaClock className="stat-icon-cusdash" />
+            </div>
+            <div className="stat-content-cusdash">
+              <span className="stat-label-cusdash">Pending Payments</span>
+              <span className="stat-value-cusdash">{pendingPayments.length}</span>
+              <span className="stat-trend-cusdash">Awaiting payment</span>
             </div>
           </div>
-          <div className="stat-card-dash">
-            <FaCalendarAlt className="stat-icon-dash" />
-            <div className="stat-content-dash">
-              <span className="stat-label-dash">Upcoming Appointments</span>
-              <span className="stat-value-dash">{upcomingAppointments.length}</span>
-              <span className="stat-trend-dash">Scheduled assessments</span>
+          <div className="stat-card-cusdash">
+            <div className="stat-icon-wrapper-cusdash">
+              <FaCalendarAlt className="stat-icon-cusdash" />
+            </div>
+            <div className="stat-content-cusdash">
+              <span className="stat-label-cusdash">Upcoming Appointments</span>
+              <span className="stat-value-cusdash">{upcomingAppointments.length}</span>
+              <span className="stat-trend-cusdash">Scheduled assessments</span>
             </div>
           </div>
         </div>
 
         {/* Active Project Section */}
-        <div className="dashboard-main-dash">
-          <div className="section-header-dash">
-            <h2>Active Project</h2>
-            {project && <Link to="/dashboard/myproject" className="view-all-dash">View Details</Link>}
+        <div className="dashboard-main-cusdash">
+          <div className="section-header-cusdash">
+            <h2 className="section-title-cusdash">Active Project</h2>
+            {project && <Link to="/dashboard/myproject" className="view-all-link-cusdash">View Details <FaArrowRight className="arrow-icon-cusdash" /></Link>}
           </div>
           
           {project ? (
-            <div className="project-card-dash">
-              <div className="project-header-dash">
-                <div>
-                  <h3>{project.projectName || project.projectReference}</h3>
-                  <p className="project-system-dash">{project.systemSize} Solar System | {project.systemType}</p>
+            <div className="project-card-cusdash">
+              <div className="project-header-cusdash">
+                <div className="project-info-cusdash">
+                  <h3 className="project-name-cusdash">{project.projectName || project.projectReference}</h3>
+                  <p className="project-system-cusdash">{project.systemSize} Solar System | {project.systemType}</p>
                 </div>
                 {getStatusBadge(project.status)}
               </div>
               
-              <div className="project-progress-dash">
-                <div className="progress-label-dash">
-                  <span>Overall Progress</span>
-                  <span>{getProjectProgress()}%</span>
+              <div className="project-progress-cusdash">
+                <div className="progress-label-cusdash">
+                  <span className="progress-text-cusdash">Overall Progress</span>
+                  <span className="progress-percent-cusdash">{getProjectProgress()}%</span>
                 </div>
-                <div className="progress-bar-dash">
-                  <div className="progress-fill-dash" style={{ width: `${getProjectProgress()}%` }}></div>
+                <div className="progress-bar-container-cusdash">
+                  <div className="progress-bar-fill-cusdash" style={{ width: `${getProjectProgress()}%` }}></div>
                 </div>
               </div>
               
-              <div className="project-actions-dash">
-                <Link to="/dashboard/myproject" className="action-link-dash">
+              <div className="project-actions-cusdash">
+                <Link to="/dashboard/myproject" className="action-link-cusdash">
                   Track Progress
                 </Link>
               </div>
             </div>
           ) : (
-            <div className="empty-state-dash">
-              <h3>No active projects</h3>
-              <p>Start your solar journey today</p>
-              <Link to="book-assessment" className="btn-primary-dash small-dash">
-                Get Started
-              </Link>
+            <div className="empty-state-cusdash">
+              <div className="empty-state-content-cusdash">
+                <h3 className="empty-state-title-cusdash">No active projects</h3>
+                <p className="empty-state-description-cusdash">Start your solar journey today</p>
+                <Link to="book-assessment" className="btn-primary-cusdash small-cusdash">
+                  Get Started
+                </Link>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Recent Quotes, Pending Payments, Upcoming Appointments - All in One Row */}
-        <div className="info-grid-dash">
-          {/* Recent Quotes - Now shows exactly 3 most recent */}
-          <div className="info-card-dash">
-            <div className="info-card-header-dash">
-              <h3>Recent Quotes</h3>
+        {/* Info Grid */}
+        <div className="info-grid-cusdash">
+          {/* Recent Quotes */}
+          <div className="info-card-cusdash">
+            <div className="info-card-header-cusdash">
+              <h3 className="info-card-title-cusdash">Recent Quotes</h3>
               {recentQuotes.length > 0 && (
-                <Link to="book-assessment" className="view-all-dash">View All</Link>
+                <Link to="book-assessment" className="view-all-link-cusdash">View All</Link>
               )}
             </div>
             
-            <div className="info-list-dash">
+            <div className="info-list-cusdash">
               {recentQuotes.length > 0 ? (
                 recentQuotes.map(quote => (
-                  <div key={quote._id} className="info-item-dash">
-                    <div className="info-item-content-dash">
-                      <span className="info-item-title-dash">{quote.quotationReference}</span>
-                      <span className="info-item-date-dash">
+                  <div key={quote._id} className="info-item-cusdash">
+                    <div className="info-item-content-cusdash">
+                      <span className="info-item-title-cusdash">{quote.quotationReference}</span>
+                      <span className="info-item-date-cusdash">
                         {new Date(quote.requestedAt).toLocaleDateString('en-PH', {
                           year: 'numeric',
                           month: 'short',
@@ -333,69 +378,69 @@ const Dashboard = () => {
                         })}
                       </span>
                     </div>
-                    <div className="info-item-status-dash">
+                    <div className="info-item-status-cusdash">
                       {getStatusBadge(quote.status)}
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="empty-small-dash">
-                  <p>No quotes yet</p>
-                  <Link to="book-assessment" className="link-dash">Request a quote</Link>
+                <div className="empty-small-cusdash">
+                  <p className="empty-text-cusdash">No quotes yet</p>
+                  <Link to="book-assessment" className="link-cusdash">Request a quote</Link>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Pending Payments - Now shows exactly 3 most recent pending payments */}
-          <div className="info-card-dash">
-            <div className="info-card-header-dash">
-              <h3>Pending Payments</h3>
+          {/* Pending Payments */}
+          <div className="info-card-cusdash">
+            <div className="info-card-header-cusdash">
+              <h3 className="info-card-title-cusdash">Pending Payments</h3>
               {pendingPayments.length > 0 && (
-                <Link to="billing" className="view-all-dash">View All</Link>
+                <Link to="billing" className="view-all-link-cusdash">View All</Link>
               )}
             </div>
             
-            <div className="info-list-dash">
+            <div className="info-list-cusdash">
               {pendingPayments.length > 0 ? (
                 pendingPayments.map(payment => (
-                  <div key={payment._id || payment.id} className="info-item-dash">
-                    <div className="info-item-content-dash">
-                      <span className="info-item-title-dash">{payment.invoiceNumber || payment._id}</span>
-                      <span className="info-item-amount-dash">{formatCurrency(payment.assessmentFee)}</span>
+                  <div key={payment._id || payment.id} className="info-item-cusdash">
+                    <div className="info-item-content-cusdash">
+                      <span className="info-item-title-cusdash">{payment.invoiceNumber || payment._id}</span>
+                      <span className="info-item-amount-cusdash">{formatCurrency(payment.assessmentFee)}</span>
                     </div>
-                    <div className="info-item-actions-dash">
-                      <Link to="billing" className="pay-link-dash">
+                    <div className="info-item-actions-cusdash">
+                      <Link to="billing" className="pay-link-cusdash">
                         Pay Now
                       </Link>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="empty-small-dash">
-                  <p>No pending payments</p>
-                  <span className="text-muted-dash">All caught up!</span>
+                <div className="empty-small-cusdash">
+                  <p className="empty-text-cusdash">No pending payments</p>
+                  <span className="text-muted-cusdash">All caught up!</span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Upcoming Appointments - Now shows exactly 3 soonest appointments */}
-          <div className="info-card-dash">
-            <div className="info-card-header-dash">
-              <h3>Upcoming Appointments</h3>
+          {/* Upcoming Appointments */}
+          <div className="info-card-cusdash">
+            <div className="info-card-header-cusdash">
+              <h3 className="info-card-title-cusdash">Upcoming Appointments</h3>
               {upcomingAppointments.length > 0 && (
-                <Link to="book-assessment" className="view-all-dash">View All</Link>
+                <Link to="book-assessment" className="view-all-link-cusdash">View All</Link>
               )}
             </div>
             
-            <div className="info-list-dash">
+            <div className="info-list-cusdash">
               {upcomingAppointments.length > 0 ? (
                 upcomingAppointments.map(appointment => (
-                  <div key={appointment._id || appointment.id} className="info-item-dash">
-                    <div className="info-item-content-dash">
-                      <span className="info-item-title-dash">Pre-Assessment</span>
-                      <span className="info-item-date-dash">
+                  <div key={appointment._id || appointment.id} className="info-item-cusdash">
+                    <div className="info-item-content-cusdash">
+                      <span className="info-item-title-cusdash">Pre-Assessment</span>
+                      <span className="info-item-date-cusdash">
                         {new Date(appointment.preferredDate).toLocaleDateString('en-PH', {
                           year: 'numeric',
                           month: 'short',
@@ -403,17 +448,17 @@ const Dashboard = () => {
                         })}
                       </span>
                     </div>
-                    <div className="info-item-status-dash">
-                      <span className={`appointment-status-dash ${appointment.paymentStatus === 'paid' ? 'confirmed-dash' : 'pending-dash'}`}>
+                    <div className="info-item-status-cusdash">
+                      <span className={`appointment-status-cusdash ${appointment.paymentStatus === 'paid' ? 'confirmed-cusdash' : 'pending-cusdash'}`}>
                         {appointment.paymentStatus === 'paid' ? 'Confirmed' : 'Pending Payment'}
                       </span>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="empty-small-dash">
-                  <p>No upcoming appointments</p>
-                  <Link to="book-assessment" className="link-dash">Book an assessment</Link>
+                <div className="empty-small-cusdash">
+                  <p className="empty-text-cusdash">No upcoming appointments</p>
+                  <Link to="book-assessment" className="link-cusdash">Book an assessment</Link>
                 </div>
               )}
             </div>

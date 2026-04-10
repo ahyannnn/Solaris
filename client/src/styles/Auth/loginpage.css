@@ -507,3 +507,243 @@
   }
 }
 
+/* loginpage.css - Login Page Styles */
+
+/* [All existing desktop CSS remains exactly as provided - no changes] */
+
+/* RESPONSIVE DESIGN - MOBILE APP-STYLE OVERRIDES ONLY */
+@media (max-width: 768px) {
+  /* Full-screen app container */
+  .login-page-login {
+    padding: 0;
+    background: #ffffff;
+    display: block;
+  }
+
+  /* Remove card styling completely */
+  .login-card-login {
+    max-width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff;
+    overflow: visible;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* Hide ALL branding content - keep only logo */
+  .login-branding-login {
+    flex: 0 0 auto;
+    background: none;
+    padding: 40px 20px 0 20px;
+    display: block;
+  }
+
+  .branding-content-login {
+    max-width: 100%;
+    text-align: center;
+  }
+
+  /* Keep only logo image, hide everything else */
+  .brand-logo-login {
+    justify-content: center;
+    margin-bottom: 0;
+  }
+
+  .brand-logo-img-login {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+  }
+
+  /* Hide ALL branding text and marketing content */
+  .brand-name-login,
+  .brand-tagline-login,
+  .brand-description-login,
+  .brand-features-login,
+  .brand-feature-login,
+  .feature-dot-login {
+    display: none !important;
+  }
+
+  /* Form container - full width, no card */
+  .login-form-container-login {
+    flex: 1;
+    padding: 20px 24px 40px 24px;
+    background: #ffffff;
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .login-form-wrapper-login {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Remove any residual shadows/borders */
+  .form-input-login,
+  .login-submit-btn-login,
+  .social-btn-login {
+    box-shadow: none !important;
+  }
+
+  .login-submit-btn-login:hover:not(:disabled) {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .social-btn-login:hover:not(:disabled) {
+    transform: none;
+  }
+
+  /* Ensure flat app-like appearance */
+  .form-header-login {
+    margin-bottom: 32px;
+  }
+
+  .form-title-login {
+    font-size: 28px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  .form-subtitle-login {
+    font-size: 15px;
+    color: #666666;
+  }
+
+  /* Form spacing for mobile app feel */
+  .login-form-login {
+    gap: 20px;
+  }
+
+  .form-group-login {
+    gap: 6px;
+  }
+
+  .form-label-login {
+    font-size: 14px;
+    color: #333333;
+  }
+
+  .form-input-login {
+    padding: 16px 16px 16px 44px;
+    font-size: 16px;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+  }
+
+  .input-icon-login {
+    left: 16px;
+    font-size: 18px;
+    color: #666666;
+  }
+
+  .password-toggle-login {
+    right: 16px;
+    font-size: 18px;
+  }
+
+  /* Row actions spacing */
+  .row-actions-login {
+    margin-top: 0;
+    margin-bottom: 8px;
+  }
+
+  .remember-label-login {
+    font-size: 14px;
+  }
+
+  .remember-checkbox-login {
+    width: 18px;
+    height: 18px;
+  }
+
+  .forgot-link-login {
+    font-size: 14px;
+  }
+
+  /* Submit button - full width app style */
+  .login-submit-btn-login {
+    padding: 16px;
+    font-size: 16px;
+    border-radius: 12px;
+    margin-top: 8px;
+  }
+
+  /* Social login adjustments */
+  .social-login-login {
+    margin-top: 16px;
+  }
+
+  .social-login-text-login {
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .social-btn-login {
+    padding: 14px;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+
+  .google-icon-login {
+    font-size: 20px;
+  }
+
+  /* Signup prompt */
+  .signup-prompt-login {
+    margin-top: 24px;
+  }
+
+  .signup-text-login {
+    font-size: 15px;
+  }
+
+  /* Error message styling */
+  .general-error-login {
+    padding: 12px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+
+  .error-message-login {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Keep same app-style behavior, minor spacing tweaks */
+  .login-branding-login {
+    padding: 30px 20px 0 20px;
+  }
+
+  .brand-logo-img-login {
+    width: 70px;
+    height: 70px;
+  }
+
+  .login-form-container-login {
+    padding: 16px 20px 32px 20px;
+  }
+
+  .form-title-login {
+    font-size: 24px;
+  }
+
+  .form-input-login {
+    padding: 14px 14px 14px 42px;
+    font-size: 15px;
+  }
+
+  .row-actions-login {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .social-login-text-login::before,
+  .social-login-text-login::after {
+    width: 28%;
+  }
+}

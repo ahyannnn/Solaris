@@ -524,3 +524,297 @@
     width: 100%;
   }
 }
+
+/* forgotpage.css - Forgot Password Page Styles */
+
+/* [All existing desktop CSS remains exactly as provided - no changes] */
+
+/* RESPONSIVE DESIGN - MOBILE APP-STYLE OVERRIDES ONLY */
+@media (max-width: 768px) {
+  /* Full-screen app container - PREVENT SCROLLING */
+  .forgot-page-forgot {
+    padding: 0;
+    background: #ffffff;
+    display: block;
+    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  /* Remove card styling completely */
+  .forgot-card-forgot {
+    max-width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff;
+    overflow: hidden;
+    flex-direction: column;
+    height: 100vh;
+    display: flex;
+    animation: none;
+  }
+
+  /* Hide ALL branding content - keep only logo */
+  .forgot-branding-forgot {
+    flex: 0 0 auto;
+    background: none;
+    padding: 40px 20px 0 20px;
+    display: block;
+  }
+
+  .branding-content-forgot {
+    max-width: 100%;
+    text-align: center;
+  }
+
+  /* Keep only logo image, hide everything else */
+  .brand-logo-forgot {
+    justify-content: center;
+    margin-bottom: 0;
+  }
+
+  .brand-logo-img-forgot {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+  }
+
+  /* Hide ALL branding text and marketing content */
+  .brand-name-forgot,
+  .brand-tagline-forgot,
+  .brand-description-forgot,
+  .brand-features-forgot,
+  .brand-feature-forgot,
+  .feature-dot-forgot {
+    display: none !important;
+  }
+
+  /* Form container - full width, no card, SCROLLABLE IF NEEDED */
+  .forgot-form-container-forgot {
+    flex: 1;
+    padding: 20px 24px 40px 24px;
+    background: #ffffff;
+    display: flex;
+    align-items: flex-start;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .forgot-form-wrapper-forgot {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Remove any residual shadows/borders */
+  .form-input-forgot,
+  .forgot-submit-btn-forgot,
+  .back-to-login-btn-forgot,
+  .code-input-forgot {
+    box-shadow: none !important;
+  }
+
+  .forgot-submit-btn-forgot:hover:not(:disabled),
+  .back-to-login-btn-forgot:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Ensure flat app-like appearance */
+  .form-header-forgot {
+    margin-bottom: 32px;
+  }
+
+  .form-title-forgot {
+    font-size: 28px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  .form-subtitle-forgot {
+    font-size: 15px;
+    color: #666666;
+  }
+
+  .form-subtitle-forgot strong {
+    color: #f39c12;
+  }
+
+  /* Form spacing for mobile app feel */
+  .forgot-form-forgot {
+    gap: 20px;
+  }
+
+  .form-group-forgot {
+    gap: 6px;
+  }
+
+  .form-label-forgot {
+    font-size: 14px;
+    color: #333333;
+  }
+
+  .form-input-forgot {
+    padding: 16px 16px 16px 44px;
+    font-size: 16px;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+  }
+
+  .input-icon-forgot {
+    left: 16px;
+    font-size: 18px;
+    color: #666666;
+  }
+
+  .password-toggle-forgot {
+    right: 16px;
+    font-size: 18px;
+  }
+
+  /* Submit button - full width app style */
+  .forgot-submit-btn-forgot {
+    padding: 16px;
+    font-size: 16px;
+    border-radius: 12px;
+    margin-top: 8px;
+  }
+
+  /* Code input styles for mobile */
+  .code-input-group-forgot {
+    margin-bottom: 8px;
+  }
+
+  .code-inputs-forgot {
+    gap: 8px;
+  }
+
+  .code-input-forgot {
+    width: 48px;
+    height: 56px;
+    font-size: 20px;
+    border-radius: 12px;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+  }
+
+  /* Resend code */
+  .resend-code-forgot {
+    margin-top: 4px;
+  }
+
+  .resend-text-forgot {
+    font-size: 14px;
+  }
+
+  .resend-link-forgot {
+    font-size: 14px;
+  }
+
+  /* Success screen */
+  .success-message-container-forgot {
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100%;
+  }
+
+  .success-icon-forgot {
+    width: 80px;
+    height: 80px;
+    font-size: 36px;
+  }
+
+  .success-title-forgot {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  .success-text-forgot {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+
+  .back-to-login-btn-forgot {
+    padding: 16px;
+    font-size: 16px;
+    border-radius: 12px;
+    width: 100%;
+  }
+
+  /* Sign up prompt */
+  .signup-prompt-forgot {
+    margin-top: 24px;
+  }
+
+  .signup-text-forgot {
+    font-size: 15px;
+  }
+
+  .signup-link-forgot {
+    font-size: 15px;
+  }
+
+  /* Error message styling */
+  .general-error-forgot {
+    padding: 14px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+
+  .error-message-forgot {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Keep same app-style behavior, minor spacing tweaks */
+  .forgot-branding-forgot {
+    padding: 30px 20px 0 20px;
+  }
+
+  .brand-logo-img-forgot {
+    width: 70px;
+    height: 70px;
+  }
+
+  .forgot-form-container-forgot {
+    padding: 16px 20px 32px 20px;
+  }
+
+  .form-title-forgot {
+    font-size: 24px;
+  }
+
+  .form-input-forgot {
+    padding: 14px 14px 14px 42px;
+    font-size: 15px;
+  }
+
+  .code-input-forgot {
+    width: 42px;
+    height: 50px;
+    font-size: 18px;
+  }
+
+  .success-icon-forgot {
+    width: 70px;
+    height: 70px;
+    font-size: 32px;
+  }
+
+  .success-title-forgot {
+    font-size: 22px;
+  }
+
+  .success-text-forgot {
+    font-size: 14px;
+  }
+}

@@ -701,3 +701,366 @@
     font-size: 1.25rem;
   }
 }
+
+/* register.css - Register Page Styles */
+
+/* [All existing desktop CSS remains exactly as provided - no changes] */
+
+/* RESPONSIVE DESIGN - MOBILE APP-STYLE OVERRIDES ONLY */
+@media (max-width: 768px) {
+  /* Full-screen app container - PREVENT SCROLLING */
+  .register-page-reg {
+    padding: 0;
+    background: #ffffff;
+    display: block;
+    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  /* Remove card styling completely */
+  .register-card-reg {
+    max-width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    background: #ffffff;
+    overflow: hidden;
+    flex-direction: column;
+    height: 100vh;
+    display: flex;
+  }
+
+  /* Hide ALL branding content - keep only logo */
+  .register-branding-reg {
+    flex: 0 0 auto;
+    background: none;
+    padding: 30px 20px 0 20px;
+    display: block;
+  }
+
+  .branding-content-reg {
+    max-width: 100%;
+    text-align: center;
+  }
+
+  /* Keep only logo image, hide everything else */
+  .brand-logo-reg {
+    justify-content: center;
+    margin-bottom: 0;
+  }
+
+  .brand-logo-img-reg {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto;
+  }
+
+  /* Hide ALL branding text and marketing content */
+  .brand-name-reg,
+  .brand-tagline-reg,
+  .brand-description-reg,
+  .brand-features-reg,
+  .brand-feature-reg,
+  .feature-dot-reg {
+    display: none !important;
+  }
+
+  /* Form container - full width, no card, SCROLLABLE IF NEEDED */
+  .register-form-container-reg {
+    flex: 1;
+    padding: 16px 24px 24px 24px;
+    background: #ffffff;
+    display: flex;
+    align-items: flex-start;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .register-form-wrapper-reg {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Remove any residual shadows/borders */
+  .form-input-reg,
+  .register-submit-btn-reg,
+  .social-btn-reg,
+  .back-button-reg,
+  .back-to-login-btn-reg,
+  .code-input-reg {
+    box-shadow: none !important;
+  }
+
+  .register-submit-btn-reg:hover:not(:disabled),
+  .social-btn-reg:hover:not(:disabled),
+  .back-to-login-btn-reg:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Ensure flat app-like appearance */
+  .form-header-reg {
+    margin-bottom: 24px;
+  }
+
+  .form-title-reg {
+    font-size: 26px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  .form-subtitle-reg {
+    font-size: 14px;
+    color: #666666;
+  }
+
+  /* Form spacing for mobile app feel */
+  .register-form-reg {
+    gap: 16px;
+  }
+
+  .form-group-reg {
+    gap: 4px;
+  }
+
+  .form-label-reg {
+    font-size: 14px;
+    color: #333333;
+  }
+
+  .form-input-reg {
+    padding: 14px 14px 14px 42px;
+    font-size: 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+  }
+
+  .input-icon-reg {
+    left: 14px;
+    font-size: 16px;
+    color: #666666;
+  }
+
+  .password-toggle-reg {
+    right: 14px;
+    font-size: 16px;
+  }
+
+  /* Checkbox styles */
+  .checkbox-label-reg {
+    margin: 4px 0 2px 0;
+  }
+
+  .terms-checkbox-reg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .checkbox-text-reg {
+    font-size: 13px;
+  }
+
+  .terms-link-reg {
+    font-size: 13px;
+  }
+
+  /* Submit button - full width app style */
+  .register-submit-btn-reg {
+    padding: 14px;
+    font-size: 15px;
+    border-radius: 12px;
+    margin-top: 4px;
+  }
+
+  /* Social login adjustments */
+  .social-login-reg {
+    margin-top: 12px;
+  }
+
+  .social-login-text-reg {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .social-btn-reg {
+    padding: 12px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+
+  .google-icon-reg {
+    font-size: 18px;
+  }
+
+  .google-text-reg {
+    font-size: 15px;
+  }
+
+  /* Login prompt */
+  .login-prompt-reg {
+    margin-top: 16px;
+  }
+
+  .login-text-reg {
+    font-size: 14px;
+  }
+
+  .login-link-reg {
+    font-size: 14px;
+  }
+
+  /* Code input styles for mobile */
+  .code-input-group-reg {
+    margin-bottom: 20px;
+  }
+
+  .code-inputs-reg {
+    gap: 6px;
+  }
+
+  .code-input-reg {
+    width: 44px;
+    height: 50px;
+    font-size: 18px;
+    border-radius: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+  }
+
+  /* Back button */
+  .back-button-reg {
+    padding: 14px;
+    font-size: 15px;
+    border-radius: 12px;
+    margin-top: 12px;
+    background-color: #f8f9fa;
+  }
+
+  /* Resend code */
+  .resend-text-reg {
+    font-size: 13px;
+  }
+
+  .resend-link-reg {
+    font-size: 13px;
+  }
+
+  /* Success screen */
+  .success-container-reg {
+    padding: 16px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100%;
+  }
+
+  .success-icon-reg {
+    width: 70px;
+    height: 70px;
+    font-size: 32px;
+  }
+
+  .success-title-reg {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  .success-text-reg {
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 24px;
+  }
+
+  .back-to-login-btn-reg {
+    padding: 14px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+
+  /* Error message styling */
+  .general-error-reg {
+    padding: 12px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  .error-message-reg {
+    font-size: 11px;
+  }
+
+  /* Modal mobile adjustments */
+  .modal-overlay-reg {
+    position: fixed;
+    z-index: 2000;
+  }
+
+  .modal-content-reg {
+    width: 90%;
+    padding: 20px;
+  }
+
+  .modal-header-reg h3 {
+    font-size: 16px;
+  }
+
+  .modal-body-reg p {
+    font-size: 14px;
+  }
+
+  .modal-close-btn-reg {
+    padding: 12px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Keep same app-style behavior, minor spacing tweaks */
+  .register-branding-reg {
+    padding: 25px 20px 0 20px;
+  }
+
+  .brand-logo-img-reg {
+    width: 60px;
+    height: 60px;
+  }
+
+  .register-form-container-reg {
+    padding: 12px 20px 20px 20px;
+  }
+
+  .form-title-reg {
+    font-size: 22px;
+  }
+
+  .form-input-reg {
+    padding: 12px 12px 12px 40px;
+    font-size: 14px;
+  }
+
+  .code-input-reg {
+    width: 40px;
+    height: 45px;
+    font-size: 16px;
+  }
+
+  .social-login-text-reg::before,
+  .social-login-text-reg::after {
+    width: 28%;
+  }
+
+  .success-icon-reg {
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+  }
+
+  .success-title-reg {
+    font-size: 22px;
+  }
+}

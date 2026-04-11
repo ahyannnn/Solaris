@@ -1,1006 +1,777 @@
-/* myproject.css - Modern SaaS Redesign */
-/* All original class names preserved */
+/* styles/Customer/myproject.css */
 
-/* Base Layout - Full Width */
+/* ============================================
+   MY PROJECT - Clean Modern Layout
+   ============================================ */
+
 .cuspro-page {
-  width: 100%;
-  min-height: 100vh;
-  background: #f5f7fa;
-  padding: 32px 40px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-}
-
-/* Typography System */
-.cuspro-page h1 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin: 0 0 8px 0;
-  letter-spacing: -0.02em;
-}
-
-.cuspro-page h2 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0 0 4px 0;
-}
-
-.cuspro-page h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0 0 16px 0;
-}
-
-.cuspro-page h4 {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0 0 4px 0;
-}
-
-.cuspro-page p {
-  font-size: 14px;
-  color: #666;
-  line-height: 1.5;
-  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 /* Header Card */
 .cuspro-header-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 24px 28px;
-  margin-bottom: 20px;
+  padding: 24px 0 8px 0;
 }
 
-.cuspro-header-card-content h1 {
-  margin-bottom: 6px;
+.cuspro-header-card h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
 }
 
-.cuspro-header-card-content p {
-  color: #6b7280;
+.cuspro-header-card p {
   font-size: 14px;
+  color: #64748B;
+  margin: 0;
 }
 
-/* Selector Card */
+/* Project Selector */
 .cuspro-selector-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin-bottom: 20px;
-}
-
-.cuspro-selector-card-content label {
-  display: block;
-  font-size: 12px;
-  font-weight: 500;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   margin-bottom: 8px;
 }
 
 .cuspro-project-select {
   width: 100%;
-  max-width: 320px;
-  padding: 10px 32px 10px 12px;
-  font-size: 14px;
-  color: #1a1a1a;
+  max-width: 400px;
+  padding: 12px 16px;
   background: white;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0F172A;
   cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 16px;
+  transition: all 0.2s;
 }
 
 .cuspro-project-select:hover {
-  border-color: #9ca3af;
+  border-color: #CBD5E1;
 }
 
 .cuspro-project-select:focus {
   outline: none;
-  border-color: #1a1a1a;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* Hero Card */
 .cuspro-hero-card {
   background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 24px 28px;
-  margin-bottom: 20px;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.cuspro-hero-main {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 20px;
+  margin-bottom: 16px;
 }
 
-.cuspro-hero-left {
-  flex: 1;
+.cuspro-hero-main h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 4px 0;
 }
 
 .cuspro-project-ref {
   font-size: 13px;
-  color: #6b7280;
-  margin-bottom: 16px;
-}
-
-.cuspro-hero-details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.cuspro-detail-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  background: #f3f4f6;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #374151;
-}
-
-.cuspro-detail-chip.full-payment-chip {
-  background: #e0e7ff;
-  color: #4338ca;
+  font-family: monospace;
+  color: #64748B;
+  margin: 0;
 }
 
 .cuspro-status-badge {
-  display: inline-block;
   padding: 6px 14px;
-  border-radius: 20px;
+  border-radius: 30px;
   font-size: 12px;
   font-weight: 600;
+  text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
-.cuspro-status-badge.quoted {
-  background: #fef3c7;
-  color: #d97706;
-}
+.cuspro-status-badge.quoted { background: #F1F5F9; color: #64748B; }
+.cuspro-status-badge.approved { background: #DBEAFE; color: #2563EB; }
+.cuspro-status-badge.in_progress,
+.cuspro-status-badge.progress_paid { background: #FEF3C7; color: #D97706; }
+.cuspro-status-badge.completed { background: #DCFCE7; color: #16A34A; }
+.cuspro-status-badge.full_paid { background: #DBEAFE; color: #2563EB; }
 
-.cuspro-status-badge.approved {
-  background: #dbeafe;
-  color: #2563eb;
-}
-
-.cuspro-status-badge.full_paid {
-  background: #d1fae5;
-  color: #059669;
-}
-
-.cuspro-status-badge.in_progress {
-  background: #e0e7ff;
-  color: #4338ca;
-}
-
-.cuspro-status-badge.progress_paid {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.cuspro-status-badge.completed {
-  background: #d1fae5;
-  color: #059669;
-}
-
-/* Next Step Card */
-.cuspro-next-step-card {
-  background: #fefce8;
-  border: 1px solid #fef08a;
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.cuspro-next-step-icon {
-  font-size: 24px;
-  color: #eab308;
-}
-
-.cuspro-next-step-content h4 {
-  margin-bottom: 4px;
-  color: #854d0e;
-}
-
-.cuspro-next-step-content p {
-  font-size: 13px;
-  color: #a16207;
-}
-
-/* Progress Section */
-.cuspro-progress-section {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 24px 28px;
-  margin-bottom: 24px;
-}
-
-.cuspro-progress-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 12px;
-}
-
-.cuspro-progress-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.cuspro-progress-percentage {
-  font-size: 14px;
-  font-weight: 700;
-  color: #1a1a1a;
-}
-
-.cuspro-progress-track {
-  height: 4px;
-  background: #e5e7eb;
-  border-radius: 2px;
-  overflow: hidden;
-  margin-bottom: 24px;
-}
-
-.cuspro-progress-fill {
-  height: 100%;
-  background: #1a1a1a;
-  border-radius: 2px;
-  transition: width 0.3s ease;
-}
-
-.cuspro-stats-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin-bottom: 16px;
-}
-
-.cuspro-stat-block {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.cuspro-stat-label {
-  font-size: 12px;
-  font-weight: 500;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.cuspro-stat-value {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1a1a1a;
-}
-
-.cuspro-payment-summary-bar {
-  padding-top: 16px;
-  border-top: 1px solid #e5e7eb;
-}
-
-.cuspro-payment-summary-text {
-  font-size: 13px;
-  font-weight: 500;
-}
-
-/* Tab Navigation */
-.cuspro-tab-navigation {
-  display: flex;
-  gap: 4px;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 6px;
-  margin-bottom: 20px;
-}
-
-.cuspro-tab-btn {
-  flex: 1;
-  padding: 10px 16px;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #6b7280;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cuspro-tab-btn:hover {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.cuspro-tab-btn.active {
-  background: #1a1a1a;
-  color: white;
-}
-
-/* Tab Content */
-.cuspro-tab-content {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 28px;
-}
-
-/* Info Cards */
-.cuspro-info-card {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 20px;
-}
-
-.cuspro-info-card:last-child {
-  margin-bottom: 0;
-}
-
-.cuspro-specs-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
-
-.cuspro-spec-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 8px 0;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.cuspro-spec-row:last-child {
-  border-bottom: none;
-}
-
-.cuspro-spec-label {
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.cuspro-spec-value {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1a1a1a;
-}
-
-/* Address Block */
-.cuspro-address-block {
-  display: flex;
-  gap: 12px;
-}
-
-.cuspro-address-icon {
-  font-size: 18px;
-  color: #6b7280;
-  margin-top: 2px;
-}
-
-.cuspro-address-block div p {
-  margin-bottom: 4px;
-}
-
-/* Personnel List */
-.cuspro-personnel-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.cuspro-personnel-item {
-  display: flex;
-  gap: 14px;
-}
-
-.cuspro-personnel-avatar {
-  width: 44px;
-  height: 44px;
-  background: #f3f4f6;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: 600;
-  color: #374151;
-}
-
-.cuspro-personnel-details h4 {
-  margin-bottom: 4px;
-}
-
-.cuspro-personnel-details p {
-  margin-bottom: 4px;
-}
-
-.cuspro-personnel-details a {
-  font-size: 12px;
-  color: #3b82f6;
-  text-decoration: none;
-}
-
-.cuspro-personnel-details a:hover {
-  text-decoration: underline;
-}
-
-.not-assigned-text {
-  color: #9ca3af;
-  font-style: italic;
-}
-
-/* Action Buttons */
-.cuspro-action-buttons {
+.cuspro-hero-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 20px;
+}
+
+.cuspro-hero-tags span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #475569;
+  background: #F8FAFC;
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+.cuspro-hero-tags .full-payment-tag {
+  background: #DBEAFE;
+  color: #2563EB;
+}
+
+/* Two Column Layout */
+.cuspro-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.cuspro-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cuspro-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Progress Card */
+.cuspro-progress-card {
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.cuspro-progress-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0 0 20px 0;
+}
+
+.cuspro-progress-ring-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.cuspro-progress-ring {
+  width: 140px;
+  height: 140px;
+}
+
+.cuspro-progress-fill {
+  transition: stroke-dashoffset 0.8s ease-out;
+}
+
+.cuspro-progress-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.cuspro-stat {
+  text-align: center;
+}
+
+.cuspro-stat span {
+  display: block;
+  font-size: 12px;
+  color: #64748B;
+  margin-bottom: 4px;
+}
+
+.cuspro-stat strong {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+/* Next Step Card */
+.cuspro-next-card {
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.cuspro-next-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0 0 16px 0;
+}
+
+.cuspro-next-content {
+  margin-bottom: 20px;
+}
+
+.cuspro-next-content h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0 0 4px 0;
+}
+
+.cuspro-next-content p {
+  font-size: 14px;
+  color: #64748B;
+  margin: 0;
 }
 
 .cuspro-btn-primary {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 20px;
-  background: #1a1a1a;
+  padding: 12px 20px;
+  background: #2563EB;
   color: white;
-  border: 1px solid #1a1a1a;
-  border-radius: 8px;
+  border: none;
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
 .cuspro-btn-primary:hover {
-  background: #333;
-  border-color: #333;
+  background: #1D4ED8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
-.cuspro-btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
+/* Details Cards */
+.cuspro-details-card {
   background: white;
-  color: #374151;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 24px;
 }
 
-.cuspro-btn-secondary:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
+.cuspro-details-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0 0 16px 0;
 }
 
-/* Timeline */
-.cuspro-timeline-container {
-  position: relative;
-  padding-left: 24px;
-}
-
-.cuspro-timeline-container::before {
-  content: '';
-  position: absolute;
-  left: 8px;
-  top: 8px;
-  bottom: 8px;
-  width: 2px;
-  background: #e5e7eb;
-}
-
-.cuspro-timeline-item {
-  position: relative;
-  padding-bottom: 28px;
-  display: flex;
+.cuspro-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
-.cuspro-timeline-item:last-child {
-  padding-bottom: 0;
+.cuspro-detail-item span {
+  display: block;
+  font-size: 12px;
+  color: #64748B;
+  margin-bottom: 4px;
 }
 
-.cuspro-timeline-marker {
-  position: relative;
-  z-index: 1;
-  width: 20px;
-  height: 20px;
+.cuspro-detail-item strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.cuspro-address p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #475569;
+}
+
+.cuspro-address p:first-child {
+  font-weight: 500;
+  color: #0F172A;
+}
+
+/* Engineer Card */
+.cuspro-engineer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cuspro-engineer-avatar {
+  width: 48px;
+  height: 48px;
+  background: #2563EB;
+  color: white;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
-}
-
-.cuspro-timeline-marker svg {
-  color: #10b981;
   font-size: 18px;
+  font-weight: 600;
 }
 
-.cuspro-marker-dot {
-  width: 8px;
-  height: 8px;
-  background: #d1d5db;
-  border-radius: 50%;
+.cuspro-engineer strong {
+  display: block;
+  font-size: 15px;
+  color: #0F172A;
+  margin-bottom: 2px;
 }
 
-.cuspro-timeline-content {
-  flex: 1;
-  padding-bottom: 8px;
-}
-
-.cuspro-timeline-content h4 {
-  margin-bottom: 4px;
-}
-
-.cuspro-timeline-content p {
+.cuspro-engineer p {
   font-size: 13px;
-  color: #6b7280;
-  margin-bottom: 4px;
+  color: #64748B;
+  margin: 0;
 }
 
-.cuspro-timeline-date {
-  font-size: 11px;
-  color: #9ca3af;
+.cuspro-engineer-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #94A3B8;
 }
 
-.cuspro-timeline-item.completed .cuspro-timeline-content h4 {
-  color: #10b981;
+.cuspro-engineer-placeholder svg {
+  font-size: 48px;
 }
 
-/* Payment Cards */
-.cuspro-payments-tab {
+.cuspro-engineer-placeholder strong {
+  display: block;
+  font-size: 15px;
+  color: #64748B;
+  margin-bottom: 2px;
+}
+
+.cuspro-engineer-placeholder p {
+  font-size: 13px;
+  color: #94A3B8;
+  margin: 0;
+}
+
+/* Tab Navigation */
+.cuspro-tab-nav {
+  display: flex;
+  gap: 4px;
+  background: white;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid #E2E8F0;
+  width: fit-content;
+}
+
+.cuspro-tab {
+  padding: 10px 24px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cuspro-tab:hover {
+  color: #0F172A;
+  background: #F8FAFC;
+}
+
+.cuspro-tab.active {
+  background: #0F172A;
+  color: white;
+}
+
+/* Tab Content */
+.cuspro-tab-content {
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 24px;
+}
+
+/* Overview Tab */
+.cuspro-overview {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
 }
 
-.cuspro-payment-card {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 18px;
+.cuspro-overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
 }
 
-.cuspro-payment-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.cuspro-payment-type {
+.cuspro-overview-card h4 {
   font-size: 15px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #0F172A;
+  margin: 0 0 16px 0;
 }
 
-.cuspro-payment-status-badge {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.cuspro-payment-status-badge.paid {
-  background: #d1fae5;
-  color: #059669;
-}
-
-.cuspro-payment-status-badge.pending {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.cuspro-payment-status-badge.for_verification {
-  background: #dbeafe;
-  color: #2563eb;
-}
-
-.cuspro-payment-status-badge.overdue {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.cuspro-payment-body {
-  margin-bottom: 12px;
-}
-
-.cuspro-payment-amount {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 6px;
-}
-
-.cuspro-payment-due {
-  font-size: 12px;
-  color: #6b7280;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.cuspro-payment-paid-date {
-  font-size: 12px;
-  color: #10b981;
-  margin-top: 6px;
-}
-
-.cuspro-payment-verification-note {
-  font-size: 12px;
-  color: #f59e0b;
-  margin-top: 6px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.cuspro-payment-action {
-  margin-top: 12px;
-}
-
-.cuspro-btn-pay {
-  padding: 8px 18px;
-  background: #1a1a1a;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.cuspro-btn-pay:hover {
-  background: #333;
-}
-
-/* Documents Tab */
-.cuspro-documents-tab {
+.cuspro-timeline-mini {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.cuspro-document-card {
+.cuspro-timeline-mini-item {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  align-items: flex-start;
+  gap: 12px;
 }
 
-.cuspro-document-icon {
-  width: 44px;
-  height: 44px;
-  background: #f3f4f6;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  color: #6b7280;
+.cuspro-milestone-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #CBD5E1;
+  margin-top: 6px;
 }
 
-.cuspro-document-info {
-  flex: 1;
+.cuspro-timeline-mini-item.completed .cuspro-milestone-dot {
+  background: #22C55E;
 }
 
-.cuspro-document-info h4 {
-  margin-bottom: 2px;
-}
-
-.cuspro-document-info p {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.cuspro-btn-download {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  background: white;
-  color: #374151;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cuspro-btn-download:hover {
-  background: #f3f4f6;
-  border-color: #9ca3af;
-}
-
-.cuspro-btn-download.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Support Tab */
-.cuspro-support-tab {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-.cuspro-support-card {
-  text-align: center;
-  padding: 28px 20px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-}
-
-.cuspro-support-icon {
-  font-size: 32px;
-  color: #6b7280;
-  margin-bottom: 16px;
-}
-
-.cuspro-support-card h3 {
-  margin-bottom: 8px;
-}
-
-.cuspro-support-card p {
-  font-size: 13px;
-  margin-bottom: 12px;
-}
-
-.cuspro-support-link {
+.cuspro-timeline-mini-item p {
   font-size: 14px;
   font-weight: 500;
-  color: #1a1a1a;
+  color: #0F172A;
+  margin: 0 0 2px 0;
+}
+
+.cuspro-timeline-mini-item small {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.cuspro-payment-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cuspro-payment-mini-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.cuspro-payment-mini-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.cuspro-payment-mini-item span {
+  display: block;
+  font-size: 13px;
+  color: #64748B;
+}
+
+.cuspro-payment-mini-item strong {
+  font-size: 15px;
+  color: #0F172A;
+}
+
+.cuspro-payment-mini-status {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.cuspro-payment-mini-status.paid { background: #DCFCE7; color: #16A34A; }
+.cuspro-payment-mini-status.pending { background: #F1F5F9; color: #64748B; }
+.cuspro-payment-mini-status.overdue { background: #FEE2E2; color: #DC2626; }
+.cuspro-payment-mini-status.for_verification { background: #FEF3C7; color: #D97706; }
+
+.cuspro-contact-card {
+  background: #F8FAFC;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.cuspro-contact-card h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0 0 4px 0;
+}
+
+.cuspro-contact-card p {
+  font-size: 14px;
+  color: #64748B;
+  margin: 0 0 16px 0;
+}
+
+.cuspro-contact-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #2563EB;
+  font-size: 14px;
   text-decoration: none;
 }
 
-.cuspro-support-link:hover {
+.cuspro-contact-actions a:hover {
   text-decoration: underline;
 }
 
-.cuspro-coordinator-info {
-  margin-top: 12px;
+/* Timeline Full */
+.cuspro-timeline-full {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.cuspro-coordinator-info strong {
-  display: block;
-  font-size: 14px;
-  margin-bottom: 4px;
+.cuspro-timeline-full-item {
+  display: grid;
+  grid-template-columns: 40px 1fr 120px;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid #F1F5F9;
 }
 
-.cuspro-coordinator-info a {
+.cuspro-timeline-full-item:last-child {
+  border-bottom: none;
+}
+
+.cuspro-timeline-marker {
+  display: flex;
+  justify-content: center;
+}
+
+.cuspro-timeline-marker svg {
+  color: #22C55E;
+  font-size: 20px;
+}
+
+.cuspro-timeline-marker span {
+  width: 28px;
+  height: 28px;
+  background: #F1F5F9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 13px;
-  color: #3b82f6;
-  text-decoration: none;
+  font-weight: 500;
+  color: #64748B;
+}
+
+.cuspro-timeline-full-item.completed .cuspro-timeline-marker span {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.cuspro-timeline-info h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0 0 2px 0;
+}
+
+.cuspro-timeline-info p {
+  font-size: 13px;
+  color: #64748B;
+  margin: 0;
+}
+
+.cuspro-timeline-date {
+  text-align: right;
+  font-size: 13px;
+  color: #64748B;
+}
+
+/* Payments Full */
+.cuspro-payments-full {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cuspro-payment-full-item {
+  padding: 20px;
+  background: #F8FAFC;
+  border-radius: 16px;
+}
+
+.cuspro-payment-full-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.cuspro-payment-full-header h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0 0 4px 0;
+}
+
+.cuspro-payment-full-header p {
+  font-size: 13px;
+  color: #64748B;
+  margin: 0;
+}
+
+.cuspro-payment-full-status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.cuspro-payment-full-status.paid { background: #DCFCE7; color: #16A34A; }
+.cuspro-payment-full-status.pending { background: #F1F5F9; color: #64748B; }
+.cuspro-payment-full-status.overdue { background: #FEE2E2; color: #DC2626; }
+.cuspro-payment-full-status.for_verification { background: #FEF3C7; color: #D97706; }
+
+.cuspro-payment-full-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.cuspro-payment-full-amount strong {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.cuspro-payment-full-amount span {
+  font-size: 13px;
+  color: #64748B;
+}
+
+.cuspro-btn-pay {
+  padding: 10px 20px;
+  background: #2563EB;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cuspro-btn-pay:hover {
+  background: #1D4ED8;
 }
 
 /* Empty State */
 .cuspro-empty-state-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 60px 40px;
   text-align: center;
+  padding: 60px 40px;
+  background: white;
+  border-radius: 24px;
+  border: 1px solid #E2E8F0;
 }
 
 .cuspro-empty-icon {
   font-size: 48px;
-  color: #d1d5db;
+  color: #94A3B8;
   margin-bottom: 20px;
 }
 
 .cuspro-empty-state-card h2 {
-  margin-bottom: 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 8px 0;
 }
 
 .cuspro-empty-state-card p {
-  margin-bottom: 24px;
-  color: #6b7280;
+  font-size: 15px;
+  color: #64748B;
+  margin: 0 0 24px 0;
 }
 
-/* Skeletons */
+.cuspro-empty-text {
+  text-align: center;
+  color: #64748B;
+  padding: 40px;
+}
+
+/* Skeleton */
 .skeleton-card {
   background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: 20px;
   padding: 24px;
 }
 
 .skeleton-line {
-  background: #e5e7eb;
-  border-radius: 4px;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-.skeleton-line.large {
-  height: 28px;
-  width: 250px;
-  margin-bottom: 12px;
-}
-
-.skeleton-line.medium {
-  height: 18px;
-  width: 180px;
-  margin-bottom: 8px;
-}
-
-.skeleton-line.small {
-  height: 12px;
-  width: 100px;
-}
-
-.skeleton-select {
-  height: 40px;
-  background: #e5e7eb;
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
   border-radius: 8px;
-  margin-top: 8px;
-  animation: pulse 1.5s ease-in-out infinite;
 }
 
-.skeleton-badge {
-  height: 32px;
-  width: 120px;
-  background: #e5e7eb;
-  border-radius: 20px;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-.skeleton-chip {
-  height: 28px;
-  width: 80px;
-  background: #e5e7eb;
-  border-radius: 20px;
-  animation: pulse 1.5s ease-in-out infinite;
-}
+.skeleton-line.large { height: 28px; width: 200px; margin-bottom: 8px; }
+.skeleton-line.medium { height: 16px; width: 300px; }
+.skeleton-line.small { height: 14px; width: 150px; }
 
 .skeleton-details {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   margin-top: 16px;
 }
 
-.skeleton-progress {
-  height: 4px;
-  background: #e5e7eb;
-  border-radius: 2px;
-  margin: 16px 0;
-  animation: pulse 1.5s ease-in-out infinite;
+.skeleton-chip {
+  height: 32px;
+  width: 100px;
+  background: #F1F5F9;
+  border-radius: 20px;
 }
 
-.skeleton-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin-top: 16px;
+.cuspro-two-col .skeleton-card {
+  min-height: 200px;
 }
 
-.skeleton-stat {
-  height: 40px;
-  background: #e5e7eb;
-  border-radius: 8px;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-.skeleton-tabs {
-  display: flex;
-  gap: 8px;
-  padding: 6px;
-  margin-bottom: 20px;
-}
-
-.skeleton-tab {
-  flex: 1;
-  height: 42px;
-  background: #e5e7eb;
-  border-radius: 8px;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-.skeleton-content {
-  padding: 8px;
-}
-
-.skeleton-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.skeleton-info-card {
-  height: 200px;
-  background: #e5e7eb;
-  border-radius: 10px;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-/* Empty Payments */
-.cuspro-empty-payments {
-  text-align: center;
-  padding: 40px;
-  color: #6b7280;
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
-  .cuspro-page {
-    padding: 24px 28px;
-  }
-  
-  .cuspro-support-tab {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
 @media (max-width: 768px) {
-  .cuspro-page {
-    padding: 20px;
+  .cuspro-two-col {
+    grid-template-columns: 1fr;
   }
   
-  .cuspro-stats-row {
+  .cuspro-overview-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .cuspro-timeline-full-item {
+    grid-template-columns: 40px 1fr;
+  }
+  
+  .cuspro-timeline-date {
+    grid-column: 2;
+    text-align: left;
+    margin-top: 4px;
+  }
+  
+  .cuspro-hero-main {
+    flex-direction: column;
     gap: 12px;
   }
   
-  .cuspro-specs-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .cuspro-support-tab {
-    grid-template-columns: 1fr;
-  }
-  
-  .cuspro-hero-card {
-    flex-direction: column;
-  }
-  
-  .cuspro-tab-navigation {
-    flex-wrap: wrap;
-  }
-  
-  .cuspro-tab-btn {
-    font-size: 12px;
-    padding: 8px 12px;
+  .cuspro-tab {
+    padding: 8px 16px;
+    font-size: 13px;
   }
 }

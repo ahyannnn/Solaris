@@ -14,8 +14,8 @@ import {
   FaArrowRight
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
-// Assuming CSS is imported, but we will use inline styles or a separate CSS module. For this refactor, we'll use className with -cusdash suffix.
-// import '../../styles/Customer/dashboard.css';
+
+import '../../styles/Customer/dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -131,6 +131,44 @@ const Dashboard = () => {
       'completed': <span className="status-badge-cusdash status-completed-cusdash">Completed</span>
     };
     return badges[status] || <span className="status-badge-cusdash">{status}</span>;
+  };
+
+  // Progress Ring Component
+  const ProgressRing = ({ progress }) => {
+    const radius = 40;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (progress / 100) * circumference;
+    
+    return (
+      <div className="progress-ring-wrapper-cusdash">
+        <svg className="progress-ring-cusdash" width="100" height="100">
+          <circle
+            className="progress-ring-bg-cusdash"
+            cx="50"
+            cy="50"
+            r={radius}
+            fill="none"
+            strokeWidth="4"
+          />
+          <circle
+            className="progress-ring-fill-cusdash"
+            cx="50"
+            cy="50"
+            r={radius}
+            fill="none"
+            strokeWidth="4"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            transform="rotate(-90 50 50)"
+          />
+        </svg>
+        <div className="progress-ring-content-cusdash">
+          <span className="progress-ring-value-cusdash">{progress}%</span>
+          <span className="progress-ring-label-cusdash">Progress</span>
+        </div>
+      </div>
+    );
   };
 
   // Skeleton Components
@@ -307,160 +345,151 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Active Project Section */}
-        <div className="dashboard-main-cusdash">
-          <div className="section-header-cusdash">
-            <h2 className="section-title-cusdash">Active Project</h2>
-            {project && <Link to="/dashboard/myproject" className="view-all-link-cusdash">View Details <FaArrowRight className="arrow-icon-cusdash" /></Link>}
+        {/* Row 1: Active Project Card + Recent Activities */}
+        <div className="row-layout-cusdash">
+          {/* Left: Active Project Card */}
+          <div className="project-section-cusdash">
+            <div className="section-header-cusdash">
+              <h2 className="section-title-cusdash">Active Project</h2>
+              {project && <Link to="/dashboard/myproject" className="view-all-link-cusdash">View Details <FaArrowRight className="arrow-icon-cusdash" /></Link>}
+            </div>
+            
+            {project ? (
+              <div className="project-card-enhanced-cusdash">
+                <div className="project-header-cusdash">
+                  <div className="project-info-cusdash">
+                    <h3 className="project-name-cusdash">{project.projectName || project.projectReference}</h3>
+                    <p className="project-system-cusdash">{project.systemSize} Solar System | {project.systemType}</p>
+                  </div>
+                  {getStatusBadge(project.status)}
+                </div>
+                
+                <div className="project-content-layout-cusdash">
+                  <ProgressRing progress={getProjectProgress()} />
+                  <div className="project-details-cusdash">
+                    <div className="project-metric-cusdash">
+                      <span className="metric-label-cusdash">Total Cost</span>
+                      <span className="metric-value-cusdash">{formatCurrency(project.totalCost)}</span>
+                    </div>
+                    <div className="project-metric-cusdash">
+                      <span className="metric-label-cusdash">Amount Paid</span>
+                      <span className="metric-value-cusdash">{formatCurrency(project.amountPaid)}</span>
+                    </div>
+                    <div className="project-actions-cusdash">
+                      <Link to="/dashboard/myproject" className="action-link-cusdash">
+                        Track Progress
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="empty-state-cusdash">
+                <div className="empty-state-content-cusdash">
+                  <h3 className="empty-state-title-cusdash">No active projects</h3>
+                  <p className="empty-state-description-cusdash">Start your solar journey today</p>
+                  <Link to="book-assessment" className="btn-primary-cusdash small-cusdash">
+                    Get Started
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
-          
-          {project ? (
-            <div className="project-card-cusdash">
-              <div className="project-header-cusdash">
-                <div className="project-info-cusdash">
-                  <h3 className="project-name-cusdash">{project.projectName || project.projectReference}</h3>
-                  <p className="project-system-cusdash">{project.systemSize} Solar System | {project.systemType}</p>
-                </div>
-                {getStatusBadge(project.status)}
-              </div>
-              
-              <div className="project-progress-cusdash">
-                <div className="progress-label-cusdash">
-                  <span className="progress-text-cusdash">Overall Progress</span>
-                  <span className="progress-percent-cusdash">{getProjectProgress()}%</span>
-                </div>
-                <div className="progress-bar-container-cusdash">
-                  <div className="progress-bar-fill-cusdash" style={{ width: `${getProjectProgress()}%` }}></div>
-                </div>
-              </div>
-              
-              <div className="project-actions-cusdash">
-                <Link to="/dashboard/myproject" className="action-link-cusdash">
-                  Track Progress
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <div className="empty-state-cusdash">
-              <div className="empty-state-content-cusdash">
-                <h3 className="empty-state-title-cusdash">No active projects</h3>
-                <p className="empty-state-description-cusdash">Start your solar journey today</p>
-                <Link to="book-assessment" className="btn-primary-cusdash small-cusdash">
-                  Get Started
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* Info Grid */}
-        <div className="info-grid-cusdash">
-          {/* Recent Quotes */}
-          <div className="info-card-cusdash">
-            <div className="info-card-header-cusdash">
-              <h3 className="info-card-title-cusdash">Recent Quotes</h3>
+          {/* Right: Recent Activities */}
+          <div className="activities-section-cusdash">
+            <div className="section-header-cusdash">
+              <h2 className="section-title-cusdash">Recent Activities</h2>
               {recentQuotes.length > 0 && (
                 <Link to="book-assessment" className="view-all-link-cusdash">View All</Link>
               )}
             </div>
             
-            <div className="info-list-cusdash">
-              {recentQuotes.length > 0 ? (
-                recentQuotes.map(quote => (
-                  <div key={quote._id} className="info-item-cusdash">
-                    <div className="info-item-content-cusdash">
-                      <span className="info-item-title-cusdash">{quote.quotationReference}</span>
-                      <span className="info-item-date-cusdash">
-                        {new Date(quote.requestedAt).toLocaleDateString('en-PH', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </span>
+            <div className="activities-card-cusdash">
+              <div className="activities-list-cusdash">
+                {recentQuotes.length > 0 ? (
+                  recentQuotes.map(quote => (
+                    <div key={quote._id} className="activity-item-cusdash">
+                      <div className="activity-icon-wrapper-cusdash">
+                        <FaFileInvoice className="activity-icon-cusdash" />
+                      </div>
+                      <div className="activity-content-cusdash">
+                        <span className="activity-title-cusdash">Quote Request</span>
+                        <span className="activity-reference-cusdash">{quote.quotationReference}</span>
+                        <span className="activity-date-cusdash">
+                          {new Date(quote.requestedAt).toLocaleDateString('en-PH', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </span>
+                      </div>
+                      <div className="activity-status-cusdash">
+                        {getStatusBadge(quote.status)}
+                      </div>
                     </div>
-                    <div className="info-item-status-cusdash">
-                      {getStatusBadge(quote.status)}
-                    </div>
+                  ))
+                ) : (
+                  <div className="empty-small-cusdash">
+                    <p className="empty-text-cusdash">No recent activities</p>
+                    <Link to="book-assessment" className="link-cusdash">Request a quote</Link>
                   </div>
-                ))
-              ) : (
-                <div className="empty-small-cusdash">
-                  <p className="empty-text-cusdash">No quotes yet</p>
-                  <Link to="book-assessment" className="link-cusdash">Request a quote</Link>
-                </div>
-              )}
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2: Three Equal Cards */}
+        <div className="info-grid-cusdash">
+          {/* Active Projects Card */}
+          <div className="info-card-cusdash">
+            <div className="info-card-header-cusdash">
+              <div className="info-card-title-wrapper-cusdash">
+                <FaHome className="card-icon-cusdash" />
+                <h3 className="info-card-title-cusdash">Active Projects</h3>
+              </div>
+            </div>
+            <div className="info-card-content-cusdash">
+              <span className="card-value-large-cusdash">{projectsList.filter(p => p.status !== 'completed').length}</span>
+              <span className="card-label-cusdash">Projects in progress</span>
+              <Link to="/dashboard/myproject" className="card-link-cusdash">
+                View Projects <FaArrowRight className="arrow-icon-cusdash" />
+              </Link>
             </div>
           </div>
 
-          {/* Pending Payments */}
+          {/* Pending Payments Card */}
           <div className="info-card-cusdash">
             <div className="info-card-header-cusdash">
-              <h3 className="info-card-title-cusdash">Pending Payments</h3>
-              {pendingPayments.length > 0 && (
-                <Link to="billing" className="view-all-link-cusdash">View All</Link>
-              )}
+              <div className="info-card-title-wrapper-cusdash">
+                <FaClock className="card-icon-cusdash" />
+                <h3 className="info-card-title-cusdash">Pending Payments</h3>
+              </div>
             </div>
-            
-            <div className="info-list-cusdash">
-              {pendingPayments.length > 0 ? (
-                pendingPayments.map(payment => (
-                  <div key={payment._id || payment.id} className="info-item-cusdash">
-                    <div className="info-item-content-cusdash">
-                      <span className="info-item-title-cusdash">{payment.invoiceNumber || payment._id}</span>
-                      <span className="info-item-amount-cusdash">{formatCurrency(payment.assessmentFee)}</span>
-                    </div>
-                    <div className="info-item-actions-cusdash">
-                      <Link to="billing" className="pay-link-cusdash">
-                        Pay Now
-                      </Link>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="empty-small-cusdash">
-                  <p className="empty-text-cusdash">No pending payments</p>
-                  <span className="text-muted-cusdash">All caught up!</span>
-                </div>
-              )}
+            <div className="info-card-content-cusdash">
+              <span className="card-value-large-cusdash">{pendingPayments.length}</span>
+              <span className="card-label-cusdash">Awaiting payment</span>
+              <Link to="billing" className="card-link-cusdash">
+                Make Payment <FaArrowRight className="arrow-icon-cusdash" />
+              </Link>
             </div>
           </div>
 
-          {/* Upcoming Appointments */}
+          {/* Upcoming Appointments Card */}
           <div className="info-card-cusdash">
             <div className="info-card-header-cusdash">
-              <h3 className="info-card-title-cusdash">Upcoming Appointments</h3>
-              {upcomingAppointments.length > 0 && (
-                <Link to="book-assessment" className="view-all-link-cusdash">View All</Link>
-              )}
+              <div className="info-card-title-wrapper-cusdash">
+                <FaCalendarAlt className="card-icon-cusdash" />
+                <h3 className="info-card-title-cusdash">Upcoming Appointments</h3>
+              </div>
             </div>
-            
-            <div className="info-list-cusdash">
-              {upcomingAppointments.length > 0 ? (
-                upcomingAppointments.map(appointment => (
-                  <div key={appointment._id || appointment.id} className="info-item-cusdash">
-                    <div className="info-item-content-cusdash">
-                      <span className="info-item-title-cusdash">Pre-Assessment</span>
-                      <span className="info-item-date-cusdash">
-                        {new Date(appointment.preferredDate).toLocaleDateString('en-PH', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </span>
-                    </div>
-                    <div className="info-item-status-cusdash">
-                      <span className={`appointment-status-cusdash ${appointment.paymentStatus === 'paid' ? 'confirmed-cusdash' : 'pending-cusdash'}`}>
-                        {appointment.paymentStatus === 'paid' ? 'Confirmed' : 'Pending Payment'}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="empty-small-cusdash">
-                  <p className="empty-text-cusdash">No upcoming appointments</p>
-                  <Link to="book-assessment" className="link-cusdash">Book an assessment</Link>
-                </div>
-              )}
+            <div className="info-card-content-cusdash">
+              <span className="card-value-large-cusdash">{upcomingAppointments.length}</span>
+              <span className="card-label-cusdash">Scheduled assessments</span>
+              <Link to="book-assessment" className="card-link-cusdash">
+                Schedule Now <FaArrowRight className="arrow-icon-cusdash" />
+              </Link>
             </div>
           </div>
         </div>

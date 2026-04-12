@@ -6,16 +6,14 @@ import axios from 'axios';
 import { 
   FaFileInvoiceDollar, 
   FaClipboardList, 
-  FaUsers, 
-  FaMicrochip,
   FaChartLine,
+  FaMicrochip,
   FaCheckCircle,
   FaExclamationTriangle,
   FaDownload,
-  FaChartBar,
-  FaFileAlt,
   FaCalendarAlt,
-  FaMoneyBillWave
+  FaMoneyBillWave,
+  FaArrowRight
 } from 'react-icons/fa';
 import '../../styles/Admin/dashboard.css';
 
@@ -27,9 +25,7 @@ const AdminDashboard = () => {
     freeQuotes: { total: 0, pending: 0, completed: 0 },
     preAssessments: { total: 0, pending: 0, completed: 0, scheduled: 0 },
     revenue: { total: 0, thisMonth: 0 },
-    users: { total: 0, newThisMonth: 0 },
-    devices: { total: 0, active: 0, deployed: 0 },
-    completionRate: 0
+    devices: { total: 0, active: 0, deployed: 0 }
   });
   const [recentActivities, setRecentActivities] = useState([]);
 
@@ -45,7 +41,6 @@ const AdminDashboard = () => {
       const [
         freeQuotesRes,
         preAssessmentsRes,
-        usersRes,
         devicesRes,
         revenueRes
       ] = await Promise.all([
@@ -55,9 +50,6 @@ const AdminDashboard = () => {
         axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
           headers: { Authorization: `Bearer ${token}` }
         }).catch(() => ({ data: { assessments: [] } })),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }).catch(() => ({ data: { total: 0, newThisMonth: 0 } })),
         axios.get(`${import.meta.env.VITE_API_URL}/api/admin/devices`, {
           headers: { Authorization: `Bearer ${token}` }
         }).catch(() => ({ data: { total: 0, active: 0, deployed: 0 } })),
@@ -75,10 +67,6 @@ const AdminDashboard = () => {
       const completedAssessments = assessments.filter(a => a.assessmentStatus === 'completed');
       const scheduledAssessments = assessments.filter(a => a.assessmentStatus === 'scheduled');
 
-      const completionRate = assessments.length > 0 
-        ? (completedAssessments.length / assessments.length * 100).toFixed(1)
-        : 0;
-
       setStats({
         freeQuotes: {
           total: freeQuotes.length,
@@ -92,9 +80,7 @@ const AdminDashboard = () => {
           scheduled: scheduledAssessments.length
         },
         revenue: revenueRes.data,
-        users: usersRes.data,
-        devices: devicesRes.data,
-        completionRate
+        devices: devicesRes.data
       });
 
       const activities = generateRecentActivities(freeQuotes, assessments);
@@ -111,34 +97,28 @@ const AdminDashboard = () => {
   const generateRecentActivities = (freeQuotes, assessments) => {
     const activities = [];
 
-    freeQuotes.slice(0, 5).forEach(quote => {
+    freeQuotes.slice(0, 4).forEach(quote => {
       activities.push({
         id: `quote-${quote._id}`,
         type: 'free-quote',
-        message: `New free quote request from ${quote.clientId?.contactFirstName || 'Client'}`,
+        message: `New quote request: ${quote.quotationReference}`,
         time: new Date(quote.requestedAt).toLocaleString(),
         status: quote.status,
-        icon: <FaFileAlt />,
         action: `/dashboard/free-quotes/${quote._id}`
       });
     });
 
-    assessments.slice(0, 5).forEach(assessment => {
+    assessments.slice(0, 6).forEach(assessment => {
       let message = '';
-      let icon = null;
       
       if (assessment.paymentStatus === 'for_verification') {
-        message = `Payment verification needed for ${assessment.bookingReference}`;
-        icon = <FaMoneyBillWave />;
+        message = `Payment verification: ${assessment.bookingReference}`;
       } else if (assessment.assessmentStatus === 'scheduled') {
         message = `Assessment scheduled: ${assessment.bookingReference}`;
-        icon = <FaCalendarAlt />;
       } else if (assessment.assessmentStatus === 'completed') {
         message = `Assessment completed: ${assessment.bookingReference}`;
-        icon = <FaCheckCircle />;
       } else {
-        message = `New pre-assessment booking: ${assessment.bookingReference}`;
-        icon = <FaClipboardList />;
+        message = `New booking: ${assessment.bookingReference}`;
       }
       
       activities.push({
@@ -147,7 +127,6 @@ const AdminDashboard = () => {
         message,
         time: new Date(assessment.bookedAt).toLocaleString(),
         status: assessment.assessmentStatus,
-        icon,
         action: `/dashboard/pre-assessments/${assessment._id}`
       });
     });
@@ -161,7 +140,7 @@ const AdminDashboard = () => {
       currency: 'PHP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(amount);
+    }).format(amount || 0);
   };
 
   const StatsCards = () => {
@@ -170,6 +149,7 @@ const AdminDashboard = () => {
         title: 'Free Quotes',
         value: stats.freeQuotes.total,
         icon: <FaFileInvoiceDollar />,
+        color: 'blue',
         details: [
           { label: 'Pending', value: stats.freeQuotes.pending },
           { label: 'Completed', value: stats.freeQuotes.completed }
@@ -179,6 +159,7 @@ const AdminDashboard = () => {
         title: 'Pre Assessments',
         value: stats.preAssessments.total,
         icon: <FaClipboardList />,
+        color: 'green',
         details: [
           { label: 'Pending', value: stats.preAssessments.pending },
           { label: 'Scheduled', value: stats.preAssessments.scheduled },
@@ -186,36 +167,22 @@ const AdminDashboard = () => {
         ]
       },
       {
-        title: 'Revenue',
+        title: 'Total Revenue',
         value: formatCurrency(stats.revenue.total || 0),
         icon: <FaChartLine />,
+        color: 'purple',
         details: [
           { label: 'This Month', value: formatCurrency(stats.revenue.thisMonth || 0) }
-        ]
-      },
-      {
-        title: 'Users',
-        value: stats.users.total || 0,
-        icon: <FaUsers />,
-        details: [
-          { label: 'New This Month', value: stats.users.newThisMonth || 0 }
         ]
       },
       {
         title: 'IoT Devices',
         value: stats.devices.total || 0,
         icon: <FaMicrochip />,
+        color: 'orange',
         details: [
           { label: 'Active', value: stats.devices.active || 0 },
           { label: 'Deployed', value: stats.devices.deployed || 0 }
-        ]
-      },
-      {
-        title: 'Completion Rate',
-        value: `${stats.completionRate}%`,
-        icon: <FaCheckCircle />,
-        details: [
-          { label: 'Target', value: '85%' }
         ]
       }
     ];
@@ -223,12 +190,14 @@ const AdminDashboard = () => {
     return (
       <div className="adsih-stats-grid">
         {cards.map((card, index) => (
-          <div key={index} className="adsih-stat-card">
-            <div className="adsih-stat-header">
+          <div key={index} className={`adsih-stat-card ${card.color}`}>
+            <div className="adsih-stat-main">
+              <div className="adsih-stat-info">
+                <span className="adsih-stat-label">{card.title}</span>
+                <span className="adsih-stat-value">{card.value}</span>
+              </div>
               <div className="adsih-stat-icon">{card.icon}</div>
-              <div className="adsih-stat-value">{card.value}</div>
             </div>
-            <div className="adsih-stat-title">{card.title}</div>
             <div className="adsih-stat-details">
               {card.details.map((detail, idx) => (
                 <div key={idx} className="adsih-stat-detail">
@@ -253,18 +222,12 @@ const AdminDashboard = () => {
     const maxAssessments = Math.max(...monthlyData.assessments);
     const maxRevenue = Math.max(...monthlyData.revenue);
 
-    const handleExport = () => {
-      console.log('Export data');
-    };
-
     return (
       <div className="adsih-charts-row">
         <div className="adsih-chart-card">
           <div className="adsih-chart-header">
-            <h3>
-              <FaChartLine /> Assessment Trends
-            </h3>
-            <button className="adsih-export-btn" onClick={handleExport}>
+            <h3>Assessment Trends</h3>
+            <button className="adsih-export-btn" onClick={() => console.log('Export')}>
               <FaDownload /> Export
             </button>
           </div>
@@ -287,9 +250,7 @@ const AdminDashboard = () => {
 
         <div className="adsih-chart-card">
           <div className="adsih-chart-header">
-            <h3>
-              <FaChartBar /> Revenue Overview
-            </h3>
+            <h3>Revenue Overview</h3>
           </div>
           <div className="adsih-chart-body">
             <div className="adsih-bar-chart">
@@ -314,10 +275,10 @@ const AdminDashboard = () => {
   const RecentActivity = () => {
     const getStatusClass = (status) => {
       switch(status) {
-        case 'completed': return 'completed-adsih';
-        case 'pending': return 'pending-adsih';
-        case 'for_verification': return 'for-verification-adsih';
-        case 'scheduled': return 'scheduled-adsih';
+        case 'completed': return 'completed';
+        case 'pending': return 'pending';
+        case 'for_verification': return 'verification';
+        case 'scheduled': return 'scheduled';
         default: return '';
       }
     };
@@ -326,10 +287,18 @@ const AdminDashboard = () => {
       switch(status) {
         case 'completed': return 'Completed';
         case 'pending': return 'Pending';
-        case 'for_verification': return 'For Verification';
+        case 'for_verification': return 'Verifying';
         case 'scheduled': return 'Scheduled';
         default: return status;
       }
+    };
+
+    const getActivityIcon = (activity) => {
+      if (activity.type === 'free-quote') return <FaFileInvoiceDollar />;
+      if (activity.message.includes('Payment')) return <FaMoneyBillWave />;
+      if (activity.message.includes('scheduled')) return <FaCalendarAlt />;
+      if (activity.status === 'completed') return <FaCheckCircle />;
+      return <FaClipboardList />;
     };
 
     return (
@@ -337,7 +306,7 @@ const AdminDashboard = () => {
         <div className="adsih-activity-header">
           <h3>Recent Activity</h3>
           <button className="adsih-view-all" onClick={() => navigate('/dashboard/activities')}>
-            View All
+            View All <FaArrowRight />
           </button>
         </div>
         
@@ -353,7 +322,9 @@ const AdminDashboard = () => {
                 className="adsih-activity-item"
                 onClick={() => activity.action && navigate(activity.action)}
               >
-                <div className="adsih-activity-icon">{activity.icon}</div>
+                <div className="adsih-activity-icon">
+                  {getActivityIcon(activity)}
+                </div>
                 <div className="adsih-activity-content">
                   <p className="adsih-activity-message">{activity.message}</p>
                   <span className="adsih-activity-time">{activity.time}</span>
@@ -372,32 +343,24 @@ const AdminDashboard = () => {
   const SkeletonLoader = () => (
     <div className="adsih-admin-dashboard">
       <div className="adsih-dashboard-header">
-        <div className="adsih-skeleton-title"></div>
-        <div className="adsih-skeleton-subtitle"></div>
+        <div className="skeleton-title"></div>
+        <div className="skeleton-subtitle"></div>
       </div>
       <div className="adsih-stats-grid">
-        {[1, 2, 3, 4, 5, 6].map(i => (
-          <div key={i} className="adsih-stat-card adsih-skeleton-card">
-            <div className="adsih-skeleton-line"></div>
-            <div className="adsih-skeleton-line adsih-skeleton-large"></div>
-            <div className="adsih-skeleton-line adsih-skeleton-small"></div>
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="adsih-stat-card skeleton-card">
+            <div className="skeleton-stat-main"></div>
+            <div className="skeleton-details"></div>
           </div>
         ))}
       </div>
       <div className="adsih-charts-row">
-        <div className="adsih-chart-card adsih-skeleton-card">
-          <div className="adsih-skeleton-line"></div>
-          <div className="adsih-skeleton-chart"></div>
+        <div className="adsih-chart-card skeleton-card">
+          <div className="skeleton-chart"></div>
         </div>
-        <div className="adsih-chart-card adsih-skeleton-card">
-          <div className="adsih-skeleton-line"></div>
-          <div className="adsih-skeleton-chart"></div>
+        <div className="adsih-chart-card skeleton-card">
+          <div className="skeleton-chart"></div>
         </div>
-      </div>
-      <div className="adsih-recent-activity adsih-skeleton-card">
-        <div className="adsih-skeleton-line"></div>
-        <div className="adsih-skeleton-line"></div>
-        <div className="adsih-skeleton-line"></div>
       </div>
     </div>
   );
@@ -432,8 +395,8 @@ const AdminDashboard = () => {
 
       <div className="adsih-admin-dashboard">
         <div className="adsih-dashboard-header">
-          <h1>Admin Dashboard</h1>
-          <p>Welcome back! Here's what's happening with your solar business today.</p>
+          <h1>Dashboard</h1>
+          <p>Overview of your solar business performance</p>
         </div>
 
         <StatsCards />

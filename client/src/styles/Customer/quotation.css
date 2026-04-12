@@ -1,1831 +1,402 @@
-/* styles/Customer/quotation.cuspro.css - Modern Minimalist Design */
+/* styles/Customer/quotation.cuspro.css - Clean Modern Design */
 
-/* ============================================
-   CONTAINER
-   ============================================ */
-.cuspro-quotation-container {
-  margin: 0 auto;
-  padding: 1.5rem;
-  background: #F5F5F7;
-  min-height: calc(100vh - 70px);
+:root {
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --bg-base: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --border-light: #E2E8F0;
+  --border-medium: #CBD5E1;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.05);
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
 }
 
-/* ============================================
-   HEADER CARD
-   ============================================ */
+.cuspro-quotation-container {
+  margin: 0 auto;
+  padding: 24px;
+  background: var(--bg-base);
+  min-height: 100vh;
+}
+
+/* Header Card */
 .cuspro-header-card {
-  background: #FFFFFF;
-  border-radius: 20px;
-  padding: 1.5rem 2rem;
-  margin-bottom: 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid #E5E5E8;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  background: var(--bg-card);
+  border-radius: var(--radius-2xl);
+  padding: 24px 32px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
 }
 
 .cuspro-header-content h1 {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: #1F1F1F;
-  margin: 0 0 0.5rem 0;
-  letter-spacing: -0.3px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
 }
 
 .cuspro-header-content p {
-  font-size: 0.875rem;
-  color: #6B6B6F;
+  font-size: 14px;
+  color: var(--text-muted);
   margin: 0;
 }
 
-.cuspro-request-btn {
-  padding: 0.75rem 1.5rem;
-  background: #1F1F1F;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cuspro-request-btn:hover {
-  background: #3A3A3A;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-}
-
-/* ============================================
-   TABS - LIKE USER MANAGEMENT
-   ============================================ */
+/* Tabs */
 .cuspro-tabs {
   display: flex;
-  gap: 0.5rem;
-  background: #FFFFFF;
-  border-radius: 12px;
-  padding: 0.25rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid #E5E5E8;
+  gap: 4px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 6px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border-light);
   width: fit-content;
 }
 
 .cuspro-tab {
-  padding: 0.5rem 1rem;
+  padding: 10px 20px;
   background: none;
   border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
+  border-radius: var(--radius-md);
+  font-size: 14px;
   font-weight: 500;
-  color: #6B6B6F;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
+  transition: all 0.2s;
 }
 
 .cuspro-tab:hover {
-  background: #F5F5F7;
-  color: #1F1F1F;
+  background: var(--bg-base);
+  color: var(--text-primary);
 }
 
 .cuspro-tab.active {
-  background: #1F1F1F;
-  color: #FFFFFF;
+  background: var(--text-primary);
+  color: white;
 }
 
-/* ============================================
-   PROJECT CARD
-   ============================================ */
-.cuspro-projects-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.cuspro-project-card {
-  background: #FFFFFF;
-  border-radius: 20px;
-  padding: 1.5rem;
-  border: 1px solid #E5E5E8;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-  transition: all 0.2s ease;
-}
-
-.cuspro-project-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-}
-
-.cuspro-project-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.25rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.cuspro-project-info h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1F1F1F;
-  margin: 0 0 0.25rem 0;
-}
-
-.cuspro-project-ref {
-  font-size: 0.7rem;
-  color: #9CA3AF;
-  margin: 0 0 0.25rem 0;
-}
-
-.cuspro-project-system {
-  font-size: 0.75rem;
-  color: #6B6B6F;
-  margin: 0;
-}
-
-/* Progress Section */
-.cuspro-progress-section {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #E5E5E8;
-}
-
-.cuspro-progress-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-  font-size: 0.75rem;
-  color: #6B6B6F;
-}
-
-.cuspro-progress-percent {
-  font-weight: 600;
-  color: #1F1F1F;
-}
-
-.cuspro-progress-bar {
-  background: #F0F0F0;
-  border-radius: 20px;
-  height: 8px;
-  overflow: hidden;
-  margin-bottom: 0.75rem;
-}
-
-.cuspro-progress-fill {
-  background: #1F1F1F;
-  border-radius: 20px;
-  height: 100%;
-  transition: width 0.3s ease;
-}
-
-.cuspro-progress-stats {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.7rem;
-  color: #9CA3AF;
-}
-
-/* Payment Table */
-.cuspro-payment-table-wrapper {
-  margin-bottom: 1.5rem;
-}
-
-.cuspro-payment-table-wrapper h4 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1F1F1F;
-  margin: 0 0 0.75rem 0;
-}
-
-.cuspro-payment-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #F8F9FA;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.cuspro-payment-table th {
-  text-align: left;
-  padding: 0.75rem 1rem;
-  background: #F0F0F0;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #6B6B6F;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.cuspro-payment-table td {
-  padding: 0.75rem 1rem;
-  font-size: 0.75rem;
-  color: #1F1F1F;
-  border-bottom: 1px solid #E5E5E8;
-}
-
-.cuspro-payment-table tr:last-child td {
-  border-bottom: none;
-}
-
-.cuspro-payment-type-cell {
-  font-weight: 500;
-}
-
-/* Payment Status - GREEN for paid */
-.cuspro-payment-status {
-  display: inline-block;
-  padding: 0.25rem 0.625rem;
-  border-radius: 20px;
-  font-size: 0.7rem;
-  font-weight: 500;
-}
-
-.cuspro-payment-status.paid {
-  background: #E8F5E9;
-  color: #2E7D32;
-}
-
-.cuspro-payment-status.pending {
-  background: #F5F5F7;
-  color: #6B6B6F;
-}
-
-.cuspro-payment-status.overdue {
-  background: #FFEBEE;
-  color: #C62828;
-}
-
-/* Project Actions */
-.cuspro-project-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.cuspro-secondary-btn {
-  padding: 0.5rem 1rem;
-  background: #F5F5F7;
-  color: #1F1F1F;
-  border: 1px solid #E5E5E8;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cuspro-secondary-btn:hover {
-  background: #EEEEF2;
-  border-color: #D4D4D8;
-}
-
-.cuspro-primary-btn-small {
-  padding: 0.5rem 1rem;
-  background: #1F1F1F;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cuspro-primary-btn-small:hover {
-  background: #3A3A3A;
-}
-
-/* ============================================
-   QUOTE CARD
-   ============================================ */
-.cuspro-quotes-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.cuspro-quote-card {
-  background: #FFFFFF;
-  border-radius: 16px;
-  padding: 1.25rem;
-  border: 1px solid #E5E5E8;
-}
-
-.cuspro-quote-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.cuspro-quote-header h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1F1F1F;
-  margin: 0 0 0.25rem 0;
-}
-
-.cuspro-quote-header p {
-  font-size: 0.7rem;
-  color: #6B6B6F;
-  margin: 0;
-}
-
-.cuspro-quote-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-/* ============================================
-   ASSESSMENT CARD
-   ============================================ */
+/* Assessment Cards */
 .cuspro-assessments-section {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 16px;
 }
 
 .cuspro-assessment-card {
-  background: #FFFFFF;
-  border-radius: 16px;
-  padding: 1.25rem;
-  border: 1px solid #E5E5E8;
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+}
+
+.cuspro-assessment-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-medium);
 }
 
 .cuspro-assessment-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+  margin-bottom: 16px;
 }
 
 .cuspro-assessment-header h3 {
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: 600;
-  color: #1F1F1F;
-  margin: 0 0 0.25rem 0;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
 }
 
 .cuspro-assessment-header p {
-  font-size: 0.7rem;
-  color: #6B6B6F;
-  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 2px 0;
 }
 
 .cuspro-assessment-amount {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 0;
-  border-top: 1px solid #E5E5E8;
-  border-bottom: 1px solid #E5E5E8;
-  margin-bottom: 1rem;
+  padding: 16px 0;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 16px;
 }
 
 .cuspro-assessment-amount span {
-  font-size: 0.7rem;
-  color: #9CA3AF;
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
 .cuspro-assessment-amount strong {
-  font-size: 1rem;
+  font-size: 20px;
   font-weight: 700;
-  color: #1F1F1F;
+  color: var(--text-primary);
 }
 
 .cuspro-assessment-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .cuspro-pay-btn {
-  padding: 0.5rem 1rem;
-  background: #1F1F1F;
-  color: #FFFFFF;
+  padding: 10px 18px;
+  background: var(--primary);
+  color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
 }
 
 .cuspro-pay-btn:hover {
-  background: #3A3A3A;
+  background: var(--primary-hover);
+}
+
+.cuspro-secondary-btn {
+  padding: 10px 18px;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.cuspro-secondary-btn:hover {
+  background: var(--border-light);
 }
 
 .cuspro-accept-btn {
-  padding: 0.5rem 1rem;
-  background: #2E7D32;
-  color: #FFFFFF;
+  padding: 10px 18px;
+  background: var(--success);
+  color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
 }
 
 .cuspro-accept-btn:hover {
-  background: #1B5E20;
+  background: #16A34A;
 }
 
 .cuspro-view-project-btn {
-  padding: 0.5rem 1rem;
-  background: #1976D2;
-  color: #FFFFFF;
+  padding: 10px 18px;
+  background: var(--primary);
+  color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cuspro-view-project-btn:hover {
-  background: #1565C0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .cuspro-verification-badge {
-  padding: 0.5rem 1rem;
-  background: #FFF3E0;
-  color: #E65100;
-  border-radius: 8px;
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: #FEF3C7;
+  color: #D97706;
+  border-radius: var(--radius-md);
+  font-size: 13px;
   font-weight: 500;
 }
 
 .cuspro-walkin-note {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #E5E5E8;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
 }
 
 .cuspro-walkin-note small {
-  font-size: 0.65rem;
-  color: #9CA3AF;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
-/* ============================================
-   PAYMENTS TABLE
-   ============================================ */
-.cuspro-payments-section {
-  background: #FFFFFF;
-  border-radius: 20px;
-  padding: 1.5rem;
-  border: 1px solid #E5E5E8;
-}
-
-.cuspro-payments-table-wrapper {
-  overflow-x: auto;
-}
-
-.cuspro-payments-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.cuspro-payments-table th {
-  text-align: left;
-  padding: 1rem 1rem;
-  background: #F8F9FA;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #6B6B6F;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid #E5E5E8;
-}
-
-.cuspro-payments-table td {
-  padding: 1rem 1rem;
-  font-size: 0.875rem;
-  color: #1F1F1F;
-  border-bottom: 1px solid #F0F0F0;
-}
-
-.cuspro-payments-table tr:last-child td {
-  border-bottom: none;
-}
-
-.cuspro-invoice-cell {
-  font-weight: 500;
-  color: #1F1F1F;
-}
-
-.cuspro-amount-cell {
-  font-weight: 600;
-  color: #1F1F1F;
-}
-
-.cuspro-method-badge {
-  display: inline-block;
-  padding: 0.25rem 0.625rem;
-  border-radius: 20px;
-  font-size: 0.7rem;
-  font-weight: 500;
-}
-
-.cuspro-method-badge.gcash {
-  background: #E8F5E9;
-  color: #2E7D32;
-}
-
-.cuspro-method-badge.cash {
-  background: #F5F5F7;
-  color: #6B6B6F;
-}
-
-/* ============================================
-   STATUS BADGES
-   ============================================ */
-.status-badge-cuspro {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.7rem;
-  font-weight: 500;
-}
-
-.pending-cuspro {
-  background: #F5F5F7;
-  color: #6B6B6F;
-  border: 1px solid #E5E5E8;
-}
-
-.paid-cuspro {
-  background: #E8F5E9;
-  color: #2E7D32;
-}
-
-.for-verification-cuspro {
-  background: #FFF3E0;
-  color: #E65100;
-}
-
-.processing-cuspro {
-  background: #E3F2FD;
-  color: #1565C0;
-}
-
-.quoted-cuspro,
-.approved-cuspro,
-.initial-paid-cuspro,
-.in-progress-cuspro {
-  background: #F5F5F7;
-  color: #6B6B6F;
-  border: 1px solid #E5E5E8;
-}
-
-.completed-cuspro {
-  background: #E8F5E9;
-  color: #2E7D32;
-}
-
-.cancelled-cuspro {
-  background: #FFEBEE;
-  color: #C62828;
-}
-
-/* ============================================
-   EMPTY STATE
-   ============================================ */
-.cuspro-empty-state {
-  text-align: center;
-  padding: 3rem;
-  background: #FFFFFF;
-  border-radius: 20px;
-  border: 1px solid #E5E5E8;
-}
-
-.cuspro-empty-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.cuspro-empty-state h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1F1F1F;
-  margin: 0 0 0.5rem 0;
-}
-
-.cuspro-empty-state p {
-  font-size: 0.875rem;
-  color: #6B6B6F;
-  margin: 0 0 1.5rem 0;
-}
-
-.cuspro-primary-btn {
-  padding: 0.75rem 1.5rem;
-  background: #1F1F1F;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cuspro-primary-btn:hover {
-  background: #3A3A3A;
-}
-
-/* ============================================
-   LOADING STATE
-   ============================================ */
-.cuspro-loading-state {
+/* Bills Section */
+.cuspro-bills-section {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  gap: 1rem;
+  gap: 20px;
 }
 
-.cuspro-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #E5E5E8;
-  border-top-color: #1F1F1F;
-  border-radius: 50%;
-  animation: cuspro-spin 0.8s linear infinite;
-}
-
-@keyframes cuspro-spin {
-  to { transform: rotate(360deg); }
-}
-
-/* ============================================
-   MODALS
-   ============================================ */
-.cuspro-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+.cuspro-filter-search-section {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(2px);
-}
-
-.cuspro-modal {
-  background: #FFFFFF;
-  border-radius: 20px;
-  padding: 1.75rem;
-  max-width: 550px;
-  width: 90%;
-  max-height: 85vh;
-  overflow-y: auto;
-  border: 1px solid #E5E5E8;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-}
-
-.cuspro-details-modal {
-  max-width: 600px;
-}
-
-.cuspro-modal-close {
-  float: right;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #9CA3AF;
-  transition: color 0.2s ease;
-  margin-top: -0.5rem;
-  margin-right: -0.5rem;
-}
-
-.cuspro-modal-close:hover {
-  color: #1F1F1F;
-}
-
-.cuspro-modal h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1F1F1F;
-  margin: 0 0 0.5rem 0;
-}
-
-.cuspro-modal-subtitle {
-  font-size: 0.875rem;
-  color: #6B6B6F;
-  margin-bottom: 1.5rem;
-}
-
-/* Quotation Summary */
-.cuspro-quotation-summary {
-  background: #F8F9FA;
-  border-radius: 12px;
-  padding: 1rem;
-  margin: 1rem 0;
-}
-
-.cuspro-quotation-summary h4 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1F1F1F;
-  margin: 0 0 0.75rem 0;
-}
-
-.cuspro-summary-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #E5E5E8;
-}
-
-.cuspro-summary-row:last-child {
-  border-bottom: none;
-}
-
-.cuspro-summary-row span {
-  font-size: 0.75rem;
-  color: #9CA3AF;
-}
-
-.cuspro-summary-row strong {
-  font-size: 0.875rem;
-  color: #1F1F1F;
-}
-
-/* Payment Summary */
-.cuspro-payment-summary {
-  background: #F8F9FA;
-  border-radius: 12px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-}
-
-.cuspro-payment-summary p {
-  margin: 0.25rem 0;
-  font-size: 0.875rem;
-}
-
-/* Payment Methods */
-.cuspro-payment-methods {
-  margin-bottom: 1rem;
-}
-
-.cuspro-payment-methods h4 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1F1F1F;
-  margin: 0 0 0.75rem 0;
-}
-
-.cuspro-method-options {
-  display: flex;
-  gap: 1rem;
-  flex-direction: column;
-}
-
-.cuspro-method-option {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: #F8F9FA;
-  border: 1px solid #E5E5E8;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cuspro-method-option:hover {
-  background: #F5F5F7;
-  border-color: #D4D4D8;
-}
-
-.cuspro-method-option.selected {
-  border-color: #1F1F1F;
-  background: #FFFFFF;
-}
-
-.cuspro-method-option input {
-  margin: 0;
-}
-
-.cuspro-method-option strong {
-  display: block;
-  font-size: 0.875rem;
-  color: #1F1F1F;
-}
-
-.cuspro-method-option small {
-  font-size: 0.7rem;
-  color: #9CA3AF;
-}
-
-/* Form Groups */
-.cuspro-form-group {
-  margin-bottom: 1rem;
-}
-
-.cuspro-form-group label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #1F1F1F;
-  margin-bottom: 0.375rem;
-}
-
-.cuspro-form-group input,
-.cuspro-form-group select,
-.cuspro-form-group textarea {
-  width: 100%;
-  padding: 0.625rem 0.875rem;
-  background: #F8F9FA;
-  border: 1px solid #E5E5E8;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  color: #1F1F1F;
-  transition: all 0.2s ease;
-}
-
-.cuspro-form-group input:focus,
-.cuspro-form-group select:focus,
-.cuspro-form-group textarea:focus {
-  outline: none;
-  border-color: #D4D4D8;
-  background: #FFFFFF;
-}
-
-.cuspro-error-text {
-  display: block;
-  font-size: 0.65rem;
-  color: #C62828;
-  margin-top: 0.25rem;
-}
-
-/* GCash Details */
-.cuspro-gcash-details {
-  background: #F8F9FA;
-  border-radius: 12px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-}
-
-.cuspro-gcash-details h4 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1F1F1F;
-  margin: 0 0 0.5rem 0;
-}
-
-.cuspro-gcash-details p {
-  margin: 0.25rem 0;
-  font-size: 0.75rem;
-}
-
-/* Cash Details */
-.cuspro-cash-details {
-  margin-bottom: 1rem;
-}
-
-.cuspro-info-box {
-  background: #F8F9FA;
-  border-radius: 12px;
-  padding: 1rem;
-}
-
-.cuspro-info-box strong {
-  display: block;
-  font-size: 0.875rem;
-  color: #1F1F1F;
-  margin-bottom: 0.5rem;
-}
-
-.cuspro-info-box p {
-  font-size: 0.75rem;
-  color: #6B6B6F;
-  margin: 0.25rem 0;
-}
-
-/* Details Content */
-.cuspro-details-content {
-  margin: 1rem 0;
-}
-
-.cuspro-details-section {
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #E5E5E8;
-}
-
-.cuspro-details-section:last-child {
-  border-bottom: none;
-}
-
-.cuspro-details-section h4 {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #9CA3AF;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin: 0 0 0.5rem 0;
-}
-
-.cuspro-details-section p {
-  margin: 0.25rem 0;
-  font-size: 0.875rem;
-}
-
-/* Request Form */
-.cuspro-request-form {
-  margin: 1rem 0;
-}
-
-/* Modal Actions */
-.cuspro-modal-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-  margin-top: 1.5rem;
-}
-
-.cuspro-cancel-btn {
-  padding: 0.625rem 1.25rem;
-  background: #F5F5F7;
-  color: #1F1F1F;
-  border: 1px solid #E5E5E8;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cuspro-cancel-btn:hover {
-  background: #EEEEF2;
-}
-
-.cuspro-confirm-btn {
-  padding: 0.625rem 1.25rem;
-  background: #1F1F1F;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cuspro-confirm-btn:hover:not(:disabled) {
-  background: #3A3A3A;
-}
-
-.cuspro-confirm-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ============================================
-   RESPONSIVE
-   ============================================ */
-@media (max-width: 768px) {
-  .cuspro-quotation-container {
-    padding: 1rem;
-  }
-
-  .cuspro-header-card {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-    padding: 1.25rem;
-  }
-
-  .cuspro-tabs {
-    flex-wrap: wrap;
-    width: 100%;
-  }
-
-  .cuspro-tab {
-    flex: 1;
-    text-align: center;
-  }
-
-  .cuspro-project-header {
-    flex-direction: column;
-  }
-
-  .cuspro-payment-table,
-  .cuspro-payments-table {
-    font-size: 0.75rem;
-  }
-
-  .cuspro-payment-table th,
-  .cuspro-payment-table td,
-  .cuspro-payments-table th,
-  .cuspro-payments-table td {
-    padding: 0.5rem;
-  }
-
-  .cuspro-modal-actions {
-    flex-direction: column;
-  }
-
-  .cuspro-cancel-btn,
-  .cuspro-confirm-btn {
-    width: 100%;
-    text-align: center;
-  }
-
-  .cuspro-assessment-actions {
-    flex-direction: column;
-  }
-
-  .cuspro-assessment-actions button {
-    width: 100%;
-  }
-
-  .cuspro-project-actions {
-    flex-direction: column;
-  }
-
-  .cuspro-project-actions button {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .cuspro-header-content h1 {
-    font-size: 1.5rem;
-  }
-
-  .cuspro-tab {
-    font-size: 0.75rem;
-    padding: 0.5rem;
-  }
-
-  .cuspro-payments-table th,
-  .cuspro-payments-table td {
-    font-size: 0.7rem;
-    padding: 0.5rem;
-  }
-}
-
-/* ============================================
-   SCROLLBAR
-   ============================================ */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #F0F0F0;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #D4D4D8;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
-}
-
-/* Stats Cards */
-.cuspro-stats-cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.cuspro-stat-card {
-  background: #FFFFFF;
-  border-radius: 16px;
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  border: 1px solid #E5E5E8;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-  transition: all 0.2s ease;
-}
-
-.cuspro-stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-}
-
-.cuspro-stat-icon {
-  width: 48px;
-  height: 48px;
-  background: #F8F9FA;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  color: #6B6B6F;
-}
-
-.cuspro-stat-info {
-  flex: 1;
-}
-
-.cuspro-stat-value {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1F1F1F;
-  line-height: 1.2;
-}
-
-.cuspro-stat-label {
-  display: block;
-  font-size: 0.7rem;
-  color: #9CA3AF;
-  margin-top: 0.25rem;
-}
-
-/* Filter Section */
-.cuspro-filter-section {
-  margin-bottom: 1.5rem;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .cuspro-filter-group {
-  position: relative;
-  max-width: 250px;
-}
-
-.cuspro-filter-icon {
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #9CA3AF;
-  font-size: 0.875rem;
+  min-width: 180px;
 }
 
 .cuspro-filter-select {
   width: 100%;
-  padding: 0.625rem 0.875rem 0.625rem 2.25rem;
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  color: #1F1F1F;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.2s ease;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
 }
 
+.cuspro-search-group {
+  flex: 1;
+  max-width: 320px;
+}
+
+.cuspro-search-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.cuspro-search-input:focus,
 .cuspro-filter-select:focus {
   outline: none;
-  border-color: #D4D4D8;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* Bills List */
 .cuspro-bills-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 16px;
 }
 
 .cuspro-bill-card {
-  background: #FFFFFF;
-  border-radius: 16px;
-  padding: 1.25rem;
-  border: 1px solid #E5E5E8;
-  transition: all 0.2s ease;
-}
-
-.cuspro-bill-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
 }
 
 .cuspro-bill-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  margin-bottom: 16px;
 }
 
 .cuspro-bill-info h3 {
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: 600;
-  color: #1F1F1F;
-  margin: 0 0 0.25rem 0;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
 }
 
 .cuspro-bill-ref {
-  font-size: 0.7rem;
-  color: #9CA3AF;
-  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: monospace;
 }
 
 .cuspro-bill-project {
-  font-size: 0.7rem;
-  color: #6B6B6F;
-  margin: 0.25rem 0 0 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 4px 0;
+}
+
+.invoice-type-label {
+  display: inline-block;
+  padding: 4px 10px;
+  background: var(--bg-base);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-top: 8px;
 }
 
 .cuspro-bill-details {
   display: flex;
-  gap: 1.5rem;
-  margin-bottom: 1rem;
-  padding: 0.75rem 0;
-  border-top: 1px solid #F0F0F0;
-  border-bottom: 1px solid #F0F0F0;
-}
-
-.cuspro-bill-detail-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  gap: 32px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 16px;
 }
 
 .cuspro-bill-detail-item span {
-  font-size: 0.65rem;
-  color: #9CA3AF;
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
 }
 
 .cuspro-bill-detail-item strong {
-  font-size: 0.875rem;
-  color: #1F1F1F;
-}
-
-.cuspro-bill-detail-item.amount strong {
-  color: #E65100;
+  font-size: 15px;
+  color: var(--text-primary);
 }
 
 .cuspro-bill-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .cuspro-paid-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0.5rem 1rem;
-  background: #E8F5E9;
-  color: #2E7D32;
-  border-radius: 8px;
-  font-size: 0.75rem;
+  padding: 10px 18px;
+  background: #DCFCE7;
+  color: #16A34A;
+  border-radius: var(--radius-md);
+  font-size: 13px;
   font-weight: 500;
 }
-
-/* Success Modal */
-.cuspro-success-modal {
-  text-align: center;
-  max-width: 450px;
-}
-
-.cuspro-success-icon {
-  width: 70px;
-  height: 70px;
-  background: #E8F5E9;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1rem;
-}
-
-.cuspro-success-icon svg {
-  font-size: 2rem;
-  color: #2E7D32;
-}
-
-.cuspro-success-modal h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1F1F1F;
-  margin-bottom: 1rem;
-}
-
-.cuspro-success-content {
-  background: #F8F9FA;
-  border-radius: 12px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  text-align: left;
-}
-
-.cuspro-success-content p {
-  margin: 0.5rem 0;
-  font-size: 0.875rem;
-  color: #6B6B6F;
-}
-
-.cuspro-success-content p strong {
-  color: #1F1F1F;
-}
-
-.cuspro-success-ref {
-  font-family: monospace;
-  font-size: 0.75rem;
-  color: #9CA3AF;
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid #E5E5E8;
-}
-
-.cuspro-success-btn {
-  width: 100%;
-  padding: 0.75rem;
-  background: #1F1F1F;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cuspro-success-btn:hover {
-  background: #3A3A3A;
-}
-
-/* Overdue Badge */
-.status-badge-cuspro.overdue-cuspro {
-  background: #FFEBEE;
-  color: #C62828;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .cuspro-stats-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .cuspro-bill-details {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .cuspro-filter-group {
-    max-width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .cuspro-stats-cards {
-    grid-template-columns: 1fr;
-  }
-  
-  .cuspro-bill-header {
-    flex-direction: column;
-  }
-}
-
-/* PayMongo Card Payment Styles */
-.cuspro-paymongo-section {
-  margin: 1rem 0;
-  padding: 1rem;
-  background: #F8F9FA;
-  border-radius: 12px;
-  border: 1px solid #E5E5E8;
-}
-
-.cuspro-card-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.cuspro-form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-@media (max-width: 640px) {
-  .cuspro-form-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-.cuspro-card-form .cuspro-form-group {
-  margin-bottom: 0;
-}
-
-.cuspro-card-form .cuspro-form-group label {
-  display: block;
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: #6B6B6F;
-  margin-bottom: 0.375rem;
-}
-
-.cuspro-card-form .cuspro-form-group input {
-  width: 100%;
-  padding: 0.625rem 0.875rem;
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  color: #1F1F1F;
-  transition: all 0.2s ease;
-}
-
-.cuspro-card-form .cuspro-form-group input:focus {
-  outline: none;
-  border-color: #D4D4D8;
-  background: #FFFFFF;
-}
-
-.cuspro-card-form .cuspro-form-group input::placeholder {
-  color: #9CA3AF;
-}
-
-/* PayMongo Card Button */
-.cuspro-paymongo-btn {
-  width: 100%;
-  padding: 0.75rem;
-  background: #1F1F1F;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.cuspro-paymongo-btn:hover:not(:disabled) {
-  background: #3A3A3A;
-  transform: translateY(-1px);
-}
-
-.cuspro-paymongo-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.cuspro-paymongo-btn.card-btn {
-  background: #1F1F1F;
-}
-
-.cuspro-paymongo-btn.card-btn:hover:not(:disabled) {
-  background: #3A3A3A;
-}
-
-/* Spinning animation for loading state */
-.spinning {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Additional styling for payment method options */
-.cuspro-payment-methods {
-  margin-bottom: 1rem;
-}
-
-.cuspro-payment-methods h4 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1F1F1F;
-  margin: 0 0 0.75rem 0;
-}
-
-.cuspro-method-options {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.cuspro-method-option {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: #F8F9FA;
-  border: 1px solid #E5E5E8;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cuspro-method-option:hover {
-  background: #F5F5F7;
-  border-color: #D4D4D8;
-}
-
-.cuspro-method-option.selected {
-  border-color: #1F1F1F;
-  background: #FFFFFF;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-
-.cuspro-method-option input {
-  margin: 0;
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: #1F1F1F;
-}
-
-.cuspro-method-option div {
-  flex: 1;
-}
-
-.cuspro-method-option strong {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1F1F1F;
-}
-
-.cuspro-method-option small {
-  font-size: 0.7rem;
-  color: #9CA3AF;
-}
-
-/* Add this to your quotation.css file */
-
-/* Filter and Search Section */
-.cuspro-filter-search-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.cuspro-filter-group {
-  position: relative;
-  min-width: 180px;
-}
-
-.cuspro-filter-select {
-  width: 100%;
-  padding: 0.625rem 0.875rem;
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  color: #1F1F1F;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-}
-
-.cuspro-filter-select:focus {
-  outline: none;
-  border-color: #D4D4D8;
-}
-
-.cuspro-search-group {
-  flex: 1;
-  max-width: 350px;
-}
-
-.cuspro-search-input {
-  width: 100%;
-  padding: 0.625rem 0.875rem;
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  color: #1F1F1F;
-  transition: all 0.2s ease;
-}
-
-.cuspro-search-input:focus {
-  outline: none;
-  border-color: #D4D4D8;
-}
-
-.cuspro-search-input::placeholder {
-  color: #9CA3AF;
-}
-
-/* Payment History Table */
-.cuspro-payments-section {
-  background: #FFFFFF;
-  border-radius: 20px;
-  border: 1px solid #E5E5E8;
-  padding: 1.5rem;
-}
-
-.cuspro-payments-header {
-  margin-bottom: 1rem;
-}
-
-.cuspro-payments-header h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1F1F1F;
-  margin: 0;
-}
-
-.cuspro-payments-table-wrapper {
-  overflow-x: auto;
-  margin-top: 1rem;
-}
-
-.cuspro-payments-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-}
-
-.cuspro-payments-table th {
-  text-align: left;
-  padding: 0.875rem 1rem;
-  background: #F8F9FA;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #6B6B6F;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid #E5E5E8;
-}
-
-.cuspro-payments-table td {
-  padding: 0.875rem 1rem;
-  color: #1F1F1F;
-  border-bottom: 1px solid #F0F0F0;
-}
-
-.cuspro-payments-table tr:last-child td {
-  border-bottom: none;
-}
-
-.cuspro-payments-table tr:hover {
-  background: #F8F9FA;
-}
-
-.cuspro-invoice-cell {
-  font-weight: 500;
-  color: #1F1F1F;
-  font-family: monospace;
-}
-
-.cuspro-amount-cell {
-  font-weight: 600;
-  color: #1F1F1F;
-}
-
-.cuspro-table-action-btn {
-  background: none;
-  border: none;
-  color: #6B6B6F;
-  font-size: 0.75rem;
-  cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  transition: color 0.2s ease;
-}
-
-.cuspro-table-action-btn:hover {
-  color: #1F1F1F;
-  text-decoration: underline;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .cuspro-filter-search-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .cuspro-filter-group {
-    width: 100%;
-  }
-  
-  .cuspro-search-group {
-    max-width: 100%;
-  }
-  
-  .cuspro-payments-table th,
-  .cuspro-payments-table td {
-    padding: 0.625rem 0.5rem;
-    font-size: 0.75rem;
-  }
-  
-  .cuspro-bill-details {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .cuspro-bill-header {
-    flex-direction: column;
-  }
-}
-
-@media (max-width: 640px) {
-  .cuspro-payments-table {
-    min-width: 500px;
-  }
-}
-
-/* Add this to your quotation.css file */
 
 /* Table Section */
 .cuspro-table-section {
-  background: #FFFFFF;
-  border-radius: 20px;
-  border: 1px solid #E5E5E8;
-  padding: 1.5rem;
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
 }
 
-/* Filter and Search Section */
-.cuspro-filter-search-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.cuspro-filter-group {
-  position: relative;
-  min-width: 180px;
-}
-
-.cuspro-filter-select {
-  width: 100%;
-  padding: 0.625rem 0.875rem;
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  color: #1F1F1F;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-}
-
-.cuspro-filter-select:focus {
-  outline: none;
-  border-color: #D4D4D8;
-}
-
-.cuspro-search-group {
-  flex: 1;
-  max-width: 350px;
-}
-
-.cuspro-search-input {
-  width: 100%;
-  padding: 0.625rem 0.875rem;
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  color: #1F1F1F;
-  transition: all 0.2s ease;
-}
-
-.cuspro-search-input:focus {
-  outline: none;
-  border-color: #D4D4D8;
-}
-
-.cuspro-search-input::placeholder {
-  color: #9CA3AF;
-}
-
-/* Data Table */
 .cuspro-table-wrapper {
   overflow-x: auto;
 }
@@ -1833,164 +404,625 @@
 .cuspro-data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
 }
 
 .cuspro-data-table th {
   text-align: left;
-  padding: 0.875rem 1rem;
-  background: #F8F9FA;
-  font-size: 0.75rem;
+  padding: 16px;
+  background: var(--bg-base);
+  font-size: 12px;
   font-weight: 600;
-  color: #6B6B6F;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1px solid #E5E5E8;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .cuspro-data-table td {
-  padding: 0.875rem 1rem;
-  color: #1F1F1F;
-  border-bottom: 1px solid #F0F0F0;
-  vertical-align: middle;
+  padding: 16px;
+  font-size: 14px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .cuspro-data-table tr:last-child td {
   border-bottom: none;
 }
 
-.cuspro-data-table tr:hover {
-  background: #F8F9FA;
+.cuspro-data-table tr:hover td {
+  background: var(--bg-base);
 }
 
-/* Table Cells */
 .cuspro-reference-cell {
-  font-weight: 500;
-  color: #1F1F1F;
   font-family: monospace;
+  font-size: 13px;
 }
 
 .cuspro-amount-cell {
   font-weight: 600;
-  color: #1F1F1F;
-}
-
-/* Table Actions */
-.cuspro-table-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.cuspro-action-pay {
-  padding: 0.375rem 0.75rem;
-  background: #1F1F1F;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cuspro-action-pay:hover {
-  background: #3A3A3A;
 }
 
 .cuspro-action-view {
-  padding: 0.375rem 0.75rem;
-  background: #F5F5F7;
-  color: #1F1F1F;
-  border: 1px solid #E5E5E8;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 500;
+  padding: 6px 14px;
+  background: none;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
 .cuspro-action-view:hover {
-  background: #EEEEF2;
-  border-color: #D4D4D8;
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
 }
+
+/* Status Badges */
+.status-badge-cuspro {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pending-cuspro { background: #F1F5F9; color: #64748B; }
+.paid-cuspro { background: #DCFCE7; color: #16A34A; }
+.for-verification-cuspro { background: #FEF3C7; color: #D97706; }
+.processing-cuspro { background: #DBEAFE; color: #2563EB; }
+.completed-cuspro { background: #DCFCE7; color: #16A34A; }
+.cancelled-cuspro { background: #FEE2E2; color: #DC2626; }
+.overdue-cuspro { background: #FEE2E2; color: #DC2626; }
+.partial-cuspro { background: #FEF3C7; color: #D97706; }
 
 /* Empty State */
 .cuspro-empty-state {
   text-align: center;
-  padding: 3rem;
+  padding: 60px 40px;
+  background: var(--bg-card);
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--border-light);
+}
+
+.cuspro-empty-icon {
+  font-size: 48px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
 }
 
 .cuspro-empty-state h3 {
-  font-size: 1rem;
+  font-size: 18px;
   font-weight: 600;
-  color: #1F1F1F;
-  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
 }
 
 .cuspro-empty-state p {
-  font-size: 0.875rem;
-  color: #9CA3AF;
-  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 24px 0;
 }
 
-/* Skeleton Loader */
-.skeleton-table-header {
-  height: 48px;
-  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 8px;
-  margin-bottom: 0.5rem;
+.cuspro-primary-btn {
+  padding: 12px 24px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.skeleton-table-row {
-  height: 60px;
-  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+.cuspro-primary-btn:hover {
+  background: var(--primary-hover);
+}
+
+/* Modals */
+.cuspro-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.cuspro-modal {
+  background: var(--bg-card);
+  border-radius: var(--radius-2xl);
+  padding: 28px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.cuspro-details-modal {
+  max-width: 550px;
+}
+
+.cuspro-modal-close {
+  float: right;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin: -8px -8px 0 0;
+  transition: color 0.2s;
+}
+
+.cuspro-modal-close:hover {
+  color: var(--text-primary);
+}
+
+.cuspro-modal h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 20px 0;
+}
+
+/* Payment Summary */
+.cuspro-payment-summary {
+  background: var(--bg-base);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.cuspro-payment-summary p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+/* Payment Methods */
+.cuspro-payment-methods h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 12px 0;
+}
+
+.cuspro-method-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cuspro-method-option {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cuspro-method-option:hover {
+  background: var(--bg-card);
+  border-color: var(--border-medium);
+}
+
+.cuspro-method-option.selected {
+  border-color: var(--primary);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.cuspro-method-option input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
+.cuspro-method-option strong {
+  display: block;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.cuspro-method-option small {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Form Groups */
+.cuspro-form-group {
+  margin-bottom: 16px;
+}
+
+.cuspro-form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.cuspro-form-group input,
+.cuspro-form-group select {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.cuspro-form-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.cuspro-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* GCash Details */
+.cuspro-gcash-details {
+  background: var(--bg-base);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.cuspro-gcash-details h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.cuspro-gcash-details p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+/* Cash Details */
+.cuspro-cash-details {
+  margin-bottom: 16px;
+}
+
+.cuspro-info-box {
+  background: var(--bg-base);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.cuspro-info-box strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.cuspro-info-box p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 4px 0;
+}
+
+/* PayMongo Section */
+.cuspro-paymongo-section {
+  margin: 16px 0;
+}
+
+.cuspro-card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cuspro-paymongo-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cuspro-paymongo-btn:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.cuspro-paymongo-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Quotation Summary */
+.cuspro-quotation-summary {
+  background: var(--bg-base);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.cuspro-quotation-summary h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.cuspro-summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.cuspro-summary-row:last-child {
+  border-bottom: none;
+}
+
+.cuspro-summary-row span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.cuspro-summary-row strong {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+/* Payment Preference */
+.cuspro-payment-preference-section h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.cuspro-preference-option {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cuspro-preference-option:hover {
+  border-color: var(--border-medium);
+}
+
+.cuspro-preference-option.selected {
+  border-color: var(--primary);
+  background: var(--bg-card);
+}
+
+.cuspro-preference-option input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  margin-top: 2px;
+}
+
+.cuspro-preference-content strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.cuspre-preference-details {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cuspre-preference-details span {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Details Content */
+.cuspro-details-section {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.cuspro-details-section:last-child {
+  border-bottom: none;
+}
+
+.cuspro-details-section h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px 0;
+}
+
+.cuspro-details-section p {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+/* Modal Actions */
+.cuspro-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.cuspro-cancel-btn {
+  padding: 12px 20px;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cuspro-cancel-btn:hover {
+  background: var(--border-light);
+}
+
+.cuspro-confirm-btn {
+  padding: 12px 20px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cuspro-confirm-btn:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.cuspro-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Success Modal */
+.cuspro-success-modal {
+  text-align: center;
+}
+
+.cuspro-success-icon {
+  width: 64px;
+  height: 64px;
+  background: #DCFCE7;
+  color: #16A34A;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin: 0 auto 20px;
+}
+
+.cuspro-success-content {
+  background: var(--bg-base);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.cuspro-success-ref {
+  font-family: monospace;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
+
+.cuspro-success-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cuspro-success-btn:hover {
+  background: var(--primary-hover);
+}
+
+/* Skeleton */
+.skeleton-card {
+  background: var(--bg-card);
+}
+
+.skeleton-line {
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: 8px;
-  margin-bottom: 0.5rem;
+  border-radius: 6px;
+}
+
+.skeleton-line.large { height: 28px; width: 200px; margin-bottom: 8px; }
+.skeleton-line.medium { height: 16px; width: 300px; }
+
+.skeleton-tab {
+  height: 40px;
+  width: 120px;
+  background: #F1F5F9;
+  border-radius: var(--radius-md);
+}
+
+.skeleton-bill-card {
+  height: 200px;
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .cuspro-filter-search-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .cuspro-filter-group {
-    width: 100%;
-  }
-  
-  .cuspro-search-group {
-    max-width: 100%;
-  }
-  
-  .cuspro-table-section {
-    padding: 1rem;
-  }
-  
-  .cuspro-data-table th,
-  .cuspro-data-table td {
-    padding: 0.625rem 0.5rem;
-    font-size: 0.75rem;
-  }
-  
-  .cuspro-table-actions {
-    flex-direction: column;
-  }
-  
-  .cuspro-action-pay,
-  .cuspro-action-view {
-    width: 100%;
-    text-align: center;
-  }
+  .cuspro-quotation-container { padding: 16px; }
+  .cuspro-header-card { padding: 20px; }
+  .cuspro-tabs { width: 100%; }
+  .cuspro-tab { flex: 1; text-align: center; font-size: 12px; padding: 8px; }
+  .cuspro-assessment-actions { flex-direction: column; }
+  .cuspro-assessment-actions button { width: 100%; justify-content: center; }
+  .cuspro-bill-details { flex-direction: column; gap: 12px; }
+  .cuspro-bill-actions { flex-direction: column; }
+  .cuspro-filter-search-section { flex-direction: column; }
+  .cuspro-search-group { max-width: 100%; }
+  .cuspro-modal-actions { flex-direction: column; }
+  .cuspro-cancel-btn, .cuspro-confirm-btn { width: 100%; text-align: center; justify-content: center; }
+  .cuspro-form-row { grid-template-columns: 1fr; }
+  .cuspre-preference-details { flex-direction: column; gap: 8px; }
 }
 
 @media (max-width: 640px) {
-  .cuspro-data-table {
-    min-width: 550px;
-  }
+  .cuspro-data-table { min-width: 550px; }
 }

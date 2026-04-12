@@ -1,4 +1,4 @@
-/* styles/Admin/reports.css - Clean Modern Design */
+/* styles/Admin/reports.css - Clean Modern Design (Black Text Only) */
 
 :root {
   --primary: #2563EB;
@@ -53,7 +53,7 @@
 }
 
 /* ============================================ */
-/* STATS CARDS */
+/* STATS CARDS - All Black Text */
 /* ============================================ */
 .stats-cards-adminreports {
   display: grid;
@@ -100,11 +100,6 @@
   font-size: 12px;
   color: var(--text-secondary);
 }
-
-.stat-card-adminreports.revenue-adminreports .stat-value-adminreports { color: var(--primary); }
-.stat-card-adminreports.users-adminreports .stat-value-adminreports { color: var(--success); }
-.stat-card-adminreports.assessments-adminreports .stat-value-adminreports { color: var(--warning); }
-.stat-card-adminreports.projects-adminreports .stat-value-adminreports { color: #9333EA; }
 
 /* ============================================ */
 /* REPORT TABS */

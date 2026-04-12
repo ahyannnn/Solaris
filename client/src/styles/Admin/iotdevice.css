@@ -1,4 +1,4 @@
-/* styles/Admin/iotdevice.css - Clean Modern Design */
+/* styles/Admin/iotdevice.css - Clean Modern Design (Black Text Only) */
 
 :root {
   --primary: #2563EB;
@@ -77,7 +77,7 @@
 }
 
 /* ============================================ */
-/* STATS CARDS */
+/* STATS CARDS - All Black Text */
 /* ============================================ */
 .stats-cards-adminiot {
   display: grid;
@@ -119,13 +119,6 @@
   letter-spacing: 0.3px;
   margin-top: 4px;
 }
-
-/* Stat Card Colors */
-.stat-card-adminiot.total-adminiot .stat-value-adminiot { color: var(--text-primary); }
-.stat-card-adminiot.available-adminiot .stat-value-adminiot { color: var(--success); }
-.stat-card-adminiot.assigned-adminiot .stat-value-adminiot { color: var(--primary); }
-.stat-card-adminiot.deployed-adminiot .stat-value-adminiot { color: #9333EA; }
-.stat-card-adminiot.maintenance-adminiot .stat-value-adminiot { color: var(--warning); }
 
 /* ============================================ */
 /* FILTERS */
@@ -238,7 +231,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--primary);
+  color: var(--text-primary);
   font-size: 20px;
   flex-shrink: 0;
 }
@@ -351,26 +344,8 @@
   font-weight: 500;
   white-space: nowrap;
   flex-shrink: 0;
-}
-
-.available-adminiot {
-  background: #DCFCE7;
-  color: #16A34A;
-}
-
-.assigned-adminiot {
-  background: #DBEAFE;
-  color: var(--primary);
-}
-
-.deployed-adminiot {
-  background: #F3E8FF;
-  color: #9333EA;
-}
-
-.maintenance-adminiot {
-  background: #FEF3C7;
-  color: #D97706;
+  background: var(--bg-base);
+  color: var(--text-primary);
 }
 
 /* ============================================ */

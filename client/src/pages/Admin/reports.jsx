@@ -129,11 +129,13 @@ const Reports = () => {
           responseType: 'blob'
         }
       );
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([exportResponse.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `${activeTab}_report_${new Date().toISOString().split('T')[0]}.${format}`);
+      const fileExtension = format === 'csv' ? 'csv' : format === 'pdf' ? 'pdf' : 'xlsx';
+      link.setAttribute('download', `${activeTab}_report_${new Date().toISOString().split('T')[0]}.${fileExtension}`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -303,7 +305,7 @@ const Reports = () => {
               </select>
             </div>
           )}
-          
+
           <button className="generate-btn-adminreports" onClick={generateReport} disabled={generating}>
             {generating ? 'Generating...' : 'Generate Report'}
           </button>

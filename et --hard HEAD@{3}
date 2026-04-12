@@ -1,0 +1,117 @@
+[33m70d8ce8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: rebase (finish): returning to refs/heads/main
+[33m70d8ce8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{1}: rebase (continue): reports pdf and excel datas
+[33m0e32472[m HEAD@{2}: pull origin main --rebase (start): checkout 0e324720bc1e4ad3bf78fa750d8f988a7f75236c
+[33m1045869[m HEAD@{3}: commit: reports pdf and excel datas
+[33me53d732[m HEAD@{4}: pull origin main --rebase (finish): returning to refs/heads/main
+[33me53d732[m HEAD@{5}: pull origin main --rebase (pick): site assesmsent
+[33m318e3dd[m HEAD@{6}: pull origin main --rebase (pick): site assessment and billing
+[33m852856e[m HEAD@{7}: pull origin main --rebase (pick): site assessmentt and reports
+[33m33d1a62[m HEAD@{8}: pull origin main --rebase (start): checkout 33d1a623fb4201f15a6d834ce499bb678863640a
+[33m61b6a98[m HEAD@{9}: commit: site assesmsent
+[33m90d8790[m HEAD@{10}: commit: site assessment and billing
+[33m5db8a97[m HEAD@{11}: commit: site assessmentt and reports
+[33m1119ed6[m HEAD@{12}: pull: Fast-forward
+[33m32c0584[m HEAD@{13}: commit (merge): push mo push mo
+[33m3d27d3e[m HEAD@{14}: commit: fix quotation and book assessment
+[33m2a01320[m HEAD@{15}: pull: Fast-forward
+[33mce12a89[m HEAD@{16}: commit: iot device integreation sawakas then site assessment
+[33md1ff1af[m HEAD@{17}: commit: k
+[33m6a51e04[m HEAD@{18}: commit: k
+[33m05e2a13[m HEAD@{19}: commit: j
+[33m2aa3bb1[m HEAD@{20}: commit: j
+[33mad7e65e[m HEAD@{21}: commit: j
+[33m8ea0d90[m HEAD@{22}: checkout: moving from asdf to main
+[33ma912491[m[33m ([m[1;31morigin/asdf[m[33m, [m[1;32masdf[m[33m)[m HEAD@{23}: commit: s
+[33m8ea0d90[m HEAD@{24}: checkout: moving from main to asdf
+[33m8ea0d90[m HEAD@{25}: pull: Fast-forward
+[33mfc3c86c[m HEAD@{26}: checkout: moving from engrsite to main
+[33mc11ce7c[m[33m ([m[1;31morigin/engrsite[m[33m, [m[1;32mengrsite[m[33m)[m HEAD@{27}: commit: idk
+[33mfc3c86c[m HEAD@{28}: checkout: moving from main to engrsite
+[33mfc3c86c[m HEAD@{29}: pull: Fast-forward
+[33m95a3174[m HEAD@{30}: checkout: moving from otherPayment to main
+[33m0f1a277[m[33m ([m[1;31morigin/otherPayment[m[33m, [m[1;32motherPayment[m[33m)[m HEAD@{31}: commit: payments cash and card
+[33m95a3174[m HEAD@{32}: checkout: moving from main to otherPayment
+[33m95a3174[m HEAD@{33}: commit: l
+[33m1e82c7f[m HEAD@{34}: commit: l
+[33m35a2e5b[m HEAD@{35}: commit: l
+[33m319193c[m HEAD@{36}: commit: l
+[33m403c582[m HEAD@{37}: commit: l
+[33mccbf412[m HEAD@{38}: commit: l
+[33m2c20451[m HEAD@{39}: pull: Fast-forward
+[33mad38235[m HEAD@{40}: checkout: moving from main to main
+[33mad38235[m HEAD@{41}: checkout: moving from fix to main
+[33m8b52e39[m[33m ([m[1;31morigin/fix[m[33m, [m[1;32mfix[m[33m)[m HEAD@{42}: commit: fix
+[33mad38235[m HEAD@{43}: checkout: moving from main to fix
+[33mad38235[m HEAD@{44}: checkout: moving from main to main
+[33mad38235[m HEAD@{45}: commit: h
+[33m5ffc4eb[m HEAD@{46}: checkout: moving from main to main
+[33m5ffc4eb[m HEAD@{47}: commit: k
+[33m060812a[m HEAD@{48}: checkout: moving from main to main
+[33m060812a[m HEAD@{49}: commit: fix
+[33m0ecfa11[m HEAD@{50}: checkout: moving from main to main
+[33m0ecfa11[m HEAD@{51}: commit: fix bugs
+[33mbcb73c3[m HEAD@{52}: pull: Fast-forward
+[33m4343d90[m HEAD@{53}: pull: Fast-forward
+[33m8cc3550[m HEAD@{54}: checkout: moving from projectprocess to main
+[33m861eec6[m[33m ([m[1;31morigin/projectprocess[m[33m, [m[1;32mprojectprocess[m[33m)[m HEAD@{55}: commit: finally tapos na process
+[33m966be78[m HEAD@{56}: pull origin main: Fast-forward
+[33m8cc3550[m HEAD@{57}: checkout: moving from main to projectprocess
+[33m8cc3550[m HEAD@{58}: pull: Fast-forward
+[33ma337661[m HEAD@{59}: checkout: moving from paymongo to main
+[33m31b1d3c[m[33m ([m[1;31morigin/paymongo[m[33m, [m[1;32mpaymongo[m[33m)[m HEAD@{60}: commit: card payment
+[33m540cfad[m[33m ([m[1;31morigin/process[m[33m, [m[1;32mprocess[m[33m)[m HEAD@{61}: checkout: moving from process to paymongo
+[33m540cfad[m[33m ([m[1;31morigin/process[m[33m, [m[1;32mprocess[m[33m)[m HEAD@{62}: commit: payment and usermanagement
+[33ma337661[m HEAD@{63}: checkout: moving from main to process
+[33ma337661[m HEAD@{64}: checkout: moving from main to main
+[33ma337661[m HEAD@{65}: reset: moving to HEAD
+[33ma337661[m HEAD@{66}: reset: moving to HEAD
+[33ma337661[m HEAD@{67}: reset: moving to HEAD
+[33ma337661[m HEAD@{68}: reset: moving to HEAD
+[33ma337661[m HEAD@{69}: pull: Fast-forward
+[33mbb1330c[m HEAD@{70}: pull: Merge made by the 'ort' strategy.
+[33m1412982[m HEAD@{71}: commit: maintenance
+[33mf560846[m HEAD@{72}: pull: Fast-forward
+[33m3410095[m HEAD@{73}: commit: admin and engr schedul module
+[33m12cbff8[m HEAD@{74}: pull: Fast-forward
+[33mab5ada1[m HEAD@{75}: checkout: moving from projectCreation to main
+[33md6a5336[m[33m ([m[1;31morigin/projectCreation[m[33m, [m[1;32mprojectCreation[m[33m)[m HEAD@{76}: commit: billing accept quotation and project admin customer engr
+[33mab5ada1[m HEAD@{77}: checkout: moving from main to projectCreation
+[33mab5ada1[m HEAD@{78}: commit: pdf generation and bug fixes
+[33m138093f[m HEAD@{79}: pull: Fast-forward
+[33mc27de89[m HEAD@{80}: commit: fix payment process and iot device in the engr
+[33m6c0ea7e[m HEAD@{81}: pull: Fast-forward
+[33m8d63e2b[m HEAD@{82}: commit: major bug fix
+[33mecc6301[m HEAD@{83}: pull: Fast-forward
+[33m0715981[m HEAD@{84}: pull: Fast-forward
+[33mbb3a727[m HEAD@{85}: commit: siteassessment admin and engr
+[33ma76ddfe[m HEAD@{86}: commit: assign engr and device
+[33m091e3b4[m HEAD@{87}: commit (merge): iotdevice
+[33m527294c[m HEAD@{88}: commit: iotdevice
+[33m02b9fbd[m HEAD@{89}: pull: Fast-forward
+[33m93bbe4b[m HEAD@{90}: pull: Fast-forward
+[33m08cadbd[m HEAD@{91}: checkout: moving from customerproject to main
+[33m7f90b5a[m[33m ([m[1;31morigin/customerproject[m[33m, [m[1;32mcustomerproject[m[33m)[m HEAD@{92}: commit: engineer site assessement
+[33m08cadbd[m HEAD@{93}: checkout: moving from main to customerproject
+[33m08cadbd[m HEAD@{94}: pull: Fast-forward
+[33m3099bdd[m HEAD@{95}: checkout: moving from billing to main
+[33m6546682[m[33m ([m[1;31morigin/billing[m[33m, [m[1;32mbilling[m[33m)[m HEAD@{96}: commit: billing iotdevice reports nad dashboards connected to backend
+[33m3099bdd[m HEAD@{97}: checkout: moving from main to billing
+[33m3099bdd[m HEAD@{98}: checkout: moving from main to main
+[33m3099bdd[m HEAD@{99}: commit: admin user management siteassessment
+[33m95cfae0[m HEAD@{100}: pull: Fast-forward
+[33mc755f9d[m HEAD@{101}: pull: Fast-forward
+[33mc547a62[m HEAD@{102}: checkout: moving from addedRoutes to main
+[33m32f57c8[m[33m ([m[1;31morigin/addedRoutes[m[33m, [m[1;32maddedRoutes[m[33m)[m HEAD@{103}: commit: admin billing and solar invoices
+[33mc547a62[m HEAD@{104}: checkout: moving from main to addedRoutes
+[33mc547a62[m HEAD@{105}: pull: Fast-forward
+[33m9493450[m HEAD@{106}: checkout: moving from admin to main
+[33m6147af9[m[33m ([m[1;31morigin/admin[m[33m, [m[1;32madmin[m[33m)[m HEAD@{107}: commit: admin dashboard connect to routes and controllers
+[33m9493450[m HEAD@{108}: checkout: moving from main to admin
+[33m9493450[m HEAD@{109}: pull: Fast-forward
+[33mcdd8645[m HEAD@{110}: checkout: moving from removepayment to main
+[33m6f1efc2[m[33m ([m[1;31morigin/removepayment[m[33m, [m[1;32mremovepayment[m[33m)[m HEAD@{111}: commit: remove payment in the book assessment and put in the billing module
+[33mcdd8645[m HEAD@{112}: checkout: moving from main to removepayment
+[33mcdd8645[m HEAD@{113}: pull: Fast-forward
+[33mf2d25a9[m HEAD@{114}: pull: Fast-forward
+[33m409d18d[m HEAD@{115}: checkout: moving from bookassessment to main
+[33mc8dfcb4[m[33m ([m[1;31morigin/bookassessment[m[33m, [m[1;32mbookassessment[m[

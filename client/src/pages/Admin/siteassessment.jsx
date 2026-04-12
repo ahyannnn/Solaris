@@ -1,3 +1,4 @@
+// src/pages/Admin/SiteAssessment.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -6,33 +7,14 @@ import {
   FaEye,
   FaCheckCircle,
   FaTimesCircle,
-  FaSpinner,
-  FaFileInvoice,
-  FaMoneyBillWave,
-  FaQrcode,
-  FaClock,
-  FaExclamationTriangle,
   FaDownload,
   FaInfoCircle,
-  FaFilter,
   FaChevronLeft,
   FaChevronRight,
-  FaUser,
-  FaMapMarkerAlt,
-  FaCalendarAlt,
-  FaBuilding,
-  FaMicrochip,
   FaUserCog,
-  FaEnvelope,
-  FaPhone,
-  FaRegFileAlt,
-  FaClipboardList,
-  FaFileAlt,
-  FaEdit,
-  FaUserCheck,
+  FaMicrochip,
+  FaMoneyBillWave,
   FaTools,
-  FaPlus,
-  FaCheck,
   FaWifi
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
@@ -106,24 +88,17 @@ const SiteAssessment = () => {
     }
   };
 
- const fetchEngineers = async () => {
-  try {
-    const token = sessionStorage.getItem('token');
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users?role=engineer`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    
-    // The response.users already contains the User data with fullName
-    // Engineers don't have clientInfo because they're not clients
-    setEngineers(response.data.users || []);
-    
-    // Debug log to see what fields are available
-    console.log('Engineers data sample:', response.data.users[0]);
-    
-  } catch (error) {
-    console.error('Error fetching engineers:', error);
-  }
-};
+  const fetchEngineers = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users?role=engineer`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setEngineers(response.data.users || []);
+    } catch (error) {
+      console.error('Error fetching engineers:', error);
+    }
+  };
 
   const fetchDevices = async () => {
     try {
@@ -141,17 +116,14 @@ const SiteAssessment = () => {
   const fetchStats = async () => {
     try {
       const token = sessionStorage.getItem('token');
-
       const freeQuotesRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const quotes = freeQuotesRes.data.quotes || [];
-
       const preAssessmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const assessments = preAssessmentsRes.data.assessments || [];
-
       const autoVerified = assessments.filter(a => a.autoVerified === true || a.paymentGateway === 'paymongo').length;
 
       setStats({
@@ -197,7 +169,6 @@ const SiteAssessment = () => {
 
   const handleApproveBooking = async (approved) => {
     if (!selectedItem) return;
-
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
@@ -206,7 +177,6 @@ const SiteAssessment = () => {
         { approved, notes: approveNotes },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       showToast(approved ? 'Booking approved! Invoice generated.' : 'Booking rejected.', approved ? 'success' : 'warning');
       setShowApproveModal(false);
       setSelectedItem(null);
@@ -223,7 +193,6 @@ const SiteAssessment = () => {
 
   const handleVerifyPayment = async (verified) => {
     if (!selectedItem) return;
-
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
@@ -232,7 +201,6 @@ const SiteAssessment = () => {
         { verified, notes: verificationNote },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       showToast(verified ? 'Payment verified successfully!' : 'Payment rejected', verified ? 'success' : 'warning');
       setShowVerifyModal(false);
       setSelectedItem(null);
@@ -249,11 +217,9 @@ const SiteAssessment = () => {
 
   const handleAssignEngineer = async () => {
     if (!selectedItem || !engineerId) return;
-
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
-
       if (activeTab === 'free-quotes') {
         await axios.put(
           `${import.meta.env.VITE_API_URL}/api/free-quotes/${selectedItem._id}/assign-engineer`,
@@ -267,23 +233,15 @@ const SiteAssessment = () => {
           { engineerId, siteVisitDate, notes: siteVisitNotes },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-
         if (siteVisitDate) {
           await axios.post(
             `${import.meta.env.VITE_API_URL}/api/schedules/create-from-preassessment`,
-            {
-              preAssessmentId: selectedItem._id,
-              engineerId: engineerId,
-              siteVisitDate: siteVisitDate,
-              siteVisitTime: '09:00'
-            },
+            { preAssessmentId: selectedItem._id, engineerId, siteVisitDate, siteVisitTime: '09:00' },
             { headers: { Authorization: `Bearer ${token}` } }
           );
         }
-
         showToast('Engineer assigned and schedule created successfully', 'success');
       }
-
       setShowAssignEngineerModal(false);
       setSelectedItem(null);
       setEngineerId('');
@@ -301,29 +259,21 @@ const SiteAssessment = () => {
 
   const handleAssignDevice = async () => {
     if (!selectedItem || !deviceId) return;
-
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
-
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/admin/devices/${deviceId}/assign`,
-        {
-          engineerId: selectedItem.assignedEngineerId,
-          preAssessmentId: selectedItem._id,
-          notes: `Assigned to pre-assessment ${selectedItem.bookingReference}`
-        },
+        { engineerId: selectedItem.assignedEngineerId, preAssessmentId: selectedItem._id, notes: `Assigned to pre-assessment ${selectedItem.bookingReference}` },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      showToast('Device assigned successfully to the pre-assessment', 'success');
+      showToast('Device assigned successfully', 'success');
       setShowAssignDeviceModal(false);
       setSelectedItem(null);
       setDeviceId('');
-
-      await fetchData();
-      await fetchStats();
-      await fetchDevices();
+      fetchData();
+      fetchStats();
+      fetchDevices();
     } catch (error) {
       console.error('Error assigning device:', error);
       showToast(error.response?.data?.message || 'Failed to assign device', 'error');
@@ -334,19 +284,16 @@ const SiteAssessment = () => {
 
   const handleUploadQuotation = async () => {
     if (!selectedItem || !quotationFile) return;
-
     setUploading(true);
     try {
       const token = sessionStorage.getItem('token');
       const formData = new FormData();
       formData.append('quotation', quotationFile);
-
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/free-quotes/${selectedItem._id}/upload-quotation`,
         formData,
         { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
       );
-
       showToast('Quotation uploaded and sent to customer', 'success');
       setShowUploadModal(false);
       setSelectedItem(null);
@@ -362,77 +309,46 @@ const SiteAssessment = () => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-PH', {
-      style: 'currency',
-      currency: 'PHP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
+    return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount || 0);
   };
 
   const formatDate = (date) => {
     if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('en-PH', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    return new Date(date).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
   const getStatusBadge = (status, type) => {
     const badges = {
       'free-quote': {
-        'pending': <span className="status-badge-siteassesad pending-siteassesad">Pending</span>,
-        'assigned': <span className="status-badge-siteassesad assigned-siteassesad">Assigned</span>,
-        'processing': <span className="status-badge-siteassesad processing-siteassesad">Processing</span>,
-        'completed': <span className="status-badge-siteassesad completed-siteassesad">Completed</span>,
-        'cancelled': <span className="status-badge-siteassesad cancelled-siteassesad">Cancelled</span>
+        'pending': <span className="status-badge pending">Pending</span>,
+        'assigned': <span className="status-badge assigned">Assigned</span>,
+        'processing': <span className="status-badge processing">Processing</span>,
+        'completed': <span className="status-badge completed">Completed</span>
       },
       'pre-assessment': {
-        'pending_review': <span className="status-badge-siteassesad pending-review-siteassesad">Pending Review</span>,
-        'pending_payment': <span className="status-badge-siteassesad pending-siteassesad">Pending Payment</span>,
-        'pending': <span className="status-badge-siteassesad pending-siteassesad">Pending</span>,
-        'for_verification': <span className="status-badge-siteassesad for-verification-siteassesad">For Verification</span>,
-        'paid': <span className="status-badge-siteassesad paid-siteassesad">Paid</span>,
-        'scheduled': <span className="status-badge-siteassesad scheduled-siteassesad">Scheduled</span>,
-        'site_visit_ongoing': <span className="status-badge-siteassesad site-visit-ongoing-siteassesad">Site Visit Ongoing</span>,
-        'device_deployed': <span className="status-badge-siteassesad deployed-siteassesad">Device Deployed</span>,
-        'data_collecting': <span className="status-badge-siteassesad collecting-siteassesad">Data Collecting</span>,
-        'completed': <span className="status-badge-siteassesad completed-siteassesad">Completed</span>
+        'pending_review': <span className="status-badge pending-review">Pending Review</span>,
+        'pending_payment': <span className="status-badge pending">Pending Payment</span>,
+        'for_verification': <span className="status-badge verification">For Verification</span>,
+        'paid': <span className="status-badge paid">Paid</span>,
+        'scheduled': <span className="status-badge scheduled">Scheduled</span>,
+        'site_visit_ongoing': <span className="status-badge site-visit">Site Visit</span>,
+        'device_deployed': <span className="status-badge deployed">Device Deployed</span>,
+        'data_collecting': <span className="status-badge collecting">Collecting</span>,
+        'completed': <span className="status-badge completed">Completed</span>
       }
     };
-    return badges[type]?.[status] || <span className="status-badge-siteassesad">{status}</span>;
+    return badges[type]?.[status] || <span className="status-badge">{status}</span>;
   };
 
   const getDisplayStatus = (item) => {
     if (activeTab === 'pre-assessments') {
-      if (item.assessmentStatus === 'pending_review') {
-        return 'pending_review';
-      }
-      
-      if (item.paymentStatus !== 'paid' && item.paymentStatus !== 'pending' && item.assessmentStatus !== 'pending_payment') {
-        return item.paymentStatus;
-      }
-
-      if (item.assessmentStatus === 'device_deployed' ||
-        item.assessmentStatus === 'data_collecting' ||
-        item.assessmentStatus === 'data_analyzing' ||
-        item.assessmentStatus === 'report_draft' ||
-        item.assessmentStatus === 'completed') {
-        return item.assessmentStatus;
-      }
-
+      if (item.assessmentStatus === 'pending_review') return 'pending_review';
+      if (item.paymentStatus !== 'paid' && item.paymentStatus !== 'pending' && item.assessmentStatus !== 'pending_payment') return item.paymentStatus;
+      if (['device_deployed', 'data_collecting', 'data_analyzing', 'report_draft', 'completed'].includes(item.assessmentStatus)) return item.assessmentStatus;
       const hasDeviceAssigned = item.assignedDeviceId || item.iotDeviceId || item.assignedDevice;
       const hasEngineerAssigned = item.assignedEngineerId;
-
-      if (hasEngineerAssigned && hasDeviceAssigned) {
-        return 'site_visit_ongoing';
-      }
-
-      if (hasEngineerAssigned && !hasDeviceAssigned) {
-        return 'scheduled';
-      }
-
+      if (hasEngineerAssigned && hasDeviceAssigned) return 'site_visit_ongoing';
+      if (hasEngineerAssigned && !hasDeviceAssigned) return 'scheduled';
       return item.assessmentStatus || 'scheduled';
     }
     return item.status;
@@ -447,35 +363,25 @@ const SiteAssessment = () => {
   });
 
   const getEngineerName = (engineer) => {
-  if (!engineer) return 'Not assigned';
-  
-  // If engineer is an object with fullName (from populated data)
-  if (typeof engineer === 'object') {
-    // Directly check for fullName - ito ang laman ng engineer object
-    if (engineer.fullName) return engineer.fullName;
-    if (engineer.name) return engineer.name;
-    if (engineer.firstName && engineer.lastName) return `${engineer.firstName} ${engineer.lastName}`;
-    if (engineer.email) return engineer.email;
-    return 'Engineer assigned';
-  }
-  
-  // If engineer is a string (ID), find from engineers array
-  if (typeof engineer === 'string') {
-    const foundEngineer = engineers.find(eng => eng._id === engineer || eng.id === engineer);
-    if (foundEngineer) {
-      return foundEngineer.fullName || foundEngineer.name || foundEngineer.email || 'Engineer assigned';
+    if (!engineer) return 'Not assigned';
+    if (typeof engineer === 'object') {
+      if (engineer.fullName) return engineer.fullName;
+      if (engineer.name) return engineer.name;
+      if (engineer.firstName && engineer.lastName) return `${engineer.firstName} ${engineer.lastName}`;
+      if (engineer.email) return engineer.email;
+      return 'Engineer assigned';
+    }
+    if (typeof engineer === 'string') {
+      const foundEngineer = engineers.find(eng => eng._id === engineer || eng.id === engineer);
+      if (foundEngineer) return foundEngineer.fullName || foundEngineer.name || foundEngineer.email || 'Engineer assigned';
+      return 'Not assigned';
     }
     return 'Not assigned';
-  }
-  
-  return 'Not assigned';
-};
+  };
 
   const getDeviceId = (device) => {
     if (!device) return 'Not assigned';
-    if (typeof device === 'object') {
-      return device.deviceId || device._id || 'Device assigned';
-    }
+    if (typeof device === 'object') return device.deviceId || device._id || 'Device assigned';
     return device;
   };
 
@@ -484,31 +390,14 @@ const SiteAssessment = () => {
   };
 
   const SkeletonLoader = () => (
-    <div className="site-assessment-siteassesad">
-      <div className="assessment-header-siteassesad">
-        <div className="skeleton-line-siteassesad large-siteassesad"></div>
-        <div className="skeleton-line-siteassesad medium-siteassesad"></div>
+    <div className="site-assessment">
+      <div className="assessment-header"><div className="skeleton-title"></div><div className="skeleton-subtitle"></div></div>
+      <div className="assessment-stats">
+        <div className="stat-card skeleton"><div className="skeleton-line large"></div><div className="skeleton-line small"></div></div>
+        <div className="stat-card skeleton"><div className="skeleton-line large"></div><div className="skeleton-line small"></div></div>
       </div>
-      <div className="assessment-stats-siteassesad">
-        {[1, 2].map(i => (
-          <div key={i} className="stat-card-siteassesad skeleton-card-siteassesad">
-            <div className="skeleton-line-siteassesad small-siteassesad"></div>
-            <div className="skeleton-line-siteassesad large-siteassesad"></div>
-          </div>
-        ))}
-      </div>
-      <div className="assessment-tabs-siteassesad">
-        <div className="skeleton-button-siteassesad"></div>
-        <div className="skeleton-button-siteassesad"></div>
-      </div>
-      <div className="assessment-table-container-siteassesad">
-        <div className="skeleton-table-siteassesad">
-          <div className="skeleton-table-header-siteassesad"></div>
-          {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className="skeleton-table-row-siteassesad"></div>
-          ))}
-        </div>
-      </div>
+      <div className="assessment-tabs"><div className="skeleton-tab"></div><div className="skeleton-tab"></div></div>
+      <div className="skeleton-table"></div>
     </div>
   );
 
@@ -518,22 +407,20 @@ const SiteAssessment = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Site Assessment | Admin | Salfer Engineering</title>
-      </Helmet>
+      <Helmet><title>Site Assessment | Admin | Salfer Engineering</title></Helmet>
 
-      <div className="site-assessment-siteassesad">
-        <div className="assessment-header-siteassesad">
-          <h1>Site Assessment Management</h1>
+      <div className="site-assessment">
+        <div className="assessment-header">
+          <h1>Site Assessment</h1>
           <p>Manage free quote requests and pre-assessment bookings</p>
         </div>
 
-        <div className="assessment-stats-siteassesad">
-          <div className="stat-card-siteassesad free-quote-siteassesad">
-            <div className="stat-info-siteassesad">
-              <span className="stat-value-siteassesad">{stats.freeQuotes.total}</span>
-              <span className="stat-label-siteassesad">Free Quotes</span>
-              <div className="stat-detail-siteassesad">
+        <div className="assessment-stats">
+          <div className="stat-card free-quote">
+            <div className="stat-info">
+              <span className="stat-value">{stats.freeQuotes.total}</span>
+              <span className="stat-label">Free Quotes</span>
+              <div className="stat-detail">
                 <span>Pending: {stats.freeQuotes.pending}</span>
                 <span>Assigned: {stats.freeQuotes.assigned}</span>
                 <span>Processing: {stats.freeQuotes.processing}</span>
@@ -541,11 +428,11 @@ const SiteAssessment = () => {
               </div>
             </div>
           </div>
-          <div className="stat-card-siteassesad pre-assessment-siteassesad">
-            <div className="stat-info-siteassesad">
-              <span className="stat-value-siteassesad">{stats.preAssessments.total}</span>
-              <span className="stat-label-siteassesad">Pre-Assessments</span>
-              <div className="stat-detail-siteassesad">
+          <div className="stat-card pre-assessment">
+            <div className="stat-info">
+              <span className="stat-value">{stats.preAssessments.total}</span>
+              <span className="stat-label">Pre-Assessments</span>
+              <div className="stat-detail">
                 <span>Pending Review: {stats.preAssessments.pendingReview}</span>
                 <span>Auto-Verified: {stats.preAssessments.autoVerified}</span>
                 <span>Completed: {stats.preAssessments.completed}</span>
@@ -554,23 +441,13 @@ const SiteAssessment = () => {
           </div>
         </div>
 
-        <div className="assessment-tabs-siteassesad">
-          <button
-            className={`tab-btn-siteassesad ${activeTab === 'free-quotes' ? 'active-siteassesad' : ''}`}
-            onClick={() => { setActiveTab('free-quotes'); setFilter('all'); setCurrentPage(1); }}
-          >
-            Free Quotes
-          </button>
-          <button
-            className={`tab-btn-siteassesad ${activeTab === 'pre-assessments' ? 'active-siteassesad' : ''}`}
-            onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); }}
-          >
-            Pre-Assessments
-          </button>
+        <div className="assessment-tabs">
+          <button className={`tab-btn ${activeTab === 'free-quotes' ? 'active' : ''}`} onClick={() => { setActiveTab('free-quotes'); setFilter('all'); setCurrentPage(1); }}>Free Quotes</button>
+          <button className={`tab-btn ${activeTab === 'pre-assessments' ? 'active' : ''}`} onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); }}>Pre-Assessments</button>
         </div>
 
-        <div className="assessment-filters-siteassesad">
-          <div className="filter-group-siteassesad">
+        <div className="assessment-filters">
+          <div className="filter-group">
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
               <option value="all">All Status</option>
               {activeTab === 'free-quotes' ? (
@@ -588,202 +465,97 @@ const SiteAssessment = () => {
                   <option value="paid">Paid</option>
                   <option value="scheduled">Scheduled</option>
                   <option value="site_visit_ongoing">Site Visit Ongoing</option>
-                  <option value="device_deployed">Device Deployed</option>
                   <option value="completed">Completed</option>
                 </>
               )}
             </select>
           </div>
-          <div className="search-group-siteassesad">
-            <FaSearch className="search-icon-siteassesad" />
-            <input
-              type="text"
-              placeholder="Search by client name or reference..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+          <div className="search-group">
+            <FaSearch className="search-icon" />
+            <input type="text" placeholder="Search by client name or reference..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
         </div>
 
-        <div className="assessment-table-container-siteassesad">
-          <table className="assessment-table-siteassesad">
+        <div className="table-container">
+          <table className="data-table">
             <thead>
               <tr>
                 <th>Reference</th>
                 <th>Client</th>
                 <th>Contact</th>
                 <th>Date</th>
-                {activeTab === 'free-quotes' ? <th>Monthly Bill</th> : <th>Property Type</th>}
+                {activeTab === 'free-quotes' ? <th>Monthly Bill</th> : <th>Property</th>}
                 {activeTab === 'free-quotes' ? <th>Capacity</th> : <th>Amount</th>}
-                {/* REMOVED: Payment Method column */}
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredItems.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="empty-state-siteassesad">
-                    <p>No {activeTab === 'free-quotes' ? 'free quotes' : 'pre-assessments'} found</p>
-                  </td>
-                </tr>
+                <tr><td colSpan="8" className="empty-state">No {activeTab === 'free-quotes' ? 'free quotes' : 'pre-assessments'} found</td></tr>
               ) : (
                 filteredItems.map(item => (
                   <tr key={item._id}>
-                    <td className="ref-cell-siteassesad">
-                      {activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference}
-                    </td>
-                    <td>
-                      {item.clientId?.contactFirstName} {item.clientId?.contactLastName}
-                    </td>
-                    <td>
-                      <div>{item.clientId?.contactNumber || 'N/A'}</div>
-                      <div className="email-cell-siteassesad">{item.clientId?.userId?.email || 'N/A'}</div>
-                    </td>
+                    <td className="ref-cell">{activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference}</td>
+                    <td>{item.clientId?.contactFirstName} {item.clientId?.contactLastName}</td>
+                    <td><div>{item.clientId?.contactNumber || 'N/A'}</div><div className="email-cell">{item.clientId?.userId?.email || 'N/A'}</div></td>
                     <td>{formatDate(activeTab === 'free-quotes' ? item.requestedAt : item.bookedAt)}</td>
                     {activeTab === 'free-quotes' ? (
                       <>
-                        <td className="amount-cell-siteassesad">{formatCurrency(item.monthlyBill)}</td>
+                        <td className="amount-cell">{formatCurrency(item.monthlyBill)}</td>
                         <td>{item.desiredCapacity || 'N/A'}</td>
                       </>
                     ) : (
                       <>
                         <td>{item.propertyType}</td>
-                        <td className="amount-cell-siteassesad">{formatCurrency(item.assessmentFee)}</td>
+                        <td className="amount-cell">{formatCurrency(item.assessmentFee)}</td>
                       </>
                     )}
-                    {/* REMOVED: Payment Method column content */}
                     <td>{getStatusBadge(getDisplayStatus(item), activeTab === 'free-quotes' ? 'free-quote' : 'pre-assessment')}</td>
-                    <td className="actions-cell-siteassesad">
-                      <button
-                        className="action-btn-siteassesad view-siteassesad"
-                        onClick={() => { setSelectedItem(item); setShowDetailModal(true); }}
-                        title="View Details"
-                      >
-                        <FaEye />
-                      </button>
+                    <td className="actions-cell">
+                      <button className="action-btn view" onClick={() => { setSelectedItem(item); setShowDetailModal(true); }} title="View Details"><FaEye /></button>
 
                       {activeTab === 'pre-assessments' && item.assessmentStatus === 'pending_review' && (
                         <>
-                          <button
-                            className="action-btn-siteassesad approve-booking-siteassesad"
-                            onClick={() => { setSelectedItem(item); setShowApproveModal(true); }}
-                            title="Approve Booking"
-                          >
-                            <FaCheckCircle />
-                          </button>
-                          <button
-                            className="action-btn-siteassesad reject-booking-siteassesad"
-                            onClick={() => handleApproveBooking(false)}
-                            title="Reject Booking"
-                          >
-                            <FaTimesCircle />
-                          </button>
+                          <button className="action-btn approve" onClick={() => { setSelectedItem(item); setShowApproveModal(true); }} title="Approve"><FaCheckCircle /></button>
+                          <button className="action-btn reject" onClick={() => handleApproveBooking(false)} title="Reject"><FaTimesCircle /></button>
                         </>
                       )}
 
                       {activeTab === 'free-quotes' && item.status === 'pending' && (
-                        <button
-                          className="action-btn-siteassesad assign-siteassesad"
-                          onClick={() => { setSelectedItem(item); setShowAssignEngineerModal(true); }}
-                          title="Assign Engineer"
-                        >
-                          <FaUserCog />
-                        </button>
+                        <button className="action-btn assign" onClick={() => { setSelectedItem(item); setShowAssignEngineerModal(true); }} title="Assign Engineer"><FaUserCog /></button>
                       )}
 
                       {activeTab === 'free-quotes' && item.status === 'assigned' && (
-                        <button
-                          className="action-btn-siteassesad process-siteassesad"
-                          onClick={() => handleUpdateStatus(item._id, 'processing')}
-                          title="Mark as Processing"
-                        >
-                          <FaTools />
-                        </button>
+                        <button className="action-btn process" onClick={() => handleUpdateStatus(item._id, 'processing')} title="Process"><FaTools /></button>
                       )}
 
                       {activeTab === 'free-quotes' && item.status === 'processing' && (
-                        <button
-                          className="action-btn-siteassesad complete-siteassesad"
-                          onClick={() => handleUpdateStatus(item._id, 'completed')}
-                          title="Mark as Completed"
-                        >
-                          <FaCheckCircle />
-                        </button>
+                        <>
+                          <button className="action-btn upload" onClick={() => { setSelectedItem(item); setShowUploadModal(true); }} title="Upload Quotation"><FaDownload /></button>
+                          <button className="action-btn complete" onClick={() => handleUpdateStatus(item._id, 'completed')} title="Complete"><FaCheckCircle /></button>
+                        </>
                       )}
 
-                      {/* PayMongo payments - Auto-verified, no action needed */}
                       {(item.paymentGateway === 'paymongo' || item.autoVerified === true) && item.paymentStatus === 'paid' && (
-                        <span className="auto-verified-badge" title="Auto-verified via PayMongo">
-                          <FaCheckCircle /> Auto
-                        </span>
+                        <span className="auto-badge" title="Auto-verified via PayMongo"><FaCheckCircle /> Auto</span>
                       )}
 
-                      {/* Cash payments that need manual verification */}
                       {activeTab === 'pre-assessments' && item.paymentMethod === 'cash' && item.paymentStatus === 'pending' && (
-                        <>
-                          <button
-                            className="action-btn-siteassesad verify-siteassesad"
-                            onClick={() => { setSelectedItem(item); setShowVerifyModal(true); }}
-                            title="Verify Cash Payment"
-                          >
-                            <FaMoneyBillWave /> Verify Cash
-                          </button>
-                          <button
-                            className="action-btn-siteassesad reject-siteassesad"
-                            onClick={() => handleVerifyPayment(false)}
-                            title="Reject"
-                          >
-                            <FaTimesCircle />
-                          </button>
-                        </>
+                        <button className="action-btn verify" onClick={() => { setSelectedItem(item); setShowVerifyModal(true); }} title="Verify Cash"><FaMoneyBillWave /></button>
                       )}
 
-                      {/* Legacy manual GCash payments (for existing data) */}
                       {activeTab === 'pre-assessments' && item.paymentMethod === 'gcash' && item.paymentStatus === 'for_verification' && !item.paymentGateway && (
-                        <>
-                          <button
-                            className="action-btn-siteassesad verify-siteassesad"
-                            onClick={() => { setSelectedItem(item); setShowVerifyModal(true); }}
-                            title="Verify GCash Payment"
-                          >
-                            <FaCheckCircle /> Verify
-                          </button>
-                          <button
-                            className="action-btn-siteassesad reject-siteassesad"
-                            onClick={() => handleVerifyPayment(false)}
-                            title="Reject Payment"
-                          >
-                            <FaTimesCircle />
-                          </button>
-                        </>
+                        <button className="action-btn verify" onClick={() => { setSelectedItem(item); setShowVerifyModal(true); }} title="Verify GCash"><FaCheckCircle /></button>
                       )}
 
-                      {activeTab === 'pre-assessments' &&
-                        item.paymentStatus === 'paid' &&
-                        item.assessmentStatus === 'scheduled' &&
-                        !item.assignedEngineerId && (
-                          <button
-                            className="action-btn-siteassesad assign-siteassesad"
-                            onClick={() => { setSelectedItem(item); setShowAssignEngineerModal(true); }}
-                            title="Assign Engineer"
-                          >
-                            <FaUserCog />
-                          </button>
-                        )}
+                      {activeTab === 'pre-assessments' && item.paymentStatus === 'paid' && item.assessmentStatus === 'scheduled' && !item.assignedEngineerId && (
+                        <button className="action-btn assign" onClick={() => { setSelectedItem(item); setShowAssignEngineerModal(true); }} title="Assign Engineer"><FaUserCog /></button>
+                      )}
 
-                      {activeTab === 'pre-assessments' &&
-                        item.paymentStatus === 'paid' &&
-                        item.assignedEngineerId &&
-                        !hasDeviceAssigned(item) && (
-                          <button
-                            className="action-btn-siteassesad assign-device-siteassesad"
-                            onClick={() => { setSelectedItem(item); setShowAssignDeviceModal(true); }}
-                            title="Assign Device"
-                          >
-                            <FaMicrochip />
-                          </button>
-                        )}
+                      {activeTab === 'pre-assessments' && item.paymentStatus === 'paid' && item.assignedEngineerId && !hasDeviceAssigned(item) && (
+                        <button className="action-btn device" onClick={() => { setSelectedItem(item); setShowAssignDeviceModal(true); }} title="Assign Device"><FaMicrochip /></button>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -793,63 +565,29 @@ const SiteAssessment = () => {
         </div>
 
         {totalPages > 1 && (
-          <div className="pagination-siteassesad">
-            <button
-              className="page-btn-siteassesad"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-            >
-              <FaChevronLeft /> Previous
-            </button>
-            <span className="page-info-siteassesad">Page {currentPage} of {totalPages}</span>
-            <button
-              className="page-btn-siteassesad"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-            >
-              Next <FaChevronRight />
-            </button>
+          <div className="pagination">
+            <button className="page-btn" onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}><FaChevronLeft /> Previous</button>
+            <span className="page-info">Page {currentPage} of {totalPages}</span>
+            <button className="page-btn" onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages}>Next <FaChevronRight /></button>
           </div>
         )}
 
-        {/* Approve Booking Modal */}
+        {/* Approve Modal */}
         {showApproveModal && selectedItem && (
-          <div className="modal-overlay-siteassesad" onClick={() => setShowApproveModal(false)}>
-            <div className="modal-content-siteassesad" onClick={e => e.stopPropagation()}>
-              <h3>Approve Pre-Assessment Booking</h3>
-              
-              <div className="modal-body-siteassesad">
-                <div className="booking-details-siteassesad">
-                  <div className="detail-row-siteassesad"><span>Booking Reference:</span><strong>{selectedItem.bookingReference}</strong></div>
-                  <div className="detail-row-siteassesad"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
-                  <div className="detail-row-siteassesad"><span>Property Type:</span><strong>{selectedItem.propertyType}</strong></div>
-                  <div className="detail-row-siteassesad"><span>Preferred Date:</span><strong>{formatDate(selectedItem.preferredDate)}</strong></div>
-                  <div className="detail-row-siteassesad"><span>Assessment Fee:</span><strong>{formatCurrency(selectedItem.assessmentFee)}</strong></div>
-                  <div className="detail-row-siteassesad"><span>Address:</span><strong>{selectedItem.addressId?.houseOrBuilding} {selectedItem.addressId?.street}, {selectedItem.addressId?.barangay}, {selectedItem.addressId?.cityMunicipality}</strong></div>
-                </div>
-
-                <div className="form-group-siteassesad">
-                  <label>Notes (Optional)</label>
-                  <textarea
-                    rows="3"
-                    value={approveNotes}
-                    onChange={(e) => setApproveNotes(e.target.value)}
-                    placeholder="Add any notes about this approval..."
-                  />
-                </div>
-
-                <div className="info-box-siteassesad">
-                  <FaInfoCircle />
-                  <small>Approving this booking will generate an invoice for the customer.</small>
-                </div>
+          <div className="modal-overlay" onClick={() => setShowApproveModal(false)}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header"><h3>Approve Booking</h3><button className="modal-close" onClick={() => setShowApproveModal(false)}>×</button></div>
+              <div className="modal-body">
+                <div className="detail-row"><span>Reference:</span><strong>{selectedItem.bookingReference}</strong></div>
+                <div className="detail-row"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
+                <div className="detail-row"><span>Fee:</span><strong>{formatCurrency(selectedItem.assessmentFee)}</strong></div>
+                <div className="form-group"><label>Notes (Optional)</label><textarea rows="3" value={approveNotes} onChange={(e) => setApproveNotes(e.target.value)} /></div>
+                <div className="info-box"><FaInfoCircle /><small>Approving will generate an invoice for the customer.</small></div>
               </div>
-
-              <div className="modal-actions-siteassesad">
-                <button className="cancel-btn-siteassesad" onClick={() => setShowApproveModal(false)}>Cancel</button>
-                <button className="reject-btn-siteassesad" onClick={() => handleApproveBooking(false)}>Reject</button>
-                <button className="approve-btn-siteassesad" onClick={() => handleApproveBooking(true)} disabled={isSubmitting}>
-                  {isSubmitting ? 'Processing...' : 'Approve & Generate Invoice'}
-                </button>
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={() => setShowApproveModal(false)}>Cancel</button>
+                <button className="reject-btn" onClick={() => handleApproveBooking(false)}>Reject</button>
+                <button className="approve-btn" onClick={() => handleApproveBooking(true)} disabled={isSubmitting}>{isSubmitting ? 'Processing...' : 'Approve'}</button>
               </div>
             </div>
           </div>
@@ -857,139 +595,67 @@ const SiteAssessment = () => {
 
         {/* Detail Modal */}
         {showDetailModal && selectedItem && (
-          <div className="modal-overlay-siteassesad" onClick={() => setShowDetailModal(false)}>
-            <div className="modal-content-siteassesad detail-modal-siteassesad" onClick={e => e.stopPropagation()}>
-              <button className="modal-close-siteassesad" onClick={() => setShowDetailModal(false)}>×</button>
-              <h3>Assessment Details</h3>
-              <div className="detail-section-siteassesad">
-                <h4>Client Information</h4>
-                <p><strong>Name:</strong> {selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</p>
-                <p><strong>Email:</strong> {selectedItem.clientId?.userId?.email}</p>
-                <p><strong>Contact:</strong> {selectedItem.clientId?.contactNumber}</p>
-                <p><strong>Address:</strong> {selectedItem.addressId?.houseOrBuilding} {selectedItem.addressId?.street}, {selectedItem.addressId?.barangay}, {selectedItem.addressId?.cityMunicipality}</p>
-              </div>
-              {activeTab === 'free-quotes' ? (
-                <div className="detail-section-siteassesad">
-                  <h4>Quote Details</h4>
-                  <p><strong>Reference:</strong> {selectedItem.quotationReference}</p>
-                  <p><strong>Monthly Bill:</strong> {formatCurrency(selectedItem.monthlyBill)}</p>
-                  <p><strong>Property Type:</strong> {selectedItem.propertyType}</p>
-                  <p><strong>Desired Capacity:</strong> {selectedItem.desiredCapacity || 'Not specified'}</p>
-                  <p><strong>Status:</strong> {selectedItem.status}</p>
-                  <p><strong>Requested:</strong> {formatDate(selectedItem.requestedAt)}</p>
-                  {selectedItem.assignedEngineerId && (
-                    <p><strong>Assigned Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p>
-                  )}
+          <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
+            <div className="modal detail-modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header"><h3>Details</h3><button className="modal-close" onClick={() => setShowDetailModal(false)}>×</button></div>
+              <div className="modal-body">
+                <div className="detail-section">
+                  <h4>Client</h4>
+                  <p><strong>Name:</strong> {selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</p>
+                  <p><strong>Email:</strong> {selectedItem.clientId?.userId?.email}</p>
+                  <p><strong>Contact:</strong> {selectedItem.clientId?.contactNumber}</p>
+                  <p><strong>Address:</strong> {selectedItem.addressId?.houseOrBuilding} {selectedItem.addressId?.street}, {selectedItem.addressId?.barangay}</p>
                 </div>
-              ) : (
-                <div className="detail-section-siteassesad">
-                  <h4>Assessment Details</h4>
-                  <p><strong>Reference:</strong> {selectedItem.bookingReference}</p>
-                  <p><strong>Invoice:</strong> {selectedItem.invoiceNumber || 'Not yet generated'}</p>
-                  <p><strong>Property Type:</strong> {selectedItem.propertyType}</p>
-                  <p><strong>Roof Type:</strong> {selectedItem.roofType || 'Not specified'}</p>
-                  <p><strong>Preferred Date:</strong> {formatDate(selectedItem.preferredDate)}</p>
-                  <p><strong>Assessment Fee:</strong> {formatCurrency(selectedItem.assessmentFee)}</p>
-                  <p><strong>Payment Gateway:</strong> {selectedItem.paymentGateway === 'paymongo' ? 'PayMongo (Auto-Verified)' : (selectedItem.paymentMethod === 'cash' ? 'Cash (Manual)' : 'Manual')}</p>
-                  <p><strong>Payment Status:</strong> {selectedItem.paymentStatus}</p>
-                  <p><strong>Assessment Status:</strong> {selectedItem.assessmentStatus}</p>
-                  <p><strong>Assigned Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p>
-                  <p><strong>Assigned Device:</strong> {getDeviceId(selectedItem.assignedDeviceId || selectedItem.iotDeviceId || selectedItem.assignedDevice)}</p>
-                </div>
-              )}
-              <div className="modal-actions-siteassesad">
-                <button className="cancel-btn-siteassesad" onClick={() => setShowDetailModal(false)}>Close</button>
+                {activeTab === 'free-quotes' ? (
+                  <div className="detail-section">
+                    <h4>Quote Details</h4>
+                    <p><strong>Reference:</strong> {selectedItem.quotationReference}</p>
+                    <p><strong>Monthly Bill:</strong> {formatCurrency(selectedItem.monthlyBill)}</p>
+                    <p><strong>Status:</strong> {selectedItem.status}</p>
+                    <p><strong>Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p>
+                  </div>
+                ) : (
+                  <div className="detail-section">
+                    <h4>Assessment</h4>
+                    <p><strong>Reference:</strong> {selectedItem.bookingReference}</p>
+                    <p><strong>Fee:</strong> {formatCurrency(selectedItem.assessmentFee)}</p>
+                    <p><strong>Payment:</strong> {selectedItem.paymentStatus}</p>
+                    <p><strong>Assessment:</strong> {selectedItem.assessmentStatus}</p>
+                    <p><strong>Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p>
+                    <p><strong>Device:</strong> {getDeviceId(selectedItem.assignedDeviceId || selectedItem.iotDeviceId)}</p>
+                  </div>
+                )}
               </div>
+              <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowDetailModal(false)}>Close</button></div>
             </div>
           </div>
         )}
 
-        {/* Verify Payment Modal */}
+        {/* Verify Modal */}
         {showVerifyModal && selectedItem && (
-          <div className="modal-overlay-siteassesad" onClick={() => setShowVerifyModal(false)}>
-            <div className="modal-content-siteassesad" onClick={e => e.stopPropagation()}>
-              <h3>
-                {selectedItem.paymentGateway === 'paymongo' 
-                  ? 'PayMongo Payment Details' 
-                  : selectedItem.paymentMethod === 'cash'
-                    ? 'Verify Cash Payment'
-                    : 'Verify GCash Payment'}
-              </h3>
-              
-              <div className="payment-info-siteassesad">
-                <p><strong>Reference:</strong> {selectedItem.bookingReference}</p>
-                <p><strong>Amount:</strong> {formatCurrency(selectedItem.assessmentFee)}</p>
-                <p><strong>Method:</strong> 
-                  {selectedItem.paymentGateway === 'paymongo' 
-                    ? 'PayMongo (Auto-Verified)' 
-                    : selectedItem.paymentMethod?.toUpperCase()}
-                </p>
-                {selectedItem.paymentReference && (
-                  <p><strong>Transaction ID:</strong> {selectedItem.paymentReference}</p>
+          <div className="modal-overlay" onClick={() => setShowVerifyModal(false)}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header"><h3>Verify Payment</h3><button className="modal-close" onClick={() => setShowVerifyModal(false)}>×</button></div>
+              <div className="modal-body">
+                <div className="detail-row"><span>Reference:</span><strong>{selectedItem.bookingReference}</strong></div>
+                <div className="detail-row"><span>Amount:</span><strong>{formatCurrency(selectedItem.assessmentFee)}</strong></div>
+                <div className="detail-row"><span>Method:</span><strong>{selectedItem.paymentMethod?.toUpperCase()}</strong></div>
+                {selectedItem.paymentReference && <div className="detail-row"><span>Transaction:</span><strong>{selectedItem.paymentReference}</strong></div>}
+                {selectedItem.paymentMethod === 'cash' && (
+                  <>
+                    <div className="form-group"><label>Notes</label><textarea rows="3" value={verificationNote} onChange={(e) => setVerificationNote(e.target.value)} /></div>
+                    <div className="modal-actions">
+                      <button className="cancel-btn" onClick={() => setShowVerifyModal(false)}>Cancel</button>
+                      <button className="verify-btn" onClick={() => handleVerifyPayment(true)}><FaCheckCircle /> Confirm Cash Received</button>
+                    </div>
+                  </>
+                )}
+                {selectedItem.paymentGateway === 'paymongo' && (
+                  <div className="info-box"><FaInfoCircle /><small>Auto-verified via PayMongo. No action needed.</small></div>
                 )}
               </div>
-
-              {/* Only show verification options for Cash payments */}
-              {selectedItem.paymentMethod === 'cash' && (
-                <>
-                  <div className="form-group-siteassesad">
-                    <label>Verification Notes (Optional)</label>
-                    <textarea
-                      rows="3"
-                      value={verificationNote}
-                      onChange={(e) => setVerificationNote(e.target.value)}
-                      placeholder="Add any notes about this cash payment verification..."
-                    />
-                  </div>
-                  
-                  <div className="modal-actions-siteassesad">
-                    <button className="cancel-btn-siteassesad" onClick={() => setShowVerifyModal(false)}>Cancel</button>
-                    <button className="verify-btn-siteassesad" onClick={() => handleVerifyPayment(true)}>
-                      <FaCheckCircle /> Confirm Cash Received
-                    </button>
-                  </div>
-                </>
-              )}
-
-              {/* For PayMongo payments - just show info */}
               {selectedItem.paymentGateway === 'paymongo' && (
-                <div className="info-box-siteassesad">
-                  <FaInfoCircle />
-                  <small>This payment was automatically verified via PayMongo. No action needed.</small>
-                  <div className="modal-actions-siteassesad">
-                    <button className="cancel-btn-siteassesad" onClick={() => setShowVerifyModal(false)}>Close</button>
-                  </div>
-                </div>
-              )}
-
-              {/* For legacy manual GCash payments */}
-              {selectedItem.paymentMethod === 'gcash' && !selectedItem.paymentGateway && (
-                <>
-                  {selectedItem.paymentProof && (
-                    <div className="payment-proof-siteassesad">
-                      <label>Payment Proof:</label>
-                      <button className="view-proof-btn-siteassesad" onClick={() => window.open(selectedItem.paymentProof, '_blank')}>
-                        <FaEye /> View Screenshot
-                      </button>
-                    </div>
-                  )}
-                  <div className="form-group-siteassesad">
-                    <label>Verification Notes (Optional)</label>
-                    <textarea
-                      rows="3"
-                      value={verificationNote}
-                      onChange={(e) => setVerificationNote(e.target.value)}
-                      placeholder="Add any notes about this verification..."
-                    />
-                  </div>
-                  <div className="modal-actions-siteassesad">
-                    <button className="cancel-btn-siteassesad" onClick={() => setShowVerifyModal(false)}>Cancel</button>
-                    <button className="reject-btn-siteassesad" onClick={() => handleVerifyPayment(false)} disabled={isSubmitting}>Reject</button>
-                    <button className="verify-btn-siteassesad" onClick={() => handleVerifyPayment(true)} disabled={isSubmitting}>
-                      {isSubmitting ? 'Processing...' : 'Verify & Confirm'}
-                    </button>
-                  </div>
-                </>
+                <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowVerifyModal(false)}>Close</button></div>
               )}
             </div>
           </div>
@@ -997,53 +663,19 @@ const SiteAssessment = () => {
 
         {/* Assign Engineer Modal */}
         {showAssignEngineerModal && selectedItem && (
-          <div className="modal-overlay-siteassesad" onClick={() => setShowAssignEngineerModal(false)}>
-            <div className="modal-content-siteassesad" onClick={e => e.stopPropagation()}>
-              <h3>Assign Engineer to {activeTab === 'free-quotes' ? 'Free Quote' : 'Pre-Assessment'}</h3>
-              <div className="assessment-summary-siteassesad">
-                <p><strong>{activeTab === 'free-quotes' ? 'Quote' : 'Assessment'}:</strong>
-                  {activeTab === 'free-quotes' ? selectedItem.quotationReference : selectedItem.bookingReference}
-                </p>
-                <p><strong>Client:</strong> {selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</p>
-                <p><strong>Address:</strong> {selectedItem.addressId?.houseOrBuilding} {selectedItem.addressId?.street}, {selectedItem.addressId?.barangay}</p>
-                {activeTab === 'free-quotes' && (
-                  <p><strong>Monthly Bill:</strong> {formatCurrency(selectedItem.monthlyBill)}</p>
-                )}
+          <div className="modal-overlay" onClick={() => setShowAssignEngineerModal(false)}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header"><h3>Assign Engineer</h3><button className="modal-close" onClick={() => setShowAssignEngineerModal(false)}>×</button></div>
+              <div className="modal-body">
+                <div className="detail-row"><span>Reference:</span><strong>{activeTab === 'free-quotes' ? selectedItem.quotationReference : selectedItem.bookingReference}</strong></div>
+                <div className="detail-row"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
+                <div className="form-group"><label>Select Engineer</label><select value={engineerId} onChange={(e) => setEngineerId(e.target.value)}><option value="">Select...</option>{engineers.map(eng => <option key={eng._id} value={eng._id}>{eng.fullName} ({eng.email})</option>)}</select></div>
+                {activeTab !== 'free-quotes' && <div className="form-group"><label>Site Visit Date</label><input type="date" value={siteVisitDate} onChange={(e) => setSiteVisitDate(e.target.value)} /></div>}
+                <div className="form-group"><label>Notes</label><textarea rows="3" value={siteVisitNotes} onChange={(e) => setSiteVisitNotes(e.target.value)} /></div>
               </div>
-              <div className="form-group-siteassesad">
-                <label>Select Engineer</label>
-                <select value={engineerId} onChange={(e) => setEngineerId(e.target.value)}>
-                  <option value="">Select an engineer...</option>
-                  {engineers.map(eng => (
-                    <option key={eng._id} value={eng._id}>{eng.fullName} ({eng.email})</option>
-                  ))}
-                </select>
-              </div>
-              {activeTab !== 'free-quotes' && (
-                <div className="form-group-siteassesad">
-                  <label>Site Visit Date</label>
-                  <input type="date" value={siteVisitDate} onChange={(e) => setSiteVisitDate(e.target.value)} />
-                </div>
-              )}
-              <div className="form-group-siteassesad">
-                <label>Notes (Optional)</label>
-                <textarea rows="3" value={siteVisitNotes} onChange={(e) => setSiteVisitNotes(e.target.value)}
-                  placeholder={activeTab === 'free-quotes' ? "Add notes about this assignment..." : "Add any notes for the engineer..."}
-                />
-              </div>
-              <div className="info-box-siteassesad">
-                <FaInfoCircle />
-                <small>
-                  {activeTab === 'free-quotes'
-                    ? "The engineer will review the free quote and provide a quotation."
-                    : "After assigning an engineer, you can then assign a device for this assessment."}
-                </small>
-              </div>
-              <div className="modal-actions-siteassesad">
-                <button className="cancel-btn-siteassesad" onClick={() => setShowAssignEngineerModal(false)}>Cancel</button>
-                <button className="assign-btn-siteassesad" onClick={handleAssignEngineer} disabled={!engineerId || isSubmitting}>
-                  {isSubmitting ? 'Assigning...' : 'Assign Engineer'}
-                </button>
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={() => setShowAssignEngineerModal(false)}>Cancel</button>
+                <button className="assign-btn" onClick={handleAssignEngineer} disabled={!engineerId || isSubmitting}>{isSubmitting ? 'Assigning...' : 'Assign'}</button>
               </div>
             </div>
           </div>
@@ -1051,74 +683,43 @@ const SiteAssessment = () => {
 
         {/* Assign Device Modal */}
         {showAssignDeviceModal && selectedItem && (
-          <div className="modal-overlay-siteassesad" onClick={() => setShowAssignDeviceModal(false)}>
-            <div className="modal-content-siteassesad" onClick={e => e.stopPropagation()}>
-              <h3>Assign Device to Pre-Assessment</h3>
-              <div className="assessment-summary-siteassesad">
-                <p><strong>Assessment:</strong> {selectedItem.bookingReference}</p>
-                <p><strong>Client:</strong> {selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</p>
-                <p><strong>Address:</strong> {selectedItem.addressId?.houseOrBuilding} {selectedItem.addressId?.street}, {selectedItem.addressId?.barangay}</p>
-                <p><strong>Assigned Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p>
+          <div className="modal-overlay" onClick={() => setShowAssignDeviceModal(false)}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header"><h3>Assign Device</h3><button className="modal-close" onClick={() => setShowAssignDeviceModal(false)}>×</button></div>
+              <div className="modal-body">
+                <div className="detail-row"><span>Assessment:</span><strong>{selectedItem.bookingReference}</strong></div>
+                <div className="detail-row"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
+                <div className="detail-row"><span>Engineer:</span><strong>{getEngineerName(selectedItem.assignedEngineerId)}</strong></div>
+                <div className="form-group"><label>Select Device</label><select value={deviceId} onChange={(e) => setDeviceId(e.target.value)}><option value="">Select...</option>{devices.map(device => <option key={device._id} value={device._id}>{device.deviceId} - {device.deviceName}</option>)}</select></div>
+                <div className="info-box"><FaWifi /><small>The device will be deployed on site during the site visit.</small></div>
               </div>
-              <div className="form-group-siteassesad">
-                <label>Select IoT Device</label>
-                <select value={deviceId} onChange={(e) => setDeviceId(e.target.value)}>
-                  <option value="">Select an available device...</option>
-                  {devices.map(device => (
-                    <option key={device._id} value={device._id}>
-                      {device.deviceId} - {device.deviceName} ({device.model})
-                    </option>
-                  ))}
-                </select>
-                {devices.length === 0 && (
-                  <small className="warning-text">No available devices. Please add devices in IoT Device Management.</small>
-                )}
-              </div>
-              <div className="info-box-siteassesad">
-                <FaWifi />
-                <small>The selected device will be assigned to this pre-assessment. The engineer will deploy it on site during the site visit.</small>
-              </div>
-              <div className="modal-actions-siteassesad">
-                <button className="cancel-btn-siteassesad" onClick={() => setShowAssignDeviceModal(false)}>Cancel</button>
-                <button className="assign-btn-siteassesad" onClick={handleAssignDevice} disabled={!deviceId || isSubmitting}>
-                  {isSubmitting ? 'Assigning...' : 'Assign Device'}
-                </button>
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={() => setShowAssignDeviceModal(false)}>Cancel</button>
+                <button className="assign-btn" onClick={handleAssignDevice} disabled={!deviceId || isSubmitting}>{isSubmitting ? 'Assigning...' : 'Assign'}</button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Upload Quotation Modal */}
+        {/* Upload Modal */}
         {showUploadModal && selectedItem && (
-          <div className="modal-overlay-siteassesad" onClick={() => setShowUploadModal(false)}>
-            <div className="modal-content-siteassesad" onClick={e => e.stopPropagation()}>
-              <h3>Upload Quotation</h3>
-              <div className="quote-summary-siteassesad">
-                <p><strong>Quote Reference:</strong> {selectedItem.quotationReference}</p>
-                <p><strong>Client:</strong> {selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</p>
-                <p><strong>Monthly Bill:</strong> {formatCurrency(selectedItem.monthlyBill)}</p>
+          <div className="modal-overlay" onClick={() => setShowUploadModal(false)}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header"><h3>Upload Quotation</h3><button className="modal-close" onClick={() => setShowUploadModal(false)}>×</button></div>
+              <div className="modal-body">
+                <div className="detail-row"><span>Reference:</span><strong>{selectedItem.quotationReference}</strong></div>
+                <div className="detail-row"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
+                <div className="form-group"><label>Quotation (PDF)</label><input type="file" accept=".pdf" onChange={(e) => setQuotationFile(e.target.files[0])} /></div>
               </div>
-              <div className="form-group-siteassesad">
-                <label>Quotation File (PDF)</label>
-                <input type="file" accept=".pdf" onChange={(e) => setQuotationFile(e.target.files[0])} />
-                <small>Upload the quotation PDF. This will be sent to the customer via email.</small>
-              </div>
-              <div className="modal-actions-siteassesad">
-                <button className="cancel-btn-siteassesad" onClick={() => setShowUploadModal(false)}>Cancel</button>
-                <button className="upload-btn-siteassesad" onClick={handleUploadQuotation} disabled={!quotationFile || uploading}>
-                  {uploading ? 'Uploading...' : 'Upload & Send'}
-                </button>
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={() => setShowUploadModal(false)}>Cancel</button>
+                <button className="upload-btn" onClick={handleUploadQuotation} disabled={!quotationFile || uploading}>{uploading ? 'Uploading...' : 'Upload'}</button>
               </div>
             </div>
           </div>
         )}
 
-        <ToastNotification
-          show={toast.show}
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-        />
+        <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} />
       </div>
     </>
   );

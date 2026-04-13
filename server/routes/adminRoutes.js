@@ -75,9 +75,9 @@ router.post('/reports/export', reportController.exportReport);
 
 // Client Management for Reports
 // GET: Get all clients for dropdown filters
-router.get('/clients', reportController.getAllClients);
+router.get('/clients', admin, reportController.getAllClients);
 // GET: Get client statistics
-router.get('/clients/stats', reportController.getClientStats);
+router.get('/clients/stats', admin, reportController.getClientStats);
 
 // ============ ADDITIONAL REPORT ROUTES (Optional) ============
 

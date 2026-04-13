@@ -1,4 +1,4 @@
-// controllers/reportController.js
+// controllers/reportController.js (Fixed to show ALL assessments with whatever data they have)
 
 const PreAssessment = require('../models/PreAssessment');
 const Project = require('../models/Project');
@@ -19,7 +19,85 @@ try {
   console.warn('⚠️ exceljs not installed. Excel export will be disabled.');
 }
 
-// ============ HELPER FUNCTIONS ============
+// Helper function to convert assessment status string to number
+const getStatusNumber = (statusString) => {
+  const statusMap = {
+    'pending_review': 1,
+    'pending_payment': 2,
+    'scheduled': 3,
+    'site_visit_ongoing': 4,
+    'device_deployed': 5,
+    'data_collecting': 6,
+    'data_analyzing': 7,
+    'report_draft': 8,
+    'quotation_generated': 9,
+    'quotation_accepted': 10,
+    'completed': 11,
+    'cancelled': 12
+  };
+  return statusMap[statusString] || null;
+};
+
+// Assessment Status display mapping
+const ASSESSMENT_STATUS_DISPLAY = {
+  1: 'Pending Review',
+  2: 'Pending Payment',
+  3: 'Scheduled',
+  4: 'Site Visit Ongoing',
+  5: 'Device Deployed',
+  6: 'Data Collecting',
+  7: 'Data Analyzing',
+  8: 'Report Draft',
+  9: 'Quotation Generated',
+  10: 'Quotation Accepted',
+  11: 'Completed',
+  12: 'Cancelled'
+};
+
+// Assessment Results Summary Ranges
+const ASSESSMENT_RESULTS_SUMMARY = {
+  IRRADIANCE: {
+    POOR: { min: 0, max: 300, label: 'Poor' },
+    MODERATE: { min: 301, max: 500, label: 'Moderate' },
+    GOOD: { min: 501, max: 700, label: 'Good' },
+    EXCELLENT: { min: 701, max: 1000, label: 'Excellent' }
+  },
+  TEMPERATURE: {
+    OPTIMAL: { min: 15, max: 25, label: 'Optimal' },
+    ACCEPTABLE: { min: 26, max: 35, label: 'Acceptable' },
+    HIGH: { min: 36, max: 45, label: 'High - Efficiency Reduced' },
+    CRITICAL: { min: 46, max: 60, label: 'Critical - Significant Loss' }
+  },
+  HUMIDITY: {
+    LOW: { min: 0, max: 30, label: 'Low' },
+    MODERATE: { min: 31, max: 60, label: 'Moderate' },
+    HIGH: { min: 61, max: 80, label: 'High' },
+    VERY_HIGH: { min: 81, max: 100, label: 'Very High - Condensation Risk' }
+  },
+  SHADING_IMPACT: {
+    NEGLIGIBLE: { min: 0, max: 10, label: 'Negligible Impact' },
+    LOW: { min: 11, max: 20, label: 'Low Impact' },
+    MODERATE: { min: 21, max: 35, label: 'Moderate Impact' },
+    SEVERE: { min: 36, max: 100, label: 'Severe Impact - Not Recommended' }
+  },
+  SITE_SUITABILITY: {
+    POOR: { min: 0, max: 39, label: 'Poor - Not Recommended' },
+    FAIR: { min: 40, max: 59, label: 'Fair - Consider with Caution' },
+    GOOD: { min: 60, max: 79, label: 'Good - Recommended' },
+    EXCELLENT: { min: 80, max: 100, label: 'Excellent - Highly Recommended' }
+  }
+};
+
+// Helper function to get rating based on value
+const getRating = (value, ranges) => {
+  if (!value && value !== 0) return null;
+  for (const [key, range] of Object.entries(ranges)) {
+    if (value >= range.min && value <= range.max) {
+      return { key, ...range };
+    }
+  }
+  return null;
+};
 
 // Calculate suitability score based on peak sun hours and shading
 const calculateSuitabilityScore = (peakSunHours, shadingPercentage, temperatureDerating) => {
@@ -75,7 +153,7 @@ const formatCurrency = (amount) => {
 
 // ============ SITE ASSESSMENT REPORTS ============
 
-// Helper function to get site assessment data
+// Helper function to get site assessment data with ALL data (nulls allowed)
 const getSiteAssessmentData = async (queryParams) => {
   const { startDate, endDate, assessmentId } = queryParams;
   
@@ -92,55 +170,118 @@ const getSiteAssessmentData = async (queryParams) => {
     }
   }
   
-  const assessments = await PreAssessment.find(query)
+  // Fetch ALL assessments (no filtering)
+  const allAssessments = await PreAssessment.find(query)
     .populate('clientId', 'contactFirstName contactLastName contactNumber client_type')
     .populate('addressId')
     .sort({ createdAt: -1 });
   
-  // Process each assessment
-  const processedAssessments = assessments.map(a => {
-    const peakSunHours = a.assessmentResults?.peakSunHours || null;
-    const shadingPercentage = a.assessmentResults?.shadingPercentage || null;
-    const temperatureDerating = a.assessmentResults?.temperatureDerating || 0;
+  console.log(`Total assessments: ${allAssessments.length}`);
+  
+  // Process ALL assessments - show whatever data is available (null for missing)
+  const processedAssessments = allAssessments.map(a => {
+    const results = a.assessmentResults || {};
+    const peakSunHours = results.peakSunHours || null;
+    const avgIrradiance = results.averageIrradiance || null;
+    const maxIrradiance = results.maxIrradiance || null;
+    const minIrradiance = results.minIrradiance || null;
+    const shadingPercentage = results.shadingPercentage || null;
+    const avgTemperature = results.averageTemperature || null;
+    const maxTemperature = results.maxTemperature || null;
+    const minTemperature = results.minTemperature || null;
+    const temperatureDerating = results.temperatureDerating || 0;
+    const avgHumidity = results.averageHumidity || null;
+    const maxHumidity = results.maxHumidity || null;
+    const minHumidity = results.minHumidity || null;
+    const totalReadings = results.totalReadings || a.totalReadings || 0;
+    const dataCollectionStart = results.dataCollectionStart || a.dataCollectionStart;
+    const dataCollectionEnd = results.dataCollectionEnd || a.dataCollectionEnd;
     
-    // Calculate score
-    let suitabilityScore = a.assessmentResults?.summary?.siteSuitabilityScore || null;
+    // Get ratings (will be null if data missing)
+    const irradianceRating = getRating(avgIrradiance, ASSESSMENT_RESULTS_SUMMARY.IRRADIANCE);
+    const tempRating = getRating(avgTemperature, ASSESSMENT_RESULTS_SUMMARY.TEMPERATURE);
+    const humidityRating = getRating(avgHumidity, ASSESSMENT_RESULTS_SUMMARY.HUMIDITY);
+    const shadingRating = getRating(shadingPercentage, ASSESSMENT_RESULTS_SUMMARY.SHADING_IMPACT);
+    
+    // Calculate score (will be null if data missing)
+    let suitabilityScore = results.summary?.siteSuitabilityScore || null;
     if (suitabilityScore === null && peakSunHours !== null && shadingPercentage !== null) {
       suitabilityScore = calculateSuitabilityScore(peakSunHours, shadingPercentage, temperatureDerating);
     }
     
-    // Get roof area
+    const suitabilityRating = getRating(suitabilityScore, ASSESSMENT_RESULTS_SUMMARY.SITE_SUITABILITY);
+    
+    // Get status number and display
+    const statusNum = getStatusNumber(a.assessmentStatus);
+    const statusDisplay = ASSESSMENT_STATUS_DISPLAY[statusNum] || a.assessmentStatus;
+    
+    // Get roof area from either engineerAssessment or direct fields
     const roofLength = a.engineerAssessment?.roofLength || a.roofLength;
     const roofWidth = a.engineerAssessment?.roofWidth || a.roofWidth;
     const roofArea = roofLength && roofWidth ? (roofLength * roofWidth).toFixed(1) : null;
     
     return {
       bookingReference: a.bookingReference || 'N/A',
+      statusNumber: statusNum,
+      statusDisplay: statusDisplay,
       clientName: `${a.clientId?.contactFirstName || ''} ${a.clientId?.contactLastName || ''}`.trim() || 'N/A',
       clientContact: a.clientId?.contactNumber || 'N/A',
       clientType: a.clientId?.client_type || 'N/A',
       address: a.addressId ? `${a.addressId.houseOrBuilding || ''}, ${a.addressId.street || ''}, ${a.addressId.barangay || ''}, ${a.addressId.cityMunicipality || ''}`.replace(/^,\s*|\s*,\s*$/g, '') : 'N/A',
+      propertyType: a.propertyType || 'N/A',
+      desiredCapacity: a.desiredCapacity || 'N/A',
       roofArea: roofArea,
       roofCondition: a.engineerAssessment?.roofCondition || 'N/A',
       structuralIntegrity: a.engineerAssessment?.structuralIntegrity || 'N/A',
+      // IoT Data (will be null if not available)
+      dataCollectionStart: dataCollectionStart,
+      dataCollectionEnd: dataCollectionEnd,
+      totalReadings: totalReadings,
+      // Irradiance
+      averageIrradiance: avgIrradiance,
+      maxIrradiance: maxIrradiance,
+      minIrradiance: minIrradiance,
+      irradianceRating: irradianceRating?.label || null,
       peakSunHours: peakSunHours,
-      shadingPercentage: shadingPercentage,
+      // Temperature
+      averageTemperature: avgTemperature,
+      maxTemperature: maxTemperature,
+      minTemperature: minTemperature,
+      temperatureRating: tempRating?.label || null,
       temperatureDerating: temperatureDerating,
+      // Humidity
+      averageHumidity: avgHumidity,
+      maxHumidity: maxHumidity,
+      minHumidity: minHumidity,
+      humidityRating: humidityRating?.label || null,
+      // Shading
+      shadingPercentage: shadingPercentage,
+      shadingRating: shadingRating?.label || null,
+      // Results
       suitabilityScore: suitabilityScore,
+      suitabilityRating: suitabilityRating?.label || null,
       recommendation: getRecommendation(suitabilityScore),
       assessmentStatus: a.assessmentStatus,
-      assessmentDate: a.completedAt || a.updatedAt || a.createdAt
+      assessmentDate: a.completedAt || a.updatedAt || a.createdAt,
+      // Additional info
+      recommendedSystemSize: results.summary?.recommendedSystemSize || a.recommendedSystemType,
+      estimatedAnnualProduction: results.summary?.estimatedAnnualProduction || a.estimatedAnnualProduction,
+      estimatedAnnualSavings: results.summary?.estimatedAnnualSavings || a.estimatedAnnualSavings,
+      paybackPeriod: results.summary?.paybackPeriodYears || a.paybackPeriod,
+      co2Offset: results.summary?.co2OffsetTonsPerYear || a.co2Offset
     };
   });
   
-  // Calculate statistics
+  // Calculate statistics (only from assessments that have actual data)
   const assessmentsWithScore = processedAssessments.filter(a => a.suitabilityScore !== null);
   const suitableSites = assessmentsWithScore.filter(a => a.suitabilityScore >= 70).length;
   const conditionalSites = assessmentsWithScore.filter(a => a.suitabilityScore >= 50 && a.suitabilityScore < 70).length;
   const notSuitable = assessmentsWithScore.filter(a => a.suitabilityScore < 50).length;
-  const pendingAssessments = processedAssessments.filter(a => a.suitabilityScore === null).length;
   
+  // Count assessments with missing data
   const assessmentsWithPeakSun = processedAssessments.filter(a => a.peakSunHours !== null);
+  const assessmentsWithIoTData = processedAssessments.filter(a => a.averageIrradiance !== null && a.averageTemperature !== null);
+  
   const avgPeakSunHours = assessmentsWithPeakSun.length > 0 
     ? assessmentsWithPeakSun.reduce((sum, a) => sum + a.peakSunHours, 0) / assessmentsWithPeakSun.length 
     : 0;
@@ -150,19 +291,48 @@ const getSiteAssessmentData = async (queryParams) => {
     ? assessmentsWithShading.reduce((sum, a) => sum + a.shadingPercentage, 0) / assessmentsWithShading.length 
     : 0;
   
+  const assessmentsWithIrradiance = processedAssessments.filter(a => a.averageIrradiance !== null);
+  const avgIrradiance = assessmentsWithIrradiance.length > 0 
+    ? assessmentsWithIrradiance.reduce((sum, a) => sum + a.averageIrradiance, 0) / assessmentsWithIrradiance.length 
+    : 0;
+  
+  const assessmentsWithTemp = processedAssessments.filter(a => a.averageTemperature !== null);
+  const avgTemperature = assessmentsWithTemp.length > 0 
+    ? assessmentsWithTemp.reduce((sum, a) => sum + a.averageTemperature, 0) / assessmentsWithTemp.length 
+    : 0;
+  
+  const assessmentsWithHumidity = processedAssessments.filter(a => a.averageHumidity !== null);
+  const avgHumidity = assessmentsWithHumidity.length > 0 
+    ? assessmentsWithHumidity.reduce((sum, a) => sum + a.averageHumidity, 0) / assessmentsWithHumidity.length 
+    : 0;
+  
+  // Status distribution (all assessments)
+  const statusDistribution = {};
+  for (let i = 1; i <= 12; i++) {
+    const count = processedAssessments.filter(a => a.statusNumber === i).length;
+    if (count > 0) {
+      statusDistribution[ASSESSMENT_STATUS_DISPLAY[i]] = count;
+    }
+  }
+  
   return {
     title: 'Site Assessment Report',
     generatedAt: new Date(),
     dateRange: { startDate, endDate },
     summary: {
       totalAssessments: processedAssessments.length,
+      assessmentsWithIoTData: assessmentsWithIoTData.length,
+      assessmentsWithoutIoTData: processedAssessments.length - assessmentsWithIoTData.length,
       suitableSites,
       conditionalSites,
       notSuitable,
-      pendingAssessments,
       suitabilityRate: processedAssessments.length > 0 ? ((suitableSites / processedAssessments.length) * 100).toFixed(1) : 0,
       averagePeakSunHours: avgPeakSunHours.toFixed(1),
-      averageShadingPercentage: avgShading.toFixed(1)
+      averageShadingPercentage: avgShading.toFixed(1),
+      averageIrradiance: avgIrradiance.toFixed(0),
+      averageTemperature: avgTemperature.toFixed(1),
+      averageHumidity: avgHumidity.toFixed(0),
+      statusDistribution
     },
     assessments: processedAssessments
   };
@@ -187,7 +357,7 @@ exports.getSiteAssessmentReport = async (req, res) => {
 };
 
 // @desc    Export Site Assessment Report
-// @route   POST /api/admin/reports/site-assessment/export
+// @route   POST /api/admin/reports/export (with type: site-assessment)
 // @access  Private (Admin)
 exports.exportSiteAssessmentReport = async (req, res) => {
   try {
@@ -202,46 +372,79 @@ exports.exportSiteAssessmentReport = async (req, res) => {
     
     if (format === 'csv') {
       const headers = [
-        'Booking Reference', 'Client Name', 'Contact', 'Client Type', 'Address',
-        'Roof Area (m²)', 'Roof Condition', 'Structural Integrity', 'Peak Sun Hours',
-        'Shading %', 'Temp Derating %', 'Suitability Score', 'Recommendation', 'Status', 'Date'
+        'Status #', 'Status', 'Booking Reference', 'Client Name', 'Contact', 'Client Type',
+        'Property Type', 'Desired Capacity', 'Address', 'Roof Area (m²)', 'Roof Condition',
+        'Structural Integrity', 'Data Collection Start', 'Data Collection End', 'Total Readings',
+        'Avg Irradiance (W/m²)', 'Irradiance Rating', 'Peak Sun Hours (hrs)',
+        'Avg Temp (°C)', 'Temp Rating', 'Temp Derating (%)',
+        'Avg Humidity (%)', 'Humidity Rating',
+        'Shading (%)', 'Shading Rating',
+        'Suitability Score', 'Suitability Rating', 'Recommendation',
+        'Recommended System Size', 'Est. Annual Production (kWh)', 'Est. Annual Savings (₱)',
+        'Payback Period (yrs)', 'CO2 Offset (tons/yr)', 'Assessment Date'
       ];
       
       const rows = (data.assessments || []).map(a => [
+        a.statusNumber || 'N/A',
+        `"${(a.statusDisplay || 'N/A').replace(/"/g, '""')}"`,
         `"${(a.bookingReference || 'N/A').replace(/"/g, '""')}"`,
         `"${(a.clientName || 'N/A').replace(/"/g, '""')}"`,
         `"${(a.clientContact || 'N/A').replace(/"/g, '""')}"`,
         `"${(a.clientType || 'N/A').replace(/"/g, '""')}"`,
+        a.propertyType || 'N/A',
+        a.desiredCapacity || 'N/A',
         `"${(a.address || 'N/A').replace(/"/g, '""')}"`,
         a.roofArea || 'N/A',
         a.roofCondition || 'N/A',
         a.structuralIntegrity || 'N/A',
-        a.peakSunHours || 'N/A',
-        a.shadingPercentage ? `${a.shadingPercentage}%` : 'N/A',
-        a.temperatureDerating ? `${a.temperatureDerating}%` : 'N/A',
+        a.dataCollectionStart ? new Date(a.dataCollectionStart).toLocaleDateString() : 'N/A',
+        a.dataCollectionEnd ? new Date(a.dataCollectionEnd).toLocaleDateString() : 'N/A',
+        a.totalReadings || 0,
+        a.averageIrradiance ? `${a.averageIrradiance.toFixed(0)}` : 'N/A',
+        a.irradianceRating || 'N/A',
+        a.peakSunHours ? `${a.peakSunHours.toFixed(1)}` : 'N/A',
+        a.averageTemperature ? `${a.averageTemperature.toFixed(1)}` : 'N/A',
+        a.temperatureRating || 'N/A',
+        a.temperatureDerating ? `${a.temperatureDerating.toFixed(1)}` : 'N/A',
+        a.averageHumidity ? `${a.averageHumidity.toFixed(0)}` : 'N/A',
+        a.humidityRating || 'N/A',
+        a.shadingPercentage ? `${a.shadingPercentage.toFixed(0)}` : 'N/A',
+        a.shadingRating || 'N/A',
         a.suitabilityScore || 'N/A',
-        `"${(a.recommendation || 'N/A').replace(/"/g, '""')}"`,
-        a.assessmentStatus || 'N/A',
+        a.suitabilityRating || 'N/A',
+        a.recommendation || 'N/A',
+        a.recommendedSystemSize || 'N/A',
+        a.estimatedAnnualProduction ? `${a.estimatedAnnualProduction.toFixed(0)}` : 'N/A',
+        a.estimatedAnnualSavings ? `${a.estimatedAnnualSavings.toFixed(0)}` : 'N/A',
+        a.paybackPeriod ? `${a.paybackPeriod.toFixed(1)}` : 'N/A',
+        a.co2Offset ? `${a.co2Offset.toFixed(1)}` : 'N/A',
         a.assessmentDate ? new Date(a.assessmentDate).toLocaleDateString() : 'N/A'
       ]);
       
       // Add summary rows
       const summaryRows = [
-        ['Site Assessment Report'],
+        ['Site Assessment Report - All Assessments'],
         [`Generated: ${new Date().toLocaleString()}`],
         [`Date Range: ${data.dateRange?.startDate || 'All'} to ${data.dateRange?.endDate || 'All'}`],
         [],
-        ['SUMMARY'],
+        ['SUMMARY STATISTICS'],
         ['Total Assessments', data.summary?.totalAssessments || 0],
+        ['Assessments with IoT Data', data.summary?.assessmentsWithIoTData || 0],
+        ['Assessments without IoT Data', data.summary?.assessmentsWithoutIoTData || 0],
         ['Suitable Sites', data.summary?.suitableSites || 0],
         ['Conditional Sites', data.summary?.conditionalSites || 0],
         ['Not Suitable', data.summary?.notSuitable || 0],
-        ['Pending Assessments', data.summary?.pendingAssessments || 0],
         ['Suitability Rate', `${data.summary?.suitabilityRate || 0}%`],
         ['Average Peak Sun Hours', `${data.summary?.averagePeakSunHours || 0} hrs`],
         ['Average Shading', `${data.summary?.averageShadingPercentage || 0}%`],
+        ['Average Irradiance', `${data.summary?.averageIrradiance || 0} W/m²`],
+        ['Average Temperature', `${data.summary?.averageTemperature || 0}°C`],
+        ['Average Humidity', `${data.summary?.averageHumidity || 0}%`],
         [],
-        ['DETAILED ASSESSMENTS'],
+        ['STATUS DISTRIBUTION'],
+        ...Object.entries(data.summary?.statusDistribution || {}).map(([status, count]) => [status, count]),
+        [],
+        ['ALL ASSESSMENTS'],
         headers
       ];
       
@@ -268,58 +471,89 @@ exports.exportSiteAssessmentReport = async (req, res) => {
       doc.moveDown();
       doc.fontSize(10).text(`Generated: ${new Date().toLocaleString()}`, { align: 'center' });
       doc.moveDown();
+      doc.fontSize(10).text(`Note: Shows all assessments. "N/A" indicates data not yet available.`, { align: 'center', color: 'gray' });
+      doc.moveDown();
       doc.lineWidth(1).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
       doc.moveDown();
       
       // Summary
-      doc.fontSize(14).font('Helvetica-Bold').text('Summary', { underline: true });
+      doc.fontSize(14).font('Helvetica-Bold').text('Summary Statistics', { underline: true });
       doc.moveDown(0.5);
       doc.fontSize(10).font('Helvetica');
       doc.text(`Total Assessments: ${data.summary?.totalAssessments || 0}`);
+      doc.text(`Assessments with IoT Data: ${data.summary?.assessmentsWithIoTData || 0}`);
+      doc.text(`Assessments without IoT Data: ${data.summary?.assessmentsWithoutIoTData || 0}`);
+      doc.moveDown(0.5);
       doc.text(`Suitable Sites: ${data.summary?.suitableSites || 0}`);
       doc.text(`Conditional Sites: ${data.summary?.conditionalSites || 0}`);
       doc.text(`Not Suitable: ${data.summary?.notSuitable || 0}`);
       doc.text(`Suitability Rate: ${data.summary?.suitabilityRate || 0}%`);
+      doc.moveDown(0.5);
       doc.text(`Average Peak Sun Hours: ${data.summary?.averagePeakSunHours || 0} hrs`);
-      doc.text(`Average Shading: ${data.summary?.averageShadingPercentage || 0}%`);
+      doc.text(`Average Irradiance: ${data.summary?.averageIrradiance || 0} W/m²`);
+      doc.text(`Average Temperature: ${data.summary?.averageTemperature || 0}°C`);
+      doc.text(`Average Humidity: ${data.summary?.averageHumidity || 0}%`);
       doc.moveDown();
       
-      // Table
-      doc.fontSize(12).font('Helvetica-Bold').text('Assessment Details', { underline: true });
+      // Status Distribution
+      doc.fontSize(12).font('Helvetica-Bold').text('Status Distribution', { underline: true });
       doc.moveDown(0.5);
+      doc.fontSize(9).font('Helvetica');
+      for (const [status, count] of Object.entries(data.summary?.statusDistribution || {})) {
+        doc.text(`${status}: ${count}`);
+      }
+      doc.moveDown();
       
-      const headers_pdf = ['Ref', 'Client', 'Peak Sun', 'Shading', 'Score', 'Recommendation'];
-      const colWidths = [70, 100, 60, 60, 50, 100];
-      let x = 50;
-      let y = doc.y;
-      
-      doc.fontSize(8).font('Helvetica-Bold');
-      headers_pdf.forEach((col, i) => {
-        doc.text(col, x, y, { width: colWidths[i] });
-        x += colWidths[i];
-      });
-      y += 20;
-      
-      doc.fontSize(7).font('Helvetica');
-      (data.assessments || []).slice(0, 30).forEach(a => {
-        if (y > 750) {
-          doc.addPage();
-          y = 50;
-        }
-        x = 50;
-        doc.text((a.bookingReference || 'N/A').substring(0, 15), x, y, { width: colWidths[0] });
-        x += colWidths[0];
-        doc.text((a.clientName || 'N/A').substring(0, 20), x, y, { width: colWidths[1] });
-        x += colWidths[1];
-        doc.text(a.peakSunHours ? `${a.peakSunHours}` : 'N/A', x, y, { width: colWidths[2] });
-        x += colWidths[2];
-        doc.text(a.shadingPercentage ? `${a.shadingPercentage}%` : 'N/A', x, y, { width: colWidths[3] });
-        x += colWidths[3];
-        doc.text(a.suitabilityScore || 'N/A', x, y, { width: colWidths[4] });
-        x += colWidths[4];
-        doc.text((a.recommendation || 'N/A').substring(0, 15), x, y, { width: colWidths[5] });
-        y += 18;
-      });
+      // Detailed Table
+      if (data.assessments && data.assessments.length > 0) {
+        doc.fontSize(10).font('Helvetica-Bold').text('Assessment Details', { underline: true });
+        doc.moveDown(0.5);
+        
+        const headers_pdf = ['#', 'Ref', 'Client', 'Roof', 'Peak Sun', 'Temp', 'Shading', 'Score'];
+        const colWidths = [25, 45, 70, 40, 50, 40, 40, 40];
+        let x = 50;
+        let y = doc.y;
+        
+        doc.fontSize(7).font('Helvetica-Bold');
+        headers_pdf.forEach((col, i) => {
+          doc.text(col, x, y, { width: colWidths[i] });
+          x += colWidths[i];
+        });
+        y += 15;
+        
+        doc.fontSize(6).font('Helvetica');
+        (data.assessments || []).slice(0, 50).forEach(a => {
+          if (y > 750) {
+            doc.addPage();
+            y = 50;
+            x = 50;
+            doc.fontSize(7).font('Helvetica-Bold');
+            headers_pdf.forEach((col, i) => {
+              doc.text(col, x, y, { width: colWidths[i] });
+              x += colWidths[i];
+            });
+            y += 15;
+            doc.fontSize(6).font('Helvetica');
+          }
+          x = 50;
+          doc.text((a.statusNumber || 'N/A').toString(), x, y, { width: colWidths[0] });
+          x += colWidths[0];
+          doc.text((a.bookingReference || 'N/A').substring(0, 6), x, y, { width: colWidths[1] });
+          x += colWidths[1];
+          doc.text((a.clientName || 'N/A').substring(0, 12), x, y, { width: colWidths[2] });
+          x += colWidths[2];
+          doc.text((a.roofCondition || 'N/A').substring(0, 6), x, y, { width: colWidths[3] });
+          x += colWidths[3];
+          doc.text(a.peakSunHours ? `${a.peakSunHours.toFixed(1)}` : 'N/A', x, y, { width: colWidths[4] });
+          x += colWidths[4];
+          doc.text(a.averageTemperature ? `${a.averageTemperature.toFixed(0)}°C` : 'N/A', x, y, { width: colWidths[5] });
+          x += colWidths[5];
+          doc.text(a.shadingPercentage ? `${a.shadingPercentage.toFixed(0)}%` : 'N/A', x, y, { width: colWidths[6] });
+          x += colWidths[6];
+          doc.text(a.suitabilityScore || 'N/A', x, y, { width: colWidths[7] });
+          y += 12;
+        });
+      }
       
       doc.end();
       return;
@@ -334,58 +568,119 @@ exports.exportSiteAssessmentReport = async (req, res) => {
       const worksheet = workbook.addWorksheet('Site Assessment Report');
       
       // Title
-      worksheet.mergeCells('A1:O1');
-      worksheet.getCell('A1').value = 'Site Assessment Report';
+      worksheet.mergeCells('A1:AF1');
+      worksheet.getCell('A1').value = 'Site Assessment Report - All Assessments';
       worksheet.getCell('A1').font = { size: 16, bold: true };
       worksheet.getCell('A1').alignment = { horizontal: 'center' };
       
-      worksheet.mergeCells('A2:O2');
+      worksheet.mergeCells('A2:AF2');
       worksheet.getCell('A2').value = `Generated: ${new Date().toLocaleString()}`;
       worksheet.getCell('A2').alignment = { horizontal: 'center' };
       
-      // Summary
+      worksheet.mergeCells('A3:AF3');
+      worksheet.getCell('A3').value = `Note: "N/A" indicates data not yet available for that assessment.`;
+      worksheet.getCell('A3').alignment = { horizontal: 'center' };
+      worksheet.getCell('A3').font = { italic: true, color: { argb: 'FF808080' } };
+      
+      // Summary Section
       worksheet.addRow([]);
-      worksheet.addRow(['SUMMARY']);
-      worksheet.getCell('A4').font = { bold: true };
+      worksheet.addRow(['SUMMARY STATISTICS']);
+      worksheet.getCell('A5').font = { bold: true, size: 12 };
+      
       worksheet.addRow(['Total Assessments', data.summary?.totalAssessments || 0]);
+      worksheet.addRow(['Assessments with IoT Data', data.summary?.assessmentsWithIoTData || 0]);
+      worksheet.addRow(['Assessments without IoT Data', data.summary?.assessmentsWithoutIoTData || 0]);
+      worksheet.addRow([]);
       worksheet.addRow(['Suitable Sites', data.summary?.suitableSites || 0]);
       worksheet.addRow(['Conditional Sites', data.summary?.conditionalSites || 0]);
       worksheet.addRow(['Not Suitable', data.summary?.notSuitable || 0]);
       worksheet.addRow(['Suitability Rate', `${data.summary?.suitabilityRate || 0}%`]);
+      worksheet.addRow([]);
       worksheet.addRow(['Average Peak Sun Hours', `${data.summary?.averagePeakSunHours || 0} hrs`]);
       worksheet.addRow(['Average Shading', `${data.summary?.averageShadingPercentage || 0}%`]);
+      worksheet.addRow(['Average Irradiance', `${data.summary?.averageIrradiance || 0} W/m²`]);
+      worksheet.addRow(['Average Temperature', `${data.summary?.averageTemperature || 0}°C`]);
+      worksheet.addRow(['Average Humidity', `${data.summary?.averageHumidity || 0}%`]);
       
+      // Status Distribution
       worksheet.addRow([]);
-      worksheet.addRow(['DETAILED ASSESSMENTS']);
-      worksheet.getCell('A14').font = { bold: true };
+      worksheet.addRow(['STATUS DISTRIBUTION']);
+      worksheet.getCell('A' + (worksheet.rowCount + 1)).font = { bold: true, size: 12 };
       
-      const headers_excel = [
-        'Booking Ref', 'Client Name', 'Contact', 'Client Type', 'Address',
-        'Roof Area', 'Roof Condition', 'Structural Integrity', 'Peak Sun Hours',
-        'Shading %', 'Temp Derating %', 'Suitability Score', 'Recommendation', 'Status', 'Date'
-      ];
-      worksheet.addRow(headers_excel);
+      for (const [status, count] of Object.entries(data.summary?.statusDistribution || {})) {
+        worksheet.addRow([status, count]);
+      }
       
-      (data.assessments || []).forEach(a => {
-        worksheet.addRow([
-          a.bookingReference || 'N/A',
-          a.clientName || 'N/A',
-          a.clientContact || 'N/A',
-          a.clientType || 'N/A',
-          a.address || 'N/A',
-          a.roofArea ? `${a.roofArea} m²` : 'N/A',
-          a.roofCondition || 'N/A',
-          a.structuralIntegrity || 'N/A',
-          a.peakSunHours || 'N/A',
-          a.shadingPercentage ? `${a.shadingPercentage}%` : 'N/A',
-          a.temperatureDerating ? `${a.temperatureDerating}%` : 'N/A',
-          a.suitabilityScore || 'N/A',
-          a.recommendation || 'N/A',
-          a.assessmentStatus || 'N/A',
-          a.assessmentDate ? new Date(a.assessmentDate).toLocaleDateString() : 'N/A'
-        ]);
-      });
+      // Detailed assessments
+      if (data.assessments && data.assessments.length > 0) {
+        worksheet.addRow([]);
+        worksheet.addRow(['ALL ASSESSMENTS']);
+        worksheet.getCell('A' + (worksheet.rowCount + 1)).font = { bold: true, size: 12 };
+        
+        const headers_excel = [
+          'Status #', 'Status', 'Booking Ref', 'Client Name', 'Contact', 'Client Type',
+          'Property Type', 'Desired Capacity', 'Address', 'Roof Area (m²)', 'Roof Condition',
+          'Structural Integrity', 'Data Start', 'Data End', 'Readings',
+          'Avg Irradiance', 'Irradiance Rating', 'Peak Sun Hours',
+          'Avg Temp (°C)', 'Temp Rating', 'Temp Derating (%)',
+          'Avg Humidity (%)', 'Humidity Rating',
+          'Shading (%)', 'Shading Rating',
+          'Suitability Score', 'Suitability Rating', 'Recommendation',
+          'Recommended System', 'Est. Annual Production', 'Est. Annual Savings',
+          'Payback Period', 'CO2 Offset', 'Date'
+        ];
+        worksheet.addRow(headers_excel);
+        
+        // Style headers
+        const headerRow = worksheet.getRow(worksheet.rowCount);
+        headerRow.font = { bold: true };
+        headerRow.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFE0E0E0' }
+        };
+        
+        (data.assessments || []).forEach(a => {
+          worksheet.addRow([
+            a.statusNumber || 'N/A',
+            a.statusDisplay || 'N/A',
+            a.bookingReference || 'N/A',
+            a.clientName || 'N/A',
+            a.clientContact || 'N/A',
+            a.clientType || 'N/A',
+            a.propertyType || 'N/A',
+            a.desiredCapacity || 'N/A',
+            a.address || 'N/A',
+            a.roofArea || 'N/A',
+            a.roofCondition || 'N/A',
+            a.structuralIntegrity || 'N/A',
+            a.dataCollectionStart ? new Date(a.dataCollectionStart).toLocaleDateString() : 'N/A',
+            a.dataCollectionEnd ? new Date(a.dataCollectionEnd).toLocaleDateString() : 'N/A',
+            a.totalReadings || 0,
+            a.averageIrradiance ? a.averageIrradiance.toFixed(0) : 'N/A',
+            a.irradianceRating || 'N/A',
+            a.peakSunHours ? a.peakSunHours.toFixed(1) : 'N/A',
+            a.averageTemperature ? a.averageTemperature.toFixed(1) : 'N/A',
+            a.temperatureRating || 'N/A',
+            a.temperatureDerating ? a.temperatureDerating.toFixed(1) : 'N/A',
+            a.averageHumidity ? a.averageHumidity.toFixed(0) : 'N/A',
+            a.humidityRating || 'N/A',
+            a.shadingPercentage ? a.shadingPercentage.toFixed(0) : 'N/A',
+            a.shadingRating || 'N/A',
+            a.suitabilityScore || 'N/A',
+            a.suitabilityRating || 'N/A',
+            a.recommendation || 'N/A',
+            a.recommendedSystemSize || 'N/A',
+            a.estimatedAnnualProduction ? a.estimatedAnnualProduction.toFixed(0) : 'N/A',
+            a.estimatedAnnualSavings ? a.estimatedAnnualSavings.toFixed(0) : 'N/A',
+            a.paybackPeriod ? a.paybackPeriod.toFixed(1) : 'N/A',
+            a.co2Offset ? a.co2Offset.toFixed(1) : 'N/A',
+            a.assessmentDate ? new Date(a.assessmentDate).toLocaleDateString() : 'N/A'
+          ]);
+        });
+      }
       
+      // Auto-fit columns
       worksheet.columns.forEach(col => { col.width = 18; });
       
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -510,7 +805,7 @@ exports.getProjectSummaryReport = async (req, res) => {
 };
 
 // @desc    Export Project Summary Report
-// @route   POST /api/admin/reports/project-summary/export
+// @route   POST /api/admin/reports/export (with type: project-summary)
 // @access  Private (Admin)
 exports.exportProjectSummaryReport = async (req, res) => {
   try {
@@ -733,7 +1028,6 @@ const getFinancialData = async (queryParams) => {
   const projectPayments = projects.flatMap(p => {
     const payments = [];
     
-    // Add initial payment if exists
     if (p.initialPayment > 0 && p.amountPaid >= p.initialPayment) {
       payments.push({
         date: p.startDate || p.createdAt,
@@ -748,7 +1042,6 @@ const getFinancialData = async (queryParams) => {
       });
     }
     
-    // Add progress payment if exists
     if (p.progressPayment > 0 && p.amountPaid >= p.initialPayment + p.progressPayment) {
       payments.push({
         date: p.updatedAt,
@@ -763,7 +1056,6 @@ const getFinancialData = async (queryParams) => {
       });
     }
     
-    // Add final payment if exists and fully paid
     if (p.finalPayment > 0 && p.amountPaid >= p.totalCost) {
       payments.push({
         date: p.actualCompletionDate || p.updatedAt,
@@ -778,7 +1070,6 @@ const getFinancialData = async (queryParams) => {
       });
     }
     
-    // Add full payment if applicable
     if (p.paymentPreference === 'full' && p.amountPaid > 0) {
       payments.push({
         date: p.startDate || p.createdAt,
@@ -843,7 +1134,7 @@ exports.getFinancialReport = async (req, res) => {
 };
 
 // @desc    Export Financial Report
-// @route   POST /api/admin/reports/financial/export
+// @route   POST /api/admin/reports/export (with type: financial)
 // @access  Private (Admin)
 exports.exportFinancialReport = async (req, res) => {
   try {
@@ -1031,6 +1322,7 @@ const getClientTransactionData = async (queryParams) => {
     });
     
     preAssessments.forEach(pa => {
+      const results = pa.assessmentResults || {};
       transactions.push({
         date: pa.createdAt,
         clientId: client._id,
@@ -1046,7 +1338,9 @@ const getClientTransactionData = async (queryParams) => {
         details: {
           propertyType: pa.propertyType,
           desiredCapacity: pa.desiredCapacity,
-          assessmentStatus: pa.assessmentStatus
+          assessmentStatus: pa.assessmentStatus,
+          peakSunHours: results.peakSunHours,
+          suitabilityScore: results.summary?.siteSuitabilityScore
         }
       });
     });
@@ -1119,7 +1413,7 @@ exports.getClientTransactionReport = async (req, res) => {
 };
 
 // @desc    Export Client Transaction Report
-// @route   POST /api/admin/reports/client-transaction/export
+// @route   POST /api/admin/reports/export (with type: client-transaction)
 // @access  Private (Admin)
 exports.exportClientTransactionReport = async (req, res) => {
   try {

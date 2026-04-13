@@ -119,18 +119,75 @@ const ScheduleAssessment = () => {
   };
 
   const fetchMyRequests = async () => {
-    try {
-      const token = sessionStorage.getItem('token');
-      const [freeQuotesRes, preAssessmentsRes] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes/my-quotes`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-bookings`, { headers: { Authorization: `Bearer ${token}` } })
-      ]);
-      setFreeQuotes(freeQuotesRes.data.quotes || []);
-      setPreAssessments(preAssessmentsRes.data.assessments || []);
-    } catch (err) {
-      console.error('Error fetching requests:', err);
-    }
-  };
+  try {
+    const token = sessionStorage.getItem('token');
+    const [freeQuotesRes, preAssessmentsRes] = await Promise.all([
+      axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes/my-quotes`, { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-bookings`, { headers: { Authorization: `Bearer ${token}` } })
+    ]);
+
+    const assessments = preAssessmentsRes.data.assessments || [];
+
+    // Log all assessments with their engineer assignment status
+    console.log('=== All Pre-Assessments ===');
+    assessments.forEach((assessment, idx) => {
+      console.log(`${idx + 1}. ${assessment.bookingReference} - Status: ${assessment.assessmentStatus} - Payment: ${assessment.paymentStatus}`);
+      console.log(`   assignedEngineerId:`, assessment.assignedEngineerId);
+      console.log(`   Has engineer assigned: ${!!assessment.assignedEngineerId}`);
+    });
+
+    // For each assessment, extract engineer info
+    const assessmentsWithEngineer = await Promise.all(assessments.map(async (assessment) => {
+      let engineerName = 'Not assigned yet';
+
+      // Get engineer ID - handle both object and string cases
+      let engineerId = null;
+      if (assessment.assignedEngineerId) {
+        if (typeof assessment.assignedEngineerId === 'object') {
+          engineerId = assessment.assignedEngineerId._id || assessment.assignedEngineerId.id;
+        } else if (typeof assessment.assignedEngineerId === 'string') {
+          engineerId = assessment.assignedEngineerId;
+        }
+      }
+      
+      console.log(`Assessment ${assessment.bookingReference}:`);
+      console.log('  - assignedEngineerId:', assessment.assignedEngineerId);
+      console.log('  - Extracted Engineer ID:', engineerId);
+      
+      // Fetch engineer name if ID exists
+      if (engineerId) {
+        try {
+          console.log(`  - Fetching engineer details for ID: ${engineerId}`);
+          const engineerRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users/${engineerId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const engineer = engineerRes.data.user;
+
+          if (engineer) {
+            engineerName = engineer.fullName ||
+              (engineer.firstName && engineer.lastName ? `${engineer.firstName} ${engineer.lastName}` : null) ||
+              engineer.name ||
+              engineer.email ||
+              'Engineer assigned';
+            console.log(`  - Engineer name found: ${engineerName}`);
+          }
+        } catch (err) {
+          console.error(`  - Error fetching engineer:`, err);
+          engineerName = 'Engineer assigned';
+        }
+      } else {
+        console.log(`  - No engineer assigned yet (assignedEngineerId is null or empty)`);
+      }
+
+      return { ...assessment, engineerName };
+    }));
+
+    setFreeQuotes(freeQuotesRes.data.quotes || []);
+    setPreAssessments(assessmentsWithEngineer);
+  } catch (err) {
+    console.error('Error fetching requests:', err);
+  }
+};
 
   const handleAddressClick = () => navigate('/app/customer/settings?tab=addresses');
   const handleProfileClick = () => navigate('/app/customer/settings?tab=profile');
@@ -146,7 +203,7 @@ const ScheduleAssessment = () => {
   };
 
   const getFullName = () => [formData.firstName, formData.middleName, formData.lastName].filter(p => p).join(' ');
-  
+
   const getFullAddress = () => {
     if (selectedAddress) {
       return `${selectedAddress.houseOrBuilding} ${selectedAddress.street}, ${selectedAddress.barangay}, ${selectedAddress.cityMunicipality}, ${selectedAddress.province} ${selectedAddress.zipCode}`;
@@ -283,7 +340,7 @@ const ScheduleAssessment = () => {
   };
 
   const formatCurrency = (value) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value || 0);
-  
+
   const formatDate = (date) => {
     if (!date) return 'N/A';
     return new Date(date).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -354,7 +411,7 @@ const ScheduleAssessment = () => {
   );
 
   if (loading) return <><Helmet><title>Get Solar Service | Salfer Engineering</title></Helmet><SkeletonLoader /></>;
-  
+
   if (error) return (
     <div className="schedule-error-container-cusset">
       <h2>Something went wrong</h2>
@@ -577,6 +634,7 @@ const ScheduleAssessment = () => {
                       <div className="detail-row"><span>Booked:</span><strong>{formatDate(selectedRequest.bookedAt)}</strong></div>
                       <div className="detail-row"><span>Payment:</span>{getAssessmentStatusBadge(selectedRequest.paymentStatus)}</div>
                       <div className="detail-row"><span>Assessment:</span>{getAssessmentStatusBadge(selectedRequest.assessmentStatus)}</div>
+                      <div className="detail-row"><span>Assigned Engineer:</span><strong>{selectedRequest.engineerName || 'Not assigned yet'}</strong></div>
                     </div>
                     <div className="status-detail-section">
                       <h3>Details</h3>

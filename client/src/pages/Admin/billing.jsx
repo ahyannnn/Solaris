@@ -1,6 +1,5 @@
 // pages/Admin/Billing.jsx
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import {
@@ -79,6 +78,7 @@ const AdminBilling = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [stats, setStats] = useState({
     totalPreAssessments: 0,
     pending: 0,
@@ -96,32 +96,69 @@ const AdminBilling = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalMode, setModalMode] = useState('view');
 
+  // Debounced search term
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Reset page when filter, debounced search, or active tab changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, debouncedSearchTerm, activeTab]);
+
+  // Fetch data when dependencies change
   useEffect(() => {
     if (activeTab === 'pre-assessments') {
       fetchPreAssessments();
     } else if (activeTab === 'solar-invoices') {
       fetchSolarInvoices();
-      fetchProjects();
     } else {
       fetchTransactions();
     }
     fetchStats();
-  }, [activeTab, filter, currentPage]);
+  }, [activeTab, filter, currentPage, debouncedSearchTerm]);
 
-  // ============ FETCH FUNCTIONS ============
+  const fetchProjects = useCallback(async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setProjects(response.data.projects || []);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+    }
+  }, []);
+
+  // ============ FETCH FUNCTIONS WITH PAGINATION ============
 
   const fetchPreAssessments = async () => {
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token');
 
+      const params = {
+        page: currentPage,
+        limit: 10
+      };
+      
+      if (filter !== 'all') {
+        params.paymentStatus = filter;
+      }
+      
+      if (debouncedSearchTerm) {
+        params.search = debouncedSearchTerm;
+      }
+
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: {
-          paymentStatus: filter === 'all' ? undefined : filter,
-          page: currentPage,
-          limit: 10
-        }
+        params
       });
 
       const assessmentsWithInvoice = (response.data.assessments || []).filter(
@@ -130,6 +167,7 @@ const AdminBilling = () => {
 
       setAssessments(assessmentsWithInvoice);
       setTotalPages(response.data.totalPages || 1);
+      setTotalItems(response.data.total || assessmentsWithInvoice.length);
     } catch (error) {
       console.error('Error fetching pre-assessments:', error);
       showToast('Failed to fetch pre-assessments', 'error');
@@ -143,17 +181,27 @@ const AdminBilling = () => {
       setLoading(true);
       const token = sessionStorage.getItem('token');
 
+      const params = {
+        page: currentPage,
+        limit: 10
+      };
+      
+      if (filter !== 'all') {
+        params.paymentStatus = filter;
+      }
+      
+      if (debouncedSearchTerm) {
+        params.search = debouncedSearchTerm;
+      }
+
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/solar-invoices`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: {
-          paymentStatus: filter === 'all' ? undefined : filter,
-          page: currentPage,
-          limit: 10
-        }
+        params
       });
 
       setSolarInvoices(response.data.invoices || []);
       setTotalPages(response.data.totalPages || 1);
+      setTotalItems(response.data.total || 0);
     } catch (error) {
       console.error('Error fetching solar invoices:', error);
       showToast('Failed to fetch solar invoices', 'error');
@@ -208,8 +256,27 @@ const AdminBilling = () => {
           projectId: i.projectId?._id
         })));
 
-      setTransactions([...prePayments, ...solarPayments].sort((a, b) => new Date(b.date) - new Date(a.date)));
-      setTotalPages(1);
+      let allTransactions = [...prePayments, ...solarPayments].sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      // Apply filter to transactions
+      if (filter !== 'all') {
+        allTransactions = allTransactions.filter(t => t.status === filter);
+      }
+      
+      // Apply search to transactions
+      if (debouncedSearchTerm) {
+        const term = debouncedSearchTerm.toLowerCase();
+        allTransactions = allTransactions.filter(t =>
+          t.reference?.toLowerCase().includes(term) ||
+          t.invoiceNumber?.toLowerCase().includes(term) ||
+          t.client?.toLowerCase().includes(term) ||
+          t.projectName?.toLowerCase().includes(term)
+        );
+      }
+      
+      setTransactions(allTransactions);
+      setTotalItems(allTransactions.length);
+      setTotalPages(1); // Client-side pagination for transactions
     } catch (error) {
       console.error('Error fetching transactions:', error);
       showToast('Failed to fetch transactions', 'error');
@@ -260,18 +327,6 @@ const AdminBilling = () => {
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
-    }
-  };
-
-  const fetchProjects = async () => {
-    try {
-      const token = sessionStorage.getItem('token');
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setProjects(response.data.projects || []);
-    } catch (error) {
-      console.error('Error fetching projects:', error);
     }
   };
 
@@ -589,22 +644,6 @@ const AdminBilling = () => {
     return <span className="gateway-badge manual">Manual</span>;
   };
 
-  const filteredItems = (activeTab === 'pre-assessments' ? assessments : solarInvoices).filter(item => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase();
-    if (activeTab === 'pre-assessments') {
-      return item.bookingReference?.toLowerCase().includes(searchLower) ||
-        item.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
-        item.clientId?.contactLastName?.toLowerCase().includes(searchLower) ||
-        item.invoiceNumber?.toLowerCase().includes(searchLower);
-    } else {
-      return item.invoiceNumber?.toLowerCase().includes(searchLower) ||
-        item.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
-        item.clientId?.contactLastName?.toLowerCase().includes(searchLower) ||
-        item.projectId?.projectName?.toLowerCase().includes(searchLower);
-    }
-  });
-
   // ============ SKELETON LOADER ============
 
   const SkeletonLoader = () => (
@@ -642,7 +681,7 @@ const AdminBilling = () => {
     </div>
   );
 
-  if (loading && (activeTab === 'pre-assessments' ? assessments.length === 0 : solarInvoices.length === 0) && activeTab !== 'transactions') {
+  if (loading && assessments.length === 0 && solarInvoices.length === 0 && activeTab !== 'transactions') {
     return <SkeletonLoader />;
   }
 
@@ -745,7 +784,14 @@ const AdminBilling = () => {
                   <option value="paid">Paid</option>
                   <option value="overdue">Overdue</option>
                 </>
-              ) : null}
+              ) : (
+                <>
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                  <option value="for_verification">For Verification</option>
+                  <option value="partial">Partial</option>
+                </>
+              )}
             </select>
           </div>
           <div className="search-group-adminbilling">
@@ -761,349 +807,389 @@ const AdminBilling = () => {
 
         {/* ============ PRE-ASSESSMENTS TABLE ============ */}
         {activeTab === 'pre-assessments' && (
-          <div className="payments-table-container-adminbilling">
-            <table className="payments-table-adminbilling">
-              <thead>
-                <tr>
-                  <th>Booking Ref</th>
-                  <th>Invoice</th>
-                  <th>Client</th>
-                  <th>Date</th>
-                  <th>Amount</th>
-                  <th>Payment Method</th>
-                  <th>Gateway</th>
-                  <th>Payment Status</th>
-                  <th>Assessment Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredItems.length === 0 ? (
+          <>
+            <div className="payments-table-container-adminbilling">
+              <table className="payments-table-adminbilling">
+                <thead>
                   <tr>
-                    <td colSpan="10" className="empty-state-adminbilling">
-                      <p>No pre-assessments with issued invoices found</p>
-                    </td>
+                    <th>Booking Ref</th>
+                    <th>Invoice</th>
+                    <th>Client</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Payment Method</th>
+                    <th>Gateway</th>
+                    <th>Payment Status</th>
+                    <th>Assessment Status</th>
+                    <th>Actions</th>
                   </tr>
-                ) : (
-                  filteredItems.map(assessment => (
-                    <tr key={assessment._id}>
-                      <td className="ref-cell-adminbilling">{assessment.bookingReference}</td>
-                      <td>{assessment.invoiceNumber}</td>
-                      <td>
-                        <div className="client-info-adminbilling">
-                          <strong>{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</strong>
-                          <small>{assessment.clientId?.contactNumber}</small>
-                        </div>
-                      </td>
-                      <td>{formatDate(assessment.bookedAt)}</td>
-                      <td className="amount-adminbilling">{formatCurrency(assessment.assessmentFee)}</td>
-                      <td>
-                        {assessment.paymentGateway === 'paymongo' ? (
-                          <span className="payment-method-adminbilling paymongo-method">PayMongo</span>
-                        ) : assessment.paymentMethod ? (
-                          <span className="payment-method-adminbilling">
-                            {assessment.paymentMethod.toUpperCase()}
-                          </span>
-                        ) : '-'}
-                      </td>
-                      <td>{getGatewayBadge(assessment)}</td>
-                      <td>{getPaymentStatusBadge(assessment.paymentStatus)}</td>
-                      <td>{getAssessmentStatusBadge(assessment.assessmentStatus)}</td>
-                      <td className="actions-adminbilling">
-                        {(assessment.paymentGateway === 'paymongo' || assessment.autoVerified === true) && assessment.paymentStatus === 'paid' && (
-                          <span className="verified-badge-adminbilling auto-verified">
-                            <FaCheckCircle /> Auto-Verified
-                          </span>
-                        )}
-
-                        {assessment.paymentMethod === 'gcash' && assessment.paymentStatus === 'for_verification' && (
-                          <>
-                            <button
-                              className="action-btn-adminbilling view-proof-adminbilling"
-                              onClick={() => {
-                                if (assessment.paymentProof) window.open(assessment.paymentProof, '_blank');
-                              }}
-                              title="View Payment Proof"
-                            >
-                              <FaEye />
-                            </button>
-                            <button
-                              className="action-btn-adminbilling verify-adminbilling"
-                              onClick={() => {
-                                setSelectedAssessment(assessment);
-                                setShowVerifyModal(true);
-                              }}
-                              title="Verify Payment"
-                            >
-                              <FaCheckCircle />
-                            </button>
-                            <button
-                              className="action-btn-adminbilling reject-adminbilling"
-                              onClick={() => {
-                                setSelectedAssessment(assessment);
-                                setVerificationNote('');
-                                handleVerifyPayment(false);
-                              }}
-                              title="Reject Payment"
-                            >
-                              <FaTimesCircle />
-                            </button>
-                          </>
-                        )}
-
-                        {assessment.paymentMethod === 'cash' && assessment.paymentStatus === 'pending' && (
-                          <button
-                            className="action-btn-adminbilling edit-status-adminbilling"
-                            onClick={() => {
-                              setSelectedAssessment(assessment);
-                              setEditStatusData({
-                                paymentStatus: assessment.paymentStatus,
-                                notes: ''
-                              });
-                              setShowEditStatusModal(true);
-                            }}
-                            title="Mark as Paid"
-                          >
-                            <FaMoneyBillWave /> Mark Paid
-                          </button>
-                        )}
-
-                        {assessment.paymentMethod === 'cash' && assessment.paymentStatus === 'paid' && (
-                          <span className="verified-badge-adminbilling">Cash - Verified</span>
-                        )}
-
-                        {assessment.paymentStatus === 'failed' && (
-                          <span className="failed-badge-adminbilling">Failed</span>
-                        )}
+                </thead>
+                <tbody>
+                  {assessments.length === 0 ? (
+                    <tr>
+                      <td colSpan="10" className="empty-state-adminbilling">
+                        <p>No pre-assessments with issued invoices found</p>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  ) : (
+                    assessments.map(assessment => (
+                      <tr key={assessment._id}>
+                        <td className="ref-cell-adminbilling">{assessment.bookingReference}</td>
+                        <td>{assessment.invoiceNumber}</td>
+                        <td>
+                          <div className="client-info-adminbilling">
+                            <strong>{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</strong>
+                            <small>{assessment.clientId?.contactNumber}</small>
+                          </div>
+                        </td>
+                        <td>{formatDate(assessment.bookedAt)}</td>
+                        <td className="amount-adminbilling">{formatCurrency(assessment.assessmentFee)}</td>
+                        <td>
+                          {assessment.paymentGateway === 'paymongo' ? (
+                            <span className="payment-method-adminbilling paymongo-method">PayMongo</span>
+                          ) : assessment.paymentMethod ? (
+                            <span className="payment-method-adminbilling">
+                              {assessment.paymentMethod.toUpperCase()}
+                            </span>
+                          ) : '-'}
+                        </td>
+                        <td>{getGatewayBadge(assessment)}</td>
+                        <td>{getPaymentStatusBadge(assessment.paymentStatus)}</td>
+                        <td>{getAssessmentStatusBadge(assessment.assessmentStatus)}</td>
+                        <td className="actions-adminbilling">
+                          {(assessment.paymentGateway === 'paymongo' || assessment.autoVerified === true) && assessment.paymentStatus === 'paid' && (
+                            <span className="verified-badge-adminbilling auto-verified">
+                              <FaCheckCircle /> Auto-Verified
+                            </span>
+                          )}
+
+                          {assessment.paymentMethod === 'gcash' && assessment.paymentStatus === 'for_verification' && (
+                            <>
+                              <button
+                                className="action-btn-adminbilling view-proof-adminbilling"
+                                onClick={() => {
+                                  if (assessment.paymentProof) window.open(assessment.paymentProof, '_blank');
+                                }}
+                                title="View Payment Proof"
+                              >
+                                <FaEye />
+                              </button>
+                              <button
+                                className="action-btn-adminbilling verify-adminbilling"
+                                onClick={() => {
+                                  setSelectedAssessment(assessment);
+                                  setShowVerifyModal(true);
+                                }}
+                                title="Verify Payment"
+                              >
+                                <FaCheckCircle />
+                              </button>
+                              <button
+                                className="action-btn-adminbilling reject-adminbilling"
+                                onClick={() => {
+                                  setSelectedAssessment(assessment);
+                                  setVerificationNote('');
+                                  handleVerifyPayment(false);
+                                }}
+                                title="Reject Payment"
+                              >
+                                <FaTimesCircle />
+                              </button>
+                            </>
+                          )}
+
+                          {assessment.paymentMethod === 'cash' && assessment.paymentStatus === 'pending' && (
+                            <button
+                              className="action-btn-adminbilling edit-status-adminbilling"
+                              onClick={() => {
+                                setSelectedAssessment(assessment);
+                                setEditStatusData({
+                                  paymentStatus: assessment.paymentStatus,
+                                  notes: ''
+                                });
+                                setShowEditStatusModal(true);
+                              }}
+                              title="Mark as Paid"
+                            >
+                              <FaMoneyBillWave /> Mark Paid
+                            </button>
+                          )}
+
+                          {assessment.paymentMethod === 'cash' && assessment.paymentStatus === 'paid' && (
+                            <span className="verified-badge-adminbilling">Cash - Verified</span>
+                          )}
+
+                          {assessment.paymentStatus === 'failed' && (
+                            <span className="failed-badge-adminbilling">Cancel</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Pagination for Pre-assessments */}
+            {totalPages > 1 && (
+              <div className="pagination-adminbilling">
+                <button
+                  className="page-btn-adminbilling"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <FaChevronLeft /> Previous
+                </button>
+                <span className="page-info-adminbilling">
+                  Page {currentPage} of {totalPages} ({totalItems} items)
+                </span>
+                <button
+                  className="page-btn-adminbilling"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next <FaChevronRight />
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         {/* ============ SOLAR INVOICES TABLE (PROJECT BILLS) ============ */}
         {activeTab === 'solar-invoices' && (
-          <div className="payments-table-container-adminbilling">
-            <table className="payments-table-adminbilling">
-              <thead>
-                <tr>
-                  <th>Invoice #</th>
-                  <th>Project</th>
-                  <th>Client</th>
-                  <th>Type</th>
-                  <th>Issue Date</th>
-                  <th>Due Date</th>
-                  <th>Amount</th>
-                  <th>Paid</th>
-                  <th>Balance</th>
-                  <th>Payment Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredItems.length === 0 ? (
+          <>
+            <div className="payments-table-container-adminbilling">
+              <table className="payments-table-adminbilling">
+                <thead>
                   <tr>
-                    <td colSpan="11" className="empty-state-adminbilling">
-                      <p>No solar invoices found</p>
-                    </td>
+                    <th>Invoice #</th>
+                    <th>Project</th>
+                    <th>Client</th>
+                    <th>Type</th>
+                    <th>Issue Date</th>
+                    <th>Due Date</th>
+                    <th>Amount</th>
+                    <th>Paid</th>
+                    <th>Balance</th>
+                    <th>Payment Status</th>
+                    <th>Actions</th>
                   </tr>
-                ) : (
-                  filteredItems.map(invoice => (
-                    <tr key={invoice._id}>
-                      <td className="ref-cell-adminbilling">{invoice.invoiceNumber}</td>
-                      <td>
-                        <div className="project-info">
-                          <FaProjectDiagram className="project-icon" />
-                          <span>{invoice.projectId?.projectName || 'N/A'}</span>
-                          <div className="project-ref-small">{invoice.projectId?.projectReference}</div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="client-info-adminbilling">
-                          <strong>{invoice.clientId?.contactFirstName} {invoice.clientId?.contactLastName}</strong>
-                          <small>{invoice.clientId?.contactNumber}</small>
-                        </div>
-                      </td>
-                      <td>{getInvoiceTypeBadge(invoice.invoiceType)}</td>
-                      <td>{formatDate(invoice.issueDate)}</td>
-                      <td>{formatDate(invoice.dueDate)}</td>
-                      <td className="amount-adminbilling">{formatCurrency(invoice.totalAmount)}</td>
-                      <td className="amount-adminbilling">{formatCurrency(invoice.amountPaid)}</td>
-                      <td className="amount-adminbilling balance-adminbilling">{formatCurrency(invoice.balance)}</td>
-                      <td>{getPaymentStatusBadge(invoice.paymentStatus)}</td>
-                      <td className="actions-adminbilling">
-                        <button
-                          className="action-btn-adminbilling view-adminbilling"
-                          onClick={() => { setSelectedInvoice(invoice); setModalMode('view'); setShowInvoiceModal(true); }}
-                          title="View Details"
-                        >
-                          <FaEye />
-                        </button>
-                        <button
-                          className="action-btn-adminbilling download-adminbilling"
-                          onClick={() => handleDownloadInvoice(invoice)}
-                          title="Download PDF"
-                        >
-                          <FaDownload />
-                        </button>
-
-                        {invoice.status === 'draft' && (
-                          <button
-                            className="action-btn-adminbilling send-adminbilling"
-                            onClick={() => handleSendInvoice(invoice)}
-                            title="Send to Customer"
-                          >
-                            <FaEnvelope />
-                          </button>
-                        )}
-
-                        {(invoice.paymentStatus === 'pending' || invoice.paymentStatus === 'partial') && (
-                          <button
-                            className="action-btn-adminbilling payment-adminbilling"
-                            onClick={() => { setSelectedInvoice(invoice); setShowPaymentModal(true); }}
-                            title="Record Payment"
-                          >
-                            <FaMoneyBillWave />
-                          </button>
-                        )}
-
-                        {invoice.paymentStatus === 'for_verification' && (
-                          <>
-                            <button
-                              className="action-btn-adminbilling view-proof-adminbilling"
-                              onClick={() => {
-                                const gcashPayment = invoice.payments?.find(p => p.method === 'gcash' && p.proof);
-                                if (gcashPayment?.proof) {
-                                  window.open(gcashPayment.proof, '_blank');
-                                } else {
-                                  showToast('No payment proof found', 'warning');
-                                }
-                              }}
-                              title="View Payment Proof"
-                            >
-                              <FaEye />
-                            </button>
-                            <button
-                              className="action-btn-adminbilling verify-adminbilling"
-                              onClick={() => {
-                                setSelectedInvoice(invoice);
-                                setShowSolarVerifyModal(true);
-                              }}
-                              title="Verify Payment"
-                            >
-                              <FaCheckCircle />
-                            </button>
-                            <button
-                              className="action-btn-adminbilling reject-adminbilling"
-                              onClick={() => handleVerifySolarPayment(false, invoice)}
-                              title="Reject Payment"
-                            >
-                              <FaTimesCircle />
-                            </button>
-                          </>
-                        )}
-
-                        {invoice.paymentStatus === 'paid' && invoice.payments?.some(p => p.method === 'paymongo') && (
-                          <span className="verified-badge-adminbilling auto-verified">
-                            <FaCheckCircle /> Auto-Verified
-                          </span>
-                        )}
+                </thead>
+                <tbody>
+                  {solarInvoices.length === 0 ? (
+                    <tr>
+                      <td colSpan="11" className="empty-state-adminbilling">
+                        <p>No solar invoices found</p>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  ) : (
+                    solarInvoices.map(invoice => (
+                      <tr key={invoice._id}>
+                        <td className="ref-cell-adminbilling">{invoice.invoiceNumber}</td>
+                        <td>
+                          <div className="project-info">
+                            <FaProjectDiagram className="project-icon" />
+                            <span>{invoice.projectId?.projectName || 'N/A'}</span>
+                            <div className="project-ref-small">{invoice.projectId?.projectReference}</div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="client-info-adminbilling">
+                            <strong>{invoice.clientId?.contactFirstName} {invoice.clientId?.contactLastName}</strong>
+                            <small>{invoice.clientId?.contactNumber}</small>
+                          </div>
+                        </td>
+                        <td>{getInvoiceTypeBadge(invoice.invoiceType)}</td>
+                        <td>{formatDate(invoice.issueDate)}</td>
+                        <td>{formatDate(invoice.dueDate)}</td>
+                        <td className="amount-adminbilling">{formatCurrency(invoice.totalAmount)}</td>
+                        <td className="amount-adminbilling">{formatCurrency(invoice.amountPaid)}</td>
+                        <td className="amount-adminbilling balance-adminbilling">{formatCurrency(invoice.balance)}</td>
+                        <td>{getPaymentStatusBadge(invoice.paymentStatus)}</td>
+                        <td className="actions-adminbilling">
+                          <button
+                            className="action-btn-adminbilling view-adminbilling"
+                            onClick={() => { setSelectedInvoice(invoice); setModalMode('view'); setShowInvoiceModal(true); }}
+                            title="View Details"
+                          >
+                            <FaEye />
+                          </button>
+                          <button
+                            className="action-btn-adminbilling download-adminbilling"
+                            onClick={() => handleDownloadInvoice(invoice)}
+                            title="Download PDF"
+                          >
+                            <FaDownload />
+                          </button>
+
+                          {invoice.status === 'draft' && (
+                            <button
+                              className="action-btn-adminbilling send-adminbilling"
+                              onClick={() => handleSendInvoice(invoice)}
+                              title="Send to Customer"
+                            >
+                              <FaEnvelope />
+                            </button>
+                          )}
+
+                          {(invoice.paymentStatus === 'pending' || invoice.paymentStatus === 'partial') && (
+                            <button
+                              className="action-btn-adminbilling payment-adminbilling"
+                              onClick={() => { setSelectedInvoice(invoice); setShowPaymentModal(true); }}
+                              title="Record Payment"
+                            >
+                              <FaMoneyBillWave />
+                            </button>
+                          )}
+
+                          {invoice.paymentStatus === 'for_verification' && (
+                            <>
+                              <button
+                                className="action-btn-adminbilling view-proof-adminbilling"
+                                onClick={() => {
+                                  const gcashPayment = invoice.payments?.find(p => p.method === 'gcash' && p.proof);
+                                  if (gcashPayment?.proof) {
+                                    window.open(gcashPayment.proof, '_blank');
+                                  } else {
+                                    showToast('No payment proof found', 'warning');
+                                  }
+                                }}
+                                title="View Payment Proof"
+                              >
+                                <FaEye />
+                              </button>
+                              <button
+                                className="action-btn-adminbilling verify-adminbilling"
+                                onClick={() => {
+                                  setSelectedInvoice(invoice);
+                                  setShowSolarVerifyModal(true);
+                                }}
+                                title="Verify Payment"
+                              >
+                                <FaCheckCircle />
+                              </button>
+                              <button
+                                className="action-btn-adminbilling reject-adminbilling"
+                                onClick={() => handleVerifySolarPayment(false, invoice)}
+                                title="Reject Payment"
+                              >
+                                <FaTimesCircle />
+                              </button>
+                            </>
+                          )}
+
+                          {invoice.paymentStatus === 'paid' && invoice.payments?.some(p => p.method === 'paymongo') && (
+                            <span className="verified-badge-adminbilling auto-verified">
+                              <FaCheckCircle /> Auto-Verified
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Pagination for Solar Invoices */}
+            {totalPages > 1 && (
+              <div className="pagination-adminbilling">
+                <button
+                  className="page-btn-adminbilling"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <FaChevronLeft /> Previous
+                </button>
+                <span className="page-info-adminbilling">
+                  Page {currentPage} of {totalPages} ({totalItems} items)
+                </span>
+                <button
+                  className="page-btn-adminbilling"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next <FaChevronRight />
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         {/* ============ TRANSACTIONS TABLE ============ */}
         {activeTab === 'transactions' && (
-          <div className="payments-table-container-adminbilling">
-            <table className="payments-table-adminbilling">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Type</th>
-                  <th>Reference</th>
-                  <th>Invoice</th>
-                  <th>Client / Project</th>
-                  <th>Amount</th>
-                  <th>Method</th>
-                  <th>Gateway</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.length === 0 ? (
+          <>
+            <div className="payments-table-container-adminbilling">
+              <table className="payments-table-adminbilling">
+                <thead>
                   <tr>
-                    <td colSpan="9" className="empty-state-adminbilling">
-                      <p>No transactions found</p>
-                    </td>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Reference</th>
+                    <th>Invoice</th>
+                    <th>Client / Project</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Gateway</th>
+                    <th>Status</th>
                   </tr>
-                ) : (
-                  transactions.map(transaction => (
-                    <tr key={transaction.id}>
-                      <td>{formatDate(transaction.date)}</td>
-                      <td>
-                        <span className={`transaction-type-adminbilling ${transaction.type === 'Pre-Assessment' ? 'pre-adminbilling' : 'project-adminbilling'}`}>
-                          {transaction.type === 'Pre-Assessment' ? <FaFileInvoice /> : <FaProjectDiagram />}
-                          {transaction.type}
-                        </span>
+                </thead>
+                <tbody>
+                  {transactions.length === 0 ? (
+                    <tr>
+                      <td colSpan="9" className="empty-state-adminbilling">
+                        <p>No transactions found</p>
                       </td>
-                      <td>{transaction.reference}</td>
-                      <td>{transaction.invoiceNumber}</td>
-                      <td>
-                        <div>
-                          <strong>{transaction.client}</strong>
-                          {transaction.projectName && (
-                            <div className="project-name-small">{transaction.projectName}</div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="amount-adminbilling">{formatCurrency(transaction.amount)}</td>
-                      <td><span className="payment-method-adminbilling">{transaction.method?.toUpperCase()}</span></td>
-                      <td>
-                        {transaction.gateway === 'paymongo' ? (
-                          <span className="gateway-badge paymongo">PayMongo</span>
-                        ) : (
-                          <span className="gateway-badge manual">Manual</span>
-                        )}
-                      </td>
-                      <td>{getPaymentStatusBadge(transaction.status)}</td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  ) : (
+                    transactions.map(transaction => (
+                      <tr key={transaction.id}>
+                        <td>{formatDate(transaction.date)}</td>
+                        <td>
+                          <span className={`transaction-type-adminbilling ${transaction.type === 'Pre-Assessment' ? 'pre-adminbilling' : 'project-adminbilling'}`}>
+                            {transaction.type === 'Pre-Assessment' ? <FaFileInvoice /> : <FaProjectDiagram />}
+                            {transaction.type}
+                          </span>
+                        </td>
+                        <td>{transaction.reference}</td>
+                        <td>{transaction.invoiceNumber}</td>
+                        <td>
+                          <div>
+                            <strong>{transaction.client}</strong>
+                            {transaction.projectName && (
+                              <div className="project-name-small">{transaction.projectName}</div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="amount-adminbilling">{formatCurrency(transaction.amount)}</td>
+                        <td><span className="payment-method-adminbilling">{transaction.method?.toUpperCase()}</span></td>
+                        <td>
+                          {transaction.gateway === 'paymongo' ? (
+                            <span className="gateway-badge paymongo">PayMongo</span>
+                          ) : (
+                            <span className="gateway-badge manual">Manual</span>
+                          )}
+                        </td>
+                        <td>{getPaymentStatusBadge(transaction.status)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Pagination info for transactions (client-side) */}
+            {transactions.length > 0 && (
+              <div className="pagination-adminbilling">
+                <span className="page-info-adminbilling">
+                  Showing {transactions.length} transaction(s)
+                </span>
+              </div>
+            )}
+          </>
         )}
 
-        {/* Pagination */}
-        {totalPages > 1 && activeTab !== 'transactions' && (
-          <div className="pagination-adminbilling">
-            <button
-              className="page-btn-adminbilling"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-            >
-              <FaChevronLeft /> Previous
-            </button>
-            <span className="page-info-adminbilling">Page {currentPage} of {totalPages}</span>
-            <button
-              className="page-btn-adminbilling"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-            >
-              Next <FaChevronRight />
-            </button>
-          </div>
-        )}
-
-        {/* ============ MODALS ============ */}
+        {/* ============ MODALS (Keep all existing modals as they are) ============ */}
 
         {/* Verify Payment Modal (for Pre-assessment manual GCash) */}
         {showVerifyModal && selectedAssessment && (
@@ -1222,7 +1308,7 @@ const AdminBilling = () => {
                   <select value={editStatusData.paymentStatus} onChange={(e) => setEditStatusData({ ...editStatusData, paymentStatus: e.target.value })}>
                     <option value="pending">Pending</option>
                     <option value="paid">Paid</option>
-                    <option value="failed">Failed</option>
+                    <option value="failed">Cancel</option>
                   </select>
                   <small className="help-text-adminbilling">Changing status to "Paid" will mark the assessment as scheduled.</small>
                 </div>
@@ -1348,7 +1434,7 @@ const AdminBilling = () => {
                     <div className="detail-section-adminbilling"><h4>Items</h4>
                       <table className="items-table-adminbilling">
                         <thead>
-                          <tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Total</th>  </tr>
+                          <tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>
                         </thead>
                         <tbody>
                           {selectedInvoice.items?.map((item, idx) => (

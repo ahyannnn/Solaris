@@ -218,14 +218,54 @@ exports.getMyProjects = async (req, res) => {
     }
 
     const projects = await Project.find({ clientId: client._id })
-      .populate('assignedEngineerId', 'firstName lastName email')
+      .populate('assignedEngineerId', 'firstName lastName email fullName name') // Add fullName and name
       .populate('preAssessmentId')
       .populate('addressId')
       .sort({ createdAt: -1 });
+    
+    // Process projects to add engineerFullName
+    const processedProjects = projects.map(project => {
+      const projectObj = project.toObject();
+      
+      // Add engineer full name if engineer exists
+      if (projectObj.assignedEngineerId) {
+        const engineer = projectObj.assignedEngineerId;
+        
+        // Create full name from available fields
+        let engineerFullName = '';
+        
+        if (engineer.fullName && engineer.fullName !== 'undefined undefined') {
+          engineerFullName = engineer.fullName;
+        } else if (engineer.firstName && engineer.lastName) {
+          engineerFullName = `${engineer.firstName} ${engineer.lastName}`.trim();
+        } else if (engineer.firstName) {
+          engineerFullName = engineer.firstName;
+        } else if (engineer.lastName) {
+          engineerFullName = engineer.lastName;
+        } else if (engineer.name) {
+          engineerFullName = engineer.name;
+        } else if (engineer.email) {
+          // Format email to name
+          const emailName = engineer.email.split('@')[0];
+          engineerFullName = emailName
+            .split(/[._-]/)
+            .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+            .join(' ');
+        } else {
+          engineerFullName = 'Engineer assigned';
+        }
+        
+        projectObj.engineerFullName = engineerFullName;
+      } else {
+        projectObj.engineerFullName = null;
+      }
+      
+      return projectObj;
+    });
 
     res.json({
       success: true,
-      projects
+      projects: processedProjects
     });
 
   } catch (error) {
@@ -448,7 +488,13 @@ exports.getEngineerProjects = async (req, res) => {
     if (status && status !== 'all') query.status = status;
 
     const projects = await Project.find(query)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber userId.email')
+      .populate({
+        path: 'clientId',
+        populate: {
+          path: 'userId',
+          select: 'email'
+        }
+      })
       .populate('addressId')
       .populate('assignedEngineerId', 'firstName lastName email')
       .populate('preAssessmentId')

@@ -518,10 +518,10 @@ const CustomerSettings = () => {
         <div className="settings-sidebar-cusset">
           <button className={`settings-tab-cusset ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => handleTabChange('profile')}>Profile</button>
           <button className={`settings-tab-cusset ${activeTab === 'addresses' ? 'active' : ''}`} onClick={() => handleTabChange('addresses')}>Addresses</button>
-          <button className={`settings-tab-cusset ${activeTab === 'notifications' ? 'active' : ''}`} onClick={() => handleTabChange('notifications')}>Notifications</button>
+          {/* <button className={`settings-tab-cusset ${activeTab === 'notifications' ? 'active' : ''}`} onClick={() => handleTabChange('notifications')}>Notifications</button>
           <button className={`settings-tab-cusset ${activeTab === 'security' ? 'active' : ''}`} onClick={() => handleTabChange('security')}>Security</button>
           <button className={`settings-tab-cusset ${activeTab === 'preferences' ? 'active' : ''}`} onClick={() => handleTabChange('preferences')}>Preferences</button>
-          <button className={`settings-tab-cusset ${activeTab === 'billing' ? 'active' : ''}`} onClick={() => handleTabChange('billing')}>Billing</button>
+          <button className={`settings-tab-cusset ${activeTab === 'billing' ? 'active' : ''}`} onClick={() => handleTabChange('billing')}>Billing</button> */}
         </div>
 
         <div className="tab-content-cusset">{renderTabContent()}</div>

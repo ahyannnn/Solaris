@@ -363,19 +363,62 @@ const SiteAssessment = () => {
   });
 
   const getEngineerName = (engineer) => {
+   
+
     if (!engineer) return 'Not assigned';
+
+    // If engineer is an object (like your case: {_id: '...', email: '...'})
     if (typeof engineer === 'object') {
+      // Check if it has fullName directly
       if (engineer.fullName) return engineer.fullName;
       if (engineer.name) return engineer.name;
-      if (engineer.firstName && engineer.lastName) return `${engineer.firstName} ${engineer.lastName}`;
-      if (engineer.email) return engineer.email;
+
+      // If it has firstName and lastName
+      if (engineer.firstName && engineer.lastName) {
+        return `${engineer.firstName} ${engineer.lastName}`;
+      }
+
+      // If it has an _id, find it in the engineers array
+      if (engineer._id) {
+        const foundEngineer = engineers.find(eng => eng._id === engineer._id);
+        
+
+        if (foundEngineer) {
+          return foundEngineer.fullName ||
+            foundEngineer.name ||
+            `${foundEngineer.firstName || ''} ${foundEngineer.lastName || ''}`.trim() ||
+            foundEngineer.email ||
+            'Engineer assigned';
+        }
+      }
+
+      // If it has email only, return formatted name from email
+      if (engineer.email) {
+        const emailName = engineer.email.split('@')[0];
+        const formattedName = emailName
+          .replace(/[._-]/g, ' ')
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+        return formattedName || 'Engineer assigned';
+      }
+
       return 'Engineer assigned';
     }
+
+    // If engineer is a string (ID)
     if (typeof engineer === 'string') {
       const foundEngineer = engineers.find(eng => eng._id === engineer || eng.id === engineer);
-      if (foundEngineer) return foundEngineer.fullName || foundEngineer.name || foundEngineer.email || 'Engineer assigned';
+      if (foundEngineer) {
+        return foundEngineer.fullName ||
+          foundEngineer.name ||
+          `${foundEngineer.firstName || ''} ${foundEngineer.lastName || ''}`.trim() ||
+          foundEngineer.email ||
+          'Engineer assigned';
+      }
       return 'Not assigned';
     }
+
     return 'Not assigned';
   };
 
@@ -622,6 +665,7 @@ const SiteAssessment = () => {
                     <p><strong>Payment:</strong> {selectedItem.paymentStatus}</p>
                     <p><strong>Assessment:</strong> {selectedItem.assessmentStatus}</p>
                     <p><strong>Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p>
+
                     <p><strong>Device:</strong> {getDeviceId(selectedItem.assignedDeviceId || selectedItem.iotDeviceId)}</p>
                   </div>
                 )}

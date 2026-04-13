@@ -350,7 +350,7 @@ const Reports = () => {
         dataToExport = reportData.report;
         console.log('Using generated report data');
       } else {
-        console.log('Fetching fresh data for export...');
+        
         const params = new URLSearchParams();
         params.append('startDate', dateRange.startDate);
         params.append('endDate', dateRange.endDate);
@@ -397,7 +397,7 @@ const Reports = () => {
         return;
       }
       
-      console.log('Exporting data:', dataToExport.summary);
+      
       
       const exportResponse = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/admin/reports/export`,

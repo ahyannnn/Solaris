@@ -37,7 +37,7 @@ const MyProject = () => {
       let currentProgress = 0;
       const step = targetProgress / 60;
       let frame;
-      
+
       const animate = () => {
         currentProgress += step;
         if (currentProgress >= targetProgress) {
@@ -47,7 +47,7 @@ const MyProject = () => {
         setAnimatedProgress(currentProgress);
         frame = requestAnimationFrame(animate);
       };
-      
+
       frame = requestAnimationFrame(animate);
       return () => cancelAnimationFrame(frame);
     }
@@ -219,14 +219,49 @@ const MyProject = () => {
   };
 
   const getEngineerName = (project) => {
-    if (project.assignedEngineerId && typeof project.assignedEngineerId === 'object') {
-      const firstName = project.assignedEngineerId.firstName || '';
-      const lastName = project.assignedEngineerId.lastName || '';
-      return `${firstName} ${lastName}`.trim() || 'Assigned Engineer';
+  // Use the pre-processed engineerFullName from backend
+  if (project.engineerFullName) {
+    return project.engineerFullName;
+  }
+  
+  // Fallback for backward compatibility
+  if (project.assignedEngineerId && typeof project.assignedEngineerId === 'object') {
+    const engineer = project.assignedEngineerId;
+    
+    if (engineer.fullName && engineer.fullName !== 'undefined undefined') {
+      return engineer.fullName;
     }
-    return null;
-  };
-
+    
+    if (engineer.firstName && engineer.lastName) {
+      return `${engineer.firstName} ${engineer.lastName}`.trim();
+    }
+    
+    if (engineer.firstName) {
+      return engineer.firstName;
+    }
+    
+    if (engineer.lastName) {
+      return engineer.lastName;
+    }
+    
+    if (engineer.name) {
+      return engineer.name;
+    }
+    
+    if (engineer.email) {
+      const emailName = engineer.email.split('@')[0];
+      const formattedName = emailName
+        .split(/[._-]/)
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(' ');
+      return formattedName;
+    }
+    
+    return 'Engineer assigned';
+  }
+  
+  return null;
+};
   const nextStep = getNextStepMessage(selectedProject || {});
 
   const SkeletonLoader = () => (
@@ -455,7 +490,16 @@ const MyProject = () => {
                       </div>
                       <div>
                         <strong>{getEngineerName(selectedProject)}</strong>
-                        <p>{selectedProject.assignedEngineerId?.email || ''}</p>
+                        {selectedProject.assignedEngineerId?.email && (
+                          <p className="engineer-email">
+                            <FaEnvelope className="email-icon" /> {selectedProject.assignedEngineerId.email}
+                          </p>
+                        )}
+                        {selectedProject.assignedEngineerId?.phone && (
+                          <p className="engineer-phone">
+                            <FaPhone className="phone-icon" /> {selectedProject.assignedEngineerId.phone}
+                          </p>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -565,10 +609,10 @@ const MyProject = () => {
                           <div className="cuspro-payment-full-header">
                             <div>
                               <h4>
-                                {payment.type === 'initial' ? 'Initial Deposit (30%)' : 
-                                 payment.type === 'progress' ? 'Progress Payment (40%)' : 
-                                 payment.type === 'final' ? 'Final Payment (30%)' : 
-                                 'Full Payment (100%)'}
+                                {payment.type === 'initial' ? 'Initial Deposit (30%)' :
+                                  payment.type === 'progress' ? 'Progress Payment (40%)' :
+                                    payment.type === 'final' ? 'Final Payment (30%)' :
+                                      'Full Payment (100%)'}
                               </h4>
                               <p>Due: {formatDate(payment.dueDate)}</p>
                             </div>

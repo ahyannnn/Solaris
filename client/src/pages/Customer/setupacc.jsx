@@ -205,7 +205,7 @@ const SetupAccount = () => {
     }
   };
 
-  const handleContinueToDashboard = () => navigate('/dashboard/customerdashboard');
+  const handleContinueToDashboard = () => navigate('/app/customer');
 
   const getBusinessLabel = () => {
     if (formData.accountType === 'company') {

@@ -11,9 +11,102 @@ import {
   FaEye, FaCheckCircle, FaExclamationTriangle, FaClipboardCheck, FaHistory,
   FaBuilding, FaHardHat, FaRulerCombined, FaThermometerHalf, FaTachometerAlt,
   FaDollarSign, FaCreditCard, FaWallet, FaReceipt, FaUserCheck, FaUserClock,
-  FaCheck, FaTimes, FaArrowRight, FaClock, FaBoxes, FaTools
+  FaCheck, FaTimes, FaArrowRight, FaClock, FaBoxes, FaTools, FaSun, FaTint,
+  FaBolt, FaChartLine as FaTrendUp, FaPercent
 } from 'react-icons/fa';
 import '../../styles/Admin/reports.css';
+
+// Helper function to convert assessment status string to number
+const getStatusNumber = (statusString) => {
+  const statusMap = {
+    'pending_review': 1,
+    'pending_payment': 2,
+    'scheduled': 3,
+    'site_visit_ongoing': 4,
+    'device_deployed': 5,
+    'data_collecting': 6,
+    'data_analyzing': 7,
+    'report_draft': 8,
+    'quotation_generated': 9,
+    'quotation_accepted': 10,
+    'completed': 11,
+    'cancelled': 12
+  };
+  return statusMap[statusString] || null;
+};
+
+// Assessment Status Constants with numbers (matching the mapping above)
+const ASSESSMENT_STATUS = {
+  1: { label: 'pending_review', display: 'Pending Review', color: '#ffc107', icon: '📋' },
+  2: { label: 'pending_payment', display: 'Pending Payment', color: '#fd7e14', icon: '💰' },
+  3: { label: 'scheduled', display: 'Scheduled', color: '#17a2b8', icon: '📅' },
+  4: { label: 'site_visit_ongoing', display: 'Site Visit Ongoing', color: '#6f42c1', icon: '🏗️' },
+  5: { label: 'device_deployed', display: 'Device Deployed', color: '#20c997', icon: '📡' },
+  6: { label: 'data_collecting', display: 'Data Collecting', color: '#28a745', icon: '📊' },
+  7: { label: 'data_analyzing', display: 'Data Analyzing', color: '#17a2b8', icon: '🔬' },
+  8: { label: 'report_draft', display: 'Report Draft', color: '#6c757d', icon: '📄' },
+  9: { label: 'quotation_generated', display: 'Quotation Generated', color: '#007bff', icon: '📑' },
+  10: { label: 'quotation_accepted', display: 'Quotation Accepted', color: '#28a745', icon: '✅' },
+  11: { label: 'completed', display: 'Completed', color: '#28a745', icon: '✔️' },
+  12: { label: 'cancelled', display: 'Cancelled', color: '#dc3545', icon: '❌' }
+};
+
+// Assessment Results Summary Ranges (matching the model)
+const ASSESSMENT_RESULTS_SUMMARY = {
+  IRRADIANCE: {
+    POOR: { min: 0, max: 300, label: 'Poor', color: '#dc3545' },
+    MODERATE: { min: 301, max: 500, label: 'Moderate', color: '#fd7e14' },
+    GOOD: { min: 501, max: 700, label: 'Good', color: '#28a745' },
+    EXCELLENT: { min: 701, max: 1000, label: 'Excellent', color: '#007bff' }
+  },
+  TEMPERATURE: {
+    OPTIMAL: { min: 15, max: 25, label: 'Optimal', color: '#28a745' },
+    ACCEPTABLE: { min: 26, max: 35, label: 'Acceptable', color: '#ffc107' },
+    HIGH: { min: 36, max: 45, label: 'High - Efficiency Reduced', color: '#fd7e14' },
+    CRITICAL: { min: 46, max: 60, label: 'Critical - Significant Loss', color: '#dc3545' }
+  },
+  HUMIDITY: {
+    LOW: { min: 0, max: 30, label: 'Low', color: '#28a745' },
+    MODERATE: { min: 31, max: 60, label: 'Moderate', color: '#ffc107' },
+    HIGH: { min: 61, max: 80, label: 'High', color: '#fd7e14' },
+    VERY_HIGH: { min: 81, max: 100, label: 'Very High - Condensation Risk', color: '#dc3545' }
+  },
+  SHADING_IMPACT: {
+    NEGLIGIBLE: { min: 0, max: 10, label: 'Negligible Impact', color: '#28a745' },
+    LOW: { min: 11, max: 20, label: 'Low Impact', color: '#ffc107' },
+    MODERATE: { min: 21, max: 35, label: 'Moderate Impact', color: '#fd7e14' },
+    SEVERE: { min: 36, max: 100, label: 'Severe Impact - Not Recommended', color: '#dc3545' }
+  },
+  SITE_SUITABILITY: {
+    POOR: { min: 0, max: 39, label: 'Poor - Not Recommended', color: '#dc3545' },
+    FAIR: { min: 40, max: 59, label: 'Fair - Consider with Caution', color: '#fd7e14' },
+    GOOD: { min: 60, max: 79, label: 'Good - Recommended', color: '#ffc107' },
+    EXCELLENT: { min: 80, max: 100, label: 'Excellent - Highly Recommended', color: '#28a745' }
+  },
+  PAYBACK_PERIOD: {
+    EXCELLENT: { min: 0, max: 3, label: 'Excellent ROI', color: '#28a745' },
+    GOOD: { min: 3.1, max: 5, label: 'Good ROI', color: '#20c997' },
+    ACCEPTABLE: { min: 5.1, max: 7, label: 'Acceptable ROI', color: '#ffc107' },
+    POOR: { min: 7.1, max: 15, label: 'Poor ROI', color: '#dc3545' }
+  },
+  CO2_OFFSET: {
+    SMALL: { min: 0, max: 2, label: 'Small Impact', color: '#6c757d' },
+    MEDIUM: { min: 2.1, max: 5, label: 'Medium Impact', color: '#28a745' },
+    LARGE: { min: 5.1, max: 10, label: 'Large Impact', color: '#17a2b8' },
+    SIGNIFICANT: { min: 10.1, max: 100, label: 'Significant Impact', color: '#007bff' }
+  }
+};
+
+// Helper function to get rating based on value
+const getRating = (value, ranges) => {
+  if (!value && value !== 0) return null;
+  for (const [key, range] of Object.entries(ranges)) {
+    if (value >= range.min && value <= range.max) {
+      return { key, ...range };
+    }
+  }
+  return null;
+};
 
 const Reports = () => {
   const [loading, setLoading] = useState(true);
@@ -53,7 +146,7 @@ const Reports = () => {
       const token = sessionStorage.getItem('token');
       
       const [assessmentsRes, projectsRes, clientsRes] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, { 
+        axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {  
           headers: { Authorization: `Bearer ${token}` } 
         }).catch(() => ({ data: { assessments: [] } })),
         axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, { 
@@ -65,6 +158,7 @@ const Reports = () => {
       ]);
       
       const allAssessments = assessmentsRes.data.assessments || [];
+      
       const allProjects = projectsRes.data.projects || [];
       const allClients = clientsRes.data.clients || [];
       
@@ -72,12 +166,16 @@ const Reports = () => {
       setProjects(allProjects);
       setClients(allClients);
       
-      // Calculate suitability from assessments
+      // Calculate suitability from assessments using assessmentResults
       const calculateScore = (assessment) => {
-        const peakSunHours = assessment.assessmentResults?.peakSunHours;
-        const shadingPercentage = assessment.assessmentResults?.shadingPercentage;
+        const results = assessment.assessmentResults || {};
+        const peakSunHours = results.peakSunHours;
+        const shadingPercentage = results.shadingPercentage;
+        const summaryScore = results.summary?.siteSuitabilityScore;
         
-        if (peakSunHours && shadingPercentage) {
+        if (summaryScore) return summaryScore;
+        
+        if (peakSunHours && shadingPercentage !== undefined) {
           let score = 100;
           if (peakSunHours >= 5.5) score -= 0;
           else if (peakSunHours >= 5) score -= 5;
@@ -95,7 +193,7 @@ const Reports = () => {
           
           return Math.max(0, Math.min(100, Math.round(score)));
         }
-        return assessment.assessmentResults?.summary?.siteSuitabilityScore || null;
+        return null;
       };
       
       const suitable = allAssessments.filter(a => {
@@ -246,15 +344,12 @@ const Reports = () => {
     try {
       const token = sessionStorage.getItem('token');
       
-      // If we have generated report data, use it
       let dataToExport = null;
       
       if (reportData && reportData.report) {
-        // Use the already generated report data
         dataToExport = reportData.report;
         console.log('Using generated report data');
       } else {
-        // Otherwise fetch fresh data with filters
         console.log('Fetching fresh data for export...');
         const params = new URLSearchParams();
         params.append('startDate', dateRange.startDate);
@@ -317,7 +412,6 @@ const Reports = () => {
         }
       );
       
-      // Create download link
       const url = window.URL.createObjectURL(new Blob([exportResponse.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -439,7 +533,7 @@ const Reports = () => {
           </div>
         </div>
 
-        {/* Report Type Tabs - 4 Reports */}
+        {/* Report Type Tabs */}
         <div className="report-tabs-adminreports">
           <button 
             className={`tab-btn-adminreports ${activeTab === 'site-assessment' ? 'active-adminreports' : ''}`} 
@@ -478,7 +572,6 @@ const Reports = () => {
             </div>
           </div>
           
-          {/* Dynamic filters based on active tab */}
           {activeTab === 'site-assessment' && (
             <div className="report-filter-adminreports">
               <label><FaClipboardList /> Filter by Assessment</label>
@@ -525,7 +618,7 @@ const Reports = () => {
           <div className="report-content-adminreports">
             <div className="report-section-adminreports">
               <h2><FaClipboardCheck /> Site Assessment Results</h2>
-              <p>Contains results of site evaluations. Includes technical findings from assessments. Helps review whether a site is suitable for solar installation.</p>
+              <p>Complete results of site evaluations including IoT data, technical findings, and suitability analysis.</p>
               
               <div className="suitability-summary-adminreports">
                 <div className="suitability-card suitable">
@@ -563,49 +656,79 @@ const Reports = () => {
             </div>
 
             <div className="report-section-adminreports">
-              <h2><FaHardHat /> Technical Findings Summary</h2>
+              <h2><FaMicrochip /> IoT Data & Environmental Metrics</h2>
               <div className="technical-findings-grid">
-                <div className="finding-card">
-                  <FaRulerCombined />
+                <div className="finding-card irradiance">
+                  <FaSun />
                   <div className="finding-info">
-                    <span>Average Roof Area</span>
-                    <strong>85 m²</strong>
+                    <span>Average Irradiance</span>
+                    <strong>-- W/m²</strong>
+                    <small>--</small>
                   </div>
                 </div>
-                <div className="finding-card">
+                <div className="finding-card temperature">
                   <FaThermometerHalf />
                   <div className="finding-info">
                     <span>Temperature Impact</span>
-                    <strong>-8% efficiency</strong>
+                    <strong>--°C</strong>
+                    <small>-- derating</small>
                   </div>
                 </div>
-                <div className="finding-card">
+                <div className="finding-card humidity">
+                  <FaTint />
+                  <div className="finding-info">
+                    <span>Average Humidity</span>
+                    <strong>--%</strong>
+                    <small>--</small>
+                  </div>
+                </div>
+                <div className="finding-card shading">
                   <FaSolarPanel />
                   <div className="finding-info">
                     <span>Peak Sun Hours</span>
-                    <strong>4.8 hrs/day</strong>
-                  </div>
-                </div>
-                <div className="finding-card">
-                  <FaTachometerAlt />
-                  <div className="finding-info">
-                    <span>Average Shading</span>
-                    <strong>12%</strong>
+                    <strong>-- hrs/day</strong>
+                    <small>-- shading</small>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="report-section-adminreports">
-              <h2>Recent Assessment Results</h2>
+              <h2>Assessment Status Distribution</h2>
+              <div className="assessment-status-grid">
+                {Object.entries(ASSESSMENT_STATUS).map(([num, status]) => {
+                  const count = assessments.filter(a => a.assessmentStatus === status.label).length;
+                  const percentage = assessments.length > 0 ? (count / assessments.length * 100).toFixed(1) : 0;
+                  return (
+                    <div key={num} className="status-card" style={{ borderLeftColor: status.color }}>
+                      <div className="status-header">
+                        <span className="status-icon">{status.icon}</span>
+                        <span className="status-name">{status.display}</span>
+                        <span className="status-number">{count}</span>
+                      </div>
+                      <div className="status-progress">
+                        <div className="progress-bar" style={{ width: `${percentage}%`, backgroundColor: status.color }}></div>
+                        <span className="status-percentage">{percentage}%</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="report-section-adminreports">
+              <h2>Detailed Assessment Results with IoT Data</h2>
               <div className="assessments-table-container">
                 <table className="reports-table">
                   <thead>
                     <tr>
+                      <th>Status #</th>
                       <th>Booking Ref</th>
                       <th>Client Name</th>
-                      <th>Roof Area</th>
+                      <th>Avg Irradiance</th>
                       <th>Peak Sun Hours</th>
+                      <th>Avg Temp</th>
+                      <th>Humidity</th>
                       <th>Shading</th>
                       <th>Suitability Score</th>
                       <th>Recommendation</th>
@@ -613,11 +736,18 @@ const Reports = () => {
                   </thead>
                   <tbody>
                     {assessments.slice(0, 10).map(assessment => {
-                      const peakSunHours = assessment.assessmentResults?.peakSunHours;
-                      const shadingPercentage = assessment.assessmentResults?.shadingPercentage;
-                      let suitabilityScore = assessment.assessmentResults?.summary?.siteSuitabilityScore;
+                      const results = assessment.assessmentResults || {};
+                      const peakSunHours = results.peakSunHours;
+                      const avgIrradiance = results.averageIrradiance;
+                      const avgTemp = results.averageTemperature;
+                      const avgHumidity = results.averageHumidity;
+                      const shadingPercentage = results.shadingPercentage;
                       
-                      if (!suitabilityScore && peakSunHours && shadingPercentage) {
+                      const statusNum = getStatusNumber(assessment.assessmentStatus);
+                      
+                      let suitabilityScore = results.summary?.siteSuitabilityScore;
+                      
+                      if (!suitabilityScore && peakSunHours && shadingPercentage !== undefined) {
                         let score = 100;
                         if (peakSunHours >= 5.5) score -= 0;
                         else if (peakSunHours >= 5) score -= 5;
@@ -636,19 +766,37 @@ const Reports = () => {
                         suitabilityScore = Math.max(0, Math.min(100, Math.round(score)));
                       }
                       
-                      const roofArea = (assessment.engineerAssessment?.roofLength || assessment.roofLength) && 
-                                      (assessment.engineerAssessment?.roofWidth || assessment.roofWidth)
-                        ? ((assessment.engineerAssessment?.roofLength || assessment.roofLength) * 
-                           (assessment.engineerAssessment?.roofWidth || assessment.roofWidth)).toFixed(1)
-                        : null;
+                      const irradianceRating = getRating(avgIrradiance, ASSESSMENT_RESULTS_SUMMARY.IRRADIANCE);
+                      const tempRating = getRating(avgTemp, ASSESSMENT_RESULTS_SUMMARY.TEMPERATURE);
+                      const humidityRating = getRating(avgHumidity, ASSESSMENT_RESULTS_SUMMARY.HUMIDITY);
+                      const shadingRating = getRating(shadingPercentage, ASSESSMENT_RESULTS_SUMMARY.SHADING_IMPACT);
                       
                       return (
                         <tr key={assessment._id}>
+                          <td>
+                            <span className="status-number-badge" style={{ backgroundColor: ASSESSMENT_STATUS[statusNum]?.color }}>
+                              {statusNum || 'N/A'}
+                            </span>
+                          </td>
                           <td>{assessment.bookingReference}</td>
                           <td>{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</td>
-                          <td>{roofArea ? `${roofArea} m²` : 'N/A'}</td>
-                          <td>{peakSunHours?.toFixed(1) || 'N/A'}</td>
-                          <td>{shadingPercentage?.toFixed(0) || 'N/A'}%</td>
+                          <td>
+                            {avgIrradiance ? `${avgIrradiance.toFixed(0)} W/m²` : 'N/A'}
+                            {irradianceRating && <small style={{ color: irradianceRating.color }}>({irradianceRating.label})</small>}
+                          </td>
+                          <td>{peakSunHours?.toFixed(1) || 'N/A'} hrs</td>
+                          <td>
+                            {avgTemp ? `${avgTemp.toFixed(1)}°C` : 'N/A'}
+                            {tempRating && <small style={{ color: tempRating.color }}>({tempRating.label})</small>}
+                          </td>
+                          <td>
+                            {avgHumidity ? `${avgHumidity.toFixed(0)}%` : 'N/A'}
+                            {humidityRating && <small style={{ color: humidityRating.color }}>({humidityRating.label})</small>}
+                          </td>
+                          <td>
+                            {shadingPercentage !== undefined ? `${shadingPercentage.toFixed(0)}%` : 'N/A'}
+                            {shadingRating && <small style={{ color: shadingRating.color }}>({shadingRating.label})</small>}
+                          </td>
                           <td>
                             <span className={`score-badge ${suitabilityScore >= 70 ? 'high' : suitabilityScore >= 50 ? 'medium' : 'low'}`}>
                               {suitabilityScore || 'N/A'}
@@ -817,7 +965,7 @@ const Reports = () => {
                   </div>
                 </div>
                 <div className="financial-card growth">
-                  <FaChartLine />
+                  <FaTrendUp />
                   <div>
                     <span>Growth</span>
                     <strong className={stats.revenue.thisMonth > stats.revenue.lastMonth ? 'positive' : 'negative'}>
@@ -990,7 +1138,7 @@ const Reports = () => {
                     <strong>{transactions.filter(t => t.method === 'gcash').length}</strong>
                   </div>
                   <div className="demo-item">
-                    <span>Cash</span>
+                    <span>Cash/Manual</span>
                     <strong>{transactions.filter(t => t.method === 'cash' || t.method === 'Manual').length}</strong>
                   </div>
                 </div>
@@ -1076,11 +1224,9 @@ const Reports = () => {
                   <FaFilePdf /> Download PDF
                 </button>
                 <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')}>
-                  <FaFileExcel /> Download Excel
+                  <FaFileExcel /> Download CSV
                 </button>
-                <button className="export-btn-adminreports" onClick={() => exportReport('csv')}>
-                  <FaDownload /> Download CSV
-                </button>
+                
                 <button className="export-btn-adminreports" onClick={() => setReportData(null)}>
                   Close
                 </button>

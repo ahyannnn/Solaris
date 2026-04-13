@@ -41,7 +41,7 @@ exports.createFreeQuote = async (req, res) => {
       roofWidth
     } = req.body;
 
-    // Find client
+    // Find client 
     const client = await Client.findOne({ userId });
     if (!client) {
       return res.status(404).json({ success: false, message: 'Client not found' });

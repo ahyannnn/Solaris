@@ -539,32 +539,32 @@ const Reports = () => {
             className={`tab-btn-adminreports ${activeTab === 'site-assessment' ? 'active-adminreports' : ''}`} 
             onClick={() => { setActiveTab('site-assessment'); setReportData(null); }}
           >
-            Site Assessment Reports
+            <FaClipboardCheck /> Site Assessment Reports
           </button>
           <button 
             className={`tab-btn-adminreports ${activeTab === 'project-summary' ? 'active-adminreports' : ''}`} 
             onClick={() => { setActiveTab('project-summary'); setReportData(null); }}
           >
-            Project Summary Reports
+            <FaProjectDiagram /> Project Summary Reports
           </button>
           <button 
             className={`tab-btn-adminreports ${activeTab === 'financial' ? 'active-adminreports' : ''}`} 
             onClick={() => { setActiveTab('financial'); setReportData(null); }}
           >
-            Financial Reports
+            <FaMoneyBillWave /> Financial Reports
           </button>
           <button 
             className={`tab-btn-adminreports ${activeTab === 'client-transaction' ? 'active-adminreports' : ''}`} 
             onClick={() => { setActiveTab('client-transaction'); setReportData(null); }}
           >
-            Client Transaction Reports
+            <FaHistory /> Client Transaction Reports
           </button>
         </div>
 
         {/* Report Controls */}
         <div className="report-controls-adminreports">
           <div className="date-range-adminreports">
-            <label>Date Range</label>
+            <label><FaCalendarAlt /> Date Range</label>
             <div className="date-inputs-adminreports">
               <input type="date" value={dateRange.startDate} onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })} />
               <span>to</span>
@@ -574,7 +574,7 @@ const Reports = () => {
           
           {activeTab === 'site-assessment' && (
             <div className="report-filter-adminreports">
-              <label>Filter by Assessment</label>
+              <label><FaClipboardList /> Filter by Assessment</label>
               <select value={selectedAssessment} onChange={(e) => setSelectedAssessment(e.target.value)}>
                 <option value="">All Assessments</option>
                 {assessments.map(a => (
@@ -586,7 +586,7 @@ const Reports = () => {
           
           {activeTab === 'project-summary' && (
             <div className="report-filter-adminreports">
-              <label>Filter by Project</label>
+              <label><FaProjectDiagram /> Filter by Project</label>
               <select value={selectedProject} onChange={(e) => setSelectedProject(e.target.value)}>
                 <option value="">All Projects</option>
                 {projects.map(p => (
@@ -598,7 +598,7 @@ const Reports = () => {
           
           {activeTab === 'client-transaction' && (
             <div className="report-filter-adminreports">
-              <label>Filter by Client</label>
+              <label><FaUsers /> Filter by Client</label>
               <select value={selectedClient} onChange={(e) => setSelectedClient(e.target.value)}>
                 <option value="">All Clients</option>
                 {clients.map(c => (
@@ -609,7 +609,7 @@ const Reports = () => {
           )}
           
           <button className="generate-btn-adminreports" onClick={generateReport} disabled={generating}>
-            {generating ? 'Generating...' : 'Generate Report'}
+            {generating ? <FaSpinner className="spinning" /> : <FaChartLine />} Generate Report
           </button>
         </div>
 
@@ -622,6 +622,7 @@ const Reports = () => {
               
               <div className="suitability-summary-adminreports">
                 <div className="suitability-card suitable">
+                  <FaCheckCircle />
                   <div className="suitability-stats">
                     <span className="label">Suitable for Solar</span>
                     <strong>{stats.assessments.suitable}</strong>
@@ -629,6 +630,7 @@ const Reports = () => {
                   </div>
                 </div>
                 <div className="suitability-card conditional">
+                  <FaExclamationTriangle />
                   <div className="suitability-stats">
                     <span className="label">Conditional Approval</span>
                     <strong>{stats.assessments.conditional}</strong>
@@ -636,6 +638,7 @@ const Reports = () => {
                   </div>
                 </div>
                 <div className="suitability-card not-suitable">
+                  <FaTimes />
                   <div className="suitability-stats">
                     <span className="label">Not Suitable</span>
                     <strong>{stats.assessments.notSuitable}</strong>
@@ -643,6 +646,7 @@ const Reports = () => {
                   </div>
                 </div>
                 <div className="suitability-card pending">
+                  <FaClock />
                   <div className="suitability-stats">
                     <span className="label">Pending Assessment</span>
                     <strong>{stats.assessments.pending}</strong>
@@ -813,16 +817,16 @@ const Reports = () => {
 
             <div className="report-actions-adminreports">
               <button className="export-btn-adminreports" onClick={() => exportReport('pdf')} disabled={generating}>
-                Export as PDF
+                <FaFilePdf /> Export as PDF
               </button>
               <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')} disabled={generating}>
-                Export as Excel
+                <FaFileExcel /> Export as Excel
               </button>
               <button className="export-btn-adminreports" onClick={() => exportReport('csv')} disabled={generating}>
-                Export as CSV
+                <FaDownload /> Export as CSV
               </button>
               <button className="export-btn-adminreports" onClick={() => window.print()}>
-                Print Report
+                <FaPrint /> Print Report
               </button>
             </div>
           </div>
@@ -832,7 +836,7 @@ const Reports = () => {
         {activeTab === 'project-summary' && (
           <div className="report-content-adminreports">
             <div className="report-section-adminreports">
-              <h2>Project Status Overview</h2>
+              <h2><FaProjectDiagram /> Project Status Overview</h2>
               <p>Shows the overall status of projects. Tracks project progress. Helps monitor pending tasks and milestones.</p>
               
               <div className="project-stats-grid">
@@ -916,16 +920,16 @@ const Reports = () => {
 
             <div className="report-actions-adminreports">
               <button className="export-btn-adminreports" onClick={() => exportReport('pdf')} disabled={generating}>
-                Export as PDF
+                <FaFilePdf /> Export as PDF
               </button>
               <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')} disabled={generating}>
-                Export as Excel
+                <FaFileExcel /> Export as Excel
               </button>
               <button className="export-btn-adminreports" onClick={() => exportReport('csv')} disabled={generating}>
-                Export as CSV
+                <FaDownload /> Export as CSV
               </button>
               <button className="export-btn-adminreports" onClick={() => window.print()}>
-                Print Report
+                <FaPrint /> Print Report
               </button>
             </div>
           </div>
@@ -935,23 +939,26 @@ const Reports = () => {
         {activeTab === 'financial' && (
           <div className="report-content-adminreports">
             <div className="report-section-adminreports">
-              <h2>Financial Summary</h2>
+              <h2><FaMoneyBillWave /> Financial Summary</h2>
               <p>Summarizes payments made by clients. Includes billing records. Helps track overall financial performance.</p>
               
               <div className="financial-summary-grid">
                 <div className="financial-card total-revenue">
+                  <FaWallet />
                   <div>
                     <span>Total Revenue</span>
                     <strong>{formatCurrency(stats.revenue.total)}</strong>
                   </div>
                 </div>
                 <div className="financial-card this-month">
+                  <FaCalendarAlt />
                   <div>
                     <span>This Month</span>
                     <strong>{formatCurrency(stats.revenue.thisMonth)}</strong>
                   </div>
                 </div>
                 <div className="financial-card last-month">
+                  <FaClock />
                   <div>
                     <span>Last Month</span>
                     <strong>{formatCurrency(stats.revenue.lastMonth)}</strong>
@@ -973,6 +980,7 @@ const Reports = () => {
               <h2>Payment Summary by Status</h2>
               <div className="payment-status-grid">
                 <div className="payment-status-card paid">
+                  <FaCheckCircle />
                   <div>
                     <span>Paid Transactions</span>
                     <strong>{stats.payments.paid}</strong>
@@ -980,12 +988,14 @@ const Reports = () => {
                   </div>
                 </div>
                 <div className="payment-status-card pending">
+                  <FaClock />
                   <div>
                     <span>Pending Payments</span>
                     <strong>{stats.payments.pending}</strong>
                   </div>
                 </div>
                 <div className="payment-status-card verification">
+                  <FaEye />
                   <div>
                     <span>For Verification</span>
                     <strong>{stats.payments.forVerification}</strong>
@@ -1026,7 +1036,7 @@ const Reports = () => {
                           <span className={`status-badge ${transaction.status === 'Paid' || transaction.status === 'Completed' ? 'paid' : transaction.status === 'For Verification' ? 'for_verification' : 'pending'}`}>
                             {transaction.status}
                           </span>
-                        </td>           
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -1036,16 +1046,16 @@ const Reports = () => {
 
             <div className="report-actions-adminreports">
               <button className="export-btn-adminreports" onClick={() => exportReport('pdf')} disabled={generating}>
-                Export as PDF
+                <FaFilePdf /> Export as PDF
               </button>
               <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')} disabled={generating}>
-                Export as Excel
+                <FaFileExcel /> Export as Excel
               </button>
               <button className="export-btn-adminreports" onClick={() => exportReport('csv')} disabled={generating}>
-                Export as CSV
+                <FaDownload /> Export as CSV
               </button>
               <button className="export-btn-adminreports" onClick={() => window.print()}>
-                Print Report
+                <FaPrint /> Print Report
               </button>
             </div>
           </div>
@@ -1055,29 +1065,33 @@ const Reports = () => {
         {activeTab === 'client-transaction' && (
           <div className="report-content-adminreports">
             <div className="report-section-adminreports">
-              <h2>Client Transaction History</h2>
+              <h2><FaHistory /> Client Transaction History</h2>
               <p>Displays detailed records of client bookings. Includes payment transactions. Useful for reviewing client activity history.</p>
               
               <div className="client-stats-grid">
                 <div className="client-stat-card">
+                  <FaUsers />
                   <div>
                     <span>Total Clients</span>
                     <strong>{stats.clients.total}</strong>
                   </div>
                 </div>
                 <div className="client-stat-card">
+                  <FaUserCheck />
                   <div>
                     <span>Active Clients</span>
                     <strong>{stats.clients.active}</strong>
                   </div>
                 </div>
                 <div className="client-stat-card">
+                  <FaUserClock />
                   <div>
                     <span>New This Month</span>
                     <strong>{stats.clients.new}</strong>
                   </div>
                 </div>
                 <div className="client-stat-card">
+                  <FaReceipt />
                   <div>
                     <span>Total Transactions</span>
                     <strong>{transactions.length}</strong>
@@ -1179,16 +1193,16 @@ const Reports = () => {
 
             <div className="report-actions-adminreports">
               <button className="export-btn-adminreports" onClick={() => exportReport('pdf')} disabled={generating}>
-                Export as PDF
+                <FaFilePdf /> Export as PDF
               </button>
               <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')} disabled={generating}>
-                Export as Excel
+                <FaFileExcel /> Export as Excel
               </button>
               <button className="export-btn-adminreports" onClick={() => exportReport('csv')} disabled={generating}>
-                Export as CSV
+                <FaDownload /> Export as CSV
               </button>
               <button className="export-btn-adminreports" onClick={() => window.print()}>
-                Print Report
+                <FaPrint /> Print Report
               </button>
             </div>
           </div>
@@ -1207,7 +1221,7 @@ const Reports = () => {
               </div>
               <div className="preview-actions-adminreports">
                 <button className="export-btn-adminreports" onClick={() => exportReport('pdf')}>
-                  Download PDF
+                  <FaFilePdf /> Download PDF
                 </button>
                 <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')}>
                   <FaFileExcel /> Download CSV

@@ -21,7 +21,562 @@
   --radius-xl: 18px;
   --radius-2xl: 24px;
 }
+/* Statistics Grid */
+.cuspro-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
 
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  background: #f0f7ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #ff8c00;
+}
+
+.stat-card.pending-stat .stat-icon {
+  background: #fff3e0;
+  color: #ff9800;
+}
+
+.stat-card.paid-stat .stat-icon {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+
+.stat-card.verification-stat .stat-icon {
+  background: #e3f2fd;
+  color: #2196f3;
+}
+
+.stat-info h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: #333;
+}
+
+.stat-info p {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.stat-info small {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+/* Filter Section */
+.cuspro-filter-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.cuspro-filter-group,
+.cuspro-search-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cuspro-filter-group label,
+.cuspro-search-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cuspro-filter-select {
+  padding: 0.625rem 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.cuspro-filter-select:hover {
+  border-color: #ff8c00;
+}
+
+.cuspro-filter-select:focus {
+  outline: none;
+  border-color: #ff8c00;
+  box-shadow: 0 0 0 3px rgba(255,140,0,0.1);
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: #999;
+  font-size: 0.875rem;
+}
+
+.cuspro-search-input {
+  width: 100%;
+  padding: 0.625rem 2.5rem 0.625rem 2.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: border-color 0.2s;
+}
+
+.cuspro-search-input:focus {
+  outline: none;
+  border-color: #ff8c00;
+  box-shadow: 0 0 0 3px rgba(255,140,0,0.1);
+}
+
+.clear-search {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: #999;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.clear-search:hover {
+  color: #666;
+  background: #f0f0f0;
+}
+
+/* Results Count */
+.cuspro-results-count {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 0 0.5rem;
+}
+
+.cuspro-results-count p {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.clear-filters-btn {
+  background: none;
+  border: none;
+  color: #ff8c00;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.clear-filters-btn:hover {
+  background: #fff3e0;
+}
+
+/* Items List */
+.cuspro-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.cuspro-item-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cuspro-item-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.cuspro-item-card.pre-assessment {
+  border-left: 4px solid #ff8c00;
+}
+
+.cuspro-item-card.project {
+  border-left: 4px solid #2196f3;
+}
+
+.cuspro-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.cuspro-item-type-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.cuspro-item-type-badge svg {
+  font-size: 1rem;
+}
+
+.cuspro-item-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.cuspro-item-info {
+  flex: 2;
+  min-width: 200px;
+}
+
+.cuspro-item-info h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.125rem;
+  color: #333;
+}
+
+.cuspro-item-ref {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.875rem;
+  color: #666;
+  font-family: monospace;
+}
+
+.cuspro-item-project {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.875rem;
+  color: #ff8c00;
+  font-weight: 500;
+}
+
+.cuspro-item-property {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.invoice-type-label {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.invoice-type-label.initial {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.invoice-type-label.progress {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.invoice-type-label.final {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.invoice-type-label.full {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.cuspro-item-details {
+  flex: 1;
+  min-width: 200px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 0.75rem;
+}
+
+.cuspro-item-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cuspro-item-detail span {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.cuspro-item-detail strong {
+  font-size: 0.875rem;
+  color: #333;
+}
+
+.cuspro-item-detail.amount strong {
+  font-size: 1rem;
+  color: #ff8c00;
+  font-weight: 700;
+}
+
+.cuspro-item-actions {
+  padding: 1rem 1.5rem;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* Button Styles */
+.cuspro-pay-btn {
+  background: linear-gradient(135deg, #ff8c00, #ff6b00);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cuspro-pay-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255,107,0,0.3);
+}
+
+.cuspro-pay-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cuspro-secondary-btn {
+  background: white;
+  color: #666;
+  border: 1px solid #e0e0e0;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.cuspro-secondary-btn:hover {
+  border-color: #ff8c00;
+  color: #ff8c00;
+}
+
+.cuspro-accept-btn {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.2s;
+}
+
+.cuspro-accept-btn:hover {
+  background: #45a049;
+}
+
+.cuspro-view-project-btn {
+  background: #2196f3;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.2s;
+}
+
+.cuspro-view-project-btn:hover {
+  background: #1976d2;
+}
+
+.cuspro-verification-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #fff3cd;
+  color: #856404;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.cuspro-paid-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #d4edda;
+  color: #155724;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.cuspro-walkin-note {
+  padding: 0.75rem 1.5rem;
+  background: #fff3e0;
+  border-top: 1px solid #ffe0b2;
+  font-size: 0.75rem;
+  color: #e65100;
+}
+
+/* Skeleton Loader */
+.skeleton-filter-bar {
+  height: 100px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.skeleton-stats {
+  height: 100px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.skeleton-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.skeleton-card {
+  height: 200px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 12px;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .cuspro-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .cuspro-filter-section {
+    grid-template-columns: 1fr;
+  }
+  
+  .cuspro-item-body {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .cuspro-item-actions {
+    flex-wrap: wrap;
+  }
+  
+  .cuspro-results-count {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cuspro-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stat-card {
+    padding: 1rem;
+  }
+  
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+  
+  .stat-info h3 {
+    font-size: 1.25rem;
+  }
+}
 .cuspro-quotation-container {
   margin: 0 auto;
   padding: 24px;

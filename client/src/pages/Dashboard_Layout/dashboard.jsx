@@ -114,17 +114,12 @@ const Dashboard = () => {
   const settingsSubmenu = [
     { label: 'Profile', path: '/app/customer/settings?tab=profile' },
     { label: 'Addresses', path: '/app/customer/settings?tab=addresses' },
-    { label: 'Notifications', path: '/app/customer/settings?tab=notifications' },
-    { label: 'Security', path: '/app/customer/settings?tab=security' },
-    { label: 'Preferences', path: '/app/customer/settings?tab=preferences' },
+   
   ];
 
   const supportSubmenu = [
-    { label: 'FAQ', path: '/app/customer/support?tab=faq' },
     { label: 'Contact Form', path: '/app/customer/support?tab=contact' },
     { label: 'Contact Info', path: '/app/customer/support?tab=info' },
-    { label: 'Ticket System', path: '/app/customer/support?tab=tickets' },
-    { label: 'User Guides', path: '/app/customer/support?tab=guides' },
   ];
 
   const isCustomer = userRole === 'user';

@@ -356,16 +356,7 @@ const LoginPage = () => {
 
                 {/* REMEMBER ME & FORGOT PASSWORD */}
                 <div className="row-actions-login">
-                  <label className="remember-label-login">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="remember-checkbox-login"
-                      disabled={isLoading || socialLoading !== '' || isNavigating}
-                    />
-                    <span>Remember me</span>
-                  </label>
+                  
                   
                   <Link to="/forgotpassword" className="forgot-link-login">
                     Forgot password?

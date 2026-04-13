@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
-import { 
-  FaSearch, 
-  FaEye, 
-  FaCheckCircle, 
+import {
+  FaSearch,
+  FaEye,
+  FaCheckCircle,
   FaSpinner,
   FaMoneyBillWave,
   FaClock,
@@ -62,7 +62,11 @@ const EngineerProject = () => {
         headers: { Authorization: `Bearer ${token}` },
         params: { status: filter === 'all' ? undefined : filter, page: currentPage, limit: 10 }
       });
-      setProjects(response.data.projects || []);
+
+      const projectsData = response.data.projects || [];
+      setProjects(projectsData);
+
+
       setTotalPages(response.data.totalPages || 1);
       setLoading(false);
     } catch (error) {
@@ -87,7 +91,7 @@ const EngineerProject = () => {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       showToast('Project progress updated successfully!', 'success');
       setShowProgressModal(false);
       setSelectedProject(null);
@@ -104,11 +108,11 @@ const EngineerProject = () => {
   const handlePhotoUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
-    
+
     setUploadingPhotos(true);
     const formData = new FormData();
     files.forEach(file => formData.append('photos', file));
-    
+
     try {
       const token = sessionStorage.getItem('token');
       const response = await axios.post(
@@ -183,9 +187,9 @@ const EngineerProject = () => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
     return project.projectName?.toLowerCase().includes(searchLower) ||
-           project.projectReference?.toLowerCase().includes(searchLower) ||
-           project.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
-           project.clientId?.contactLastName?.toLowerCase().includes(searchLower);
+      project.projectReference?.toLowerCase().includes(searchLower) ||
+      project.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
+      project.clientId?.contactLastName?.toLowerCase().includes(searchLower);
   });
 
   const SkeletonLoader = () => (
@@ -269,7 +273,7 @@ const EngineerProject = () => {
               const isInProgress = project.status === 'in_progress';
               const isProgressPaid = project.status === 'progress_paid';
               const isFullPaid = project.status === 'full_paid';
-              
+
               return (
                 <div key={project._id} className="project-card-engineerproject">
                   <div className="card-header-engineerproject">
@@ -279,11 +283,16 @@ const EngineerProject = () => {
                     </div>
                     {getStatusBadge(project.status)}
                   </div>
-                  
+
                   <div className="card-details-engineerproject">
                     <div className="detail-item">
                       <FaUser />
                       <span>{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</span>
+                    </div>
+                    {/* Add client email display */}
+                    <div className="detail-item">
+                      <FaEnvelope />
+                      <span className="client-email">{project.clientId?.userId?.email || 'No email provided'}</span>
                     </div>
                     <div className="detail-item">
                       <FaSolarPanel />
@@ -307,7 +316,7 @@ const EngineerProject = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Payment Info Section (no progress bar) */}
                   <div className="payment-info-engineerproject">
                     <div className="payment-stats">
@@ -315,37 +324,37 @@ const EngineerProject = () => {
                       <span className="total-amount">Total: {formatCurrency(project.totalCost)}</span>
                     </div>
                   </div>
-                  
+
                   <div className="card-actions-engineerproject">
-                    <button 
+                    <button
                       className="action-btn view"
                       onClick={() => { setSelectedProject(project); setShowDetailModal(true); }}
                     >
                       <FaEye /> View Details
                     </button>
-                    
+
                     {/* Start Installation button - for approved, initial_paid, OR full_paid */}
                     {canStart && (
-                      <button 
+                      <button
                         className="action-btn start"
-                        onClick={() => { 
-                          setSelectedProject(project); 
+                        onClick={() => {
+                          setSelectedProject(project);
                           setProgressForm({ installationNotes: '', status: 'in_progress', sitePhotos: [] });
-                          setShowProgressModal(true); 
+                          setShowProgressModal(true);
                         }}
                       >
                         <FaTools /> Start Installation
                       </button>
                     )}
-                    
+
                     {/* Update Progress button - for in_progress or progress_paid */}
                     {(isInProgress || isProgressPaid) && (
-                      <button 
+                      <button
                         className="action-btn update"
-                        onClick={() => { 
-                          setSelectedProject(project); 
+                        onClick={() => {
+                          setSelectedProject(project);
                           setProgressForm({ installationNotes: project.installationNotes || '', status: project.status, sitePhotos: project.sitePhotos || [] });
-                          setShowProgressModal(true); 
+                          setShowProgressModal(true);
                         }}
                       >
                         <FaCheckCircle /> Update Progress
@@ -361,7 +370,7 @@ const EngineerProject = () => {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="pagination-engineerproject">
-            <button 
+            <button
               className="page-btn"
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
@@ -369,7 +378,7 @@ const EngineerProject = () => {
               <FaChevronLeft /> Previous
             </button>
             <span className="page-info">Page {currentPage} of {totalPages}</span>
-            <button 
+            <button
               className="page-btn"
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
@@ -385,7 +394,7 @@ const EngineerProject = () => {
             <div className="modal-content-engineerproject detail-modal" onClick={e => e.stopPropagation()}>
               <button className="modal-close" onClick={() => setShowDetailModal(false)}>×</button>
               <h3>Project Details</h3>
-              
+
               <div className="detail-section">
                 <h4>Project Information</h4>
                 <p><strong>Name:</strong> {selectedProject.projectName}</p>
@@ -401,7 +410,7 @@ const EngineerProject = () => {
                 <h4>Client Information</h4>
                 <p><strong>Name:</strong> {selectedProject.clientId?.contactFirstName} {selectedProject.clientId?.contactLastName}</p>
                 <p><strong>Contact:</strong> {selectedProject.clientId?.contactNumber}</p>
-                <p><strong>Email:</strong> {selectedProject.clientId?.userId?.email}</p>
+                <p><strong>Email:</strong> {selectedProject.clientId?.userId?.email || 'No email provided'}</p>
                 <p><strong>Address:</strong> {selectedProject.addressId?.houseOrBuilding} {selectedProject.addressId?.street}, {selectedProject.addressId?.barangay}, {selectedProject.addressId?.cityMunicipality}</p>
               </div>
 
@@ -474,12 +483,12 @@ const EngineerProject = () => {
               <button className="modal-close" onClick={() => setShowProgressModal(false)}>×</button>
               <h3>Update Project Progress</h3>
               <p><strong>Project:</strong> {selectedProject.projectName}</p>
-              
+
               <div className="form-group">
                 <label>Installation Notes</label>
-                <textarea 
-                  rows="4" 
-                  value={progressForm.installationNotes} 
+                <textarea
+                  rows="4"
+                  value={progressForm.installationNotes}
                   onChange={(e) => setProgressForm({ ...progressForm, installationNotes: e.target.value })}
                   placeholder="Describe the progress, challenges, next steps..."
                 />
@@ -488,8 +497,8 @@ const EngineerProject = () => {
               <div className="form-group">
                 <label>Update Status</label>
                 {/* ✅ ORIGINAL DROPDOWN OPTIONS - RESTORED */}
-                <select 
-                  value={progressForm.status} 
+                <select
+                  value={progressForm.status}
                   onChange={(e) => setProgressForm({ ...progressForm, status: e.target.value })}
                 >
                   <option value="in_progress">In Progress</option>

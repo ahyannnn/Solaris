@@ -1,47 +1,69 @@
-/* dashboard.engdas.css - Engineer Dashboard Modern Minimalist Design */
+/* dashboard.engdas.css - Engineer Dashboard Clean Modern Design */
 
-/* ============================================
-   CONTAINER
-   ============================================ */
+:root {
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --bg-base: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --border-light: #E2E8F0;
+  --border-medium: #CBD5E1;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05);
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+}
+
+/* ============================================ */
+/* CONTAINER */
+/* ============================================ */
 .engdas-dashboard {
   margin: 0 auto;
-  padding: 1.5rem;
-  background: #F5F5F7;
+  padding: 24px;
+  background: var(--bg-base);
   min-height: calc(100vh - 70px);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ============================================
-   HEADER
-   ============================================ */
+/* ============================================ */
+/* HEADER */
+/* ============================================ */
 .engdas-header {
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #E5E5E8;
+  margin-bottom: 28px;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .engdas-header h1 {
-  font-size: 1.75rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-  color: #1F1F1F;
-  letter-spacing: -0.3px;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
 .engdas-header p {
-  font-size: 0.875rem;
-  color: #6B6B6F;
+  font-size: 14px;
+  color: var(--text-muted);
   margin: 0;
 }
 
-/* ============================================
-   STATS GRID
-   ============================================ */
+/* ============================================ */
+/* STATS GRID - Black Text Only */
+/* ============================================ */
 .engdas-stats-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 16px;
+  margin-bottom: 28px;
 }
 
 @media (max-width: 1200px) {
@@ -63,33 +85,34 @@
 }
 
 .engdas-stat-card {
-  background: #FFFFFF;
-  border-radius: 16px;
-  padding: 1.25rem;
-  border: 1px solid #E5E5E8;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 16px;
 }
 
 .engdas-stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-medium);
 }
 
 .engdas-stat-icon {
   width: 48px;
   height: 48px;
-  background: #F8F9FA;
-  border-radius: 12px;
+  background: var(--bg-base);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  color: #6B6B6F;
-  border: 1px solid #E5E5E8;
+  font-size: 24px;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
 }
 
 .engdas-stat-info {
@@ -98,27 +121,29 @@
 
 .engdas-stat-value {
   display: block;
-  font-size: 1.5rem;
+  font-size: 28px;
   font-weight: 700;
-  color: #1F1F1F;
+  color: var(--text-primary);
   line-height: 1.2;
 }
 
 .engdas-stat-label {
   display: block;
-  font-size: 0.7rem;
-  color: #9CA3AF;
-  margin-top: 0.25rem;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-top: 4px;
 }
 
-/* ============================================
-   CONTENT GRID
-   ============================================ */
+/* ============================================ */
+/* CONTENT GRID */
+/* ============================================ */
 .engdas-content-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  gap: 24px;
+  margin-bottom: 24px;
 }
 
 @media (max-width: 1024px) {
@@ -130,46 +155,46 @@
 /* Recent Assessments & Upcoming Schedules Sections */
 .engdas-recent-section,
 .engdas-upcoming-section {
-  background: #FFFFFF;
-  border-radius: 20px;
-  border: 1px solid #E5E5E8;
-  padding: 1.25rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-light);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
 }
 
 .engdas-section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #E5E5E8;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .engdas-section-header h3 {
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: 600;
-  color: #1F1F1F;
+  color: var(--text-primary);
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .engdas-view-all {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 6px;
   background: none;
   border: none;
-  font-size: 0.7rem;
-  color: #6B6B6F;
+  font-size: 12px;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: color 0.2s ease;
 }
 
 .engdas-view-all:hover {
-  color: #1F1F1F;
+  color: var(--primary);
 }
 
 /* Assessment & Schedule Lists */
@@ -177,7 +202,7 @@
 .engdas-schedule-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 12px;
 }
 
 .engdas-assessment-item,
@@ -185,17 +210,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem;
-  background: #F8F9FA;
-  border-radius: 12px;
+  padding: 12px;
+  background: var(--bg-base);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
   transition: all 0.2s ease;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 12px;
 }
 
 .engdas-assessment-item:hover,
 .engdas-schedule-item:hover {
-  background: #F5F5F7;
+  background: var(--bg-card);
+  border-color: var(--border-medium);
   transform: translateX(4px);
 }
 
@@ -208,66 +235,66 @@
 .engdas-schedule-client {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
+  gap: 8px;
+  font-size: 13px;
   font-weight: 500;
-  color: #1F1F1F;
-  margin-bottom: 0.25rem;
+  color: var(--text-primary);
+  margin-bottom: 4px;
 }
 
 .engdas-assessment-client svg,
 .engdas-schedule-client svg {
-  font-size: 0.7rem;
-  color: #9CA3AF;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .engdas-assessment-address,
 .engdas-schedule-address {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.65rem;
-  color: #9CA3AF;
-  margin-bottom: 0.25rem;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
 }
 
 .engdas-assessment-address svg,
 .engdas-schedule-address svg {
-  font-size: 0.6rem;
+  font-size: 11px;
 }
 
 .engdas-assessment-date {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.65rem;
-  color: #6B6B6F;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 
 .engdas-schedule-title {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 0.25rem;
+  margin-bottom: 4px;
 }
 
 .engdas-schedule-name {
-  font-size: 0.75rem;
+  font-size: 13px;
   font-weight: 500;
-  color: #1F1F1F;
+  color: var(--text-primary);
 }
 
 .engdas-schedule-time {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.65rem;
-  color: #E65100;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--warning);
 }
 
 .engdas-schedule-time svg {
-  font-size: 0.6rem;
+  font-size: 11px;
 }
 
 .engdas-assessment-status,
@@ -275,50 +302,52 @@
   flex-shrink: 0;
 }
 
-/* ============================================
-   MY DEVICES SECTION
-   ============================================ */
+/* ============================================ */
+/* MY DEVICES SECTION */
+/* ============================================ */
 .engdas-devices-section {
-  background: #FFFFFF;
-  border-radius: 20px;
-  border: 1px solid #E5E5E8;
-  padding: 1.25rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-light);
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
 }
 
 .engdas-devices-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
+  gap: 16px;
 }
 
 .engdas-device-card {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: #F8F9FA;
-  border-radius: 12px;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-base);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
   transition: all 0.2s ease;
 }
 
 .engdas-device-card:hover {
-  background: #F5F5F7;
+  background: var(--bg-card);
+  border-color: var(--border-medium);
   transform: translateX(4px);
 }
 
 .engdas-device-icon {
   width: 40px;
   height: 40px;
-  background: #FFFFFF;
-  border-radius: 10px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
-  color: #6B6B6F;
-  border: 1px solid #E5E5E8;
+  font-size: 20px;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
 }
 
 .engdas-device-info {
@@ -326,103 +355,108 @@
 }
 
 .engdas-device-name {
-  font-size: 0.75rem;
+  font-size: 13px;
   font-weight: 600;
-  color: #1F1F1F;
-  margin-bottom: 0.25rem;
+  color: var(--text-primary);
+  margin-bottom: 4px;
 }
 
 .engdas-device-id {
-  font-size: 0.6rem;
-  color: #9CA3AF;
+  font-size: 11px;
+  color: var(--text-muted);
   font-family: monospace;
 }
 
 .engdas-device-status {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.65rem;
+  gap: 4px;
+  font-size: 11px;
   font-weight: 500;
-  padding: 0.25rem 0.5rem;
+  padding: 4px 8px;
   border-radius: 20px;
 }
 
 .engdas-device-status.online-engdas {
-  background: #E8F5E9;
-  color: #2E7D32;
+  background: #DCFCE7;
+  color: #16A34A;
 }
 
-/* ============================================
-   STATUS BADGES
-   ============================================ */
+/* ============================================ */
+/* STATUS BADGES */
+/* ============================================ */
 .status-badge-engdas {
   display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.65rem;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 11px;
   font-weight: 500;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
 }
 
 .status-badge-engdas.scheduled-engdas {
-  background: #E3F2FD;
-  color: #1565C0;
+  background: #DBEAFE;
+  color: var(--primary);
+  border-color: #BFDBFE;
 }
 
-.status-badge-engdas.confirmed-engdas {
-  background: #E8F5E9;
-  color: #2E7D32;
+.status-badge-engdas.confirmed-engdas,
+.status-badge-engdas.completed-engdas {
+  background: #DCFCE7;
+  color: #16A34A;
+  border-color: #BBF7D0;
 }
 
 .status-badge-engdas.in-progress-engdas {
-  background: #FFF3E0;
-  color: #E65100;
-}
-
-.status-badge-engdas.completed-engdas {
-  background: #E8F5E9;
-  color: #2E7D32;
+  background: #FEF3C7;
+  color: #D97706;
+  border-color: #FDE68A;
 }
 
 .status-badge-engdas.deployed-engdas {
-  background: #E3F2FD;
-  color: #1565C0;
+  background: #DBEAFE;
+  color: var(--primary);
+  border-color: #BFDBFE;
 }
 
 .status-badge-engdas.collecting-engdas {
-  background: #FFF3E0;
-  color: #E65100;
+  background: #FEF3C7;
+  color: #D97706;
+  border-color: #FDE68A;
 }
 
 .status-badge-engdas.analyzing-engdas {
-  background: #F3E5F5;
-  color: #7B1FA2;
+  background: #F3E8FF;
+  color: #9333EA;
+  border-color: #E9D5FF;
 }
 
-/* ============================================
-   QUICK ACTIONS
-   ============================================ */
+/* ============================================ */
+/* QUICK ACTIONS */
+/* ============================================ */
 .engdas-quick-actions {
-  background: #FFFFFF;
-  border-radius: 20px;
-  border: 1px solid #E5E5E8;
-  padding: 1.25rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-light);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
 }
 
 .engdas-quick-actions h3 {
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: 600;
-  color: #1F1F1F;
-  margin: 0 0 1rem 0;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #E5E5E8;
+  color: var(--text-primary);
+  margin: 0 0 16px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .engdas-actions-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
+  gap: 16px;
 }
 
 @media (max-width: 768px) {
@@ -441,70 +475,72 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  background: #F5F5F7;
-  border: 1px solid #E5E5E8;
-  border-radius: 10px;
-  font-size: 0.75rem;
+  gap: 8px;
+  padding: 12px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 13px;
   font-weight: 500;
-  color: #6B6B6F;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .engdas-action-btn:hover {
-  background: #EEEEF2;
-  color: #1F1F1F;
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
   transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
-/* ============================================
-   EMPTY STATE
-   ============================================ */
+/* ============================================ */
+/* EMPTY STATE */
+/* ============================================ */
 .engdas-empty-state {
   text-align: center;
-  padding: 2rem;
-  color: #9CA3AF;
+  padding: 32px;
+  color: var(--text-muted);
 }
 
 .engdas-empty-state p {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 13px;
 }
 
-/* ============================================
-   SKELETON LOADER
-   ============================================ */
+/* ============================================ */
+/* SKELETON LOADER */
+/* ============================================ */
 .engdas-skeleton-title {
   width: 250px;
   height: 32px;
-  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
   animation: shimmer-engdas 1.5s infinite;
-  border-radius: 8px;
+  border-radius: 6px;
   margin-bottom: 8px;
 }
 
 .engdas-skeleton-subtitle {
   width: 350px;
   height: 20px;
-  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
   animation: shimmer-engdas 1.5s infinite;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .engdas-skeleton-card {
-  background: #FFFFFF;
+  background: var(--bg-card);
 }
 
 .engdas-skeleton-line {
   height: 16px;
-  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
   animation: shimmer-engdas 1.5s infinite;
-  border-radius: 8px;
+  border-radius: 6px;
   margin-bottom: 12px;
 }
 
@@ -514,24 +550,20 @@
 }
 
 @keyframes shimmer-engdas {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-/* ============================================
-   RESPONSIVE
-   ============================================ */
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
 @media (max-width: 768px) {
   .engdas-dashboard {
-    padding: 1rem;
+    padding: 16px;
   }
   
   .engdas-header h1 {
-    font-size: 1.5rem;
+    font-size: 24px;
   }
   
   .engdas-devices-grid {
@@ -539,24 +571,24 @@
   }
 }
 
-/* ============================================
-   SCROLLBAR
-   ============================================ */
+/* ============================================ */
+/* SCROLLBAR */
+/* ============================================ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F0F0F0;
+  background: var(--border-light);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D4D4D8;
+  background: var(--border-medium);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
+  background: var(--text-muted);
 }

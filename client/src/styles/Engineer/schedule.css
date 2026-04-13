@@ -1,62 +1,84 @@
-/* schedule.css - Engineer Schedule Styles with -esch extension */
+/* schedule.css - Engineer Schedule Styles - Clean Modern Design */
 
-/* ============================================
-   BASE CONTAINER
-   ============================================ */
+:root {
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --bg-base: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --border-light: #E2E8F0;
+  --border-medium: #CBD5E1;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05);
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+}
+
+/* ============================================ */
+/* BASE CONTAINER */
+/* ============================================ */
 .engineer-schedule-container-esch {
   margin: 0 auto;
-  padding: 1.5rem;
-  background: #F5F5F7;
+  padding: 24px;
+  background: var(--bg-base);
   min-height: calc(100vh - 70px);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ============================================
-   HEADER
-   ============================================ */
+/* ============================================ */
+/* HEADER */
+/* ============================================ */
 .schedule-header-esch {
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #E5E5E8;
+  margin-bottom: 28px;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .schedule-header-esch h1 {
-  font-size: 1.75rem;
-  font-weight: 600;
-  margin: 0 0 0.25rem 0;
-  color: #1F1F1F;
-  letter-spacing: -0.3px;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
 .schedule-header-esch p {
-  font-size: 0.875rem;
-  color: #6B6B6F;
+  font-size: 14px;
+  color: var(--text-muted);
   margin: 0;
 }
 
-/* ============================================
-   STATS CARDS
-   ============================================ */
+/* ============================================ */
+/* STATS CARDS */
+/* ============================================ */
 .schedule-stats-esch {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 16px;
+  margin-bottom: 28px;
 }
 
 .stat-card-esch {
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
-  border-radius: 16px;
-  padding: 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: 20px;
   transition: all 0.2s;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--shadow-sm);
 }
 
 .stat-card-esch:hover {
   transform: translateY(-2px);
-  border-color: #D4D4D8;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  border-color: var(--border-medium);
+  box-shadow: var(--shadow-md);
 }
 
 .stat-info-esch {
@@ -65,58 +87,60 @@
 }
 
 .stat-value-esch {
-  font-size: 2rem;
+  font-size: 32px;
   font-weight: 700;
-  color: #1F1F1F;
+  color: var(--text-primary);
   line-height: 1.2;
 }
 
 .stat-label-esch {
-  font-size: 0.75rem;
-  color: #6B6B6F;
-  margin-top: 0.25rem;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-top: 4px;
 }
 
-/* ============================================
-   CONTROLS
-   ============================================ */
+/* ============================================ */
+/* CONTROLS */
+/* ============================================ */
 .schedule-controls-esch {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 16px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
   align-items: center;
 }
 
 .view-toggle-esch {
   display: flex;
-  gap: 0.25rem;
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
-  border-radius: 12px;
-  padding: 0.25rem;
+  gap: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 6px;
 }
 
 .toggle-btn-esch {
-  padding: 0.5rem 1rem;
+  padding: 10px 20px;
   background: none;
   border: none;
-  border-radius: 8px;
-  font-size: 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 13px;
   font-weight: 500;
-  color: #6B6B6F;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .toggle-btn-esch:hover {
-  background: #F5F5F7;
-  color: #1F1F1F;
+  background: var(--bg-base);
+  color: var(--text-primary);
 }
 
 .toggle-btn-esch.active-esch {
-  background: #1F1F1F;
-  color: #FFFFFF;
+  background: var(--text-primary);
+  color: white;
 }
 
 .filter-group-esch {
@@ -126,22 +150,29 @@
 
 .filter-group-esch select {
   width: 100%;
-  padding: 0.625rem 0.75rem;
-  border: 1px solid #E5E5E8;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  background: #FFFFFF;
+  padding: 12px 16px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  background: var(--bg-card);
   cursor: pointer;
-  color: #1F1F1F;
+  color: var(--text-primary);
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 0.75rem center;
+  background-position: right 14px center;
+  background-size: 14px;
+  transition: all 0.2s;
+}
+
+.filter-group-esch select:hover {
+  border-color: var(--border-medium);
 }
 
 .filter-group-esch select:focus {
   outline: none;
-  border-color: #D4D4D8;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .search-group-esch {
@@ -152,183 +183,167 @@
 
 .search-group-esch input {
   width: 100%;
-  padding: 0.625rem 0.75rem;
-  border: 1px solid #E5E5E8;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  background: #FFFFFF;
+  padding: 12px 16px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  background: var(--bg-card);
   transition: all 0.2s;
-  color: #1F1F1F;
+  color: var(--text-primary);
 }
 
 .search-group-esch input:focus {
   outline: none;
-  border-color: #D4D4D8;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .search-group-esch input::placeholder {
-  color: #9CA3AF;
+  color: var(--text-muted);
 }
 
-/* ============================================
-   LIST VIEW - SCHEDULE CARDS
-   ============================================ */
+/* ============================================ */
+/* LIST VIEW - SCHEDULE CARDS */
+/* ============================================ */
 .schedule-list-esch {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 16px;
+  margin-bottom: 28px;
 }
 
 .schedule-card-esch {
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
-  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
   transition: all 0.2s;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--shadow-sm);
 }
 
 .schedule-card-esch:hover {
-  border-color: #D4D4D8;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  border-color: var(--border-medium);
+  box-shadow: var(--shadow-md);
 }
 
 .schedule-card-header-esch {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.25rem;
-  background: #F8F9FA;
-  border-bottom: 1px solid #E5E5E8;
+  padding: 16px 20px;
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border-light);
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .schedule-type-esch {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .type-badge-esch {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.7rem;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 12px;
   font-weight: 500;
-}
-
-.type-badge-esch.pre-assessment-esch {
-  background: #EEEEF2;
-  color: #1F1F1F;
-  border: 1px solid #D4D4D8;
-}
-
-.type-badge-esch.site-visit-esch {
-  background: #E3F2FD;
-  color: #1565C0;
-  border: 1px solid #BBDEFB;
-}
-
-.type-badge-esch.installation-esch {
-  background: #E8F5E9;
-  color: #2E7D32;
-  border: 1px solid #C8E6C9;
-}
-
-.type-badge-esch.inspection-esch {
-  background: #FFF3E0;
-  color: #E65100;
-  border: 1px solid #FFE0B2;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
 }
 
 .status-badge-esch {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.7rem;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 12px;
   font-weight: 500;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
 }
 
 .status-badge-esch.scheduled-esch {
-  background: #E3F2FD;
-  color: #1565C0;
+  background: #DBEAFE;
+  color: var(--primary);
+  border-color: #BFDBFE;
 }
 
-.status-badge-esch.confirmed-esch {
-  background: #E8F5E9;
-  color: #2E7D32;
+.status-badge-esch.confirmed-esch,
+.status-badge-esch.completed-esch {
+  background: #DCFCE7;
+  color: #16A34A;
+  border-color: #BBF7D0;
 }
 
 .status-badge-esch.in-progress-esch {
-  background: #FFF3E0;
-  color: #E65100;
-}
-
-.status-badge-esch.completed-esch {
-  background: #E8F5E9;
-  color: #2E7D32;
+  background: #FEF3C7;
+  color: #D97706;
+  border-color: #FDE68A;
 }
 
 .status-badge-esch.cancelled-esch {
-  background: #FFEBEE;
-  color: #C62828;
+  background: #FEE2E2;
+  color: var(--danger);
+  border-color: #FECACA;
 }
 
 .status-badge-esch.rescheduled-esch {
-  background: #E3F2FD;
-  color: #1565C0;
+  background: #DBEAFE;
+  color: var(--primary);
+  border-color: #BFDBFE;
 }
 
 .schedule-date-large-esch {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  color: #6B6B6F;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .schedule-card-body-esch {
-  padding: 1.25rem;
+  padding: 20px;
 }
 
 .schedule-card-body-esch h3 {
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: 600;
-  margin: 0 0 0.75rem 0;
-  color: #1F1F1F;
+  margin: 0 0 12px 0;
+  color: var(--text-primary);
 }
 
 .schedule-details-esch {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .detail-item-esch {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  color: #6B6B6F;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .schedule-card-footer-esch {
   display: flex;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  background: #F8F9FA;
-  border-top: 1px solid #E5E5E8;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--bg-base);
+  border-top: 1px solid var(--border-light);
   flex-wrap: wrap;
 }
 
 .action-btn-esch {
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-size: 0.75rem;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
@@ -336,73 +351,73 @@
 }
 
 .action-btn-esch.view-esch {
-  background: #F5F5F7;
-  color: #6B6B6F;
-  border: 1px solid #E5E5E8;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
 }
 
 .action-btn-esch.view-esch:hover {
-  background: #EEEEF2;
-  color: #1F1F1F;
+  background: var(--border-light);
+  color: var(--text-primary);
 }
 
 .action-btn-esch.start-esch {
-  background: #1F1F1F;
-  color: #FFFFFF;
+  background: var(--primary);
+  color: white;
 }
 
 .action-btn-esch.start-esch:hover {
-  background: #3A3A3A;
+  background: var(--primary-hover);
 }
 
 .action-btn-esch.complete-esch {
-  background: #2E7D32;
-  color: #FFFFFF;
+  background: var(--success);
+  color: white;
 }
 
 .action-btn-esch.complete-esch:hover {
-  background: #1B5E20;
+  background: #16A34A;
 }
 
 .action-btn-esch.reschedule-esch {
-  background: #FFF3E0;
-  color: #E65100;
-  border: 1px solid #FFE0B2;
+  background: #FEF3C7;
+  color: #D97706;
+  border: 1px solid #FDE68A;
 }
 
 .action-btn-esch.reschedule-esch:hover {
-  background: #FFE0B2;
+  background: #FDE68A;
 }
 
 .action-buttons-esch {
   display: flex;
-  gap: 0.75rem;
+  gap: 12px;
   margin-left: auto;
   flex-wrap: wrap;
 }
 
-/* ============================================
-   CALENDAR VIEW
-   ============================================ */
+/* ============================================ */
+/* CALENDAR VIEW */
+/* ============================================ */
 .calendar-view-esch {
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
-  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
   overflow: hidden;
-  margin-bottom: 2rem;
+  margin-bottom: 28px;
 }
 
 .calendar-header-esch {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid #E5E5E8;
-  background: #F8F9FA;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-base);
 }
 
 .calendar-header-esch h3 {
-  font-size: 0.875rem;
+  font-size: 15px;
   font-weight: 600;
   margin: 0;
-  color: #1F1F1F;
+  color: var(--text-primary);
 }
 
 .calendar-grid-esch {
@@ -411,14 +426,14 @@
 }
 
 .calendar-day-header-esch {
-  padding: 0.75rem;
+  padding: 12px;
   text-align: center;
-  font-size: 0.7rem;
+  font-size: 12px;
   font-weight: 600;
-  color: #6B6B6F;
-  border-bottom: 1px solid #E5E5E8;
-  border-right: 1px solid #E5E5E8;
-  background: #F8F9FA;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-light);
+  border-right: 1px solid var(--border-light);
+  background: var(--bg-base);
 }
 
 .calendar-day-header-esch:last-child {
@@ -427,10 +442,10 @@
 
 .calendar-day-esch {
   min-height: 120px;
-  padding: 0.5rem;
-  border-bottom: 1px solid #E5E5E8;
-  border-right: 1px solid #E5E5E8;
-  background: #FFFFFF;
+  padding: 8px;
+  border-bottom: 1px solid var(--border-light);
+  border-right: 1px solid var(--border-light);
+  background: var(--bg-card);
 }
 
 .calendar-day-esch:nth-child(7n) {
@@ -438,76 +453,76 @@
 }
 
 .calendar-date-esch {
-  font-size: 0.7rem;
+  font-size: 12px;
   font-weight: 500;
-  color: #6B6B6F;
-  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
 }
 
 .calendar-event-esch {
-  background: #F8F9FA;
-  border-radius: 8px;
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
-  border-left: 2px solid #D4D4D8;
+  background: var(--bg-base);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  margin-bottom: 8px;
+  border-left: 3px solid var(--primary);
 }
 
 .event-time-esch {
-  font-size: 0.6rem;
-  color: #6B6B6F;
-  margin-bottom: 0.25rem;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
 }
 
 .event-title-esch {
-  font-size: 0.7rem;
+  font-size: 12px;
   font-weight: 600;
-  color: #1F1F1F;
-  margin-bottom: 0.25rem;
+  color: var(--text-primary);
+  margin-bottom: 4px;
   word-break: break-word;
 }
 
 .event-client-esch {
-  font-size: 0.6rem;
-  color: #6B6B6F;
-  margin-bottom: 0.25rem;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
 }
 
 .calendar-day-esch.empty-esch {
-  background: #F8F9FA;
+  background: var(--bg-base);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9CA3AF;
-  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
-/* ============================================
-   PAGINATION
-   ============================================ */
+/* ============================================ */
+/* PAGINATION */
+/* ============================================ */
 .pagination-esch {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
-  margin-top: 1.5rem;
+  gap: 16px;
+  margin-top: 24px;
 }
 
 .page-btn-esch {
-  padding: 0.5rem 1rem;
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
-  border-radius: 8px;
-  font-size: 0.75rem;
+  padding: 10px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 13px;
   font-weight: 500;
-  color: #6B6B6F;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .page-btn-esch:hover:not(:disabled) {
-  background: #F5F5F7;
-  color: #1F1F1F;
-  border-color: #D4D4D8;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
 }
 
 .page-btn-esch:disabled {
@@ -516,20 +531,21 @@
 }
 
 .page-info-esch {
-  font-size: 0.75rem;
-  color: #6B6B6F;
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
-/* ============================================
-   MODALS
-   ============================================ */
+/* ============================================ */
+/* MODALS */
+/* ============================================ */
 .modal-overlay-esch {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -538,15 +554,16 @@
 }
 
 .modal-content-esch {
-  background: #FFFFFF;
-  border-radius: 20px;
+  background: var(--bg-card);
+  border-radius: var(--radius-2xl);
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
-  padding: 1.5rem;
-  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-light);
 }
 
 .modal-content-esch.detail-modal-esch {
@@ -555,51 +572,51 @@
 
 .modal-close-esch {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 16px;
+  right: 16px;
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: 24px;
   cursor: pointer;
-  color: #9CA3AF;
+  color: var(--text-muted);
   transition: color 0.2s;
   line-height: 1;
 }
 
 .modal-close-esch:hover {
-  color: #1F1F1F;
+  color: var(--text-primary);
 }
 
 .modal-content-esch h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 0 1rem 0;
-  color: #1F1F1F;
-  padding-right: 2rem;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  color: var(--text-primary);
+  padding-right: 24px;
 }
 
 .detail-section-esch {
-  margin-bottom: 1.5rem;
+  margin-bottom: 24px;
 }
 
 .detail-section-esch h4 {
-  font-size: 0.75rem;
+  font-size: 13px;
   font-weight: 600;
-  color: #6B6B6F;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 12px 0;
 }
 
 .detail-section-esch p {
-  font-size: 0.875rem;
-  color: #1F1F1F;
-  margin: 0 0 0.5rem 0;
+  font-size: 14px;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
   line-height: 1.5;
 }
 
 .detail-section-esch p strong {
-  color: #6B6B6F;
+  color: var(--text-secondary);
   font-weight: 500;
   min-width: 100px;
   display: inline-block;
@@ -607,34 +624,35 @@
 
 /* Form Elements */
 .form-group-esch {
-  margin-bottom: 1rem;
+  margin-bottom: 20px;
 }
 
 .form-group-esch label {
   display: block;
-  font-size: 0.75rem;
+  font-size: 13px;
   font-weight: 500;
-  margin-bottom: 0.375rem;
-  color: #6B6B6F;
+  margin-bottom: 8px;
+  color: var(--text-primary);
 }
 
 .form-group-esch select,
 .form-group-esch textarea {
   width: 100%;
-  padding: 0.625rem 0.875rem;
-  border: 1px solid #E5E5E8;
-  border-radius: 10px;
-  font-size: 0.875rem;
+  padding: 12px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
   transition: all 0.2s;
   font-family: inherit;
-  background: #FFFFFF;
-  color: #1F1F1F;
+  background: var(--bg-card);
+  color: var(--text-primary);
 }
 
 .form-group-esch select:focus,
 .form-group-esch textarea:focus {
   outline: none;
-  border-color: #D4D4D8;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .form-group-esch textarea {
@@ -642,53 +660,52 @@
 }
 
 .info-box-esch {
-  background: #E3F2FD;
-  border-radius: 10px;
-  padding: 0.75rem;
-  margin-bottom: 1rem;
+  background: #DBEAFE;
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-bottom: 20px;
 }
 
 .info-box-esch small {
-  font-size: 0.7rem;
-  color: #1565C0;
+  font-size: 12px;
+  color: var(--primary);
   line-height: 1.4;
   display: block;
 }
 
 .modal-actions-esch {
   display: flex;
-  gap: 0.75rem;
+  gap: 12px;
   justify-content: flex-end;
-  margin-top: 1.5rem;
+  margin-top: 24px;
   flex-wrap: wrap;
 }
 
 .cancel-btn-esch {
-  padding: 0.5rem 1rem;
-  background: #F5F5F7;
-  border: 1px solid #E5E5E8;
-  border-radius: 8px;
-  font-size: 0.75rem;
+  padding: 10px 20px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  color: #6B6B6F;
+  color: var(--text-primary);
 }
 
 .cancel-btn-esch:hover {
-  background: #EEEEF2;
-  color: #1F1F1F;
+  background: var(--border-light);
 }
 
 .submit-btn-esch,
 .start-btn-esch,
 .complete-btn-esch {
-  padding: 0.5rem 1rem;
-  background: #1F1F1F;
-  color: #FFFFFF;
+  padding: 10px 20px;
+  background: var(--primary);
+  color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
@@ -697,7 +714,7 @@
 .submit-btn-esch:hover:not(:disabled),
 .start-btn-esch:hover,
 .complete-btn-esch:hover {
-  background: #3A3A3A;
+  background: var(--primary-hover);
 }
 
 .submit-btn-esch:disabled {
@@ -706,70 +723,70 @@
 }
 
 .complete-btn-esch {
-  background: #2E7D32;
+  background: var(--success);
 }
 
 .complete-btn-esch:hover {
-  background: #1B5E20;
+  background: #16A34A;
 }
 
 .reschedule-btn-esch {
-  padding: 0.5rem 1rem;
-  background: #FFF3E0;
-  color: #E65100;
-  border: 1px solid #FFE0B2;
-  border-radius: 8px;
-  font-size: 0.75rem;
+  padding: 10px 20px;
+  background: #FEF3C7;
+  color: #D97706;
+  border: 1px solid #FDE68A;
+  border-radius: var(--radius-md);
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .reschedule-btn-esch:hover {
-  background: #FFE0B2;
+  background: #FDE68A;
 }
 
-/* ============================================
-   EMPTY STATE
-   ============================================ */
+/* ============================================ */
+/* EMPTY STATE */
+/* ============================================ */
 .empty-state-esch {
   text-align: center;
-  padding: 3rem;
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
-  border-radius: 20px;
+  padding: 48px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-2xl);
 }
 
 .empty-icon-esch {
   width: 48px;
   height: 48px;
-  margin: 0 auto 1rem;
-  background: #F5F5F7;
+  margin: 0 auto 16px;
+  background: var(--bg-base);
   border-radius: 50%;
 }
 
 .empty-state-esch h3 {
-  font-size: 1.125rem;
+  font-size: 18px;
   font-weight: 600;
-  margin: 0 0 0.5rem 0;
-  color: #1F1F1F;
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
 }
 
 .empty-state-esch p {
-  font-size: 0.875rem;
-  color: #9CA3AF;
+  font-size: 14px;
+  color: var(--text-muted);
   margin: 0;
 }
 
-/* ============================================
-   SKELETON LOADING
-   ============================================ */
+/* ============================================ */
+/* SKELETON LOADING */
+/* ============================================ */
 .skeleton-line-esch {
-  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
   animation: pulse-esch 1.5s infinite;
-  border-radius: 8px;
-  margin-bottom: 0.5rem;
+  border-radius: 6px;
+  margin-bottom: 8px;
 }
 
 .skeleton-line-esch.large-esch {
@@ -788,67 +805,63 @@
 }
 
 .skeleton-card-esch {
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
-  border-radius: 16px;
-  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: 20px;
 }
 
 .skeleton-button-esch {
-  height: 36px;
+  height: 40px;
   width: 90px;
-  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
   animation: pulse-esch 1.5s infinite;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 .skeleton-select-esch {
-  height: 42px;
+  height: 44px;
   width: 160px;
-  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
   animation: pulse-esch 1.5s infinite;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
 }
 
 .skeleton-search-esch {
-  height: 42px;
-  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  height: 44px;
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
   animation: pulse-esch 1.5s infinite;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   flex: 1;
 }
 
 @keyframes pulse-esch {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-/* ============================================
-   RESPONSIVE
-   ============================================ */
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
 @media (max-width: 768px) {
   .engineer-schedule-container-esch {
-    padding: 1rem;
+    padding: 16px;
   }
   
   .schedule-stats-esch {
     grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
+    gap: 8px;
   }
   
   .stat-card-esch {
-    padding: 0.75rem;
+    padding: 12px;
   }
   
   .stat-value-esch {
-    font-size: 1.5rem;
+    font-size: 24px;
   }
   
   .schedule-controls-esch {
@@ -882,19 +895,19 @@
   }
   
   .modal-content-esch {
-    margin: 1rem;
-    padding: 1rem;
+    margin: 16px;
+    padding: 20px;
   }
   
   .detail-section-esch p strong {
     display: block;
-    margin-bottom: 0.25rem;
+    margin-bottom: 4px;
   }
 }
 
 @media (max-width: 480px) {
   .schedule-header-esch h1 {
-    font-size: 1.5rem;
+    font-size: 24px;
   }
   
   .schedule-stats-esch {
@@ -916,27 +929,28 @@
   .modal-actions-esch button {
     width: 100%;
     text-align: center;
+    justify-content: center;
   }
 }
 
-/* ============================================
-   SCROLLBAR
-   ============================================ */
+/* ============================================ */
+/* SCROLLBAR */
+/* ============================================ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F0F0F0;
+  background: var(--border-light);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D4D4D8;
+  background: var(--border-medium);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
+  background: var(--text-muted);
 }

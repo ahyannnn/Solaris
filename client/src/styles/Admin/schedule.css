@@ -1,4 +1,4 @@
-/* styles/Admin/schedule.css - Clean Modern Design */
+/* styles/Admin/schedule.css - Clean Modern Design (No Card Colors) */
 
 :root {
   --primary: #2563EB;
@@ -53,7 +53,7 @@
 }
 
 /* ============================================ */
-/* STATS CARDS */
+/* STATS CARDS - All Black Text */
 /* ============================================ */
 .schedule-stats-adsche {
   display: grid;
@@ -95,11 +95,6 @@
   letter-spacing: 0.3px;
   margin-top: 4px;
 }
-
-.stat-card-adsche.total .stat-value-adsche { color: var(--text-primary); }
-.stat-card-adsche.upcoming .stat-value-adsche { color: var(--primary); }
-.stat-card-adsche.completed .stat-value-adsche { color: var(--success); }
-.stat-card-adsche.cancelled .stat-value-adsche { color: var(--danger); }
 
 /* ============================================ */
 /* FILTERS */
@@ -273,7 +268,7 @@
 }
 
 /* ============================================ */
-/* STATUS BADGES */
+/* STATUS BADGES - Neutral Style */
 /* ============================================ */
 .status-badge-adsche {
   display: inline-block;
@@ -282,40 +277,13 @@
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
-}
-
-.status-badge-adsche.scheduled {
-  background: #DBEAFE;
-  color: var(--primary);
-}
-
-.status-badge-adsche.confirmed {
-  background: #DCFCE7;
-  color: var(--success);
-}
-
-.status-badge-adsche.in-progress {
-  background: #FEF3C7;
-  color: #D97706;
-}
-
-.status-badge-adsche.completed {
-  background: #DCFCE7;
-  color: #16A34A;
-}
-
-.status-badge-adsche.cancelled {
-  background: #FEE2E2;
-  color: var(--danger);
-}
-
-.status-badge-adsche.rescheduled {
-  background: #F3E8FF;
-  color: #9333EA;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
 }
 
 /* ============================================ */
-/* TYPE BADGES */
+/* TYPE BADGES - Neutral Style */
 /* ============================================ */
 .type-badge-adsche {
   display: inline-block;
@@ -324,26 +292,9 @@
   font-size: 11px;
   font-weight: 500;
   white-space: nowrap;
-}
-
-.type-badge-adsche.pre-assessment {
-  background: #DBEAFE;
-  color: var(--primary);
-}
-
-.type-badge-adsche.site-visit {
-  background: #DCFCE7;
-  color: #16A34A;
-}
-
-.type-badge-adsche.installation {
-  background: #FEF3C7;
-  color: #D97706;
-}
-
-.type-badge-adsche.inspection {
-  background: #F3E8FF;
-  color: #9333EA;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
 }
 
 /* ============================================ */

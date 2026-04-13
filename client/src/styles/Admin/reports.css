@@ -1,4 +1,4 @@
-/* styles/Admin/reports.css - Clean Modern Design (Black Text Only) */
+/* styles/Admin/reports.css - Clean Modern Design (No Card Colors) */
 
 :root {
   --primary: #2563EB;
@@ -53,7 +53,7 @@
 }
 
 /* ============================================ */
-/* STATS CARDS - All Black Text */
+/* STATS CARDS - Black Text Only, No Colors */
 /* ============================================ */
 .stats-cards-adminreports {
   display: grid;
@@ -215,7 +215,7 @@
   font-size: 13px;
   color: var(--text-primary);
   cursor: pointer;
-  min-width: 180px;
+  min-width: 220px;
   transition: all 0.2s;
 }
 
@@ -270,313 +270,412 @@
   font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
+  margin: 0 0 8px 0;
+}
+
+.report-section-adminreports p {
+  font-size: 14px;
+  color: var(--text-muted);
   margin: 0 0 20px 0;
 }
 
-/* Revenue Summary */
-.revenue-summary-adminreports {
+/* ============================================ */
+/* SUITABILITY SUMMARY - No Colors */
+/* ============================================ */
+.suitability-summary-adminreports {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  gap: 16px;
 }
 
-.summary-item-adminreports {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px;
-  background: var(--bg-base);
-  border-radius: var(--radius-lg);
-}
-
-.summary-item-adminreports span {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-.summary-item-adminreports strong {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.positive-adminreports {
-  color: var(--success) !important;
-}
-
-.negative-adminreports {
-  color: var(--danger) !important;
-}
-
-/* Revenue Sources */
-.revenue-sources-adminreports {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.source-item-adminreports {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.source-item-adminreports span {
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.source-item-adminreports strong {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.progress-bar-adminreports {
-  height: 8px;
-  background: var(--border-light);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-adminreports {
-  height: 100%;
-  background: var(--primary);
-  border-radius: 4px;
-  transition: width 0.3s;
-}
-
-/* Chart Container */
-.chart-container-adminreports {
-  padding: 20px 0;
-}
-
-.bar-chart-adminreports {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-around;
-  height: 250px;
-}
-
-.bar-item-adminreports {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.bar-adminreports {
-  width: 32px;
-  background: var(--primary);
-  border-radius: 6px 6px 4px 4px;
-  min-height: 4px;
-  transition: height 0.3s;
-}
-
-.bar-item-adminreports span {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-/* Stats Row */
-.stats-row-adminreports {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
-.stat-box-adminreports {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.suitability-card {
   padding: 20px;
   background: var(--bg-base);
   border-radius: var(--radius-lg);
   text-align: center;
+  border: 1px solid var(--border-light);
 }
 
-.stat-box-adminreports span {
+.suitability-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.suitability-stats .label {
   font-size: 13px;
   color: var(--text-muted);
 }
 
-.stat-box-adminreports strong {
+.suitability-stats strong {
   font-size: 28px;
   font-weight: 700;
   color: var(--text-primary);
 }
 
-/* Pie Chart */
-.pie-chart-container-adminreports {
-  padding: 20px 0;
+.suitability-stats .percentage {
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 
-.pie-chart-adminreports {
-  display: flex;
-  height: 40px;
-  border-radius: 20px;
-  overflow: hidden;
-  margin-bottom: 20px;
+/* ============================================ */
+/* TECHNICAL FINDINGS - No Colors */
+/* ============================================ */
+.technical-findings-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 }
 
-.pie-segment-adminreports {
+.finding-card {
+  padding: 20px;
+  background: var(--bg-base);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  border: 1px solid var(--border-light);
+}
+
+.finding-info {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  color: white;
-  font-size: 12px;
-  font-weight: 500;
+  gap: 4px;
 }
 
-.pie-segment-adminreports:nth-child(1) { background: var(--success); }
-.pie-segment-adminreports:nth-child(2) { background: var(--primary); }
-.pie-segment-adminreports:nth-child(3) { background: var(--warning); }
-.pie-segment-adminreports:nth-child(4) { background: var(--danger); }
-
-.segment-label-adminreports {
-  font-size: 11px;
-  opacity: 0.9;
+.finding-info span {
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
-.segment-value-adminreports {
-  font-size: 14px;
+.finding-info strong {
+  font-size: 20px;
   font-weight: 600;
+  color: var(--text-primary);
 }
 
-/* Demographics Grid */
-.demographics-grid-adminreports {
+/* ============================================ */
+/* PROJECT STATS GRID - No Colors */
+/* ============================================ */
+.project-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+.project-stat-card {
+  padding: 20px;
+  background: var(--bg-base);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  border: 1px solid var(--border-light);
+}
+
+.project-stat-card .stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.project-stat-card .stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.project-stat-card strong {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ============================================ */
+/* FINANCIAL SUMMARY - No Colors */
+/* ============================================ */
+.financial-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.financial-card {
+  padding: 20px;
+  background: var(--bg-base);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  border: 1px solid var(--border-light);
+}
+
+.financial-card div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.financial-card span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.financial-card strong {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ============================================ */
+/* PAYMENT STATUS GRID - No Colors */
+/* ============================================ */
+.payment-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.payment-status-card {
+  padding: 20px;
+  background: var(--bg-base);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  border: 1px solid var(--border-light);
+}
+
+.payment-status-card div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.payment-status-card span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.payment-status-card strong {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.payment-status-card small {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ============================================ */
+/* CLIENT STATS GRID - No Colors */
+/* ============================================ */
+.client-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.client-stat-card {
+  padding: 20px;
+  background: var(--bg-base);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  border: 1px solid var(--border-light);
+}
+
+.client-stat-card div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.client-stat-card span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.client-stat-card strong {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ============================================ */
+/* DEMOGRAPHICS GRID */
+/* ============================================ */
+.demographics-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 24px;
 }
 
-.demo-card-adminreports {
-  padding: 16px;
+.demo-card {
+  padding: 20px;
   background: var(--bg-base);
   border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
 }
 
-.demo-card-adminreports h3 {
+.demo-card h3 {
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 16px 0;
 }
 
-.demo-item-adminreports {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border-light);
+.demo-item {
+  margin-bottom: 16px;
 }
 
-.demo-item-adminreports:last-child {
-  border-bottom: none;
+.demo-item:last-child {
+  margin-bottom: 0;
 }
 
-.demo-item-adminreports span {
-  font-size: 14px;
-  color: var(--text-secondary);
+.demo-item span {
+  font-size: 13px;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 4px;
 }
 
-.demo-item-adminreports strong {
+.demo-item strong {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
+  display: block;
+  margin-bottom: 8px;
 }
 
-/* Utilization Chart */
-.utilization-chart-adminreports {
-  padding: 20px 0;
-}
-
-.utilization-bar-adminreports {
-  height: 12px;
+.progress-bar {
+  height: 6px;
   background: var(--border-light);
-  border-radius: 6px;
+  border-radius: 3px;
   overflow: hidden;
-  margin-bottom: 12px;
 }
 
-.utilization-fill-adminreports {
+.progress-bar .progress {
   height: 100%;
-  background: var(--success);
-  border-radius: 6px;
+  background: var(--primary);
+  border-radius: 3px;
   transition: width 0.3s;
 }
 
-.utilization-stats-adminreports span {
-  font-size: 14px;
-  color: var(--text-secondary);
+/* ============================================ */
+/* TABLES */
+/* ============================================ */
+.assessments-table-container,
+.projects-table-container,
+.payments-table-container,
+.transactions-table-container {
+  overflow-x: auto;
 }
 
-/* Custom Report Builder */
-.custom-report-builder-adminreports {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.builder-section-adminreports h3 {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 16px 0;
-}
-
-.checkbox-group-adminreports {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-.checkbox-group-adminreports label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  color: var(--text-secondary);
-  cursor: pointer;
-}
-
-.checkbox-group-adminreports input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--primary);
-}
-
-.radio-group-adminreports {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.radio-group-adminreports label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  color: var(--text-secondary);
-  cursor: pointer;
-}
-
-.radio-group-adminreports input[type="radio"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--primary);
-}
-
-.builder-section-adminreports select {
+.reports-table {
   width: 100%;
-  padding: 12px 14px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
+  border-collapse: collapse;
   font-size: 14px;
+}
+
+.reports-table th {
+  text-align: left;
+  padding: 14px 16px;
+  background: var(--bg-base);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-light);
+  white-space: nowrap;
+}
+
+.reports-table td {
+  padding: 14px 16px;
   color: var(--text-primary);
-  cursor: pointer;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.reports-table tr:hover td {
+  background: var(--bg-base);
+}
+
+.reports-table .amount {
+  font-weight: 600;
+}
+
+/* Score Badge */
+.score-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+}
+
+/* Project Status Badge */
+.project-status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+}
+
+/* Progress Bar */
+.progress-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress-bar-fill {
+  width: 80px;
+  height: 6px;
+  background: var(--primary);
+  border-radius: 3px;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Payment Method */
+.payment-method {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  text-transform: capitalize;
+  border: 1px solid var(--border-light);
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+}
+
+/* Transaction Type */
+.transaction-type {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
 }
 
 /* ============================================ */
@@ -618,29 +717,70 @@
 }
 
 /* ============================================ */
-/* REPORT PREVIEW */
+/* REPORT PREVIEW MODAL */
 /* ============================================ */
-.report-preview-adminreports {
-  margin-top: 32px;
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  padding: 24px;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-md);
+.report-preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
-.report-preview-adminreports h2 {
+.report-preview-adminreports {
+  background: var(--bg-card);
+  border-radius: var(--radius-2xl);
+  width: 90%;
+  max-width: 700px;
+  max-height: 85vh;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.preview-header h3 {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 20px 0;
+  margin: 0;
+}
+
+.close-preview {
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.close-preview:hover {
+  background: var(--bg-base);
+  color: var(--text-primary);
 }
 
 .preview-content-adminreports {
-  background: var(--bg-base);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  max-height: 400px;
+  padding: 24px;
+  max-height: 50vh;
   overflow-y: auto;
 }
 
@@ -656,8 +796,7 @@
 .preview-actions-adminreports {
   display: flex;
   gap: 12px;
-  margin-top: 20px;
-  padding-top: 20px;
+  padding: 20px 24px;
   border-top: 1px solid var(--border-light);
 }
 
@@ -712,11 +851,23 @@
     grid-template-columns: repeat(2, 1fr);
   }
   
-  .revenue-summary-adminreports {
+  .suitability-summary-adminreports {
     grid-template-columns: repeat(2, 1fr);
   }
   
-  .stats-row-adminreports {
+  .technical-findings-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .project-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .financial-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .client-stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
@@ -765,30 +916,36 @@
     text-align: center;
   }
   
-  .revenue-summary-adminreports {
+  .report-filter-adminreports select {
+    width: 100%;
+  }
+  
+  .suitability-summary-adminreports {
     grid-template-columns: 1fr;
   }
   
-  .stats-row-adminreports {
+  .technical-findings-grid {
     grid-template-columns: 1fr;
   }
   
-  .demographics-grid-adminreports {
+  .project-stats-grid {
     grid-template-columns: 1fr;
   }
   
-  .checkbox-group-adminreports {
+  .financial-summary-grid {
     grid-template-columns: 1fr;
   }
   
-  .bar-chart-adminreports {
-    overflow-x: auto;
-    justify-content: flex-start;
-    padding-bottom: 10px;
+  .payment-status-grid {
+    grid-template-columns: 1fr;
   }
   
-  .bar-item-adminreports {
-    min-width: 50px;
+  .client-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .demographics-grid {
+    grid-template-columns: 1fr;
   }
   
   .report-actions-adminreports {
@@ -815,11 +972,14 @@
     font-size: 28px;
   }
   
-  .summary-item-adminreports strong {
-    font-size: 20px;
+  .suitability-stats strong,
+  .project-stat-card strong,
+  .payment-status-card strong,
+  .client-stat-card strong {
+    font-size: 24px;
   }
   
-  .stat-box-adminreports strong {
-    font-size: 24px;
+  .finding-info strong {
+    font-size: 18px;
   }
 }

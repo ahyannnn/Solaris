@@ -1,70 +1,94 @@
-/* project.css - Engineer My Projects Styles */
+/* project.css - Engineer My Projects Styles - Clean Modern Design */
+/* Modal sizes preserved */
 
-/* ============================================
-   CONTAINER
-   ============================================ */
+:root {
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --bg-base: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --border-light: #E2E8F0;
+  --border-medium: #CBD5E1;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05);
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+}
+
+/* ============================================ */
+/* CONTAINER */
+/* ============================================ */
 .engineer-project-container {
   margin: 0 auto;
-  padding: 1.5rem;
-  background: #F5F5F7;
+  padding: 24px;
+  background: var(--bg-base);
   min-height: calc(100vh - 70px);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ============================================
-   HEADER
-   ============================================ */
+/* ============================================ */
+/* HEADER */
+/* ============================================ */
 .project-header-engineerproject {
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #E5E5E8;
+  margin-bottom: 28px;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .project-header-engineerproject h1 {
-  font-size: 1.75rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-  color: #1F1F1F;
-  letter-spacing: -0.3px;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
 .project-header-engineerproject p {
-  font-size: 0.875rem;
-  color: #6B6B6F;
+  font-size: 14px;
+  color: var(--text-muted);
   margin: 0;
 }
 
-/* ============================================
-   FILTERS
-   ============================================ */
+/* ============================================ */
+/* FILTERS */
+/* ============================================ */
 .project-filters-engineerproject {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 16px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
 .filter-group-engineerproject select {
-  padding: 0.625rem 1rem;
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  color: #1F1F1F;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-width: 180px;
 }
 
 .filter-group-engineerproject select:hover {
-  border-color: #D4D4D8;
+  border-color: var(--border-medium);
 }
 
 .filter-group-engineerproject select:focus {
   outline: none;
-  border-color: #1F1F1F;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .search-group-engineerproject {
@@ -75,42 +99,42 @@
 
 .search-icon {
   position: absolute;
-  left: 0.75rem;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #9CA3AF;
-  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-size: 14px;
 }
 
 .search-group-engineerproject input {
   width: 100%;
-  padding: 0.625rem 0.75rem 0.625rem 2.25rem;
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  color: #1F1F1F;
+  padding: 12px 16px 12px 42px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--text-primary);
   transition: all 0.2s ease;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .search-group-engineerproject input:focus {
   outline: none;
-  border-color: #D4D4D8;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .search-group-engineerproject input::placeholder {
-  color: #9CA3AF;
+  color: var(--text-muted);
 }
 
-/* ============================================
-   PROJECTS GRID
-   ============================================ */
+/* ============================================ */
+/* PROJECTS GRID */
+/* ============================================ */
 .projects-grid-engineerproject {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 20px;
+  margin-bottom: 28px;
 }
 
 @media (max-width: 768px) {
@@ -121,63 +145,66 @@
 
 /* Project Card */
 .project-card-engineerproject {
-  background: #FFFFFF;
-  border-radius: 20px;
-  border: 1px solid #E5E5E8;
-  padding: 1.25rem;
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-light);
+  padding: 20px;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
 }
 
 .project-card-engineerproject:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-medium);
 }
 
 .card-header-engineerproject {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
+  margin-bottom: 12px;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .card-header-engineerproject h3 {
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: 600;
-  color: #1F1F1F;
-  margin: 0 0 0.25rem 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
 }
 
 .project-ref {
-  font-size: 0.7rem;
-  color: #9CA3AF;
+  font-size: 12px;
+  color: var(--text-muted);
   font-family: monospace;
 }
 
 /* Card Details */
 .card-details-engineerproject {
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
+  flex: 1;
 }
 
 .detail-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  color: #6B6B6F;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .detail-item svg {
-  font-size: 0.75rem;
-  color: #9CA3AF;
+  font-size: 14px;
+  color: var(--text-muted);
   flex-shrink: 0;
+  width: 16px;
 }
 
 .detail-item .truncate {
@@ -188,44 +215,45 @@
 
 /* Payment Info Section */
 .payment-info-engineerproject {
-  margin-bottom: 1rem;
-  padding: 0.75rem 0;
-  border-top: 1px solid #E5E5E8;
-  border-bottom: 1px solid #E5E5E8;
+  margin-bottom: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .payment-stats {
   display: flex;
   justify-content: space-between;
-  font-size: 0.75rem;
+  font-size: 13px;
 }
 
 .paid-amount {
-  color: #2E7D32;
+  color: var(--success);
   font-weight: 600;
 }
 
 .total-amount {
-  color: #6B6B6F;
+  color: var(--text-secondary);
 }
 
 /* Full Paid Badge */
 .full-paid-badge {
-  background: #E8F5E9;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
+  background: #DCFCE7;
+  padding: 4px 10px;
+  border-radius: 20px;
 }
 
 .full-paid-text {
-  color: #2E7D32;
+  color: #16A34A;
   font-weight: 500;
 }
 
 /* Card Actions */
 .card-actions-engineerproject {
   display: flex;
-  gap: 0.75rem;
+  gap: 10px;
   flex-wrap: wrap;
+  margin-top: auto;
 }
 
 .action-btn {
@@ -233,119 +261,103 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: #F5F5F7;
-  border: 1px solid #E5E5E8;
-  border-radius: 8px;
-  font-size: 0.75rem;
+  gap: 6px;
+  padding: 10px 16px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 13px;
   font-weight: 500;
-  color: #6B6B6F;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .action-btn:hover {
-  background: #EEEEF2;
-  border-color: #D4D4D8;
-  color: #1F1F1F;
+  background: var(--border-light);
+  color: var(--text-primary);
 }
 
 .action-btn.view:hover { 
-  background: #E3F2FD; 
-  color: #1565C0; 
-  border-color: #BBDEFB;
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
 }
 
 .action-btn.start:hover { 
-  background: #FFF3E0; 
-  color: #E65100; 
-  border-color: #FFE0B2;
+  background: var(--warning);
+  border-color: var(--warning);
+  color: white;
 }
 
 .action-btn.update:hover { 
-  background: #E8F5E9; 
-  color: #2E7D32; 
-  border-color: #C8E6C9;
+  background: var(--success);
+  border-color: var(--success);
+  color: white;
 }
 
-/* ============================================
-   STATUS BADGES
-   ============================================ */
+/* ============================================ */
+/* STATUS BADGES */
+/* ============================================ */
 .status-badge-engineerproject {
   display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.65rem;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 12px;
   font-weight: 500;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-.status-badge-engineerproject.quoted {
-  background: #F5F5F7;
-  color: #6B6B6F;
-  border: 1px solid #E5E5E8;
-}
-
-.status-badge-engineerproject.approved,
-.status-badge-engineerproject.initial-paid,
-.status-badge-engineerproject.in-progress,
-.status-badge-engineerproject.progress-paid {
-  background: #EEEEF2;
-  color: #1F1F1F;
-  border: 1px solid #D4D4D8;
-}
-
-.status-badge-engineerproject.full-paid {
-  background: #FFF8E1;
-  color: #F57C00;
-  border: 1px solid #FFE082;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
 }
 
 .status-badge-engineerproject.completed {
-  background: #E8F5E9;
-  color: #2E7D32;
-  border: 1px solid #C8E6C9;
+  background: #DCFCE7;
+  color: #16A34A;
+  border-color: #BBF7D0;
 }
 
 .status-badge-engineerproject.cancelled {
-  background: #FFEBEE;
-  color: #C62828;
-  border: 1px solid #FFCDD2;
+  background: #FEE2E2;
+  color: var(--danger);
+  border-color: #FECACA;
 }
 
-/* ============================================
-   PAGINATION
-   ============================================ */
+.status-badge-engineerproject.full-paid {
+  background: #FEF3C7;
+  color: #D97706;
+  border-color: #FDE68A;
+}
+
+/* ============================================ */
+/* PAGINATION */
+/* ============================================ */
 .pagination-engineerproject {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  padding: 1rem 0;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 16px 0;
 }
 
 .page-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  color: #6B6B6F;
+  gap: 6px;
+  padding: 10px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .page-btn:hover:not(:disabled) {
-  background: #F5F5F7;
-  border-color: #D4D4D8;
-  color: #1F1F1F;
+  background: var(--bg-base);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
 }
 
 .page-btn:disabled {
@@ -354,71 +366,69 @@
 }
 
 .page-info {
-  font-size: 0.875rem;
-  color: #6B6B6F;
+  font-size: 14px;
+  color: var(--text-secondary);
 }
 
-/* ============================================
-   EMPTY STATE
-   ============================================ */
+/* ============================================ */
+/* EMPTY STATE */
+/* ============================================ */
 .empty-state-engineerproject {
   text-align: center;
-  padding: 3rem;
-  background: #FFFFFF;
-  border-radius: 20px;
-  border: 1px solid #E5E5E8;
+  padding: 48px;
+  background: var(--bg-card);
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--border-light);
   grid-column: 1 / -1;
 }
 
 .empty-icon {
-  font-size: 3rem;
-  color: #D4D4D8;
-  margin-bottom: 1rem;
+  font-size: 48px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
 }
 
 .empty-state-engineerproject h3 {
-  font-size: 1.125rem;
+  font-size: 18px;
   font-weight: 600;
-  color: #1F1F1F;
-  margin: 0 0 0.5rem 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
 }
 
 .empty-state-engineerproject p {
-  font-size: 0.875rem;
-  color: #9CA3AF;
+  font-size: 14px;
+  color: var(--text-muted);
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ============================================
-   MODALS
-   ============================================ */
+/* ============================================ */
+/* MODALS - SIZES PRESERVED */
+/* ============================================ */
 .modal-overlay-engineerproject {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(2px);
   padding: 1rem;
 }
 
 .modal-content-engineerproject {
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 20px;
   padding: 1.75rem;
   max-width: 650px;
   width: 100%;
   max-height: 85vh;
   overflow-y: auto;
-  border: 1px solid #E5E5E8;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-lg);
 }
 
 .detail-modal {
@@ -435,31 +445,30 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #9CA3AF;
+  color: var(--text-muted);
   transition: color 0.2s ease;
   margin-top: -0.5rem;
   margin-right: -0.5rem;
 }
 
 .modal-close:hover {
-  color: #1F1F1F;
+  color: var(--text-primary);
 }
 
 .modal-content-engineerproject h3 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1F1F1F;
+  color: var(--text-primary);
   margin: 0 0 1rem 0;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid #E5E5E8;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  border-bottom: 1px solid var(--border-light);
 }
 
 /* Detail Sections */
 .detail-section {
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #E5E5E8;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .detail-section:last-child {
@@ -471,22 +480,20 @@
 .detail-section h4 {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #1F1F1F;
+  color: var(--text-primary);
   margin: 0 0 0.75rem 0;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #E5E5E8;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .detail-section p {
   margin: 0.5rem 0;
   font-size: 0.875rem;
-  color: #1F1F1F;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text-secondary);
 }
 
 .detail-section p strong {
-  color: #6B6B6F;
+  color: var(--text-primary);
   font-weight: 500;
   min-width: 140px;
   display: inline-block;
@@ -503,13 +510,13 @@
 .payment-table td {
   padding: 0.5rem;
   text-align: left;
-  border-bottom: 1px solid #E5E5E8;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .payment-table th {
-  background: #F8F9FA;
+  background: var(--bg-base);
   font-weight: 600;
-  color: #6B6B6F;
+  color: var(--text-muted);
 }
 
 .payment-table td.capitalize {
@@ -529,7 +536,7 @@
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: 8px;
-  border: 1px solid #E5E5E8;
+  border: 1px solid var(--border-light);
   cursor: pointer;
   transition: transform 0.2s ease;
 }
@@ -547,29 +554,27 @@
   display: block;
   font-size: 0.75rem;
   font-weight: 500;
-  color: #6B6B6F;
+  color: var(--text-secondary);
   margin-bottom: 0.375rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .form-group textarea,
 .form-group select {
   width: 100%;
   padding: 0.625rem 0.875rem;
-  background: #F8F9FA;
-  border: 1px solid #E5E5E8;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
   border-radius: 10px;
   font-size: 0.875rem;
-  color: #1F1F1F;
+  color: var(--text-primary);
   transition: all 0.2s ease;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .form-group textarea:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #D4D4D8;
-  background: #FFFFFF;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* Photo Upload */
@@ -583,28 +588,27 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem;
-  background: #F8F9FA;
-  border: 2px dashed #E5E5E8;
+  background: var(--bg-base);
+  border: 2px dashed var(--border-medium);
   border-radius: 12px;
   cursor: pointer;
   font-size: 0.875rem;
-  color: #6B6B6F;
+  color: var(--text-secondary);
   transition: all 0.2s ease;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .upload-label:hover {
-  background: #F5F5F7;
-  border-color: #D4D4D8;
+  background: var(--bg-card);
+  border-color: var(--primary);
 }
 
 .photo-preview {
   margin-top: 0.5rem;
   padding: 0.5rem;
-  background: #E8F5E9;
+  background: #DCFCE7;
   border-radius: 8px;
   font-size: 0.75rem;
-  color: #2E7D32;
+  color: #16A34A;
   text-align: center;
 }
 
@@ -615,59 +619,55 @@
   justify-content: flex-end;
   margin-top: 1.5rem;
   padding-top: 1rem;
-  border-top: 1px solid #E5E5E8;
+  border-top: 1px solid var(--border-light);
 }
 
 .cancel-btn {
   padding: 0.625rem 1.25rem;
-  background: #F5F5F7;
-  color: #1F1F1F;
-  border: 1px solid #E5E5E8;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
   border-radius: 10px;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .cancel-btn:hover {
-  background: #EEEEF2;
-  border-color: #D4D4D8;
+  background: var(--border-light);
 }
 
 .close-btn {
   padding: 0.625rem 1.25rem;
-  background: #1F1F1F;
-  color: #FFFFFF;
+  background: var(--primary);
+  color: white;
   border: none;
   border-radius: 10px;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .close-btn:hover {
-  background: #3A3A3A;
+  background: var(--primary-hover);
 }
 
 .update-btn {
   padding: 0.625rem 1.25rem;
-  background: #1F1F1F;
-  color: #FFFFFF;
+  background: var(--primary);
+  color: white;
   border: none;
   border-radius: 10px;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .update-btn:hover:not(:disabled) {
-  background: #3A3A3A;
+  background: var(--primary-hover);
 }
 
 .update-btn:disabled {
@@ -675,14 +675,14 @@
   cursor: not-allowed;
 }
 
-/* ============================================
-   SKELETON LOADER
-   ============================================ */
+/* ============================================ */
+/* SKELETON LOADER */
+/* ============================================ */
 .skeleton-line {
-  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .skeleton-line.large {
@@ -706,7 +706,7 @@
 .skeleton-select {
   width: 150px;
   height: 42px;
-  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 10px;
@@ -715,15 +715,15 @@
 .skeleton-search {
   width: 250px;
   height: 42px;
-  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 10px;
 }
 
 .skeleton-card {
-  background: #FFFFFF;
-  border: 1px solid #E5E5E8;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
   border-radius: 20px;
   padding: 1.25rem;
 }
@@ -731,7 +731,7 @@
 .skeleton-button {
   height: 36px;
   width: 100px;
-  background: linear-gradient(90deg, #F0F0F0 25%, #F8F8F8 50%, #F0F0F0 75%);
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 8px;
@@ -739,24 +739,20 @@
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-/* ============================================
-   CAPITALIZE UTILITY
-   ============================================ */
+/* ============================================ */
+/* CAPITALIZE UTILITY */
+/* ============================================ */
 .capitalize {
   text-transform: capitalize;
 }
 
-/* ============================================
-   RESPONSIVE DESIGN
-   ============================================ */
+/* ============================================ */
+/* RESPONSIVE DESIGN */
+/* ============================================ */
 @media (max-width: 1024px) {
   .projects-grid-engineerproject {
     gap: 1rem;
@@ -844,24 +840,24 @@
   }
 }
 
-/* ============================================
-   SCROLLBAR
-   ============================================ */
+/* ============================================ */
+/* SCROLLBAR */
+/* ============================================ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F0F0F0;
+  background: var(--border-light);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D4D4D8;
+  background: var(--border-medium);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
+  background: var(--text-muted);
 }

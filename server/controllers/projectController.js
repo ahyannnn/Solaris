@@ -642,9 +642,16 @@ exports.getAllProjects = async (req, res) => {
     if (status && status !== 'all') query.status = status;
 
     const projects = await Project.find(query)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber userId.email')
+      .populate({
+        path: 'clientId',
+        select: 'contactFirstName contactLastName contactNumber userId',
+        populate: {
+          path: 'userId',
+          select: 'email'
+        }
+      })
       .populate('addressId')
-      .populate('assignedEngineerId', 'firstName lastName email')
+      .populate('assignedEngineerId', 'firstName lastName email') 
       .populate('preAssessmentId')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)

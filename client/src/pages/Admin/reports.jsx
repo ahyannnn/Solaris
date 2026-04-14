@@ -820,14 +820,9 @@ const Reports = () => {
                 <FaFilePdf /> Export as PDF
               </button>
               <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')} disabled={generating}>
-                <FaFileExcel /> Export as Excel
+                <FaFileExcel /> Export as CSV
               </button>
-              <button className="export-btn-adminreports" onClick={() => exportReport('csv')} disabled={generating}>
-                <FaDownload /> Export as CSV
-              </button>
-              <button className="export-btn-adminreports" onClick={() => window.print()}>
-                <FaPrint /> Print Report
-              </button>
+              
             </div>
           </div>
         )}

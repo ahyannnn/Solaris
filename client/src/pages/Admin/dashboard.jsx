@@ -104,7 +104,7 @@ const AdminDashboard = () => {
         message: `New quote request: ${quote.quotationReference}`,
         time: new Date(quote.requestedAt).toLocaleString(),
         status: quote.status,
-        action: `/dashboard/free-quotes/${quote._id}`
+        action: `/app/admin/siteassessment`
       });
     });
 
@@ -127,7 +127,7 @@ const AdminDashboard = () => {
         message,
         time: new Date(assessment.bookedAt).toLocaleString(),
         status: assessment.assessmentStatus,
-        action: `/dashboard/pre-assessments/${assessment._id}`
+        action: `/app/admin/siteassessment`
       });
     });
 
@@ -305,7 +305,7 @@ const AdminDashboard = () => {
       <div className="adsih-recent-activity">
         <div className="adsih-activity-header">
           <h3>Recent Activity</h3>
-          <button className="adsih-view-all" onClick={() => navigate('/dashboard/activities')}>
+          <button className="adsih-view-all" onClick={() => navigate('/app/admin/siteassessment')}>
             View All <FaArrowRight />
           </button>
         </div>

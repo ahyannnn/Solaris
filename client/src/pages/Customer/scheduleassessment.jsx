@@ -128,13 +128,7 @@ const ScheduleAssessment = () => {
 
     const assessments = preAssessmentsRes.data.assessments || [];
 
-    // Log all assessments with their engineer assignment status
-    console.log('=== All Pre-Assessments ===');
-    assessments.forEach((assessment, idx) => {
-      console.log(`${idx + 1}. ${assessment.bookingReference} - Status: ${assessment.assessmentStatus} - Payment: ${assessment.paymentStatus}`);
-      console.log(`   assignedEngineerId:`, assessment.assignedEngineerId);
-      console.log(`   Has engineer assigned: ${!!assessment.assignedEngineerId}`);
-    });
+    
 
     // For each assessment, extract engineer info
     const assessmentsWithEngineer = await Promise.all(assessments.map(async (assessment) => {
@@ -150,9 +144,7 @@ const ScheduleAssessment = () => {
         }
       }
       
-      console.log(`Assessment ${assessment.bookingReference}:`);
-      console.log('  - assignedEngineerId:', assessment.assignedEngineerId);
-      console.log('  - Extracted Engineer ID:', engineerId);
+      
       
       // Fetch engineer name if ID exists
       if (engineerId) {
@@ -175,9 +167,7 @@ const ScheduleAssessment = () => {
           console.error(`  - Error fetching engineer:`, err);
           engineerName = 'Engineer assigned';
         }
-      } else {
-        console.log(`  - No engineer assigned yet (assignedEngineerId is null or empty)`);
-      }
+      } 
 
       return { ...assessment, engineerName };
     }));

@@ -185,43 +185,59 @@ const RegisterPage = () => {
     }
   };
 
-  const registerUser = async () => {
-    if (!verifiedCode) return;
+  // In RegisterPage.jsx, in the registerUser function:
 
-    setIsLoading(true);
+const registerUser = async () => {
+  if (!verifiedCode) return;
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fullName: formData.fullName,
-          email: verifiedCode.email,
-          password: formData.password
-        })
-      });
+  setIsLoading(true);
 
-      const data = await response.json();
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullName: formData.fullName,
+        email: verifiedCode.email,
+        password: formData.password
+      })
+    });
 
-      if (!response.ok) {
-        if (response.status === 409) {
-          showModal(data.message || 'This email is already registered. Please sign in instead.', 'warning');
-          setCurrentStep(1);
-        } else {
-          setErrors({ general: data.message || 'Registration failed' });
-        }
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 409) {
+        showModal(data.message || 'This email is already registered. Please sign in instead.', 'warning');
+        setCurrentStep(1);
       } else {
-        await sendWelcomeEmail();
-        setCurrentStep(3);
+        setErrors({ general: data.message || 'Registration failed' });
       }
-    } catch (error) {
-      console.error('Registration error:', error);
-      setErrors({ general: 'Failed to create account' });
-    } finally {
-      setIsLoading(false);
-      setVerifiedCode(null);
+    } else {
+      // Store login data and setup status
+      const storage = sessionStorage;
+      storage.setItem("token", data.token);
+      storage.setItem("userName", data.user.fullName);
+      storage.setItem("userEmail", data.user.email);
+      storage.setItem("userRole", data.user.role);
+      storage.setItem("userId", data.user.id);
+      storage.setItem("hasCompletedSetup", "false"); // New users need setup
+      
+      await sendWelcomeEmail();
+      setCurrentStep(3);
+      
+      // Redirect to setup after 2 seconds
+      setTimeout(() => {
+        navigate("/setup", { replace: true });
+      }, 2000);
     }
-  };
+  } catch (error) {
+    console.error('Registration error:', error);
+    setErrors({ general: 'Failed to create account' });
+  } finally {
+    setIsLoading(false);
+    setVerifiedCode(null);
+  }
+};
 
   const sendWelcomeEmail = async () => {
     try {

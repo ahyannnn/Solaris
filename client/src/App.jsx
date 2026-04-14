@@ -13,6 +13,7 @@ import DashboardLayout from "./pages/Dashboard_Layout/dashboard";
 import SetupAccount from "./pages/Customer/setupacc";
 
 import AccountSetupGuard from './guards/tempGuard';
+import SetupGuard from './guards/setupGuard';
 
 // Admin Pages
 import AdminDashboard from './pages/Admin/dashboard';
@@ -188,8 +189,15 @@ function App() {
           } 
         />
 
-        {/* Setup Account */}
-        <Route path="/setup" element={<SetupAccount />} />
+        {/* Setup Account - NOW PROTECTED */}
+        <Route 
+          path="/setup" 
+          element={
+            <SetupGuard>
+              <SetupAccount />
+            </SetupGuard>
+          } 
+        />
 
         {/* Admin Routes */}
         <Route

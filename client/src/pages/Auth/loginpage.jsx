@@ -88,80 +88,94 @@ const LoginPage = () => {
     return newErrors;
   };
 
-  // IMPROVED: Email/Password Login (ANTI-FLICKER)
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // In LoginPage.jsx, after successful authentication, add setup check:
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (isNavigating) return;
+  
+  const newErrors = validateForm();
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
+  setIsLoading(true);
+  setErrors({});
+  setIsNavigating(true);
+
+  try {
+    const apiUrl = `${import.meta.env.VITE_API_URL}/api/auth/login`;
     
-    if (isNavigating) return;
-    
-    const newErrors = validateForm();
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password,
+        rememberMe
+      }),
+    });
+
+    const responseText = await response.text();
+
+    if (!response.ok) {
+      throw new Error(parseError(responseText));
     }
 
-    setIsLoading(true);
-    setErrors({});
-    setIsNavigating(true); // EARLY SETTING prevents double-clicks
+    const data = JSON.parse(responseText);
 
-    try {
-      const apiUrl = `${import.meta.env.VITE_API_URL}/api/auth/login`;
+    if (data.token && data.user) {
+      // SELECTIVE CLEAR - NO FLICKERING!
+      clearAuthStorage();
       
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          rememberMe
-        }),
-      });
-
-      const responseText = await response.text();
-
-      if (!response.ok) {
-        throw new Error(parseError(responseText));
-      }
-
-      const data = JSON.parse(responseText);
-
-      if (data.token && data.user) {
-        // SELECTIVE CLEAR - NO FLICKERING!
-        clearAuthStorage();
-        
-        // BATCH STORAGE - prevents race conditions
-        const storage = rememberMe ? localStorage : sessionStorage;
-        const cleanedToken = cleanToken(data.token);
-        
-        const userData = {
-          token: cleanedToken,
-          userName: data.user.fullName || '',
-          userEmail: data.user.email || '',
-          userRole: data.user.role || 'user',
-          userPhotoURL: data.user.photoURL || ''
-        };
-        
-        // Store ALL data together
-        Object.entries(userData).forEach(([key, value]) => {
+      // BATCH STORAGE - prevents race conditions
+      const storage = rememberMe ? localStorage : sessionStorage;
+      const cleanedToken = cleanToken(data.token);
+      
+      const userData = {
+        token: cleanedToken,
+        userName: data.user.fullName || '',
+        userEmail: data.user.email || '',
+        userRole: data.user.role || 'user',
+        userPhotoURL: data.user.photoURL || '',
+        userId: data.user.id || '',
+        // Store setup status
+        hasCompletedSetup: data.user.account_setup || data.user.isSetupCompleted || false
+      };
+      
+      // Store ALL data together
+      Object.entries(userData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
           storage.setItem(key, value);
-        });
-        
-        // Trigger storage event & navigate
-        setTimeout(() => {
-          window.dispatchEvent(new Event('storage'));
-          navigate("/app", { replace: true });
-        }, 50);
-      }
+        }
+      });
       
-    } catch (err) {
-      setErrors({ general: err.message });
-    } finally {
-      setIsLoading(false);
-      setIsNavigating(false);
+      // Trigger storage event & navigate based on setup status
+      setTimeout(() => {
+        window.dispatchEvent(new Event('storage'));
+        
+        // Check if user needs to complete setup
+        const needsSetup = !userData.hasCompletedSetup;
+        
+        if (needsSetup && userData.userRole === 'user') {
+          navigate("/setup", { replace: true });
+        } else {
+          navigate("/app", { replace: true });
+        }
+      }, 50);
     }
-  };
+    
+  } catch (err) {
+    setErrors({ general: err.message });
+  } finally {
+    setIsLoading(false);
+    setIsNavigating(false);
+  }
+};
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);

@@ -357,7 +357,7 @@ const Dashboard = () => {
             <div className="section-header-cusdash">
               <h2 className="section-title-cusdash">Active Project</h2>
               {project && (
-                <Link to="/dashboard/myproject" className="view-all-link-cusdash">
+                <Link to="/app/customer/project" className="view-all-link-cusdash">
                   View Details
                   <svg className="arrow-icon-cusdash" width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <path d="M1 7H13M13 7L7 1M13 7L7 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -388,7 +388,7 @@ const Dashboard = () => {
                       <span className="metric-value-cusdash">{formatCurrency(project.amountPaid)}</span>
                     </div>
                     <div className="project-actions-cusdash">
-                      <Link to="/dashboard/myproject" className="action-link-cusdash">
+                      <Link to="/app/customer/project" className="action-link-cusdash">
                         Track Progress
                         <svg className="action-arrow-cusdash" width="14" height="14" viewBox="0 0 14 14" fill="none">
                           <path d="M1 7H13M13 7L7 1M13 7L7 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -475,7 +475,7 @@ const Dashboard = () => {
               <span className="card-value-large-cusdash">{projectsList.filter(p => p.status !== 'completed').length}</span>
               <span className="card-label-cusdash">Active Projects</span>
               <p className="card-description-cusdash">Track your solar installation progress</p>
-              <Link to="/dashboard/myproject" className="card-link-cusdash">
+              <Link to="/app/customer/project" className="card-link-cusdash">
                 View Projects
                 <svg className="arrow-icon-cusdash" width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path d="M1 7H13M13 7L7 1M13 7L7 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

@@ -423,14 +423,14 @@ const EngineerProject = () => {
                 <p><strong>Battery Type:</strong> {selectedProject.batteryType || 'N/A'}</p>
               </div>
 
-              <div className="detail-section">
+              {/* <div className="detail-section">
                 <h4>Financial Summary</h4>
                 <p><strong>Total Cost:</strong> {formatCurrency(selectedProject.totalCost)}</p>
                 <p><strong>Amount Paid:</strong> {formatCurrency(selectedProject.amountPaid)}</p>
                 <p><strong>Balance:</strong> {formatCurrency(selectedProject.balance)}</p>
-              </div>
+              </div> */}
 
-              {selectedProject.paymentSchedule?.length > 0 && (
+              {/* {selectedProject.paymentSchedule?.length > 0 && (
                 <div className="detail-section">
                   <h4>Payment Schedule</h4>
                   <table className="payment-table">
@@ -449,7 +449,7 @@ const EngineerProject = () => {
                     </tbody>
                   </table>
                 </div>
-              )}
+              )} */}
 
               {selectedProject.installationNotes && (
                 <div className="detail-section">

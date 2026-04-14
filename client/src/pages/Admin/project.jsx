@@ -1,5 +1,5 @@
 // pages/Admin/Project.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import {
@@ -13,7 +13,7 @@ import {
   FaChevronRight,
   FaUserCog,
   FaCheck,
-  FaDownload
+  FaChevronDown
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/project.css';
@@ -34,6 +34,8 @@ const ProjectManagement = () => {
   const [engineers, setEngineers] = useState([]);
   const [projectInvoices, setProjectInvoices] = useState([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+  const dropdownRef = useRef(null);
   const [stats, setStats] = useState({
     total: 0, quoted: 0, approved: 0, inProgress: 0, completed: 0, cancelled: 0, totalRevenue: 0
   });
@@ -46,6 +48,14 @@ const ProjectManagement = () => {
     fetchProjects();
     fetchEngineers();
     fetchStats();
+    
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdownId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [filter, currentPage]);
 
   const fetchProjects = async () => {
@@ -119,6 +129,7 @@ const ProjectManagement = () => {
       setShowStatusModal(false);
       setSelectedProject(null);
       setFormData({ ...formData, newStatus: '', statusNotes: '' });
+      setOpenDropdownId(null);
       fetchProjects();
       fetchStats();
     } catch (error) {
@@ -143,6 +154,7 @@ const ProjectManagement = () => {
       setShowAssignModal(false);
       setSelectedProject(null);
       setFormData({ ...formData, engineerId: '', assignNotes: '' });
+      setOpenDropdownId(null);
       fetchProjects();
     } catch (error) {
       console.error('Error assigning engineer:', error);
@@ -166,6 +178,7 @@ const ProjectManagement = () => {
       setShowPaymentModal(false);
       setSelectedProject(null);
       setFormData({ ...formData, paymentAmount: '', paymentMethod: 'cash', paymentReference: '' });
+      setOpenDropdownId(null);
       fetchProjects();
       fetchStats();
     } catch (error) {
@@ -199,11 +212,6 @@ const ProjectManagement = () => {
     return badges[status] || <span className="status-badge-adminproject">{status}</span>;
   };
 
-  const getProgressPercentage = (project) => {
-    if (!project.totalCost || project.totalCost === 0) return 0;
-    return Math.round((project.amountPaid / project.totalCost) * 100);
-  };
-
   const filteredProjects = projects.filter(project => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
@@ -212,6 +220,49 @@ const ProjectManagement = () => {
       project.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
       project.clientId?.contactLastName?.toLowerCase().includes(searchLower);
   });
+
+  const getAvailableActions = (project) => {
+    const actions = [
+      { 
+        label: 'View Details', 
+        icon: <FaEye />, 
+        action: () => { setSelectedProject(project); fetchProjectInvoices(project._id); setShowDetailModal(true); setOpenDropdownId(null); },
+        color: 'primary'
+      }
+    ];
+
+    if (project.status === 'quoted') {
+      actions.push(
+        { label: 'Approve Project', icon: <FaCheck />, action: () => { setSelectedProject(project); setFormData({ ...formData, newStatus: 'approved' }); setShowStatusModal(true); setOpenDropdownId(null); }, color: 'success' }
+      );
+    }
+
+    if (project.status === 'approved' || project.status === 'initial_paid') {
+      actions.push(
+        { label: 'Assign Engineer', icon: <FaUserCog />, action: () => { setSelectedProject(project); setShowAssignModal(true); setOpenDropdownId(null); }, color: 'primary' }
+      );
+    }
+
+    if (project.status === 'initial_paid') {
+      actions.push(
+        { label: 'Record Progress Payment', icon: <FaMoneyBillWave />, action: () => { setSelectedProject(project); setShowPaymentModal(true); setOpenDropdownId(null); }, color: 'warning' }
+      );
+    }
+
+    if (project.status === 'in_progress') {
+      actions.push(
+        { label: 'Mark as Completed', icon: <FaCheckCircle />, action: () => { setSelectedProject(project); setFormData({ ...formData, newStatus: 'completed' }); setShowStatusModal(true); setOpenDropdownId(null); }, color: 'success' }
+      );
+    }
+
+    if (project.status !== 'cancelled' && project.status !== 'completed') {
+      actions.push(
+        { label: 'Cancel Project', icon: <FaTimesCircle />, action: () => { setSelectedProject(project); setFormData({ ...formData, newStatus: 'cancelled' }); setShowStatusModal(true); setOpenDropdownId(null); }, color: 'danger' }
+      );
+    }
+
+    return actions;
+  };
 
   const SkeletonLoader = () => (
     <div className="project-management-adminproject">
@@ -280,40 +331,56 @@ const ProjectManagement = () => {
                 <th>Size</th>
                 <th>Total</th>
                 <th>Paid</th>
-                <th>Progress</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredProjects.length === 0 ? (
-                <tr><td colSpan="8" className="empty-state-adminproject">No projects found</td></tr>
+                <tr><td colSpan="7" className="empty-state-adminproject">No projects found</td></tr>
               ) : (
-                filteredProjects.map(project => (
-                  <tr key={project._id}>
-                    <td className="project-cell-adminproject">
-                      <div className="project-name">{project.projectName}</div>
-                      <div className="project-ref">{project.projectReference}</div>
-                    </td>
-                    <td><div><strong>{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</strong></div><div><small>{project.clientId?.contactNumber}</small></div></td>
-                    <td>{project.systemSize} kW</td>
-                    <td className="amount">{formatCurrency(project.totalCost)}</td>
-                    <td className="amount">{formatCurrency(project.amountPaid)}</td>
-                    <td className="progress-cell">
-                      <div className="progress-bar-container"><div className="progress-bar" style={{ width: `${getProgressPercentage(project)}%` }}></div></div>
-                      <span className="progress-text">{getProgressPercentage(project)}%</span>
-                    </td>
-                    <td>{getStatusBadge(project.status)}</td>
-                    <td className="actions-cell">
-                      <button className="action-btn view" onClick={() => { setSelectedProject(project); fetchProjectInvoices(project._id); setShowDetailModal(true); }} title="View"><FaEye /></button>
-                      {project.status === 'quoted' && <button className="action-btn approve" onClick={() => { setSelectedProject(project); setFormData({ ...formData, newStatus: 'approved' }); setShowStatusModal(true); }} title="Approve"><FaCheck /></button>}
-                      {(project.status === 'approved' || project.status === 'initial_paid') && <button className="action-btn assign" onClick={() => { setSelectedProject(project); setShowAssignModal(true); }} title="Assign Engineer"><FaUserCog /></button>}
-                      {project.status === 'initial_paid' && <button className="action-btn payment" onClick={() => { setSelectedProject(project); setShowPaymentModal(true); }} title="Record Payment"><FaMoneyBillWave /></button>}
-                      {project.status === 'in_progress' && <button className="action-btn complete" onClick={() => { setSelectedProject(project); setFormData({ ...formData, newStatus: 'completed' }); setShowStatusModal(true); }} title="Complete"><FaCheckCircle /></button>}
-                      {project.status !== 'cancelled' && project.status !== 'completed' && <button className="action-btn cancel" onClick={() => { setSelectedProject(project); setFormData({ ...formData, newStatus: 'cancelled' }); setShowStatusModal(true); }} title="Cancel"><FaTimesCircle /></button>}
-                    </td>
-                  </tr>
-                ))
+                filteredProjects.map(project => {
+                  const actions = getAvailableActions(project);
+                  const isOpen = openDropdownId === project._id;
+                  
+                  return (
+                    <tr key={project._id}>
+                      <td className="project-cell-adminproject">
+                        <div className="project-name">{project.projectName}</div>
+                        <div className="project-ref">{project.projectReference}</div>
+                      </td>
+                      <td><div><strong>{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</strong></div><div><small>{project.clientId?.contactNumber}</small></div></td>
+                      <td>{project.systemSize} kW</td>
+                      <td className="amount">{formatCurrency(project.totalCost)}</td>
+                      <td className="amount">{formatCurrency(project.amountPaid)}</td>
+                      <td>{getStatusBadge(project.status)}</td>
+                      <td style={{ textAlign: 'center', position: 'relative' }}>
+                        <div className="action-dropdown-container" ref={isOpen ? dropdownRef : null}>
+                          <button 
+                            className="action-dropdown-toggle"
+                            onClick={() => setOpenDropdownId(isOpen ? null : project._id)}
+                          >
+                            Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
+                          </button>
+                          
+                          {isOpen && (
+                            <div className="action-dropdown-menu">
+                              {actions.map((action, idx) => (
+                                <button 
+                                  key={idx} 
+                                  className={`dropdown-item ${action.color || ''}`}
+                                  onClick={action.action}
+                                >
+                                  {action.icon} <span>{action.label}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

@@ -1,5 +1,5 @@
 // src/pages/Admin/SiteAssessment.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import {
@@ -15,7 +15,9 @@ import {
   FaMicrochip,
   FaMoneyBillWave,
   FaTools,
-  FaWifi
+  FaWifi,
+  FaChevronDown,
+  FaUpload
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/siteassessment.css';
@@ -48,6 +50,8 @@ const SiteAssessment = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [engineers, setEngineers] = useState([]);
   const [devices, setDevices] = useState([]);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+  const dropdownRef = useRef(null);
   const [stats, setStats] = useState({
     freeQuotes: { total: 0, pending: 0, assigned: 0, processing: 0, completed: 0 },
     preAssessments: { total: 0, pendingReview: 0, pendingPayment: 0, forVerification: 0, paid: 0, scheduled: 0, completed: 0, autoVerified: 0 }
@@ -58,6 +62,14 @@ const SiteAssessment = () => {
     fetchEngineers();
     fetchDevices();
     fetchStats();
+    
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdownId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [activeTab, filter, currentPage]);
 
   const fetchData = async () => {
@@ -159,6 +171,7 @@ const SiteAssessment = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       showToast('Status updated successfully', 'success');
+      setOpenDropdownId(null);
       fetchData();
       fetchStats();
     } catch (error) {
@@ -181,6 +194,7 @@ const SiteAssessment = () => {
       setShowApproveModal(false);
       setSelectedItem(null);
       setApproveNotes('');
+      setOpenDropdownId(null);
       fetchData();
       fetchStats();
     } catch (error) {
@@ -205,6 +219,7 @@ const SiteAssessment = () => {
       setShowVerifyModal(false);
       setSelectedItem(null);
       setVerificationNote('');
+      setOpenDropdownId(null);
       fetchData();
       fetchStats();
     } catch (error) {
@@ -247,6 +262,7 @@ const SiteAssessment = () => {
       setEngineerId('');
       setSiteVisitDate('');
       setSiteVisitNotes('');
+      setOpenDropdownId(null);
       fetchData();
       fetchStats();
     } catch (error) {
@@ -271,6 +287,7 @@ const SiteAssessment = () => {
       setShowAssignDeviceModal(false);
       setSelectedItem(null);
       setDeviceId('');
+      setOpenDropdownId(null);
       fetchData();
       fetchStats();
       fetchDevices();
@@ -298,6 +315,7 @@ const SiteAssessment = () => {
       setShowUploadModal(false);
       setSelectedItem(null);
       setQuotationFile(null);
+      setOpenDropdownId(null);
       fetchData();
       fetchStats();
     } catch (error) {
@@ -363,62 +381,36 @@ const SiteAssessment = () => {
   });
 
   const getEngineerName = (engineer) => {
-   
-
     if (!engineer) return 'Not assigned';
-
-    // If engineer is an object (like your case: {_id: '...', email: '...'})
     if (typeof engineer === 'object') {
-      // Check if it has fullName directly
       if (engineer.fullName) return engineer.fullName;
       if (engineer.name) return engineer.name;
-
-      // If it has firstName and lastName
-      if (engineer.firstName && engineer.lastName) {
-        return `${engineer.firstName} ${engineer.lastName}`;
-      }
-
-      // If it has an _id, find it in the engineers array
+      if (engineer.firstName && engineer.lastName) return `${engineer.firstName} ${engineer.lastName}`;
       if (engineer._id) {
         const foundEngineer = engineers.find(eng => eng._id === engineer._id);
-        
-
         if (foundEngineer) {
-          return foundEngineer.fullName ||
-            foundEngineer.name ||
-            `${foundEngineer.firstName || ''} ${foundEngineer.lastName || ''}`.trim() ||
-            foundEngineer.email ||
-            'Engineer assigned';
+          return foundEngineer.fullName || foundEngineer.name || 
+            `${foundEngineer.firstName || ''} ${foundEngineer.lastName || ''}`.trim() || 
+            foundEngineer.email || 'Engineer assigned';
         }
       }
-
-      // If it has email only, return formatted name from email
       if (engineer.email) {
         const emailName = engineer.email.split('@')[0];
-        const formattedName = emailName
-          .replace(/[._-]/g, ' ')
-          .split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-          .join(' ');
+        const formattedName = emailName.replace(/[._-]/g, ' ').split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
         return formattedName || 'Engineer assigned';
       }
-
       return 'Engineer assigned';
     }
-
-    // If engineer is a string (ID)
     if (typeof engineer === 'string') {
       const foundEngineer = engineers.find(eng => eng._id === engineer || eng.id === engineer);
       if (foundEngineer) {
-        return foundEngineer.fullName ||
-          foundEngineer.name ||
-          `${foundEngineer.firstName || ''} ${foundEngineer.lastName || ''}`.trim() ||
-          foundEngineer.email ||
-          'Engineer assigned';
+        return foundEngineer.fullName || foundEngineer.name || 
+          `${foundEngineer.firstName || ''} ${foundEngineer.lastName || ''}`.trim() || 
+          foundEngineer.email || 'Engineer assigned';
       }
       return 'Not assigned';
     }
-
     return 'Not assigned';
   };
 
@@ -430,6 +422,69 @@ const SiteAssessment = () => {
 
   const hasDeviceAssigned = (item) => {
     return item.assignedDeviceId || item.iotDeviceId || item.assignedDevice;
+  };
+
+  const getAvailableActions = (item) => {
+    const actions = [
+      { 
+        label: 'View Details', 
+        icon: <FaEye />, 
+        action: () => { setSelectedItem(item); setShowDetailModal(true); setOpenDropdownId(null); } 
+      }
+    ];
+
+    if (activeTab === 'pre-assessments') {
+      if (item.assessmentStatus === 'pending_review') {
+        actions.push(
+          { label: 'Approve Booking', icon: <FaCheckCircle />, action: () => { setSelectedItem(item); setShowApproveModal(true); setOpenDropdownId(null); }, color: 'success' },
+          { label: 'Reject Booking', icon: <FaTimesCircle />, action: () => handleApproveBooking(false), color: 'danger' }
+        );
+      }
+      if (item.paymentMethod === 'cash' && item.paymentStatus === 'pending') {
+        actions.push(
+          { label: 'Verify Cash Payment', icon: <FaMoneyBillWave />, action: () => { setSelectedItem(item); setShowVerifyModal(true); setOpenDropdownId(null); }, color: 'warning' }
+        );
+      }
+      if (item.paymentMethod === 'gcash' && item.paymentStatus === 'for_verification' && !item.paymentGateway) {
+        actions.push(
+          { label: 'Verify GCash Payment', icon: <FaCheckCircle />, action: () => { setSelectedItem(item); setShowVerifyModal(true); setOpenDropdownId(null); }, color: 'success' }
+        );
+      }
+      if (item.paymentStatus === 'paid' && item.assessmentStatus === 'scheduled' && !item.assignedEngineerId) {
+        actions.push(
+          { label: 'Assign Engineer', icon: <FaUserCog />, action: () => { setSelectedItem(item); setShowAssignEngineerModal(true); setOpenDropdownId(null); }, color: 'primary' }
+        );
+      }
+      if (item.paymentStatus === 'paid' && item.assignedEngineerId && !hasDeviceAssigned(item)) {
+        actions.push(
+          { label: 'Assign Device', icon: <FaMicrochip />, action: () => { setSelectedItem(item); setShowAssignDeviceModal(true); setOpenDropdownId(null); }, color: 'primary' }
+        );
+      }
+      if ((item.paymentGateway === 'paymongo' || item.autoVerified === true) && item.paymentStatus === 'paid') {
+        actions.push(
+          { label: 'Auto-Verified', icon: <FaCheckCircle />, action: null, color: 'success', disabled: true }
+        );
+      }
+    } else {
+      if (item.status === 'pending') {
+        actions.push(
+          { label: 'Assign Engineer', icon: <FaUserCog />, action: () => { setSelectedItem(item); setShowAssignEngineerModal(true); setOpenDropdownId(null); }, color: 'primary' }
+        );
+      }
+      if (item.status === 'assigned') {
+        actions.push(
+          { label: 'Mark as Processing', icon: <FaTools />, action: () => handleUpdateStatus(item._id, 'processing'), color: 'warning' }
+        );
+      }
+      if (item.status === 'processing') {
+        actions.push(
+          { label: 'Upload Quotation', icon: <FaUpload />, action: () => { setSelectedItem(item); setShowUploadModal(true); setOpenDropdownId(null); }, color: 'primary' },
+          { label: 'Mark as Completed', icon: <FaCheckCircle />, action: () => handleUpdateStatus(item._id, 'completed'), color: 'success' }
+        );
+      }
+    }
+
+    return actions;
   };
 
   const SkeletonLoader = () => (
@@ -530,78 +585,68 @@ const SiteAssessment = () => {
                 {activeTab === 'free-quotes' ? <th>Monthly Bill</th> : <th>Property</th>}
                 {activeTab === 'free-quotes' ? <th>Capacity</th> : <th>Amount</th>}
                 <th>Status</th>
-                <th>Actions</th>
+                <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredItems.length === 0 ? (
-                <tr><td colSpan="8" className="empty-state">No {activeTab === 'free-quotes' ? 'free quotes' : 'pre-assessments'} found</td></tr>
+                <tr><td colSpan="9" className="empty-state">No {activeTab === 'free-quotes' ? 'free quotes' : 'pre-assessments'} found</td></tr>
               ) : (
-                filteredItems.map(item => (
-                  <tr key={item._id}>
-                    <td className="ref-cell">{activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference}</td>
-                    <td>{item.clientId?.contactFirstName} {item.clientId?.contactLastName}</td>
-                    <td><div>{item.clientId?.contactNumber || 'N/A'}</div><div className="email-cell">{item.clientId?.userId?.email || 'N/A'}</div></td>
-                    <td>{formatDate(activeTab === 'free-quotes' ? item.requestedAt : item.bookedAt)}</td>
-                    {activeTab === 'free-quotes' ? (
-                      <>
-                        <td className="amount-cell">{formatCurrency(item.monthlyBill)}</td>
-                        <td>{item.desiredCapacity || 'N/A'}</td>
-                      </>
-                    ) : (
-                      <>
-                        <td>{item.propertyType}</td>
-                        <td className="amount-cell">{formatCurrency(item.assessmentFee)}</td>
-                      </>
-                    )}
-                    <td>{getStatusBadge(getDisplayStatus(item), activeTab === 'free-quotes' ? 'free-quote' : 'pre-assessment')}</td>
-                    <td className="actions-cell">
-                      <button className="action-btn view" onClick={() => { setSelectedItem(item); setShowDetailModal(true); }} title="View Details"><FaEye /></button>
-
-                      {activeTab === 'pre-assessments' && item.assessmentStatus === 'pending_review' && (
+                filteredItems.map(item => {
+                  const actions = getAvailableActions(item);
+                  const isOpen = openDropdownId === item._id;
+                  
+                  return (
+                    <tr key={item._id}>
+                      <td className="ref-cell">{activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference}</td>
+                      <td>{item.clientId?.contactFirstName} {item.clientId?.contactLastName}</td>
+                      <td><div>{item.clientId?.contactNumber || 'N/A'}</div><div className="email-cell">{item.clientId?.userId?.email || 'N/A'}</div></td>
+                      <td>{formatDate(activeTab === 'free-quotes' ? item.requestedAt : item.bookedAt)}</td>
+                      {activeTab === 'free-quotes' ? (
                         <>
-                          <button className="action-btn approve" onClick={() => { setSelectedItem(item); setShowApproveModal(true); }} title="Approve"><FaCheckCircle /></button>
-                          <button className="action-btn reject" onClick={() => handleApproveBooking(false)} title="Reject"><FaTimesCircle /></button>
+                          <td className="amount-cell">{formatCurrency(item.monthlyBill)}</td>
+                          <td>{item.desiredCapacity || 'N/A'}</td>
+                        </>
+                      ) : (
+                        <>
+                          <td>{item.propertyType}</td>
+                          <td className="amount-cell">{formatCurrency(item.assessmentFee)}</td>
                         </>
                       )}
-
-                      {activeTab === 'free-quotes' && item.status === 'pending' && (
-                        <button className="action-btn assign" onClick={() => { setSelectedItem(item); setShowAssignEngineerModal(true); }} title="Assign Engineer"><FaUserCog /></button>
-                      )}
-
-                      {activeTab === 'free-quotes' && item.status === 'assigned' && (
-                        <button className="action-btn process" onClick={() => handleUpdateStatus(item._id, 'processing')} title="Process"><FaTools /></button>
-                      )}
-
-                      {activeTab === 'free-quotes' && item.status === 'processing' && (
-                        <>
-                          <button className="action-btn upload" onClick={() => { setSelectedItem(item); setShowUploadModal(true); }} title="Upload Quotation"><FaDownload /></button>
-                          <button className="action-btn complete" onClick={() => handleUpdateStatus(item._id, 'completed')} title="Complete"><FaCheckCircle /></button>
-                        </>
-                      )}
-
-                      {(item.paymentGateway === 'paymongo' || item.autoVerified === true) && item.paymentStatus === 'paid' && (
-                        <span className="auto-badge" title="Auto-verified via PayMongo"><FaCheckCircle /> Auto</span>
-                      )}
-
-                      {activeTab === 'pre-assessments' && item.paymentMethod === 'cash' && item.paymentStatus === 'pending' && (
-                        <button className="action-btn verify" onClick={() => { setSelectedItem(item); setShowVerifyModal(true); }} title="Verify Cash"><FaMoneyBillWave /></button>
-                      )}
-
-                      {activeTab === 'pre-assessments' && item.paymentMethod === 'gcash' && item.paymentStatus === 'for_verification' && !item.paymentGateway && (
-                        <button className="action-btn verify" onClick={() => { setSelectedItem(item); setShowVerifyModal(true); }} title="Verify GCash"><FaCheckCircle /></button>
-                      )}
-
-                      {activeTab === 'pre-assessments' && item.paymentStatus === 'paid' && item.assessmentStatus === 'scheduled' && !item.assignedEngineerId && (
-                        <button className="action-btn assign" onClick={() => { setSelectedItem(item); setShowAssignEngineerModal(true); }} title="Assign Engineer"><FaUserCog /></button>
-                      )}
-
-                      {activeTab === 'pre-assessments' && item.paymentStatus === 'paid' && item.assignedEngineerId && !hasDeviceAssigned(item) && (
-                        <button className="action-btn device" onClick={() => { setSelectedItem(item); setShowAssignDeviceModal(true); }} title="Assign Device"><FaMicrochip /></button>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                      <td>{getStatusBadge(getDisplayStatus(item), activeTab === 'free-quotes' ? 'free-quote' : 'pre-assessment')}</td>
+                      <td style={{ textAlign: 'center', position: 'relative' }}>
+                        <div className="action-dropdown-container" ref={isOpen ? dropdownRef : null}>
+                          <button 
+                            className="action-dropdown-toggle"
+                            onClick={() => setOpenDropdownId(isOpen ? null : item._id)}
+                          >
+                            Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
+                          </button>
+                          
+                          {isOpen && (
+                            <div className="action-dropdown-menu">
+                              {actions.map((action, idx) => (
+                                action.disabled ? (
+                                  <div key={idx} className={`dropdown-item disabled ${action.color || ''}`}>
+                                    {action.icon} <span>{action.label}</span>
+                                  </div>
+                                ) : (
+                                  <button 
+                                    key={idx} 
+                                    className={`dropdown-item ${action.color || ''}`}
+                                    onClick={action.action}
+                                  >
+                                    {action.icon} <span>{action.label}</span>
+                                  </button>
+                                )
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -665,7 +710,6 @@ const SiteAssessment = () => {
                     <p><strong>Payment:</strong> {selectedItem.paymentStatus}</p>
                     <p><strong>Assessment:</strong> {selectedItem.assessmentStatus}</p>
                     <p><strong>Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p>
-
                     <p><strong>Device:</strong> {getDeviceId(selectedItem.assignedDeviceId || selectedItem.iotDeviceId)}</p>
                   </div>
                 )}

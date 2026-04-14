@@ -1,5 +1,5 @@
 // pages/Admin/AdminSchedule.adsche.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { 
@@ -17,7 +17,8 @@ import {
   FaFilter,
   FaChevronLeft,
   FaChevronRight,
-  FaPlus
+  FaPlus,
+  FaChevronDown
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/schedule.css';
@@ -33,6 +34,8 @@ const AdminSchedule = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+  const dropdownRef = useRef(null);
   const [stats, setStats] = useState({
     total: 0,
     scheduled: 0,
@@ -45,6 +48,14 @@ const AdminSchedule = () => {
   useEffect(() => {
     fetchSchedules();
     fetchStats();
+    
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdownId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [filter, typeFilter, currentPage]);
 
   const fetchSchedules = async () => {
@@ -91,6 +102,7 @@ const AdminSchedule = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       showToast(`Schedule marked as ${status}`, 'success');
+      setOpenDropdownId(null);
       fetchSchedules();
       fetchStats();
     } catch (error) {
@@ -108,6 +120,7 @@ const AdminSchedule = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       showToast('Schedule deleted successfully', 'success');
+      setOpenDropdownId(null);
       fetchSchedules();
       fetchStats();
     } catch (error) {
@@ -149,6 +162,41 @@ const AdminSchedule = () => {
       'inspection': <span className="type-badge-adsche inspection">Inspection</span>
     };
     return badges[type] || <span className="type-badge-adsche">{type}</span>;
+  };
+
+  const getAvailableActions = (schedule) => {
+    const actions = [
+      { 
+        label: 'View Details', 
+        icon: <FaEye />, 
+        action: () => { setSelectedSchedule(schedule); setShowDetailModal(true); setOpenDropdownId(null); },
+        color: 'primary'
+      }
+    ];
+
+    if (schedule.status === 'scheduled') {
+      actions.push(
+        { label: 'Confirm Schedule', icon: <FaCheckCircle />, action: () => handleUpdateStatus(schedule._id, 'confirmed'), color: 'success' }
+      );
+    }
+    
+    if (schedule.status === 'confirmed') {
+      actions.push(
+        { label: 'Start', icon: <FaClock />, action: () => handleUpdateStatus(schedule._id, 'in_progress'), color: 'warning' }
+      );
+    }
+    
+    if (schedule.status === 'in_progress') {
+      actions.push(
+        { label: 'Mark Complete', icon: <FaCheckCircle />, action: () => handleUpdateStatus(schedule._id, 'completed'), color: 'success' }
+      );
+    }
+    
+    actions.push(
+      { label: 'Delete', icon: <FaTrash />, action: () => handleDeleteSchedule(schedule._id), color: 'danger' }
+    );
+
+    return actions;
   };
 
   const filteredSchedules = schedules.filter(schedule => {
@@ -277,7 +325,7 @@ const AdminSchedule = () => {
                 <th>Engineer</th>
                 <th>Type</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -288,68 +336,54 @@ const AdminSchedule = () => {
                   </td>
                 </tr>
               ) : (
-                filteredSchedules.map(schedule => (
-                  <tr key={schedule._id}>
-                    <td className="title-cell-adsche">
-                      <div className="schedule-title-adsche">{schedule.title}</div>
-                      <div className="schedule-ref-adsche">{schedule._id}</div>
-                    </td>
-                    <td>
-                      <div className="client-name-adsche">{schedule.clientName}</div>
-                      <div className="client-phone-adsche">{schedule.clientPhone}</div>
-                    </td>
-                    <td>
-                      <div className="schedule-date-adsche">{formatDate(schedule.scheduledDate)}</div>
-                      <div className="schedule-time-adsche">{formatTime(schedule.scheduledTime)} - {schedule.endTime || ''}</div>
-                    </td>
-                    <td>{schedule.assignedEngineerId?.firstName} {schedule.assignedEngineerId?.lastName || 'Unassigned'}</td>
-                    <td>{getTypeBadge(schedule.type)}</td>
-                    <td>{getStatusBadge(schedule.status)}</td>
-                    <td className="actions-cell-adsche">
-                      <button 
-                        className="action-btn-adsche view"
-                        onClick={() => { setSelectedSchedule(schedule); setShowDetailModal(true); }}
-                        title="View Details"
-                      >
-                        <FaEye />
-                      </button>
-                      {schedule.status === 'scheduled' && (
-                        <button 
-                          className="action-btn-adsche confirm"
-                          onClick={() => handleUpdateStatus(schedule._id, 'confirmed')}
-                          title="Confirm Schedule"
-                        >
-                          <FaCheckCircle />
-                        </button>
-                      )}
-                      {schedule.status === 'confirmed' && (
-                        <button 
-                          className="action-btn-adsche start"
-                          onClick={() => handleUpdateStatus(schedule._id, 'in_progress')}
-                          title="Start"
-                        >
-                          <FaClock />
-                        </button>
-                      )}
-                      {schedule.status === 'in_progress' && (
-                        <button 
-                          className="action-btn-adsche complete"
-                          onClick={() => handleUpdateStatus(schedule._id, 'completed')}
-                          title="Mark Complete"
-                        >
-                          <FaCheckCircle />
-                        </button>
-                      )}
-                      <button 
-                        className="action-btn-adsche delete"
-                        onClick={() => handleDeleteSchedule(schedule._id)}
-                        title="Delete"
-                      >
-                        <FaTrash />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                filteredSchedules.map(schedule => {
+                  const actions = getAvailableActions(schedule);
+                  const isOpen = openDropdownId === schedule._id;
+                  
+                  return (
+                    <tr key={schedule._id}>
+                      <td className="title-cell-adsche">
+                        <div className="schedule-title-adsche">{schedule.title}</div>
+                        <div className="schedule-ref-adsche">{schedule._id}</div>
+                      </td>
+                      <td>
+                        <div className="client-name-adsche">{schedule.clientName}</div>
+                        <div className="client-phone-adsche">{schedule.clientPhone}</div>
+                      </td>
+                      <td>
+                        <div className="schedule-date-adsche">{formatDate(schedule.scheduledDate)}</div>
+                        <div className="schedule-time-adsche">{formatTime(schedule.scheduledTime)} - {schedule.endTime || ''}</div>
+                      </td>
+                      <td>{schedule.assignedEngineerId?.firstName} {schedule.assignedEngineerId?.lastName || 'Unassigned'}</td>
+                      <td>{getTypeBadge(schedule.type)}</td>
+                      <td>{getStatusBadge(schedule.status)}</td>
+                      <td style={{ textAlign: 'center', position: 'relative' }}>
+                        <div className="action-dropdown-container" ref={isOpen ? dropdownRef : null}>
+                          <button 
+                            className="action-dropdown-toggle"
+                            onClick={() => setOpenDropdownId(isOpen ? null : schedule._id)}
+                          >
+                            Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
+                          </button>
+                          
+                          {isOpen && (
+                            <div className="action-dropdown-menu">
+                              {actions.map((action, idx) => (
+                                <button 
+                                  key={idx} 
+                                  className={`dropdown-item ${action.color || ''}`}
+                                  onClick={action.action}
+                                >
+                                  {action.icon} <span>{action.label}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

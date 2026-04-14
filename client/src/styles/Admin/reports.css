@@ -1,4 +1,4 @@
-/* styles/Admin/reports.css - Clean Modern Design (No Card Colors) */
+/* styles/Admin/reports.css - Clean Modern Design */
 
 :root {
   --primary: #2563EB;
@@ -53,7 +53,7 @@
 }
 
 /* ============================================ */
-/* STATS CARDS - Black Text Only, No Colors */
+/* STATS CARDS - Black Text Only */
 /* ============================================ */
 .stats-cards-adminreports {
   display: grid;
@@ -280,7 +280,7 @@
 }
 
 /* ============================================ */
-/* SUITABILITY SUMMARY - No Colors */
+/* SUITABILITY SUMMARY */
 /* ============================================ */
 .suitability-summary-adminreports {
   display: grid;
@@ -319,7 +319,7 @@
 }
 
 /* ============================================ */
-/* TECHNICAL FINDINGS - No Colors */
+/* TECHNICAL FINDINGS / IOT METRICS */
 /* ============================================ */
 .technical-findings-grid {
   display: grid;
@@ -352,8 +352,79 @@
   color: var(--text-primary);
 }
 
+.finding-info small {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
 /* ============================================ */
-/* PROJECT STATS GRID - No Colors */
+/* ASSESSMENT STATUS GRID */
+/* ============================================ */
+.assessment-status-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.status-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg-base);
+  border-radius: var(--radius-md);
+  border-left: 4px solid;
+  border: 1px solid var(--border-light);
+}
+
+.status-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 180px;
+}
+
+.status-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.status-number {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.status-progress {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-progress .progress-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--border-light);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.status-progress .progress-bar div {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.status-percentage {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  min-width: 50px;
+}
+
+/* ============================================ */
+/* PROJECT STATS GRID */
 /* ============================================ */
 .project-stats-grid {
   display: grid;
@@ -389,7 +460,7 @@
 }
 
 /* ============================================ */
-/* FINANCIAL SUMMARY - No Colors */
+/* FINANCIAL SUMMARY */
 /* ============================================ */
 .financial-summary-grid {
   display: grid;
@@ -422,8 +493,16 @@
   color: var(--text-primary);
 }
 
+.financial-card .positive {
+  color: var(--success) !important;
+}
+
+.financial-card .negative {
+  color: var(--danger) !important;
+}
+
 /* ============================================ */
-/* PAYMENT STATUS GRID - No Colors */
+/* PAYMENT STATUS GRID */
 /* ============================================ */
 .payment-status-grid {
   display: grid;
@@ -462,7 +541,7 @@
 }
 
 /* ============================================ */
-/* CLIENT STATS GRID - No Colors */
+/* CLIENT STATS GRID */
 /* ============================================ */
 .client-stats-grid {
   display: grid;
@@ -598,6 +677,19 @@
   font-weight: 600;
 }
 
+/* Status Number Badge */
+.status-number-badge {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+}
+
 /* Score Badge */
 .score-badge {
   display: inline-block;
@@ -608,6 +700,24 @@
   background: var(--bg-base);
   color: var(--text-primary);
   border: 1px solid var(--border-light);
+}
+
+.score-badge.high {
+  background: #DCFCE7;
+  color: #16A34A;
+  border-color: #BBF7D0;
+}
+
+.score-badge.medium {
+  background: #FEF3C7;
+  color: #D97706;
+  border-color: #FDE68A;
+}
+
+.score-badge.low {
+  background: #FEE2E2;
+  color: var(--danger);
+  border-color: #FECACA;
 }
 
 /* Project Status Badge */
@@ -622,7 +732,7 @@
   border: 1px solid var(--border-light);
 }
 
-/* Progress Bar */
+/* Progress Bar Container */
 .progress-bar-container {
   display: flex;
   align-items: center;
@@ -664,6 +774,18 @@
   background: var(--bg-base);
   color: var(--text-primary);
   border: 1px solid var(--border-light);
+}
+
+.status-badge.paid {
+  background: #DCFCE7;
+  color: #16A34A;
+  border-color: #BBF7D0;
+}
+
+.status-badge.for_verification {
+  background: #FEF3C7;
+  color: #D97706;
+  border-color: #FDE68A;
 }
 
 /* Transaction Type */
@@ -763,7 +885,8 @@
   height: 32px;
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: 20px;
+  font-weight: 600;
   color: var(--text-muted);
   cursor: pointer;
   border-radius: var(--radius-md);
@@ -946,6 +1069,16 @@
   
   .demographics-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .assessment-status-grid .status-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .status-progress {
+    width: 100%;
   }
   
   .report-actions-adminreports {

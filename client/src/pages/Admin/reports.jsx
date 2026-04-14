@@ -3,17 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
-import { 
-  FaChartLine, FaFileInvoice, FaUsers, FaSolarPanel, FaMicrochip, 
-  FaDownload, FaSpinner, FaCalendarAlt, FaMoneyBillWave, FaProjectDiagram, 
-  FaClipboardList, FaChartBar, FaChartPie, FaFileExcel, FaFilePdf, 
-  FaPrint, FaEnvelope, FaFilter, FaSearch, FaChevronLeft, FaChevronRight, 
-  FaEye, FaCheckCircle, FaExclamationTriangle, FaClipboardCheck, FaHistory,
-  FaBuilding, FaHardHat, FaRulerCombined, FaThermometerHalf, FaTachometerAlt,
-  FaDollarSign, FaCreditCard, FaWallet, FaReceipt, FaUserCheck, FaUserClock,
-  FaCheck, FaTimes, FaArrowRight, FaClock, FaBoxes, FaTools, FaSun, FaTint,
-  FaBolt, FaChartLine as FaTrendUp, FaPercent
-} from 'react-icons/fa';
 import '../../styles/Admin/reports.css';
 
 // Helper function to convert assessment status string to number
@@ -37,18 +26,18 @@ const getStatusNumber = (statusString) => {
 
 // Assessment Status Constants with numbers (matching the mapping above)
 const ASSESSMENT_STATUS = {
-  1: { label: 'pending_review', display: 'Pending Review', color: '#ffc107', icon: '📋' },
-  2: { label: 'pending_payment', display: 'Pending Payment', color: '#fd7e14', icon: '💰' },
-  3: { label: 'scheduled', display: 'Scheduled', color: '#17a2b8', icon: '📅' },
-  4: { label: 'site_visit_ongoing', display: 'Site Visit Ongoing', color: '#6f42c1', icon: '🏗️' },
-  5: { label: 'device_deployed', display: 'Device Deployed', color: '#20c997', icon: '📡' },
-  6: { label: 'data_collecting', display: 'Data Collecting', color: '#28a745', icon: '📊' },
-  7: { label: 'data_analyzing', display: 'Data Analyzing', color: '#17a2b8', icon: '🔬' },
-  8: { label: 'report_draft', display: 'Report Draft', color: '#6c757d', icon: '📄' },
-  9: { label: 'quotation_generated', display: 'Quotation Generated', color: '#007bff', icon: '📑' },
-  10: { label: 'quotation_accepted', display: 'Quotation Accepted', color: '#28a745', icon: '✅' },
-  11: { label: 'completed', display: 'Completed', color: '#28a745', icon: '✔️' },
-  12: { label: 'cancelled', display: 'Cancelled', color: '#dc3545', icon: '❌' }
+  1: { label: 'pending_review', display: 'Pending Review', color: '#ffc107' },
+  2: { label: 'pending_payment', display: 'Pending Payment', color: '#fd7e14' },
+  3: { label: 'scheduled', display: 'Scheduled', color: '#17a2b8' },
+  4: { label: 'site_visit_ongoing', display: 'Site Visit Ongoing', color: '#6f42c1' },
+  5: { label: 'device_deployed', display: 'Device Deployed', color: '#20c997' },
+  6: { label: 'data_collecting', display: 'Data Collecting', color: '#28a745' },
+  7: { label: 'data_analyzing', display: 'Data Analyzing', color: '#17a2b8' },
+  8: { label: 'report_draft', display: 'Report Draft', color: '#6c757d' },
+  9: { label: 'quotation_generated', display: 'Quotation Generated', color: '#007bff' },
+  10: { label: 'quotation_accepted', display: 'Quotation Accepted', color: '#28a745' },
+  11: { label: 'completed', display: 'Completed', color: '#28a745' },
+  12: { label: 'cancelled', display: 'Cancelled', color: '#dc3545' }
 };
 
 // Assessment Results Summary Ranges (matching the model)
@@ -539,32 +528,32 @@ const Reports = () => {
             className={`tab-btn-adminreports ${activeTab === 'site-assessment' ? 'active-adminreports' : ''}`} 
             onClick={() => { setActiveTab('site-assessment'); setReportData(null); }}
           >
-            <FaClipboardCheck /> Site Assessment Reports
+            Site Assessment Reports
           </button>
           <button 
             className={`tab-btn-adminreports ${activeTab === 'project-summary' ? 'active-adminreports' : ''}`} 
             onClick={() => { setActiveTab('project-summary'); setReportData(null); }}
           >
-            <FaProjectDiagram /> Project Summary Reports
+            Project Summary Reports
           </button>
           <button 
             className={`tab-btn-adminreports ${activeTab === 'financial' ? 'active-adminreports' : ''}`} 
             onClick={() => { setActiveTab('financial'); setReportData(null); }}
           >
-            <FaMoneyBillWave /> Financial Reports
+            Financial Reports
           </button>
           <button 
             className={`tab-btn-adminreports ${activeTab === 'client-transaction' ? 'active-adminreports' : ''}`} 
             onClick={() => { setActiveTab('client-transaction'); setReportData(null); }}
           >
-            <FaHistory /> Client Transaction Reports
+            Client Transaction Reports
           </button>
         </div>
 
         {/* Report Controls */}
         <div className="report-controls-adminreports">
           <div className="date-range-adminreports">
-            <label><FaCalendarAlt /> Date Range</label>
+            <label>Date Range</label>
             <div className="date-inputs-adminreports">
               <input type="date" value={dateRange.startDate} onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })} />
               <span>to</span>
@@ -574,7 +563,7 @@ const Reports = () => {
           
           {activeTab === 'site-assessment' && (
             <div className="report-filter-adminreports">
-              <label><FaClipboardList /> Filter by Assessment</label>
+              <label>Filter by Assessment</label>
               <select value={selectedAssessment} onChange={(e) => setSelectedAssessment(e.target.value)}>
                 <option value="">All Assessments</option>
                 {assessments.map(a => (
@@ -586,7 +575,7 @@ const Reports = () => {
           
           {activeTab === 'project-summary' && (
             <div className="report-filter-adminreports">
-              <label><FaProjectDiagram /> Filter by Project</label>
+              <label>Filter by Project</label>
               <select value={selectedProject} onChange={(e) => setSelectedProject(e.target.value)}>
                 <option value="">All Projects</option>
                 {projects.map(p => (
@@ -598,7 +587,7 @@ const Reports = () => {
           
           {activeTab === 'client-transaction' && (
             <div className="report-filter-adminreports">
-              <label><FaUsers /> Filter by Client</label>
+              <label>Filter by Client</label>
               <select value={selectedClient} onChange={(e) => setSelectedClient(e.target.value)}>
                 <option value="">All Clients</option>
                 {clients.map(c => (
@@ -609,7 +598,7 @@ const Reports = () => {
           )}
           
           <button className="generate-btn-adminreports" onClick={generateReport} disabled={generating}>
-            {generating ? <FaSpinner className="spinning" /> : <FaChartLine />} Generate Report
+            {generating ? 'Generating...' : 'Generate Report'}
           </button>
         </div>
 
@@ -617,12 +606,11 @@ const Reports = () => {
         {activeTab === 'site-assessment' && (
           <div className="report-content-adminreports">
             <div className="report-section-adminreports">
-              <h2><FaClipboardCheck /> Site Assessment Results</h2>
+              <h2>Site Assessment Results</h2>
               <p>Complete results of site evaluations including IoT data, technical findings, and suitability analysis.</p>
               
               <div className="suitability-summary-adminreports">
                 <div className="suitability-card suitable">
-                  <FaCheckCircle />
                   <div className="suitability-stats">
                     <span className="label">Suitable for Solar</span>
                     <strong>{stats.assessments.suitable}</strong>
@@ -630,7 +618,6 @@ const Reports = () => {
                   </div>
                 </div>
                 <div className="suitability-card conditional">
-                  <FaExclamationTriangle />
                   <div className="suitability-stats">
                     <span className="label">Conditional Approval</span>
                     <strong>{stats.assessments.conditional}</strong>
@@ -638,7 +625,6 @@ const Reports = () => {
                   </div>
                 </div>
                 <div className="suitability-card not-suitable">
-                  <FaTimes />
                   <div className="suitability-stats">
                     <span className="label">Not Suitable</span>
                     <strong>{stats.assessments.notSuitable}</strong>
@@ -646,7 +632,6 @@ const Reports = () => {
                   </div>
                 </div>
                 <div className="suitability-card pending">
-                  <FaClock />
                   <div className="suitability-stats">
                     <span className="label">Pending Assessment</span>
                     <strong>{stats.assessments.pending}</strong>
@@ -656,10 +641,9 @@ const Reports = () => {
             </div>
 
             <div className="report-section-adminreports">
-              <h2><FaMicrochip /> IoT Data & Environmental Metrics</h2>
+              <h2>IoT Data & Environmental Metrics</h2>
               <div className="technical-findings-grid">
                 <div className="finding-card irradiance">
-                  <FaSun />
                   <div className="finding-info">
                     <span>Average Irradiance</span>
                     <strong>-- W/m²</strong>
@@ -667,7 +651,6 @@ const Reports = () => {
                   </div>
                 </div>
                 <div className="finding-card temperature">
-                  <FaThermometerHalf />
                   <div className="finding-info">
                     <span>Temperature Impact</span>
                     <strong>--°C</strong>
@@ -675,7 +658,6 @@ const Reports = () => {
                   </div>
                 </div>
                 <div className="finding-card humidity">
-                  <FaTint />
                   <div className="finding-info">
                     <span>Average Humidity</span>
                     <strong>--%</strong>
@@ -683,7 +665,6 @@ const Reports = () => {
                   </div>
                 </div>
                 <div className="finding-card shading">
-                  <FaSolarPanel />
                   <div className="finding-info">
                     <span>Peak Sun Hours</span>
                     <strong>-- hrs/day</strong>
@@ -702,7 +683,6 @@ const Reports = () => {
                   return (
                     <div key={num} className="status-card" style={{ borderLeftColor: status.color }}>
                       <div className="status-header">
-                        <span className="status-icon">{status.icon}</span>
                         <span className="status-name">{status.display}</span>
                         <span className="status-number">{count}</span>
                       </div>
@@ -777,37 +757,37 @@ const Reports = () => {
                             <span className="status-number-badge" style={{ backgroundColor: ASSESSMENT_STATUS[statusNum]?.color }}>
                               {statusNum || 'N/A'}
                             </span>
-                          </td>
-                          <td>{assessment.bookingReference}</td>
-                          <td>{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</td>
-                          <td>
+                           </td>
+                           <td>{assessment.bookingReference}</td>
+                           <td>{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</td>
+                           <td>
                             {avgIrradiance ? `${avgIrradiance.toFixed(0)} W/m²` : 'N/A'}
                             {irradianceRating && <small style={{ color: irradianceRating.color }}>({irradianceRating.label})</small>}
-                          </td>
-                          <td>{peakSunHours?.toFixed(1) || 'N/A'} hrs</td>
-                          <td>
+                           </td>
+                           <td>{peakSunHours?.toFixed(1) || 'N/A'} hrs</td>
+                           <td>
                             {avgTemp ? `${avgTemp.toFixed(1)}°C` : 'N/A'}
                             {tempRating && <small style={{ color: tempRating.color }}>({tempRating.label})</small>}
-                          </td>
-                          <td>
+                           </td>
+                           <td>
                             {avgHumidity ? `${avgHumidity.toFixed(0)}%` : 'N/A'}
                             {humidityRating && <small style={{ color: humidityRating.color }}>({humidityRating.label})</small>}
-                          </td>
-                          <td>
+                           </td>
+                           <td>
                             {shadingPercentage !== undefined ? `${shadingPercentage.toFixed(0)}%` : 'N/A'}
                             {shadingRating && <small style={{ color: shadingRating.color }}>({shadingRating.label})</small>}
-                          </td>
-                          <td>
+                           </td>
+                           <td>
                             <span className={`score-badge ${suitabilityScore >= 70 ? 'high' : suitabilityScore >= 50 ? 'medium' : 'low'}`}>
                               {suitabilityScore || 'N/A'}
                             </span>
-                          </td>
-                          <td>
-                            {suitabilityScore >= 70 ? '✓ Suitable for Solar' : 
-                             suitabilityScore >= 50 ? '⚠ Conditional Approval' : 
-                             suitabilityScore ? '✗ Not Recommended' : '⏳ Pending Assessment'}
-                          </td>
-                        </tr>
+                           </td>
+                           <td>
+                            {suitabilityScore >= 70 ? 'Suitable for Solar' : 
+                             suitabilityScore >= 50 ? 'Conditional Approval' : 
+                             suitabilityScore ? 'Not Recommended' : 'Pending Assessment'}
+                           </td>
+                         </tr>
                       );
                     })}
                   </tbody>
@@ -817,12 +797,11 @@ const Reports = () => {
 
             <div className="report-actions-adminreports">
               <button className="export-btn-adminreports" onClick={() => exportReport('pdf')} disabled={generating}>
-                <FaFilePdf /> Export as PDF
+                Export as PDF
               </button>
               <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')} disabled={generating}>
-                <FaFileExcel /> Export as CSV
+                Export as CSV
               </button>
-              
             </div>
           </div>
         )}
@@ -831,7 +810,7 @@ const Reports = () => {
         {activeTab === 'project-summary' && (
           <div className="report-content-adminreports">
             <div className="report-section-adminreports">
-              <h2><FaProjectDiagram /> Project Status Overview</h2>
+              <h2>Project Status Overview</h2>
               <p>Shows the overall status of projects. Tracks project progress. Helps monitor pending tasks and milestones.</p>
               
               <div className="project-stats-grid">
@@ -915,16 +894,16 @@ const Reports = () => {
 
             <div className="report-actions-adminreports">
               <button className="export-btn-adminreports" onClick={() => exportReport('pdf')} disabled={generating}>
-                <FaFilePdf /> Export as PDF
+                Export as PDF
               </button>
               <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')} disabled={generating}>
-                <FaFileExcel /> Export as Excel
+                Export as Excel
               </button>
               <button className="export-btn-adminreports" onClick={() => exportReport('csv')} disabled={generating}>
-                <FaDownload /> Export as CSV
+                Export as CSV
               </button>
               <button className="export-btn-adminreports" onClick={() => window.print()}>
-                <FaPrint /> Print Report
+                Print Report
               </button>
             </div>
           </div>
@@ -934,33 +913,29 @@ const Reports = () => {
         {activeTab === 'financial' && (
           <div className="report-content-adminreports">
             <div className="report-section-adminreports">
-              <h2><FaMoneyBillWave /> Financial Summary</h2>
+              <h2>Financial Summary</h2>
               <p>Summarizes payments made by clients. Includes billing records. Helps track overall financial performance.</p>
               
               <div className="financial-summary-grid">
                 <div className="financial-card total-revenue">
-                  <FaWallet />
                   <div>
                     <span>Total Revenue</span>
                     <strong>{formatCurrency(stats.revenue.total)}</strong>
                   </div>
                 </div>
                 <div className="financial-card this-month">
-                  <FaCalendarAlt />
                   <div>
                     <span>This Month</span>
                     <strong>{formatCurrency(stats.revenue.thisMonth)}</strong>
                   </div>
                 </div>
                 <div className="financial-card last-month">
-                  <FaClock />
                   <div>
                     <span>Last Month</span>
                     <strong>{formatCurrency(stats.revenue.lastMonth)}</strong>
                   </div>
                 </div>
                 <div className="financial-card growth">
-                  <FaTrendUp />
                   <div>
                     <span>Growth</span>
                     <strong className={stats.revenue.thisMonth > stats.revenue.lastMonth ? 'positive' : 'negative'}>
@@ -975,7 +950,6 @@ const Reports = () => {
               <h2>Payment Summary by Status</h2>
               <div className="payment-status-grid">
                 <div className="payment-status-card paid">
-                  <FaCheckCircle />
                   <div>
                     <span>Paid Transactions</span>
                     <strong>{stats.payments.paid}</strong>
@@ -983,14 +957,12 @@ const Reports = () => {
                   </div>
                 </div>
                 <div className="payment-status-card pending">
-                  <FaClock />
                   <div>
                     <span>Pending Payments</span>
                     <strong>{stats.payments.pending}</strong>
                   </div>
                 </div>
                 <div className="payment-status-card verification">
-                  <FaEye />
                   <div>
                     <span>For Verification</span>
                     <strong>{stats.payments.forVerification}</strong>
@@ -1041,16 +1013,16 @@ const Reports = () => {
 
             <div className="report-actions-adminreports">
               <button className="export-btn-adminreports" onClick={() => exportReport('pdf')} disabled={generating}>
-                <FaFilePdf /> Export as PDF
+                Export as PDF
               </button>
               <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')} disabled={generating}>
-                <FaFileExcel /> Export as Excel
+                Export as Excel
               </button>
               <button className="export-btn-adminreports" onClick={() => exportReport('csv')} disabled={generating}>
-                <FaDownload /> Export as CSV
+                Export as CSV
               </button>
               <button className="export-btn-adminreports" onClick={() => window.print()}>
-                <FaPrint /> Print Report
+                Print Report
               </button>
             </div>
           </div>
@@ -1060,33 +1032,29 @@ const Reports = () => {
         {activeTab === 'client-transaction' && (
           <div className="report-content-adminreports">
             <div className="report-section-adminreports">
-              <h2><FaHistory /> Client Transaction History</h2>
+              <h2>Client Transaction History</h2>
               <p>Displays detailed records of client bookings. Includes payment transactions. Useful for reviewing client activity history.</p>
               
               <div className="client-stats-grid">
                 <div className="client-stat-card">
-                  <FaUsers />
                   <div>
                     <span>Total Clients</span>
                     <strong>{stats.clients.total}</strong>
                   </div>
                 </div>
                 <div className="client-stat-card">
-                  <FaUserCheck />
                   <div>
                     <span>Active Clients</span>
                     <strong>{stats.clients.active}</strong>
                   </div>
                 </div>
                 <div className="client-stat-card">
-                  <FaUserClock />
                   <div>
                     <span>New This Month</span>
                     <strong>{stats.clients.new}</strong>
                   </div>
                 </div>
                 <div className="client-stat-card">
-                  <FaReceipt />
                   <div>
                     <span>Total Transactions</span>
                     <strong>{transactions.length}</strong>
@@ -1188,16 +1156,16 @@ const Reports = () => {
 
             <div className="report-actions-adminreports">
               <button className="export-btn-adminreports" onClick={() => exportReport('pdf')} disabled={generating}>
-                <FaFilePdf /> Export as PDF
+                Export as PDF
               </button>
               <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')} disabled={generating}>
-                <FaFileExcel /> Export as Excel
+                Export as Excel
               </button>
               <button className="export-btn-adminreports" onClick={() => exportReport('csv')} disabled={generating}>
-                <FaDownload /> Export as CSV
+                Export as CSV
               </button>
               <button className="export-btn-adminreports" onClick={() => window.print()}>
-                <FaPrint /> Print Report
+                Print Report
               </button>
             </div>
           </div>
@@ -1209,19 +1177,18 @@ const Reports = () => {
             <div className="report-preview-adminreports" onClick={e => e.stopPropagation()}>
               <div className="preview-header">
                 <h3>Report Preview</h3>
-                <button className="close-preview" onClick={() => setReportData(null)}>×</button>
+                <button className="close-preview" onClick={() => setReportData(null)}>X</button>
               </div>
               <div className="preview-content-adminreports">
                 <pre>{JSON.stringify(reportData, null, 2)}</pre>
               </div>
               <div className="preview-actions-adminreports">
                 <button className="export-btn-adminreports" onClick={() => exportReport('pdf')}>
-                  <FaFilePdf /> Download PDF
+                  Download PDF
                 </button>
                 <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')}>
-                  <FaFileExcel /> Download CSV
+                  Download CSV
                 </button>
-                
                 <button className="export-btn-adminreports" onClick={() => setReportData(null)}>
                   Close
                 </button>

@@ -37,7 +37,9 @@ const solarInvoiceSchema = new mongoose.Schema({
   // Payment Terms
   dueDate: { type: Date, required: true },
   issueDate: { type: Date, default: Date.now },
-  
+   receiptUrl: { type: String },
+  receiptNumber: { type: String },
+  receiptGeneratedAt: { type: Date },
   // Payment Status - ✅ ADD 'for_verification'
   paymentStatus: {
     type: String,
@@ -53,6 +55,8 @@ const solarInvoiceSchema = new mongoose.Schema({
     proof: String,
     date: { type: Date, default: Date.now },
     notes: String,
+    receiptUrl: { type: String },
+    receiptNumber: { type: String },
     receivedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
   }],
   

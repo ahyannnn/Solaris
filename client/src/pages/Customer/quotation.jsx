@@ -36,8 +36,8 @@ const Quotation = () => {
   const [selectedPaymentPreference, setSelectedPaymentPreference] = useState('installment');
 
   // Filter states
-  const [typeFilter, setTypeFilter] = useState('all'); // all, pre-assessment, project
-  const [statusFilter, setStatusFilter] = useState('all'); // all, pending, paid, for_verification, partial, overdue
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
   const [freeQuotes, setFreeQuotes] = useState([]);
@@ -129,7 +129,10 @@ const Quotation = () => {
           panelsNeeded: assessment.quotation?.systemDetails?.panelsNeeded,
           inverterType: assessment.quotation?.systemDetails?.inverterType,
           batteryType: assessment.quotation?.systemDetails?.batteryType,
-          icon: <FaHome />
+          icon: <FaHome />,
+          // ✅ ADD RECEIPT FIELDS
+          receiptUrl: assessment.receiptUrl,
+          receiptNumber: assessment.receiptNumber
         })) || [];
 
       const transformedProjectBills = invoices.map(invoice => ({
@@ -154,7 +157,10 @@ const Quotation = () => {
         amountPaid: invoice.amountPaid,
         balance: invoice.balance,
         payments: invoice.payments,
-        icon: <FaBuilding />
+        icon: <FaBuilding />,
+        // ✅ ADD RECEIPT FIELDS
+        receiptUrl: invoice.receiptUrl,
+        receiptNumber: invoice.receiptNumber
       }));
 
       setPreAssessments(transformedPreAssessments);
@@ -167,13 +173,72 @@ const Quotation = () => {
       setLoading(false);
     }
   };
+  
+  // ✅ ADD RECEIPT HANDLER
+  const handleViewReceipt = async (item) => {
+    try {
+      let receiptUrl = null;
+      
+      if (item.type === 'pre-assessment') {
+        receiptUrl = item.receiptUrl;
+      } else if (item.type === 'project') {
+        receiptUrl = item.receiptUrl;
+      }
+      
+      if (!receiptUrl) {
+        showToast('No receipt available for this transaction', 'warning');
+        return;
+      }
+      
+      window.open(receiptUrl, '_blank');
+    } catch (error) {
+      console.error('Error viewing receipt:', error);
+      showToast('Failed to load receipt', 'error');
+    }
+  };
+
+  // ✅ ADD RECEIPT DOWNLOAD HANDLER
+  const handleDownloadReceipt = async (item) => {
+    try {
+      let receiptUrl = null;
+      let receiptNumber = null;
+      
+      if (item.type === 'pre-assessment') {
+        receiptUrl = item.receiptUrl;
+        receiptNumber = item.receiptNumber;
+      } else if (item.type === 'project') {
+        receiptUrl = item.receiptUrl;
+        receiptNumber = item.receiptNumber;
+      }
+      
+      if (!receiptUrl) {
+        showToast('No receipt available for this transaction', 'warning');
+        return;
+      }
+      
+      const response = await axios.get(receiptUrl, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Receipt-${receiptNumber || 'download'}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      showToast('Receipt downloaded successfully!', 'success');
+    } catch (error) {
+      console.error('Error downloading receipt:', error);
+      showToast('Failed to download receipt', 'error');
+    }
+  };
+
   const formatAddress = (address) => {
     if (!address) return 'No address provided';
-
-    // If address is already a string, return it
     if (typeof address === 'string') return address;
-
-    // If address is an object, format it properly
     const parts = [];
     if (address.houseOrBuilding) parts.push(address.houseOrBuilding);
     if (address.street) parts.push(address.street);
@@ -181,9 +246,9 @@ const Quotation = () => {
     if (address.cityMunicipality) parts.push(address.cityMunicipality);
     if (address.province) parts.push(address.province);
     if (address.zipCode) parts.push(address.zipCode);
-
     return parts.length > 0 ? parts.join(', ') : 'No address provided';
   };
+
   const handlePayMongoCardPayment = async () => {
     setIsSubmitting(true);
     try {
@@ -592,17 +657,14 @@ const Quotation = () => {
   const getFilteredItems = () => {
     let filtered = [...allItems];
 
-    // Apply type filter
     if (typeFilter !== 'all') {
       filtered = filtered.filter(item => item.type === typeFilter);
     }
 
-    // Apply status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(item => item.status === statusFilter);
     }
 
-    // Apply search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(item =>
@@ -614,7 +676,6 @@ const Quotation = () => {
       );
     }
 
-    // Sort by date (newest first)
     filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     return filtered;
@@ -791,6 +852,8 @@ const Quotation = () => {
                 return false;
               });
               const alreadyProjectCreated = isPreAssessment && (item.assessmentStatus === 'quotation_accepted' || projectExists);
+              // Check if receipt is available
+              const hasReceipt = item.receiptUrl;
 
               return (
                 <div key={index} className={`cuspro-item-card ${item.type}`}>
@@ -869,8 +932,26 @@ const Quotation = () => {
                       </span>
                     )}
 
-                    {/* Paid badge */}
-                    {item.status === 'paid' && isPreAssessment && (
+                    {/* ✅ RECEIPT BUTTON - For paid transactions */}
+                    {item.status === 'paid' && hasReceipt && (
+                      <>
+                        <button
+                          className="cuspro-receipt-btn"
+                          onClick={() => handleViewReceipt(item)}
+                        >
+                          <FaReceipt /> View Receipt
+                        </button>
+                        <button
+                          className="cuspro-download-receipt-btn"
+                          onClick={() => handleDownloadReceipt(item)}
+                        >
+                          <FaDownload /> Receipt
+                        </button>
+                      </>
+                    )}
+
+                    {/* Paid badge for pre-assessment without receipt yet */}
+                    {item.status === 'paid' && isPreAssessment && !hasReceipt && (
                       <>
                         {hasQuotation && !alreadyProjectCreated && (
                           <>
@@ -907,7 +988,7 @@ const Quotation = () => {
                     )}
 
                     {/* Project paid badge */}
-                    {item.status === 'paid' && !isPreAssessment && (
+                    {item.status === 'paid' && !isPreAssessment && !hasReceipt && (
                       <span className="cuspro-paid-badge">
                         <FaCheckCircle /> Payment Completed
                       </span>
@@ -1184,6 +1265,9 @@ const Quotation = () => {
                       <p><strong>Amount:</strong> {formatCurrency(detailsItem.amount)}</p>
                       <p><strong>Date:</strong> {detailsItem.date}</p>
                       <p><strong>Due Date:</strong> {detailsItem.dueDate}</p>
+                      {detailsItem.receiptUrl && (
+                        <p><strong>Receipt:</strong> <a href={detailsItem.receiptUrl} target="_blank" rel="noopener noreferrer">View Receipt</a></p>
+                      )}
                     </div>
                     <div className="cuspro-details-section">
                       <h4>Assessment Details</h4>
@@ -1216,6 +1300,9 @@ const Quotation = () => {
                       <p><strong>Status:</strong> {detailsItem.status}</p>
                       <p><strong>Date:</strong> {detailsItem.date}</p>
                       <p><strong>Due Date:</strong> {detailsItem.dueDate}</p>
+                      {detailsItem.receiptUrl && (
+                        <p><strong>Receipt:</strong> <a href={detailsItem.receiptUrl} target="_blank" rel="noopener noreferrer">View Receipt</a></p>
+                      )}
                       {detailsItem.invoiceType && (
                         <p><strong>Invoice Type:</strong> {
                           detailsItem.invoiceType === 'initial' ? 'Initial (30%)' :

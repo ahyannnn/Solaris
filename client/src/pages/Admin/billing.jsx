@@ -17,7 +17,8 @@ import {
   FaTrash,
   FaSave,
   FaTimes,
-  FaChevronDown
+  FaChevronDown,
+  FaReceipt
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/billing.css';
@@ -37,6 +38,7 @@ const AdminBilling = () => {
     notes: ''
   });
   const [verificationNote, setVerificationNote] = useState('');
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   // Solar Invoice state (Project bills)
   const [solarInvoices, setSolarInvoices] = useState([]);
@@ -234,7 +236,9 @@ const AdminBilling = () => {
           status: a.paymentStatus,
           date: a.confirmedAt || a.bookedAt,
           client: `${a.clientId?.contactFirstName} ${a.clientId?.contactLastName}`,
-          gateway: a.paymentGateway
+          gateway: a.paymentGateway,
+          receiptUrl: a.receiptUrl,
+          receiptNumber: a.receiptNumber
         }));
 
       const solarPayments = solarRes.data.invoices
@@ -251,7 +255,9 @@ const AdminBilling = () => {
           client: `${i.clientId?.contactFirstName} ${i.clientId?.contactLastName}`,
           gateway: 'manual',
           projectName: i.projectId?.projectName,
-          projectId: i.projectId?._id
+          projectId: i.projectId?._id,
+          receiptUrl: i.receiptUrl,
+          receiptNumber: i.receiptNumber
         })));
 
       let allTransactions = [...prePayments, ...solarPayments].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -326,16 +332,91 @@ const AdminBilling = () => {
     }
   };
 
+  // ============ RECEIPT HANDLERS ============
+  const handleViewReceipt = async (item, type) => {
+    try {
+      let receiptUrl = null;
+      
+      if (type === 'pre-assessment') {
+        receiptUrl = item.receiptUrl;
+      } else if (type === 'solar-invoice') {
+        receiptUrl = item.receiptUrl;
+      } else if (type === 'transaction') {
+        receiptUrl = item.receiptUrl;
+      }
+      
+      if (!receiptUrl) {
+        showToast('No receipt available for this transaction', 'warning');
+        return;
+      }
+      
+      window.open(receiptUrl, '_blank');
+      setOpenDropdownId(null);
+    } catch (error) {
+      console.error('Error viewing receipt:', error);
+      showToast('Failed to load receipt', 'error');
+    }
+  };
+
+  const handleDownloadReceipt = async (item, type) => {
+    try {
+      let receiptUrl = null;
+      let receiptNumber = null;
+      
+      if (type === 'pre-assessment') {
+        receiptUrl = item.receiptUrl;
+        receiptNumber = item.receiptNumber;
+      } else if (type === 'solar-invoice') {
+        receiptUrl = item.receiptUrl;
+        receiptNumber = item.receiptNumber;
+      } else if (type === 'transaction') {
+        receiptUrl = item.receiptUrl;
+        receiptNumber = item.receiptNumber;
+      }
+      
+      if (!receiptUrl) {
+        showToast('No receipt available for this transaction', 'warning');
+        return;
+      }
+      
+      const response = await axios.get(receiptUrl, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Receipt-${receiptNumber || 'download'}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      showToast('Receipt downloaded successfully!', 'success');
+      setOpenDropdownId(null);
+    } catch (error) {
+      console.error('Error downloading receipt:', error);
+      showToast('Failed to download receipt', 'error');
+    }
+  };
+
   const handleVerifyPayment = async (verified) => {
     if (!selectedAssessment) return;
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
-      await axios.put(
+      const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedAssessment._id}/verify-payment`,
         { verified, notes: verificationNote },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      // Show receipt info if available
+      if (verified && response.data.receipt) {
+        showToast(`Payment verified! Receipt: ${response.data.receipt.number}`, 'success');
+      } else {
+        showToast(verified ? 'Payment verified successfully!' : 'Payment rejected', verified ? 'success' : 'warning');
+      }
 
       fetchPreAssessments();
       fetchStats();
@@ -343,7 +424,6 @@ const AdminBilling = () => {
       setSelectedAssessment(null);
       setVerificationNote('');
       setOpenDropdownId(null);
-      showToast(verified ? 'Payment verified successfully!' : 'Payment rejected', verified ? 'success' : 'warning');
     } catch (error) {
       console.error('Error verifying payment:', error);
       showToast('Failed to verify payment', 'error');
@@ -404,12 +484,17 @@ const AdminBilling = () => {
       const token = sessionStorage.getItem('token');
       
       if (verified) {
-        await axios.put(
+        const response = await axios.put(
           `${import.meta.env.VITE_API_URL}/api/solar-invoices/${invoice._id}/verify`,
           { verified: true, notes: verificationNote },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        showToast('Payment verified successfully!', 'success');
+        
+        if (response.data.receipt) {
+          showToast(`Payment verified! Receipt: ${response.data.receipt.number}`, 'success');
+        } else {
+          showToast('Payment verified successfully!', 'success');
+        }
       } else {
         await axios.put(
           `${import.meta.env.VITE_API_URL}/api/solar-invoices/${invoice._id}/reject-payment`,
@@ -646,6 +731,22 @@ const AdminBilling = () => {
       }
     ];
 
+    // Add receipt actions if receipt exists
+    if (assessment.receiptUrl) {
+      actions.push(
+        { 
+          label: 'View Receipt', 
+          action: () => handleViewReceipt(assessment, 'pre-assessment'), 
+          color: 'info' 
+        },
+        { 
+          label: 'Download Receipt', 
+          action: () => handleDownloadReceipt(assessment, 'pre-assessment'), 
+          color: 'success' 
+        }
+      );
+    }
+
     if (assessment.paymentMethod === 'gcash' && assessment.paymentStatus === 'for_verification') {
       actions.push(
         { label: 'View Proof', action: () => { if (assessment.paymentProof) window.open(assessment.paymentProof, '_blank'); setOpenDropdownId(null); } },
@@ -674,6 +775,22 @@ const AdminBilling = () => {
         action: () => { handleDownloadInvoice(invoice); setOpenDropdownId(null); }
       }
     ];
+
+    // Add receipt actions if receipt exists
+    if (invoice.receiptUrl) {
+      actions.push(
+        { 
+          label: 'View Receipt', 
+          action: () => handleViewReceipt(invoice, 'solar-invoice'), 
+          color: 'info' 
+        },
+        { 
+          label: 'Download Receipt', 
+          action: () => handleDownloadReceipt(invoice, 'solar-invoice'), 
+          color: 'success' 
+        }
+      );
+    }
 
     if (invoice.status === 'draft') {
       actions.push(
@@ -840,12 +957,13 @@ const AdminBilling = () => {
                     <th>Gateway</th>
                     <th>Payment</th>
                     <th>Assessment</th>
+                    <th>Receipt</th>
                     <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {assessments.length === 0 ? (
-                    <tr><td colSpan="9" className="empty-state-adminbilling">No pre-assessments found</td></tr>
+                    <tr><td colSpan="10" className="empty-state-adminbilling">No pre-assessments found</td></tr>
                   ) : (
                     assessments.map(assessment => {
                       const actions = getPreAssessmentActions(assessment);
@@ -862,6 +980,21 @@ const AdminBilling = () => {
                           <td>{getGatewayBadge(assessment)}</td>
                           <td>{getPaymentStatusBadge(assessment.paymentStatus)}</td>
                           <td>{getAssessmentStatusBadge(assessment.assessmentStatus)}</td>
+                          <td className="receipt-cell-adminbilling">
+                            {assessment.receiptUrl ? (
+                              <a 
+                                href={assessment.receiptUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="receipt-link-adminbilling"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <FaReceipt /> View
+                              </a>
+                            ) : (
+                              <span className="no-receipt">—</span>
+                            )}
+                          </td>
                           <td style={{ textAlign: 'center', position: 'relative' }}>
                             {autoVerified ? (
                               <span className="verified-badge-adminbilling auto-verified">Auto-Verified</span>
@@ -920,12 +1053,13 @@ const AdminBilling = () => {
                     <th>Paid</th>
                     <th>Balance</th>
                     <th>Status</th>
+                    <th>Receipt</th>
                     <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {solarInvoices.length === 0 ? (
-                    <tr><td colSpan="10" className="empty-state-adminbilling">No solar invoices found</td></tr>
+                    <tr><td colSpan="11" className="empty-state-adminbilling">No solar invoices found</td></tr>
                   ) : (
                     solarInvoices.map(invoice => {
                       const actions = getSolarInvoiceActions(invoice);
@@ -943,6 +1077,21 @@ const AdminBilling = () => {
                           <td className="amount-adminbilling">{formatCurrency(invoice.amountPaid)}</td>
                           <td className="amount-adminbilling balance-adminbilling">{formatCurrency(invoice.balance)}</td>
                           <td>{getPaymentStatusBadge(invoice.paymentStatus)}</td>
+                          <td className="receipt-cell-adminbilling">
+                            {invoice.receiptUrl ? (
+                              <a 
+                                href={invoice.receiptUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="receipt-link-adminbilling"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <FaReceipt /> View
+                              </a>
+                            ) : (
+                              <span className="no-receipt">—</span>
+                            )}
+                          </td>
                           <td style={{ textAlign: 'center', position: 'relative' }}>
                             {autoVerified ? (
                               <span className="verified-badge-adminbilling auto-verified">Auto-Verified</span>
@@ -995,11 +1144,12 @@ const AdminBilling = () => {
                   <th>Amount</th>
                   <th>Method</th>
                   <th>Status</th>
+                  <th>Receipt</th>
                 </tr>
               </thead>
               <tbody>
                 {transactions.length === 0 ? (
-                  <tr><td colSpan="8" className="empty-state-adminbilling">No transactions found</td></tr>
+                  <tr><td colSpan="9" className="empty-state-adminbilling">No transactions found</td></tr>
                 ) : (
                   transactions.map(transaction => (
                     <tr key={transaction.id}>
@@ -1011,6 +1161,20 @@ const AdminBilling = () => {
                       <td className="amount-adminbilling">{formatCurrency(transaction.amount)}</td>
                       <td>{transaction.method?.toUpperCase()}</td>
                       <td>{getPaymentStatusBadge(transaction.status)}</td>
+                      <td className="receipt-cell-adminbilling">
+                        {transaction.receiptUrl ? (
+                          <a 
+                            href={transaction.receiptUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="receipt-link-adminbilling"
+                          >
+                            <FaReceipt /> View
+                          </a>
+                        ) : (
+                          <span className="no-receipt">—</span>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}
@@ -1019,7 +1183,6 @@ const AdminBilling = () => {
           </div>
         )}
 
-        {/* Modals remain the same - Verify, Edit Status, Solar Verify, Invoice, Payment */}
         {/* Verify Payment Modal */}
         {showVerifyModal && selectedAssessment && (
           <div className="modal-overlay-adminbilling" onClick={() => setShowVerifyModal(false)}>
@@ -1063,7 +1226,7 @@ const AdminBilling = () => {
                     <option value="">Select</option>
                     <option value="pending">Pending</option>
                     <option value="paid">Paid</option>
-                    <option value="failed">Failed</option>
+                    <option value="failed">Cancel</option>
                   </select>
                 </div>
                 <div className="verification-notes-adminbilling">
@@ -1153,6 +1316,9 @@ const AdminBilling = () => {
                       <p><strong>Total:</strong> {formatCurrency(selectedInvoice.totalAmount)}</p>
                       <p><strong>Paid:</strong> {formatCurrency(selectedInvoice.amountPaid)}</p>
                       <p><strong>Balance:</strong> {formatCurrency(selectedInvoice.balance)}</p>
+                      {selectedInvoice.receiptUrl && (
+                        <p><strong>Receipt:</strong> <a href={selectedInvoice.receiptUrl} target="_blank" rel="noopener noreferrer">View Receipt</a></p>
+                      )}
                     </div>
                     <div className="modal-actions-adminbilling">
                       <button className="cancel-btn-adminbilling" onClick={() => setShowInvoiceModal(false)}>Close</button>
@@ -1193,6 +1359,29 @@ const AdminBilling = () => {
                 <button className="record-btn-adminbilling" onClick={handleRecordPayment} disabled={!paymentData.amount || isSubmitting}>
                   {isSubmitting ? 'Recording...' : 'Record'}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Detail Modal for Pre-assessment */}
+        {showDetailModal && selectedAssessment && (
+          <div className="modal-overlay-adminbilling" onClick={() => setShowDetailModal(false)}>
+            <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
+              <h3>Pre-Assessment Details</h3>
+              <div className="detail-section-adminbilling">
+                <p><strong>Booking Ref:</strong> {selectedAssessment.bookingReference}</p>
+                <p><strong>Invoice:</strong> {selectedAssessment.invoiceNumber}</p>
+                <p><strong>Client:</strong> {selectedAssessment.clientId?.contactFirstName} {selectedAssessment.clientId?.contactLastName}</p>
+                <p><strong>Amount:</strong> {formatCurrency(selectedAssessment.assessmentFee)}</p>
+                <p><strong>Payment Status:</strong> {getPaymentStatusBadge(selectedAssessment.paymentStatus)}</p>
+                <p><strong>Assessment Status:</strong> {getAssessmentStatusBadge(selectedAssessment.assessmentStatus)}</p>
+                {selectedAssessment.receiptUrl && (
+                  <p><strong>Receipt:</strong> <a href={selectedAssessment.receiptUrl} target="_blank" rel="noopener noreferrer">View Receipt</a></p>
+                )}
+              </div>
+              <div className="modal-actions-adminbilling">
+                <button className="cancel-btn-adminbilling" onClick={() => setShowDetailModal(false)}>Close</button>
               </div>
             </div>
           </div>

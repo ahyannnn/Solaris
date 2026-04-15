@@ -32,13 +32,13 @@ const LoginPage = () => {
   // IMPROVED: Selective storage clearing (NO FLICKERING!)
   const clearAuthStorage = () => {
     const keysToRemove = [
-      'token', 
-      'userName', 
-      'userEmail', 
-      'userRole', 
+      'token',
+      'userName',
+      'userEmail',
+      'userRole',
       'userPhotoURL'
     ];
-    
+
     keysToRemove.forEach(key => {
       localStorage.removeItem(key);
       sessionStorage.removeItem(key);
@@ -80,102 +80,95 @@ const LoginPage = () => {
     } else if (!formData.email.endsWith('@gmail.com')) {
       newErrors.email = 'Please use a valid @gmail.com email address';
     }
-    
+
     if (!formData.password) {
       newErrors.password = 'Password is required';
     }
-    
+
     return newErrors;
   };
 
   // In LoginPage.jsx, after successful authentication, add setup check:
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  if (isNavigating) return;
-  
-  const newErrors = validateForm();
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors);
-    return;
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  setIsLoading(true);
-  setErrors({});
-  setIsNavigating(true);
+    if (isNavigating) return;
 
-  try {
-    const apiUrl = `${import.meta.env.VITE_API_URL}/api/auth/login`;
-    
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: formData.email,
-        password: formData.password,
-        rememberMe
-      }),
-    });
-
-    const responseText = await response.text();
-
-    if (!response.ok) {
-      throw new Error(parseError(responseText));
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
     }
 
-    const data = JSON.parse(responseText);
+    setIsLoading(true);
+    setErrors({});
+    setIsNavigating(true);
 
-    if (data.token && data.user) {
-      // SELECTIVE CLEAR - NO FLICKERING!
-      clearAuthStorage();
-      
-      // BATCH STORAGE - prevents race conditions
-      const storage = rememberMe ? localStorage : sessionStorage;
-      const cleanedToken = cleanToken(data.token);
-      
-      const userData = {
-        token: cleanedToken,
-        userName: data.user.fullName || '',
-        userEmail: data.user.email || '',
-        userRole: data.user.role || 'user',
-        userPhotoURL: data.user.photoURL || '',
-        userId: data.user.id || '',
-        // Store setup status
-        hasCompletedSetup: data.user.account_setup || data.user.isSetupCompleted || false
-      };
-      
-      // Store ALL data together
-      Object.entries(userData).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          storage.setItem(key, value);
-        }
+    try {
+      const apiUrl = `${import.meta.env.VITE_API_URL}/api/auth/login`;
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          rememberMe
+        }),
       });
-      
-      // Trigger storage event & navigate based on setup status
-      setTimeout(() => {
-        window.dispatchEvent(new Event('storage'));
-        
-        // Check if user needs to complete setup
-        const needsSetup = !userData.hasCompletedSetup;
-        
-        if (needsSetup && userData.userRole === 'user') {
-          navigate("/setup", { replace: true });
-        } else {
+
+      const responseText = await response.text();
+
+      if (!response.ok) {
+        throw new Error(parseError(responseText));
+      }
+
+      const data = JSON.parse(responseText);
+
+      if (data.token && data.user) {
+        clearAuthStorage();
+
+        const storage = rememberMe ? localStorage : sessionStorage;
+        const cleanedToken = cleanToken(data.token);
+
+        const userData = {
+          token: cleanedToken,
+          userName: data.user.fullName || '',
+          userEmail: data.user.email || '',
+          userRole: data.user.role || 'user',
+          userPhotoURL: data.user.photoURL || '',
+          userId: data.user.id || ''
+          // REMOVE hasCompletedSetup - don't store it
+        };
+
+        Object.entries(userData).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            storage.setItem(key, value);
+          }
+        });
+
+        // Clear any stale setup flag
+        storage.removeItem('hasCompletedSetup');
+        localStorage.removeItem('hasCompletedSetup');
+        sessionStorage.removeItem('hasCompletedSetup');
+
+        setTimeout(() => {
+          window.dispatchEvent(new Event('storage'));
+          // Always go to app - let SetupGuard handle redirect
           navigate("/app", { replace: true });
-        }
-      }, 50);
+        }, 50);
+      }
+
+    } catch (err) {
+      setErrors({ general: err.message });
+    } finally {
+      setIsLoading(false);
+      setIsNavigating(false);
     }
-    
-  } catch (err) {
-    setErrors({ general: err.message });
-  } finally {
-    setIsLoading(false);
-    setIsNavigating(false);
-  }
-};
+  };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -184,7 +177,7 @@ const handleSubmit = async (e) => {
   // IMPROVED: Centralized error handling
   const handleAuthError = (error) => {
     console.error("Auth error:", error);
-    
+
     if (error.code?.includes('popup') || error.code === 'auth/popup-closed-by-user') {
       setErrors({ general: 'Login cancelled. Please try again.' });
     } else if (error.code === 'auth/popup-blocked') {
@@ -199,7 +192,7 @@ const handleSubmit = async (e) => {
   // IMPROVED: Google Login (ANTI-FLICKER)
   const handleGoogleLogin = async () => {
     if (socialLoading === 'google' || isNavigating) return;
-    
+
     try {
       setSocialLoading('google');
       setErrors({});
@@ -238,10 +231,10 @@ const handleSubmit = async (e) => {
       if (data.token && data.user) {
         // SELECTIVE CLEAR - NO FLICKERING!
         clearAuthStorage();
-        
+
         const storage = rememberMe ? localStorage : sessionStorage;
         const cleanedToken = cleanToken(data.token);
-        
+
         const userData = {
           token: cleanedToken,
           userName: data.user.fullName || '',
@@ -249,11 +242,11 @@ const handleSubmit = async (e) => {
           userRole: data.user.role || 'user',
           userPhotoURL: data.user.photoURL || ''
         };
-        
+
         Object.entries(userData).forEach(([key, value]) => {
           storage.setItem(key, value);
         });
-        
+
         setTimeout(() => {
           window.dispatchEvent(new Event('storage'));
           navigate("/app", { replace: true });
@@ -273,7 +266,7 @@ const handleSubmit = async (e) => {
       <Helmet>
         <title>Sign In | Salfer Engineering</title>
       </Helmet>
-      
+
       <div className="login-page-login">
         <div className="login-card-login">
           {/* LEFT SIDE - Branding */}
@@ -370,8 +363,8 @@ const handleSubmit = async (e) => {
 
                 {/* REMEMBER ME & FORGOT PASSWORD */}
                 <div className="row-actions-login">
-                  
-                  
+
+
                   <Link to="/forgotpassword" className="forgot-link-login">
                     Forgot password?
                   </Link>

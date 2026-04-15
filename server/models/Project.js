@@ -51,7 +51,10 @@ const projectSchema = new mongoose.Schema({
     invoiceNumber: String,
     paymentGateway: { type: String, enum: ['paymongo', 'manual'], default: 'manual' },
     paymentProof: String,
-    paymentReference: String
+    paymentReference: String,
+    receiptUrl: { type: String },
+  receiptNumber: { type: String },
+  receiptGeneratedAt: { type: Date }
   }],
 
   // Project Timeline

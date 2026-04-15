@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const PayMongoService = require('../services/paymongoService');
 const File = require('../models/File');
 const { processUpload, getFileUrl, deleteFile } = require('../middleware/uploadMiddleware');
+const receiptService = require('../services/receiptService');
 
 // Helper function to format currency (for project updates)
 const formatCurrencyHelper = (amount) => {
@@ -363,7 +364,9 @@ exports.verifySolarInvoicePayment = async (req, res) => {
     const adminId = req.user.id;
 
     const invoice = await SolarInvoice.findById(id)
-      .populate('projectId');
+      .populate('projectId')
+      .populate('clientId', 'contactFirstName contactLastName contactNumber userId')
+      .populate('clientId.userId', 'email');
 
     if (!invoice) {
       return res.status(404).json({ message: 'Invoice not found' });
@@ -373,22 +376,61 @@ exports.verifySolarInvoicePayment = async (req, res) => {
       return res.status(400).json({ message: 'Invoice not pending verification' });
     }
 
+    let receipt = null;
+
     if (verified) {
       invoice.paymentStatus = 'paid';
       invoice.status = 'paid';
       invoice.paidAt = new Date();
       invoice.amountPaid = invoice.totalAmount;
       invoice.balance = 0;
+      invoice.verifiedBy = adminId;
+      invoice.verifiedAt = new Date();
 
       // Update the payment record
       const gcashPayment = invoice.payments.find(p => p.method === 'gcash');
       if (gcashPayment) {
         gcashPayment.notes = `Verified by admin on ${new Date().toLocaleString()}. Notes: ${notes || 'N/A'}`;
+        gcashPayment.verifiedBy = adminId;
+        gcashPayment.verifiedAt = new Date();
       }
 
       invoice.adminRemarks = notes || 'Payment verified';
-      invoice.verifiedBy = adminId;
-      invoice.verifiedAt = new Date();
+
+      // ✅ GENERATE RECEIPT
+      try {
+        const customerName = `${invoice.clientId?.contactFirstName || ''} ${invoice.clientId?.contactLastName || ''}`.trim();
+        const paymentAmount = invoice.totalAmount;
+        const gcashPaymentRef = invoice.payments.find(p => p.method === 'gcash')?.reference;
+        
+        receipt = await receiptService.generateReceipt({
+          paymentType: invoice.invoiceType, // 'initial', 'progress', 'final', 'full'
+          amount: paymentAmount,
+          paymentMethod: 'gcash', // Since this is for GCash manual verification
+          referenceNumber: gcashPaymentRef || invoice.payments[0]?.reference,
+          invoiceNumber: invoice.invoiceNumber,
+          projectName: invoice.projectId?.projectName,
+          customer: {
+            id: invoice.clientId?._id,
+            name: customerName,
+            contact: invoice.clientId?.contactNumber,
+            email: invoice.clientId?.userId?.email
+          },
+          projectId: invoice.projectId?._id,
+          invoiceId: invoice._id,
+          verifiedBy: adminId,
+          verifiedAt: new Date(),
+          notes: notes
+        });
+
+        invoice.receiptUrl = receipt.receiptUrl;
+        invoice.receiptNumber = receipt.receiptNumber;
+        
+        console.log(`✅ Receipt generated for invoice ${invoice.invoiceNumber}: ${receipt.receiptNumber}`);
+      } catch (receiptError) {
+        console.error('Receipt generation error:', receiptError);
+        // Don't block verification if receipt fails
+      }
 
       // ✅ CRITICAL: Update the project's payment schedule and status
       if (invoice.projectId) {
@@ -407,6 +449,11 @@ exports.verifySolarInvoicePayment = async (req, res) => {
             scheduleItem.paymentReference = invoice.payments.find(p => p.method === 'gcash')?.reference ||
               invoice.payments[0]?.reference ||
               `INV-${invoice.invoiceNumber}`;
+            
+            // ✅ Store receipt info in payment schedule
+            scheduleItem.receiptUrl = receipt?.receiptUrl;
+            scheduleItem.receiptNumber = receipt?.receiptNumber;
+            
             console.log(`✅ Updated payment schedule for ${invoice.invoiceType} payment`);
           }
 
@@ -415,7 +462,7 @@ exports.verifySolarInvoicePayment = async (req, res) => {
           project.amountPaid = (project.amountPaid || 0) + paymentAmount;
           project.balance = project.totalCost - project.amountPaid;
 
-          // ✅ FIXED: Update project status based on payment type - ALWAYS use full_paid for full payments
+          // ✅ FIXED: Update project status based on payment type
           if (invoice.invoiceType === 'initial') {
             if (project.status === 'approved') {
               project.status = 'initial_paid';
@@ -425,10 +472,8 @@ exports.verifySolarInvoicePayment = async (req, res) => {
               project.status = 'progress_paid';
             }
           } else if (invoice.invoiceType === 'full') {
-            // ✅ Set to full_paid, NOT completed
             project.fullPaymentCompleted = true;
             project.status = 'full_paid';
-            // DO NOT set actualCompletionDate - installation hasn't started
             console.log(`✅ Project ${project.projectReference} status updated to full_paid`);
           }
 
@@ -445,7 +490,7 @@ exports.verifySolarInvoicePayment = async (req, res) => {
           project.projectUpdates = project.projectUpdates || [];
           project.projectUpdates.push({
             title: `Payment Verified - ${invoice.invoiceType.toUpperCase()}`,
-            description: `Payment of ${formatCurrencyHelper(paymentAmount)} for ${invoice.invoiceType} payment has been verified. Project status: ${project.status}`,
+            description: `Payment of ${formatCurrencyHelper(paymentAmount)} for ${invoice.invoiceType} payment has been verified. Receipt: ${receipt?.receiptNumber || 'N/A'}`,
             status: project.status,
             updatedBy: adminId
           });
@@ -463,6 +508,8 @@ exports.verifySolarInvoicePayment = async (req, res) => {
       const gcashPayment = invoice.payments.find(p => p.method === 'gcash');
       if (gcashPayment) {
         gcashPayment.notes = `REJECTED by admin on ${new Date().toLocaleString()}. Reason: ${notes || 'No reason provided'}`;
+        gcashPayment.verifiedBy = null;
+        gcashPayment.verifiedAt = null;
       }
 
       // Reset project payment schedule
@@ -474,6 +521,8 @@ exports.verifySolarInvoicePayment = async (req, res) => {
             scheduleItem.status = 'pending';
             scheduleItem.paymentReference = null;
             scheduleItem.paymentProof = null;
+            scheduleItem.receiptUrl = null;
+            scheduleItem.receiptNumber = null;
             await project.save();
           }
         }
@@ -485,11 +534,17 @@ exports.verifySolarInvoicePayment = async (req, res) => {
     res.json({
       success: true,
       message: verified ? 'Payment verified successfully' : 'Payment rejected',
+      receipt: receipt ? {
+        url: receipt.receiptUrl,
+        number: receipt.receiptNumber
+      } : null,
       invoice: {
         id: invoice._id,
         invoiceNumber: invoice.invoiceNumber,
         paymentStatus: invoice.paymentStatus,
-        status: invoice.status
+        status: invoice.status,
+        receiptUrl: invoice.receiptUrl,
+        receiptNumber: invoice.receiptNumber
       }
     });
 

@@ -236,7 +236,11 @@ preAssessmentSchema.add({
       estimatedAnnualProduction: { type: Number, default: 0 },
       estimatedAnnualSavings: { type: Number, default: 0 }
     }
-  }
+  },
+  receiptUrl: { type: String },
+  receiptNumber: { type: String },
+  verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  verifiedAt: Date
 });
 
 module.exports = mongoose.model('PreAssessment', preAssessmentSchema);

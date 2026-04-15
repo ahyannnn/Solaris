@@ -9,6 +9,7 @@ const PDFGenerator = require('../services/pdfGenerator');
 const cloudinary = require('cloudinary').v2;
 const mongoose = require('mongoose');
 const PayMongoService = require('../services/paymongoService');
+const receiptService = require('../services/receiptService');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -1009,35 +1010,67 @@ exports.verifyPayment = async (req, res) => {
   try {
     const { id } = req.params;
     const { verified, notes } = req.body;
+    const adminId = req.user.id;
 
-    const preAssessment = await PreAssessment.findById(id);
+    const preAssessment = await PreAssessment.findById(id)
+      .populate('clientId', 'contactFirstName contactLastName contactNumber userId')
+      .populate('clientId.userId', 'email');
+
     if (!preAssessment) {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
-    // ✅ REMOVED the restriction that was blocking GCash verification
-    // The old code had: if (preAssessment.paymentGateway === 'paymongo') { return error }
-    // Now we allow verification for manual GCash payments
-
-    // Only allow verification for manual payments (GCash manual upload, Cash)
-    // Skip for PayMongo auto-verified payments
     if (preAssessment.paymentGateway === 'paymongo' && preAssessment.autoVerified === true) {
       return res.status(400).json({
         message: 'PayMongo payments are auto-verified and cannot be manually verified'
       });
     }
 
-    // Allow verification for GCash manual and Cash payments
+    let receipt = null;
+
     if (verified) {
       preAssessment.paymentStatus = 'paid';
       preAssessment.assessmentStatus = 'scheduled';
       preAssessment.confirmedAt = new Date();
       preAssessment.adminRemarks = notes || 'Payment verified by admin';
+      preAssessment.verifiedBy = adminId;
+      preAssessment.verifiedAt = new Date();
 
-      // If this is a GCash manual payment, mark it as verified
       if (preAssessment.paymentMethod === 'gcash') {
-        preAssessment.autoVerified = false; // Manual verification, not auto
+        preAssessment.autoVerified = false;
       }
+
+      // ✅ GENERATE RECEIPT
+      try {
+        const customerName = `${preAssessment.clientId.contactFirstName || ''} ${preAssessment.clientId.contactLastName || ''}`.trim();
+        
+        receipt = await receiptService.generateReceipt({
+          paymentType: 'pre_assessment',
+          amount: preAssessment.assessmentFee,
+          paymentMethod: preAssessment.paymentMethod || 'cash',
+          referenceNumber: preAssessment.paymentReference,
+          invoiceNumber: preAssessment.invoiceNumber,
+          customer: {
+            id: preAssessment.clientId._id,
+            name: customerName,
+            contact: preAssessment.clientId.contactNumber,
+            email: preAssessment.clientId.userId?.email
+          },
+          preAssessmentId: preAssessment._id,
+          verifiedBy: adminId,
+          verifiedAt: new Date(),
+          notes: notes
+        });
+
+        preAssessment.receiptUrl = receipt.receiptUrl;
+        preAssessment.receiptNumber = receipt.receiptNumber;
+        
+        console.log(`✅ Receipt generated for pre-assessment ${preAssessment.bookingReference}: ${receipt.receiptNumber}`);
+      } catch (receiptError) {
+        console.error('Receipt generation error:', receiptError);
+        // Don't block verification if receipt fails, just log it
+      }
+
     } else {
       preAssessment.paymentStatus = 'failed';
       preAssessment.assessmentStatus = 'cancelled';
@@ -1049,12 +1082,18 @@ exports.verifyPayment = async (req, res) => {
     res.json({
       success: true,
       message: verified ? 'Payment verified successfully' : 'Payment rejected',
+      receipt: receipt ? {
+        url: receipt.receiptUrl,
+        number: receipt.receiptNumber
+      } : null,
       booking: {
         _id: preAssessment._id,
         bookingReference: preAssessment.bookingReference,
         invoiceNumber: preAssessment.invoiceNumber,
         paymentStatus: preAssessment.paymentStatus,
-        assessmentStatus: preAssessment.assessmentStatus
+        assessmentStatus: preAssessment.assessmentStatus,
+        receiptUrl: preAssessment.receiptUrl,
+        receiptNumber: preAssessment.receiptNumber
       }
     });
 
@@ -1849,15 +1888,18 @@ exports.getMyPreAssessments = async (req, res) => {
       address: assessment.addressId,
       iotDeviceId: assessment.iotDeviceId,
       paymentMethod: assessment.paymentMethod,
-      paymentGateway: assessment.paymentGateway,  // ADD THIS LINE ONLY
-      autoVerified: assessment.autoVerified,      // ADD THIS LINE ONLY
+      paymentGateway: assessment.paymentGateway,
+      autoVerified: assessment.autoVerified,
       paymentProof: assessment.paymentProof,
       paymentReference: assessment.paymentReference,
       quotation: assessment.quotation,
       finalQuotation: assessment.finalQuotation,
-      quotationUrl: assessment.quotation?.quotationUrl || assessment.finalQuotation
+      quotationUrl: assessment.quotation?.quotationUrl || assessment.finalQuotation,
+      // ✅ ADD RECEIPT FIELDS
+      receiptUrl: assessment.receiptUrl,
+      receiptNumber: assessment.receiptNumber
     }));
-
+    console.log(formattedAssessments.receiptUrl);
     res.json({
       success: true,
       assessments: formattedAssessments
@@ -1875,23 +1917,77 @@ exports.updatePaymentStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { paymentStatus, assessmentStatus, notes } = req.body;
+    const adminId = req.user.id;
 
-    const assessment = await PreAssessment.findById(id);
+    const assessment = await PreAssessment.findById(id)
+      .populate('clientId', 'contactFirstName contactLastName contactNumber userId')
+      .populate('clientId.userId', 'email');
+
     if (!assessment) {
       return res.status(404).json({ message: 'Pre-assessment not found' });
     }
 
+    const oldStatus = assessment.paymentStatus;
+    
     assessment.paymentStatus = paymentStatus;
     assessment.assessmentStatus = assessmentStatus;
     if (notes) assessment.adminRemarks = notes;
-    assessment.confirmedAt = paymentStatus === 'paid' ? new Date() : assessment.confirmedAt;
+    
+    let receipt = null;
+
+    // ✅ GENERATE RECEIPT WHEN MARKING AS PAID
+    if (paymentStatus === 'paid' && oldStatus !== 'paid') {
+      assessment.confirmedAt = new Date();
+      assessment.verifiedBy = adminId;
+      assessment.verifiedAt = new Date();
+
+      try {
+        const customerName = `${assessment.clientId.contactFirstName || ''} ${assessment.clientId.contactLastName || ''}`.trim();
+        
+        receipt = await receiptService.generateReceipt({
+          paymentType: 'pre_assessment',
+          amount: assessment.assessmentFee,
+          paymentMethod: assessment.paymentMethod || 'cash',
+          referenceNumber: assessment.paymentReference || `CASH-${assessment.bookingReference}`,
+          invoiceNumber: assessment.invoiceNumber,
+          customer: {
+            id: assessment.clientId._id,
+            name: customerName,
+            contact: assessment.clientId.contactNumber,
+            email: assessment.clientId.userId?.email
+          },
+          preAssessmentId: assessment._id,
+          verifiedBy: adminId,
+          verifiedAt: new Date(),
+          notes: notes || 'Cash payment marked as paid by admin'
+        });
+
+        assessment.receiptUrl = receipt.receiptUrl;
+        assessment.receiptNumber = receipt.receiptNumber;
+        
+        console.log(`✅ Receipt generated for cash payment: ${receipt.receiptNumber}`);
+      } catch (receiptError) {
+        console.error('Receipt generation error:', receiptError);
+        // Don't block status update if receipt fails
+      }
+    }
 
     await assessment.save();
 
     res.json({
       success: true,
       message: 'Payment status updated successfully',
-      assessment
+      receipt: receipt ? {
+        url: receipt.receiptUrl,
+        number: receipt.receiptNumber
+      } : null,
+      assessment: {
+        _id: assessment._id,
+        bookingReference: assessment.bookingReference,
+        paymentStatus: assessment.paymentStatus,
+        receiptUrl: assessment.receiptUrl,
+        receiptNumber: assessment.receiptNumber
+      }
     });
   } catch (error) {
     console.error('Update payment status error:', error);

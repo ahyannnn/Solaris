@@ -36,7 +36,7 @@ connectMongo();
 
 // Routes
 const authRoutes = require("./routes/authRoutes");
-
+const receiptRoutes = require("./routes/receiptRoutes");
 const iotRoutes = require("./routes/sensorRoutes");
 
 const emailRoutes = require("./routes/emailRoutes");
@@ -61,6 +61,7 @@ app.use(maintenanceMiddleware);
 app.use('/api/maintenance', maintenanceRoutes);
 // API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/receipts", receiptRoutes);
 app.use("/api/job-portal", jobPortalRoutes);
 app.use("/api/sensor", iotRoutes);
 app.use("/api/iot-data", iotDataRoutes);

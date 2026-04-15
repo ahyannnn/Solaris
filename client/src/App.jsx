@@ -84,6 +84,34 @@ const RoleRouteGuard = ({ children, allowedRoles }) => {
   return children;
 };
 
+// Loading Spinner Component
+const LoadingSpinner = () => {
+  return (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh',
+      backgroundColor: '#f5f5f5'
+    }}>
+      <div style={{
+        width: '50px',
+        height: '50px',
+        border: '4px solid #e0e0e0',
+        borderTop: '4px solid #f39c12',
+        borderRadius: '50%',
+        animation: 'spin 1s linear infinite'
+      }} />
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
 // Maintenance Guard - checks if site is under maintenance
 const MaintenanceGuard = ({ children }) => {
   const [isUnderMaintenance, setIsUnderMaintenance] = useState(false);
@@ -117,7 +145,7 @@ const MaintenanceGuard = ({ children }) => {
   }, [userRole]);
 
   if (loading) {
-    return <div className="loading-container">Checking system status...</div>;
+    return <LoadingSpinner />;
   }
 
   if (isUnderMaintenance) {

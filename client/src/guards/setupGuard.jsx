@@ -12,9 +12,9 @@ const SetupGuard = ({ children }) => {
   useEffect(() => {
     const checkSetupStatus = async () => {
       // Get auth data from storage
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      const role = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
-      const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+      const token = sessionStorage.getItem('token') || sessionStorage.getItem('token');
+      const role = sessionStorage.getItem('userRole') || sessionStorage.getItem('userRole');
+      const userId = sessionStorage.getItem('userId') || sessionStorage.getItem('userId');
 
       // Check if user is authenticated
       if (!token || !role) {
@@ -29,7 +29,7 @@ const SetupGuard = ({ children }) => {
       try {
         // Check if user needs setup by calling your API
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/clients/me/setup-status`,
+          `${import.meta.env.VITE_API_URL}/api/clients/me`,
           {
             headers: { Authorization: `Bearer ${token}` }
           }

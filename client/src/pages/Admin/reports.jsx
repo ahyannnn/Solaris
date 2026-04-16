@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
+import { FaSpinner, FaFilePdf, FaFileExcel, FaPrint, FaTimes, FaDownload, FaEye } from 'react-icons/fa';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/reports.css';
 
 // Helper function to convert assessment status string to number
@@ -24,7 +26,7 @@ const getStatusNumber = (statusString) => {
   return statusMap[statusString] || null;
 };
 
-// Assessment Status Constants with numbers (matching the mapping above)
+// Assessment Status Constants with numbers
 const ASSESSMENT_STATUS = {
   1: { label: 'pending_review', display: 'Pending Review', color: '#ffc107' },
   2: { label: 'pending_payment', display: 'Pending Payment', color: '#fd7e14' },
@@ -40,7 +42,7 @@ const ASSESSMENT_STATUS = {
   12: { label: 'cancelled', display: 'Cancelled', color: '#dc3545' }
 };
 
-// Assessment Results Summary Ranges (matching the model)
+// Assessment Results Summary Ranges
 const ASSESSMENT_RESULTS_SUMMARY = {
   IRRADIANCE: {
     POOR: { min: 0, max: 300, label: 'Poor', color: '#dc3545' },
@@ -98,6 +100,7 @@ const getRating = (value, ranges) => {
 };
 
 const Reports = () => {
+  const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState('site-assessment');
@@ -147,7 +150,6 @@ const Reports = () => {
       ]);
       
       const allAssessments = assessmentsRes.data.assessments || [];
-      
       const allProjects = projectsRes.data.projects || [];
       const allClients = clientsRes.data.clients || [];
       
@@ -155,7 +157,7 @@ const Reports = () => {
       setProjects(allProjects);
       setClients(allClients);
       
-      // Calculate suitability from assessments using assessmentResults
+      // Calculate suitability from assessments
       const calculateScore = (assessment) => {
         const results = assessment.assessmentResults || {};
         const peakSunHours = results.peakSunHours;
@@ -289,6 +291,7 @@ const Reports = () => {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
+      showToast('Failed to fetch data', 'error');
       setLoading(false);
     }
   };
@@ -319,10 +322,10 @@ const Reports = () => {
       );
       
       setReportData(response.data);
-      alert('Report generated successfully!');
+      showToast('Report generated successfully!', 'success');
     } catch (error) {
       console.error('Error generating report:', error);
-      alert(error.response?.data?.message || 'Failed to generate report');
+      showToast(error.response?.data?.message || 'Failed to generate report', 'error');
     } finally {
       setGenerating(false);
     }
@@ -337,9 +340,7 @@ const Reports = () => {
       
       if (reportData && reportData.report) {
         dataToExport = reportData.report;
-        console.log('Using generated report data');
       } else {
-        
         const params = new URLSearchParams();
         params.append('startDate', dateRange.startDate);
         params.append('endDate', dateRange.endDate);
@@ -381,12 +382,10 @@ const Reports = () => {
       }
       
       if (!dataToExport) {
-        alert('No data to export. Please generate a report first.');
+        showToast('No data to export. Please generate a report first.', 'warning');
         setGenerating(false);
         return;
       }
-      
-      
       
       const exportResponse = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/admin/reports/export`,
@@ -411,23 +410,10 @@ const Reports = () => {
       link.remove();
       window.URL.revokeObjectURL(url);
       
-      alert(`Report exported as ${format.toUpperCase()}`);
+      showToast(`Report exported as ${format.toUpperCase()}`, 'success');
     } catch (error) {
       console.error('Error exporting report:', error);
-      if (error.response && error.response.data) {
-        const reader = new FileReader();
-        reader.onload = function() {
-          try {
-            const errorData = JSON.parse(reader.result);
-            alert(errorData.message || 'Failed to export report');
-          } catch(e) {
-            alert('Failed to export report');
-          }
-        };
-        reader.readAsText(error.response.data);
-      } else {
-        alert('Failed to export report');
-      }
+      showToast('Failed to export report', 'error');
     } finally {
       setGenerating(false);
     }
@@ -453,22 +439,22 @@ const Reports = () => {
 
   // Skeleton Loader
   const SkeletonLoader = () => (
-    <div className="reports-container-adminreports">
-      <div className="reports-header-adminreports">
-        <div className="skeleton-line-adminreports large-adminreports"></div>
-        <div className="skeleton-line-adminreports medium-adminreports"></div>
+    <div className="reports-container-admrep">
+      <div className="reports-header-admrep">
+        <div className="skeleton-line-admrep large-admrep"></div>
+        <div className="skeleton-line-admrep medium-admrep"></div>
       </div>
-      <div className="stats-cards-adminreports">
+      <div className="stats-cards-admrep">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="stat-card-adminreports skeleton-card-adminreports">
-            <div className="skeleton-line-adminreports small-adminreports"></div>
-            <div className="skeleton-line-adminreports large-adminreports"></div>
+          <div key={i} className="stat-card-admrep skeleton-card-admrep">
+            <div className="skeleton-line-admrep small-admrep"></div>
+            <div className="skeleton-line-admrep large-admrep"></div>
           </div>
         ))}
       </div>
-      <div className="report-tabs-adminreports">
+      <div className="report-tabs-admrep">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="skeleton-tab-adminreports"></div>
+          <div key={i} className="skeleton-tab-admrep"></div>
         ))}
       </div>
     </div>
@@ -484,66 +470,66 @@ const Reports = () => {
         <title>Reports | Admin | Solaris</title>
       </Helmet>
 
-      <div className="reports-container-adminreports">
-        <div className="reports-header-adminreports">
+      <div className="reports-container-admrep">
+        <div className="reports-header-admrep">
           <h1>Reports & Analytics</h1>
           <p>Generate comprehensive reports and analyze business performance</p>
         </div>
 
         {/* Quick Stats Cards */}
-        <div className="stats-cards-adminreports">
-          <div className="stat-card-adminreports revenue-adminreports">
-            <div className="stat-info-adminreports">
-              <span className="stat-value-adminreports">{formatCurrency(stats.revenue.total)}</span>
-              <span className="stat-label-adminreports">Total Revenue</span>
-              <span className="stat-change-adminreports">+{formatCurrency(stats.revenue.thisMonth)} this month</span>
+        <div className="stats-cards-admrep">
+          <div className="stat-card-admrep revenue-admrep">
+            <div className="stat-info-admrep">
+              <span className="stat-value-admrep">{formatCurrency(stats.revenue.total)}</span>
+              <span className="stat-label-admrep">Total Revenue</span>
+              <span className="stat-change-admrep">+{formatCurrency(stats.revenue.thisMonth)} this month</span>
             </div>
           </div>
-          <div className="stat-card-adminreports assessments-adminreports">
-            <div className="stat-info-adminreports">
-              <span className="stat-value-adminreports">{stats.assessments.total}</span>
-              <span className="stat-label-adminreports">Total Assessments</span>
-              <span className="stat-change-adminreports">{stats.assessments.completed} completed</span>
+          <div className="stat-card-admrep assessments-admrep">
+            <div className="stat-info-admrep">
+              <span className="stat-value-admrep">{stats.assessments.total}</span>
+              <span className="stat-label-admrep">Total Assessments</span>
+              <span className="stat-change-admrep">{stats.assessments.completed} completed</span>
             </div>
           </div>
-          <div className="stat-card-adminreports projects-adminreports">
-            <div className="stat-info-adminreports">
-              <span className="stat-value-adminreports">{stats.projects.total}</span>
-              <span className="stat-label-adminreports">Total Projects</span>
-              <span className="stat-change-adminreports">{stats.projects.inProgress} in progress</span>
+          <div className="stat-card-admrep projects-admrep">
+            <div className="stat-info-admrep">
+              <span className="stat-value-admrep">{stats.projects.total}</span>
+              <span className="stat-label-admrep">Total Projects</span>
+              <span className="stat-change-admrep">{stats.projects.inProgress} in progress</span>
             </div>
           </div>
-          <div className="stat-card-adminreports clients-adminreports">
-            <div className="stat-info-adminreports">
-              <span className="stat-value-adminreports">{stats.clients.total}</span>
-              <span className="stat-label-adminreports">Total Clients</span>
-              <span className="stat-change-adminreports">{stats.clients.active} active</span>
+          <div className="stat-card-admrep clients-admrep">
+            <div className="stat-info-admrep">
+              <span className="stat-value-admrep">{stats.clients.total}</span>
+              <span className="stat-label-admrep">Total Clients</span>
+              <span className="stat-change-admrep">{stats.clients.active} active</span>
             </div>
           </div>
         </div>
 
         {/* Report Type Tabs */}
-        <div className="report-tabs-adminreports">
+        <div className="report-tabs-admrep">
           <button 
-            className={`tab-btn-adminreports ${activeTab === 'site-assessment' ? 'active-adminreports' : ''}`} 
+            className={`tab-btn-admrep ${activeTab === 'site-assessment' ? 'active-admrep' : ''}`} 
             onClick={() => { setActiveTab('site-assessment'); setReportData(null); }}
           >
             Site Assessment Reports
           </button>
           <button 
-            className={`tab-btn-adminreports ${activeTab === 'project-summary' ? 'active-adminreports' : ''}`} 
+            className={`tab-btn-admrep ${activeTab === 'project-summary' ? 'active-admrep' : ''}`} 
             onClick={() => { setActiveTab('project-summary'); setReportData(null); }}
           >
             Project Summary Reports
           </button>
           <button 
-            className={`tab-btn-adminreports ${activeTab === 'financial' ? 'active-adminreports' : ''}`} 
+            className={`tab-btn-admrep ${activeTab === 'financial' ? 'active-admrep' : ''}`} 
             onClick={() => { setActiveTab('financial'); setReportData(null); }}
           >
             Financial Reports
           </button>
           <button 
-            className={`tab-btn-adminreports ${activeTab === 'client-transaction' ? 'active-adminreports' : ''}`} 
+            className={`tab-btn-admrep ${activeTab === 'client-transaction' ? 'active-admrep' : ''}`} 
             onClick={() => { setActiveTab('client-transaction'); setReportData(null); }}
           >
             Client Transaction Reports
@@ -551,10 +537,10 @@ const Reports = () => {
         </div>
 
         {/* Report Controls */}
-        <div className="report-controls-adminreports">
-          <div className="date-range-adminreports">
+        <div className="report-controls-admrep">
+          <div className="date-range-admrep">
             <label>Date Range</label>
-            <div className="date-inputs-adminreports">
+            <div className="date-inputs-admrep">
               <input type="date" value={dateRange.startDate} onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })} />
               <span>to</span>
               <input type="date" value={dateRange.endDate} onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })} />
@@ -562,7 +548,7 @@ const Reports = () => {
           </div>
           
           {activeTab === 'site-assessment' && (
-            <div className="report-filter-adminreports">
+            <div className="report-filter-admrep">
               <label>Filter by Assessment</label>
               <select value={selectedAssessment} onChange={(e) => setSelectedAssessment(e.target.value)}>
                 <option value="">All Assessments</option>
@@ -574,7 +560,7 @@ const Reports = () => {
           )}
           
           {activeTab === 'project-summary' && (
-            <div className="report-filter-adminreports">
+            <div className="report-filter-admrep">
               <label>Filter by Project</label>
               <select value={selectedProject} onChange={(e) => setSelectedProject(e.target.value)}>
                 <option value="">All Projects</option>
@@ -586,7 +572,7 @@ const Reports = () => {
           )}
           
           {activeTab === 'client-transaction' && (
-            <div className="report-filter-adminreports">
+            <div className="report-filter-admrep">
               <label>Filter by Client</label>
               <select value={selectedClient} onChange={(e) => setSelectedClient(e.target.value)}>
                 <option value="">All Clients</option>
@@ -597,42 +583,42 @@ const Reports = () => {
             </div>
           )}
           
-          <button className="generate-btn-adminreports" onClick={generateReport} disabled={generating}>
-            {generating ? 'Generating...' : 'Generate Report'}
+          <button className="generate-btn-admrep" onClick={generateReport} disabled={generating}>
+            {generating ? <FaSpinner className="spinning-admrep" /> : 'Generate Report'}
           </button>
         </div>
 
         {/* ============ SITE ASSESSMENT REPORTS ============ */}
         {activeTab === 'site-assessment' && (
-          <div className="report-content-adminreports">
-            <div className="report-section-adminreports">
+          <div className="report-content-admrep">
+            <div className="report-section-admrep">
               <h2>Site Assessment Results</h2>
               <p>Complete results of site evaluations including IoT data, technical findings, and suitability analysis.</p>
               
-              <div className="suitability-summary-adminreports">
-                <div className="suitability-card suitable">
-                  <div className="suitability-stats">
+              <div className="suitability-summary-admrep">
+                <div className="suitability-card-admrep suitable-admrep">
+                  <div className="suitability-stats-admrep">
                     <span className="label">Suitable for Solar</span>
                     <strong>{stats.assessments.suitable}</strong>
                     <span className="percentage">{stats.assessments.total > 0 ? ((stats.assessments.suitable / stats.assessments.total) * 100).toFixed(1) : 0}%</span>
                   </div>
                 </div>
-                <div className="suitability-card conditional">
-                  <div className="suitability-stats">
+                <div className="suitability-card-admrep conditional-admrep">
+                  <div className="suitability-stats-admrep">
                     <span className="label">Conditional Approval</span>
                     <strong>{stats.assessments.conditional}</strong>
                     <span className="percentage">{stats.assessments.total > 0 ? ((stats.assessments.conditional / stats.assessments.total) * 100).toFixed(1) : 0}%</span>
                   </div>
                 </div>
-                <div className="suitability-card not-suitable">
-                  <div className="suitability-stats">
+                <div className="suitability-card-admrep not-suitable-admrep">
+                  <div className="suitability-stats-admrep">
                     <span className="label">Not Suitable</span>
                     <strong>{stats.assessments.notSuitable}</strong>
                     <span className="percentage">{stats.assessments.total > 0 ? ((stats.assessments.notSuitable / stats.assessments.total) * 100).toFixed(1) : 0}%</span>
                   </div>
                 </div>
-                <div className="suitability-card pending">
-                  <div className="suitability-stats">
+                <div className="suitability-card-admrep pending-admrep">
+                  <div className="suitability-stats-admrep">
                     <span className="label">Pending Assessment</span>
                     <strong>{stats.assessments.pending}</strong>
                   </div>
@@ -640,32 +626,32 @@ const Reports = () => {
               </div>
             </div>
 
-            <div className="report-section-adminreports">
+            <div className="report-section-admrep">
               <h2>IoT Data & Environmental Metrics</h2>
-              <div className="technical-findings-grid">
-                <div className="finding-card irradiance">
-                  <div className="finding-info">
+              <div className="technical-findings-grid-admrep">
+                <div className="finding-card-admrep irradiance-admrep">
+                  <div className="finding-info-admrep">
                     <span>Average Irradiance</span>
                     <strong>-- W/m²</strong>
                     <small>--</small>
                   </div>
                 </div>
-                <div className="finding-card temperature">
-                  <div className="finding-info">
+                <div className="finding-card-admrep temperature-admrep">
+                  <div className="finding-info-admrep">
                     <span>Temperature Impact</span>
                     <strong>--°C</strong>
                     <small>-- derating</small>
                   </div>
                 </div>
-                <div className="finding-card humidity">
-                  <div className="finding-info">
+                <div className="finding-card-admrep humidity-admrep">
+                  <div className="finding-info-admrep">
                     <span>Average Humidity</span>
                     <strong>--%</strong>
                     <small>--</small>
                   </div>
                 </div>
-                <div className="finding-card shading">
-                  <div className="finding-info">
+                <div className="finding-card-admrep shading-admrep">
+                  <div className="finding-info-admrep">
                     <span>Peak Sun Hours</span>
                     <strong>-- hrs/day</strong>
                     <small>-- shading</small>
@@ -674,21 +660,21 @@ const Reports = () => {
               </div>
             </div>
 
-            <div className="report-section-adminreports">
+            <div className="report-section-admrep">
               <h2>Assessment Status Distribution</h2>
-              <div className="assessment-status-grid">
+              <div className="assessment-status-grid-admrep">
                 {Object.entries(ASSESSMENT_STATUS).map(([num, status]) => {
                   const count = assessments.filter(a => a.assessmentStatus === status.label).length;
                   const percentage = assessments.length > 0 ? (count / assessments.length * 100).toFixed(1) : 0;
                   return (
-                    <div key={num} className="status-card" style={{ borderLeftColor: status.color }}>
-                      <div className="status-header">
-                        <span className="status-name">{status.display}</span>
-                        <span className="status-number">{count}</span>
+                    <div key={num} className="status-card-admrep" style={{ borderLeftColor: status.color }}>
+                      <div className="status-header-admrep">
+                        <span className="status-name-admrep">{status.display}</span>
+                        <span className="status-number-admrep">{count}</span>
                       </div>
-                      <div className="status-progress">
-                        <div className="progress-bar" style={{ width: `${percentage}%`, backgroundColor: status.color }}></div>
-                        <span className="status-percentage">{percentage}%</span>
+                      <div className="status-progress-admrep">
+                        <div className="progress-bar-admrep" style={{ width: `${percentage}%`, backgroundColor: status.color }}></div>
+                        <span className="status-percentage-admrep">{percentage}%</span>
                       </div>
                     </div>
                   );
@@ -696,10 +682,10 @@ const Reports = () => {
               </div>
             </div>
 
-            <div className="report-section-adminreports">
+            <div className="report-section-admrep">
               <h2>Detailed Assessment Results with IoT Data</h2>
-              <div className="assessments-table-container">
-                <table className="reports-table">
+              <div className="assessments-table-container-admrep">
+                <table className="reports-table-admrep">
                   <thead>
                     <tr>
                       <th>Status #</th>
@@ -754,40 +740,40 @@ const Reports = () => {
                       return (
                         <tr key={assessment._id}>
                           <td>
-                            <span className="status-number-badge" style={{ backgroundColor: ASSESSMENT_STATUS[statusNum]?.color }}>
+                            <span className="status-number-badge-admrep" style={{ backgroundColor: ASSESSMENT_STATUS[statusNum]?.color }}>
                               {statusNum || 'N/A'}
                             </span>
                            </td>
-                           <td>{assessment.bookingReference}</td>
-                           <td>{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</td>
-                           <td>
-                            {avgIrradiance ? `${avgIrradiance.toFixed(0)} W/m²` : 'N/A'}
-                            {irradianceRating && <small style={{ color: irradianceRating.color }}>({irradianceRating.label})</small>}
-                           </td>
-                           <td>{peakSunHours?.toFixed(1) || 'N/A'} hrs</td>
-                           <td>
-                            {avgTemp ? `${avgTemp.toFixed(1)}°C` : 'N/A'}
-                            {tempRating && <small style={{ color: tempRating.color }}>({tempRating.label})</small>}
-                           </td>
-                           <td>
-                            {avgHumidity ? `${avgHumidity.toFixed(0)}%` : 'N/A'}
-                            {humidityRating && <small style={{ color: humidityRating.color }}>({humidityRating.label})</small>}
-                           </td>
-                           <td>
-                            {shadingPercentage !== undefined ? `${shadingPercentage.toFixed(0)}%` : 'N/A'}
-                            {shadingRating && <small style={{ color: shadingRating.color }}>({shadingRating.label})</small>}
-                           </td>
-                           <td>
-                            <span className={`score-badge ${suitabilityScore >= 70 ? 'high' : suitabilityScore >= 50 ? 'medium' : 'low'}`}>
-                              {suitabilityScore || 'N/A'}
-                            </span>
-                           </td>
-                           <td>
-                            {suitabilityScore >= 70 ? 'Suitable for Solar' : 
-                             suitabilityScore >= 50 ? 'Conditional Approval' : 
-                             suitabilityScore ? 'Not Recommended' : 'Pending Assessment'}
-                           </td>
-                         </tr>
+                            <td className="ref-cell-admrep">{assessment.bookingReference}</td>
+                            <td className="client-cell-admrep">{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</td>
+                            <td className="metric-cell-admrep">
+                              {avgIrradiance ? `${avgIrradiance.toFixed(0)} W/m²` : 'N/A'}
+                              {irradianceRating && <small style={{ color: irradianceRating.color }}>({irradianceRating.label})</small>}
+                            </td>
+                            <td className="metric-cell-admrep">{peakSunHours?.toFixed(1) || 'N/A'} hrs</td>
+                            <td className="metric-cell-admrep">
+                              {avgTemp ? `${avgTemp.toFixed(1)}°C` : 'N/A'}
+                              {tempRating && <small style={{ color: tempRating.color }}>({tempRating.label})</small>}
+                            </td>
+                            <td className="metric-cell-admrep">
+                              {avgHumidity ? `${avgHumidity.toFixed(0)}%` : 'N/A'}
+                              {humidityRating && <small style={{ color: humidityRating.color }}>({humidityRating.label})</small>}
+                            </td>
+                            <td className="metric-cell-admrep">
+                              {shadingPercentage !== undefined ? `${shadingPercentage.toFixed(0)}%` : 'N/A'}
+                              {shadingRating && <small style={{ color: shadingRating.color }}>({shadingRating.label})</small>}
+                            </td>
+                            <td className="score-cell-admrep">
+                              <span className={`score-badge-admrep ${suitabilityScore >= 70 ? 'high-admrep' : suitabilityScore >= 50 ? 'medium-admrep' : 'low-admrep'}`}>
+                                {suitabilityScore || 'N/A'}
+                              </span>
+                            </td>
+                            <td className="recommendation-cell-admrep">
+                              {suitabilityScore >= 70 ? 'Suitable for Solar' : 
+                               suitabilityScore >= 50 ? 'Conditional Approval' : 
+                               suitabilityScore ? 'Not Recommended' : 'Pending Assessment'}
+                            </td>
+                          </tr>
                       );
                     })}
                   </tbody>
@@ -795,12 +781,18 @@ const Reports = () => {
               </div>
             </div>
 
-            <div className="report-actions-adminreports">
-              <button className="export-btn-adminreports" onClick={() => exportReport('pdf')} disabled={generating}>
-                Export as PDF
+            <div className="report-actions-admrep">
+              <button className="export-btn-admrep pdf-admrep" onClick={() => exportReport('pdf')} disabled={generating}>
+                <FaFilePdf /> Export as PDF
               </button>
-              <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')} disabled={generating}>
-                Export as CSV
+              <button className="export-btn-admrep excel-admrep" onClick={() => exportReport('xlsx')} disabled={generating}>
+                <FaFileExcel /> Export as Excel
+              </button>
+              <button className="export-btn-admrep csv-admrep" onClick={() => exportReport('csv')} disabled={generating}>
+                <FaDownload /> Export as CSV
+              </button>
+              <button className="export-btn-admrep print-admrep" onClick={() => window.print()}>
+                <FaPrint /> Print Report
               </button>
             </div>
           </div>
@@ -808,39 +800,39 @@ const Reports = () => {
 
         {/* ============ PROJECT SUMMARY REPORTS ============ */}
         {activeTab === 'project-summary' && (
-          <div className="report-content-adminreports">
-            <div className="report-section-adminreports">
+          <div className="report-content-admrep">
+            <div className="report-section-admrep">
               <h2>Project Status Overview</h2>
               <p>Shows the overall status of projects. Tracks project progress. Helps monitor pending tasks and milestones.</p>
               
-              <div className="project-stats-grid">
-                <div className="project-stat-card">
+              <div className="project-stats-grid-admrep">
+                <div className="project-stat-card-admrep">
                   <span className="stat-label">Total Projects</span>
                   <strong className="stat-value">{stats.projects.total}</strong>
                 </div>
-                <div className="project-stat-card in-progress">
+                <div className="project-stat-card-admrep in-progress-admrep">
                   <span className="stat-label">In Progress</span>
                   <strong>{stats.projects.inProgress}</strong>
                 </div>
-                <div className="project-stat-card completed">
+                <div className="project-stat-card-admrep completed-admrep">
                   <span className="stat-label">Completed</span>
                   <strong>{stats.projects.completed}</strong>
                 </div>
-                <div className="project-stat-card pending">
+                <div className="project-stat-card-admrep pending-admrep">
                   <span className="stat-label">Pending</span>
                   <strong>{stats.projects.pending}</strong>
                 </div>
-                <div className="project-stat-card full-paid">
+                <div className="project-stat-card-admrep full-paid-admrep">
                   <span className="stat-label">Full Payment</span>
                   <strong>{stats.projects.fullPaid}</strong>
                 </div>
               </div>
             </div>
 
-            <div className="report-section-adminreports">
+            <div className="report-section-admrep">
               <h2>Project Progress Tracking</h2>
-              <div className="projects-table-container">
-                <table className="reports-table">
+              <div className="projects-table-container-admrep">
+                <table className="reports-table-admrep">
                   <thead>
                     <tr>
                       <th>Project Name</th>
@@ -863,12 +855,12 @@ const Reports = () => {
                       
                       return (
                         <tr key={project._id}>
-                          <td><strong>{project.projectName}</strong></td>
-                          <td>{project.projectReference}</td>
-                          <td>{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</td>
+                          <td className="project-name-cell-admrep"><strong>{project.projectName}</strong></td>
+                          <td className="ref-cell-admrep">{project.projectReference}</td>
+                          <td className="client-cell-admrep">{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</td>
                           <td>{project.systemSize || 'N/A'} kWp</td>
                           <td>
-                            <span className={`project-status-badge ${project.status}`}>
+                            <span className={`project-status-badge-admrep ${project.status}`}>
                               {project.status === 'in_progress' ? 'In Progress' : 
                                project.status === 'completed' ? 'Completed' : 
                                project.status === 'full_paid' ? 'Full Payment' :
@@ -878,12 +870,12 @@ const Reports = () => {
                             </span>
                           </td>
                           <td>
-                            <div className="progress-bar-container">
-                              <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
-                              <span className="progress-text">{progress}%</span>
+                            <div className="progress-bar-container-admrep">
+                              <div className="progress-bar-fill-admrep" style={{ width: `${progress}%` }}></div>
+                              <span className="progress-text-admrep">{progress}%</span>
                             </div>
                           </td>
-                          <td className="amount">{formatCurrency(project.amountPaid || 0)}</td>
+                          <td className="amount-admrep">{formatCurrency(project.amountPaid || 0)}</td>
                         </tr>
                       );
                     })}
@@ -892,18 +884,18 @@ const Reports = () => {
               </div>
             </div>
 
-            <div className="report-actions-adminreports">
-              <button className="export-btn-adminreports" onClick={() => exportReport('pdf')} disabled={generating}>
-                Export as PDF
+            <div className="report-actions-admrep">
+              <button className="export-btn-admrep pdf-admrep" onClick={() => exportReport('pdf')} disabled={generating}>
+                <FaFilePdf /> Export as PDF
               </button>
-              <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')} disabled={generating}>
-                Export as Excel
+              <button className="export-btn-admrep excel-admrep" onClick={() => exportReport('xlsx')} disabled={generating}>
+                <FaFileExcel /> Export as Excel
               </button>
-              <button className="export-btn-adminreports" onClick={() => exportReport('csv')} disabled={generating}>
-                Export as CSV
+              <button className="export-btn-admrep csv-admrep" onClick={() => exportReport('csv')} disabled={generating}>
+                <FaDownload /> Export as CSV
               </button>
-              <button className="export-btn-adminreports" onClick={() => window.print()}>
-                Print Report
+              <button className="export-btn-admrep print-admrep" onClick={() => window.print()}>
+                <FaPrint /> Print Report
               </button>
             </div>
           </div>
@@ -911,34 +903,34 @@ const Reports = () => {
 
         {/* ============ FINANCIAL REPORTS ============ */}
         {activeTab === 'financial' && (
-          <div className="report-content-adminreports">
-            <div className="report-section-adminreports">
+          <div className="report-content-admrep">
+            <div className="report-section-admrep">
               <h2>Financial Summary</h2>
               <p>Summarizes payments made by clients. Includes billing records. Helps track overall financial performance.</p>
               
-              <div className="financial-summary-grid">
-                <div className="financial-card total-revenue">
+              <div className="financial-summary-grid-admrep">
+                <div className="financial-card-admrep total-revenue-admrep">
                   <div>
                     <span>Total Revenue</span>
                     <strong>{formatCurrency(stats.revenue.total)}</strong>
                   </div>
                 </div>
-                <div className="financial-card this-month">
+                <div className="financial-card-admrep this-month-admrep">
                   <div>
                     <span>This Month</span>
                     <strong>{formatCurrency(stats.revenue.thisMonth)}</strong>
                   </div>
                 </div>
-                <div className="financial-card last-month">
+                <div className="financial-card-admrep last-month-admrep">
                   <div>
                     <span>Last Month</span>
                     <strong>{formatCurrency(stats.revenue.lastMonth)}</strong>
                   </div>
                 </div>
-                <div className="financial-card growth">
+                <div className="financial-card-admrep growth-admrep">
                   <div>
                     <span>Growth</span>
-                    <strong className={stats.revenue.thisMonth > stats.revenue.lastMonth ? 'positive' : 'negative'}>
+                    <strong className={stats.revenue.thisMonth > stats.revenue.lastMonth ? 'positive-admrep' : 'negative-admrep'}>
                       {stats.revenue.lastMonth > 0 ? ((stats.revenue.thisMonth - stats.revenue.lastMonth) / stats.revenue.lastMonth * 100).toFixed(1) : 0}%
                     </strong>
                   </div>
@@ -946,23 +938,23 @@ const Reports = () => {
               </div>
             </div>
 
-            <div className="report-section-adminreports">
+            <div className="report-section-admrep">
               <h2>Payment Summary by Status</h2>
-              <div className="payment-status-grid">
-                <div className="payment-status-card paid">
+              <div className="payment-status-grid-admrep">
+                <div className="payment-status-card-admrep paid-admrep">
                   <div>
                     <span>Paid Transactions</span>
                     <strong>{stats.payments.paid}</strong>
                     <small>{formatCurrency(transactions.filter(t => t.status === 'Paid' || t.status === 'Completed').reduce((sum, t) => sum + t.amount, 0))}</small>
                   </div>
                 </div>
-                <div className="payment-status-card pending">
+                <div className="payment-status-card-admrep pending-admrep">
                   <div>
                     <span>Pending Payments</span>
                     <strong>{stats.payments.pending}</strong>
                   </div>
                 </div>
-                <div className="payment-status-card verification">
+                <div className="payment-status-card-admrep verification-admrep">
                   <div>
                     <span>For Verification</span>
                     <strong>{stats.payments.forVerification}</strong>
@@ -971,10 +963,10 @@ const Reports = () => {
               </div>
             </div>
 
-            <div className="report-section-adminreports">
+            <div className="report-section-admrep">
               <h2>Recent Transactions</h2>
-              <div className="payments-table-container">
-                <table className="reports-table">
+              <div className="payments-table-container-admrep">
+                <table className="reports-table-admrep">
                   <thead>
                     <tr>
                       <th>Date</th>
@@ -990,17 +982,17 @@ const Reports = () => {
                     {transactions.slice(0, 15).map((transaction, idx) => (
                       <tr key={idx}>
                         <td>{formatDate(transaction.date)}</td>
-                        <td>{transaction.client}</td>
-                        <td>{transaction.type}</td>
-                        <td>{transaction.reference || transaction.projectName}</td>
-                        <td className="amount">{formatCurrency(transaction.amount)}</td>
+                        <td className="client-cell-admrep">{transaction.client}</td>
+                        <td><span className="transaction-type-admrep pre-admrep">{transaction.type}</span></td>
+                        <td className="ref-cell-admrep">{transaction.reference || transaction.projectName}</td>
+                        <td className="amount-admrep">{formatCurrency(transaction.amount)}</td>
                         <td>
-                          <span className={`payment-method ${transaction.method?.toLowerCase()}`}>
+                          <span className={`payment-method-admrep ${transaction.method?.toLowerCase()}`}>
                             {transaction.method}
                           </span>
                         </td>
                         <td>
-                          <span className={`status-badge ${transaction.status === 'Paid' || transaction.status === 'Completed' ? 'paid' : transaction.status === 'For Verification' ? 'for_verification' : 'pending'}`}>
+                          <span className={`status-badge-admrep ${transaction.status === 'Paid' || transaction.status === 'Completed' ? 'paid-admrep' : transaction.status === 'For Verification' ? 'for-verification-admrep' : 'pending-admrep'}`}>
                             {transaction.status}
                           </span>
                         </td>
@@ -1011,18 +1003,18 @@ const Reports = () => {
               </div>
             </div>
 
-            <div className="report-actions-adminreports">
-              <button className="export-btn-adminreports" onClick={() => exportReport('pdf')} disabled={generating}>
-                Export as PDF
+            <div className="report-actions-admrep">
+              <button className="export-btn-admrep pdf-admrep" onClick={() => exportReport('pdf')} disabled={generating}>
+                <FaFilePdf /> Export as PDF
               </button>
-              <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')} disabled={generating}>
-                Export as Excel
+              <button className="export-btn-admrep excel-admrep" onClick={() => exportReport('xlsx')} disabled={generating}>
+                <FaFileExcel /> Export as Excel
               </button>
-              <button className="export-btn-adminreports" onClick={() => exportReport('csv')} disabled={generating}>
-                Export as CSV
+              <button className="export-btn-admrep csv-admrep" onClick={() => exportReport('csv')} disabled={generating}>
+                <FaDownload /> Export as CSV
               </button>
-              <button className="export-btn-adminreports" onClick={() => window.print()}>
-                Print Report
+              <button className="export-btn-admrep print-admrep" onClick={() => window.print()}>
+                <FaPrint /> Print Report
               </button>
             </div>
           </div>
@@ -1030,31 +1022,31 @@ const Reports = () => {
 
         {/* ============ CLIENT TRANSACTION REPORTS ============ */}
         {activeTab === 'client-transaction' && (
-          <div className="report-content-adminreports">
-            <div className="report-section-adminreports">
+          <div className="report-content-admrep">
+            <div className="report-section-admrep">
               <h2>Client Transaction History</h2>
               <p>Displays detailed records of client bookings. Includes payment transactions. Useful for reviewing client activity history.</p>
               
-              <div className="client-stats-grid">
-                <div className="client-stat-card">
+              <div className="client-stats-grid-admrep">
+                <div className="client-stat-card-admrep">
                   <div>
                     <span>Total Clients</span>
                     <strong>{stats.clients.total}</strong>
                   </div>
                 </div>
-                <div className="client-stat-card">
+                <div className="client-stat-card-admrep">
                   <div>
                     <span>Active Clients</span>
                     <strong>{stats.clients.active}</strong>
                   </div>
                 </div>
-                <div className="client-stat-card">
+                <div className="client-stat-card-admrep">
                   <div>
                     <span>New This Month</span>
                     <strong>{stats.clients.new}</strong>
                   </div>
                 </div>
-                <div className="client-stat-card">
+                <div className="client-stat-card-admrep">
                   <div>
                     <span>Total Transactions</span>
                     <strong>{transactions.length}</strong>
@@ -1063,44 +1055,44 @@ const Reports = () => {
               </div>
             </div>
 
-            <div className="report-section-adminreports">
+            <div className="report-section-admrep">
               <h2>Client Demographics</h2>
-              <div className="demographics-grid">
-                <div className="demo-card">
+              <div className="demographics-grid-admrep">
+                <div className="demo-card-admrep">
                   <h3>Client Type Distribution</h3>
-                  <div className="demo-item">
+                  <div className="demo-item-admrep">
                     <span>Residential</span>
                     <strong>{Math.round((stats.clients.residential / stats.clients.total) * 100) || 0}%</strong>
-                    <div className="progress-bar">
-                      <div className="progress" style={{ width: `${(stats.clients.residential / stats.clients.total) * 100 || 0}%` }}></div>
+                    <div className="progress-bar-admrep">
+                      <div className="progress-admrep" style={{ width: `${(stats.clients.residential / stats.clients.total) * 100 || 0}%` }}></div>
                     </div>
                   </div>
-                  <div className="demo-item">
+                  <div className="demo-item-admrep">
                     <span>Company</span>
                     <strong>{Math.round((stats.clients.company / stats.clients.total) * 100) || 0}%</strong>
-                    <div className="progress-bar">
-                      <div className="progress" style={{ width: `${(stats.clients.company / stats.clients.total) * 100 || 0}%` }}></div>
+                    <div className="progress-bar-admrep">
+                      <div className="progress-admrep" style={{ width: `${(stats.clients.company / stats.clients.total) * 100 || 0}%` }}></div>
                     </div>
                   </div>
-                  <div className="demo-item">
+                  <div className="demo-item-admrep">
                     <span>Industrial</span>
                     <strong>{Math.round((stats.clients.industrial / stats.clients.total) * 100) || 0}%</strong>
-                    <div className="progress-bar">
-                      <div className="progress" style={{ width: `${(stats.clients.industrial / stats.clients.total) * 100 || 0}%` }}></div>
+                    <div className="progress-bar-admrep">
+                      <div className="progress-admrep" style={{ width: `${(stats.clients.industrial / stats.clients.total) * 100 || 0}%` }}></div>
                     </div>
                   </div>
                 </div>
-                <div className="demo-card">
+                <div className="demo-card-admrep">
                   <h3>Payment Method Distribution</h3>
-                  <div className="demo-item">
+                  <div className="demo-item-admrep">
                     <span>PayMongo</span>
                     <strong>{transactions.filter(t => t.method === 'PayMongo').length}</strong>
                   </div>
-                  <div className="demo-item">
+                  <div className="demo-item-admrep">
                     <span>GCash</span>
                     <strong>{transactions.filter(t => t.method === 'gcash').length}</strong>
                   </div>
-                  <div className="demo-item">
+                  <div className="demo-item-admrep">
                     <span>Cash/Manual</span>
                     <strong>{transactions.filter(t => t.method === 'cash' || t.method === 'Manual').length}</strong>
                   </div>
@@ -1108,10 +1100,10 @@ const Reports = () => {
               </div>
             </div>
 
-            <div className="report-section-adminreports">
+            <div className="report-section-admrep">
               <h2>Client Transaction Details</h2>
-              <div className="transactions-table-container">
-                <table className="reports-table">
+              <div className="transactions-table-container-admrep">
+                <table className="reports-table-admrep">
                   <thead>
                     <tr>
                       <th>Date</th>
@@ -1128,22 +1120,18 @@ const Reports = () => {
                     {transactions.slice(0, 20).map((transaction, idx) => (
                       <tr key={idx}>
                         <td>{formatDate(transaction.date)}</td>
-                        <td><strong>{transaction.client}</strong></td>
+                        <td className="client-cell-admrep"><strong>{transaction.client}</strong></td>
                         <td>{transaction.clientPhone || 'N/A'}</td>
+                        <td><span className="transaction-type-admrep pre-admrep">{transaction.type}</span></td>
+                        <td className="ref-cell-admrep">{transaction.reference || transaction.projectName}</td>
+                        <td className="amount-admrep">{formatCurrency(transaction.amount)}</td>
                         <td>
-                          <span className="transaction-type pre">
-                            {transaction.type}
-                          </span>
-                        </td>
-                        <td>{transaction.reference || transaction.projectName}</td>
-                        <td className="amount">{formatCurrency(transaction.amount)}</td>
-                        <td>
-                          <span className={`payment-method ${transaction.method?.toLowerCase()}`}>
+                          <span className={`payment-method-admrep ${transaction.method?.toLowerCase()}`}>
                             {transaction.method}
                           </span>
                         </td>
                         <td>
-                          <span className={`status-badge ${transaction.status === 'Paid' || transaction.status === 'Completed' ? 'paid' : transaction.status === 'For Verification' ? 'for_verification' : 'pending'}`}>
+                          <span className={`status-badge-admrep ${transaction.status === 'Paid' || transaction.status === 'Completed' ? 'paid-admrep' : transaction.status === 'For Verification' ? 'for-verification-admrep' : 'pending-admrep'}`}>
                             {transaction.status}
                           </span>
                         </td>
@@ -1154,18 +1142,18 @@ const Reports = () => {
               </div>
             </div>
 
-            <div className="report-actions-adminreports">
-              <button className="export-btn-adminreports" onClick={() => exportReport('pdf')} disabled={generating}>
-                Export as PDF
+            <div className="report-actions-admrep">
+              <button className="export-btn-admrep pdf-admrep" onClick={() => exportReport('pdf')} disabled={generating}>
+                <FaFilePdf /> Export as PDF
               </button>
-              <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')} disabled={generating}>
-                Export as Excel
+              <button className="export-btn-admrep excel-admrep" onClick={() => exportReport('xlsx')} disabled={generating}>
+                <FaFileExcel /> Export as Excel
               </button>
-              <button className="export-btn-adminreports" onClick={() => exportReport('csv')} disabled={generating}>
-                Export as CSV
+              <button className="export-btn-admrep csv-admrep" onClick={() => exportReport('csv')} disabled={generating}>
+                <FaDownload /> Export as CSV
               </button>
-              <button className="export-btn-adminreports" onClick={() => window.print()}>
-                Print Report
+              <button className="export-btn-admrep print-admrep" onClick={() => window.print()}>
+                <FaPrint /> Print Report
               </button>
             </div>
           </div>
@@ -1173,29 +1161,31 @@ const Reports = () => {
 
         {/* Report Preview Modal */}
         {reportData && (
-          <div className="report-preview-overlay" onClick={() => setReportData(null)}>
-            <div className="report-preview-adminreports" onClick={e => e.stopPropagation()}>
-              <div className="preview-header">
+          <div className="report-preview-overlay-admrep" onClick={() => setReportData(null)}>
+            <div className="report-preview-admrep" onClick={e => e.stopPropagation()}>
+              <div className="preview-header-admrep">
                 <h3>Report Preview</h3>
-                <button className="close-preview" onClick={() => setReportData(null)}>X</button>
+                <button className="close-preview-admrep" onClick={() => setReportData(null)}><FaTimes /></button>
               </div>
-              <div className="preview-content-adminreports">
+              <div className="preview-content-admrep">
                 <pre>{JSON.stringify(reportData, null, 2)}</pre>
               </div>
-              <div className="preview-actions-adminreports">
-                <button className="export-btn-adminreports" onClick={() => exportReport('pdf')}>
-                  Download PDF
+              <div className="preview-actions-admrep">
+                <button className="export-btn-admrep pdf-admrep" onClick={() => exportReport('pdf')}>
+                  <FaFilePdf /> Download PDF
                 </button>
-                <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')}>
-                  Download CSV
+                <button className="export-btn-admrep csv-admrep" onClick={() => exportReport('xlsx')}>
+                  <FaFileExcel /> Download Excel
                 </button>
-                <button className="export-btn-adminreports" onClick={() => setReportData(null)}>
-                  Close
+                <button className="export-btn-admrep print-admrep" onClick={() => setReportData(null)}>
+                  <FaTimes /> Close
                 </button>
               </div>
             </div>
           </div>
         )}
+
+        <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} position="bottom-right" />
       </div>
     </>
   );

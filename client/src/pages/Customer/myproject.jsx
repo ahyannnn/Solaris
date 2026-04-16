@@ -219,49 +219,49 @@ const MyProject = () => {
   };
 
   const getEngineerName = (project) => {
-  // Use the pre-processed engineerFullName from backend
-  if (project.engineerFullName) {
-    return project.engineerFullName;
-  }
-  
-  // Fallback for backward compatibility
-  if (project.assignedEngineerId && typeof project.assignedEngineerId === 'object') {
-    const engineer = project.assignedEngineerId;
-    
-    if (engineer.fullName && engineer.fullName !== 'undefined undefined') {
-      return engineer.fullName;
+    // Use the pre-processed engineerFullName from backend
+    if (project.engineerFullName) {
+      return project.engineerFullName;
     }
-    
-    if (engineer.firstName && engineer.lastName) {
-      return `${engineer.firstName} ${engineer.lastName}`.trim();
+
+    // Fallback for backward compatibility
+    if (project.assignedEngineerId && typeof project.assignedEngineerId === 'object') {
+      const engineer = project.assignedEngineerId;
+
+      if (engineer.fullName && engineer.fullName !== 'undefined undefined') {
+        return engineer.fullName;
+      }
+
+      if (engineer.firstName && engineer.lastName) {
+        return `${engineer.firstName} ${engineer.lastName}`.trim();
+      }
+
+      if (engineer.firstName) {
+        return engineer.firstName;
+      }
+
+      if (engineer.lastName) {
+        return engineer.lastName;
+      }
+
+      if (engineer.name) {
+        return engineer.name;
+      }
+
+      if (engineer.email) {
+        const emailName = engineer.email.split('@')[0];
+        const formattedName = emailName
+          .split(/[._-]/)
+          .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+          .join(' ');
+        return formattedName;
+      }
+
+      return 'Engineer assigned';
     }
-    
-    if (engineer.firstName) {
-      return engineer.firstName;
-    }
-    
-    if (engineer.lastName) {
-      return engineer.lastName;
-    }
-    
-    if (engineer.name) {
-      return engineer.name;
-    }
-    
-    if (engineer.email) {
-      const emailName = engineer.email.split('@')[0];
-      const formattedName = emailName
-        .split(/[._-]/)
-        .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-        .join(' ');
-      return formattedName;
-    }
-    
-    return 'Engineer assigned';
-  }
-  
-  return null;
-};
+
+    return null;
+  };
   const nextStep = getNextStepMessage(selectedProject || {});
 
   const SkeletonLoader = () => (
@@ -418,32 +418,32 @@ const MyProject = () => {
                 </div>
 
                 {/* Next Step Card */}
+
+                {/* Next Step Card */}
                 <div className="cuspro-next-card">
                   <h3>Next Step</h3>
                   <div className="cuspro-next-content">
                     <h4>{nextStep.message}</h4>
                     <p>{nextStep.action}</p>
                   </div>
-                  {selectedProject.status === 'approved' && !isPaymentPaid(selectedProject, 'initial') && (
-                    <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>
-                      <FaMoneyBillWave /> Make Payment
-                    </button>
-                  )}
-                  {(selectedProject.status === 'in_progress' && !isPaymentPaid(selectedProject, 'progress')) && (
-                    <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>
-                      <FaMoneyBillWave /> Make Progress Payment
-                    </button>
-                  )}
-                  {(selectedProject.status === 'progress_paid' && !isPaymentPaid(selectedProject, 'final')) && (
-                    <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>
-                      <FaMoneyBillWave /> Make Final Payment
-                    </button>
-                  )}
-                  {selectedProject.paymentPreference === 'full' && !isPaymentPaid(selectedProject, 'full') && selectedProject.status !== 'quoted' && (
-                    <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>
-                      <FaMoneyBillWave /> Make Full Payment
-                    </button>
-                  )}
+                  <div className="cuspro-next-actions">
+                    {selectedProject.status === 'approved' && !isPaymentPaid(selectedProject, 'initial') && (
+                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>
+                         Make Payment
+                      </button>
+                    )}
+                    {(selectedProject.status === 'in_progress' && !isPaymentPaid(selectedProject, 'progress')) && (
+                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>
+                         Make Progress Payment
+                      </button>
+                    )}
+                    {(selectedProject.status === 'progress_paid' && !isPaymentPaid(selectedProject, 'final')) && (
+                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>
+                        Make Final Payment
+                      </button>
+                    )}
+                    {/* Make Full Payment button removed */}
+                  </div>
                 </div>
               </div>
 

@@ -21,7 +21,8 @@ import {
   FaChartLine,
   FaDollarSign,
   FaCalculator,
-  FaPercent
+  FaPercent,
+  FaTimes
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/maintenance.css';
@@ -29,7 +30,7 @@ import '../../styles/Admin/maintenance.css';
 const MaintenancePanel = () => {
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [activeMainTab, setActiveMainTab] = useState('maintenance'); // 'maintenance' or 'systemconfig'
+  const [activeMainTab, setActiveMainTab] = useState('maintenance');
   
   // Maintenance Mode State
   const [isEnabled, setIsEnabled] = useState(false);
@@ -66,6 +67,10 @@ const MaintenancePanel = () => {
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [pendingUpdates, setPendingUpdates] = useState(null);
   
+  // Reset confirmation modal states
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetReason, setResetReason] = useState('');
+  
   // Equipment modal states
   const [showEquipmentModal, setShowEquipmentModal] = useState(false);
   const [equipmentType, setEquipmentType] = useState('');
@@ -78,6 +83,11 @@ const MaintenancePanel = () => {
     unit: 'piece',
     notes: ''
   });
+  
+  // Remove equipment confirmation modal states
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [itemToRemove, setItemToRemove] = useState(null);
+  const [removeReason, setRemoveReason] = useState('');
 
   useEffect(() => {
     fetchMaintenanceData();
@@ -258,22 +268,27 @@ const MaintenancePanel = () => {
     }
   };
 
-  const handleResetConfig = async () => {
-    if (!window.confirm('Are you sure you want to reset all settings to defaults? This action cannot be undone.')) {
+  const openResetModal = () => {
+    setShowResetModal(true);
+    setResetReason('');
+  };
+
+  const confirmResetConfig = async () => {
+    if (!resetReason.trim()) {
+      showToast('Please enter a reason for resetting', 'warning');
       return;
     }
-    
-    const reasonReset = prompt('Please enter a reason for resetting:');
-    if (!reasonReset) return;
     
     setSavingConfig(true);
     try {
       const token = sessionStorage.getItem('token');
       await axios.post(`${import.meta.env.VITE_API_URL}/api/maintenance/config/reset`, 
-        { reason: reasonReset },
+        { reason: resetReason },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       showToast('Configuration reset to defaults', 'success');
+      setShowResetModal(false);
+      setResetReason('');
       fetchSystemConfig();
     } catch (error) {
       console.error('Error resetting config:', error);
@@ -326,6 +341,42 @@ const MaintenancePanel = () => {
     setShowEquipmentModal(true);
   };
 
+  const openRemoveModal = (type, item) => {
+    setItemToRemove({ type, item });
+    setRemoveReason('');
+    setShowRemoveModal(true);
+  };
+
+  const confirmRemoveEquipment = async () => {
+    if (!removeReason.trim()) {
+      showToast('Please enter a reason for removal', 'warning');
+      return;
+    }
+    
+    setSavingConfig(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/${itemToRemove.type}/${itemToRemove.item._id}`,
+        { 
+          headers: { Authorization: `Bearer ${token}` },
+          data: { reason: removeReason }
+        }
+      );
+      
+      showToast(response.data.message, 'success');
+      setShowRemoveModal(false);
+      setItemToRemove(null);
+      setRemoveReason('');
+      fetchSystemConfig();
+    } catch (error) {
+      console.error('Error removing equipment:', error);
+      showToast(error.response?.data?.message || 'Failed to remove equipment', 'error');
+    } finally {
+      setSavingConfig(false);
+    }
+  };
+
   const handleAddEquipment = async () => {
     if (!equipmentForm.name || equipmentForm.price <= 0) {
       showToast('Please enter name and valid price', 'warning');
@@ -335,13 +386,12 @@ const MaintenancePanel = () => {
     setSavingConfig(true);
     try {
       const token = sessionStorage.getItem('token');
-      const reasonText = prompt('Reason for adding this item:', `Added new ${equipmentType.slice(0, -1)}: ${equipmentForm.name}`);
-      
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment?reason=${encodeURIComponent(reasonText || 'Added new equipment')}`,
+        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment`,
         { 
           type: equipmentType, 
-          ...equipmentForm 
+          ...equipmentForm,
+          reason: `Added new ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}`
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -366,11 +416,9 @@ const MaintenancePanel = () => {
     setSavingConfig(true);
     try {
       const token = sessionStorage.getItem('token');
-      const reasonText = prompt('Reason for updating this item:', `Updated ${equipmentType.slice(0, -1)}: ${equipmentForm.name}`);
-      
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/${equipmentType}/${editingItem._id}?reason=${encodeURIComponent(reasonText || 'Updated equipment')}`,
-        equipmentForm,
+        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/${equipmentType}/${editingItem._id}`,
+        { ...equipmentForm, reason: `Updated ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}` },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -385,55 +433,10 @@ const MaintenancePanel = () => {
     }
   };
 
-  const handleRemoveEquipment = async (type, item) => {
-    if (!window.confirm(`Are you sure you want to remove "${item.name}"? This will hide it from selection.`)) {
-      return;
-    }
-    
-    setSavingConfig(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      const reasonText = prompt('Reason for removing this item:', `Removed ${type.slice(0, -1)}: ${item.name}`);
-      
-      const response = await axios.delete(
-        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/${type}/${item._id}`,
-        { 
-          headers: { Authorization: `Bearer ${token}` },
-          data: { reason: reasonText || 'Removed equipment' }
-        }
-      );
-      
-      showToast(response.data.message, 'success');
-      fetchSystemConfig();
-    } catch (error) {
-      console.error('Error removing equipment:', error);
-      showToast(error.response?.data?.message || 'Failed to remove equipment', 'error');
-    } finally {
-      setSavingConfig(false);
-    }
-  };
-
-  // Equipment Card Component
+  // Equipment Card Component - NO ICONS
   const EquipmentCard = ({ item, type }) => {
-    const getIcon = () => {
-      switch(type) {
-        case 'solarPanels': return <FaSolarPanel />;
-        case 'inverters': return <FaBolt />;
-        case 'batteries': return <FaBatteryFull />;
-        case 'mountingStructures': return <FaTools />;
-        case 'electricalComponents': return <FaWrench />;
-        case 'cablesAndWiring': return <FaWrench />;
-        case 'safetyEquipment': return <FaTools />;
-        case 'junctionBoxes': return <FaTools />;
-        case 'disconnectSwitches': return <FaTools />;
-        case 'meters': return <FaChartLine />;
-        default: return <FaTools />;
-      }
-    };
-
     return (
       <div className="equipment-card-integrated">
-        <div className="equipment-icon-integrated">{getIcon()}</div>
         <div className="equipment-info-integrated">
           <div className="equipment-name-integrated">{item.name}</div>
           <div className="equipment-details-integrated">
@@ -445,20 +448,20 @@ const MaintenancePanel = () => {
         </div>
         <div className="equipment-actions-integrated">
           <button className="btn-edit-integrated" onClick={() => openEditModal(type, item)}>Edit</button>
-          <button className="btn-remove-integrated" onClick={() => handleRemoveEquipment(type, item)}>Remove</button>
+          <button className="btn-remove-integrated" onClick={() => openRemoveModal(type, item)}>Remove</button>
         </div>
       </div>
     );
   };
 
-  const EquipmentSection = ({ title, type, icon: Icon, items }) => {
+  const EquipmentSection = ({ title, type, items }) => {
     const activeItems = items?.filter(item => item.isActive !== false) || [];
     
     return (
       <div className="equipment-section-integrated">
         <div className="section-header-integrated">
           <div className="section-title-integrated">
-            <Icon /> <h4>{title}</h4>
+            <h4>{title}</h4>
             <span className="item-count-integrated">{activeItems.length} items</span>
           </div>
           <button className="btn-add-integrated" onClick={() => openAddModal(type)}>
@@ -530,7 +533,6 @@ const MaintenancePanel = () => {
         {/* MAINTENANCE MODE TAB */}
         {activeMainTab === 'maintenance' && (
           <>
-            {/* Maintenance Toggle Card */}
             <div className="toggle-card-admain">
               <div className="toggle-info-admain">
                 <h3>Maintenance Mode</h3>
@@ -556,7 +558,6 @@ const MaintenancePanel = () => {
               </button>
             </div>
 
-            {/* Settings Card */}
             <div className="settings-card-admain">
               <h3>Maintenance Page Settings</h3>
               
@@ -636,7 +637,6 @@ const MaintenancePanel = () => {
               </button>
             </div>
 
-            {/* Allowed IPs Card */}
             <div className="ips-card-admain">
               <h3>Allowed IP Addresses</h3>
               <div className="add-ip-admain">
@@ -661,7 +661,6 @@ const MaintenancePanel = () => {
               </div>
             </div>
 
-            {/* History Card */}
             <div className="history-card-admain">
               <button 
                 className="history-toggle-admain" 
@@ -695,28 +694,26 @@ const MaintenancePanel = () => {
         {activeMainTab === 'systemconfig' && config && (
           <div className="system-config-integrated">
             <div className="config-actions-header">
-              <button className="reset-config-btn" onClick={handleResetConfig} disabled={savingConfig}>
+              <button className="reset-config-btn" onClick={openResetModal} disabled={savingConfig}>
                 <FaTools /> Reset to Defaults
               </button>
             </div>
 
-            {/* Config Sub-tabs */}
             <div className="config-subtabs">
               <button className={`subtab-btn ${activeConfigTab === 'equipment' ? 'active' : ''}`} onClick={() => setActiveConfigTab('equipment')}>
-                <FaSolarPanel /> Equipment Catalog
+                Equipment Catalog
               </button>
               <button className={`subtab-btn ${activeConfigTab === 'calculations' ? 'active' : ''}`} onClick={() => setActiveConfigTab('calculations')}>
-                <FaCalculator /> Calculations
+                Calculations
               </button>
               <button className={`subtab-btn ${activeConfigTab === 'financial' ? 'active' : ''}`} onClick={() => setActiveConfigTab('financial')}>
-                <FaDollarSign /> Financial
+                Financial
               </button>
               <button className={`subtab-btn ${activeConfigTab === 'taxes' ? 'active' : ''}`} onClick={() => setActiveConfigTab('taxes')}>
-                <FaPercent /> Taxes
+                Taxes
               </button>
             </div>
 
-            {/* Equipment Catalog Tab */}
             {activeConfigTab === 'equipment' && (
               <div className="equipment-catalog-integrated">
                 <div className="form-group-integrated">
@@ -731,16 +728,16 @@ const MaintenancePanel = () => {
                   </div>
                 </div>
 
-                <EquipmentSection title="Solar Panels" type="solarPanels" icon={FaSolarPanel} items={config.equipmentPrices?.solarPanels} />
-                <EquipmentSection title="Inverters" type="inverters" icon={FaBolt} items={config.equipmentPrices?.inverters} />
-                <EquipmentSection title="Batteries" type="batteries" icon={FaBatteryFull} items={config.equipmentPrices?.batteries} />
-                <EquipmentSection title="Mounting Structures" type="mountingStructures" icon={FaTools} items={config.equipmentPrices?.mountingStructures} />
-                <EquipmentSection title="Electrical Components" type="electricalComponents" icon={FaWrench} items={config.equipmentPrices?.electricalComponents} />
-                <EquipmentSection title="Cables & Wiring" type="cablesAndWiring" icon={FaWrench} items={config.equipmentPrices?.cablesAndWiring} />
-                <EquipmentSection title="Safety Equipment" type="safetyEquipment" icon={FaTools} items={config.equipmentPrices?.safetyEquipment} />
-                <EquipmentSection title="Junction Boxes" type="junctionBoxes" icon={FaTools} items={config.equipmentPrices?.junctionBoxes} />
-                <EquipmentSection title="Disconnect Switches" type="disconnectSwitches" icon={FaTools} items={config.equipmentPrices?.disconnectSwitches} />
-                <EquipmentSection title="Meters" type="meters" icon={FaChartLine} items={config.equipmentPrices?.meters} />
+                <EquipmentSection title="Solar Panels" type="solarPanels" items={config.equipmentPrices?.solarPanels} />
+                <EquipmentSection title="Inverters" type="inverters" items={config.equipmentPrices?.inverters} />
+                <EquipmentSection title="Batteries" type="batteries" items={config.equipmentPrices?.batteries} />
+                <EquipmentSection title="Mounting Structures" type="mountingStructures" items={config.equipmentPrices?.mountingStructures} />
+                <EquipmentSection title="Electrical Components" type="electricalComponents" items={config.equipmentPrices?.electricalComponents} />
+                <EquipmentSection title="Cables & Wiring" type="cablesAndWiring" items={config.equipmentPrices?.cablesAndWiring} />
+                <EquipmentSection title="Safety Equipment" type="safetyEquipment" items={config.equipmentPrices?.safetyEquipment} />
+                <EquipmentSection title="Junction Boxes" type="junctionBoxes" items={config.equipmentPrices?.junctionBoxes} />
+                <EquipmentSection title="Disconnect Switches" type="disconnectSwitches" items={config.equipmentPrices?.disconnectSwitches} />
+                <EquipmentSection title="Meters" type="meters" items={config.equipmentPrices?.meters} />
 
                 <h4>Labor Rates</h4>
                 <div className="form-row-integrated">
@@ -768,7 +765,6 @@ const MaintenancePanel = () => {
               </div>
             )}
 
-            {/* Calculations Tab */}
             {activeConfigTab === 'calculations' && (
               <div className="config-section-integrated">
                 <h3>System Calculation Parameters</h3>
@@ -798,7 +794,6 @@ const MaintenancePanel = () => {
               </div>
             )}
 
-            {/* Financial Tab */}
             {activeConfigTab === 'financial' && (
               <div className="config-section-integrated">
                 <h3>Financial Parameters</h3>
@@ -818,7 +813,6 @@ const MaintenancePanel = () => {
               </div>
             )}
 
-            {/* Taxes Tab */}
             {activeConfigTab === 'taxes' && (
               <div className="config-section-integrated">
                 <h3>Taxes and Fees</h3>
@@ -844,7 +838,10 @@ const MaintenancePanel = () => {
         {showEquipmentModal && (
           <div className="modal-overlay" onClick={() => setShowEquipmentModal(false)}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
-              <h3>{editingItem ? 'Edit' : 'Add'} {equipmentType?.slice(0, -1)}</h3>
+              <div className="modal-header">
+                <h3>{editingItem ? 'Edit' : 'Add'} {equipmentType?.slice(0, -1)}</h3>
+                <button className="modal-close" onClick={() => setShowEquipmentModal(false)}><FaTimes /></button>
+              </div>
               <div className="form-group">
                 <label>Name *</label>
                 <input type="text" value={equipmentForm.name} onChange={(e) => setEquipmentForm({ ...equipmentForm, name: e.target.value })} />
@@ -874,25 +871,74 @@ const MaintenancePanel = () => {
                 <input type="text" value={equipmentForm.brand} onChange={(e) => setEquipmentForm({ ...equipmentForm, brand: e.target.value })} />
               </div>
               <div className="modal-actions">
-                <button onClick={() => setShowEquipmentModal(false)}>Cancel</button>
-                <button onClick={editingItem ? handleUpdateEquipment : handleAddEquipment} disabled={savingConfig}>
-                  {savingConfig ? <FaSpinner /> : <FaCheckCircle />} {editingItem ? 'Update' : 'Add'}
+                <button className="btn-cancel" onClick={() => setShowEquipmentModal(false)}>Cancel</button>
+                <button className="btn-confirm" onClick={editingItem ? handleUpdateEquipment : handleAddEquipment} disabled={savingConfig}>
+                  {savingConfig ? <FaSpinner className="spinner" /> : <FaCheckCircle />} {editingItem ? 'Update' : 'Add'}
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Reason Modal */}
+        {/* Reason Modal for Config Save */}
         {showReasonModal && (
           <div className="modal-overlay" onClick={() => setShowReasonModal(false)}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
-              <h3>Reason for Update</h3>
+              <div className="modal-header">
+                <h3>Reason for Update</h3>
+                <button className="modal-close" onClick={() => setShowReasonModal(false)}><FaTimes /></button>
+              </div>
               <textarea rows="3" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Enter reason for these changes..." />
               <div className="modal-actions">
-                <button onClick={() => setShowReasonModal(false)}>Cancel</button>
-                <button onClick={confirmConfigSave} disabled={savingConfig}>
-                  {savingConfig ? <FaSpinner /> : <FaCheckCircle />} Confirm
+                <button className="btn-cancel" onClick={() => setShowReasonModal(false)}>Cancel</button>
+                <button className="btn-confirm" onClick={confirmConfigSave} disabled={savingConfig}>
+                  {savingConfig ? <FaSpinner className="spinner" /> : <FaCheckCircle />} Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Reset Confirmation Modal */}
+        {showResetModal && (
+          <div className="modal-overlay" onClick={() => setShowResetModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Reset to Defaults</h3>
+                <button className="modal-close" onClick={() => setShowResetModal(false)}><FaTimes /></button>
+              </div>
+              <p>Are you sure you want to reset all settings to defaults? This action cannot be undone.</p>
+              <div className="form-group">
+                <label>Reason for reset</label>
+                <textarea rows="2" value={resetReason} onChange={(e) => setResetReason(e.target.value)} placeholder="Enter reason for resetting..." />
+              </div>
+              <div className="modal-actions">
+                <button className="btn-cancel" onClick={() => setShowResetModal(false)}>Cancel</button>
+                <button className="btn-confirm" onClick={confirmResetConfig} disabled={savingConfig}>
+                  {savingConfig ? <FaSpinner className="spinner" /> : <FaCheckCircle />} Confirm Reset
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Remove Equipment Confirmation Modal */}
+        {showRemoveModal && itemToRemove && (
+          <div className="modal-overlay" onClick={() => setShowRemoveModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Remove Equipment</h3>
+                <button className="modal-close" onClick={() => setShowRemoveModal(false)}><FaTimes /></button>
+              </div>
+              <p>Are you sure you want to remove <strong>{itemToRemove.item.name}</strong>? This will hide it from selection.</p>
+              <div className="form-group">
+                <label>Reason for removal</label>
+                <textarea rows="2" value={removeReason} onChange={(e) => setRemoveReason(e.target.value)} placeholder="Enter reason for removing this item..." />
+              </div>
+              <div className="modal-actions">
+                <button className="btn-cancel" onClick={() => setShowRemoveModal(false)}>Cancel</button>
+                <button className="btn-confirm btn-danger" onClick={confirmRemoveEquipment} disabled={savingConfig}>
+                  {savingConfig ? <FaSpinner className="spinner" /> : <FaTrash />} Confirm Remove
                 </button>
               </div>
             </div>

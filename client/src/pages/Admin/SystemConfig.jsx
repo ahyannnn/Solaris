@@ -35,6 +35,10 @@ const SystemConfig = () => {
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [pendingUpdates, setPendingUpdates] = useState(null);
   
+  // Reset confirmation modal states
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetReason, setResetReason] = useState('');
+  
   // Equipment modal states
   const [showEquipmentModal, setShowEquipmentModal] = useState(false);
   const [equipmentType, setEquipmentType] = useState('');
@@ -47,6 +51,11 @@ const SystemConfig = () => {
     unit: 'piece',
     notes: ''
   });
+  
+  // Remove equipment confirmation modal states
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [itemToRemove, setItemToRemove] = useState(null);
+  const [removeReason, setRemoveReason] = useState('');
 
   useEffect(() => {
     fetchConfig();
@@ -98,22 +107,27 @@ const SystemConfig = () => {
     }
   };
 
-  const handleReset = async () => {
-    if (!window.confirm('Are you sure you want to reset all settings to defaults? This action cannot be undone.')) {
+  const openResetModal = () => {
+    setShowResetModal(true);
+    setResetReason('');
+  };
+
+  const confirmReset = async () => {
+    if (!resetReason.trim()) {
+      showToast('Please enter a reason for resetting', 'warning');
       return;
     }
-    
-    const reasonReset = prompt('Please enter a reason for resetting:');
-    if (!reasonReset) return;
     
     setSaving(true);
     try {
       const token = sessionStorage.getItem('token');
       await axios.post(`${import.meta.env.VITE_API_URL}/api/maintenance/config/reset`, 
-        { reason: reasonReset },
+        { reason: resetReason },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       showToast('Configuration reset to defaults', 'success');
+      setShowResetModal(false);
+      setResetReason('');
       fetchConfig();
     } catch (error) {
       console.error('Error resetting config:', error);
@@ -166,6 +180,42 @@ const SystemConfig = () => {
     setShowEquipmentModal(true);
   };
 
+  const openRemoveModal = (type, item) => {
+    setItemToRemove({ type, item });
+    setRemoveReason('');
+    setShowRemoveModal(true);
+  };
+
+  const confirmRemoveEquipment = async () => {
+    if (!removeReason.trim()) {
+      showToast('Please enter a reason for removal', 'warning');
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/${itemToRemove.type}/${itemToRemove.item._id}`,
+        { 
+          headers: { Authorization: `Bearer ${token}` },
+          data: { reason: removeReason }
+        }
+      );
+      
+      showToast(response.data.message, 'success');
+      setShowRemoveModal(false);
+      setItemToRemove(null);
+      setRemoveReason('');
+      fetchConfig();
+    } catch (error) {
+      console.error('Error removing equipment:', error);
+      showToast(error.response?.data?.message || 'Failed to remove equipment', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleAddEquipment = async () => {
     if (!equipmentForm.name || equipmentForm.price <= 0) {
       showToast('Please enter name and valid price', 'warning');
@@ -175,13 +225,12 @@ const SystemConfig = () => {
     setSaving(true);
     try {
       const token = sessionStorage.getItem('token');
-      const reasonText = prompt('Reason for adding this item:', `Added new ${equipmentType.slice(0, -1)}: ${equipmentForm.name}`);
-      
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment?reason=${encodeURIComponent(reasonText || 'Added new equipment')}`,
+        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment`,
         { 
           type: equipmentType, 
-          ...equipmentForm 
+          ...equipmentForm,
+          reason: `Added new ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}`
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -206,11 +255,9 @@ const SystemConfig = () => {
     setSaving(true);
     try {
       const token = sessionStorage.getItem('token');
-      const reasonText = prompt('Reason for updating this item:', `Updated ${equipmentType.slice(0, -1)}: ${equipmentForm.name}`);
-      
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/${equipmentType}/${editingItem._id}?reason=${encodeURIComponent(reasonText || 'Updated equipment')}`,
-        equipmentForm,
+        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/${equipmentType}/${editingItem._id}`,
+        { ...equipmentForm, reason: `Updated ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}` },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -225,55 +272,10 @@ const SystemConfig = () => {
     }
   };
 
-  const handleRemoveEquipment = async (type, item) => {
-    if (!window.confirm(`Are you sure you want to remove "${item.name}"? This will hide it from selection.`)) {
-      return;
-    }
-    
-    setSaving(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      const reasonText = prompt('Reason for removing this item:', `Removed ${type.slice(0, -1)}: ${item.name}`);
-      
-      const response = await axios.delete(
-        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/${type}/${item._id}`,
-        { 
-          headers: { Authorization: `Bearer ${token}` },
-          data: { reason: reasonText || 'Removed equipment' }
-        }
-      );
-      
-      showToast(response.data.message, 'success');
-      fetchConfig();
-    } catch (error) {
-      console.error('Error removing equipment:', error);
-      showToast(error.response?.data?.message || 'Failed to remove equipment', 'error');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Equipment Card Component
-  const EquipmentCard = ({ item, type, onEdit, onRemove }) => {
-    const getIcon = () => {
-      switch(type) {
-        case 'solarPanels': return <FaSolarPanel />;
-        case 'inverters': return <FaBolt />;
-        case 'batteries': return <FaBatteryFull />;
-        case 'mountingStructures': return <FaTools />;
-        case 'electricalComponents': return <FaPlug />;
-        case 'cablesAndWiring': return <FaWrench />;
-        case 'safetyEquipment': return <FaHardHat />;
-        case 'junctionBoxes': return <FaBox />;
-        case 'disconnectSwitches': return <FaPowerOff />;
-        case 'meters': return <FaChartLine />;
-        default: return <FaTools />;
-      }
-    };
-
+  // Equipment Card Component - NO ICONS
+  const EquipmentCard = ({ item, type }) => {
     return (
       <div className="equipment-card-adsycon">
-        <div className="equipment-icon-adsycon">{getIcon()}</div>
         <div className="equipment-info-adsycon">
           <div className="equipment-name-adsycon">{item.name}</div>
           <div className="equipment-details-adsycon">
@@ -285,10 +287,10 @@ const SystemConfig = () => {
           {item.notes && <div className="equipment-notes-adsycon">{item.notes}</div>}
         </div>
         <div className="equipment-actions-adsycon">
-          <button className="btn-edit-equipment-adsycon" onClick={() => onEdit(type, item)}>
+          <button className="btn-edit-equipment-adsycon" onClick={() => openEditModal(type, item)}>
             <FaEdit /> Edit
           </button>
-          <button className="btn-remove-equipment-adsycon" onClick={() => onRemove(type, item)}>
+          <button className="btn-remove-equipment-adsycon" onClick={() => openRemoveModal(type, item)}>
             <FaTrash /> Remove
           </button>
         </div>
@@ -297,14 +299,13 @@ const SystemConfig = () => {
   };
 
   // Equipment Section Component
-  const EquipmentSection = ({ title, type, icon: Icon, items }) => {
+  const EquipmentSection = ({ title, type, items }) => {
     const activeItems = items?.filter(item => item.isActive !== false) || [];
     
     return (
       <div className="equipment-section-adsycon">
         <div className="section-header-adsycon">
           <div className="section-title-adsycon">
-            <Icon className="section-icon-adsycon" />
             <h4>{title}</h4>
             <span className="item-count-adsycon">{activeItems.length} items</span>
           </div>
@@ -323,8 +324,6 @@ const SystemConfig = () => {
                 key={item._id} 
                 item={item} 
                 type={type}
-                onEdit={openEditModal}
-                onRemove={handleRemoveEquipment}
               />
             ))
           )}
@@ -384,7 +383,7 @@ const SystemConfig = () => {
             <p>Manage system parameters, equipment catalog, and calculation settings</p>
           </div>
           <div className="header-actions-adsycon">
-            <button className="btn-reset-adsycon" onClick={handleReset} disabled={saving}>
+            <button className="btn-reset-adsycon" onClick={openResetModal} disabled={saving}>
               <FaUndo /> Reset to Defaults
             </button>
           </div>
@@ -424,74 +423,63 @@ const SystemConfig = () => {
                 </div>
               </div>
 
-              {/* 10 Equipment Categories */}
               <EquipmentSection 
                 title="Solar Panels" 
                 type="solarPanels" 
-                icon={FaSolarPanel}
                 items={config.equipmentPrices?.solarPanels}
               />
 
               <EquipmentSection 
                 title="Inverters" 
                 type="inverters" 
-                icon={FaBolt}
                 items={config.equipmentPrices?.inverters}
               />
 
               <EquipmentSection 
                 title="Batteries" 
                 type="batteries" 
-                icon={FaBatteryFull}
                 items={config.equipmentPrices?.batteries}
               />
 
               <EquipmentSection 
                 title="Mounting Structures" 
                 type="mountingStructures" 
-                icon={FaTools}
                 items={config.equipmentPrices?.mountingStructures}
               />
 
               <EquipmentSection 
                 title="Electrical Components" 
                 type="electricalComponents" 
-                icon={FaPlug}
                 items={config.equipmentPrices?.electricalComponents}
               />
 
               <EquipmentSection 
                 title="Cables & Wiring" 
                 type="cablesAndWiring" 
-                icon={FaWrench}
                 items={config.equipmentPrices?.cablesAndWiring}
               />
 
               <EquipmentSection 
                 title="Safety Equipment" 
                 type="safetyEquipment" 
-                icon={FaHardHat}
                 items={config.equipmentPrices?.safetyEquipment}
               />
 
               <EquipmentSection 
                 title="Junction Boxes" 
                 type="junctionBoxes" 
-                icon={FaBox}
                 items={config.equipmentPrices?.junctionBoxes}
               />
 
               <EquipmentSection 
                 title="Disconnect Switches" 
                 type="disconnectSwitches" 
-                icon={FaPowerOff}
                 items={config.equipmentPrices?.disconnectSwitches}
               />
 
               <EquipmentSection 
                 title="Meters" 
                 type="meters" 
-                icon={FaChartLine}
                 items={config.equipmentPrices?.meters}
               />
 
@@ -889,22 +877,93 @@ const SystemConfig = () => {
           </div>
         )}
 
-        {/* Reason Modal */}
+        {/* Reason Modal for Config Save */}
         {showReasonModal && (
           <div className="modal-overlay-adsycon" onClick={() => setShowReasonModal(false)}>
             <div className="modal-content-adsycon" onClick={e => e.stopPropagation()}>
-              <h3>Reason for Update</h3>
-              <p>Please provide a reason for these configuration changes:</p>
-              <textarea
-                rows="3"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="e.g., Price adjustment due to market changes, Updated calculation parameters, etc."
-              />
+              <div className="modal-header-adsycon">
+                <h3>Reason for Update</h3>
+                <button className="modal-close-adsycon" onClick={() => setShowReasonModal(false)}>
+                  <FaTimes />
+                </button>
+              </div>
+              <div className="modal-body-adsycon">
+                <p>Please provide a reason for these configuration changes:</p>
+                <textarea
+                  rows="3"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="e.g., Price adjustment due to market changes, Updated calculation parameters, etc."
+                />
+              </div>
               <div className="modal-actions-adsycon">
                 <button className="btn-cancel-adsycon" onClick={() => setShowReasonModal(false)}>Cancel</button>
                 <button className="btn-confirm-adsycon" onClick={confirmSave} disabled={saving}>
                   {saving ? <FaSpinner className="spinner-adsycon" /> : <FaCheckCircle />} Confirm Update
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Reset Confirmation Modal */}
+        {showResetModal && (
+          <div className="modal-overlay-adsycon" onClick={() => setShowResetModal(false)}>
+            <div className="modal-content-adsycon" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-adsycon">
+                <h3>Reset to Defaults</h3>
+                <button className="modal-close-adsycon" onClick={() => setShowResetModal(false)}>
+                  <FaTimes />
+                </button>
+              </div>
+              <div className="modal-body-adsycon">
+                <p>Are you sure you want to reset all settings to defaults? This action cannot be undone.</p>
+                <div className="form-group-adsycon">
+                  <label>Reason for reset</label>
+                  <textarea
+                    rows="2"
+                    value={resetReason}
+                    onChange={(e) => setResetReason(e.target.value)}
+                    placeholder="Enter reason for resetting..."
+                  />
+                </div>
+              </div>
+              <div className="modal-actions-adsycon">
+                <button className="btn-cancel-adsycon" onClick={() => setShowResetModal(false)}>Cancel</button>
+                <button className="btn-confirm-adsycon" onClick={confirmReset} disabled={saving}>
+                  {saving ? <FaSpinner className="spinner-adsycon" /> : <FaCheckCircle />} Confirm Reset
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Remove Equipment Confirmation Modal */}
+        {showRemoveModal && itemToRemove && (
+          <div className="modal-overlay-adsycon" onClick={() => setShowRemoveModal(false)}>
+            <div className="modal-content-adsycon" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-adsycon">
+                <h3>Remove Equipment</h3>
+                <button className="modal-close-adsycon" onClick={() => setShowRemoveModal(false)}>
+                  <FaTimes />
+                </button>
+              </div>
+              <div className="modal-body-adsycon">
+                <p>Are you sure you want to remove <strong>{itemToRemove.item.name}</strong>? This will hide it from selection.</p>
+                <div className="form-group-adsycon">
+                  <label>Reason for removal</label>
+                  <textarea
+                    rows="2"
+                    value={removeReason}
+                    onChange={(e) => setRemoveReason(e.target.value)}
+                    placeholder="Enter reason for removing this item..."
+                  />
+                </div>
+              </div>
+              <div className="modal-actions-adsycon">
+                <button className="btn-cancel-adsycon" onClick={() => setShowRemoveModal(false)}>Cancel</button>
+                <button className="btn-confirm-adsycon" onClick={confirmRemoveEquipment} disabled={saving}>
+                  {saving ? <FaSpinner className="spinner-adsycon" /> : <FaTrash />} Confirm Remove
                 </button>
               </div>
             </div>

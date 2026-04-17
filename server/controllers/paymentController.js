@@ -197,6 +197,7 @@ exports.processCardPayment = async (req, res) => {
   }
 };
 
+
 // @desc    Verify payment by payment intent ID (for both card and GCash)
 // @route   GET /api/payments/verify/:paymentIntentId
 // @access  Private (Customer)

@@ -2,6 +2,7 @@ const PayMongoService = require('../services/paymongoService');
 const PreAssessment = require('../models/PreAssessment');
 const Project = require('../models/Project');
 const Client = require('../models/Clients');
+const receiptService = require('../services/receiptService');
 
 // @desc    Create payment intent for pre-assessment (works for both card and GCash)
 // @route   POST /api/payments/pre-assessment/:id/create-intent
@@ -120,10 +121,13 @@ exports.processCardPayment = async (req, res) => {
       return res.status(404).json({ message: 'Client not found' });
     }
 
+    // ✅ ADD POPULATION for receipt generation
     const assessment = await PreAssessment.findOne({ 
       paymongoPaymentIntentId: paymentIntentId,
       clientId: client._id
-    });
+    }).populate('clientId', 'contactFirstName contactLastName contactNumber userId')
+      .populate('clientId.userId', 'email')
+      .populate('addressId');  // For address in receipt
 
     if (!assessment) {
       return res.status(404).json({ message: 'Pre-assessment not found' });
@@ -153,11 +157,11 @@ exports.processCardPayment = async (req, res) => {
       return res.status(500).json({ message: paymentMethod.error });
     }
 
-    // ✅ FIX: Don't pass returnUrl for card payments
+    // Attach payment method
     const attachResult = await PayMongoService.attachPaymentMethod(
       paymentIntentId,
       paymentMethod.paymentMethodId,
-      null  // ← No return URL needed for cards
+      null
     );
 
     if (!attachResult.success) {
@@ -173,14 +177,62 @@ exports.processCardPayment = async (req, res) => {
       assessment.autoVerified = true;
       assessment.paymentCompletedAt = new Date();
       assessment.confirmedAt = new Date();
+      
+      // ✅ GENERATE RECEIPT FOR CARD PAYMENT
+      let receipt = null;
+      try {
+        const customerName = `${assessment.clientId.contactFirstName || ''} ${assessment.clientId.contactLastName || ''}`.trim();
+        
+        // Format address
+        let addressString = '';
+        if (assessment.addressId) {
+          const addr = assessment.addressId;
+          addressString = `${addr.houseOrBuilding || ''} ${addr.street || ''}, ${addr.barangay || ''}, ${addr.cityMunicipality || ''}`.trim();
+        }
+        
+        receipt = await receiptService.generateReceipt({
+          paymentType: 'pre_assessment',
+          amount: assessment.assessmentFee,
+          paymentMethod: 'card',
+          referenceNumber: paymentIntentId,
+          invoiceNumber: assessment.invoiceNumber,
+          customer: {
+            name: customerName,
+            address: addressString || 'N/A',
+            contact: assessment.clientId.contactNumber,
+            email: assessment.clientId.userId?.email
+          },
+          projectName: null,
+          verifiedBy: userId,
+          verifiedAt: new Date(),
+          notes: 'Card payment auto-verified via PayMongo',
+          paymentDate: new Date()
+        });
+
+        if (receipt.success) {
+          assessment.receiptUrl = receipt.receiptUrl;
+          assessment.receiptNumber = receipt.receiptNumber;
+          console.log(`✅ Receipt generated for card payment: ${receipt.receiptNumber}`);
+        }
+      } catch (receiptError) {
+        console.error('Receipt generation error:', receiptError);
+        // Don't block payment success if receipt fails
+      }
+      
       await assessment.save();
 
       return res.json({
         success: true,
         message: 'Payment successful',
+        receipt: receipt?.success ? {
+          url: receipt.receiptUrl,
+          number: receipt.receiptNumber
+        } : null,
         data: {
           bookingReference: assessment.bookingReference,
-          invoiceNumber: assessment.invoiceNumber
+          invoiceNumber: assessment.invoiceNumber,
+          receiptUrl: assessment.receiptUrl,
+          receiptNumber: assessment.receiptNumber
         }
       });
     }

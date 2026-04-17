@@ -39,6 +39,9 @@ const RegisterPage = () => {
   
   // Debounce timer ref
   const debounceTimerRef = useRef(null);
+  
+  // Add a ref to prevent double verification
+  const isVerifyingRef = useRef(false);
 
   useEffect(() => {
     let timer;
@@ -80,7 +83,7 @@ const RegisterPage = () => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/check-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email: email.toLowerCase() })
       });
 
       const data = await response.json();
@@ -109,14 +112,12 @@ const RegisterPage = () => {
       clearTimeout(debounceTimerRef.current);
     }
     
-    // Don't check if email is empty or doesn't end with @gmail.com
     if (!email || !email.endsWith('@gmail.com')) {
       setIsEmailTaken(false);
       setEmailChecking(false);
       return;
     }
     
-    // Set checking to true BEFORE the timeout para magpakita agad ng checking message
     setEmailChecking(true);
     
     debounceTimerRef.current = setTimeout(() => {
@@ -124,37 +125,30 @@ const RegisterPage = () => {
     }, 3000);
   };
 
-  // Update handleChange - dapat i-reset ang checking states
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     if (errors[name]) setErrors({ ...errors, [name]: '' });
     
-    // Reset email taken status when email changes
     if (name === 'email') {
       setIsEmailTaken(false);
-      setEmailChecking(false); // IMPORTANT: Reset checking state
-      setErrors(prev => ({ ...prev, email: '' })); // Clear email errors
+      setEmailChecking(false);
+      setErrors(prev => ({ ...prev, email: '' }));
       
-      // Clear any pending debounce
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
       
-      // Only trigger debounced check if email has value and ends with @gmail.com
       if (value && value.endsWith('@gmail.com')) {
         debouncedEmailCheck(value);
       }
     }
   };
 
-  // Handle email blur (immediate check when leaving field)
   const handleEmailBlur = async () => {
-    // Clear any pending debounce
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    // Check immediately on blur
     if (formData.email && formData.email.endsWith('@gmail.com')) {
       setEmailChecking(true);
       await checkEmailExists(formData.email);
@@ -186,7 +180,6 @@ const RegisterPage = () => {
     window.open('/terms', '_blank');
   };
 
-  // Updated validateStep1 to include email taken check
   const validateStep1 = () => {
     const newErrors = {};
     if (!formData.fullName) newErrors.fullName = 'Full name is required';
@@ -209,7 +202,6 @@ const RegisterPage = () => {
     return newErrors;
   };
 
-  // Updated handleSendVerification to check email before sending
   const handleSendVerification = async () => {
     const newErrors = validateStep1();
     if (Object.keys(newErrors).length > 0) {
@@ -217,7 +209,6 @@ const RegisterPage = () => {
       return;
     }
 
-    // Double-check if email is taken before sending verification
     const isTaken = await checkEmailExists(formData.email);
     if (isTaken) {
       return;
@@ -231,7 +222,7 @@ const RegisterPage = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: formData.email,
+          email: formData.email.toLowerCase(),
           name: formData.fullName
         })
       });
@@ -255,12 +246,20 @@ const RegisterPage = () => {
 
   const handleVerifyCode = async (e) => {
     e.preventDefault();
+    
+    // Prevent double verification
+    if (isVerifyingRef.current) {
+      console.log('Already verifying, skipping...');
+      return;
+    }
+    
     const newErrors = validateStep2();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
+    isVerifyingRef.current = true;
     setIsLoading(true);
     setErrors({});
 
@@ -271,7 +270,7 @@ const RegisterPage = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: formData.email,
+          email: formData.email.toLowerCase(),
           code: verificationCode
         })
       });
@@ -279,38 +278,34 @@ const RegisterPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        if (data.attemptsLeft) {
-          setErrors({ code: `${data.message} (${data.attemptsLeft} attempts left)` });
-        } else {
-          setErrors({ code: data.message || 'Invalid verification code' });
-        }
+        setErrors({ code: data.message || 'Invalid verification code' });
+        isVerifyingRef.current = false;
       } else {
+        // Store verified data and register
         setVerifiedCode({
-          email: formData.email,
+          email: formData.email.toLowerCase(),
           code: verificationCode
         });
-        registerUser();
+        // Call register immediately
+        await registerUser(formData.email.toLowerCase(), verificationCode);
       }
     } catch (error) {
       console.error('Error:', error);
       setErrors({ code: 'Server error. Please try again.' });
+      isVerifyingRef.current = false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const registerUser = async () => {
-    if (!verifiedCode) return;
-
-    setIsLoading(true);
-
+  const registerUser = async (email, verificationCode) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fullName: formData.fullName,
-          email: verifiedCode.email,
+          email: email,
           password: formData.password
         })
       });
@@ -324,6 +319,7 @@ const RegisterPage = () => {
         } else {
           setErrors({ general: data.message || 'Registration failed' });
         }
+        isVerifyingRef.current = false;
       } else {
         const storage = sessionStorage;
         storage.setItem("token", data.token);
@@ -333,7 +329,7 @@ const RegisterPage = () => {
         storage.setItem("userId", data.user.id);
         storage.setItem("hasCompletedSetup", "false");
 
-        await sendWelcomeEmail();
+        await sendWelcomeEmail(email);
         setCurrentStep(3);
 
         setTimeout(() => {
@@ -343,19 +339,17 @@ const RegisterPage = () => {
     } catch (error) {
       console.error('Registration error:', error);
       setErrors({ general: 'Failed to create account' });
-    } finally {
-      setIsLoading(false);
-      setVerifiedCode(null);
+      isVerifyingRef.current = false;
     }
   };
 
-  const sendWelcomeEmail = async () => {
+  const sendWelcomeEmail = async (email) => {
     try {
       await fetch(`${import.meta.env.VITE_API_URL}/api/email/send-welcome`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: formData.email,
+          email: email,
           name: formData.fullName
         })
       });
@@ -373,7 +367,7 @@ const RegisterPage = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: formData.email,
+          email: formData.email.toLowerCase(),
           name: formData.fullName
         })
       });
@@ -408,7 +402,7 @@ const RegisterPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fullName: user.displayName,
-          email: user.email,
+          email: user.email.toLowerCase(),
           googleId: user.uid,
           photoURL: user.photoURL
         })
@@ -466,7 +460,6 @@ const RegisterPage = () => {
       </Helmet>
 
       <div className="register-page-reg">
-        {/* Error Modal */}
         {modal.show && (
           <div className="modal-overlay-reg" onClick={closeModal}>
             <div className={`modal-content-reg ${modal.type}`} onClick={(e) => e.stopPropagation()}>
@@ -488,7 +481,6 @@ const RegisterPage = () => {
         )}
 
         <div className="register-card-reg">
-          {/* LEFT BRANDING */}
           <div className="register-branding-reg">
             <div className="branding-content-reg">
               <div className="brand-logo-reg">
@@ -507,10 +499,8 @@ const RegisterPage = () => {
             </div>
           </div>
 
-          {/* RIGHT FORM */}
           <div className="register-form-container-reg">
             <div className="register-form-wrapper-reg">
-              {/* Step 1: Account Details */}
               {currentStep === 1 && (
                 <>
                   <div className="form-header-reg">
@@ -556,19 +546,16 @@ const RegisterPage = () => {
                           onBlur={handleEmailBlur}
                           disabled={isLoading || socialLoading !== ''}
                         />
-                        {/* Show checking spinner while checking */}
                         {emailChecking && (
                           <div className="email-checking-reg">
                             <span className="checking-spinner"></span>
                           </div>
                         )}
-                        {/* Show taken indicator ONLY after checking and if taken */}
                         {!emailChecking && isEmailTaken && formData.email && (
                           <div className="email-taken-reg">
                             <span className="taken-icon">✗</span>
                           </div>
                         )}
-                        {/* Show available indicator ONLY after checking and if NOT taken AND no error */}
                         {!emailChecking && !isEmailTaken && formData.email && formData.email.endsWith('@gmail.com') && !errors.email && (
                           <div className="email-available-reg">
                             <span className="available-icon">✓</span>
@@ -576,15 +563,12 @@ const RegisterPage = () => {
                         )}
                       </div>
 
-                      {/* Show checking message while loading */}
                       {emailChecking && formData.email && formData.email.endsWith('@gmail.com') && (
                         <span className="checking-message-reg">Checking email availability...</span>
                       )}
 
-                      {/* Show error message if email is taken */}
                       {errors.email && <span className="error-message-reg">{errors.email}</span>}
 
-                      {/* Show success message ONLY after checking and email is available */}
                       {!emailChecking && !isEmailTaken && formData.email && formData.email.endsWith('@gmail.com') && !errors.email && (
                         <span className="success-message-reg">✓ Email available</span>
                       )}
@@ -640,7 +624,6 @@ const RegisterPage = () => {
                       {errors.confirmPassword && <span className="error-message-reg">{errors.confirmPassword}</span>}
                     </div>
 
-                    {/* Terms and Conditions Checkbox */}
                     <div className="form-group-reg">
                       <label className="checkbox-label-reg">
                         <input
@@ -699,7 +682,6 @@ const RegisterPage = () => {
                 </>
               )}
 
-              {/* Step 2: Verification Code */}
               {currentStep === 2 && (
                 <>
                   <div className="form-header-reg">
@@ -768,7 +750,6 @@ const RegisterPage = () => {
                 </>
               )}
 
-              {/* Step 3: Success */}
               {currentStep === 3 && (
                 <div className="success-container-reg">
                   <div className="success-icon-reg">✓</div>

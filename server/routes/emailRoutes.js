@@ -7,7 +7,7 @@ const router = express.Router();
 const verificationCodes = new Map();
 
 // Generate 6-digit code
-const generateCode = () => Math.floor(100000 + Math.random() * 900000).toString();
+const generateCode = () => Math.floor(100000 + Math.random()  * 900000).toString();
 
 // ==================== CLOUDINARY LOGO URL ====================
 const CLOUDINARY_LOGO = "https://res.cloudinary.com/dz9x2kpar/image/upload/v1774690308/solar-tps/payment-proofs/payment_PA-260327-629_1774690307311.png";
@@ -473,14 +473,24 @@ SEND VERIFICATION EMAIL
 */
 router.post("/send-verification", async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, name } = req.body;
     if (!email) return res.status(400).json({ success: false, message: "Email required" });
     
-    const normalizedEmail = email.toLowerCase(); // ← Add this
+    const normalizedEmail = email.toLowerCase().trim();
     const code = generateCode();
-    verificationCodes.set(normalizedEmail, { code, timestamp: Date.now(), type: 'verification' }); // ← Use normalized
     
-    // Send email to original email (not normalized for display)
+    // Store with normalized email
+    verificationCodes.set(normalizedEmail, { 
+      code, 
+      timestamp: Date.now(), 
+      type: 'verification',
+      attempts: 0 
+    });
+    
+    console.log('✅ Code stored for:', normalizedEmail, 'Code:', code);
+    console.log('📦 All stored codes:', Array.from(verificationCodes.keys()));
+    
+    // Send email
     await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],
@@ -492,7 +502,7 @@ router.post("/send-verification", async (req, res) => {
 
     res.json({ success: true, message: "Verification code sent" });
   } catch (error) {
-    console.error("Email error:", error.message);
+    console.error("Send verification error:", error.message);
     res.status(500).json({ success: false, message: "Failed to send email" });
   }
 });
@@ -507,8 +517,17 @@ router.post("/send-reset-code", async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ success: false, message: "Email required" });
 
+    const normalizedEmail = email.toLowerCase().trim();
     const code = generateCode();
-    verificationCodes.set(email, { code, timestamp: Date.now(), type: 'reset' });
+    
+    verificationCodes.set(normalizedEmail, { 
+      code, 
+      timestamp: Date.now(), 
+      type: 'reset',
+      attempts: 0 
+    });
+    
+    console.log('Reset code stored for:', normalizedEmail, 'Code:', code);
 
     await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
@@ -521,8 +540,48 @@ router.post("/send-reset-code", async (req, res) => {
 
     res.json({ success: true, message: "Reset code sent" });
   } catch (error) {
-    console.error("Email error:", error.message);
+    console.error("Send reset code error:", error.message);
     res.status(500).json({ success: false, message: "Failed to send reset code" });
+  }
+});
+
+/*
+=========================
+RESEND CODE
+=========================
+*/
+router.post("/resend-code", async (req, res) => {
+  try {
+    const { email, name } = req.body;
+    if (!email) return res.status(400).json({ success: false, message: "Email required" });
+    
+    const normalizedEmail = email.toLowerCase().trim();
+    const code = generateCode();
+    
+    verificationCodes.delete(normalizedEmail);
+    
+    verificationCodes.set(normalizedEmail, { 
+      code, 
+      timestamp: Date.now(), 
+      type: 'verification',
+      attempts: 0 
+    });
+    
+    console.log('🔄 New code sent for:', normalizedEmail, 'Code:', code);
+    
+    await axios.post('https://api.brevo.com/v3/smtp/email', {
+      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
+      to: [{ email }],
+      subject: "New verification code",
+      htmlContent: verificationTemplate(email, code)
+    }, {
+      headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json" }
+    });
+
+    res.json({ success: true, message: "New verification code sent" });
+  } catch (error) {
+    console.error("Resend code error:", error.message);
+    res.status(500).json({ success: false, message: "Failed to resend code" });
   }
 });
 
@@ -533,43 +592,68 @@ VERIFY CODE
 */
 router.post("/verify-code", (req, res) => {
   try {
-    const email = req.body.email?.toLowerCase();
+    const email = req.body.email?.toLowerCase().trim();
     const { code } = req.body;
+
+    console.log('🔍 Verifying code for email:', email);
+    console.log('📦 Current stored codes:', Array.from(verificationCodes.entries()));
 
     const stored = verificationCodes.get(email);
 
     if (!stored) {
+      console.log('❌ No code found for email:', email);
       return res.status(400).json({
         success: false,
-        message: "No code found"
+        message: "No code found. Please request a new code."
       });
     }
 
+    console.log('📝 Stored code:', stored.code, 'Received code:', code);
+    console.log('⏰ Time elapsed:', (Date.now() - stored.timestamp) / 1000, 'seconds');
+
     if (Date.now() - stored.timestamp > 10 * 60 * 1000) {
       verificationCodes.delete(email);
+      console.log('⏰ Code expired for:', email);
       return res.status(400).json({
         success: false,
-        message: "Code expired"
+        message: "Code expired. Please request a new code."
       });
     }
 
     if (stored.code !== code) {
+      const attempts = stored.attempts ? stored.attempts + 1 : 1;
+      stored.attempts = attempts;
+      verificationCodes.set(email, stored);
+      
+      const attemptsLeft = 3 - attempts;
+      console.log('❌ Invalid code. Attempts:', attempts, 'Left:', attemptsLeft);
+      
+      if (attemptsLeft <= 0) {
+        verificationCodes.delete(email);
+        return res.status(400).json({
+          success: false,
+          message: "Too many invalid attempts. Please request a new code."
+        });
+      }
+      
       return res.status(400).json({
         success: false,
-        message: "Invalid code"
+        message: `Invalid code. ${attemptsLeft} attempts remaining.`
       });
     }
 
     verificationCodes.delete(email);
+    console.log('✅ Code verified successfully for:', email);
 
     res.json({
       success: true,
-      message: "Code verified"
+      message: "Code verified successfully"
     });
   } catch (error) {
+    console.error("Verify code error:", error);
     res.status(500).json({
       success: false,
-      message: "Verification failed"
+      message: "Verification failed. Please try again."
     });
   }
 });

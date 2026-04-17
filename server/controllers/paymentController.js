@@ -153,13 +153,11 @@ exports.processCardPayment = async (req, res) => {
       return res.status(500).json({ message: paymentMethod.error });
     }
 
-    // Attach payment method to intent
-    const returnUrl = `${process.env.FRONTEND_URL}/app/customer/payment-success?payment_intent_id=${paymentIntentId}`;
-    
+    // ✅ FIX: Don't pass returnUrl for card payments
     const attachResult = await PayMongoService.attachPaymentMethod(
       paymentIntentId,
       paymentMethod.paymentMethodId,
-      returnUrl
+      null  // ← No return URL needed for cards
     );
 
     if (!attachResult.success) {

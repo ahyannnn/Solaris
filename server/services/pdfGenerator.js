@@ -1,18 +1,18 @@
-// services/pdfGenerator.js
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 
 class PDFGenerator {
    constructor() {
-      // Professional font configuration
+      // Professional font configuration - ADD Roboto for currency
       this.fonts = {
          title: 'Helvetica-Bold',
          sectionHeader: 'Helvetica-Bold',
          body: 'Helvetica',
          tableHeader: 'Helvetica-Bold',
          tableBody: 'Helvetica',
-         footer: 'Helvetica-Oblique'
+         footer: 'Helvetica-Oblique',
+         currency: 'Roboto-Regular'  // ✅ ADD Roboto for ₱ symbol support
       };
 
       this.fontSizes = {
@@ -21,7 +21,8 @@ class PDFGenerator {
          body: 9,
          tableHeader: 9,
          tableBody: 8,
-         footer: 7
+         footer: 7,
+         currency: 9  // ✅ Add currency font size
       };
 
       // Page dimensions (A4)
@@ -39,14 +40,63 @@ class PDFGenerator {
          headerBg: '#e8f0f8',
          border: '#cccccc'
       };
+      
+      // ✅ Flag to track if Roboto font is available
+      this.robotoAvailable = false;
    }
 
-   // Helper: Format currency - FIXED (removes any special chars)
+   // ✅ Register Roboto font (call this when creating a new PDF document)
+   registerRobotoFont(doc) {
+      try {
+         const fontsPath = path.join(__dirname, '../fonts');
+         const robotoPath = path.join(fontsPath, 'Roboto-Regular.ttf');
+         
+         if (fs.existsSync(robotoPath)) {
+            doc.registerFont('Roboto-Regular', robotoPath);
+            this.robotoAvailable = true;
+            console.log('✓ Roboto font registered for ₱ symbol');
+         } else {
+            // Fallback to Helvetica if Roboto not found
+            this.fonts.currency = 'Helvetica';
+            this.robotoAvailable = false;
+            console.log('⚠ Roboto not found, using Helvetica for ₱ symbol');
+         }
+      } catch (e) {
+         this.fonts.currency = 'Helvetica';
+         this.robotoAvailable = false;
+         console.log('⚠ Roboto registration failed, using Helvetica for ₱ symbol');
+      }
+   }
+
+   // Helper: Format currency - UPDATED to use Roboto-friendly string
    formatCurrency(amount) {
       if (amount === null || amount === undefined) return '₱ 0.00';
       const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
       const validAmount = isNaN(numAmount) ? 0 : numAmount;
+      // Return as string with ₱ symbol - font will be applied during rendering
       return `₱ ${validAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+   }
+
+   // ✅ Helper: Render currency text with Roboto font
+   renderCurrency(doc, text, x, y, options = {}) {
+      const defaultOptions = {
+         width: 100,
+         align: 'right',
+         size: this.fontSizes.currency
+      };
+      
+      const mergedOptions = { ...defaultOptions, ...options };
+      
+      // Use Roboto font for currency (supports ₱)
+      doc.font(this.fonts.currency).fontSize(mergedOptions.size);
+      doc.text(text, x, y, {
+         width: mergedOptions.width,
+         align: mergedOptions.align,
+         continued: false
+      });
+      
+      // Reset to default font for subsequent text
+      doc.font(this.fonts.body);
    }
 
    // Helper: Format date
@@ -69,7 +119,7 @@ class PDFGenerator {
       return currentY;
    }
 
-   // Draw professional header
+   // Draw professional header - UPDATED with currency support
    drawHeader(doc, showRightText = true, rightText = null, reference = null, quotationNumber = null, date = null, expiryDate = null) {
       // Left side - Company info
       doc.font(this.fonts.title).fontSize(this.fontSizes.title).fillColor(this.colors.primary);
@@ -162,12 +212,10 @@ class PDFGenerator {
       return y + 22;
    }
 
-   // Draw table row with borders - FIXED
+   // Draw table row with borders - UPDATED to handle currency with Roboto
    drawTableRow(doc, y, columns, values, isLastRow = false) {
       const tableX = this.margin;
       const tableWidth = this.pageWidth - (this.margin * 2);
-
-      doc.font(this.fonts.tableBody).fontSize(this.fontSizes.tableBody).fillColor(this.colors.text);
 
       let currentX = tableX;
       columns.forEach((col, index) => {
@@ -175,10 +223,26 @@ class PDFGenerator {
          // Clean the value - remove any special characters
          value = String(value).replace(/[±+=]/g, '').trim();
          const align = col.align || 'left';
-         doc.text(value, currentX + (align === 'right' ? col.width - 5 : 5), y, {
-            width: col.width - 10,
-            align: align
-         });
+         
+         // Check if this is an amount column (contains ₱)
+         const isAmountColumn = value.includes('₱') || col.label === 'Amount' || col.label === 'Total' || col.label === 'Unit Price';
+         
+         if (isAmountColumn) {
+            // Use Roboto font for currency values
+            doc.font(this.fonts.currency).fontSize(this.fontSizes.currency);
+            doc.text(value, currentX + (align === 'right' ? col.width - 5 : 5), y, {
+               width: col.width - 10,
+               align: align
+            });
+            // Reset to body font
+            doc.font(this.fonts.tableBody);
+         } else {
+            doc.font(this.fonts.tableBody).fontSize(this.fontSizes.tableBody).fillColor(this.colors.text);
+            doc.text(value, currentX + (align === 'right' ? col.width - 5 : 5), y, {
+               width: col.width - 10,
+               align: align
+            });
+         }
          currentX += col.width;
       });
 
@@ -229,7 +293,7 @@ class PDFGenerator {
       return y;
    }
 
-   // Draw system specs
+   // Draw system specs - UPDATED for currency
    drawSystemSpecs(doc, y, data) {
       y = this.drawSectionHeader(doc, y, 'PROPOSED SYSTEM');
 
@@ -264,7 +328,7 @@ class PDFGenerator {
       return y + 10;
    }
 
-   // Draw equipment cost breakdown table
+   // Draw equipment cost breakdown table - UPDATED to use Roboto for amounts
    drawEquipmentTable(doc, y, data) {
       y = this.drawSectionHeader(doc, y, 'EQUIPMENT COST BREAKDOWN');
 
@@ -281,7 +345,7 @@ class PDFGenerator {
       const cb = data.costBreakdown;
       const rows = [];
 
-      // Collect ALL equipment items
+      // Collect ALL equipment items (same as before)
       if (cb.equipment.panels.quantity > 0) {
          rows.push([
             'Solar Panels',
@@ -311,6 +375,8 @@ class PDFGenerator {
             this.formatCurrency(cb.equipment.battery.total)
          ]);
       }
+
+      // ... rest of the equipment rows (same as before)
 
       if (cb.equipment.mountingStructure && cb.equipment.mountingStructure.quantity > 0) {
          rows.push([
@@ -428,17 +494,17 @@ class PDFGenerator {
          y = this.drawTableRow(doc, y, columns, rows[i], i === rows.length - 1);
       }
 
-      // Draw subtotal
+      // Draw subtotal - UPDATED to use Roboto
       y += 5;
       doc.font(this.fonts.tableHeader).fontSize(this.fontSizes.tableHeader).fillColor(this.colors.primary);
       doc.text('SUBTOTAL (EQUIPMENT)', this.pageWidth - this.margin - 220, y, { width: 110, align: 'right' });
-      doc.text(this.formatCurrency(data.calculatedEquipmentTotal), this.pageWidth - this.margin - 110, y, { width: 110, align: 'right' });
+      this.renderCurrency(doc, this.formatCurrency(data.calculatedEquipmentTotal), this.pageWidth - this.margin - 110, y, { width: 110, align: 'right' });
       y += 18;
 
       return y;
    }
 
-   // Draw installation cost section - TIGHTER COLUMNS
+   // Draw installation cost section - UPDATED to use Roboto
    drawInstallationCost(doc, y, data) {
       y = this.drawSectionHeader(doc, y, 'INSTALLATION COST');
 
@@ -469,213 +535,20 @@ class PDFGenerator {
          y = this.drawTableRow(doc, y, columns, row, index === rows.length - 1);
       });
 
-      // Draw subtotal
+      // Draw subtotal - UPDATED to use Roboto
       y += 5;
       doc.font(this.fonts.tableHeader).fontSize(this.fontSizes.tableHeader).fillColor(this.colors.primary);
       doc.text('SUBTOTAL (INSTALLATION)', this.pageWidth - this.margin - 220, y, { width: 110, align: 'right' });
-      doc.text(this.formatCurrency(data.calculatedInstallationTotal), this.pageWidth - this.margin - 110, y, { width: 110, align: 'right' });
+      this.renderCurrency(doc, this.formatCurrency(data.calculatedInstallationTotal), this.pageWidth - this.margin - 110, y, { width: 110, align: 'right' });
       y += 18;
 
-      // Draw grand total
+      // Draw grand total - UPDATED to use Roboto
       doc.font(this.fonts.title).fontSize(12).fillColor(this.colors.secondary);
       doc.text('TOTAL PROJECT INVESTMENT', this.margin, y);
-      doc.text(this.formatCurrency(data.calculatedTotalCost), this.pageWidth - this.margin - 110, y, { width: 110, align: 'right' });
+      this.renderCurrency(doc, this.formatCurrency(data.calculatedTotalCost), this.pageWidth - this.margin - 110, y, { width: 110, align: 'right' }, 12);
       y += 25;
 
       return y;
-   }
-
-   // Draw page 1 content for Pre-Assessment
-   async drawPreAssessmentPage1(doc, data) {
-      let y = this.drawHeader(doc, true, 'PRE-ASSESSMENT REPORT', data.bookingReference,
-         data.quotationNumber, this.formatDate(new Date()),
-         this.formatDate(data.quotationExpiryDate));
-
-      y = this.drawClientInfo(doc, y, data);
-      y = this.drawSystemSpecs(doc, y, data);
-      y = this.drawEquipmentTable(doc, y, data);
-      y = this.drawInstallationCost(doc, y, data);
-
-      // Payment terms if space allows
-      if (data.paymentTerms && y + 60 < this.maxY) {
-         y = this.drawSectionHeader(doc, y, 'PAYMENT TERMS');
-         doc.font(this.fonts.body).fontSize(this.fontSizes.body).fillColor(this.colors.text);
-         const termsShort = data.paymentTerms.length > 200 ? data.paymentTerms.substring(0, 197) + '...' : data.paymentTerms;
-         doc.text(termsShort, this.margin + 10, y, { width: this.pageWidth - (this.margin * 2) - 10 });
-      }
-
-      this.drawFooter(doc, 1, 2);
-   }
-
-   // Draw page 2 content for Pre-Assessment - FIXED ORDER
-   async drawPreAssessmentPage2(doc, data) {
-      let y = this.drawHeader(doc, true, 'SITE FINDINGS & ANALYSIS', data.bookingReference,
-         data.quotationNumber, null, null);
-
-      // 7-Day Monitoring Results
-      if (data.iotAnalysis) {
-         y = this.drawSectionHeader(doc, y, '7-DAY MONITORING RESULTS');
-
-         const iot = data.iotAnalysis;
-         const leftColX = this.margin + 10;
-         const rightColX = this.margin + 280;
-
-         // Left column - Irradiance & Temperature
-         doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
-         doc.text('Solar Irradiance', leftColX, y);
-         y += 14;
-         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
-         doc.text(`Average: ${iot.averageIrradiance?.toFixed(0) || 0} W/m²`, leftColX + 10, y);
-         y += 12;
-         doc.text(`Peak: ${iot.maxIrradiance?.toFixed(0) || 0} W/m²`, leftColX + 10, y);
-         y += 12;
-         doc.text(`Sun Hours: ${iot.peakSunHours?.toFixed(1) || 0} hrs/day`, leftColX + 10, y);
-         y += 16;
-
-         doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
-         doc.text('Temperature', leftColX, y);
-         y += 14;
-         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
-         doc.text(`Average: ${iot.averageTemperature?.toFixed(1) || 0}°C`, leftColX + 10, y);
-         y += 12;
-         doc.text(`Range: ${iot.minTemperature?.toFixed(1) || 0}°C to ${iot.maxTemperature?.toFixed(1) || 0}°C`, leftColX + 10, y);
-         y += 12;
-         doc.text(`Efficiency Loss: ${iot.efficiencyLoss?.toFixed(1) || 0}%`, leftColX + 10, y);
-         y += 16;
-
-         doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
-         doc.text('Humidity', leftColX, y);
-         y += 14;
-         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
-         doc.text(`Average: ${iot.averageHumidity?.toFixed(0) || 0}%`, leftColX + 10, y);
-         y += 12;
-         doc.text(`Range: ${iot.minHumidity?.toFixed(0) || 0}% to ${iot.maxHumidity?.toFixed(0) || 0}%`, leftColX + 10, y);
-         y += 16;
-
-         // Right column - System Recommendations
-         let rightY = y - 110;
-         doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
-         doc.text('System Recommendations', rightColX, rightY);
-         rightY += 14;
-         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
-         doc.text(`Optimal Orientation: ${iot.optimalOrientation || 'South-facing'}`, rightColX + 10, rightY);
-         rightY += 12;
-         doc.text(`Optimal Tilt Angle: ${iot.optimalTiltAngle || 15}°`, rightColX + 10, rightY);
-         rightY += 12;
-         doc.text(`Recommended System Size: ${iot.recommendedSystemSize || data.systemSize} kWp`, rightColX + 10, rightY);
-         rightY += 12;
-         doc.text(`Shading Percentage: ${iot.shadingPercentage || 0}%`, rightColX + 10, rightY);
-         rightY += 16;
-
-         if (iot.siteSuitabilityScore) {
-            doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
-            doc.text('Site Suitability Score', rightColX, rightY);
-            rightY += 14;
-            doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
-            doc.text(`${iot.siteSuitabilityScore}/100`, rightColX + 10, rightY);
-         }
-
-         y = Math.max(y, rightY);
-         y += 10;
-      }
-
-      // Performance Estimates (moved before Engineer Recommendations)
-      if (data.performanceEstimates) {
-         const requiredSpace = 80;
-         if (y + requiredSpace > this.maxY - 80) {
-            doc.addPage();
-            y = this.minY;
-            this.drawHeader(doc, true, 'SITE FINDINGS & ANALYSIS', data.bookingReference,
-               data.quotationNumber, null, null);
-         }
-
-         y = this.drawSectionHeader(doc, y, 'ESTIMATED PERFORMANCE');
-
-         const pe = data.performanceEstimates;
-         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
-         doc.text(`Annual Production: ${pe.annualProduction?.toLocaleString() || 0} kWh`, this.margin + 10, y);
-         y += 14;
-         doc.text(`Annual Savings: ${this.formatCurrency(pe.annualSavings)}`, this.margin + 10, y);
-         y += 14;
-         if (pe.monthlySavings) {
-            doc.text(`Monthly Savings: ${this.formatCurrency(pe.monthlySavings)}`, this.margin + 10, y);
-            y += 14;
-         }
-         doc.text(`Payback Period: ${pe.paybackPeriod || 0} years`, this.margin + 10, y);
-         y += 14;
-         doc.text(`CO₂ Reduction: ${pe.co2Offset?.toLocaleString() || 0} kg/year`, this.margin + 10, y);
-         y += 20;
-      }
-
-      // Site Assessment with smaller font for recommendations
-      if (data.siteAssessment) {
-         const requiredSpace = 100;
-         if (y + requiredSpace > this.maxY - 60) {
-            doc.addPage();
-            y = this.minY;
-            this.drawHeader(doc, true, 'SITE FINDINGS & ANALYSIS', data.bookingReference,
-               data.quotationNumber, null, null);
-         }
-
-         y = this.drawSectionHeader(doc, y, 'SITE ASSESSMENT');
-
-         const sa = data.siteAssessment;
-         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
-
-         if (sa.roofCondition) {
-            doc.text(`Roof Condition: ${sa.roofCondition}`, this.margin + 10, y);
-            y += 14;
-         }
-
-         if (sa.roofLength && sa.roofWidth) {
-            doc.text(`Roof Dimensions: ${sa.roofLength}m × ${sa.roofWidth}m (${(sa.roofLength * sa.roofWidth).toFixed(1)}m²)`,
-               this.margin + 10, y);
-            y += 14;
-         }
-
-         if (sa.structuralIntegrity) {
-            doc.text(`Structural Integrity: ${sa.structuralIntegrity}`, this.margin + 10, y);
-            y += 14;
-         }
-
-         if (sa.estimatedInstallationTime) {
-            doc.text(`Installation Time: ${sa.estimatedInstallationTime} days`, this.margin + 10, y);
-            y += 18;
-         }
-
-         // Engineer Recommendations at the bottom with smaller font
-         if (sa.recommendations) {
-            y = this.drawSectionHeader(doc, y, 'Engineer Recommendations');
-            doc.font(this.fonts.body).fontSize(7).fillColor(this.colors.text);
-            
-            // Split long text into multiple lines
-            const recommendations = sa.recommendations;
-            const maxWidth = this.pageWidth - (this.margin * 2) - 20;
-            const lines = [];
-            let currentLine = '';
-            
-            for (let i = 0; i < recommendations.length; i++) {
-               const char = recommendations[i];
-               const testLine = currentLine + char;
-               const textWidth = doc.widthOfString(testLine, { font: this.fonts.body, size: 7 });
-               
-               if (textWidth > maxWidth) {
-                  lines.push(currentLine);
-                  currentLine = char;
-               } else {
-                  currentLine = testLine;
-               }
-            }
-            if (currentLine) lines.push(currentLine);
-            
-            lines.forEach(line => {
-               doc.text(line, this.margin + 10, y, { width: maxWidth, align: 'left' });
-               y += 12;
-            });
-         }
-      }
-
-      this.drawFooter(doc, 2, 2, 'This report is based on on-site assessment and 7-day IoT monitoring data.');
    }
 
    // ============ FREE QUOTE PDF ============
@@ -684,6 +557,9 @@ class PDFGenerator {
          try {
             const doc = new PDFDocument({ margin: this.margin, size: 'A4' });
             const chunks = [];
+
+            // ✅ Register Roboto font at the beginning
+            this.registerRobotoFont(doc);
 
             doc.on('data', chunk => chunks.push(chunk));
             doc.on('end', () => resolve(Buffer.concat(chunks)));
@@ -745,7 +621,7 @@ class PDFGenerator {
             const cb = quoteData.costBreakdown;
             const rows = [];
 
-            // Collect all equipment items
+            // Collect all equipment items (same as before)
             if (cb?.equipment?.panels && cb.equipment.panels.quantity > 0) {
                rows.push([
                   'Panels',
@@ -895,11 +771,11 @@ class PDFGenerator {
 
             y += 5;
 
-            // Equipment Subtotal
+            // Equipment Subtotal - UPDATED to use Roboto
             const equipmentTotal = quoteData.calculatedEquipmentTotal || quoteData.equipmentCost || 0;
             doc.font(this.fonts.tableHeader).fontSize(8).fillColor(this.colors.primary);
             doc.text('SUBTOTAL (EQUIPMENT)', this.pageWidth - this.margin - 200, y, { width: 100, align: 'right' });
-            doc.text(this.formatCurrency(equipmentTotal), this.pageWidth - this.margin - 95, y, { width: 90, align: 'right' });
+            this.renderCurrency(doc, this.formatCurrency(equipmentTotal), this.pageWidth - this.margin - 95, y, { width: 90, align: 'right' });
             y += 18;
 
             // Installation Cost Section
@@ -924,11 +800,11 @@ class PDFGenerator {
 
             y += 5;
 
-            // Grand Total
+            // Grand Total - UPDATED to use Roboto
             const grandTotal = quoteData.calculatedTotalCost || quoteData.totalCost || 0;
             doc.font(this.fonts.title).fontSize(11).fillColor(this.colors.secondary);
             doc.text('TOTAL INVESTMENT', this.margin, y);
-            doc.text(this.formatCurrency(grandTotal), this.pageWidth - this.margin - 95, y, { width: 90, align: 'right' });
+            this.renderCurrency(doc, this.formatCurrency(grandTotal), this.pageWidth - this.margin - 95, y, { width: 90, align: 'right' });
             y += 20;
 
             // Payment Terms
@@ -974,6 +850,9 @@ class PDFGenerator {
             });
             const chunks = [];
 
+            // ✅ Register Roboto font at the beginning
+            this.registerRobotoFont(doc);
+
             doc.on('data', chunk => chunks.push(chunk));
             doc.on('end', () => resolve(Buffer.concat(chunks)));
             doc.on('error', reject);
@@ -991,6 +870,205 @@ class PDFGenerator {
             reject(error);
          }
       });
+   }
+
+   // Page 1 content for Pre-Assessment
+   async drawPreAssessmentPage1(doc, data) {
+      let y = this.drawHeader(doc, true, 'PRE-ASSESSMENT REPORT', data.bookingReference,
+         data.quotationNumber, this.formatDate(new Date()),
+         this.formatDate(data.quotationExpiryDate));
+
+      y = this.drawClientInfo(doc, y, data);
+      y = this.drawSystemSpecs(doc, y, data);
+      y = this.drawEquipmentTable(doc, y, data);
+      y = this.drawInstallationCost(doc, y, data);
+
+      // Payment terms if space allows
+      if (data.paymentTerms && y + 60 < this.maxY) {
+         y = this.drawSectionHeader(doc, y, 'PAYMENT TERMS');
+         doc.font(this.fonts.body).fontSize(this.fontSizes.body).fillColor(this.colors.text);
+         const termsShort = data.paymentTerms.length > 200 ? data.paymentTerms.substring(0, 197) + '...' : data.paymentTerms;
+         doc.text(termsShort, this.margin + 10, y, { width: this.pageWidth - (this.margin * 2) - 10 });
+      }
+
+      this.drawFooter(doc, 1, 2);
+   }
+
+   // Page 2 content for Pre-Assessment
+   async drawPreAssessmentPage2(doc, data) {
+      let y = this.drawHeader(doc, true, 'SITE FINDINGS & ANALYSIS', data.bookingReference,
+         data.quotationNumber, null, null);
+
+      // 7-Day Monitoring Results
+      if (data.iotAnalysis) {
+         y = this.drawSectionHeader(doc, y, '7-DAY MONITORING RESULTS');
+
+         const iot = data.iotAnalysis;
+         const leftColX = this.margin + 10;
+         const rightColX = this.margin + 280;
+
+         // Left column - Irradiance & Temperature
+         doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
+         doc.text('Solar Irradiance', leftColX, y);
+         y += 14;
+         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+         doc.text(`Average: ${iot.averageIrradiance?.toFixed(0) || 0} W/m²`, leftColX + 10, y);
+         y += 12;
+         doc.text(`Peak: ${iot.maxIrradiance?.toFixed(0) || 0} W/m²`, leftColX + 10, y);
+         y += 12;
+         doc.text(`Sun Hours: ${iot.peakSunHours?.toFixed(1) || 0} hrs/day`, leftColX + 10, y);
+         y += 16;
+
+         doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
+         doc.text('Temperature', leftColX, y);
+         y += 14;
+         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+         doc.text(`Average: ${iot.averageTemperature?.toFixed(1) || 0}°C`, leftColX + 10, y);
+         y += 12;
+         doc.text(`Range: ${iot.minTemperature?.toFixed(1) || 0}°C to ${iot.maxTemperature?.toFixed(1) || 0}°C`, leftColX + 10, y);
+         y += 12;
+         doc.text(`Efficiency Loss: ${iot.efficiencyLoss?.toFixed(1) || 0}%`, leftColX + 10, y);
+         y += 16;
+
+         doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
+         doc.text('Humidity', leftColX, y);
+         y += 14;
+         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+         doc.text(`Average: ${iot.averageHumidity?.toFixed(0) || 0}%`, leftColX + 10, y);
+         y += 12;
+         doc.text(`Range: ${iot.minHumidity?.toFixed(0) || 0}% to ${iot.maxHumidity?.toFixed(0) || 0}%`, leftColX + 10, y);
+         y += 16;
+
+         // Right column - System Recommendations
+         let rightY = y - 110;
+         doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
+         doc.text('System Recommendations', rightColX, rightY);
+         rightY += 14;
+         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+         doc.text(`Optimal Orientation: ${iot.optimalOrientation || 'South-facing'}`, rightColX + 10, rightY);
+         rightY += 12;
+         doc.text(`Optimal Tilt Angle: ${iot.optimalTiltAngle || 15}°`, rightColX + 10, rightY);
+         rightY += 12;
+         doc.text(`Recommended System Size: ${iot.recommendedSystemSize || data.systemSize} kWp`, rightColX + 10, rightY);
+         rightY += 12;
+         doc.text(`Shading Percentage: ${iot.shadingPercentage || 0}%`, rightColX + 10, rightY);
+         rightY += 16;
+
+         if (iot.siteSuitabilityScore) {
+            doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
+            doc.text('Site Suitability Score', rightColX, rightY);
+            rightY += 14;
+            doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+            doc.text(`${iot.siteSuitabilityScore}/100`, rightColX + 10, rightY);
+         }
+
+         y = Math.max(y, rightY);
+         y += 10;
+      }
+
+      // Performance Estimates
+      if (data.performanceEstimates) {
+         const requiredSpace = 80;
+         if (y + requiredSpace > this.maxY - 80) {
+            doc.addPage();
+            y = this.minY;
+            this.drawHeader(doc, true, 'SITE FINDINGS & ANALYSIS', data.bookingReference,
+               data.quotationNumber, null, null);
+         }
+
+         y = this.drawSectionHeader(doc, y, 'ESTIMATED PERFORMANCE');
+
+         const pe = data.performanceEstimates;
+         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+         doc.text(`Annual Production: ${pe.annualProduction?.toLocaleString() || 0} kWh`, this.margin + 10, y);
+         y += 14;
+         
+         // Use Roboto for currency amounts
+         doc.text(`Annual Savings: `, this.margin + 10, y);
+         this.renderCurrency(doc, this.formatCurrency(pe.annualSavings), this.margin + 110, y, { width: 100, align: 'left' });
+         y += 14;
+         
+         if (pe.monthlySavings) {
+            doc.text(`Monthly Savings: `, this.margin + 10, y);
+            this.renderCurrency(doc, this.formatCurrency(pe.monthlySavings), this.margin + 110, y, { width: 100, align: 'left' });
+            y += 14;
+         }
+         
+         doc.text(`Payback Period: ${pe.paybackPeriod || 0} years`, this.margin + 10, y);
+         y += 14;
+         doc.text(`CO₂ Reduction: ${pe.co2Offset?.toLocaleString() || 0} kg/year`, this.margin + 10, y);
+         y += 20;
+      }
+
+      // Site Assessment
+      if (data.siteAssessment) {
+         const requiredSpace = 100;
+         if (y + requiredSpace > this.maxY - 60) {
+            doc.addPage();
+            y = this.minY;
+            this.drawHeader(doc, true, 'SITE FINDINGS & ANALYSIS', data.bookingReference,
+               data.quotationNumber, null, null);
+         }
+
+         y = this.drawSectionHeader(doc, y, 'SITE ASSESSMENT');
+
+         const sa = data.siteAssessment;
+         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+
+         if (sa.roofCondition) {
+            doc.text(`Roof Condition: ${sa.roofCondition}`, this.margin + 10, y);
+            y += 14;
+         }
+
+         if (sa.roofLength && sa.roofWidth) {
+            doc.text(`Roof Dimensions: ${sa.roofLength}m × ${sa.roofWidth}m (${(sa.roofLength * sa.roofWidth).toFixed(1)}m²)`,
+               this.margin + 10, y);
+            y += 14;
+         }
+
+         if (sa.structuralIntegrity) {
+            doc.text(`Structural Integrity: ${sa.structuralIntegrity}`, this.margin + 10, y);
+            y += 14;
+         }
+
+         if (sa.estimatedInstallationTime) {
+            doc.text(`Installation Time: ${sa.estimatedInstallationTime} days`, this.margin + 10, y);
+            y += 18;
+         }
+
+         // Engineer Recommendations at the bottom
+         if (sa.recommendations) {
+            y = this.drawSectionHeader(doc, y, 'Engineer Recommendations');
+            doc.font(this.fonts.body).fontSize(7).fillColor(this.colors.text);
+            
+            // Split long text into multiple lines
+            const recommendations = sa.recommendations;
+            const maxWidth = this.pageWidth - (this.margin * 2) - 20;
+            const lines = [];
+            let currentLine = '';
+            
+            for (let i = 0; i < recommendations.length; i++) {
+               const char = recommendations[i];
+               const testLine = currentLine + char;
+               const textWidth = doc.widthOfString(testLine, { font: this.fonts.body, size: 7 });
+               
+               if (textWidth > maxWidth) {
+                  lines.push(currentLine);
+                  currentLine = char;
+               } else {
+                  currentLine = testLine;
+               }
+            }
+            if (currentLine) lines.push(currentLine);
+            
+            lines.forEach(line => {
+               doc.text(line, this.margin + 10, y, { width: maxWidth, align: 'left' });
+               y += 12;
+            });
+         }
+      }
+
+      this.drawFooter(doc, 2, 2, 'This report is based on on-site assessment and 7-day IoT monitoring data.');
    }
 }
 

@@ -1,4 +1,3 @@
-// pages/Customer/scheduleassessment.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -23,6 +22,7 @@ const ScheduleAssessment = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showRequestsModal, setShowRequestsModal] = useState(false);
   const [requestFilter, setRequestFilter] = useState('all');
+  const [hasPendingFreeQuote, setHasPendingFreeQuote] = useState(false);
 
   const SYSTEM_TYPES = [
     { value: 'grid-tie', label: 'Grid-Tie System', description: 'Connected to utility grid, no batteries' },
@@ -121,65 +121,67 @@ const ScheduleAssessment = () => {
   };
 
   const fetchMyRequests = async () => {
-  try {
-    const token = sessionStorage.getItem('token');
-    const [freeQuotesRes, preAssessmentsRes] = await Promise.all([
-      axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes/my-quotes`, { headers: { Authorization: `Bearer ${token}` } }),
-      axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-bookings`, { headers: { Authorization: `Bearer ${token}` } })
-    ]);
+    try {
+      const token = sessionStorage.getItem('token');
+      const [freeQuotesRes, preAssessmentsRes] = await Promise.all([
+        axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes/my-quotes`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-bookings`, { headers: { Authorization: `Bearer ${token}` } })
+      ]);
 
-    const assessments = preAssessmentsRes.data.assessments || [];
+      const assessments = preAssessmentsRes.data.assessments || [];
+      const quotes = freeQuotesRes.data.quotes || [];
 
-    
-
-    // For each assessment, extract engineer info
-    const assessmentsWithEngineer = await Promise.all(assessments.map(async (assessment) => {
-      let engineerName = 'Not assigned yet';
-
-      // Get engineer ID - handle both object and string cases
-      let engineerId = null;
-      if (assessment.assignedEngineerId) {
-        if (typeof assessment.assignedEngineerId === 'object') {
-          engineerId = assessment.assignedEngineerId._id || assessment.assignedEngineerId.id;
-        } else if (typeof assessment.assignedEngineerId === 'string') {
-          engineerId = assessment.assignedEngineerId;
-        }
-      }
+      // Check if there's a pending free quote (status: pending, assigned, or processing)
+      const hasPending = quotes.some(quote => 
+        quote.status === 'pending' || 
+        quote.status === 'assigned' || 
+        quote.status === 'processing'
+      );
       
-      
-      
-      // Fetch engineer name if ID exists
-      if (engineerId) {
-        try {
-          console.log(`  - Fetching engineer details for ID: ${engineerId}`);
-          const engineerRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users/${engineerId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          const engineer = engineerRes.data.user;
+      setHasPendingFreeQuote(hasPending);
 
-          if (engineer) {
-            engineerName = engineer.fullName ||
-              (engineer.firstName && engineer.lastName ? `${engineer.firstName} ${engineer.lastName}` : null) ||
-              engineer.name ||
-              engineer.email ||
-              'Engineer assigned';
-            console.log(`  - Engineer name found: ${engineerName}`);
+      // For each assessment, extract engineer info
+      const assessmentsWithEngineer = await Promise.all(assessments.map(async (assessment) => {
+        let engineerName = 'Not assigned yet';
+
+        let engineerId = null;
+        if (assessment.assignedEngineerId) {
+          if (typeof assessment.assignedEngineerId === 'object') {
+            engineerId = assessment.assignedEngineerId._id || assessment.assignedEngineerId.id;
+          } else if (typeof assessment.assignedEngineerId === 'string') {
+            engineerId = assessment.assignedEngineerId;
           }
-        } catch (err) {
-          console.error(`  - Error fetching engineer:`, err);
-          engineerName = 'Engineer assigned';
         }
-      } 
+        
+        if (engineerId) {
+          try {
+            const engineerRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users/${engineerId}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            const engineer = engineerRes.data.user;
 
-      return { ...assessment, engineerName };
-    }));
+            if (engineer) {
+              engineerName = engineer.fullName ||
+                (engineer.firstName && engineer.lastName ? `${engineer.firstName} ${engineer.lastName}` : null) ||
+                engineer.name ||
+                engineer.email ||
+                'Engineer assigned';
+            }
+          } catch (err) {
+            console.error(`Error fetching engineer:`, err);
+            engineerName = 'Engineer assigned';
+          }
+        } 
 
-    setFreeQuotes(freeQuotesRes.data.quotes || []);
-    setPreAssessments(assessmentsWithEngineer);
-  } catch (err) {
-    console.error('Error fetching requests:', err);
-  }
-};
+        return { ...assessment, engineerName };
+      }));
+
+      setFreeQuotes(quotes);
+      setPreAssessments(assessmentsWithEngineer);
+    } catch (err) {
+      console.error('Error fetching requests:', err);
+    }
+  };
 
   const handleAddressClick = () => navigate('/app/customer/settings?tab=addresses');
   const handleProfileClick = () => navigate('/app/customer/settings?tab=profile');
@@ -497,6 +499,18 @@ const ScheduleAssessment = () => {
                 <span className="service-badge-cusset free-cusset">Free</span>
               </div>
               <p className="service-description-cusset">Request a free quotation for your solar system. Our team will review and provide a detailed estimate.</p>
+              
+              {/* Warning message when there's a pending request */}
+              {hasPendingFreeQuote && (
+                <div className="pending-warning-cusset">
+                  <svg style={{ marginRight: '8px', width: '14px', height: '14px' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  You already have a pending quotation request. Please wait for it to be processed before requesting another.
+                </div>
+              )}
+              
               <div className="quote-form-cusset">
                 <div className="schedule-form-group-cusset">
                   <label>Monthly Electricity Bill (₱)</label>
@@ -530,7 +544,13 @@ const ScheduleAssessment = () => {
                 </div>
               </div>
               <div className="card-button-container-cusset">
-                <button className="btn-get-quote-cusset" onClick={handleFreeQuoteSubmit} disabled={!freeQuoteData.monthlyBill}>Request Quotation</button>
+                <button 
+                  className="btn-get-quote-cusset" 
+                  onClick={handleFreeQuoteSubmit} 
+                  disabled={!freeQuoteData.monthlyBill || hasPendingFreeQuote}
+                >
+                  {hasPendingFreeQuote ? 'Request in Progress' : 'Request Quotation'}
+                </button>
               </div>
             </div>
 

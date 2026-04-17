@@ -975,10 +975,11 @@ const MyAssessments = () => {
 
       setSelectedItem(formattedQuote);
       setSelectedType('free_quote');
+        const autoExpiryDate = getExpiryDate30Days();
 
       setFreeQuoteForm({
         quotationNumber: formattedQuote.quotationReference || '',
-        quotationExpiryDate: '',
+        quotationExpiryDate: autoExpiryDate,
         systemSize: '',
         systemType: formattedQuote.systemType || 'grid-tie',
         panelsNeeded: '',
@@ -1806,7 +1807,17 @@ const MyAssessments = () => {
                   <h4>Basic Information</h4>
                   <div className="form-grid-enad">
                     <div className="form-group-enad"><label>Quotation Number</label><input type="text" value={freeQuoteForm.quotationNumber} onChange={(e) => handleFreeQuoteFormChange('quotationNumber', e.target.value)} /></div>
-                    <div className="form-group-enad"><label>Expiry Date (30 Days)</label><input type="date" value={freeQuoteForm.quotationExpiryDate} onChange={(e) => handleFreeQuoteFormChange('quotationExpiryDate', e.target.value)} /></div>
+                    <div className="form-group-enad">
+                      <label>Expiry Date (30 Days Auto)</label>
+                      <input
+                        type="date"
+                        value={freeQuoteForm.quotationExpiryDate}
+                        onChange={(e) => handleFreeQuoteFormChange('quotationExpiryDate', e.target.value)}
+
+                        style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                      />
+                      <small className="form-hint-enad">Automatically set to 30 days from today</small>
+                    </div>
                     <div className="form-group-enad"><label>System Type</label><select value={freeQuoteForm.systemType} onChange={(e) => handleFreeQuoteFormChange('systemType', e.target.value)}>{SYSTEM_TYPES.map(type => (<option key={type.value} value={type.value}>{type.label}</option>))}</select></div>
                     <div className="form-group-enad"><label>System Size (kWp) *</label><input type="number" step="0.5" value={freeQuoteForm.systemSize} onChange={(e) => handleFreeQuoteFormChange('systemSize', parseFloat(e.target.value))} placeholder="e.g., 5.0" /></div>
                   </div>

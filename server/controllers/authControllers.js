@@ -41,7 +41,6 @@ exports.register = async (req, res) => {
         account_setup: false
       });
       await client.save();
-     
     }
 
     // Generate JWT
@@ -67,16 +66,13 @@ exports.register = async (req, res) => {
   }
 };
 
-
 /*
 =========================
 EMAIL + PASSWORD LOGIN
 =========================
 */
 exports.login = async (req, res) => {
-
   try {
-
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
@@ -108,17 +104,13 @@ exports.login = async (req, res) => {
     });
 
   } catch (error) {
-
     console.error("Login error:", error);
-
     res.status(500).json({
       message: "Server error",
       error: error.message
     });
-
   }
 };
-
 
 /*
 =========================
@@ -205,16 +197,13 @@ exports.googleRegister = async (req, res) => {
   }
 };
 
-
 /*
 =========================
 GOOGLE LOGIN
 =========================
 */
 exports.googleLogin = async (req, res) => {
-
   try {
-
     const { fullName, email, googleId, photoURL } = req.body;
 
     if (!email) {
@@ -226,9 +215,7 @@ exports.googleLogin = async (req, res) => {
     let user = await User.findOne({ email });
 
     if (!user) {
-
       const randomPassword = Math.random().toString(36).slice(-10);
-
       const salt = await bcrypt.genSalt(10);
       const passwordHash = await bcrypt.hash(randomPassword, salt);
 
@@ -243,7 +230,6 @@ exports.googleLogin = async (req, res) => {
       });
 
       await user.save();
-
     }
 
     const token = jwt.sign(
@@ -259,18 +245,13 @@ exports.googleLogin = async (req, res) => {
     });
 
   } catch (error) {
-
     console.error("Google login error:", error);
-
     res.status(500).json({
       message: "Server error",
       error: error.message
     });
-
   }
-
 };
-
 
 /*
 =========================
@@ -278,9 +259,7 @@ RESET PASSWORD
 =========================
 */
 exports.resetPassword = async (req, res) => {
-
   try {
-
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -301,7 +280,6 @@ exports.resetPassword = async (req, res) => {
     const passwordHash = await bcrypt.hash(password, salt);
 
     user.passwordHash = passwordHash;
-
     await user.save();
 
     res.json({
@@ -309,14 +287,43 @@ exports.resetPassword = async (req, res) => {
     });
 
   } catch (error) {
-
     console.error("Reset password error:", error);
-
     res.status(500).json({
       message: "Server error",
       error: error.message
     });
-
   }
+};
 
+/*
+=========================
+CHECK EMAIL
+=========================
+*/
+exports.checkEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+    
+    // Check if user exists in database
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    
+    if (existingUser) {
+      return res.json({ 
+        exists: true, 
+        message: 'Email already registered' 
+      });
+    }
+    
+    return res.json({ 
+      exists: false, 
+      message: 'Email available' 
+    });
+  } catch (error) {
+    console.error('Email check error:', error);
+    return res.status(500).json({ error: 'Server error' });
+  }
 };

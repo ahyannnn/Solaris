@@ -818,3 +818,64 @@
     font-size: 14px;
   }
 }
+
+/* Email checking styles for forgot password */
+.email-checking-forgot {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.checking-spinner-forgot {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e0e0e0;
+  border-top-color: #f39c12;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+.email-exists-forgot {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.exists-icon-forgot {
+  color: #27ae60;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.checking-message-forgot {
+  color: #f39c12;
+  font-size: 0.7rem;
+  margin-top: 0.25rem;
+  display: block;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.success-message-forgot {
+  color: #27ae60;
+  font-size: 0.7rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

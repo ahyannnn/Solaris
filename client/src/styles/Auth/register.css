@@ -1064,3 +1064,72 @@
     font-size: 22px;
   }
 }
+
+/* Email validation styles */
+.email-checking-reg {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.checking-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e0e0e0;
+  border-top-color: #f39c12;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+.email-available-reg,
+.email-taken-reg {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.available-icon {
+  color: #27ae60;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.taken-icon {
+  color: #e74c3c;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.success-message-reg {
+  color: #27ae60;
+  font-size: 0.7rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Checking message style */
+.checking-message-reg {
+  color: #f39c12;
+  font-size: 0.7rem;
+  margin-top: 0.25rem;
+  display: block;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

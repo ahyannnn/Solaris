@@ -224,7 +224,7 @@
 /* Row Actions */
 .row-actions-login {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end; /* Changed from space-between to flex-end */
   align-items: center;
   margin-top: 0.1rem;
   margin-bottom: 0.25rem;

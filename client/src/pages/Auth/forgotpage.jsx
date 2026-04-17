@@ -1,5 +1,5 @@
 // pages/Auth/ForgotPasswordPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '../../assets/Salfare_Logo.png';
@@ -18,6 +18,13 @@ const ForgotPasswordPage = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   
+  // Email checking states
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [emailExists, setEmailExists] = useState(false);
+  
+  // Debounce timer ref
+  const debounceTimerRef = useRef(null);
+  
   // Cooldown state
   const [cooldown, setCooldown] = useState(0);
   const [isCooldownActive, setIsCooldownActive] = useState(false);
@@ -35,9 +42,104 @@ const ForgotPasswordPage = () => {
     return () => clearTimeout(timer);
   }, [cooldown, isCooldownActive]);
 
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleEmailChange = (e) => {
-    setEmail(e.target.value);
+    const value = e.target.value;
+    setEmail(value);
     if (errors.email) setErrors({});
+    
+    // Reset email exists status when email changes
+    setEmailExists(false);
+    setEmailChecking(false);
+    
+    // Clear any pending debounce
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    // Only trigger debounced check if email has value
+    if (value && value.includes('@')) {
+      debouncedEmailCheck(value);
+    }
+  };
+
+  // Function to check if email exists (for forgot password)
+  const checkEmailExists = async (email) => {
+    if (!email || !email.includes('@')) {
+      setEmailExists(false);
+      setEmailChecking(false);
+      return false;
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/check-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+      
+      if (data.exists) {
+        setEmailExists(true);
+        setErrors(prev => ({ ...prev, email: '' }));
+        return true;
+      } else {
+        setEmailExists(false);
+        setErrors(prev => ({ ...prev, email: 'No account found with this email address' }));
+        return false;
+      }
+    } catch (error) {
+      console.error('Email check error:', error);
+      setEmailExists(false);
+      return false;
+    } finally {
+      setEmailChecking(false);
+    }
+  };
+
+  // Debounced email check (waits 3 seconds after user stops typing)
+  const debouncedEmailCheck = (email) => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    // Don't check if email is empty
+    if (!email || !email.includes('@')) {
+      setEmailExists(false);
+      setEmailChecking(false);
+      return;
+    }
+    
+    // Set checking to true BEFORE the timeout
+    setEmailChecking(true);
+    
+    debounceTimerRef.current = setTimeout(() => {
+      checkEmailExists(email);
+    }, 3000);
+  };
+
+  // Handle email blur (immediate check when leaving field)
+  const handleEmailBlur = async () => {
+    // Clear any pending debounce
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    // Check immediately on blur
+    if (email && email.includes('@')) {
+      setEmailChecking(true);
+      await checkEmailExists(email);
+    } else if (email && !email.includes('@')) {
+      setErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }));
+    }
   };
 
   const handleCodeChange = (index, value) => {
@@ -76,6 +178,8 @@ const ForgotPasswordPage = () => {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = 'Email is invalid';
+    } else if (!emailExists) {
+      newErrors.email = 'No account found with this email address';
     }
     return newErrors;
   };
@@ -123,6 +227,13 @@ const ForgotPasswordPage = () => {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      return;
+    }
+
+    // Double-check if email exists before sending
+    const exists = await checkEmailExists(email);
+    if (!exists) {
+      setErrors({ email: 'No account found with this email address' });
       return;
     }
 
@@ -360,15 +471,36 @@ const ForgotPasswordPage = () => {
                           placeholder="Enter your email"
                           value={email}
                           onChange={handleEmailChange}
+                          onBlur={handleEmailBlur}
                           disabled={isLoading}
                         />
+                        {/* Show checking spinner */}
+                        {emailChecking && (
+                          <div className="email-checking-forgot">
+                            <span className="checking-spinner-forgot"></span>
+                          </div>
+                        )}
+                        {/* Show exists indicator */}
+                        {!emailChecking && emailExists && email && (
+                          <div className="email-exists-forgot">
+                            <span className="exists-icon-forgot">✓</span>
+                          </div>
+                        )}
                       </div>
+                      {/* Show checking message */}
+                      {emailChecking && email && email.includes('@') && (
+                        <span className="checking-message-forgot">Checking email...</span>
+                      )}
+                      {/* Show success message if email exists */}
+                      {!emailChecking && emailExists && email && (
+                        <span className="success-message-forgot">✓ Email found</span>
+                      )}
                     </div>
 
                     <button
                       type="submit"
                       className={`forgot-submit-btn-forgot ${isLoading ? 'loading-forgot' : ''}`}
-                      disabled={isLoading}
+                      disabled={isLoading || !emailExists}
                     >
                       {isLoading ? 'Sending...' : 'Send Code'}
                     </button>

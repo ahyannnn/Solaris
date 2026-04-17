@@ -39,6 +39,8 @@ const ScheduleAssessment = () => {
     roofWidth: ''
   });
   const [showFreeQuoteConfirm, setShowFreeQuoteConfirm] = useState(false);
+  const [showPreAssessmentSuccess, setShowPreAssessmentSuccess] = useState(false);
+  const [preAssessmentData, setPreAssessmentData] = useState(null);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -317,11 +319,13 @@ const ScheduleAssessment = () => {
       await sendPreAssessmentConfirmationEmail(response.data.booking.invoiceNumber, response.data.booking.assessmentFee, formData.propertyType, formData.desiredCapacity, formData.systemType, formData.roofType, formData.roofLength, formData.roofWidth, formData.preferredDate, getFullAddress(), formData.paymentMethod);
       setShowConfirmDialog(false);
       setTermsAccepted(false);
+      setPreAssessmentData({
+        reference: response.data.booking.bookingReference,
+        invoiceNumber: response.data.booking.invoiceNumber
+      });
+      setShowPreAssessmentSuccess(true);
       showToast('Pre-assessment booked successfully!', 'success');
       fetchMyRequests();
-      setTimeout(() => {
-        navigate('/app/customer/billing', { state: { newInvoice: { id: response.data.booking.invoiceNumber, amount: response.data.booking.assessmentFee, description: 'Pre Assessment Fee' } } });
-      }, 1500);
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to submit pre-assessment. Please try again.', 'error');
     } finally {
@@ -433,6 +437,34 @@ const ScheduleAssessment = () => {
         )}
         <div className="quote-actions-cusset">
           <button onClick={() => { setSubmitted(false); setCurrentStep('service-selection'); setFreeQuoteData({ monthlyBill: '', propertyType: 'residential', desiredCapacity: '', systemType: '', roofLength: '', roofWidth: '' }); setSubmittedData(null); }} className="schedule-btn-secondary-cusset">Request Another</button>
+          <button onClick={() => navigate('/app/customer')} className="schedule-btn-primary-cusset">Go to Dashboard</button>
+        </div>
+      </div>
+      <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} />
+    </div>
+  );
+
+  if (showPreAssessmentSuccess) return (
+    <div className="schedule-container-cusset">
+      <div className="schedule-confirmation-card-cusset">
+        <div className="confirmation-icon">✓</div>
+        <h1>Pre-Assessment Booked!</h1>
+        <p>Your pre-assessment request has been successfully submitted.</p>
+        <div className="schedule-booking-details-cusset">
+          <p><strong>Booking Reference:</strong> {preAssessmentData?.reference}</p>
+          <p><strong>Invoice Number:</strong> {preAssessmentData?.invoiceNumber}</p>
+          <p><strong>Status:</strong> Pending Admin Confirmation</p>
+        </div>
+        <div className="schedule-next-steps-cusset">
+          <h3>What's Next?</h3>
+          <ul>
+            <li>Our admin will review your booking request</li>
+            <li>Once confirmed, you will receive payment instructions</li>
+            <li>After payment verification, an engineer will be assigned to your assessment</li>
+          </ul>
+        </div>
+        <div className="quote-actions-cusset">
+          <button onClick={() => { setShowPreAssessmentSuccess(false); setCurrentStep('service-selection'); setFormData({ ...formData, preferredDate: '', desiredCapacity: '', systemType: '', roofType: '', roofLength: '', roofWidth: '' }); }} className="schedule-btn-secondary-cusset">Book Another</button>
           <button onClick={() => navigate('/app/customer')} className="schedule-btn-primary-cusset">Go to Dashboard</button>
         </div>
       </div>
@@ -576,7 +608,6 @@ const ScheduleAssessment = () => {
           {showFreeQuoteConfirm && (
             <div className="schedule-modal-overlay-cusset" onClick={() => setShowFreeQuoteConfirm(false)}>
               <div className="schedule-modal-cusset" onClick={e => e.stopPropagation()}>
-                <button className="modal-close-cusset" onClick={() => setShowFreeQuoteConfirm(false)}>×</button>
                 <h2>Confirm Quotation Request</h2>
                 <div className="quote-summary-cusset">
                   <div className="quote-item-cusset"><span>Monthly Bill:</span><strong>{formatCurrency(freeQuoteData.monthlyBill)}</strong></div>
@@ -596,7 +627,6 @@ const ScheduleAssessment = () => {
           {showDetailsModal && selectedRequest && (
             <div className="schedule-modal-overlay-cusset" onClick={() => setShowDetailsModal(false)}>
               <div className="schedule-modal-cusset status-modal-cusset" onClick={e => e.stopPropagation()}>
-                <button className="modal-close-cusset" onClick={() => setShowDetailsModal(false)}>×</button>
                 <h2>Request Details</h2>
                 {selectedRequest.quotationReference ? (
                   <>
@@ -714,7 +744,7 @@ const ScheduleAssessment = () => {
                 </div>
                 <div className="schedule-fee-card-cusset">
                   <strong>Pre Assessment Fee: ₱1,500.00</strong>
-                  <p>You will be redirected to the billing page to upload your payment proof after booking.</p>
+                  <p>Your booking will be confirmed by our admin. You will receive payment instructions after confirmation.</p>
                 </div>
                 <div className="form-actions-cusset">
                   <button onClick={handleSubmitClick} className="schedule-btn-submit-cusset">Continue to Confirmation</button>
@@ -726,7 +756,7 @@ const ScheduleAssessment = () => {
           {showInfoModal && (
             <div className="schedule-modal-overlay-cusset" onClick={() => setShowInfoModal(false)}>
               <div className="schedule-modal-cusset info-modal-cusset" onClick={e => e.stopPropagation()}>
-                <div className="info-modal-header-cusset"><h3>Contact & Address Details</h3><button className="modal-close-cusset" onClick={() => setShowInfoModal(false)}>×</button></div>
+                <div className="info-modal-header-cusset"><h3>Contact & Address Details</h3></div>
                 <div className="info-modal-body-cusset">
                   <div className="info-section-cusset">
                     <h4>Personal Information</h4>
@@ -759,14 +789,18 @@ const ScheduleAssessment = () => {
           {showConfirmDialog && (
             <div className="schedule-modal-overlay-cusset" onClick={() => setShowConfirmDialog(false)}>
               <div className="schedule-modal-cusset" onClick={e => e.stopPropagation()}>
-                <button className="modal-close-cusset" onClick={() => setShowConfirmDialog(false)}>×</button>
                 <h2>Confirm Pre Assessment</h2>
                 <div className="schedule-modal-summary-cusset">
                   <div className="schedule-summary-section-cusset"><h4>Contact</h4><p><strong>Name:</strong> {getFullName()}</p><p><strong>Contact:</strong> {formData.contactNumber}</p></div>
                   <div className="schedule-summary-section-cusset"><h4>Address</h4><p>{getFullAddress()}</p></div>
                   <div className="schedule-summary-section-cusset"><h4>Details</h4><p><strong>Property:</strong> {formData.propertyType}</p><p><strong>Date:</strong> {formData.preferredDate}</p><p><strong>Fee:</strong> ₱1,500.00</p></div>
                 </div>
-                <div className="schedule-modal-checkbox-cusset"><label><input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} /><span>I agree to the Terms and Conditions</span></label></div>
+                <div className="schedule-modal-checkbox-cusset">
+                  <label>
+                    <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} />
+                    <span>I agree to the <a href="/terms" target="_blank" className="terms-link">Terms and Conditions</a></span>
+                  </label>
+                </div>
                 <div className="schedule-modal-actions-cusset">
                   <button onClick={() => setShowConfirmDialog(false)} className="schedule-btn-secondary-cusset">Cancel</button>
                   <button onClick={handleConfirmBooking} disabled={!termsAccepted || isSubmitting} className="schedule-btn-success-cusset">{isSubmitting ? 'Processing...' : 'Confirm Booking'}</button>

@@ -1,5 +1,5 @@
 // pages/Auth/RegisterPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate } from 'react-router-dom';
@@ -32,6 +32,13 @@ const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState('');
   const [modal, setModal] = useState({ show: false, message: '', type: '' });
+  
+  // Email validation states
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [isEmailTaken, setIsEmailTaken] = useState(false);
+  
+  // Debounce timer ref
+  const debounceTimerRef = useRef(null);
 
   useEffect(() => {
     let timer;
@@ -45,6 +52,15 @@ const RegisterPage = () => {
     return () => clearTimeout(timer);
   }, [cooldown, isCooldownActive]);
 
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
   const showModal = (message, type = 'error') => {
     setModal({ show: true, message, type });
     setTimeout(() => setModal({ show: false, message: '', type: '' }), 5000);
@@ -52,10 +68,99 @@ const RegisterPage = () => {
 
   const closeModal = () => setModal({ show: false, message: '', type: '' });
 
+  // Function to check if email is already taken
+  const checkEmailExists = async (email) => {
+    if (!email || !email.endsWith('@gmail.com')) {
+      setIsEmailTaken(false);
+      setEmailChecking(false);
+      return false;
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/check-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+      
+      if (data.exists) {
+        setIsEmailTaken(true);
+        setErrors(prev => ({ ...prev, email: 'Email is already taken' }));
+        return true;
+      } else {
+        setIsEmailTaken(false);
+        setErrors(prev => ({ ...prev, email: '' }));
+        return false;
+      }
+    } catch (error) {
+      console.error('Email check error:', error);
+      setIsEmailTaken(false);
+      return false;
+    } finally {
+      setEmailChecking(false);
+    }
+  };
+
+  // Debounced email check (waits 3 seconds after user stops typing)
+  const debouncedEmailCheck = (email) => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    // Don't check if email is empty or doesn't end with @gmail.com
+    if (!email || !email.endsWith('@gmail.com')) {
+      setIsEmailTaken(false);
+      setEmailChecking(false);
+      return;
+    }
+    
+    // Set checking to true BEFORE the timeout para magpakita agad ng checking message
+    setEmailChecking(true);
+    
+    debounceTimerRef.current = setTimeout(() => {
+      checkEmailExists(email);
+    }, 3000);
+  };
+
+  // Update handleChange - dapat i-reset ang checking states
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     if (errors[name]) setErrors({ ...errors, [name]: '' });
+    
+    // Reset email taken status when email changes
+    if (name === 'email') {
+      setIsEmailTaken(false);
+      setEmailChecking(false); // IMPORTANT: Reset checking state
+      setErrors(prev => ({ ...prev, email: '' })); // Clear email errors
+      
+      // Clear any pending debounce
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      
+      // Only trigger debounced check if email has value and ends with @gmail.com
+      if (value && value.endsWith('@gmail.com')) {
+        debouncedEmailCheck(value);
+      }
+    }
+  };
+
+  // Handle email blur (immediate check when leaving field)
+  const handleEmailBlur = async () => {
+    // Clear any pending debounce
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    // Check immediately on blur
+    if (formData.email && formData.email.endsWith('@gmail.com')) {
+      setEmailChecking(true);
+      await checkEmailExists(formData.email);
+    } else if (formData.email && !formData.email.endsWith('@gmail.com')) {
+      setErrors(prev => ({ ...prev, email: 'Please use a valid @gmail.com email address' }));
+    }
   };
 
   const handleCodeChange = (index, value) => {
@@ -81,11 +186,13 @@ const RegisterPage = () => {
     window.open('/terms', '_blank');
   };
 
+  // Updated validateStep1 to include email taken check
   const validateStep1 = () => {
     const newErrors = {};
     if (!formData.fullName) newErrors.fullName = 'Full name is required';
     if (!formData.email) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
+    else if (!formData.email.endsWith('@gmail.com')) newErrors.email = 'Please use a valid @gmail.com email address';
+    else if (isEmailTaken) newErrors.email = 'Email is already taken';
     if (!formData.password) newErrors.password = 'Password is required';
     else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
     else if (!/(?=.*[0-9])/.test(formData.password)) newErrors.password = 'Password must contain at least one number';
@@ -102,10 +209,17 @@ const RegisterPage = () => {
     return newErrors;
   };
 
+  // Updated handleSendVerification to check email before sending
   const handleSendVerification = async () => {
     const newErrors = validateStep1();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      return;
+    }
+
+    // Double-check if email is taken before sending verification
+    const isTaken = await checkEmailExists(formData.email);
+    if (isTaken) {
       return;
     }
 
@@ -185,59 +299,55 @@ const RegisterPage = () => {
     }
   };
 
-  // In RegisterPage.jsx, in the registerUser function:
+  const registerUser = async () => {
+    if (!verifiedCode) return;
 
-const registerUser = async () => {
-  if (!verifiedCode) return;
+    setIsLoading(true);
 
-  setIsLoading(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: verifiedCode.email,
+          password: formData.password
+        })
+      });
 
-  try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        fullName: formData.fullName,
-        email: verifiedCode.email,
-        password: formData.password
-      })
-    });
+      const data = await response.json();
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      if (response.status === 409) {
-        showModal(data.message || 'This email is already registered. Please sign in instead.', 'warning');
-        setCurrentStep(1);
+      if (!response.ok) {
+        if (response.status === 409) {
+          showModal(data.message || 'This email is already registered. Please sign in instead.', 'warning');
+          setCurrentStep(1);
+        } else {
+          setErrors({ general: data.message || 'Registration failed' });
+        }
       } else {
-        setErrors({ general: data.message || 'Registration failed' });
+        const storage = sessionStorage;
+        storage.setItem("token", data.token);
+        storage.setItem("userName", data.user.fullName);
+        storage.setItem("userEmail", data.user.email);
+        storage.setItem("userRole", data.user.role);
+        storage.setItem("userId", data.user.id);
+        storage.setItem("hasCompletedSetup", "false");
+
+        await sendWelcomeEmail();
+        setCurrentStep(3);
+
+        setTimeout(() => {
+          navigate("/setup", { replace: true });
+        }, 2000);
       }
-    } else {
-      // Store login data and setup status
-      const storage = sessionStorage;
-      storage.setItem("token", data.token);
-      storage.setItem("userName", data.user.fullName);
-      storage.setItem("userEmail", data.user.email);
-      storage.setItem("userRole", data.user.role);
-      storage.setItem("userId", data.user.id);
-      storage.setItem("hasCompletedSetup", "false"); // New users need setup
-      
-      await sendWelcomeEmail();
-      setCurrentStep(3);
-      
-      // Redirect to setup after 2 seconds
-      setTimeout(() => {
-        navigate("/setup", { replace: true });
-      }, 2000);
+    } catch (error) {
+      console.error('Registration error:', error);
+      setErrors({ general: 'Failed to create account' });
+    } finally {
+      setIsLoading(false);
+      setVerifiedCode(null);
     }
-  } catch (error) {
-    console.error('Registration error:', error);
-    setErrors({ general: 'Failed to create account' });
-  } finally {
-    setIsLoading(false);
-    setVerifiedCode(null);
-  }
-};
+  };
 
   const sendWelcomeEmail = async () => {
     try {
@@ -288,7 +398,7 @@ const registerUser = async () => {
 
   const handleGoogleRegister = async () => {
     setSocialLoading('google');
-    
+
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
@@ -440,13 +550,44 @@ const registerUser = async () => {
                           type="email"
                           name="email"
                           className={`form-input-reg ${errors.email ? 'input-error-reg' : ''}`}
-                          placeholder="Enter your email"
+                          placeholder="Enter your email (@gmail.com)"
                           value={formData.email}
                           onChange={handleChange}
+                          onBlur={handleEmailBlur}
                           disabled={isLoading || socialLoading !== ''}
                         />
+                        {/* Show checking spinner while checking */}
+                        {emailChecking && (
+                          <div className="email-checking-reg">
+                            <span className="checking-spinner"></span>
+                          </div>
+                        )}
+                        {/* Show taken indicator ONLY after checking and if taken */}
+                        {!emailChecking && isEmailTaken && formData.email && (
+                          <div className="email-taken-reg">
+                            <span className="taken-icon">✗</span>
+                          </div>
+                        )}
+                        {/* Show available indicator ONLY after checking and if NOT taken AND no error */}
+                        {!emailChecking && !isEmailTaken && formData.email && formData.email.endsWith('@gmail.com') && !errors.email && (
+                          <div className="email-available-reg">
+                            <span className="available-icon">✓</span>
+                          </div>
+                        )}
                       </div>
+
+                      {/* Show checking message while loading */}
+                      {emailChecking && formData.email && formData.email.endsWith('@gmail.com') && (
+                        <span className="checking-message-reg">Checking email availability...</span>
+                      )}
+
+                      {/* Show error message if email is taken */}
                       {errors.email && <span className="error-message-reg">{errors.email}</span>}
+
+                      {/* Show success message ONLY after checking and email is available */}
+                      {!emailChecking && !isEmailTaken && formData.email && formData.email.endsWith('@gmail.com') && !errors.email && (
+                        <span className="success-message-reg">✓ Email available</span>
+                      )}
                     </div>
 
                     <div className="form-group-reg">
@@ -510,8 +651,8 @@ const registerUser = async () => {
                         />
                         <span className="checkbox-text-reg">
                           I agree to the{' '}
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             className="terms-link-reg"
                             onClick={openTermsInNewTab}
                           >

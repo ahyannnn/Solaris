@@ -45,7 +45,6 @@ const IoTDevice = () => {
   const [devices, setDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [showDeviceModal, setShowDeviceModal] = useState(false);
-  const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [modalMode, setModalMode] = useState('view');
   const [filter, setFilter] = useState('all');
@@ -58,9 +57,7 @@ const IoTDevice = () => {
     model: '',
     manufacturer: 'Salfer Engineering',
     serialNumber: '',
-    firmwareVersion: '1.0.0',
-    maintenanceType: 'calibration',
-    maintenanceNotes: ''
+    firmwareVersion: '1.0.0'
   });
   const [stats, setStats] = useState({
     total: 0,
@@ -187,48 +184,13 @@ const IoTDevice = () => {
     }
   };
 
-  const handleMaintenance = async () => {
-    setIsSubmitting(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/admin/devices/${selectedDevice._id}`,
-        {
-          status: 'maintenance',
-          maintenanceHistory: [
-            ...(selectedDevice.maintenanceHistory || []),
-            {
-              type: formData.maintenanceType,
-              notes: formData.maintenanceNotes,
-              date: new Date()
-            }
-          ]
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      showToast('Device marked for maintenance', 'success');
-      setShowMaintenanceModal(false);
-      setSelectedDevice(null);
-      fetchDevices();
-      fetchStats();
-    } catch (error) {
-      console.error('Error updating maintenance:', error);
-      showToast('Failed to update device status', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const resetForm = () => {
     setFormData({
       deviceName: '',
       model: '',
       manufacturer: 'Salfer Engineering',
       serialNumber: '',
-      firmwareVersion: '1.0.0',
-      maintenanceType: 'calibration',
-      maintenanceNotes: ''
+      firmwareVersion: '1.0.0'
     });
   };
 
@@ -250,11 +212,6 @@ const IoTDevice = () => {
     setSelectedDevice(device);
     setModalMode('view');
     setShowDeviceModal(true);
-  };
-
-  const openMaintenanceModal = (device) => {
-    setSelectedDevice(device);
-    setShowMaintenanceModal(true);
   };
 
   const openDeleteModal = (device) => {
@@ -310,7 +267,7 @@ const IoTDevice = () => {
           <div className="skeleton-button-adminiot"></div>
         </div>
         <div className="stats-cards-adminiot">
-          {[1, 2, 3, 4, 5, 6].map(i => (
+          {[1, 2, 3, 4, 5].map(i => (
             <div key={i} className="stat-card-adminiot skeleton-card-adminiot">
               <div className="skeleton-line-adminiot small-adminiot"></div>
               <div className="skeleton-line-adminiot large-adminiot"></div>
@@ -365,7 +322,7 @@ const IoTDevice = () => {
           </button>
         </div>
 
-        {/* Stats Cards - 4 statuses only */}
+        {/* Stats Cards - 5 statuses */}
         <div className="stats-cards-adminiot">
           <div className="stat-card-adminiot total-adminiot">
             <div className="stat-info-adminiot">
@@ -470,11 +427,6 @@ const IoTDevice = () => {
                       <FaEdit />
                     </button>
                   )}
-                  {device.status !== 'retired' && device.status !== 'assigned' && device.status !== 'deployed' && device.status !== 'available' && (
-                    <button className="action-btn-adminiot maintenance-btn-adminiot" onClick={() => openMaintenanceModal(device)} title="Maintenance">
-                      <FaTools />
-                    </button>
-                  )}
                   {device.status === 'available' && (
                     <button className="action-btn-adminiot delete-adminiot" onClick={() => openDeleteModal(device)} title="Delete">
                       <FaTrash />
@@ -499,7 +451,7 @@ const IoTDevice = () => {
           </div>
         )}
 
-        {/* Device Modal (Create/Edit/View) - RETAINED */}
+        {/* Device Modal (Create/Edit/View) */}
         {showDeviceModal && (
           <div className="modal-overlay-adminiot" onClick={() => setShowDeviceModal(false)}>
             <div className="modal-content-adminiot" onClick={e => e.stopPropagation()}>
@@ -617,41 +569,6 @@ const IoTDevice = () => {
                 <button className="delete-btn-adminiot" onClick={handleDeleteDevice} disabled={isSubmitting}>
                   {isSubmitting ? <FaSpinner className="spinning" /> : <FaTrash />}
                   {isSubmitting ? 'Deleting...' : 'Delete Device'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Maintenance Modal */}
-        {showMaintenanceModal && selectedDevice && (
-          <div className="modal-overlay-adminiot" onClick={() => setShowMaintenanceModal(false)}>
-            <div className="modal-content-adminiot" onClick={e => e.stopPropagation()}>
-              <button className="modal-close-adminiot" onClick={() => setShowMaintenanceModal(false)}>×</button>
-              <h3>Device Maintenance</h3>
-              <p><strong>Device:</strong> {selectedDevice.deviceId} - {selectedDevice.deviceName}</p>
-              <div className="form-group-adminiot">
-                <label>Maintenance Type</label>
-                <select value={formData.maintenanceType} onChange={(e) => setFormData({ ...formData, maintenanceType: e.target.value })}>
-                  <option value="calibration">Calibration</option>
-                  <option value="repair">Repair</option>
-                  <option value="battery_replacement">Battery Replacement</option>
-                  <option value="firmware_update">Firmware Update</option>
-                </select>
-              </div>
-              <div className="form-group-adminiot">
-                <label>Notes</label>
-                <textarea 
-                  rows="3" 
-                  value={formData.maintenanceNotes} 
-                  onChange={(e) => setFormData({ ...formData, maintenanceNotes: e.target.value })} 
-                  placeholder="Describe maintenance performed..." 
-                />
-              </div>
-              <div className="modal-actions-adminiot">
-                <button className="cancel-btn-adminiot" onClick={() => setShowMaintenanceModal(false)}>Cancel</button>
-                <button className="maintenance-btn-adminiot" onClick={handleMaintenance} disabled={isSubmitting}>
-                  {isSubmitting ? 'Updating...' : 'Mark for Maintenance'}
                 </button>
               </div>
             </div>

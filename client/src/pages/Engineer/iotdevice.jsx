@@ -58,26 +58,151 @@ const IoTDevice = () => {
   const [gpsData, setGpsData] = useState(null);
   const [retrieving, setRetrieving] = useState(false);
 
-  // Get API base URL from environment
   const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_URL || '';
   };
 
   const API_BASE_URL = getApiBaseUrl();
 
+  // ✅ IMPROVED: Calculate shading percentage using multiple methods
+  const calculateShadingPercentage = (readings) => {
+    if (!readings || readings.length === 0) return 0;
+    
+    // Method 1: Look for sudden drops in irradiance (typical of passing clouds/shading)
+    let shadingEvents = 0;
+    let totalReadings = 0;
+    
+    for (let i = 1; i < readings.length; i++) {
+      const prevIrradiance = readings[i-1].irradiance || 0;
+      const currIrradiance = readings[i].irradiance || 0;
+      
+      // Only consider during peak sun hours (9 AM - 3 PM)
+      const hour = new Date(readings[i].timestamp).getHours();
+      if (hour >= 9 && hour <= 15 && prevIrradiance > 200) {
+        totalReadings++;
+        // A drop of more than 30% in irradiance within a short time indicates shading
+        if (prevIrradiance > 0 && currIrradiance < prevIrradiance * 0.7) {
+          shadingEvents++;
+        }
+      }
+    }
+    
+    const shadingByDrops = totalReadings > 0 ? (shadingEvents / totalReadings) * 100 : 0;
+    
+    // Method 2: Compare to theoretical maximum irradiance for the location
+    // Peak irradiance in Philippines typically 800-1000 W/m²
+    const maxPossibleIrradiance = 950; // Typical for tropical regions
+    
+    // Find the maximum irradiance recorded
+    const maxRecorded = Math.max(...readings.map(r => r.irradiance || 0));
+    
+    // Calculate shading based on how far below theoretical max
+    const theoreticalMax = maxPossibleIrradiance;
+    const shadingByMax = theoreticalMax > 0 ? ((theoreticalMax - maxRecorded) / theoreticalMax) * 100 : 0;
+    
+    // Method 3: Look at variance in irradiance - high variance indicates intermittent shading
+    const daylightReadings = readings.filter(r => {
+      const hour = new Date(r.timestamp).getHours();
+      return hour >= 8 && hour <= 16;
+    });
+    
+    let variance = 0;
+    if (daylightReadings.length > 0) {
+      const avg = daylightReadings.reduce((sum, r) => sum + (r.irradiance || 0), 0) / daylightReadings.length;
+      variance = daylightReadings.reduce((sum, r) => sum + Math.pow((r.irradiance || 0) - avg, 2), 0) / daylightReadings.length;
+      const stdDev = Math.sqrt(variance);
+      const cv = avg > 0 ? (stdDev / avg) * 100 : 0; // Coefficient of variation
+      // High coefficient of variation (>30%) indicates shading
+      const shadingByVariance = Math.min(70, Math.max(0, cv - 20));
+      
+      // Combine all methods with weights
+      let finalShading = (shadingByDrops * 0.4) + (shadingByMax * 0.3) + (shadingByVariance * 0.3);
+      
+      // Ensure value is between 0 and 100
+      finalShading = Math.min(100, Math.max(0, finalShading));
+      
+      
+      
+      return finalShading;
+    }
+    
+    return shadingByDrops;
+  };
+
+  // ✅ IMPROVED: Calculate temperature derating
+  const calculateTemperatureDerating = (readings) => {
+    if (!readings || readings.length === 0) return 0;
+    
+    // Standard Temperature Coefficient for typical solar panels: -0.4% per °C above 25°C
+    const TEMP_COEFFICIENT = 0.4; // Positive value for derating calculation
+    const STC_TEMPERATURE = 25;
+    
+    // Get readings during peak sun hours (10 AM - 2 PM) when panels are hottest
+    const peakHoursReadings = readings.filter(reading => {
+      const hour = new Date(reading.timestamp).getHours();
+      return hour >= 10 && hour <= 14;
+    });
+    
+    if (peakHoursReadings.length === 0) return 0;
+    
+    // Calculate average temperature during peak hours
+    const avgTemp = peakHoursReadings.reduce((sum, r) => sum + (r.temperature || 0), 0) / peakHoursReadings.length;
+    
+    // Calculate temperature difference above STC
+    const tempDiff = Math.max(0, avgTemp - STC_TEMPERATURE);
+    
+    // Calculate derating: each °C above 25°C reduces efficiency by 0.4%
+    const derating = tempDiff * TEMP_COEFFICIENT;
+    
+    
+    
+    return Math.min(30, derating); // Cap at 30% max derating
+  };
+
+  // ✅ IMPROVED: Calculate peak sun hours using integration
+  const calculatePeakSunHours = (readings) => {
+    if (!readings || readings.length < 2) return 0;
+    
+    // Sort readings by timestamp
+    const sortedReadings = [...readings].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    
+    // Only consider readings during daylight hours (6 AM - 6 PM)
+    const daylightReadings = sortedReadings.filter(r => {
+      const hour = new Date(r.timestamp).getHours();
+      return hour >= 6 && hour <= 18;
+    });
+    
+    if (daylightReadings.length < 2) return 0;
+    
+    let totalIrradianceKwh = 0;
+    
+    // Trapezoidal integration to calculate area under the curve
+    for (let i = 0; i < daylightReadings.length - 1; i++) {
+      const timeDiff = (new Date(daylightReadings[i + 1].timestamp) - new Date(daylightReadings[i].timestamp)) / (1000 * 60 * 60); // hours
+      const avgIrradiance = ((daylightReadings[i].irradiance || 0) + (daylightReadings[i + 1].irradiance || 0)) / 2;
+      totalIrradianceKwh += (avgIrradiance * timeDiff) / 1000; // Convert W/m² * hours to kWh/m²
+    }
+    
+    // Peak sun hours = total kWh/m² (since 1 peak sun hour = 1000 W/m² for 1 hour)
+    const peakSunHours = totalIrradianceKwh;
+    
+    
+    
+    return Math.max(0, peakSunHours);
+  };
+
   useEffect(() => {
     fetchMyDevices();
   }, [currentPage]);
 
-  // Update the auto-refresh useEffect:
-useEffect(() => {
-  if (autoRefresh && selectedDevice) {
-    const interval = setInterval(() => {
-      fetchSensorData(selectedDevice.assessmentId);
-    }, 30000);
-    return () => clearInterval(interval);
-  }
-}, [autoRefresh, selectedDevice]);
+  useEffect(() => {
+    if (autoRefresh && selectedDevice) {
+      const interval = setInterval(() => {
+        fetchSensorData(selectedDevice.assessmentId);
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [autoRefresh, selectedDevice]);
 
   const fetchMyDevices = async () => {
     try {
@@ -94,14 +219,12 @@ useEffect(() => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Filter assessments that have IoT devices deployed or collecting data
       const assessmentsWithDevices = (response.data.assessments || []).filter(
         assessment => assessment.iotDeviceId &&
           (assessment.assessmentStatus === 'device_deployed' || 
            assessment.assessmentStatus === 'data_collecting')
       );
 
-      // Extract device information
       const deviceList = assessmentsWithDevices.map(assessment => ({
         _id: assessment.iotDeviceId._id,
         deviceId: assessment.iotDeviceId.deviceId,
@@ -143,62 +266,80 @@ useEffect(() => {
     }
   };
 
-  // Update fetchSensorData to accept assessmentId parameter:
-const fetchSensorData = async (assessmentId) => {
-  if (!assessmentId) return;
+  const fetchSensorData = async (assessmentId) => {
+    if (!assessmentId) return;
 
-  try {
-    const token = sessionStorage.getItem('token');
+    try {
+      const token = sessionStorage.getItem('token');
 
-    if (!token) {
-      showToast('Authentication failed. Please login again.', 'error');
-      return;
-    }
-
-    const response = await axios.get(
-      `${API_BASE_URL}/api/pre-assessments/${assessmentId}/iot-data`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { limit: 10000 }
+      if (!token) {
+        showToast('Authentication failed. Please login again.', 'error');
+        return;
       }
-    );
 
-    const readings = response.data.readings || [];
-    const stats = response.data.stats || {};
-    
-    setSensorData(readings);
-    setSensorStats(stats);
-    setGpsData(stats.gps || null);
-    setLastUpdated(new Date());
-  } catch (error) {
-    console.error('Error fetching sensor data:', error);
-    showToast('Failed to fetch sensor data', 'error');
-    // Clear data on error too
+      const response = await axios.get(
+        `${API_BASE_URL}/api/pre-assessments/${assessmentId}/iot-data`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { limit: 10000 }
+        }
+      );
+
+      const readings = response.data.readings || [];
+      const stats = response.data.stats || {};
+      
+      // ✅ Calculate metrics from sensor data
+      const calculatedPeakSunHours = calculatePeakSunHours(readings);
+      const calculatedShadingPercentage = calculateShadingPercentage(readings);
+      const calculatedTemperatureDerating = calculateTemperatureDerating(readings);
+      
+      // Merge backend stats with calculated values (prioritize calculated values)
+      const enhancedStats = {
+        ...stats,
+        peakSunHours: calculatedPeakSunHours > 0 ? calculatedPeakSunHours : (stats.peakSunHours || 0),
+        shadingPercentage: calculatedShadingPercentage > 0 ? calculatedShadingPercentage : (stats.shadingPercentage || 0),
+        temperatureDerating: calculatedTemperatureDerating > 0 ? calculatedTemperatureDerating : (stats.temperatureDerating || 0),
+        // Preserve original stats
+        averageIrradiance: stats.averageIrradiance || 0,
+        maxIrradiance: stats.maxIrradiance || 0,
+        averageTemperature: stats.averageTemperature || 0,
+        minTemperature: stats.minTemperature || 0,
+        maxTemperature: stats.maxTemperature || 0,
+        averageHumidity: stats.averageHumidity || 0,
+        minHumidity: stats.minHumidity || 0,
+        maxHumidity: stats.maxHumidity || 0
+      };
+      
+      
+      
+      setSensorData(readings);
+      setSensorStats(enhancedStats);
+      setGpsData(stats.gps || null);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error fetching sensor data:', error);
+      showToast('Failed to fetch sensor data', 'error');
+      setSensorData([]);
+      setSensorStats({});
+      setGpsData(null);
+    }
+  };
+
+  const handleViewDeviceData = async (device) => {
     setSensorData([]);
     setSensorStats({});
     setGpsData(null);
-  }
-};
-
-  const handleViewDeviceData = async (device) => {
-  // Clear previous data before fetching new device data
-  setSensorData([]);
-  setSensorStats({});
-  setGpsData(null);
-  setLastUpdated(null);
-  
-  // Set the selected device
-  setSelectedDevice(device);
-  setShowDataModal(true);
-  
-  // Fetch new data
-  await fetchSensorData(device.assessmentId);
-};
+    setLastUpdated(null);
+    
+    setSelectedDevice(device);
+    setShowDataModal(true);
+    
+    await fetchSensorData(device.assessmentId);
+  };
 
   const handleRetrieveDevice = async () => {
     if (!selectedDevice) return;
 
-    // Confirm retrieval
     const confirmed = window.confirm(
       `⚠️ RETRIEVE DEVICE CONFIRMATION ⚠️\n\n` +
       `Are you sure you want to retrieve this device?\n\n` +
@@ -228,7 +369,6 @@ const fetchSensorData = async (assessmentId) => {
 
       showToast(response.data.message || 'Device retrieved successfully! Data analysis can now begin.', 'success');
       
-      // Close modal and refresh data
       setShowDataModal(false);
       setSelectedDevice(null);
       fetchMyDevices();
@@ -310,7 +450,6 @@ const fetchSensorData = async (assessmentId) => {
 
   const paginatedDevices = filteredDevices.slice((currentPage - 1) * 10, currentPage * 10);
 
-  // Prepare chart data
   const chartData = sensorData.map(reading => ({
     timestamp: new Date(reading.timestamp).getTime(),
     irradiance: reading.irradiance || 0,
@@ -318,7 +457,6 @@ const fetchSensorData = async (assessmentId) => {
     humidity: reading.humidity || 0
   }));
 
-  // Check if there's actual sensor data
   const hasValidSensorData = sensorData.length > 0 && sensorData.some(reading => 
     reading.irradiance > 0 || reading.temperature > 0 || reading.humidity > 0
   );

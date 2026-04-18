@@ -7,6 +7,14 @@ const User = require('../models/Users');
 const mongoose = require('mongoose');
 const PayMongoService = require('../services/paymongoService');
 const SolarInvoice = require('../models/SolarInvoice');
+const cloudinary = require('cloudinary').v2;
+
+// Configure Cloudinary (should already be configured in your app)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 // Helper function to format currency (for internal use)
 const formatCurrency = (amount) => {
@@ -17,7 +25,126 @@ const formatCurrency = (amount) => {
     maximumFractionDigits: 0
   }).format(amount || 0);
 };
+// controllers/projectController.js
 
+// controllers/projectController.js - REPLACE the uploadProjectPhotos function with this:
+
+// @desc    Upload project photos (Engineer) - Direct Cloudinary Upload
+// @route   POST /api/projects/:id/upload-photos
+// @access  Private (Engineager)
+exports.uploadProjectPhotos = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const engineerId = req.user.id;
+    const files = req.files;
+
+    console.log('📸 Uploading photos for project:', id);
+    console.log('📁 Files received:', files?.length || 0);
+
+    const project = await Project.findById(id);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    if (project.assignedEngineerId?.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    if (!files || files.length === 0) {
+      return res.status(400).json({ message: 'No files uploaded' });
+    }
+
+    const File = require('../models/File');
+    const photoUrls = [];
+
+    for (const file of files) {
+      try {
+        console.log(`⬆️ Uploading: ${file.originalname} (${(file.size / 1024).toFixed(2)} KB)`);
+
+        // Upload directly to Cloudinary
+        const result = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              folder: `solar-tps/projects/${project.projectReference}/site-photos`,
+              resource_type: 'image',
+              transformation: [
+                { width: 1200, height: 800, crop: 'limit' },
+                { quality: 'auto' }
+              ]
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          
+          // Convert buffer to stream
+          const bufferStream = require('stream').Readable.from(file.buffer);
+          bufferStream.pipe(uploadStream);
+        });
+
+        console.log(`✅ Uploaded to Cloudinary: ${result.secure_url}`);
+        photoUrls.push(result.secure_url);
+
+        // Create file record in database
+        const fileRecord = new File({
+          filename: result.public_id.split('/').pop(),
+          originalName: file.originalname,
+          fileType: 'project_photo',
+          mimeType: file.mimetype,
+          size: file.size,
+          url: result.secure_url,
+          publicId: result.public_id,
+          uploadedBy: engineerId,
+          userRole: 'engineer',
+          relatedTo: 'project',
+          relatedId: project._id,
+          metadata: {
+            projectId: project._id,
+            projectReference: project.projectReference,
+            uploadType: 'site_photo',
+            storageType: 'cloudinary',
+            uploadedAt: new Date().toISOString()
+          }
+        });
+        
+        await fileRecord.save();
+
+      } catch (uploadError) {
+        console.error('❌ Cloudinary upload error for file:', file.originalname, uploadError.message);
+      }
+    }
+
+    if (photoUrls.length === 0) {
+      return res.status(500).json({ 
+        success: false,
+        message: 'Failed to upload any photos to Cloudinary. Please check your Cloudinary credentials.' 
+      });
+    }
+
+    // Add new photos to existing ones
+    project.sitePhotos = [...(project.sitePhotos || []), ...photoUrls];
+    await project.save();
+
+    console.log(`✅ Successfully uploaded ${photoUrls.length} photos to Cloudinary`);
+    console.log('📷 Photo URLs:', photoUrls);
+
+    res.json({
+      success: true,
+      message: `${photoUrls.length} photo(s) uploaded successfully`,
+      photos: photoUrls,
+      totalPhotos: project.sitePhotos.length
+    });
+
+  } catch (error) {
+    console.error('❌ Upload photos error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to upload photos', 
+      error: error.message 
+    });
+  }
+};
 
 // @desc    Create PayMongo payment intent for project payment
 // @route   POST /api/projects/:id/create-payment-intent/:paymentId
@@ -588,46 +715,7 @@ exports.updateProjectProgress = async (req, res) => {
   }
 };
 
-// @desc    Upload project photos (Engineer)
-// @route   POST /api/projects/:id/upload-photos
-// @access  Private (Engineer)
-exports.uploadProjectPhotos = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const engineerId = req.user.id;
-    const files = req.files;
 
-    const project = await Project.findById(id);
-    if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
-    }
-
-    if (project.assignedEngineerId?.toString() !== engineerId) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    // Process file uploads (implement with your file storage service)
-    const photoUrls = [];
-    for (const file of files) {
-      // TODO: Upload to Cloudinary or local storage
-      // For now, just store the original name as placeholder
-      photoUrls.push(file.path || `/uploads/projects/${file.filename}`);
-    }
-
-    project.sitePhotos = [...(project.sitePhotos || []), ...photoUrls];
-    await project.save();
-
-    res.json({
-      success: true,
-      message: 'Photos uploaded successfully',
-      photos: photoUrls
-    });
-
-  } catch (error) {
-    console.error('Upload photos error:', error);
-    res.status(500).json({ message: 'Failed to upload photos', error: error.message });
-  }
-};
 
 // ============ ADMIN FUNCTIONS ============
 

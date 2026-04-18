@@ -26,7 +26,247 @@
   --radius-xl: 18px;
   --radius-2xl: 24px;
 }
+/* Site Photos Card */
+.cuspro-photos-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
 
+.cuspro-photos-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  margin-bottom: 0.25rem;
+}
+
+.cuspro-photos-subtitle {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 1rem;
+}
+
+.cuspro-photos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.cuspro-photo-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  cursor: pointer;
+  background-color: #f1f5f9;
+}
+
+.cuspro-photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s;
+}
+
+.cuspro-photo-item:hover img {
+  transform: scale(1.05);
+}
+
+.cuspro-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.cuspro-photo-item:hover .cuspro-photo-overlay {
+  opacity: 1;
+}
+
+.cuspro-photo-item.more-photos {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.more-photos-overlay {
+  text-align: center;
+  color: white;
+}
+
+.more-photos-overlay svg {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.more-photos-overlay span {
+  display: block;
+  font-size: 0.75rem;
+}
+
+.cuspro-view-all-btn {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: #f1f5f9;
+  border: none;
+  border-radius: 0.5rem;
+  color: #2563eb;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.cuspro-view-all-btn:hover {
+  background-color: #e2e8f0;
+}
+
+/* Photo Modal */
+.cuspro-photo-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.cuspro-photo-modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  background: transparent;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.cuspro-photo-modal-close {
+  position: absolute;
+  top: -2.5rem;
+  right: 0;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.cuspro-photo-modal-main {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cuspro-photo-modal-main img {
+  max-width: 90vw;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 0.5rem;
+}
+
+.cuspro-photo-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cuspro-photo-nav:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.cuspro-photo-nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.cuspro-photo-nav.prev {
+  left: -60px;
+}
+
+.cuspro-photo-nav.next {
+  right: -60px;
+}
+
+.cuspro-photo-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  margin-top: -0.5rem;
+}
+
+.cuspro-photo-counter {
+  color: white;
+  font-size: 0.875rem;
+}
+
+.cuspro-photo-download {
+  background: transparent;
+  border: 1px solid white;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.cuspro-photo-download:hover {
+  background: white;
+  color: #1e293b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cuspro-photos-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .cuspro-photo-nav.prev {
+    left: 10px;
+  }
+  
+  .cuspro-photo-nav.next {
+    right: 10px;
+  }
+  
+  .cuspro-photo-nav {
+    width: 32px;
+    height: 32px;
+  }
+}
 /* Main Container */
 .cuspro-page {
   margin: 0 auto;

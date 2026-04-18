@@ -26,7 +26,9 @@ import {
   FaDownload,
   FaUpload,
   FaCamera,
-  FaMoneyBillWaveAlt
+  FaMoneyBillWaveAlt,
+  FaTrash,
+  FaImage
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Engineer/project.css';
@@ -49,6 +51,7 @@ const EngineerProject = () => {
     sitePhotos: []
   });
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const [previewPhotos, setPreviewPhotos] = useState([]);
 
   useEffect(() => {
     fetchProjects();
@@ -65,8 +68,6 @@ const EngineerProject = () => {
 
       const projectsData = response.data.projects || [];
       setProjects(projectsData);
-
-
       setTotalPages(response.data.totalPages || 1);
       setLoading(false);
     } catch (error) {
@@ -96,10 +97,11 @@ const EngineerProject = () => {
       setShowProgressModal(false);
       setSelectedProject(null);
       setProgressForm({ installationNotes: '', status: '', sitePhotos: [] });
+      setPreviewPhotos([]);
       fetchProjects();
     } catch (error) {
       console.error('Error updating progress:', error);
-      showToast('Failed to update progress', 'error');
+      showToast(error.response?.data?.message || 'Failed to update progress', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -108,6 +110,13 @@ const EngineerProject = () => {
   const handlePhotoUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
+
+    const newPreviews = files.map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+      id: Date.now() + Math.random()
+    }));
+    setPreviewPhotos(prev => [...prev, ...newPreviews]);
 
     setUploadingPhotos(true);
     const formData = new FormData();
@@ -118,24 +127,39 @@ const EngineerProject = () => {
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/projects/${selectedProject._id}/upload-photos`,
         formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`
-          }
-        }
+        { headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` } }
       );
-      setProgressForm(prev => ({
-        ...prev,
-        sitePhotos: [...prev.sitePhotos, ...response.data.photos]
-      }));
-      showToast('Photos uploaded successfully', 'success');
+      
+      if (response.data.success) {
+        const uploadedUrls = response.data.photos || [];
+        setProgressForm(prev => ({
+          ...prev,
+          sitePhotos: [...prev.sitePhotos, ...uploadedUrls]
+        }));
+        showToast(`${uploadedUrls.length} photo(s) uploaded successfully!`, 'success');
+        setPreviewPhotos([]);
+      } else {
+        showToast(response.data.message || 'Failed to upload photos', 'error');
+      }
     } catch (err) {
       console.error('Error uploading photos:', err);
-      showToast('Failed to upload photos', 'error');
+      showToast(err.response?.data?.message || 'Failed to upload photos', 'error');
     } finally {
       setUploadingPhotos(false);
+      e.target.value = '';
     }
+  };
+
+  const removePreviewPhoto = (index) => {
+    URL.revokeObjectURL(previewPhotos[index].preview);
+    setPreviewPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeUploadedPhoto = (index) => {
+    setProgressForm(prev => ({
+      ...prev,
+      sitePhotos: prev.sitePhotos.filter((_, i) => i !== index)
+    }));
   };
 
   const formatCurrency = (amount) => {
@@ -156,13 +180,18 @@ const EngineerProject = () => {
     });
   };
 
-  // ✅ UPDATED: Added full_paid to status badge
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, paymentPreference) => {
+    if (status === 'full_paid' && paymentPreference === 'installment') {
+      return <span className="status-badge-engineerproject full-paid-installment">Final Payment Received - Complete Project</span>;
+    }
+    if (status === 'full_paid' && paymentPreference === 'full') {
+      return <span className="status-badge-engineerproject full-paid">Full Payment Completed (Ready for Installation)</span>;
+    }
+    
     const badges = {
       'quoted': <span className="status-badge-engineerproject quoted">Quoted</span>,
       'approved': <span className="status-badge-engineerproject approved">Approved</span>,
       'initial_paid': <span className="status-badge-engineerproject initial-paid">Initial Paid</span>,
-      'full_paid': <span className="status-badge-engineerproject full-paid">Full Paid (Awaiting Installation)</span>,
       'in_progress': <span className="status-badge-engineerproject in-progress">In Progress</span>,
       'progress_paid': <span className="status-badge-engineerproject progress-paid">Progress Paid</span>,
       'completed': <span className="status-badge-engineerproject completed">Completed</span>,
@@ -171,16 +200,14 @@ const EngineerProject = () => {
     return badges[status] || <span className="status-badge-engineerproject">{status}</span>;
   };
 
-  const getPreAssessmentData = (project) => {
-    if (project.preAssessmentId && typeof project.preAssessmentId === 'object') {
-      return project.preAssessmentId;
+  const canStartInstallation = (status, paymentPreference) => {
+    if (paymentPreference === 'full') {
+      return ['approved', 'initial_paid', 'full_paid'].includes(status);
     }
-    return null;
-  };
-
-  // ✅ Helper to check if engineer can start installation
-  const canStartInstallation = (status) => {
-    return ['approved', 'initial_paid', 'full_paid'].includes(status);
+    if (paymentPreference === 'installment') {
+      return ['approved', 'initial_paid'].includes(status);
+    }
+    return false;
   };
 
   const filteredProjects = projects.filter(project => {
@@ -215,6 +242,14 @@ const EngineerProject = () => {
     </div>
   );
 
+  useEffect(() => {
+    return () => {
+      previewPhotos.forEach(photo => {
+        if (photo.preview) URL.revokeObjectURL(photo.preview);
+      });
+    };
+  }, [previewPhotos]);
+
   if (loading && projects.length === 0) {
     return <SkeletonLoader />;
   }
@@ -233,7 +268,6 @@ const EngineerProject = () => {
           </div>
         </div>
 
-        {/* Filters */}
         <div className="project-filters-engineerproject">
           <div className="filter-group-engineerproject">
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
@@ -258,7 +292,6 @@ const EngineerProject = () => {
           </div>
         </div>
 
-        {/* Projects Grid */}
         <div className="projects-grid-engineerproject">
           {filteredProjects.length === 0 ? (
             <div className="empty-state-engineerproject">
@@ -268,11 +301,11 @@ const EngineerProject = () => {
             </div>
           ) : (
             filteredProjects.map(project => {
-              const preAssessment = getPreAssessmentData(project);
-              const canStart = canStartInstallation(project.status);
+              const canStart = canStartInstallation(project.status, project.paymentPreference);
               const isInProgress = project.status === 'in_progress';
               const isProgressPaid = project.status === 'progress_paid';
               const isFullPaid = project.status === 'full_paid';
+              const isInstallmentFullPaid = isFullPaid && project.paymentPreference === 'installment';
 
               return (
                 <div key={project._id} className="project-card-engineerproject">
@@ -281,65 +314,51 @@ const EngineerProject = () => {
                       <h3>{project.projectName}</h3>
                       <p className="project-ref">{project.projectReference}</p>
                     </div>
-                    {getStatusBadge(project.status)}
+                    {getStatusBadge(project.status, project.paymentPreference)}
                   </div>
 
                   <div className="card-details-engineerproject">
-                    <div className="detail-item">
-                      <FaUser />
-                      <span>{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</span>
-                    </div>
-                    {/* Add client email display */}
-                    <div className="detail-item">
-                      <FaEnvelope />
-                      <span className="client-email">{project.clientId?.userId?.email || 'No email provided'}</span>
-                    </div>
-                    <div className="detail-item">
-                      <FaSolarPanel />
-                      <span>{project.systemSize} kWp | {project.systemType}</span>
-                    </div>
-                    <div className="detail-item">
-                      <FaMapMarkerAlt />
-                      <span className="truncate">
-                        {project.addressId?.houseOrBuilding} {project.addressId?.street}, {project.addressId?.barangay}
-                      </span>
-                    </div>
-                    <div className="detail-item">
-                      <FaCalendarAlt />
-                      <span>Started: {formatDate(project.startDate)}</span>
-                    </div>
-                    {/* Show payment info for full_paid projects */}
+                    <div className="detail-item"><FaUser /><span>{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</span></div>
+                    <div className="detail-item"><FaEnvelope /><span className="client-email">{project.clientId?.userId?.email || 'No email provided'}</span></div>
+                    <div className="detail-item"><FaSolarPanel /><span>{project.systemSize} kWp | {project.systemType}</span></div>
+                    <div className="detail-item"><FaMapMarkerAlt /><span className="truncate">{project.addressId?.houseOrBuilding} {project.addressId?.street}, {project.addressId?.barangay}</span></div>
+                    <div className="detail-item"><FaCalendarAlt /><span>Started: {formatDate(project.startDate)}</span></div>
                     {isFullPaid && (
                       <div className="detail-item full-paid-badge">
                         <FaMoneyBillWaveAlt />
-                        <span className="full-paid-text">Full Payment Completed - Ready for Installation</span>
+                        <span className="full-paid-text">
+                          {project.paymentPreference === 'installment' 
+                            ? 'Final Payment Received - Complete the project' 
+                            : 'Full Payment Completed - Ready for Installation'}
+                        </span>
                       </div>
                     )}
                   </div>
 
-                  {/* Payment Info Section (no progress bar) */}
                   <div className="payment-info-engineerproject">
                     <div className="payment-stats">
                       <span className="paid-amount">Paid: {formatCurrency(project.amountPaid)}</span>
                       <span className="total-amount">Total: {formatCurrency(project.totalCost)}</span>
                     </div>
+                    <div className="payment-method-badge">
+                      <span className={`payment-method ${project.paymentPreference}`}>
+                        {project.paymentPreference === 'installment' ? 'Installment Plan' : 'Full Payment'}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="card-actions-engineerproject">
-                    <button
-                      className="action-btn view"
-                      onClick={() => { setSelectedProject(project); setShowDetailModal(true); }}
-                    >
+                    <button className="action-btn view" onClick={() => { setSelectedProject(project); setShowDetailModal(true); }}>
                       <FaEye /> View Details
                     </button>
 
-                    {/* Start Installation button - for approved, initial_paid, OR full_paid */}
-                    {canStart && (
+                    {canStart && !isInstallmentFullPaid && (
                       <button
                         className="action-btn start"
                         onClick={() => {
                           setSelectedProject(project);
-                          setProgressForm({ installationNotes: '', status: 'in_progress', sitePhotos: [] });
+                          setProgressForm({ installationNotes: '', status: 'in_progress', sitePhotos: project.sitePhotos || [] });
+                          setPreviewPhotos([]);
                           setShowProgressModal(true);
                         }}
                       >
@@ -347,17 +366,22 @@ const EngineerProject = () => {
                       </button>
                     )}
 
-                    {/* Update Progress button - for in_progress or progress_paid */}
-                    {(isInProgress || isProgressPaid) && (
+                    {(isInProgress || isProgressPaid || (isFullPaid && project.paymentPreference === 'installment')) && (
                       <button
                         className="action-btn update"
                         onClick={() => {
                           setSelectedProject(project);
-                          setProgressForm({ installationNotes: project.installationNotes || '', status: project.status, sitePhotos: project.sitePhotos || [] });
+                          const defaultStatus = (isFullPaid && project.paymentPreference === 'installment') ? 'completed' : project.status;
+                          setProgressForm({ 
+                            installationNotes: project.installationNotes || '', 
+                            status: defaultStatus, 
+                            sitePhotos: project.sitePhotos || [] 
+                          });
+                          setPreviewPhotos([]);
                           setShowProgressModal(true);
                         }}
                       >
-                        <FaCheckCircle /> Update Progress
+                        <FaCheckCircle /> {isFullPaid && project.paymentPreference === 'installment' ? 'Complete Project' : 'Update Progress'}
                       </button>
                     )}
                   </div>
@@ -367,22 +391,13 @@ const EngineerProject = () => {
           )}
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="pagination-engineerproject">
-            <button
-              className="page-btn"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-            >
+            <button className="page-btn" onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}>
               <FaChevronLeft /> Previous
             </button>
             <span className="page-info">Page {currentPage} of {totalPages}</span>
-            <button
-              className="page-btn"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-            >
+            <button className="page-btn" onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages}>
               Next <FaChevronRight />
             </button>
           </div>
@@ -399,11 +414,9 @@ const EngineerProject = () => {
                 <h4>Project Information</h4>
                 <p><strong>Name:</strong> {selectedProject.projectName}</p>
                 <p><strong>Reference:</strong> {selectedProject.projectReference}</p>
-                <p><strong>Status:</strong> {getStatusBadge(selectedProject.status)}</p>
+                <p><strong>Status:</strong> {getStatusBadge(selectedProject.status, selectedProject.paymentPreference)}</p>
                 <p><strong>Created:</strong> {formatDate(selectedProject.createdAt)}</p>
-                {selectedProject.paymentPreference === 'full' && (
-                  <p><strong>Payment Type:</strong> Full Payment</p>
-                )}
+                <p><strong>Payment Method:</strong> {selectedProject.paymentPreference === 'installment' ? 'Installment Plan' : 'Full Payment'}</p>
               </div>
 
               <div className="detail-section">
@@ -423,34 +436,6 @@ const EngineerProject = () => {
                 <p><strong>Battery Type:</strong> {selectedProject.batteryType || 'N/A'}</p>
               </div>
 
-              {/* <div className="detail-section">
-                <h4>Financial Summary</h4>
-                <p><strong>Total Cost:</strong> {formatCurrency(selectedProject.totalCost)}</p>
-                <p><strong>Amount Paid:</strong> {formatCurrency(selectedProject.amountPaid)}</p>
-                <p><strong>Balance:</strong> {formatCurrency(selectedProject.balance)}</p>
-              </div> */}
-
-              {/* {selectedProject.paymentSchedule?.length > 0 && (
-                <div className="detail-section">
-                  <h4>Payment Schedule</h4>
-                  <table className="payment-table">
-                    <thead>
-                      <tr><th>Type</th><th>Amount</th><th>Due Date</th><th>Status</th></tr>
-                    </thead>
-                    <tbody>
-                      {selectedProject.paymentSchedule.map((payment, idx) => (
-                        <tr key={idx}>
-                          <td className="capitalize">{payment.type === 'full' ? 'Full Payment' : payment.type}</td>
-                          <td>{formatCurrency(payment.amount)}</td>
-                          <td>{formatDate(payment.dueDate)}</td>
-                          <td>{payment.status === 'paid' ? 'Paid' : payment.status === 'overdue' ? 'Overdue' : 'Pending'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )} */}
-
               {selectedProject.installationNotes && (
                 <div className="detail-section">
                   <h4>Installation Notes</h4>
@@ -463,7 +448,10 @@ const EngineerProject = () => {
                   <h4>Site Photos</h4>
                   <div className="photo-grid">
                     {selectedProject.sitePhotos.map((photo, idx) => (
-                      <img key={idx} src={photo} alt={`Site ${idx + 1}`} className="photo-thumb" />
+                      <div key={idx} className="photo-item">
+                        <img src={photo} alt={`Site ${idx + 1}`} className="photo-thumb" onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }} />
+                        <a href={photo} target="_blank" rel="noopener noreferrer" className="photo-view-link">View</a>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -476,7 +464,7 @@ const EngineerProject = () => {
           </div>
         )}
 
-        {/* Progress Update Modal - ORIGINAL DROPDOWN OPTIONS RESTORED */}
+        {/* Progress Update Modal */}
         {showProgressModal && selectedProject && (
           <div className="modal-overlay-engineerproject" onClick={() => setShowProgressModal(false)}>
             <div className="modal-content-engineerproject progress-modal" onClick={e => e.stopPropagation()}>
@@ -486,23 +474,17 @@ const EngineerProject = () => {
 
               <div className="form-group">
                 <label>Installation Notes</label>
-                <textarea
-                  rows="4"
-                  value={progressForm.installationNotes}
-                  onChange={(e) => setProgressForm({ ...progressForm, installationNotes: e.target.value })}
-                  placeholder="Describe the progress, challenges, next steps..."
-                />
+                <textarea rows="4" value={progressForm.installationNotes} onChange={(e) => setProgressForm({ ...progressForm, installationNotes: e.target.value })} placeholder="Describe the progress, challenges, next steps..." />
               </div>
 
               <div className="form-group">
                 <label>Update Status</label>
-                {/* ✅ ORIGINAL DROPDOWN OPTIONS - RESTORED */}
-                <select
-                  value={progressForm.status}
-                  onChange={(e) => setProgressForm({ ...progressForm, status: e.target.value })}
-                >
+                <select value={progressForm.status} onChange={(e) => setProgressForm({ ...progressForm, status: e.target.value })}>
                   <option value="in_progress">In Progress</option>
                   <option value="progress_paid">Progress Payment Received</option>
+                  {selectedProject.paymentPreference === 'installment' && (
+                    <option value="full_paid">Final Payment Received - Complete Installation</option>
+                  )}
                   <option value="completed">Mark as Completed</option>
                 </select>
               </div>
@@ -510,29 +492,46 @@ const EngineerProject = () => {
               <div className="form-group">
                 <label>Upload Site Photos</label>
                 <div className="photo-upload-area">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handlePhotoUpload}
-                    disabled={uploadingPhotos}
-                    id="photo-upload"
-                    style={{ display: 'none' }}
-                  />
-                  <label htmlFor="photo-upload" className="upload-label">
-                    <FaCamera /> {uploadingPhotos ? 'Uploading...' : 'Click to upload photos'}
+                  <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} disabled={uploadingPhotos} id="photo-upload" style={{ display: 'none' }} />
+                  <label htmlFor="photo-upload" className={`upload-label ${uploadingPhotos ? 'uploading' : ''}`}>
+                    <FaCamera /> {uploadingPhotos ? 'Uploading...' : 'Click to select photos'}
                   </label>
+                  <p className="upload-hint">You can select multiple photos (Max 15MB each)</p>
                 </div>
-                {progressForm.sitePhotos.length > 0 && (
-                  <div className="photo-preview">
-                    <p>{progressForm.sitePhotos.length} photo(s) uploaded</p>
+
+                {previewPhotos.length > 0 && (
+                  <div className="photo-preview-section">
+                    <p className="preview-title">New Photos to Upload:</p>
+                    <div className="photo-preview-grid">
+                      {previewPhotos.map((photo, idx) => (
+                        <div key={photo.id} className="preview-item">
+                          <img src={photo.preview} alt="Preview" className="preview-image" />
+                          <button type="button" className="remove-preview-btn" onClick={() => removePreviewPhoto(idx)}><FaTrash /></button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {progressForm.sitePhotos && progressForm.sitePhotos.length > 0 && (
+                  <div className="uploaded-photos-section">
+                    <p className="uploaded-title">Existing Photos ({progressForm.sitePhotos.length}):</p>
+                    <div className="uploaded-photos-grid">
+                      {progressForm.sitePhotos.map((photo, idx) => (
+                        <div key={idx} className="uploaded-item">
+                          <img src={photo} alt={`Uploaded ${idx + 1}`} className="uploaded-image" onError={(e) => { e.target.src = 'https://via.placeholder.com/100?text=Error'; }} />
+                          <button type="button" className="remove-uploaded-btn" onClick={() => removeUploadedPhoto(idx)}><FaTrash /></button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
 
               <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowProgressModal(false)}>Cancel</button>
+                <button className="cancel-btn" onClick={() => { setShowProgressModal(false); setPreviewPhotos([]); }}>Cancel</button>
                 <button className="update-btn" onClick={updateProgress} disabled={isSubmitting}>
+                  {isSubmitting ? <FaSpinner className="spinning" /> : null}
                   {isSubmitting ? 'Updating...' : 'Update Progress'}
                 </button>
               </div>
@@ -540,12 +539,7 @@ const EngineerProject = () => {
           </div>
         )}
 
-        <ToastNotification
-          show={toast.show}
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-        />
+        <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} />
       </div>
     </>
   );

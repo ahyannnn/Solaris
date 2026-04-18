@@ -3,6 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
+import {
+  FaTimes,
+  FaChevronLeft,
+  FaChevronRight,
+  FaDownload,
+  FaImages,
+  FaEye
+} from 'react-icons/fa';
 import '../../styles/Customer/scheduleassessment.css';
 
 const ScheduleAssessment = () => {
@@ -23,6 +31,11 @@ const ScheduleAssessment = () => {
   const [showRequestsModal, setShowRequestsModal] = useState(false);
   const [requestFilter, setRequestFilter] = useState('all');
   const [hasPendingFreeQuote, setHasPendingFreeQuote] = useState(false);
+
+  // Photo Gallery States
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [selectedPhotos, setSelectedPhotos] = useState([]);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   const SYSTEM_TYPES = [
     { value: 'grid-tie', label: 'Grid-Tie System', description: 'Connected to utility grid, no batteries' },
@@ -62,6 +75,47 @@ const ScheduleAssessment = () => {
 
   const [freeQuotes, setFreeQuotes] = useState([]);
   const [preAssessments, setPreAssessments] = useState([]);
+
+  // Photo Modal Functions
+  const openPhotoModal = (photos, index) => {
+    setSelectedPhotos(photos);
+    setCurrentPhotoIndex(index);
+    setShowPhotoModal(true);
+  };
+
+  const closePhotoModal = () => {
+    setShowPhotoModal(false);
+    setSelectedPhotos([]);
+    setCurrentPhotoIndex(0);
+  };
+
+  const nextPhoto = () => {
+    if (selectedPhotos && currentPhotoIndex < selectedPhotos.length - 1) {
+      setCurrentPhotoIndex(currentPhotoIndex + 1);
+    }
+  };
+
+  const prevPhoto = () => {
+    if (selectedPhotos && currentPhotoIndex > 0) {
+      setCurrentPhotoIndex(currentPhotoIndex - 1);
+    }
+  };
+
+  const downloadPhoto = async (url, index) => {
+    try {
+      const response = await axios.get(url, { responseType: 'blob' });
+      const blob = new Blob([response.data], { type: 'image/jpeg' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `site-photo-${index + 1}.jpg`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      showToast('Photo downloaded successfully', 'success');
+    } catch (error) {
+      console.error('Error downloading photo:', error);
+      showToast('Failed to download photo', 'error');
+    }
+  };
 
   useEffect(() => {
     fetchClientData();
@@ -131,16 +185,16 @@ const ScheduleAssessment = () => {
       const assessments = preAssessmentsRes.data.assessments || [];
       const quotes = freeQuotesRes.data.quotes || [];
 
-      // Check if there's a pending free quote (status: pending, assigned, or processing)
-      const hasPending = quotes.some(quote => 
-        quote.status === 'pending' || 
-        quote.status === 'assigned' || 
+      // Check if there's a pending free quote
+      const hasPending = quotes.some(quote =>
+        quote.status === 'pending' ||
+        quote.status === 'assigned' ||
         quote.status === 'processing'
       );
-      
+
       setHasPendingFreeQuote(hasPending);
 
-      // For each assessment, extract engineer info
+      // For each assessment, extract engineer info and site photos
       const assessmentsWithEngineer = await Promise.all(assessments.map(async (assessment) => {
         let engineerName = 'Not assigned yet';
 
@@ -152,7 +206,7 @@ const ScheduleAssessment = () => {
             engineerId = assessment.assignedEngineerId;
           }
         }
-        
+
         if (engineerId) {
           try {
             const engineerRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users/${engineerId}`, {
@@ -171,9 +225,15 @@ const ScheduleAssessment = () => {
             console.error(`Error fetching engineer:`, err);
             engineerName = 'Engineer assigned';
           }
-        } 
+        }
 
-        return { ...assessment, engineerName };
+      
+
+        return {
+          ...assessment,
+          engineerName,
+          sitePhotos: assessment.sitePhotos || [] // Ensure it's always an array
+        };
       }));
 
       setFreeQuotes(quotes);
@@ -499,18 +559,17 @@ const ScheduleAssessment = () => {
                 <span className="service-badge-cusset free-cusset">Free</span>
               </div>
               <p className="service-description-cusset">Request a free quotation for your solar system. Our team will review and provide a detailed estimate.</p>
-              
-              {/* Warning message when there's a pending request */}
+
               {hasPendingFreeQuote && (
                 <div className="pending-warning-cusset">
                   <svg style={{ marginRight: '8px', width: '14px', height: '14px' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
                   </svg>
                   You already have a pending quotation request. Please wait for it to be processed before requesting another.
                 </div>
               )}
-              
+
               <div className="quote-form-cusset">
                 <div className="schedule-form-group-cusset">
                   <label>Monthly Electricity Bill (₱)</label>
@@ -544,9 +603,9 @@ const ScheduleAssessment = () => {
                 </div>
               </div>
               <div className="card-button-container-cusset">
-                <button 
-                  className="btn-get-quote-cusset" 
-                  onClick={handleFreeQuoteSubmit} 
+                <button
+                  className="btn-get-quote-cusset"
+                  onClick={handleFreeQuoteSubmit}
                   disabled={!freeQuoteData.monthlyBill || hasPendingFreeQuote}
                 >
                   {hasPendingFreeQuote ? 'Request in Progress' : 'Request Quotation'}
@@ -593,7 +652,7 @@ const ScheduleAssessment = () => {
                   ) : (
                     <table className="requests-table-cusset">
                       <thead>
-                        <tr><th>Date</th><th>Reference</th><th>Type</th><th>Details</th><th>Status</th><th></th></tr>
+                        <tr><th>Date</th><th>Reference</th><th>Type</th><th>Details</th><th>Status</th><th>Photos</th><th></th></tr>
                       </thead>
                       <tbody>
                         {filteredFreeQuotes.map(quote => (
@@ -603,19 +662,36 @@ const ScheduleAssessment = () => {
                             <td><span className="type-badge free-quote">Free Quote</span></td>
                             <td className="details-cell"><div><strong>Monthly:</strong> {formatCurrency(quote.monthlyBill)}</div><div><strong>Property:</strong> {quote.propertyType}</div></td>
                             <td>{getFreeQuoteStatusBadge(quote.status)}</td>
+                            <td>-</td>
                             <td><button className="view-details-btn" onClick={() => { setSelectedRequest(quote); setShowDetailsModal(true); }}>View</button></td>
                           </tr>
                         ))}
-                        {filteredPreAssessments.map(assessment => (
-                          <tr key={assessment._id}>
-                            <td>{formatDate(assessment.bookedAt)}</td>
-                            <td className="reference-cell">{assessment.bookingReference}</td>
-                            <td><span className="type-badge pre-assessment">Pre Assessment</span></td>
-                            <td className="details-cell"><div><strong>Property:</strong> {assessment.propertyType}</div><div><strong>Date:</strong> {formatDate(assessment.preferredDate)}</div></td>
-                            <td>{getAssessmentStatusBadge(assessment.assessmentStatus || assessment.paymentStatus)}</td>
-                            <td><button className="view-details-btn" onClick={() => { setSelectedRequest(assessment); setShowDetailsModal(true); }}>View</button></td>
-                          </tr>
-                        ))}
+                        {filteredPreAssessments.map(assessment => {
+                          const hasPhotos = assessment.sitePhotos && assessment.sitePhotos.length > 0;
+                          return (
+                            <tr key={assessment._id}>
+                              <td>{formatDate(assessment.bookedAt)}</td>
+                              <td className="reference-cell">{assessment.bookingReference}</td>
+                              <td><span className="type-badge pre-assessment">Pre Assessment</span></td>
+                              <td className="details-cell"><div><strong>Property:</strong> {assessment.propertyType}</div><div><strong>Date:</strong> {formatDate(assessment.preferredDate)}</div></td>
+                              <td>{getAssessmentStatusBadge(assessment.assessmentStatus || assessment.paymentStatus)}</td>
+                              <td>
+                                {hasPhotos && (
+                                  <button
+                                    className="view-photos-btn"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openPhotoModal(assessment.sitePhotos, 0);
+                                    }}
+                                  >
+                                    <FaImages /> {assessment.sitePhotos.length}
+                                  </button>
+                                )}
+                              </td>
+                              <td><button className="view-details-btn" onClick={() => { setSelectedRequest(assessment); setShowDetailsModal(true); }}>View</button></td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   )}
@@ -643,12 +719,15 @@ const ScheduleAssessment = () => {
             </div>
           )}
 
-          {/* Details Modal */}
+          {/* Details Modal - UPDATED with Photo Gallery */}
           {showDetailsModal && selectedRequest && (
             <div className="schedule-modal-overlay-cusset" onClick={() => setShowDetailsModal(false)}>
               <div className="schedule-modal-cusset status-modal-cusset" onClick={e => e.stopPropagation()}>
                 <h2>Request Details</h2>
+
+                {/* Check if it's a free quote or pre-assessment */}
                 {selectedRequest.quotationReference ? (
+                  // Free Quote Content
                   <>
                     <div className="status-detail-section">
                       <h3>Quote Information</h3>
@@ -667,6 +746,7 @@ const ScheduleAssessment = () => {
                     )}
                   </>
                 ) : (
+                  // Pre-Assessment Content
                   <>
                     <div className="status-detail-section">
                       <h3>Booking Information</h3>
@@ -683,12 +763,112 @@ const ScheduleAssessment = () => {
                       <div className="detail-row"><span>Fee:</span><strong>{formatCurrency(selectedRequest.assessmentFee)}</strong></div>
                     </div>
                     <div className="status-detail-section"><h3>Address</h3><p>{getRequestAddress(selectedRequest)}</p></div>
+
+                    {/* ✅ Site Photos Section - Check if photos exist */}
+                    {selectedRequest.sitePhotos && selectedRequest.sitePhotos.length > 0 && (
+                      <div className="status-detail-section">
+                        <h3>Site Photos ({selectedRequest.sitePhotos.length})</h3>
+                        <div className="customer-photo-grid">
+                          {selectedRequest.sitePhotos.slice(0, 6).map((photo, idx) => (
+                            <div
+                              key={idx}
+                              className="customer-photo-item"
+                              onClick={() => openPhotoModal(selectedRequest.sitePhotos, idx)}
+                            >
+                              <img
+                                src={photo}
+                                alt={`Site photo ${idx + 1}`}
+                                onError={(e) => {
+                                  console.error('Failed to load image:', photo);
+                                  e.target.src = 'https://via.placeholder.com/150?text=No+Image';
+                                }}
+                              />
+                              <div className="customer-photo-overlay">
+                                <FaEye />
+                              </div>
+                            </div>
+                          ))}
+                          {selectedRequest.sitePhotos.length > 6 && (
+                            <div
+                              className="customer-photo-item more-photos"
+                              onClick={() => openPhotoModal(selectedRequest.sitePhotos, 0)}
+                            >
+                              <div className="more-photos-content">
+                                <FaImages />
+                                <span>+{selectedRequest.sitePhotos.length - 6} more</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          className="view-all-photos-btn"
+                          onClick={() => openPhotoModal(selectedRequest.sitePhotos, 0)}
+                        >
+                          <FaImages /> View All Photos ({selectedRequest.sitePhotos.length})
+                        </button>
+                      </div>
+                    )}
+
                     {selectedRequest.assessmentStatus === 'completed' && selectedRequest.finalQuotation && (
                       <button className="view-quotation-btn-cusset" onClick={() => viewQuotation(selectedRequest.finalQuotation)}>View Assessment Report</button>
                     )}
                   </>
                 )}
-                <div className="modal-actions-cusset"><button className="close-btn-cusset" onClick={() => setShowDetailsModal(false)}>Close</button></div>
+                <div className="modal-actions-cusset">
+                  <button className="close-btn-cusset" onClick={() => setShowDetailsModal(false)}>Close</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Photo Modal */}
+          {showPhotoModal && selectedPhotos.length > 0 && (
+            <div className="photo-modal-overlay-cusset" onClick={closePhotoModal}>
+              <div className="photo-modal-content-cusset" onClick={(e) => e.stopPropagation()}>
+                <button className="photo-modal-close-cusset" onClick={closePhotoModal}>
+                  <FaTimes />
+                </button>
+
+                <div className="photo-modal-main-cusset">
+                  <img
+                    src={selectedPhotos[currentPhotoIndex]}
+                    alt={`Site photo ${currentPhotoIndex + 1}`}
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/800x600?text=Image+Not+Available';
+                    }}
+                  />
+
+                  {selectedPhotos.length > 1 && (
+                    <>
+                      <button
+                        className="photo-nav-cusset prev"
+                        onClick={prevPhoto}
+                        disabled={currentPhotoIndex === 0}
+                      >
+                        <FaChevronLeft />
+                      </button>
+                      <button
+                        className="photo-nav-cusset next"
+                        onClick={nextPhoto}
+                        disabled={currentPhotoIndex === selectedPhotos.length - 1}
+                      >
+                        <FaChevronRight />
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                <div className="photo-modal-footer-cusset">
+                  <div className="photo-counter-cusset">
+                    {currentPhotoIndex + 1} / {selectedPhotos.length}
+                  </div>
+                  <button
+                    className="photo-download-btn-cusset"
+                    onClick={() => downloadPhoto(selectedPhotos[currentPhotoIndex], currentPhotoIndex)}
+                  >
+                    <FaDownload /> Download
+                  </button>
+                </div>
               </div>
             </div>
           )}

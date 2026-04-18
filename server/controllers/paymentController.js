@@ -2,6 +2,7 @@ const PayMongoService = require('../services/paymongoService');
 const PreAssessment = require('../models/PreAssessment');
 const Project = require('../models/Project');
 const Client = require('../models/Clients');
+const SolarInvoice = require('../models/SolarInvoice');
 const receiptService = require('../services/receiptService');
 
 // @desc    Create payment intent for pre-assessment (works for both card and GCash)
@@ -106,6 +107,122 @@ exports.createPreAssessmentPaymentIntent = async (req, res) => {
   }
 };
 
+// ============ INVOICE PAYMENT INTENT ============
+
+// @desc    Create payment intent for solar invoice payment (Project Bill)
+// @route   POST /api/payments/invoice/:invoiceId/create-intent
+// @access  Private (Customer)
+exports.createInvoicePaymentIntent = async (req, res) => {
+  try {
+    const { invoiceId } = req.params;
+    const userId = req.user.id;
+    const { paymentMethod } = req.body;
+
+    console.log('Creating payment intent for invoice:', { invoiceId, paymentMethod });
+
+    // Get client
+    const client = await Client.findOne({ userId });
+    if (!client) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    // Get invoice
+    const invoice = await SolarInvoice.findById(invoiceId);
+    if (!invoice) {
+      return res.status(404).json({ message: 'Invoice not found' });
+    }
+
+    // Verify ownership
+    if (invoice.clientId.toString() !== client._id.toString()) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    // Check if invoice is already paid
+    if (invoice.paymentStatus === 'paid') {
+      return res.status(400).json({ message: 'Invoice already paid' });
+    }
+
+    const amountToPay = invoice.balance || invoice.totalAmount;
+    
+    if (amountToPay <= 0) {
+      return res.status(400).json({ message: 'No outstanding balance' });
+    }
+
+    // Get project info
+    const project = await Project.findById(invoice.projectId);
+    const projectName = project?.projectName || 'Solar Installation';
+
+    // Determine payment methods
+    const paymentMethods = paymentMethod === 'gcash' ? ['gcash'] : ['card'];
+
+    // Create payment intent
+    const paymentIntent = await PayMongoService.createPaymentIntent(
+      amountToPay,
+      `${invoice.invoiceType.toUpperCase()} Payment - ${invoice.invoiceNumber} - ${projectName}`,
+      {
+        type: 'invoice_payment',
+        invoiceId: invoice._id.toString(),
+        invoiceNumber: invoice.invoiceNumber,
+        invoiceType: invoice.invoiceType,
+        projectId: invoice.projectId?.toString(),
+        projectName: projectName,
+        clientId: client._id.toString(),
+        clientName: `${client.contactFirstName} ${client.contactLastName}`
+      },
+      paymentMethods
+    );
+
+    if (!paymentIntent.success) {
+      return res.status(500).json({ message: paymentIntent.error });
+    }
+
+    // Store payment intent ID on invoice
+    invoice.paymongoPaymentIntentId = paymentIntent.paymentIntentId;
+    await invoice.save();
+
+    // For GCash, create payment source and return redirect URL
+    if (paymentMethod === 'gcash') {
+      const successUrl = `${process.env.FRONTEND_URL}/app/customer/payment-success?payment_intent_id=${paymentIntent.paymentIntentId}`;
+      const cancelUrl = `${process.env.FRONTEND_URL}/app/customer/payment-cancel?payment_intent_id=${paymentIntent.paymentIntentId}`;
+      
+      const gcashPayment = await PayMongoService.createGCashPaymentSource(
+        paymentIntent.paymentIntentId,
+        successUrl,
+        cancelUrl
+      );
+      
+      if (!gcashPayment.success) {
+        return res.status(500).json({ message: gcashPayment.error });
+      }
+      
+      return res.json({
+        success: true,
+        redirectUrl: gcashPayment.redirectUrl,
+        paymentIntentId: paymentIntent.paymentIntentId,
+        type: 'redirect'
+      });
+    }
+
+    // For Card payments, return client secret for frontend processing
+    return res.json({
+      success: true,
+      clientSecret: paymentIntent.clientSecret,
+      paymentIntentId: paymentIntent.paymentIntentId,
+      amount: paymentIntent.amount,
+      type: 'card'
+    });
+
+  } catch (error) {
+    console.error('Create invoice payment intent error:', error);
+    res.status(500).json({ 
+      message: 'Failed to create payment intent', 
+      error: error.message 
+    });
+  }
+};
+
+// ============ PROCESS CARD PAYMENT (Updated for Receipt Model) ============
+
 // @desc    Process card payment (attach payment method and confirm)
 // @route   POST /api/payments/process-card-payment
 // @access  Private (Customer)
@@ -116,32 +233,35 @@ exports.processCardPayment = async (req, res) => {
 
     console.log('Processing card payment for:', paymentIntentId);
 
-    const client = await Client.findOne({ userId });
+    const client = await Client.findOne({ userId }).populate('userId');
     if (!client) {
       return res.status(404).json({ message: 'Client not found' });
     }
 
-    // ✅ ADD POPULATION for receipt generation
-    const assessment = await PreAssessment.findOne({ 
+    // First, try to find which payment type this belongs to
+    let assessment = await PreAssessment.findOne({ 
       paymongoPaymentIntentId: paymentIntentId,
       clientId: client._id
     }).populate('clientId', 'contactFirstName contactLastName contactNumber userId')
-      .populate('clientId.userId', 'email')
-      .populate('addressId');  // For address in receipt
+      .populate('addressId');
+
+    let invoice = null;
+    let project = null;
 
     if (!assessment) {
-      return res.status(404).json({ message: 'Pre-assessment not found' });
+      // Check if it's an invoice payment
+      invoice = await SolarInvoice.findOne({
+        paymongoPaymentIntentId: paymentIntentId,
+        clientId: client._id
+      });
+      
+      if (invoice) {
+        project = await Project.findById(invoice.projectId);
+      }
     }
 
-    if (assessment.paymentStatus === 'paid') {
-      return res.json({
-        success: true,
-        message: 'Payment already completed',
-        data: {
-          bookingReference: assessment.bookingReference,
-          invoiceNumber: assessment.invoiceNumber
-        }
-      });
+    if (!assessment && !invoice) {
+      return res.status(404).json({ message: 'Payment record not found' });
     }
 
     // Create payment method
@@ -170,71 +290,197 @@ exports.processCardPayment = async (req, res) => {
 
     // Check if payment succeeded
     if (attachResult.status === 'succeeded') {
-      assessment.paymentStatus = 'paid';
-      assessment.assessmentStatus = 'scheduled';
-      assessment.paymentMethod = 'card';
-      assessment.paymentGateway = 'paymongo';
-      assessment.autoVerified = true;
-      assessment.paymentCompletedAt = new Date();
-      assessment.confirmedAt = new Date();
       
-      // ✅ GENERATE RECEIPT FOR CARD PAYMENT
-      let receipt = null;
-      try {
-        const customerName = `${assessment.clientId.contactFirstName || ''} ${assessment.clientId.contactLastName || ''}`.trim();
+      // ============ HANDLE PRE-ASSESSMENT PAYMENT ============
+      if (assessment) {
+        assessment.paymentStatus = 'paid';
+        assessment.assessmentStatus = 'scheduled';
+        assessment.paymentMethod = 'card';
+        assessment.paymentGateway = 'paymongo';
+        assessment.autoVerified = true;
+        assessment.paymentCompletedAt = new Date();
+        assessment.confirmedAt = new Date();
         
-        // Format address
-        let addressString = '';
-        if (assessment.addressId) {
-          const addr = assessment.addressId;
-          addressString = `${addr.houseOrBuilding || ''} ${addr.street || ''}, ${addr.barangay || ''}, ${addr.cityMunicipality || ''}`.trim();
-        }
-        
-        receipt = await receiptService.generateReceipt({
-          paymentType: 'pre_assessment',
-          amount: assessment.assessmentFee,
-          paymentMethod: 'card',
-          referenceNumber: paymentIntentId,
-          invoiceNumber: assessment.invoiceNumber,
-          customer: {
-            name: customerName,
-            address: addressString || 'N/A',
-            contact: assessment.clientId.contactNumber,
-            email: assessment.clientId.userId?.email
-          },
-          projectName: null,
-          verifiedBy: userId,
-          verifiedAt: new Date(),
-          notes: 'Card payment auto-verified via PayMongo',
-          paymentDate: new Date()
-        });
+        // Generate receipt for pre-assessment
+        let receipt = null;
+        try {
+          const customerName = `${assessment.clientId.contactFirstName || ''} ${assessment.clientId.contactLastName || ''}`.trim();
+          
+          let addressString = '';
+          if (assessment.addressId) {
+            const addr = assessment.addressId;
+            addressString = `${addr.houseOrBuilding || ''} ${addr.street || ''}, ${addr.barangay || ''}, ${addr.cityMunicipality || ''}`.trim();
+          }
+          
+          receipt = await receiptService.generateReceipt({
+            paymentType: 'pre_assessment',  // Valid enum value
+            amount: assessment.assessmentFee,
+            paymentMethod: 'card',
+            referenceNumber: paymentIntentId,
+            invoiceNumber: assessment.invoiceNumber,
+            customer: {
+              name: customerName,
+              address: addressString || 'N/A',
+              contact: assessment.clientId.contactNumber,
+              email: assessment.clientId.userId?.email
+            },
+            projectName: null,
+            verifiedBy: userId,
+            verifiedAt: new Date(),
+            notes: 'Card payment auto-verified via PayMongo',
+            paymentDate: new Date()
+          });
 
-        if (receipt.success) {
-          assessment.receiptUrl = receipt.receiptUrl;
-          assessment.receiptNumber = receipt.receiptNumber;
-          console.log(`✅ Receipt generated for card payment: ${receipt.receiptNumber}`);
+          if (receipt && receipt.success) {
+            assessment.receiptUrl = receipt.receiptUrl;
+            assessment.receiptNumber = receipt.receiptNumber;
+            console.log(`✅ Receipt generated for pre-assessment: ${receipt.receiptNumber}`);
+          }
+        } catch (receiptError) {
+          console.error('Receipt generation error (non-blocking):', receiptError.message);
         }
-      } catch (receiptError) {
-        console.error('Receipt generation error:', receiptError);
-        // Don't block payment success if receipt fails
+        
+        await assessment.save();
+
+        return res.json({
+          success: true,
+          message: 'Payment successful',
+          type: 'pre_assessment',
+          receipt: receipt?.success ? {
+            url: receipt.receiptUrl,
+            number: receipt.receiptNumber
+          } : null,
+          data: {
+            bookingReference: assessment.bookingReference,
+            invoiceNumber: assessment.invoiceNumber,
+            receiptUrl: assessment.receiptUrl,
+            receiptNumber: assessment.receiptNumber
+          }
+        });
       }
       
-      await assessment.save();
+      // ============ HANDLE INVOICE PAYMENT (PROJECT BILL) ============
+      if (invoice) {
+        const paymentAmount = attachResult.amount || invoice.balance;
+        
+        // Add payment to invoice
+        await invoice.addPayment({
+          amount: paymentAmount,
+          method: 'paymongo',  // Use 'paymongo' or add to enum
+          reference: paymentIntentId,
+          date: new Date(),
+          notes: 'Online payment via PayMongo'
+        });
 
-      return res.json({
-        success: true,
-        message: 'Payment successful',
-        receipt: receipt?.success ? {
-          url: receipt.receiptUrl,
-          number: receipt.receiptNumber
-        } : null,
-        data: {
-          bookingReference: assessment.bookingReference,
-          invoiceNumber: assessment.invoiceNumber,
-          receiptUrl: assessment.receiptUrl,
-          receiptNumber: assessment.receiptNumber
+        // ✅ MAP invoice type to receipt payment type enum
+        let receiptPaymentType = 'full'; // Default fallback
+        
+        switch (invoice.invoiceType) {
+          case 'initial':
+            receiptPaymentType = 'initial';
+            break;
+          case 'progress':
+            receiptPaymentType = 'progress';
+            break;
+          case 'final':
+            receiptPaymentType = 'final';
+            break;
+          case 'full':
+            receiptPaymentType = 'full';
+            break;
+          default:
+            receiptPaymentType = 'additional';
         }
-      });
+        
+        // Generate receipt for invoice payment
+        let receipt = null;
+        try {
+          const customerName = `${client.contactFirstName || ''} ${client.contactLastName || ''}`.trim();
+          
+          receipt = await receiptService.generateReceipt({
+            paymentType: receiptPaymentType,  // ✅ Now uses valid enum: 'initial', 'progress', 'final', 'full', 'additional'
+            amount: paymentAmount,
+            paymentMethod: 'card',  // Use 'card' as it's in the enum
+            referenceNumber: paymentIntentId,
+            invoiceNumber: invoice.invoiceNumber,
+            customer: {
+              name: customerName,
+              address: 'N/A',
+              contact: client.contactNumber,
+              email: client.userId?.email
+            },
+            projectName: project?.projectName || 'Solar Installation',
+            verifiedBy: userId,
+            verifiedAt: new Date(),
+            notes: `Payment for ${invoice.invoiceType.toUpperCase()} - ${invoice.description}`,
+            paymentDate: new Date()
+          });
+
+          if (receipt && receipt.success) {
+            invoice.receiptUrl = receipt.receiptUrl;
+            invoice.receiptNumber = receipt.receiptNumber;
+            await invoice.save();
+            console.log(`✅ Receipt generated for ${invoice.invoiceType} payment: ${receipt.receiptNumber}`);
+          } else {
+            console.log('Receipt generation returned:', receipt);
+          }
+        } catch (receiptError) {
+          // Log error but don't block the payment success
+          console.error('Receipt generation error (non-blocking):', receiptError.message);
+        }
+        
+        // Update project if linked
+        if (project) {
+          // Update payment schedule
+          const scheduleItem = project.paymentSchedule?.find(p => p.type === invoice.invoiceType);
+          if (scheduleItem && scheduleItem.status !== 'paid') {
+            scheduleItem.status = 'paid';
+            scheduleItem.paidAt = new Date();
+            scheduleItem.paymentReference = paymentIntentId;
+            scheduleItem.paymentGateway = 'paymongo';
+            
+            project.amountPaid = (project.amountPaid || 0) + paymentAmount;
+            project.balance = project.totalCost - project.amountPaid;
+            
+            // Update project status based on payment type
+            if (invoice.invoiceType === 'initial' && project.status === 'approved') {
+              project.status = 'initial_paid';
+            } else if (invoice.invoiceType === 'progress' && project.status === 'in_progress') {
+              project.status = 'progress_paid';
+            } else if (invoice.invoiceType === 'full') {
+              project.status = 'full_paid';
+              project.fullPaymentCompleted = true;
+            } else if (project.amountPaid >= project.totalCost) {
+              project.status = 'full_paid';
+              project.fullPaymentCompleted = true;
+            }
+            
+            await project.save();
+            console.log(`✅ Project ${project.projectReference} updated: status=${project.status}, amountPaid=${project.amountPaid}`);
+          }
+        }
+
+        return res.json({
+          success: true,
+          message: 'Payment successful',
+          type: 'invoice_payment',
+          receipt: receipt?.success ? {
+            url: receipt.receiptUrl,
+            number: receipt.receiptNumber
+          } : null,
+          data: {
+            invoiceNumber: invoice.invoiceNumber,
+            invoiceType: invoice.invoiceType,
+            paymentStatus: invoice.paymentStatus,
+            amountPaid: invoice.amountPaid,
+            balance: invoice.balance,
+            receiptUrl: invoice.receiptUrl,
+            receiptNumber: invoice.receiptNumber,
+            projectStatus: project?.status,
+            projectId: project?._id
+          }
+        });
+      }
     }
 
     return res.json({
@@ -248,7 +494,6 @@ exports.processCardPayment = async (req, res) => {
     res.status(500).json({ message: 'Failed to process payment', error: error.message });
   }
 };
-
 
 // @desc    Verify payment by payment intent ID (for both card and GCash)
 // @route   GET /api/payments/verify/:paymentIntentId
@@ -265,25 +510,39 @@ exports.verifyPayment = async (req, res) => {
       return res.status(404).json({ message: 'Client not found' });
     }
 
-    // Find assessment by payment intent ID
-    const assessment = await PreAssessment.findOne({ 
+    // Check pre-assessment first
+    let assessment = await PreAssessment.findOne({ 
       paymongoPaymentIntentId: paymentIntentId,
       clientId: client._id
     });
 
+    let invoice = null;
+
     if (!assessment) {
-      return res.status(404).json({ message: 'Pre-assessment not found' });
+      // Check invoice payment
+      invoice = await SolarInvoice.findOne({
+        paymongoPaymentIntentId: paymentIntentId,
+        clientId: client._id
+      });
+    }
+
+    if (!assessment && !invoice) {
+      return res.status(404).json({ message: 'Payment record not found' });
     }
 
     // If already paid, return success
-    if (assessment.paymentStatus === 'paid') {
+    if (assessment?.paymentStatus === 'paid' || invoice?.paymentStatus === 'paid') {
       return res.json({
         success: true,
         message: 'Payment already verified',
-        type: 'pre_assessment',
-        data: {
+        type: assessment ? 'pre_assessment' : 'invoice_payment',
+        data: assessment ? {
           bookingReference: assessment.bookingReference,
           invoiceNumber: assessment.invoiceNumber
+        } : {
+          invoiceNumber: invoice.invoiceNumber,
+          invoiceType: invoice.invoiceType,
+          paymentStatus: invoice.paymentStatus
         }
       });
     }
@@ -299,30 +558,78 @@ exports.verifyPayment = async (req, res) => {
 
     // Check if payment is successful
     if (paymentIntent.status === 'succeeded' || paymentIntent.isPaid === true) {
-      // Update assessment to paid
-      assessment.paymentStatus = 'paid';
-      assessment.assessmentStatus = 'scheduled';
-      assessment.autoVerified = true;
-      assessment.paymentMethod = paymentIntent.paymentMethod?.includes('gcash') ? 'gcash' : 'card';
-      assessment.paymentGateway = 'paymongo';
-      assessment.paymentCompletedAt = new Date();
-      assessment.confirmedAt = new Date();
       
-      // Store payment details from response
-      if (paymentIntent.paymentDetails) {
-        assessment.paymentReference = paymentIntent.paymentDetails.id;
+      if (assessment) {
+        assessment.paymentStatus = 'paid';
+        assessment.assessmentStatus = 'scheduled';
+        assessment.autoVerified = true;
+        assessment.paymentMethod = paymentIntent.paymentMethod?.includes('gcash') ? 'gcash' : 'card';
+        assessment.paymentGateway = 'paymongo';
+        assessment.paymentCompletedAt = new Date();
+        assessment.confirmedAt = new Date();
+        
+        if (paymentIntent.paymentDetails) {
+          assessment.paymentReference = paymentIntent.paymentDetails.id;
+        }
+        
+        await assessment.save();
       }
       
-      await assessment.save();
+      if (invoice) {
+        await invoice.addPayment({
+          amount: paymentIntent.amount / 100,
+          method: 'paymongo',
+          reference: paymentIntentId,
+          date: new Date(),
+          notes: 'Payment verified via PayMongo'
+        });
+        
+        // Update project if linked
+        if (invoice.projectId) {
+          const project = await Project.findById(invoice.projectId);
+          if (project) {
+            const scheduleItem = project.paymentSchedule?.find(p => p.type === invoice.invoiceType);
+            if (scheduleItem && scheduleItem.status !== 'paid') {
+              scheduleItem.status = 'paid';
+              scheduleItem.paidAt = new Date();
+              scheduleItem.paymentReference = paymentIntentId;
+              scheduleItem.paymentGateway = 'paymongo';
+              
+              project.amountPaid = (project.amountPaid || 0) + (paymentIntent.amount / 100);
+              project.balance = project.totalCost - project.amountPaid;
+              
+              if (invoice.invoiceType === 'initial' && project.status === 'approved') {
+                project.status = 'initial_paid';
+              } else if (invoice.invoiceType === 'progress' && project.status === 'in_progress') {
+                project.status = 'progress_paid';
+              } else if (invoice.invoiceType === 'full') {
+                project.status = 'full_paid';
+                project.fullPaymentCompleted = true;
+              } else if (project.amountPaid >= project.totalCost) {
+                project.status = 'full_paid';
+                project.fullPaymentCompleted = true;
+              }
+              
+              await project.save();
+            }
+          }
+        }
+      }
 
       return res.json({
         success: true,
         message: 'Payment verified successfully',
-        type: 'pre_assessment',
-        data: {
+        type: assessment ? 'pre_assessment' : 'invoice_payment',
+        data: assessment ? {
           bookingReference: assessment.bookingReference,
           invoiceNumber: assessment.invoiceNumber,
           paymentStatus: assessment.paymentStatus
+        } : {
+          invoiceNumber: invoice.invoiceNumber,
+          invoiceType: invoice.invoiceType,
+          paymentStatus: invoice.paymentStatus,
+          amountPaid: invoice.amountPaid,
+          balance: invoice.balance
         }
       });
     }
@@ -356,4 +663,3 @@ exports.getTestCard = async (req, res) => {
     testCard: PayMongoService.getTestCard()
   });
 };
-

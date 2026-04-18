@@ -50,7 +50,7 @@ const solarInvoiceSchema = new mongoose.Schema({
   // Payments Received
   payments: [{
     amount: { type: Number, required: true },
-    method: { type: String, enum: ['gcash', 'bank_transfer', 'cash', 'check', 'paymongo'] },
+    method: { type: String, enum: ['gcash', 'bank_transfer', 'card', 'cash', 'check', 'paymongo'] },
     reference: String,
     proof: String,
     date: { type: Date, default: Date.now },

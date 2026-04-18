@@ -333,11 +333,11 @@ class PDFGenerator {
       y = this.drawSectionHeader(doc, y, 'EQUIPMENT COST BREAKDOWN');
 
       const columns = [
-         { label: 'Equipment Type', width: 100, align: 'left' },
-         { label: 'Item', width: 150, align: 'left' },
-         { label: 'Qty', width: 50, align: 'center' },
-         { label: 'Unit Price', width: 100, align: 'right' },
-         { label: 'Total', width: 100, align: 'right' }
+         { label: 'Equipment Type', width: 90, align: 'left' },
+         { label: 'Item', width: 140, align: 'left' },
+         { label: 'Qty', width: 35, align: 'center' },
+         { label: 'Unit Price', width: 65, align: 'right' },
+         { label: 'Total', width: 90, align: 'right' }
       ];
 
       y = this.drawTableHeader(doc, y, columns);

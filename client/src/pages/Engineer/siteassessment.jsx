@@ -1398,30 +1398,47 @@ const MyAssessments = () => {
   };
 
   const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
+  const files = Array.from(e.target.files);
+  if (files.length === 0) return;
 
-    setUploading(true);
-    const formData = new FormData();
-    files.forEach(file => formData.append('images', file));
+  setUploading(true);
+  const formData = new FormData();
+  files.forEach(file => formData.append('images', file));
 
-    try {
-      const token = sessionStorage.getItem('token');
-      const response = await axios.post(
-        `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/upload-images`,
-        formData,
-        { headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` } }
-      );
-      setSiteImages([...siteImages, ...response.data.images]);
-      showToast('Images uploaded successfully', 'success');
-    } catch (err) {
-      console.error('Error uploading images:', err);
-      showToast('Failed to upload images', 'error');
-    } finally {
-      setUploading(false);
-      setShowImageUploader(false);
+  try {
+    const token = sessionStorage.getItem('token');
+    const response = await axios.post(
+      `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/upload-images`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+    
+    console.log('Upload response:', response.data);
+    
+    if (response.data.success) {
+      // Update site images state with the returned URLs
+      setSiteImages(prev => [...prev, ...response.data.images]);
+      showToast(`${response.data.images.length} image(s) uploaded successfully!`, 'success');
+      // Refresh assessment details to get updated site photos
+      fetchPreAssessmentDetails(selectedItem._id);
+    } else {
+      showToast(response.data.message || 'Failed to upload images', 'error');
     }
-  };
+  } catch (err) {
+    console.error('Error uploading images:', err);
+    showToast(err.response?.data?.message || 'Failed to upload images', 'error');
+  } finally {
+    setUploading(false);
+    setShowImageUploader(false);
+    // Clear the file input
+    e.target.value = '';
+  }
+};
 
   const validateAssessmentForm = () => {
     const requiredFields = [
@@ -2422,10 +2439,10 @@ const MyAssessments = () => {
                 </div>
 
                 {/* Payment Terms */}
-                <div className="form-group-enad">
+                {/* <div className="form-group-enad">
                   <label>Payment Terms</label>
                   <textarea value={quotationForm.paymentTerms} onChange={(e) => handleQuotationChange('paymentTerms', e.target.value)} rows={3} placeholder="e.g., 30% down payment, 70% upon completion" />
-                </div>
+                </div> */}
 
                 <div className="action-buttons-enad" style={{ marginTop: '20px' }}>
                   <button onClick={generateQuotationPDF} disabled={generatingPDF || !quotationForm.systemSize || calculatedCosts.totalSystemCost === 0} className="btn-primary-enad">

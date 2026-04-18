@@ -25,13 +25,332 @@
   --radius-xl: 18px;
   --radius-2xl: 24px;
 }
+/* Customer Photo Gallery Styles */
+.customer-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
 
+.customer-photo-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  cursor: pointer;
+  background-color: #f1f5f9;
+}
+
+.customer-photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s;
+}
+
+.customer-photo-item:hover img {
+  transform: scale(1.05);
+}
+
+.customer-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.customer-photo-item:hover .customer-photo-overlay {
+  opacity: 1;
+}
+
+.customer-photo-item.more-photos {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.more-photos-content {
+  text-align: center;
+  color: white;
+}
+
+.more-photos-content svg {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.more-photos-content span {
+  display: block;
+  font-size: 0.75rem;
+}
+
+.view-all-photos-btn {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background-color: #f1f5f9;
+  border: none;
+  border-radius: 0.5rem;
+  color: #2563eb;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.view-all-photos-btn:hover {
+  background-color: #e2e8f0;
+}
+
+.view-photos-btn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
+}
+
+.view-photos-btn:hover {
+  background-color: #e2e8f0;
+}
+
+/* Photo Modal */
+.photo-modal-overlay-cusset {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.photo-modal-content-cusset {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  background: transparent;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.photo-modal-close-cusset {
+  position: absolute;
+  top: -2.5rem;
+  right: 0;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.photo-modal-main-cusset {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-modal-main-cusset img {
+  max-width: 90vw;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 0.5rem;
+}
+
+.photo-nav-cusset {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.photo-nav-cusset:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.photo-nav-cusset:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.photo-nav-cusset.prev {
+  left: -60px;
+}
+
+.photo-nav-cusset.next {
+  right: -60px;
+}
+
+.photo-modal-footer-cusset {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  margin-top: -0.5rem;
+}
+
+.photo-counter-cusset {
+  color: white;
+  font-size: 0.875rem;
+}
+
+.photo-download-btn-cusset {
+  background: transparent;
+  border: 1px solid white;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.photo-download-btn-cusset:hover {
+  background: white;
+  color: #1e293b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .customer-photo-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.5rem;
+  }
+  
+  .photo-nav-cusset.prev {
+    left: 10px;
+  }
+  
+  .photo-nav-cusset.next {
+    right: 10px;
+  }
+  
+  .photo-nav-cusset {
+    width: 32px;
+    height: 32px;
+  }
+}
 .schedule-container-cusset {
   max-width: 1200px;
   margin: 0 auto;
   padding: 24px;
 }
+/* Customer Photo Gallery Styles */
+.customer-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
 
+.customer-photo-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  cursor: pointer;
+  background-color: #f1f5f9;
+}
+
+.customer-photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s;
+}
+
+.customer-photo-item:hover img {
+  transform: scale(1.05);
+}
+
+.customer-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.customer-photo-item:hover .customer-photo-overlay {
+  opacity: 1;
+}
+
+.view-photos-btn {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
+}
+
+.view-photos-btn:hover {
+  background-color: #eff6ff;
+}
+
+.view-all-photos-btn {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background-color: #f1f5f9;
+  border: none;
+  border-radius: 0.5rem;
+  color: #3b82f6;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.view-all-photos-btn:hover {
+  background-color: #e2e8f0;
+}
 /* Header Card */
 .schedule-header-card-cusset {
   display: flex;

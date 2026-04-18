@@ -95,7 +95,7 @@ const preAssessmentSchema = new mongoose.Schema({
     fileId: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
     documentType: {
       type: String,
-      enum: ['quotation_pdf', 'technical_report', 'site_sketch', 'structural_analysis', 'electrical_diagram', 'safety_report', 'other']
+      enum: ['quotation_pdf', 'technical_report', 'site_sketch', 'structural_analysis', 'site_photo', 'electrical_diagram', 'safety_report', 'other']
     },
     description: String,
     uploadedAt: Date

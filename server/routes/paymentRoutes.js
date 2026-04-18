@@ -11,6 +11,12 @@ router.post(
   paymentController.createPreAssessmentPaymentIntent
 );
 
+// ✅ ADD THIS NEW ROUTE FOR INVOICE PAYMENTS
+router.post(
+  '/invoice/:invoiceId/create-intent',
+  verifyToken,
+  paymentController.createInvoicePaymentIntent
+);
 // Process card payment
 router.post(
   '/process-card-payment',

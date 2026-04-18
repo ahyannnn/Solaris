@@ -22,6 +22,7 @@ const {
   getEngineerAssessments,
   updateSiteAssessment,
   uploadQuotationPDF,
+  uploadSiteImages,
 
   submitPayment,
   submitAssessmentReport,
@@ -65,7 +66,9 @@ router.get('/:id/iot-data', verifyToken, engineer, getIoTData);
 router.get('/engineer/my-assessments', verifyToken, engineer, getEngineerAssessments);
 router.put('/:id/update-assessment', verifyToken, engineer, updateSiteAssessment);
 router.post('/:id/upload-quotation', verifyToken, engineer, upload.single('quotation'), uploadQuotationPDF);
+router.post('/:id/upload-images', verifyToken, engineer, upload.array('images', 10), uploadSiteImages);
 router.get('/:id/documents', verifyToken, getAssessmentDocuments);
+
 router.post('/:id/add-comment', verifyToken, engineer, addEngineerComment);
 router.get('/:id/comments', verifyToken, getAssessmentComments);
 

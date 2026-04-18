@@ -23,6 +23,8 @@ const SYSTEM_TYPES = [
   { value: 'hybrid', label: 'Hybrid System', description: 'Grid-tie with battery backup' },
   { value: 'off-grid', label: 'Off-Grid System', description: 'Standalone with batteries, not connected to grid' }
 ];
+
+
 // @desc    Create PayMongo payment intent for pre-assessment
 // @route   POST /api/pre-assessments/:id/create-payment-intent
 // @access  Private (Customer)
@@ -1895,6 +1897,7 @@ exports.getMyPreAssessments = async (req, res) => {
       quotation: assessment.quotation,
       finalQuotation: assessment.finalQuotation,
       quotationUrl: assessment.quotation?.quotationUrl || assessment.finalQuotation,
+      sitePhotos: assessment.sitePhotos || [],
       // ✅ ADD RECEIPT FIELDS
       receiptUrl: assessment.receiptUrl,
       receiptNumber: assessment.receiptNumber
@@ -2138,23 +2141,136 @@ exports.deployDevice = async (req, res) => {
   }
 };
 
-// Add this to preAssessmentControllers.js
+// @desc    Upload site images (Engineer)
+// @route   POST /api/pre-assessments/:id/upload-images
+// @access  Private (Engineer)
 exports.uploadSiteImages = async (req, res) => {
   try {
     const { id } = req.params;
+    const engineerId = req.user.id;
     const files = req.files;
 
-    const imageUrls = [];
-    // Process each image upload to Cloudinary/local storage
+    console.log('Uploading site images for assessment:', id);
+    console.log('Files received:', files?.length || 0);
 
     const assessment = await PreAssessment.findById(id);
-    if (!assessment.sitePhotos) assessment.sitePhotos = [];
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    // Check if engineer is assigned
+    if (assessment.assignedEngineerId?.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    if (!files || files.length === 0) {
+      return res.status(400).json({ message: 'No files uploaded' });
+    }
+
+    const { processUpload } = require('../middleware/uploadMiddleware');
+    const File = require('../models/File');
+    
+    const imageUrls = [];
+    const fileRecords = [];
+
+    for (const file of files) {
+      try {
+        console.log(`Processing file: ${file.originalname}`);
+        
+        const folder = `site-assessments/${assessment.bookingReference}/site-photos`;
+        const publicId = `site_photo_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        
+        const processedFile = await processUpload(req, file, folder, publicId);
+
+        if (processedFile && processedFile.url) {
+          console.log(`✅ Uploaded: ${processedFile.filename} (${processedFile.storageType})`);
+          imageUrls.push(processedFile.url);
+          
+          // Create file record
+          const fileRecord = new File({
+            filename: processedFile.filename,
+            originalName: file.originalname,
+            fileType: 'site_photo',
+            mimeType: file.mimetype,
+            size: file.size,
+            url: processedFile.url,
+            publicId: processedFile.publicId,
+            uploadedBy: engineerId,
+            userRole: 'engineer',
+            relatedTo: 'pre_assessment',
+            relatedId: assessment._id,
+            metadata: {
+              bookingReference: assessment.bookingReference,
+              uploadType: 'site_photo',
+              storageType: processedFile.storageType,
+              uploadedAt: new Date().toISOString()
+            }
+          });
+          
+          await fileRecord.save();
+          fileRecords.push(fileRecord);
+        } else {
+          console.error(`Failed to process file: ${file.originalname} - No URL returned`);
+        }
+      } catch (uploadError) {
+        console.error('Error processing file:', file.originalname, uploadError.message);
+      }
+    }
+
+    if (imageUrls.length === 0) {
+      return res.status(500).json({ 
+        success: false,
+        message: 'Failed to upload any images' 
+      });
+    }
+
+    // Initialize sitePhotos array if it doesn't exist
+    if (!assessment.sitePhotos) {
+      assessment.sitePhotos = [];
+    }
+    
+    // Add new images to existing ones
     assessment.sitePhotos.push(...imageUrls);
+    
+    // Store file references in assessment documents
+    if (!assessment.assessmentDocuments) {
+      assessment.assessmentDocuments = [];
+    }
+    
+    fileRecords.forEach(fileRecord => {
+      assessment.assessmentDocuments.push({
+        fileId: fileRecord._id,
+        documentType: 'site_photo',
+        description: `Site inspection photo uploaded by engineer`,
+        uploadedAt: new Date()
+      });
+    });
+    
     await assessment.save();
 
-    res.json({ success: true, images: imageUrls });
+    console.log(`✅ Uploaded ${imageUrls.length} site images for assessment ${assessment.bookingReference}`);
+    console.log('Image URLs:', imageUrls);
+
+    res.json({
+      success: true,
+      message: `${imageUrls.length} image(s) uploaded successfully`,
+      images: imageUrls,
+      fileRecords: fileRecords.map(f => ({
+        id: f._id,
+        url: f.url,
+        originalName: f.originalName,
+        storageType: f.metadata?.storageType
+      })),
+      totalPhotos: assessment.sitePhotos.length
+    });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Upload site images error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to upload images', 
+      error: error.message 
+    });
   }
 };
 

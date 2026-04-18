@@ -11,7 +11,14 @@ import {
   FaMapMarkerAlt,
   FaSolarPanel,
   FaClock,
-  FaEnvelope
+  FaEnvelope,
+  FaPhone,
+  FaImages,
+  FaCamera,
+  FaChevronLeft,
+  FaChevronRight,
+  FaTimes,
+  FaDownload
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/myproject.css';
@@ -25,6 +32,9 @@ const MyProject = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [solarInvoices, setSolarInvoices] = useState([]);
   const [animatedProgress, setAnimatedProgress] = useState(0);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   useEffect(() => {
     fetchProjects();
@@ -142,7 +152,7 @@ const MyProject = () => {
     if (project.paymentPreference === 'full') {
       if (project.status === 'completed') return 100;
       if (project.status === 'in_progress') return 60;
-      if (project.status === 'full_paid') return 30;
+      if (project.status === 'full_paid') return 40; // Installation started
       if (project.status === 'approved') return 15;
       return 5;
     }
@@ -170,6 +180,12 @@ const MyProject = () => {
     if (project.status === 'approved' && !initialPaid && !fullPaid) {
       return { message: 'Ready for payment', action: 'Complete payment to start installation' };
     }
+    
+    // For full payment plan, after payment is made
+    if (fullPaid && project.paymentPreference === 'full') {
+      return { message: 'Payment completed', action: 'Installation will begin soon' };
+    }
+    
     if (initialPaid && !progressPaid) {
       return { message: 'Installation starting soon', action: 'Engineer will be assigned shortly' };
     }
@@ -203,8 +219,12 @@ const MyProject = () => {
       return [
         { key: 'quotation', title: 'Quotation', desc: 'Project quoted', completed: true, date: project.createdAt },
         { key: 'payment', title: 'Full Payment', desc: 'Payment completed', completed: fullPaid, date: project.paymentSchedule?.find(p => p.type === 'full')?.paidAt },
-        { key: 'installation', title: 'Installation', desc: 'System installation', completed: ['in_progress', 'completed'].includes(project.status), date: project.startDate },
-        { key: 'complete', title: 'Completion', desc: 'Project handover', completed: project.status === 'completed', date: project.actualCompletionDate }
+        { key: 'installation', title: 'Installation', desc: 'System installation', 
+          completed: ['full_paid', 'in_progress', 'completed'].includes(project.status), 
+          date: project.startDate },
+        { key: 'complete', title: 'Completion', desc: 'Project handover', 
+          completed: project.status === 'completed', 
+          date: project.actualCompletionDate }
       ];
     } else {
       return [
@@ -219,12 +239,10 @@ const MyProject = () => {
   };
 
   const getEngineerName = (project) => {
-    // Use the pre-processed engineerFullName from backend
     if (project.engineerFullName) {
       return project.engineerFullName;
     }
 
-    // Fallback for backward compatibility
     if (project.assignedEngineerId && typeof project.assignedEngineerId === 'object') {
       const engineer = project.assignedEngineerId;
 
@@ -262,7 +280,49 @@ const MyProject = () => {
 
     return null;
   };
+
+  const openPhotoModal = (photos, index) => {
+    setSelectedPhoto(photos);
+    setCurrentPhotoIndex(index);
+    setShowPhotoModal(true);
+  };
+
+  const closePhotoModal = () => {
+    setShowPhotoModal(false);
+    setSelectedPhoto(null);
+    setCurrentPhotoIndex(0);
+  };
+
+  const nextPhoto = () => {
+    if (selectedPhoto && currentPhotoIndex < selectedPhoto.length - 1) {
+      setCurrentPhotoIndex(currentPhotoIndex + 1);
+    }
+  };
+
+  const prevPhoto = () => {
+    if (selectedPhoto && currentPhotoIndex > 0) {
+      setCurrentPhotoIndex(currentPhotoIndex - 1);
+    }
+  };
+
+  const downloadPhoto = async (url, index) => {
+    try {
+      const response = await axios.get(url, { responseType: 'blob' });
+      const blob = new Blob([response.data], { type: 'image/jpeg' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `site-photo-${index + 1}.jpg`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      showToast('Photo downloaded successfully', 'success');
+    } catch (error) {
+      console.error('Error downloading photo:', error);
+      showToast('Failed to download photo', 'error');
+    }
+  };
+
   const nextStep = getNextStepMessage(selectedProject || {});
+  const sitePhotos = selectedProject?.sitePhotos || [];
 
   const SkeletonLoader = () => (
     <div className="cuspro-page">
@@ -324,13 +384,11 @@ const MyProject = () => {
       </Helmet>
 
       <div className="cuspro-page">
-        {/* Header */}
         <div className="cuspro-header-card">
           <h1>My Project</h1>
           <p>Track your solar installation progress</p>
         </div>
 
-        {/* Project Selector */}
         {projects.length > 1 && (
           <div className="cuspro-selector-card">
             <select
@@ -349,7 +407,6 @@ const MyProject = () => {
 
         {selectedProject && (
           <>
-            {/* Hero Card */}
             <div className="cuspro-hero-card">
               <div className="cuspro-hero-main">
                 <div>
@@ -370,11 +427,8 @@ const MyProject = () => {
               </div>
             </div>
 
-            {/* Two Column Layout */}
             <div className="cuspro-two-col">
-              {/* Left Column - Progress & Next Step */}
               <div className="cuspro-left-col">
-                {/* Progress Card */}
                 <div className="cuspro-progress-card">
                   <h3>Project Progress</h3>
                   <div className="cuspro-progress-ring-wrapper">
@@ -417,9 +471,29 @@ const MyProject = () => {
                   </div>
                 </div>
 
-                {/* Next Step Card */}
+                {sitePhotos.length > 0 && (
+                  <div className="cuspro-photos-card">
+                    <h3><FaImages /> Site Photos ({sitePhotos.length})</h3>
+                    <p className="cuspro-photos-subtitle">Installation progress photos from your engineer</p>
+                    <div className="cuspro-photos-grid">
+                      {sitePhotos.slice(0, 6).map((photo, idx) => (
+                        <div key={idx} className="cuspro-photo-item" onClick={() => openPhotoModal(sitePhotos, idx)}>
+                          <img src={photo} alt={`Site progress ${idx + 1}`} onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }} />
+                          <div className="cuspro-photo-overlay"><FaCamera /></div>
+                        </div>
+                      ))}
+                      {sitePhotos.length > 6 && (
+                        <div className="cuspro-photo-item more-photos" onClick={() => openPhotoModal(sitePhotos, 0)}>
+                          <div className="more-photos-overlay"><FaImages /><span>+{sitePhotos.length - 6} more</span></div>
+                        </div>
+                      )}
+                    </div>
+                    <button className="cuspro-view-all-btn" onClick={() => openPhotoModal(sitePhotos, 0)}>
+                      <FaImages /> View All Photos ({sitePhotos.length})
+                    </button>
+                  </div>
+                )}
 
-                {/* Next Step Card */}
                 <div className="cuspro-next-card">
                   <h3>Next Step</h3>
                   <div className="cuspro-next-content">
@@ -428,46 +502,26 @@ const MyProject = () => {
                   </div>
                   <div className="cuspro-next-actions">
                     {selectedProject.status === 'approved' && !isPaymentPaid(selectedProject, 'initial') && (
-                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>
-                         Make Payment
-                      </button>
+                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Payment</button>
                     )}
                     {(selectedProject.status === 'in_progress' && !isPaymentPaid(selectedProject, 'progress')) && (
-                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>
-                         Make Progress Payment
-                      </button>
+                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Progress Payment</button>
                     )}
                     {(selectedProject.status === 'progress_paid' && !isPaymentPaid(selectedProject, 'final')) && (
-                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>
-                        Make Final Payment
-                      </button>
+                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Final Payment</button>
                     )}
-                    {/* Make Full Payment button removed */}
                   </div>
                 </div>
               </div>
 
-              {/* Right Column - Details */}
               <div className="cuspro-right-col">
                 <div className="cuspro-details-card">
                   <h3>System Details</h3>
                   <div className="cuspro-details-grid">
-                    <div className="cuspro-detail-item">
-                      <span>Panels Needed</span>
-                      <strong>{getPreAssessmentData(selectedProject)?.panelsNeeded || selectedProject.panelsNeeded || 'TBD'}</strong>
-                    </div>
-                    <div className="cuspro-detail-item">
-                      <span>Inverter Type</span>
-                      <strong>{selectedProject.inverterType || 'Standard'}</strong>
-                    </div>
-                    <div className="cuspro-detail-item">
-                      <span>Battery</span>
-                      <strong>{selectedProject.batteryType || 'N/A'}</strong>
-                    </div>
-                    <div className="cuspro-detail-item">
-                      <span>Property</span>
-                      <strong>{getPreAssessmentData(selectedProject)?.propertyType || 'Residential'}</strong>
-                    </div>
+                    <div className="cuspro-detail-item"><span>Panels Needed</span><strong>{getPreAssessmentData(selectedProject)?.panelsNeeded || selectedProject.panelsNeeded || 'TBD'}</strong></div>
+                    <div className="cuspro-detail-item"><span>Inverter Type</span><strong>{selectedProject.inverterType || 'Standard'}</strong></div>
+                    <div className="cuspro-detail-item"><span>Battery</span><strong>{selectedProject.batteryType || 'N/A'}</strong></div>
+                    <div className="cuspro-detail-item"><span>Property</span><strong>{getPreAssessmentData(selectedProject)?.propertyType || 'Residential'}</strong></div>
                   </div>
                 </div>
 
@@ -485,52 +539,34 @@ const MyProject = () => {
                   <h3>Assigned Engineer</h3>
                   {getEngineerName(selectedProject) ? (
                     <div className="cuspro-engineer">
-                      <div className="cuspro-engineer-avatar">
-                        {getEngineerName(selectedProject).charAt(0)}
-                      </div>
+                      <div className="cuspro-engineer-avatar">{getEngineerName(selectedProject).charAt(0)}</div>
                       <div>
                         <strong>{getEngineerName(selectedProject)}</strong>
                         {selectedProject.assignedEngineerId?.email && (
-                          <p className="engineer-email">
-                            <FaEnvelope className="email-icon" /> {selectedProject.assignedEngineerId.email}
-                          </p>
+                          <p className="engineer-email"><FaEnvelope className="email-icon" /> {selectedProject.assignedEngineerId.email}</p>
                         )}
                         {selectedProject.assignedEngineerId?.phone && (
-                          <p className="engineer-phone">
-                            <FaPhone className="phone-icon" /> {selectedProject.assignedEngineerId.phone}
-                          </p>
+                          <p className="engineer-phone"><FaPhone className="phone-icon" /> {selectedProject.assignedEngineerId.phone}</p>
                         )}
                       </div>
                     </div>
                   ) : (
                     <div className="cuspro-engineer-placeholder">
                       <FaUserCircle />
-                      <div>
-                        <strong>Pending Assignment</strong>
-                        <p>Engineer will be assigned after approval</p>
-                      </div>
+                      <div><strong>Pending Assignment</strong><p>Engineer will be assigned after approval</p></div>
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Tab Navigation - Only 3 tabs */}
             <div className="cuspro-tab-nav">
-              <button className={`cuspro-tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
-                Overview
-              </button>
-              <button className={`cuspro-tab ${activeTab === 'timeline' ? 'active' : ''}`} onClick={() => setActiveTab('timeline')}>
-                Timeline
-              </button>
-              <button className={`cuspro-tab ${activeTab === 'payments' ? 'active' : ''}`} onClick={() => setActiveTab('payments')}>
-                Payments
-              </button>
+              <button className={`cuspro-tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>Overview</button>
+              <button className={`cuspro-tab ${activeTab === 'timeline' ? 'active' : ''}`} onClick={() => setActiveTab('timeline')}>Timeline</button>
+              <button className={`cuspro-tab ${activeTab === 'payments' ? 'active' : ''}`} onClick={() => setActiveTab('payments')}>Payments</button>
             </div>
 
-            {/* Tab Content */}
             <div className="cuspro-tab-content">
-              {/* Overview Tab */}
               {activeTab === 'overview' && (
                 <div className="cuspro-overview">
                   <div className="cuspro-overview-grid">
@@ -540,10 +576,7 @@ const MyProject = () => {
                         {getTimelineItems(selectedProject).slice(0, 4).map((item, idx) => (
                           <div key={item.key} className={`cuspro-timeline-mini-item ${item.completed ? 'completed' : ''}`}>
                             <span className="cuspro-milestone-dot"></span>
-                            <div>
-                              <p>{item.title}</p>
-                              <small>{item.completed ? formatDate(item.date) : 'Pending'}</small>
-                            </div>
+                            <div><p>{item.title}</p><small>{item.completed ? formatDate(item.date) : 'Pending'}</small></div>
                           </div>
                         ))}
                       </div>
@@ -555,10 +588,7 @@ const MyProject = () => {
                           const status = getPaymentStatus(selectedProject, payment.type);
                           return (
                             <div key={idx} className="cuspro-payment-mini-item">
-                              <div>
-                                <span>{payment.type === 'initial' ? 'Initial (30%)' : payment.type === 'progress' ? 'Progress (40%)' : payment.type === 'final' ? 'Final (30%)' : 'Full (100%)'}</span>
-                                <strong>{formatCurrency(payment.amount)}</strong>
-                              </div>
+                              <div><span>{payment.type === 'initial' ? 'Initial (30%)' : payment.type === 'progress' ? 'Progress (40%)' : payment.type === 'final' ? 'Final (30%)' : 'Full (100%)'}</span><strong>{formatCurrency(payment.amount)}</strong></div>
                               <span className={`cuspro-payment-mini-status ${status.status}`}>{status.text}</span>
                             </div>
                           );
@@ -570,35 +600,24 @@ const MyProject = () => {
                     <h4>Need Help?</h4>
                     <p>Contact our support team for assistance</p>
                     <div className="cuspro-contact-actions">
-                      <a href="mailto:support@salferengineering.com">
-                        <FaEnvelope /> support@salferengineering.com
-                      </a>
+                      <a href="mailto:support@salferengineering.com"><FaEnvelope /> support@salferengineering.com</a>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Timeline Tab */}
               {activeTab === 'timeline' && (
                 <div className="cuspro-timeline-full">
                   {getTimelineItems(selectedProject).map((item, idx) => (
                     <div key={item.key} className={`cuspro-timeline-full-item ${item.completed ? 'completed' : ''}`}>
-                      <div className="cuspro-timeline-marker">
-                        {item.completed ? <FaCheckCircle /> : <span>{idx + 1}</span>}
-                      </div>
-                      <div className="cuspro-timeline-info">
-                        <h4>{item.title}</h4>
-                        <p>{item.desc}</p>
-                      </div>
-                      <div className="cuspro-timeline-date">
-                        {item.completed ? formatDate(item.date) : '—'}
-                      </div>
+                      <div className="cuspro-timeline-marker">{item.completed ? <FaCheckCircle /> : <span>{idx + 1}</span>}</div>
+                      <div className="cuspro-timeline-info"><h4>{item.title}</h4><p>{item.desc}</p></div>
+                      <div className="cuspro-timeline-date">{item.completed ? formatDate(item.date) : '—'}</div>
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* Payments Tab */}
               {activeTab === 'payments' && (
                 <div className="cuspro-payments-full">
                   {selectedProject.paymentSchedule?.length > 0 ? (
@@ -608,26 +627,17 @@ const MyProject = () => {
                         <div key={idx} className="cuspro-payment-full-item">
                           <div className="cuspro-payment-full-header">
                             <div>
-                              <h4>
-                                {payment.type === 'initial' ? 'Initial Deposit (30%)' :
-                                  payment.type === 'progress' ? 'Progress Payment (40%)' :
-                                    payment.type === 'final' ? 'Final Payment (30%)' :
-                                      'Full Payment (100%)'}
-                              </h4>
+                              <h4>{payment.type === 'initial' ? 'Initial Deposit (30%)' : payment.type === 'progress' ? 'Progress Payment (40%)' : payment.type === 'final' ? 'Final Payment (30%)' : 'Full Payment (100%)'}</h4>
                               <p>Due: {formatDate(payment.dueDate)}</p>
                             </div>
                             <span className={`cuspro-payment-full-status ${status.status}`}>{status.text}</span>
                           </div>
                           <div className="cuspro-payment-full-amount">
                             <strong>{formatCurrency(payment.amount)}</strong>
-                            {status.status === 'paid' && payment.paidAt && (
-                              <span>Paid on {formatDate(payment.paidAt)}</span>
-                            )}
+                            {status.status === 'paid' && payment.paidAt && <span>Paid on {formatDate(payment.paidAt)}</span>}
                           </div>
                           {status.status !== 'paid' && status.status !== 'for_verification' && selectedProject.status !== 'quoted' && (
-                            <button className="cuspro-btn-pay" onClick={() => navigate('/app/customer/billing')}>
-                              Pay Now
-                            </button>
+                            <button className="cuspro-btn-pay" onClick={() => navigate('/app/customer/billing')}>Pay Now</button>
                           )}
                         </div>
                       );
@@ -641,12 +651,28 @@ const MyProject = () => {
           </>
         )}
 
-        <ToastNotification
-          show={toast.show}
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-        />
+        {showPhotoModal && selectedPhoto && (
+          <div className="cuspro-photo-modal-overlay" onClick={closePhotoModal}>
+            <div className="cuspro-photo-modal-content" onClick={(e) => e.stopPropagation()}>
+              <button className="cuspro-photo-modal-close" onClick={closePhotoModal}><FaTimes /></button>
+              <div className="cuspro-photo-modal-main">
+                <img src={selectedPhoto[currentPhotoIndex]} alt={`Site photo ${currentPhotoIndex + 1}`} onError={(e) => { e.target.src = 'https://via.placeholder.com/800x600?text=Image+Not+Available'; }} />
+                {selectedPhoto.length > 1 && (
+                  <>
+                    <button className="cuspro-photo-nav prev" onClick={prevPhoto} disabled={currentPhotoIndex === 0}><FaChevronLeft /></button>
+                    <button className="cuspro-photo-nav next" onClick={nextPhoto} disabled={currentPhotoIndex === selectedPhoto.length - 1}><FaChevronRight /></button>
+                  </>
+                )}
+              </div>
+              <div className="cuspro-photo-modal-footer">
+                <div className="cuspro-photo-counter">{currentPhotoIndex + 1} / {selectedPhoto.length}</div>
+                <button className="cuspro-photo-download" onClick={() => downloadPhoto(selectedPhoto[currentPhotoIndex], currentPhotoIndex)}><FaDownload /> Download</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} />
       </div>
     </>
   );

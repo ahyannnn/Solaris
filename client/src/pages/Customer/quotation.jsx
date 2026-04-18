@@ -130,7 +130,6 @@ const Quotation = () => {
           inverterType: assessment.quotation?.systemDetails?.inverterType,
           batteryType: assessment.quotation?.systemDetails?.batteryType,
           icon: <FaHome />,
-          // ✅ ADD RECEIPT FIELDS
           receiptUrl: assessment.receiptUrl,
           receiptNumber: assessment.receiptNumber
         })) || [];
@@ -158,7 +157,6 @@ const Quotation = () => {
         balance: invoice.balance,
         payments: invoice.payments,
         icon: <FaBuilding />,
-        // ✅ ADD RECEIPT FIELDS
         receiptUrl: invoice.receiptUrl,
         receiptNumber: invoice.receiptNumber
       }));
@@ -173,8 +171,71 @@ const Quotation = () => {
       setLoading(false);
     }
   };
-  
-  // ✅ ADD RECEIPT HANDLER
+
+  // Helper function to check if initial payment is completed for a project
+  const isInitialPaymentCompleted = (projectId) => {
+    const projectInvoices = allItems.filter(item => 
+      item.type === 'project' && 
+      item.projectId === projectId
+    );
+    
+    const initialInvoice = projectInvoices.find(inv => inv.invoiceType === 'initial');
+    return initialInvoice && initialInvoice.status === 'paid';
+  };
+
+  // Helper function to check if progress payment is completed for a project
+  const isProgressPaymentCompleted = (projectId) => {
+    const projectInvoices = allItems.filter(item => 
+      item.type === 'project' && 
+      item.projectId === projectId
+    );
+    
+    const progressInvoice = projectInvoices.find(inv => inv.invoiceType === 'progress');
+    return progressInvoice && progressInvoice.status === 'paid';
+  };
+
+  // Check if Pay Now button should be disabled for an item
+  const isPayNowDisabled = (item) => {
+    // Only apply logic for project items with installment payment types
+    if (item.type !== 'project') return false;
+    
+    const invoiceType = item.invoiceType;
+    const projectId = item.projectId;
+    
+    // For Progress payment - disable if Initial is not paid
+    if (invoiceType === 'progress') {
+      return !isInitialPaymentCompleted(projectId);
+    }
+    
+    // For Final payment - disable if Progress is not paid
+    if (invoiceType === 'final') {
+      // Check if Progress is paid, but also ensure Initial is paid (should be true if Progress is paid)
+      const isProgressPaid = isProgressPaymentCompleted(projectId);
+      return !isProgressPaid;
+    }
+    
+    // Initial payment is always enabled
+    return false;
+  };
+
+  // Get disabled reason for tooltip or display
+  const getPayNowDisabledReason = (item) => {
+    if (item.type !== 'project') return null;
+    
+    const invoiceType = item.invoiceType;
+    const projectId = item.projectId;
+    
+    if (invoiceType === 'progress') {
+      return 'Initial payment must be completed first';
+    }
+    
+    if (invoiceType === 'final') {
+      return 'Progress payment must be completed first';
+    }
+    
+    return null;
+  };
+
   const handleViewReceipt = async (item) => {
     try {
       let receiptUrl = null;
@@ -197,7 +258,6 @@ const Quotation = () => {
     }
   };
 
-  // ✅ ADD RECEIPT DOWNLOAD HANDLER
   const handleDownloadReceipt = async (item) => {
     try {
       let receiptUrl = null;
@@ -307,6 +367,13 @@ const Quotation = () => {
   };
 
   const handleProjectInvoicePayment = async (invoice) => {
+    // Check if payment is allowed before proceeding
+    if (isPayNowDisabled(invoice)) {
+      const reason = getPayNowDisabledReason(invoice);
+      showToast(reason, 'warning');
+      return;
+    }
+    
     setSelectedItem({
       ...invoice,
       _id: invoice.projectId,
@@ -375,6 +442,13 @@ const Quotation = () => {
   };
 
   const handlePayNowClick = (item) => {
+    // Check if payment is allowed for project items
+    if (item.type === 'project' && isPayNowDisabled(item)) {
+      const reason = getPayNowDisabledReason(item);
+      showToast(reason, 'warning');
+      return;
+    }
+    
     if (item.type === 'project') {
       handleProjectInvoicePayment(item);
     } else {
@@ -852,8 +926,11 @@ const Quotation = () => {
                 return false;
               });
               const alreadyProjectCreated = isPreAssessment && (item.assessmentStatus === 'quotation_accepted' || projectExists);
-              // Check if receipt is available
               const hasReceipt = item.receiptUrl;
+              
+              // Check if Pay Now button should be disabled
+              const isPayNowButtonDisabled = isPayNowDisabled(item);
+              const disabledReason = getPayNowDisabledReason(item);
 
               return (
                 <div key={index} className={`cuspro-item-card ${item.type}`}>
@@ -914,15 +991,23 @@ const Quotation = () => {
                   </div>
 
                   <div className="cuspro-item-actions">
-                    {/* Pay Now button */}
+                    {/* Pay Now button with conditional disabling */}
                     {(item.status === 'pending' || item.status === 'partial') && (
                       <button
-                        className="cuspro-pay-btn"
+                        className={`cuspro-pay-btn ${isPayNowButtonDisabled ? 'disabled' : ''}`}
                         onClick={() => handlePayNowClick(item)}
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || isPayNowButtonDisabled}
+                        title={disabledReason || ''}
                       >
                         <FaMoneyBillWave /> {isSubmitting ? 'Processing...' : 'Pay Now'}
                       </button>
+                    )}
+
+                    {/* Show prerequisite message for disabled buttons */}
+                    {isPayNowButtonDisabled && (item.status === 'pending' || item.status === 'partial') && (
+                      <span className="payment-prerequisite-message">
+                        ⚠️ {disabledReason}
+                      </span>
                     )}
 
                     {/* Verification badge */}
@@ -932,7 +1017,7 @@ const Quotation = () => {
                       </span>
                     )}
 
-                    {/* ✅ RECEIPT BUTTON - For paid transactions */}
+                    {/* RECEIPT BUTTON - For paid transactions */}
                     {item.status === 'paid' && hasReceipt && (
                       <>
                         <button
@@ -951,7 +1036,7 @@ const Quotation = () => {
                     )}
 
                     {/* Paid badge for pre-assessment without receipt yet */}
-                    {item.status === 'paid' && isPreAssessment && !hasReceipt && (
+                    {item.status === 'paid' && isPreAssessment && hasReceipt && (
                       <>
                         {hasQuotation && !alreadyProjectCreated && (
                           <>
@@ -988,7 +1073,7 @@ const Quotation = () => {
                     )}
 
                     {/* Project paid badge */}
-                    {item.status === 'paid' && !isPreAssessment && !hasReceipt && (
+                    {item.status === 'paid' && !isPreAssessment && hasReceipt && (
                       <span className="cuspro-paid-badge">
                         <FaCheckCircle /> Payment Completed
                       </span>

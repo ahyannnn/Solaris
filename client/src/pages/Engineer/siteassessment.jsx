@@ -1,67 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
-import {
-  FaMapMarkerAlt,
-  FaCalendarAlt,
-  FaUser,
-  FaFileAlt,
-  FaUpload,
-  FaCheckCircle,
-  FaClock,
-  FaCamera,
-  FaDownload,
-  FaEye,
-  FaComment,
-  FaPaperPlane,
-  FaClipboardList,
-  FaHardHat,
-  FaChartLine,
-  FaMicrochip,
-  FaImages,
-  FaTrash,
-  FaPlus,
-  FaBuilding,
-  FaPhone,
-  FaEnvelope,
-  FaHome,
-  FaArrowLeft,
-  FaSave,
-  FaFilePdf,
-  FaSpinner,
-  FaExclamationTriangle,
-  FaCheck,
-  FaTimes,
-  FaSearch,
-  FaFilter,
-  FaQuoteRight,
-  FaClipboardCheck,
-  FaDollarSign,
-  FaBoxes,
-  FaTools,
-  FaWifi,
-  FaServer,
-  FaRulerCombined,
-  FaArrowsAltH,
-  FaArrowsAltV,
-  FaSolarPanel,
-  FaChartArea,
-  FaSun,
-  FaThermometerHalf,
-  FaTint,
-  FaChartBar,
-  FaBolt,
-  FaBatteryFull,
-  FaPercent,
-  FaMapMarkerAlt as FaLocation,
-  FaMoneyBillWave,
-  FaLeaf
-} from 'react-icons/fa';
 import '../../styles/Engineer/siteassessment.css';
-import { useToast, ToastNotification } from '../../assets/toastnotification';
 
 const MyAssessments = () => {
-  const { toast, showToast, hideToast } = useToast();
   const [freeQuotes, setFreeQuotes] = useState([]);
   const [preAssessments, setPreAssessments] = useState([]);
   const [allAssessments, setAllAssessments] = useState([]);
@@ -76,8 +18,8 @@ const MyAssessments = () => {
   const [submitting, setSubmitting] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [activeTypeFilter, setActiveTypeFilter] = useState('all');
+  const [activeStatusFilter, setActiveStatusFilter] = useState('all');
   const [deployNotes, setDeployNotes] = useState('');
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [includeIoTData, setIncludeIoTData] = useState(true);
@@ -239,6 +181,10 @@ const MyAssessments = () => {
     const date = new Date();
     date.setDate(date.getDate() + 30);
     return date.toISOString().split('T')[0];
+  };
+
+  const showToast = (message, type) => {
+    alert(message);
   };
 
   // Free Quote Equipment helper functions
@@ -759,35 +705,33 @@ const MyAssessments = () => {
     free_quote: {
       label: 'Free Quote',
       color: 'free-quote-enad',
-      icon: FaQuoteRight,
       statusKey: 'status'
     },
     pre_assessment: {
       label: 'Pre-Assessment',
       color: 'pre-assessment-enad',
-      icon: FaClipboardCheck,
       statusKey: 'assessmentStatus'
     }
   };
 
   const FREE_QUOTE_STATUS = {
-    pending: { label: 'Pending', color: 'pending-enad', icon: FaClock },
-    assigned: { label: 'Assigned', color: 'processing-enad', icon: FaUser },
-    processing: { label: 'Processing', color: 'processing-enad', icon: FaTools },
-    completed: { label: 'Completed', color: 'completed-enad', icon: FaCheckCircle },
-    cancelled: { label: 'Cancelled', color: 'cancelled-enad', icon: FaTimes }
+    pending: { label: 'Pending', color: 'pending-enad' },
+    assigned: { label: 'Assigned', color: 'processing-enad' },
+    processing: { label: 'Processing', color: 'processing-enad' },
+    completed: { label: 'Completed', color: 'completed-enad' },
+    cancelled: { label: 'Cancelled', color: 'cancelled-enad' }
   };
 
   const PRE_ASSESSMENT_STATUS = {
-    pending_payment: { label: 'Pending Payment', color: 'pending-enad', icon: FaDollarSign },
-    scheduled: { label: 'Scheduled', color: 'scheduled-enad', icon: FaClock },
-    site_visit_ongoing: { label: 'Site Visit Ongoing', color: 'site-visit-enad', icon: FaHardHat },
-    device_deployed: { label: 'Device Deployed', color: 'device-deployed-enad', icon: FaMicrochip },
-    data_collecting: { label: 'Collecting Data', color: 'data-collecting-enad', icon: FaChartLine },
-    data_analyzing: { label: 'Analyzing Data', color: 'data-analyzing-enad', icon: FaChartLine },
-    report_draft: { label: 'Report Draft', color: 'report-draft-enad', icon: FaFileAlt },
-    completed: { label: 'Completed', color: 'completed-enad', icon: FaCheckCircle },
-    cancelled: { label: 'Cancelled', color: 'cancelled-enad', icon: FaTimes }
+    pending_payment: { label: 'Pending Payment', color: 'pending-enad' },
+    scheduled: { label: 'Scheduled', color: 'scheduled-enad' },
+    site_visit_ongoing: { label: 'Site Visit Ongoing', color: 'site-visit-enad' },
+    device_deployed: { label: 'Device Deployed', color: 'device-deployed-enad' },
+    data_collecting: { label: 'Collecting Data', color: 'data-collecting-enad' },
+    data_analyzing: { label: 'Analyzing Data', color: 'data-analyzing-enad' },
+    report_draft: { label: 'Report Draft', color: 'report-draft-enad' },
+    completed: { label: 'Completed', color: 'completed-enad' },
+    cancelled: { label: 'Cancelled', color: 'cancelled-enad' }
   };
 
   const ROOF_CONDITIONS = [
@@ -979,7 +923,7 @@ const MyAssessments = () => {
 
       setSelectedItem(formattedQuote);
       setSelectedType('free_quote');
-        const autoExpiryDate = getExpiryDate30Days();
+      const autoExpiryDate = getExpiryDate30Days();
 
       setFreeQuoteForm({
         quotationNumber: formattedQuote.quotationReference || '',
@@ -1593,15 +1537,15 @@ const MyAssessments = () => {
         return name.includes(searchTerm.toLowerCase()) || ref.includes(searchTerm.toLowerCase());
       });
     }
-    if (typeFilter !== 'all') filtered = filtered.filter(item => item.type === typeFilter);
-    if (statusFilter !== 'all') {
+    if (activeTypeFilter !== 'all') filtered = filtered.filter(item => item.type === activeTypeFilter);
+    if (activeStatusFilter !== 'all') {
       filtered = filtered.filter(item => {
         const status = item.type === 'free_quote' ? item.status : item.assessmentStatus;
-        return status === statusFilter;
+        return status === activeStatusFilter;
       });
     }
     setFilteredAssessments(filtered);
-  }, [allAssessments, searchTerm, typeFilter, statusFilter]);
+  }, [allAssessments, searchTerm, activeTypeFilter, activeStatusFilter]);
 
   useEffect(() => {
     const total = (quotationForm.installationCost || 0) + (quotationForm.equipmentCost || 0);
@@ -1672,15 +1616,23 @@ const MyAssessments = () => {
 
   const SkeletonList = () => (
     <div className="my-assessments-enad">
-      <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} position="bottom-left" />
       <div className="assessments-header-enad">
         <div className="skeleton-line-enad large-enad"></div>
         <div className="skeleton-line-enad medium-enad"></div>
       </div>
       <div className="search-filters-enad">
         <div className="skeleton-search-enad"></div>
-        <div className="skeleton-select-enad"></div>
-        <div className="skeleton-select-enad"></div>
+        <div className="filter-tabs-enad">
+          <div className="skeleton-tab-enad"></div>
+          <div className="skeleton-tab-enad"></div>
+          <div className="skeleton-tab-enad"></div>
+        </div>
+        <div className="filter-tabs-enad">
+          <div className="skeleton-tab-enad"></div>
+          <div className="skeleton-tab-enad"></div>
+          <div className="skeleton-tab-enad"></div>
+          <div className="skeleton-tab-enad"></div>
+        </div>
       </div>
       <div className="assessments-grid-enad">
         {[1, 2, 3, 4, 5, 6].map(i => <SkeletonCard key={i} />)}
@@ -1692,48 +1644,90 @@ const MyAssessments = () => {
     return <SkeletonList />;
   }
 
+  // Get unique statuses for filter tabs
+  const getUniqueStatuses = () => {
+    const statuses = new Set();
+    filteredAssessments.forEach(item => {
+      const status = item.type === 'free_quote' ? item.status : item.assessmentStatus;
+      if (status) statuses.add(status);
+    });
+    return Array.from(statuses);
+  };
+
   // Assessment List View
   if (!selectedItem) {
-    const availableStatuses = [...new Set(allAssessments.map(item => {
-      return item.type === 'free_quote' ? item.status : item.assessmentStatus;
-    }))];
-
+    const uniqueStatuses = getUniqueStatuses();
+    
     return (
       <>
         <Helmet><title>My Assessments | Engineer | SOLARIS</title></Helmet>
         <div className="my-assessments-enad">
-          <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} position="bottom-left" />
           <div className="assessments-header-enad">
             <h1>My Assessments</h1>
             <p>Manage free quotes and site assessments assigned to you</p>
           </div>
-          <div className="search-filters-enad">
-            <div className="search-wrapper-enad">
-              <FaSearch className="search-icon-enad" />
-              <input type="text" placeholder="Search by reference or client name..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="search-input-enad" />
-            </div>
-            <div className="filter-wrapper-enad">
-              <FaFilter className="filter-icon-enad" />
-              <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="filter-select-enad">
-                <option value="all">All Types</option>
-                <option value="free_quote">Free Quotes</option>
-                <option value="pre_assessment">Pre-Assessments</option>
-              </select>
-            </div>
-            <div className="filter-wrapper-enad">
-              <FaFilter className="filter-icon-enad" />
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="filter-select-enad">
-                <option value="all">All Status</option>
-                {availableStatuses.map(status => (
-                  <option key={status} value={status}>{status?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
-                ))}
-              </select>
-            </div>
+          
+          {/* Search Bar */}
+          <div className="search-bar-enad">
+            <input 
+              type="text" 
+              placeholder="Search by reference or client name..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+              className="assessment-search-input-enad" 
+            />
           </div>
-          {error && <div className="error-container-enad"><FaExclamationTriangle /><span>{error}</span></div>}
+          
+          {/* Type Filter Tabs */}
+          <div className="filter-tabs-enad">
+            <button 
+              className={`filter-tab-enad ${activeTypeFilter === 'all' ? 'active-enad' : ''}`}
+              onClick={() => setActiveTypeFilter('all')}
+            >
+              All
+            </button>
+            <button 
+              className={`filter-tab-enad ${activeTypeFilter === 'free_quote' ? 'active-enad' : ''}`}
+              onClick={() => setActiveTypeFilter('free_quote')}
+            >
+              Free Quotes
+            </button>
+            <button 
+              className={`filter-tab-enad ${activeTypeFilter === 'pre_assessment' ? 'active-enad' : ''}`}
+              onClick={() => setActiveTypeFilter('pre_assessment')}
+            >
+              Pre-Assessments
+            </button>
+          </div>
+          
+          {/* Status Filter Tabs */}
+          {uniqueStatuses.length > 0 && (
+            <div className="filter-tabs-enad status-tabs-enad">
+              <button 
+                className={`filter-tab-enad ${activeStatusFilter === 'all' ? 'active-enad' : ''}`}
+                onClick={() => setActiveStatusFilter('all')}
+              >
+                All Status
+              </button>
+              {uniqueStatuses.map(status => {
+                const statusConfig = PRE_ASSESSMENT_STATUS[status] || FREE_QUOTE_STATUS[status] || { label: status?.replace(/_/g, ' ') };
+                return (
+                  <button 
+                    key={status}
+                    className={`filter-tab-enad ${activeStatusFilter === status ? 'active-enad' : ''}`}
+                    onClick={() => setActiveStatusFilter(status)}
+                  >
+                    {statusConfig.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          
+          {error && <div className="error-container-enad"><span>{error}</span></div>}
+          
           {filteredAssessments.length === 0 ? (
             <div className="empty-state-enad">
-              <FaClipboardList className="empty-icon-enad" />
               <h3>No assessments found</h3>
               <p>{allAssessments.length === 0 ? "You don't have any assessments assigned yet." : "No assessments match your search criteria."}</p>
             </div>
@@ -1742,34 +1736,32 @@ const MyAssessments = () => {
               {filteredAssessments.map((item) => {
                 const StatusConfig = getStatusConfig(item);
                 const TypeConfig = getTypeConfig(item.type);
-                const StatusIcon = StatusConfig.icon;
-                const TypeIcon = TypeConfig.icon;
                 return (
                   <div key={`${item.type}-${item.id}`} className="assessment-card-enad" onClick={() => handleSelectItem(item)}>
                     <div className="card-content-enad">
                       <div className="card-header-enad">
-                        <div className={`type-badge-enad ${TypeConfig.color}`}><TypeIcon />{TypeConfig.label}</div>
-                        <div className={`status-badge-enad ${StatusConfig.color}`}><StatusIcon />{StatusConfig.label}</div>
+                        <div className={`type-badge-enad ${TypeConfig.color}`}>{TypeConfig.label}</div>
+                        <div className={`status-badge-enad ${StatusConfig.color}`}>{StatusConfig.label}</div>
                       </div>
                       <h3 className="client-name-enad">{item.clientName} {item.clientLastName}</h3>
                       <p className="reference-enad">Ref: {item.bookingReference || item.quotationReference}</p>
                       <div className="card-details-enad">
-                        <div className="detail-item-enad"><FaMapMarkerAlt className="detail-icon-enad" /><span className="truncate">{getFullAddress(item.address)}</span></div>
-                        <div className="detail-item-enad"><FaCalendarAlt className="detail-icon-enad" /><span>Requested: {formatDate(item.preferredDate || item.requestedAt)}</span></div>
-                        <div className="detail-item-enad"><FaHome className="detail-icon-enad" /><span className="capitalize">{item.propertyType || 'N/A'}</span></div>
-                        {item.systemType && <div className="detail-item-enad"><FaSolarPanel className="detail-icon-enad" /><span>System: {getSystemTypeLabel(item.systemType)}</span></div>}
-                        {(item.roofLength || item.roofWidth) && <div className="detail-item-enad"><FaRulerCombined className="detail-icon-enad" /><span>Roof: {item.roofLength || '?'}m x {item.roofWidth || '?'}m</span></div>}
-                        {item.type === 'free_quote' && item.monthlyBill && <div className="detail-item-enad"><FaDollarSign className="detail-icon-enad" /><span>Monthly Bill: {formatCurrency(item.monthlyBill)}</span></div>}
-                        {item.type === 'pre_assessment' && hasDeviceAssigned(item) && <div className="detail-item-enad"><FaMicrochip className="detail-icon-enad" /><span className="badge-small-enad">Device Assigned</span></div>}
-                        {item.type === 'pre_assessment' && item.dataCollectionStart && <div className="detail-item-enad"><FaChartLine className="detail-icon-enad" /><span>Data Collection: {formatDate(item.dataCollectionStart)} - {formatDate(item.dataCollectionEnd) || 'Ongoing'}</span></div>}
+                        <div className="detail-item-enad"><span className="truncate">Address: {getFullAddress(item.address)}</span></div>
+                        <div className="detail-item-enad">Requested: {formatDate(item.preferredDate || item.requestedAt)}</div>
+                        <div className="detail-item-enad">Property: <span className="capitalize">{item.propertyType || 'N/A'}</span></div>
+                        {item.systemType && <div className="detail-item-enad">System: {getSystemTypeLabel(item.systemType)}</div>}
+                        {(item.roofLength || item.roofWidth) && <div className="detail-item-enad">Roof: {item.roofLength || '?'}m x {item.roofWidth || '?'}m</div>}
+                        {item.type === 'free_quote' && item.monthlyBill && <div className="detail-item-enad">Monthly Bill: {formatCurrency(item.monthlyBill)}</div>}
+                        {item.type === 'pre_assessment' && hasDeviceAssigned(item) && <div className="detail-item-enad"><span className="badge-small-enad">Device Assigned</span></div>}
+                        {item.type === 'pre_assessment' && item.dataCollectionStart && <div className="detail-item-enad">Data Collection: {formatDate(item.dataCollectionStart)} - {formatDate(item.dataCollectionEnd) || 'Ongoing'}</div>}
                       </div>
                       <div className="card-footer-enad">
                         <div className="card-badges-enad">
-                          {item.type === 'pre_assessment' && item.sitePhotos?.length > 0 && <span className="badge-small-enad photos-enad"><FaCamera /> {item.sitePhotos.length} Photos</span>}
-                          {item.type === 'pre_assessment' && item.totalReadings > 0 && <span className="badge-small-enad data-enad"><FaChartLine /> {item.totalReadings} Readings</span>}
-                          {item.type === 'free_quote' && item.quotationFile && <span className="badge-small-enad quotation-enad"><FaFilePdf /> Quotation Ready</span>}
+                          {item.type === 'pre_assessment' && item.sitePhotos?.length > 0 && <span className="badge-small-enad photos-enad">{item.sitePhotos.length} Photos</span>}
+                          {item.type === 'pre_assessment' && item.totalReadings > 0 && <span className="badge-small-enad data-enad">{item.totalReadings} Readings</span>}
+                          {item.type === 'free_quote' && item.quotationFile && <span className="badge-small-enad quotation-enad">Quotation Ready</span>}
                         </div>
-                        <button className="view-link-enad">View Details <FaArrowLeft className="rotate-180" /></button>
+                        <button className="view-link-enad">View Details →</button>
                       </div>
                     </div>
                   </div>
@@ -1786,37 +1778,34 @@ const MyAssessments = () => {
   if (selectedType === 'free_quote') {
     const StatusConfig = getStatusConfig(selectedItem);
     const TypeConfig = getTypeConfig('free_quote');
-    const StatusIcon = StatusConfig.icon;
-    const TypeIcon = TypeConfig.icon;
 
     return (
       <>
         <Helmet><title>Free Quote Details | Engineer | SOLARIS</title></Helmet>
         <div className="my-assessments-enad">
-          <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} position="bottom-left" />
           <div className="detail-view-enad">
             <div className="detail-content-enad">
-              <button onClick={handleBackToList} className="back-button-enad"><FaArrowLeft /> Back to Assessments</button>
+              <button onClick={handleBackToList} className="back-button-enad">← Back to Assessments</button>
               <div className="detail-header-enad">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
-                    <span className={`type-badge-enad ${TypeConfig.color}`}><TypeIcon /> {TypeConfig.label}</span>
+                    <span className={`type-badge-enad ${TypeConfig.color}`}>{TypeConfig.label}</span>
                     <h1 className="detail-title-enad">{selectedItem.quotationReference}</h1>
                   </div>
                   <div className="client-meta-enad">
-                    <div className="client-meta-item-enad"><FaUser /> {selectedItem.clientName} {selectedItem.clientLastName}</div>
-                    <div className="client-meta-item-enad"><FaEnvelope /> {selectedItem.clientEmail || 'No email'}</div>
-                    <div className="client-meta-item-enad"><FaPhone /> {selectedItem.clientPhone || 'No contact'}</div>
-                    <div className="client-meta-item-enad"><FaBuilding /> <span className="capitalize">{selectedItem.clientType || 'Residential'}</span></div>
+                    <div className="client-meta-item-enad">{selectedItem.clientName} {selectedItem.clientLastName}</div>
+                    <div className="client-meta-item-enad">{selectedItem.clientEmail || 'No email'}</div>
+                    <div className="client-meta-item-enad">{selectedItem.clientPhone || 'No contact'}</div>
+                    <div className="client-meta-item-enad"><span className="capitalize">{selectedItem.clientType || 'Residential'}</span></div>
                   </div>
                 </div>
-                <div className={`status-badge-enad ${StatusConfig.color}`}><StatusIcon /> {StatusConfig.label}</div>
+                <div className={`status-badge-enad ${StatusConfig.color}`}>{StatusConfig.label}</div>
               </div>
               <div className="info-grid-enad">
                 <div className="info-item-enad"><span className="info-label-enad">Monthly Bill</span><span className="info-value-enad">{formatCurrency(selectedItem.monthlyBill)}</span></div>
                 <div className="info-item-enad"><span className="info-label-enad">Property Type</span><span className="info-value-enad capitalize">{selectedItem.propertyType}</span></div>
                 <div className="info-item-enad"><span className="info-label-enad">Desired Capacity</span><span className="info-value-enad">{selectedItem.desiredCapacity || 'Not specified'}</span></div>
-                {selectedItem.systemType && <div className="info-item-enad"><span className="info-label-enad">Preferred System Type</span><span className="info-value-enad"><FaSolarPanel className="inline-icon" />{getSystemTypeLabel(selectedItem.systemType)}</span></div>}
+                {selectedItem.systemType && <div className="info-item-enad"><span className="info-label-enad">Preferred System Type</span><span className="info-value-enad">{getSystemTypeLabel(selectedItem.systemType)}</span></div>}
                 <div className="info-item-enad"><span className="info-label-enad">Requested Date</span><span className="info-value-enad">{formatDate(selectedItem.requestedAt)}</span></div>
                 <div className="info-item-enad info-full-width-enad"><span className="info-label-enad">Address</span><span className="info-value-enad">{getFullAddress(selectedItem.address)}</span></div>
               </div>
@@ -1827,19 +1816,30 @@ const MyAssessments = () => {
                 <div className="quotation-section">
                   <h4>Basic Information</h4>
                   <div className="form-grid-enad">
-                    <div className="form-group-enad"><label>Quotation Number</label><input type="text" value={freeQuoteForm.quotationNumber} onChange={(e) => handleFreeQuoteFormChange('quotationNumber', e.target.value)} /></div>
                     <div className="form-group-enad">
-                      <label>Expiry Date (30 Days Auto)</label>
+                      <label className="form-label-enad">Quotation Number</label>
+                      <input type="text" className="assessment-form-input-enad" value={freeQuoteForm.quotationNumber} onChange={(e) => handleFreeQuoteFormChange('quotationNumber', e.target.value)} />
+                    </div>
+                    <div className="form-group-enad">
+                      <label className="form-label-enad">Expiry Date (30 Days Auto)</label>
                       <input
                         type="date"
+                        className="assessment-form-input-enad"
                         value={freeQuoteForm.quotationExpiryDate}
                         onChange={(e) => handleFreeQuoteFormChange('quotationExpiryDate', e.target.value)}
-                        style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
                       />
                       <small className="form-hint-enad">Automatically set to 30 days from today</small>
                     </div>
-                    <div className="form-group-enad"><label>System Type</label><select value={freeQuoteForm.systemType} onChange={(e) => handleFreeQuoteFormChange('systemType', e.target.value)}>{SYSTEM_TYPES.map(type => (<option key={type.value} value={type.value}>{type.label}</option>))}</select></div>
-                    <div className="form-group-enad"><label>System Size (kWp) *</label><input type="number" step="0.5" value={freeQuoteForm.systemSize} onChange={(e) => handleFreeQuoteFormChange('systemSize', parseFloat(e.target.value))} placeholder="e.g., 5.0" /></div>
+                    <div className="form-group-enad">
+                      <label className="form-label-enad">System Type</label>
+                      <select className="assessment-form-select-enad" value={freeQuoteForm.systemType} onChange={(e) => handleFreeQuoteFormChange('systemType', e.target.value)}>
+                        {SYSTEM_TYPES.map(type => (<option key={type.value} value={type.value}>{type.label}</option>))}
+                      </select>
+                    </div>
+                    <div className="form-group-enad">
+                      <label className="form-label-enad">System Size (kWp) *</label>
+                      <input type="number" step="0.5" className="assessment-form-input-enad" value={freeQuoteForm.systemSize} onChange={(e) => handleFreeQuoteFormChange('systemSize', parseFloat(e.target.value))} placeholder="e.g., 5.0" />
+                    </div>
                   </div>
                 </div>
 
@@ -1848,15 +1848,17 @@ const MyAssessments = () => {
                   <h4>Solar Panels</h4>
                   <div className="equipment-selection-row">
                     <div className="form-group-enad" style={{ flex: 2 }}>
-                      <select value={freeQuoteSelectedPanel?._id || ''} onChange={(e) => { const panel = availablePanels.find(p => p._id === e.target.value); setFreeQuoteSelectedPanel(panel); if (panel && panel.unit === 'watt') setFreeQuotePanelQuantity(1); }}>
+                      <select className="assessment-form-select-enad" value={freeQuoteSelectedPanel?._id || ''} onChange={(e) => { const panel = availablePanels.find(p => p._id === e.target.value); setFreeQuoteSelectedPanel(panel); if (panel && panel.unit === 'watt') setFreeQuotePanelQuantity(1); }}>
                         <option value="">-- Select Panel --</option>
                         {availablePanels.filter(p => p.isActive).map(panel => (<option key={panel._id} value={panel._id}>{panel.name} - {panel.brand} - ₱{panel.price.toLocaleString()}/{panel.unit}</option>))}
                       </select>
                     </div>
-                    <div className="form-group-enad" style={{ flex: 1 }}><input type="number" min="1" value={freeQuotePanelQuantity} onChange={(e) => setFreeQuotePanelQuantity(parseInt(e.target.value) || 0)} disabled={freeQuoteSelectedPanel?.unit === 'watt'} /></div>
+                    <div className="form-group-enad" style={{ flex: 1 }}>
+                      <input type="number" min="1" className="assessment-form-input-enad" value={freeQuotePanelQuantity} onChange={(e) => setFreeQuotePanelQuantity(parseInt(e.target.value) || 0)} disabled={freeQuoteSelectedPanel?.unit === 'watt'} />
+                    </div>
                     <div className="cost-display"><span>{formatCurrency(freeQuoteCalculatedCosts.panelCost)}</span></div>
                   </div>
-                  {freeQuoteSelectedPanel?.unit === 'watt' && <small className="form-hint">Price is per watt. Total calculated based on system size: {freeQuoteForm.systemSize} kWp</small>}
+                  {freeQuoteSelectedPanel?.unit === 'watt' && <small className="form-hint-enad">Price is per watt. Total calculated based on system size: {freeQuoteForm.systemSize} kWp</small>}
                 </div>
 
                 {/* Inverters */}
@@ -1864,12 +1866,14 @@ const MyAssessments = () => {
                   <h4>Inverters</h4>
                   <div className="equipment-selection-row">
                     <div className="form-group-enad" style={{ flex: 2 }}>
-                      <select value={freeQuoteSelectedInverter?._id || ''} onChange={(e) => { const inverter = availableInverters.find(i => i._id === e.target.value); setFreeQuoteSelectedInverter(inverter); }}>
+                      <select className="assessment-form-select-enad" value={freeQuoteSelectedInverter?._id || ''} onChange={(e) => { const inverter = availableInverters.find(i => i._id === e.target.value); setFreeQuoteSelectedInverter(inverter); }}>
                         <option value="">-- Select Inverter --</option>
                         {availableInverters.filter(i => i.isActive).map(inverter => (<option key={inverter._id} value={inverter._id}>{inverter.name} - {inverter.brand} - ₱{inverter.price.toLocaleString()}</option>))}
                       </select>
                     </div>
-                    <div className="form-group-enad" style={{ flex: 1 }}><input type="number" min="1" value={freeQuoteInverterQuantity} onChange={(e) => setFreeQuoteInverterQuantity(parseInt(e.target.value) || 0)} /></div>
+                    <div className="form-group-enad" style={{ flex: 1 }}>
+                      <input type="number" min="1" className="assessment-form-input-enad" value={freeQuoteInverterQuantity} onChange={(e) => setFreeQuoteInverterQuantity(parseInt(e.target.value) || 0)} />
+                    </div>
                     <div className="cost-display"><span>{formatCurrency(freeQuoteCalculatedCosts.inverterCost)}</span></div>
                   </div>
                 </div>
@@ -1879,12 +1883,14 @@ const MyAssessments = () => {
                   <h4>Batteries (Optional)</h4>
                   <div className="equipment-selection-row">
                     <div className="form-group-enad" style={{ flex: 2 }}>
-                      <select value={freeQuoteSelectedBattery?._id || ''} onChange={(e) => { const battery = availableBatteries.find(b => b._id === e.target.value); setFreeQuoteSelectedBattery(battery); }}>
+                      <select className="assessment-form-select-enad" value={freeQuoteSelectedBattery?._id || ''} onChange={(e) => { const battery = availableBatteries.find(b => b._id === e.target.value); setFreeQuoteSelectedBattery(battery); }}>
                         <option value="">-- No Battery --</option>
                         {availableBatteries.filter(b => b.isActive).map(battery => (<option key={battery._id} value={battery._id}>{battery.name} - {battery.brand} - ₱{battery.price.toLocaleString()}</option>))}
                       </select>
                     </div>
-                    <div className="form-group-enad" style={{ flex: 1 }}><input type="number" min="0" value={freeQuoteBatteryQuantity} onChange={(e) => setFreeQuoteBatteryQuantity(parseInt(e.target.value) || 0)} /></div>
+                    <div className="form-group-enad" style={{ flex: 1 }}>
+                      <input type="number" min="0" className="assessment-form-input-enad" value={freeQuoteBatteryQuantity} onChange={(e) => setFreeQuoteBatteryQuantity(parseInt(e.target.value) || 0)} />
+                    </div>
                     <div className="cost-display"><span>{formatCurrency(freeQuoteCalculatedCosts.batteryCost)}</span></div>
                   </div>
                 </div>
@@ -1894,12 +1900,14 @@ const MyAssessments = () => {
                   <h4>Mounting Structure</h4>
                   <div className="equipment-selection-row">
                     <div className="form-group-enad" style={{ flex: 2 }}>
-                      <select value={freeQuoteSelectedMountingStructure?._id || ''} onChange={(e) => { const structure = availableMountingStructures.find(m => m._id === e.target.value); setFreeQuoteSelectedMountingStructure(structure); }}>
+                      <select className="assessment-form-select-enad" value={freeQuoteSelectedMountingStructure?._id || ''} onChange={(e) => { const structure = availableMountingStructures.find(m => m._id === e.target.value); setFreeQuoteSelectedMountingStructure(structure); }}>
                         <option value="">-- Select Mounting Structure --</option>
                         {availableMountingStructures.filter(m => m.isActive).map(structure => (<option key={structure._id} value={structure._id}>{structure.name} - {structure.brand} - ₱{structure.price.toLocaleString()}/{structure.unit}</option>))}
                       </select>
                     </div>
-                    <div className="form-group-enad" style={{ flex: 1 }}><input type="number" min="1" value={freeQuoteMountingStructureQuantity} onChange={(e) => setFreeQuoteMountingStructureQuantity(parseInt(e.target.value) || 0)} /></div>
+                    <div className="form-group-enad" style={{ flex: 1 }}>
+                      <input type="number" min="1" className="assessment-form-input-enad" value={freeQuoteMountingStructureQuantity} onChange={(e) => setFreeQuoteMountingStructureQuantity(parseInt(e.target.value) || 0)} />
+                    </div>
                     <div className="cost-display"><span>{formatCurrency(freeQuoteCalculatedCosts.mountingCost)}</span></div>
                   </div>
                 </div>
@@ -1907,16 +1915,16 @@ const MyAssessments = () => {
                 {/* Electrical Components */}
                 <div className="quotation-section">
                   <h4>Electrical Components</h4>
-                  <button type="button" className="btn-add-item" onClick={freeQuoteAddElectricalComponent}><FaPlus /> Add Component</button>
+                  <button type="button" className="btn-add-item" onClick={freeQuoteAddElectricalComponent}>+ Add Component</button>
                   {freeQuoteSelectedElectricalComponents.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select value={item.id || ''} onChange={(e) => freeQuoteUpdateElectricalComponent(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateElectricalComponent(index, 'id', e.target.value)} style={{ flex: 2 }}>
                         <option value="">-- Select Component --</option>
                         {availableElectricalComponents.filter(c => c.isActive).map(comp => (<option key={comp._id} value={comp._id}>{comp.name} - ₱{comp.price.toLocaleString()}</option>))}
                       </select>
-                      <input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => freeQuoteUpdateElectricalComponent(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateElectricalComponent(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveElectricalComponent(index)}><FaTrash /></button>
+                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveElectricalComponent(index)}>Remove</button>
                     </div>
                   ))}
                 </div>
@@ -1924,17 +1932,17 @@ const MyAssessments = () => {
                 {/* Cables */}
                 <div className="quotation-section">
                   <h4>Cables and Wiring</h4>
-                  <button type="button" className="btn-add-item" onClick={freeQuoteAddCable}><FaPlus /> Add Cable</button>
+                  <button type="button" className="btn-add-item" onClick={freeQuoteAddCable}>+ Add Cable</button>
                   {freeQuoteSelectedCables.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select value={item.id || ''} onChange={(e) => freeQuoteUpdateCable(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateCable(index, 'id', e.target.value)} style={{ flex: 2 }}>
                         <option value="">-- Select Cable Type --</option>
                         {availableCables.filter(c => c.isActive).map(cable => (<option key={cable._id} value={cable._id}>{cable.name} - ₱{cable.price.toLocaleString()}/{cable.unit}</option>))}
                       </select>
-                      <input type="number" placeholder="Length (m)" value={item.length} onChange={(e) => freeQuoteUpdateCable(index, 'length', parseFloat(e.target.value) || 0)} style={{ width: '100px' }} />
-                      <input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => freeQuoteUpdateCable(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Length (m)" className="assessment-form-input-enad" value={item.length} onChange={(e) => freeQuoteUpdateCable(index, 'length', parseFloat(e.target.value) || 0)} style={{ width: '100px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateCable(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveCable(index)}><FaTrash /></button>
+                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveCable(index)}>Remove</button>
                     </div>
                   ))}
                 </div>
@@ -1942,16 +1950,16 @@ const MyAssessments = () => {
                 {/* Junction Boxes */}
                 <div className="quotation-section">
                   <h4>Junction Boxes</h4>
-                  <button type="button" className="btn-add-item" onClick={freeQuoteAddJunctionBox}><FaPlus /> Add Junction Box</button>
+                  <button type="button" className="btn-add-item" onClick={freeQuoteAddJunctionBox}>+ Add Junction Box</button>
                   {freeQuoteSelectedJunctionBoxes.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select value={item.id || ''} onChange={(e) => freeQuoteUpdateJunctionBox(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateJunctionBox(index, 'id', e.target.value)} style={{ flex: 2 }}>
                         <option value="">-- Select Junction Box --</option>
                         {availableJunctionBoxes.filter(j => j.isActive).map(box => (<option key={box._id} value={box._id}>{box.name} - ₱{box.price.toLocaleString()}</option>))}
                       </select>
-                      <input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => freeQuoteUpdateJunctionBox(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateJunctionBox(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveJunctionBox(index)}><FaTrash /></button>
+                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveJunctionBox(index)}>Remove</button>
                     </div>
                   ))}
                 </div>
@@ -1959,16 +1967,16 @@ const MyAssessments = () => {
                 {/* Disconnect Switches */}
                 <div className="quotation-section">
                   <h4>Disconnect Switches</h4>
-                  <button type="button" className="btn-add-item" onClick={freeQuoteAddDisconnectSwitch}><FaPlus /> Add Switch</button>
+                  <button type="button" className="btn-add-item" onClick={freeQuoteAddDisconnectSwitch}>+ Add Switch</button>
                   {freeQuoteSelectedDisconnectSwitches.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select value={item.id || ''} onChange={(e) => freeQuoteUpdateDisconnectSwitch(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateDisconnectSwitch(index, 'id', e.target.value)} style={{ flex: 2 }}>
                         <option value="">-- Select Switch --</option>
                         {availableDisconnectSwitches.filter(s => s.isActive).map(sw => (<option key={sw._id} value={sw._id}>{sw.name} - ₱{sw.price.toLocaleString()}</option>))}
                       </select>
-                      <input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => freeQuoteUpdateDisconnectSwitch(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateDisconnectSwitch(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveDisconnectSwitch(index)}><FaTrash /></button>
+                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveDisconnectSwitch(index)}>Remove</button>
                     </div>
                   ))}
                 </div>
@@ -1976,16 +1984,16 @@ const MyAssessments = () => {
                 {/* Meters */}
                 <div className="quotation-section">
                   <h4>Meters</h4>
-                  <button type="button" className="btn-add-item" onClick={freeQuoteAddMeter}><FaPlus /> Add Meter</button>
+                  <button type="button" className="btn-add-item" onClick={freeQuoteAddMeter}>+ Add Meter</button>
                   {freeQuoteSelectedMeters.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select value={item.id || ''} onChange={(e) => freeQuoteUpdateMeter(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateMeter(index, 'id', e.target.value)} style={{ flex: 2 }}>
                         <option value="">-- Select Meter --</option>
                         {availableMeters.filter(m => m.isActive).map(meter => (<option key={meter._id} value={meter._id}>{meter.name} - ₱{meter.price.toLocaleString()}</option>))}
                       </select>
-                      <input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => freeQuoteUpdateMeter(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateMeter(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveMeter(index)}><FaTrash /></button>
+                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveMeter(index)}>Remove</button>
                     </div>
                   ))}
                 </div>
@@ -1993,14 +2001,14 @@ const MyAssessments = () => {
                 {/* Additional Equipment */}
                 <div className="quotation-section">
                   <h4>Additional Equipment</h4>
-                  <button type="button" className="btn-add-item" onClick={freeQuoteAddAdditionalEquipment}><FaPlus /> Add Custom Item</button>
+                  <button type="button" className="btn-add-item" onClick={freeQuoteAddAdditionalEquipment}>+ Add Custom Item</button>
                   {freeQuoteAdditionalEquipment.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <input type="text" placeholder="Item name" value={item.name} onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'name', e.target.value)} style={{ flex: 2 }} />
-                      <input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
-                      <input type="number" placeholder="Price" value={item.price} onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'price', parseFloat(e.target.value) || 0)} style={{ width: '120px' }} />
+                      <input type="text" placeholder="Item name" className="assessment-form-input-enad" value={item.name} onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'name', e.target.value)} style={{ flex: 2 }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Price" className="assessment-form-input-enad" value={item.price} onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'price', parseFloat(e.target.value) || 0)} style={{ width: '120px' }} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveAdditionalEquipment(index)}><FaTrash /></button>
+                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveAdditionalEquipment(index)}>Remove</button>
                     </div>
                   ))}
                 </div>
@@ -2043,12 +2051,18 @@ const MyAssessments = () => {
                 </div>
 
                 {/* Payment Terms & Remarks */}
-                <div className="form-group-enad"><label>Payment Terms</label><textarea value={freeQuoteForm.paymentTerms} onChange={(e) => handleFreeQuoteFormChange('paymentTerms', e.target.value)} rows={2} placeholder="e.g., 30% down payment, 70% upon completion" /></div>
-                <div className="form-group-enad"><label>Remarks</label><textarea value={freeQuoteForm.remarks} onChange={(e) => handleFreeQuoteFormChange('remarks', e.target.value)} rows={2} placeholder="Additional notes or special instructions" /></div>
+                <div className="form-group-enad">
+                  <label className="form-label-enad">Payment Terms</label>
+                  <textarea className="assessment-form-textarea-enad" value={freeQuoteForm.paymentTerms} onChange={(e) => handleFreeQuoteFormChange('paymentTerms', e.target.value)} rows={2} placeholder="e.g., 30% down payment, 70% upon completion" />
+                </div>
+                <div className="form-group-enad">
+                  <label className="form-label-enad">Remarks</label>
+                  <textarea className="assessment-form-textarea-enad" value={freeQuoteForm.remarks} onChange={(e) => handleFreeQuoteFormChange('remarks', e.target.value)} rows={2} placeholder="Additional notes or special instructions" />
+                </div>
 
                 <div className="action-buttons-enad" style={{ marginTop: '20px' }}>
                   <button onClick={generateQuotationPDF} disabled={generatingPDF || !freeQuoteForm.systemSize || freeQuoteCalculatedCosts.totalSystemCost === 0} className="btn-primary-enad">
-                    {generatingPDF ? <FaSpinner className="spinner-enad" /> : <FaFilePdf />} Generate and Upload PDF
+                    {generatingPDF ? 'Generating...' : 'Generate and Upload PDF'}
                   </button>
                 </div>
               </div>
@@ -2062,8 +2076,6 @@ const MyAssessments = () => {
   // Detail View for Pre-Assessment
   const StatusConfig = getStatusConfig(selectedItem);
   const TypeConfig = getTypeConfig('pre_assessment');
-  const StatusIcon = StatusConfig.icon;
-  const TypeIcon = TypeConfig.icon;
   const deviceAssigned = hasDeviceAssigned(selectedItem);
   const hasDataCollection = selectedItem.dataCollectionStart && selectedItem.dataCollectionEnd;
   const canAnalyze = selectedItem.dataCollectionEnd && !iotAnalysis;
@@ -2072,24 +2084,23 @@ const MyAssessments = () => {
     <>
       <Helmet><title>Pre-Assessment Details | Engineer | SOLARIS</title></Helmet>
       <div className="my-assessments-enad">
-        <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} position="bottom-left" />
         <div className="detail-view-enad">
           <div className="detail-content-enad">
-            <button onClick={handleBackToList} className="back-button-enad"><FaArrowLeft /> Back to Assessments</button>
+            <button onClick={handleBackToList} className="back-button-enad">← Back to Assessments</button>
             <div className="detail-header-enad">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <span className={`type-badge-enad ${TypeConfig.color}`}><TypeIcon /> {TypeConfig.label}</span>
+                  <span className={`type-badge-enad ${TypeConfig.color}`}>{TypeConfig.label}</span>
                   <h1 className="detail-title-enad">{selectedItem.bookingReference}</h1>
                 </div>
                 <div className="client-meta-enad">
-                  <div className="client-meta-item-enad"><FaUser /> {selectedItem.clientName} {selectedItem.clientLastName}</div>
-                  <div className="client-meta-item-enad"><FaEnvelope /> {selectedItem.clientEmail || 'No email'}</div>
-                  <div className="client-meta-item-enad"><FaPhone /> {selectedItem.clientPhone || 'No contact'}</div>
-                  <div className="client-meta-item-enad"><FaBuilding /> <span className="capitalize">{selectedItem.clientType || 'Residential'}</span></div>
+                  <div className="client-meta-item-enad">{selectedItem.clientName} {selectedItem.clientLastName}</div>
+                  <div className="client-meta-item-enad">{selectedItem.clientEmail || 'No email'}</div>
+                  <div className="client-meta-item-enad">{selectedItem.clientPhone || 'No contact'}</div>
+                  <div className="client-meta-item-enad"><span className="capitalize">{selectedItem.clientType || 'Residential'}</span></div>
                 </div>
               </div>
-              <div className={`status-badge-enad ${StatusConfig.color}`}><StatusIcon /> {StatusConfig.label}</div>
+              <div className={`status-badge-enad ${StatusConfig.color}`}>{StatusConfig.label}</div>
             </div>
 
             <div className="tabs-enad">
@@ -2106,9 +2117,9 @@ const MyAssessments = () => {
                 <div className="info-grid-enad">
                   <div className="info-item-enad"><span className="info-label-enad">Address</span><span className="info-value-enad">{getFullAddress(selectedItem.address)}</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Property Type</span><span className="info-value-enad capitalize">{selectedItem.propertyType}</span></div>
-                  {selectedItem.systemType && <div className="info-item-enad"><span className="info-label-enad">Preferred System Type</span><span className="info-value-enad"><FaSolarPanel className="inline-icon" />{getSystemTypeLabel(selectedItem.systemType)}</span></div>}
+                  {selectedItem.systemType && <div className="info-item-enad"><span className="info-label-enad">Preferred System Type</span><span className="info-value-enad">{getSystemTypeLabel(selectedItem.systemType)}</span></div>}
                   <div className="info-item-enad"><span className="info-label-enad">Roof Type</span><span className="info-value-enad capitalize">{selectedItem.roofType || 'Not specified'}</span></div>
-                  {(selectedItem.roofLength || selectedItem.roofWidth) && <div className="info-item-enad"><span className="info-label-enad">Roof Dimensions (from client)</span><span className="info-value-enad"><FaRulerCombined className="inline-icon" />{selectedItem.roofLength ? `${selectedItem.roofLength}m` : '?'} x {selectedItem.roofWidth ? `${selectedItem.roofWidth}m` : '?'}</span></div>}
+                  {(selectedItem.roofLength || selectedItem.roofWidth) && <div className="info-item-enad"><span className="info-label-enad">Roof Dimensions (from client)</span><span className="info-value-enad">{selectedItem.roofLength ? `${selectedItem.roofLength}m` : '?'} x {selectedItem.roofWidth ? `${selectedItem.roofWidth}m` : '?'}</span></div>}
                   <div className="info-item-enad"><span className="info-label-enad">Desired Capacity</span><span className="info-value-enad">{selectedItem.desiredCapacity || 'Not specified'}</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Booked Date</span><span className="info-value-enad">{formatDate(selectedItem.bookedAt)}</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Preferred Date</span><span className="info-value-enad">{formatDate(selectedItem.preferredDate)}</span></div>
@@ -2123,21 +2134,45 @@ const MyAssessments = () => {
 
                 {hasDataCollection && (
                   <div className="detail-section-enad">
-                    <div className="section-header-enad"><h3 className="detail-section-title-enad">IoT Data Analysis (7-Day Monitoring)</h3>{canAnalyze && <button onClick={analyzeIoTData} disabled={analyzingData} className="btn-secondary-enad" style={{ padding: '5px 12px', fontSize: '12px' }}>{analyzingData ? <FaSpinner className="spinner-enad" /> : <FaChartArea />} Analyze Data</button>}</div>
+                    <div className="section-header-enad"><h3 className="detail-section-title-enad">IoT Data Analysis (7-Day Monitoring)</h3>{canAnalyze && <button onClick={analyzeIoTData} disabled={analyzingData} className="btn-secondary-enad" style={{ padding: '5px 12px', fontSize: '12px' }}>{analyzingData ? 'Analyzing...' : 'Analyze Data'}</button>}</div>
                     {iotAnalysis ? (
                       <div className="iot-analysis-grid-enad">
-                        <div className="analysis-card-enad irradiance-enad"><FaSun className="analysis-icon-enad" /><div className="analysis-stats-enad"><div className="stat-enad"><span className="stat-label-enad">Avg Irradiance</span><span className="stat-value-enad">{iotAnalysis.averageIrradiance?.toFixed(0) || 0} W/m²</span></div><div className="stat-enad"><span className="stat-label-enad">Peak Irradiance</span><span className="stat-value-enad">{iotAnalysis.maxIrradiance?.toFixed(0) || 0} W/m²</span></div><div className="stat-enad"><span className="stat-label-enad">Peak Sun Hours</span><span className="stat-value-enad">{iotAnalysis.peakSunHours?.toFixed(1) || 0} hrs/day</span></div></div></div>
-                        <div className="analysis-card-enad temperature-enad"><FaThermometerHalf className="analysis-icon-enad" /><div className="analysis-stats-enad"><div className="stat-enad"><span className="stat-label-enad">Avg Temperature</span><span className="stat-value-enad">{iotAnalysis.averageTemperature?.toFixed(1) || 0}C</span></div><div className="stat-enad"><span className="stat-label-enad">Temperature Range</span><span className="stat-value-enad">{iotAnalysis.minTemperature?.toFixed(1) || 0}C - {iotAnalysis.maxTemperature?.toFixed(1) || 0}C</span></div><div className="stat-enad"><span className="stat-label-enad">Efficiency Loss</span><span className="stat-value-enad">{iotAnalysis.efficiencyLoss || 0}%</span></div></div></div>
-                        <div className="analysis-card-enad humidity-enad"><FaTint className="analysis-icon-enad" /><div className="analysis-stats-enad"><div className="stat-enad"><span className="stat-label-enad">Avg Humidity</span><span className="stat-value-enad">{iotAnalysis.averageHumidity?.toFixed(0) || 0}%</span></div><div className="stat-enad"><span className="stat-label-enad">Humidity Range</span><span className="stat-value-enad">{iotAnalysis.minHumidity?.toFixed(0) || 0}% - {iotAnalysis.maxHumidity?.toFixed(0) || 0}%</span></div></div></div>
-                        <div className="analysis-card-enad recommendations-enad"><FaChartBar className="analysis-icon-enad" /><div className="analysis-stats-enad"><div className="stat-enad"><span className="stat-label-enad">Recommended System Size</span><span className="stat-value-enad">{iotAnalysis.recommendedSystemSize || 0} kWp</span></div><div className="stat-enad"><span className="stat-label-enad">Optimal Orientation</span><span className="stat-value-enad">{iotAnalysis.recommendedOrientation || 'South-facing'}</span></div><div className="stat-enad"><span className="stat-label-enad">Recommended Tilt Angle</span><span className="stat-value-enad">{iotAnalysis.recommendedTiltAngle || 15}°</span></div><div className="stat-enad"><span className="stat-label-enad">Shading Detection</span><span className="stat-value-enad">{iotAnalysis.shadingPercentage ? `${iotAnalysis.shadingPercentage}% shading` : 'Minimal'}</span></div></div></div>
+                        <div className="analysis-card-enad irradiance-enad">
+                          <div className="analysis-stats-enad">
+                            <div className="stat-enad"><span className="stat-label-enad">Avg Irradiance</span><span className="stat-value-enad">{iotAnalysis.averageIrradiance?.toFixed(0) || 0} W/m²</span></div>
+                            <div className="stat-enad"><span className="stat-label-enad">Peak Irradiance</span><span className="stat-value-enad">{iotAnalysis.maxIrradiance?.toFixed(0) || 0} W/m²</span></div>
+                            <div className="stat-enad"><span className="stat-label-enad">Peak Sun Hours</span><span className="stat-value-enad">{iotAnalysis.peakSunHours?.toFixed(1) || 0} hrs/day</span></div>
+                          </div>
+                        </div>
+                        <div className="analysis-card-enad temperature-enad">
+                          <div className="analysis-stats-enad">
+                            <div className="stat-enad"><span className="stat-label-enad">Avg Temperature</span><span className="stat-value-enad">{iotAnalysis.averageTemperature?.toFixed(1) || 0}C</span></div>
+                            <div className="stat-enad"><span className="stat-label-enad">Temperature Range</span><span className="stat-value-enad">{iotAnalysis.minTemperature?.toFixed(1) || 0}C - {iotAnalysis.maxTemperature?.toFixed(1) || 0}C</span></div>
+                            <div className="stat-enad"><span className="stat-label-enad">Efficiency Loss</span><span className="stat-value-enad">{iotAnalysis.efficiencyLoss || 0}%</span></div>
+                          </div>
+                        </div>
+                        <div className="analysis-card-enad humidity-enad">
+                          <div className="analysis-stats-enad">
+                            <div className="stat-enad"><span className="stat-label-enad">Avg Humidity</span><span className="stat-value-enad">{iotAnalysis.averageHumidity?.toFixed(0) || 0}%</span></div>
+                            <div className="stat-enad"><span className="stat-label-enad">Humidity Range</span><span className="stat-value-enad">{iotAnalysis.minHumidity?.toFixed(0) || 0}% - {iotAnalysis.maxHumidity?.toFixed(0) || 0}%</span></div>
+                          </div>
+                        </div>
+                        <div className="analysis-card-enad recommendations-enad">
+                          <div className="analysis-stats-enad">
+                            <div className="stat-enad"><span className="stat-label-enad">Recommended System Size</span><span className="stat-value-enad">{iotAnalysis.recommendedSystemSize || 0} kWp</span></div>
+                            <div className="stat-enad"><span className="stat-label-enad">Optimal Orientation</span><span className="stat-value-enad">{iotAnalysis.recommendedOrientation || 'South-facing'}</span></div>
+                            <div className="stat-enad"><span className="stat-label-enad">Recommended Tilt Angle</span><span className="stat-value-enad">{iotAnalysis.recommendedTiltAngle || 15}°</span></div>
+                            <div className="stat-enad"><span className="stat-label-enad">Shading Detection</span><span className="stat-value-enad">{iotAnalysis.shadingPercentage ? `${iotAnalysis.shadingPercentage}% shading` : 'Minimal'}</span></div>
+                          </div>
+                        </div>
                       </div>
                     ) : (<div className="no-data-enad"><p>Click "Analyze Data" to process the 7-day IoT monitoring data and get system recommendations.</p></div>)}
                   </div>
                 )}
 
                 {deviceAssigned ? (
-                  <div className="device-card-enad"><div className="device-card-title-enad"><FaMicrochip /> Assigned Device</div><div className="device-info-enad"><div className="device-info-item-enad"><span className="device-info-label-enad">Device ID</span><span className="device-info-value-enad">{selectedItem.iotDeviceId?.deviceId || selectedItem.assignedDevice?.deviceId || selectedItem.assignedDeviceId || 'N/A'}</span></div><div className="device-info-item-enad"><span className="device-info-label-enad">Device Name</span><span className="device-info-value-enad">{selectedItem.iotDeviceId?.deviceName || selectedItem.assignedDevice?.deviceName || 'IoT Device'}</span></div><div className="device-info-item-enad"><span className="device-info-label-enad">Status</span><span className={`device-info-value-enad ${selectedItem.deviceDeployedAt ? 'text-green-600' : 'text-yellow-600'}`}>{selectedItem.deviceDeployedAt ? 'Deployed' : 'Ready for Deployment'}</span></div>{selectedItem.deviceDeployedAt && (<div className="device-info-item-enad"><span className="device-info-label-enad">Deployed At</span><span className="device-info-value-enad">{formatDateTime(selectedItem.deviceDeployedAt)}</span></div>)}</div></div>
-                ) : (<div className="no-device-card-enad"><FaExclamationTriangle /> No device assigned yet. Please contact admin.</div>)}
+                  <div className="device-card-enad"><div className="device-card-title-enad">Assigned Device</div><div className="device-info-enad"><div className="device-info-item-enad"><span className="device-info-label-enad">Device ID</span><span className="device-info-value-enad">{selectedItem.iotDeviceId?.deviceId || selectedItem.assignedDevice?.deviceId || selectedItem.assignedDeviceId || 'N/A'}</span></div><div className="device-info-item-enad"><span className="device-info-label-enad">Device Name</span><span className="device-info-value-enad">{selectedItem.iotDeviceId?.deviceName || selectedItem.assignedDevice?.deviceName || 'IoT Device'}</span></div><div className="device-info-item-enad"><span className="device-info-label-enad">Status</span><span className={`device-info-value-enad ${selectedItem.deviceDeployedAt ? 'text-green-600' : 'text-yellow-600'}`}>{selectedItem.deviceDeployedAt ? 'Deployed' : 'Ready for Deployment'}</span></div>{selectedItem.deviceDeployedAt && (<div className="device-info-item-enad"><span className="device-info-label-enad">Deployed At</span><span className="device-info-value-enad">{formatDateTime(selectedItem.deviceDeployedAt)}</span></div>)}</div></div>
+                ) : (<div className="no-device-card-enad">No device assigned yet. Please contact admin.</div>)}
               </div>
             )}
 
@@ -2145,17 +2180,60 @@ const MyAssessments = () => {
             {activeTab === 'site-inspection' && (
               <div>
                 <div className="action-buttons-enad">
-                  <button onClick={saveSiteAssessment} disabled={submitting} className="btn-secondary-enad">{submitting ? <FaSpinner className="spinner-enad" /> : <FaSave />} Save Draft</button>
-                  {selectedItem.assessmentStatus !== 'device_deployed' && selectedItem.assessmentStatus !== 'data_collecting' && deviceAssigned && (<button onClick={openDeployConfirmModal} disabled={submitting || !deployNotes || deployNotes.trim() === ''} className="btn-success-enad" style={{ opacity: (!deployNotes || deployNotes.trim() === '') ? 0.5 : 1 }}>{submitting ? <FaSpinner className="spinner-enad" /> : <FaMicrochip />} Deploy Device (Start 7-day Monitoring)</button>)}
+                  <button onClick={saveSiteAssessment} disabled={submitting} className="btn-secondary-enad">{submitting ? 'Saving...' : 'Save Draft'}</button>
+                  {selectedItem.assessmentStatus !== 'device_deployed' && selectedItem.assessmentStatus !== 'data_collecting' && deviceAssigned && (<button onClick={openDeployConfirmModal} disabled={submitting || !deployNotes || deployNotes.trim() === ''} className="btn-success-enad" style={{ opacity: (!deployNotes || deployNotes.trim() === '') ? 0.5 : 1 }}>{submitting ? 'Deploying...' : 'Deploy Device (Start 7-day Monitoring)'}</button>)}
                 </div>
-                <div className="form-group-enad"><label className="form-label-enad">Roof Condition</label><div className="options-group-enad">{ROOF_CONDITIONS.map(condition => (<button key={condition.value} type="button" onClick={() => handleAssessmentFormChange('roofCondition', condition.value)} className={`option-btn-enad ${assessmentForm.roofCondition === condition.value ? 'active-enad' : ''}`}>{condition.label}</button>))}</div></div>
-                <div className="form-group-enad"><label className="form-label-enad"><FaRulerCombined className="inline-icon" /> Roof Dimensions (meters) <span style={{ color: '#C62828' }}>*</span></label><div className="form-row-enad"><div className="dimension-input-enad"><FaArrowsAltH className="dimension-icon-small-enad" /><input type="number" step="0.1" value={assessmentForm.roofLength || ''} onChange={(e) => handleAssessmentFormChange('roofLength', parseFloat(e.target.value))} className="form-input-enad" placeholder="Length (m)" required /></div><div className="dimension-input-enad"><FaArrowsAltV className="dimension-icon-small-enad" /><input type="number" step="0.1" value={assessmentForm.roofWidth || ''} onChange={(e) => handleAssessmentFormChange('roofWidth', parseFloat(e.target.value))} className="form-input-enad" placeholder="Width (m)" required /></div></div><small className="form-hint-enad">Measured during site inspection (Required)</small></div>
-                <div className="form-group-enad"><label className="form-label-enad">Structural Integrity</label><div className="options-group-enad">{STRUCTURAL_INTEGRITY.map(integrity => (<button key={integrity.value} type="button" onClick={() => handleAssessmentFormChange('structuralIntegrity', integrity.value)} className={`option-btn-enad ${assessmentForm.structuralIntegrity === integrity.value ? 'active-enad' : ''}`}>{integrity.label}</button>))}</div></div>
-                <div className="form-group-enad"><label className="form-label-enad">Estimated Installation Time (days)</label><input type="number" value={assessmentForm.estimatedInstallationTime} onChange={(e) => handleAssessmentFormChange('estimatedInstallationTime', e.target.value)} className="form-input-enad" style={{ width: '150px' }} required /></div>
-                {deviceAssigned && (<div className="form-group-enad"><label className="form-label-enad">Deployment Notes <span style={{ color: '#C62828' }}>*</span></label><textarea value={deployNotes} onChange={(e) => setDeployNotes(e.target.value)} rows={3} className="form-textarea-enad" placeholder="Enter deployment notes, device placement location, etc... (Required)" required />{!deployNotes && (<small className="form-hint-enad" style={{ color: '#C62828' }}>Deployment notes are required before deploying the device</small>)}</div>)}
-                <div className="form-group-enad"><label className="form-label-enad">Site Visit Notes</label><textarea value={assessmentForm.siteVisitNotes} onChange={(e) => handleAssessmentFormChange('siteVisitNotes', e.target.value)} rows={4} className="form-textarea-enad" placeholder="Additional notes, observations, recommendations..." required /></div>
-                <div className="form-group-enad"><label className="form-label-enad">Engineer Recommendations</label><textarea value={assessmentForm.recommendations} onChange={(e) => handleAssessmentFormChange('recommendations', e.target.value)} rows={3} className="form-textarea-enad" placeholder="Summary of recommendations for the client..." required /></div>
-                <div className="form-group-enad"><label className="form-label-enad">Technical Findings</label><textarea value={assessmentForm.technicalFindings} onChange={(e) => handleAssessmentFormChange('technicalFindings', e.target.value)} rows={3} className="form-textarea-enad" placeholder="Technical observations, electrical assessment, structural findings..." required /></div>
+                <div className="form-group-enad">
+                  <label className="form-label-enad">Roof Condition</label>
+                  <div className="options-group-enad">
+                    {ROOF_CONDITIONS.map(condition => (
+                      <button key={condition.value} type="button" onClick={() => handleAssessmentFormChange('roofCondition', condition.value)} className={`option-btn-enad ${assessmentForm.roofCondition === condition.value ? 'active-enad' : ''}`}>{condition.label}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="form-group-enad">
+                  <label className="form-label-enad">Roof Dimensions (meters) *</label>
+                  <div className="form-row-enad">
+                    <div className="dimension-input-enad">
+                      <input type="number" step="0.1" className="assessment-form-input-enad" value={assessmentForm.roofLength || ''} onChange={(e) => handleAssessmentFormChange('roofLength', parseFloat(e.target.value))} placeholder="Length (m)" required />
+                    </div>
+                    <div className="dimension-input-enad">
+                      <input type="number" step="0.1" className="assessment-form-input-enad" value={assessmentForm.roofWidth || ''} onChange={(e) => handleAssessmentFormChange('roofWidth', parseFloat(e.target.value))} placeholder="Width (m)" required />
+                    </div>
+                  </div>
+                  <small className="form-hint-enad">Measured during site inspection (Required)</small>
+                </div>
+                <div className="form-group-enad">
+                  <label className="form-label-enad">Structural Integrity</label>
+                  <div className="options-group-enad">
+                    {STRUCTURAL_INTEGRITY.map(integrity => (
+                      <button key={integrity.value} type="button" onClick={() => handleAssessmentFormChange('structuralIntegrity', integrity.value)} className={`option-btn-enad ${assessmentForm.structuralIntegrity === integrity.value ? 'active-enad' : ''}`}>{integrity.label}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="form-group-enad">
+                  <label className="form-label-enad">Estimated Installation Time (days)</label>
+                  <input type="number" className="assessment-form-input-enad" value={assessmentForm.estimatedInstallationTime} onChange={(e) => handleAssessmentFormChange('estimatedInstallationTime', e.target.value)} style={{ width: '150px' }} required />
+                </div>
+                {deviceAssigned && (
+                  <div className="form-group-enad">
+                    <label className="form-label-enad">Deployment Notes *</label>
+                    <textarea className="assessment-form-textarea-enad" value={deployNotes} onChange={(e) => setDeployNotes(e.target.value)} rows={3} placeholder="Enter deployment notes, device placement location, etc... (Required)" required />
+                    {!deployNotes && (<small className="form-hint-enad" style={{ color: '#C62828' }}>Deployment notes are required before deploying the device</small>)}
+                  </div>
+                )}
+                <div className="form-group-enad">
+                  <label className="form-label-enad">Site Visit Notes</label>
+                  <textarea className="assessment-form-textarea-enad" value={assessmentForm.siteVisitNotes} onChange={(e) => handleAssessmentFormChange('siteVisitNotes', e.target.value)} rows={4} placeholder="Additional notes, observations, recommendations..." required />
+                </div>
+                <div className="form-group-enad">
+                  <label className="form-label-enad">Engineer Recommendations</label>
+                  <textarea className="assessment-form-textarea-enad" value={assessmentForm.recommendations} onChange={(e) => handleAssessmentFormChange('recommendations', e.target.value)} rows={3} placeholder="Summary of recommendations for the client..." required />
+                </div>
+                <div className="form-group-enad">
+                  <label className="form-label-enad">Technical Findings</label>
+                  <textarea className="assessment-form-textarea-enad" value={assessmentForm.technicalFindings} onChange={(e) => handleAssessmentFormChange('technicalFindings', e.target.value)} rows={3} placeholder="Technical observations, electrical assessment, structural findings..." required />
+                </div>
               </div>
             )}
 
@@ -2164,7 +2242,7 @@ const MyAssessments = () => {
                 <div className="action-buttons-enad">
                   {selectedItem.assessmentStatus !== 'completed' && (
                     <button onClick={openReportConfirmModal} disabled={submitting} className="btn-success-enad">
-                      {submitting ? <FaSpinner className="spinner-enad" /> : <FaCheckCircle />} Submit Final Report
+                      {submitting ? 'Submitting...' : 'Submit Final Report'}
                     </button>
                   )}
                 </div>
@@ -2183,12 +2261,12 @@ const MyAssessments = () => {
                   <div className="iot-metrics-section">
                     <h4>IoT Monitoring Results (7-Day Data)</h4>
                     <div className="iot-metrics-grid">
-                      <div className="metric-item"><FaSun /><div><label>Peak Sun Hours</label><span>{assessmentResults.peakSunHours?.toFixed(1) || '—'} hrs/day</span></div></div>
-                      <div className="metric-item"><FaPercent /><div><label>Shading Percentage</label><span>{assessmentResults.shadingPercentage?.toFixed(0) || '—'}%</span></div></div>
-                      <div className="metric-item"><FaThermometerHalf /><div><label>Avg Temperature</label><span>{assessmentResults.averageTemperature?.toFixed(1) || '—'}C</span></div></div>
-                      <div className="metric-item"><FaTint /><div><label>Avg Humidity</label><span>{assessmentResults.averageHumidity?.toFixed(0) || '—'}%</span></div></div>
-                      <div className="metric-item"><FaChartLine /><div><label>Temp Derating</label><span>{systemMetrics?.temperatureDerating || '—'}%</span></div></div>
-                      <div className="metric-item"><FaLocation /><div><label>GPS Location</label><span>{assessmentResults.gpsCoordinates?.latitude && assessmentResults.gpsCoordinates?.longitude ? `${assessmentResults.gpsCoordinates.latitude.toFixed(4)}, ${assessmentResults.gpsCoordinates.longitude.toFixed(4)}` : 'Not available'}</span></div></div>
+                      <div className="metric-item"><div><label>Peak Sun Hours</label><span>{assessmentResults.peakSunHours?.toFixed(1) || '—'} hrs/day</span></div></div>
+                      <div className="metric-item"><div><label>Shading Percentage</label><span>{assessmentResults.shadingPercentage?.toFixed(0) || '—'}%</span></div></div>
+                      <div className="metric-item"><div><label>Avg Temperature</label><span>{assessmentResults.averageTemperature?.toFixed(1) || '—'}C</span></div></div>
+                      <div className="metric-item"><div><label>Avg Humidity</label><span>{assessmentResults.averageHumidity?.toFixed(0) || '—'}%</span></div></div>
+                      <div className="metric-item"><div><label>Temp Derating</label><span>{systemMetrics?.temperatureDerating || '—'}%</span></div></div>
+                      <div className="metric-item"><div><label>GPS Location</label><span>{assessmentResults.gpsCoordinates?.latitude && assessmentResults.gpsCoordinates?.longitude ? `${assessmentResults.gpsCoordinates.latitude.toFixed(4)}, ${assessmentResults.gpsCoordinates.longitude.toFixed(4)}` : 'Not available'}</span></div></div>
                     </div>
                   </div>
                 )}
@@ -2225,10 +2303,24 @@ const MyAssessments = () => {
                 <div className="quotation-section">
                   <h4>Basic Information</h4>
                   <div className="form-grid-enad">
-                    <div className="form-group-enad"><label>Quotation Number</label><input type="text" value={quotationForm.quotationNumber} onChange={(e) => handleQuotationChange('quotationNumber', e.target.value)} /></div>
-                    <div className="form-group-enad"><label>Expiry Date (30 Days)</label><input type="date" value={quotationForm.quotationExpiryDate} onChange={(e) => handleQuotationChange('quotationExpiryDate', e.target.value)} /></div>
-                    <div className="form-group-enad"><label>System Type</label><select value={quotationForm.systemType} onChange={(e) => handleQuotationChange('systemType', e.target.value)}>{SYSTEM_TYPES.map(type => (<option key={type.value} value={type.value}>{type.label}</option>))}</select></div>
-                    <div className="form-group-enad"><label>System Size (kWp)</label><input type="number" step="0.5" value={quotationForm.systemSize} onChange={(e) => handleQuotationChange('systemSize', parseFloat(e.target.value))} placeholder="e.g., 5.0" /></div>
+                    <div className="form-group-enad">
+                      <label className="form-label-enad">Quotation Number</label>
+                      <input type="text" className="assessment-form-input-enad" value={quotationForm.quotationNumber} onChange={(e) => handleQuotationChange('quotationNumber', e.target.value)} />
+                    </div>
+                    <div className="form-group-enad">
+                      <label className="form-label-enad">Expiry Date (30 Days)</label>
+                      <input type="date" className="assessment-form-input-enad" value={quotationForm.quotationExpiryDate} onChange={(e) => handleQuotationChange('quotationExpiryDate', e.target.value)} />
+                    </div>
+                    <div className="form-group-enad">
+                      <label className="form-label-enad">System Type</label>
+                      <select className="assessment-form-select-enad" value={quotationForm.systemType} onChange={(e) => handleQuotationChange('systemType', e.target.value)}>
+                        {SYSTEM_TYPES.map(type => (<option key={type.value} value={type.value}>{type.label}</option>))}
+                      </select>
+                    </div>
+                    <div className="form-group-enad">
+                      <label className="form-label-enad">System Size (kWp)</label>
+                      <input type="number" step="0.5" className="assessment-form-input-enad" value={quotationForm.systemSize} onChange={(e) => handleQuotationChange('systemSize', parseFloat(e.target.value))} placeholder="e.g., 5.0" />
+                    </div>
                   </div>
                 </div>
 
@@ -2237,15 +2329,17 @@ const MyAssessments = () => {
                   <h4>Solar Panels</h4>
                   <div className="equipment-selection-row">
                     <div className="form-group-enad" style={{ flex: 2 }}>
-                      <select value={selectedPanel?._id || ''} onChange={(e) => { const panel = availablePanels.find(p => p._id === e.target.value); setSelectedPanel(panel); if (panel && panel.unit === 'watt') setPanelQuantity(1); }}>
+                      <select className="assessment-form-select-enad" value={selectedPanel?._id || ''} onChange={(e) => { const panel = availablePanels.find(p => p._id === e.target.value); setSelectedPanel(panel); if (panel && panel.unit === 'watt') setPanelQuantity(1); }}>
                         <option value="">-- Select Panel --</option>
                         {availablePanels.filter(p => p.isActive).map(panel => (<option key={panel._id} value={panel._id}>{panel.name} - {panel.brand} - ₱{panel.price.toLocaleString()}/{panel.unit}</option>))}
                       </select>
                     </div>
-                    <div className="form-group-enad" style={{ flex: 1 }}><input type="number" min="1" value={panelQuantity} onChange={(e) => setPanelQuantity(parseInt(e.target.value) || 0)} disabled={selectedPanel?.unit === 'watt'} /></div>
+                    <div className="form-group-enad" style={{ flex: 1 }}>
+                      <input type="number" min="1" className="assessment-form-input-enad" value={panelQuantity} onChange={(e) => setPanelQuantity(parseInt(e.target.value) || 0)} disabled={selectedPanel?.unit === 'watt'} />
+                    </div>
                     <div className="cost-display"><label>Panel Cost</label><div className="cost-value">{formatCurrency(calculatedCosts.panelCost)}</div></div>
                   </div>
-                  {selectedPanel?.unit === 'watt' && <small className="form-hint">Price is per watt. Total calculated based on system size: {quotationForm.systemSize} kWp</small>}
+                  {selectedPanel?.unit === 'watt' && <small className="form-hint-enad">Price is per watt. Total calculated based on system size: {quotationForm.systemSize} kWp</small>}
                 </div>
 
                 {/* Inverters */}
@@ -2253,12 +2347,14 @@ const MyAssessments = () => {
                   <h4>Inverters</h4>
                   <div className="equipment-selection-row">
                     <div className="form-group-enad" style={{ flex: 2 }}>
-                      <select value={selectedInverter?._id || ''} onChange={(e) => { const inverter = availableInverters.find(i => i._id === e.target.value); setSelectedInverter(inverter); }}>
+                      <select className="assessment-form-select-enad" value={selectedInverter?._id || ''} onChange={(e) => { const inverter = availableInverters.find(i => i._id === e.target.value); setSelectedInverter(inverter); }}>
                         <option value="">-- Select Inverter --</option>
                         {availableInverters.filter(i => i.isActive).map(inverter => (<option key={inverter._id} value={inverter._id}>{inverter.name} - {inverter.brand} - ₱{inverter.price.toLocaleString()}</option>))}
                       </select>
                     </div>
-                    <div className="form-group-enad" style={{ flex: 1 }}><input type="number" min="1" value={inverterQuantity} onChange={(e) => setInverterQuantity(parseInt(e.target.value) || 0)} /></div>
+                    <div className="form-group-enad" style={{ flex: 1 }}>
+                      <input type="number" min="1" className="assessment-form-input-enad" value={inverterQuantity} onChange={(e) => setInverterQuantity(parseInt(e.target.value) || 0)} />
+                    </div>
                     <div className="cost-display"><label>Inverter Cost</label><div className="cost-value">{formatCurrency(calculatedCosts.inverterCost)}</div></div>
                   </div>
                 </div>
@@ -2268,12 +2364,14 @@ const MyAssessments = () => {
                   <h4>Batteries (Optional)</h4>
                   <div className="equipment-selection-row">
                     <div className="form-group-enad" style={{ flex: 2 }}>
-                      <select value={selectedBattery?._id || ''} onChange={(e) => { const battery = availableBatteries.find(b => b._id === e.target.value); setSelectedBattery(battery); }}>
+                      <select className="assessment-form-select-enad" value={selectedBattery?._id || ''} onChange={(e) => { const battery = availableBatteries.find(b => b._id === e.target.value); setSelectedBattery(battery); }}>
                         <option value="">-- No Battery --</option>
                         {availableBatteries.filter(b => b.isActive).map(battery => (<option key={battery._id} value={battery._id}>{battery.name} - {battery.brand} - ₱{battery.price.toLocaleString()}</option>))}
                       </select>
                     </div>
-                    <div className="form-group-enad" style={{ flex: 1 }}><input type="number" min="0" value={batteryQuantity} onChange={(e) => setBatteryQuantity(parseInt(e.target.value) || 0)} /></div>
+                    <div className="form-group-enad" style={{ flex: 1 }}>
+                      <input type="number" min="0" className="assessment-form-input-enad" value={batteryQuantity} onChange={(e) => setBatteryQuantity(parseInt(e.target.value) || 0)} />
+                    </div>
                     <div className="cost-display"><label>Battery Cost</label><div className="cost-value">{formatCurrency(calculatedCosts.batteryCost)}</div></div>
                   </div>
                 </div>
@@ -2283,12 +2381,14 @@ const MyAssessments = () => {
                   <h4>Mounting Structure</h4>
                   <div className="equipment-selection-row">
                     <div className="form-group-enad" style={{ flex: 2 }}>
-                      <select value={selectedMountingStructure?._id || ''} onChange={(e) => { const structure = availableMountingStructures.find(m => m._id === e.target.value); setSelectedMountingStructure(structure); }}>
+                      <select className="assessment-form-select-enad" value={selectedMountingStructure?._id || ''} onChange={(e) => { const structure = availableMountingStructures.find(m => m._id === e.target.value); setSelectedMountingStructure(structure); }}>
                         <option value="">-- Select Mounting Structure --</option>
                         {availableMountingStructures.filter(m => m.isActive).map(structure => (<option key={structure._id} value={structure._id}>{structure.name} - {structure.brand} - ₱{structure.price.toLocaleString()}/{structure.unit}</option>))}
                       </select>
                     </div>
-                    <div className="form-group-enad" style={{ flex: 1 }}><input type="number" min="1" value={mountingStructureQuantity} onChange={(e) => setMountingStructureQuantity(parseInt(e.target.value) || 0)} /></div>
+                    <div className="form-group-enad" style={{ flex: 1 }}>
+                      <input type="number" min="1" className="assessment-form-input-enad" value={mountingStructureQuantity} onChange={(e) => setMountingStructureQuantity(parseInt(e.target.value) || 0)} />
+                    </div>
                     <div className="cost-display"><label>Mounting Cost</label><div className="cost-value">{formatCurrency(calculatedCosts.mountingCost)}</div></div>
                   </div>
                 </div>
@@ -2296,18 +2396,18 @@ const MyAssessments = () => {
                 {/* Electrical Components */}
                 <div className="quotation-section">
                   <h4>Electrical Components</h4>
-                  <button type="button" className="btn-add-item" onClick={addElectricalComponent}><FaPlus /> Add Component</button>
+                  <button type="button" className="btn-add-item" onClick={addElectricalComponent}>+ Add Component</button>
                   {selectedElectricalComponents.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select value={item.id || ''} onChange={(e) => updateElectricalComponent(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateElectricalComponent(index, 'id', e.target.value)} style={{ flex: 2 }}>
                         <option value="">-- Select Component --</option>
                         {availableElectricalComponents.filter(c => c.isActive).map(comp => (
                           <option key={comp._id} value={comp._id}>{comp.name} - ₱{comp.price.toLocaleString()}</option>
                         ))}
                       </select>
-                      <input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => updateElectricalComponent(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateElectricalComponent(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => removeElectricalComponent(index)}><FaTrash /></button>
+                      <button type="button" className="btn-remove" onClick={() => removeElectricalComponent(index)}>Remove</button>
                     </div>
                   ))}
                 </div>
@@ -2315,19 +2415,19 @@ const MyAssessments = () => {
                 {/* Cables */}
                 <div className="quotation-section">
                   <h4>Cables and Wiring</h4>
-                  <button type="button" className="btn-add-item" onClick={addCable}><FaPlus /> Add Cable</button>
+                  <button type="button" className="btn-add-item" onClick={addCable}>+ Add Cable</button>
                   {selectedCables.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select value={item.id || ''} onChange={(e) => updateCable(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateCable(index, 'id', e.target.value)} style={{ flex: 2 }}>
                         <option value="">-- Select Cable Type --</option>
                         {availableCables.filter(c => c.isActive).map(cable => (
                           <option key={cable._id} value={cable._id}>{cable.name} - ₱{cable.price.toLocaleString()}/{cable.unit}</option>
                         ))}
                       </select>
-                      <input type="number" placeholder="Length (m)" value={item.length} onChange={(e) => updateCable(index, 'length', parseFloat(e.target.value) || 0)} style={{ width: '100px' }} />
-                      <input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => updateCable(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Length (m)" className="assessment-form-input-enad" value={item.length} onChange={(e) => updateCable(index, 'length', parseFloat(e.target.value) || 0)} style={{ width: '100px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateCable(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => removeCable(index)}><FaTrash /></button>
+                      <button type="button" className="btn-remove" onClick={() => removeCable(index)}>Remove</button>
                     </div>
                   ))}
                 </div>
@@ -2335,18 +2435,18 @@ const MyAssessments = () => {
                 {/* Junction Boxes */}
                 <div className="quotation-section">
                   <h4>Junction Boxes</h4>
-                  <button type="button" className="btn-add-item" onClick={addJunctionBox}><FaPlus /> Add Junction Box</button>
+                  <button type="button" className="btn-add-item" onClick={addJunctionBox}>+ Add Junction Box</button>
                   {selectedJunctionBoxes.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select value={item.id || ''} onChange={(e) => updateJunctionBox(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateJunctionBox(index, 'id', e.target.value)} style={{ flex: 2 }}>
                         <option value="">-- Select Junction Box --</option>
                         {availableJunctionBoxes.filter(j => j.isActive).map(box => (
                           <option key={box._id} value={box._id}>{box.name} - ₱{box.price.toLocaleString()}</option>
                         ))}
                       </select>
-                      <input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => updateJunctionBox(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateJunctionBox(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => removeJunctionBox(index)}><FaTrash /></button>
+                      <button type="button" className="btn-remove" onClick={() => removeJunctionBox(index)}>Remove</button>
                     </div>
                   ))}
                 </div>
@@ -2354,18 +2454,18 @@ const MyAssessments = () => {
                 {/* Disconnect Switches */}
                 <div className="quotation-section">
                   <h4>Disconnect Switches</h4>
-                  <button type="button" className="btn-add-item" onClick={addDisconnectSwitch}><FaPlus /> Add Switch</button>
+                  <button type="button" className="btn-add-item" onClick={addDisconnectSwitch}>+ Add Switch</button>
                   {selectedDisconnectSwitches.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select value={item.id || ''} onChange={(e) => updateDisconnectSwitch(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateDisconnectSwitch(index, 'id', e.target.value)} style={{ flex: 2 }}>
                         <option value="">-- Select Switch --</option>
                         {availableDisconnectSwitches.filter(s => s.isActive).map(sw => (
                           <option key={sw._id} value={sw._id}>{sw.name} - ₱{sw.price.toLocaleString()}</option>
                         ))}
                       </select>
-                      <input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => updateDisconnectSwitch(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateDisconnectSwitch(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => removeDisconnectSwitch(index)}><FaTrash /></button>
+                      <button type="button" className="btn-remove" onClick={() => removeDisconnectSwitch(index)}>Remove</button>
                     </div>
                   ))}
                 </div>
@@ -2373,18 +2473,18 @@ const MyAssessments = () => {
                 {/* Meters */}
                 <div className="quotation-section">
                   <h4>Meters</h4>
-                  <button type="button" className="btn-add-item" onClick={addMeter}><FaPlus /> Add Meter</button>
+                  <button type="button" className="btn-add-item" onClick={addMeter}>+ Add Meter</button>
                   {selectedMeters.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select value={item.id || ''} onChange={(e) => updateMeter(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateMeter(index, 'id', e.target.value)} style={{ flex: 2 }}>
                         <option value="">-- Select Meter --</option>
                         {availableMeters.filter(m => m.isActive).map(meter => (
                           <option key={meter._id} value={meter._id}>{meter.name} - ₱{meter.price.toLocaleString()}</option>
                         ))}
                       </select>
-                      <input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => updateMeter(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateMeter(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => removeMeter(index)}><FaTrash /></button>
+                      <button type="button" className="btn-remove" onClick={() => removeMeter(index)}>Remove</button>
                     </div>
                   ))}
                 </div>
@@ -2392,14 +2492,14 @@ const MyAssessments = () => {
                 {/* Additional Equipment */}
                 <div className="quotation-section">
                   <h4>Additional Equipment</h4>
-                  <button type="button" className="btn-add-item" onClick={addAdditionalEquipment}><FaPlus /> Add Custom Item</button>
+                  <button type="button" className="btn-add-item" onClick={addAdditionalEquipment}>+ Add Custom Item</button>
                   {additionalEquipment.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <input type="text" placeholder="Item name" value={item.name} onChange={(e) => updateAdditionalEquipment(index, 'name', e.target.value)} style={{ flex: 2 }} />
-                      <input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => updateAdditionalEquipment(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
-                      <input type="number" placeholder="Price" value={item.price} onChange={(e) => updateAdditionalEquipment(index, 'price', parseFloat(e.target.value) || 0)} style={{ width: '120px' }} />
+                      <input type="text" placeholder="Item name" className="assessment-form-input-enad" value={item.name} onChange={(e) => updateAdditionalEquipment(index, 'name', e.target.value)} style={{ flex: 2 }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateAdditionalEquipment(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Price" className="assessment-form-input-enad" value={item.price} onChange={(e) => updateAdditionalEquipment(index, 'price', parseFloat(e.target.value) || 0)} style={{ width: '120px' }} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => removeAdditionalEquipment(index)}><FaTrash /></button>
+                      <button type="button" className="btn-remove" onClick={() => removeAdditionalEquipment(index)}>Remove</button>
                     </div>
                   ))}
                 </div>
@@ -2443,7 +2543,7 @@ const MyAssessments = () => {
 
                 <div className="action-buttons-enad" style={{ marginTop: '20px' }}>
                   <button onClick={generateQuotationPDF} disabled={generatingPDF || !quotationForm.systemSize || calculatedCosts.totalSystemCost === 0} className="btn-primary-enad">
-                    {generatingPDF ? <FaSpinner className="spinner-enad" /> : <FaFilePdf />} Generate and Upload PDF
+                    {generatingPDF ? 'Generating...' : 'Generate and Upload PDF'}
                   </button>
                 </div>
               </div>
@@ -2451,12 +2551,60 @@ const MyAssessments = () => {
 
             {/* Documents Tab */}
             {activeTab === 'documents' && (
-              <div><div className="action-buttons-enad"><button onClick={() => setShowImageUploader(!showImageUploader)} className="btn-primary-enad"><FaCamera /> Upload Photos</button></div>{showImageUploader && (<div className="file-upload-enad"><input type="file" accept="image/*" multiple onChange={handleImageUpload} disabled={uploading} className="file-upload-input-enad" />{uploading && (<div className="uploading-enad"><FaSpinner className="spinner-enad" /> Uploading images...</div>)}</div>)}<div className="image-grid-enad">{siteImages.map((image, idx) => (<div key={idx} className="image-card-enad"><img src={image} alt={`Site photo ${idx + 1}`} /><div className="image-overlay-enad"><a href={image} target="_blank" rel="noopener noreferrer" className="image-overlay-icon-enad"><FaEye /></a></div></div>))}</div>{siteImages.length === 0 && (<div className="empty-state-enad"><FaImages className="empty-icon-enad" /><p>No photos uploaded yet</p></div>)}</div>
+              <div>
+                <div className="action-buttons-enad">
+                  <button onClick={() => setShowImageUploader(!showImageUploader)} className="btn-primary-enad">Upload Photos</button>
+                </div>
+                {showImageUploader && (
+                  <div className="file-upload-enad">
+                    <input type="file" accept="image/*" multiple onChange={handleImageUpload} disabled={uploading} className="file-upload-input-enad" />
+                    {uploading && (<div className="uploading-enad">Uploading images...</div>)}
+                  </div>
+                )}
+                <div className="image-grid-enad">
+                  {siteImages.map((image, idx) => (
+                    <div key={idx} className="image-card-enad">
+                      <img src={image} alt={`Site photo ${idx + 1}`} />
+                      <div className="image-overlay-enad">
+                        <a href={image} target="_blank" rel="noopener noreferrer" className="image-overlay-icon-enad">View</a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {siteImages.length === 0 && (
+                  <div className="empty-state-enad"><p>No photos uploaded yet</p></div>
+                )}
+              </div>
             )}
 
             {/* Comments Tab */}
             {activeTab === 'comments' && (
-              <div><div className="comment-input-wrapper-enad"><textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Add a comment..." rows={3} className="comment-textarea-enad" /><button onClick={addComment} disabled={submitting || !commentText.trim()} className="comment-send-btn-enad"><FaPaperPlane /> Send</button></div><div className="comment-list-enad">{selectedItem.engineerComments?.length === 0 && (<div className="empty-state-enad"><p>No comments yet</p></div>)}{selectedItem.engineerComments?.map((comment, idx) => (<div key={idx} className="comment-item-enad"><div className="comment-header-enad"><div className="comment-user-enad"><div className="comment-avatar-enad"><FaUser /></div><div><p className="comment-name-enad">{comment.commentedBy?.firstName} {comment.commentedBy?.lastName}</p><p className="comment-time-enad">{formatDateTime(comment.commentedAt)}</p></div></div>{comment.isPublic && <span className="comment-badge-enad">Public</span>}</div><p className="comment-text-enad">{comment.comment}</p></div>))}</div></div>
+              <div>
+                <div className="comment-input-wrapper-enad">
+                  <textarea className="assessment-form-textarea-enad" value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Add a comment..." rows={3} />
+                  <button onClick={addComment} disabled={submitting || !commentText.trim()} className="comment-send-btn-enad">Send</button>
+                </div>
+                <div className="comment-list-enad">
+                  {selectedItem.engineerComments?.length === 0 && (
+                    <div className="empty-state-enad"><p>No comments yet</p></div>
+                  )}
+                  {selectedItem.engineerComments?.map((comment, idx) => (
+                    <div key={idx} className="comment-item-enad">
+                      <div className="comment-header-enad">
+                        <div className="comment-user-enad">
+                          <div className="comment-avatar-enad"></div>
+                          <div>
+                            <p className="comment-name-enad">{comment.commentedBy?.firstName} {comment.commentedBy?.lastName}</p>
+                            <p className="comment-time-enad">{formatDateTime(comment.commentedAt)}</p>
+                          </div>
+                        </div>
+                        {comment.isPublic && <span className="comment-badge-enad">Public</span>}
+                      </div>
+                      <p className="comment-text-enad">{comment.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -2472,7 +2620,6 @@ const MyAssessments = () => {
             </div>
             <div className="modal-body-enad">
               <div className="confirm-message-enad">
-                <FaExclamationTriangle className="warning-icon-enad" />
                 <p>Are you sure you want to deploy the device on site?</p>
               </div>
               <div className="device-details-confirm-enad">
@@ -2504,7 +2651,6 @@ const MyAssessments = () => {
             <div className="modal-actions-enad">
               <button className="cancel-btn-enad" onClick={closeDeployConfirmModal}>Cancel</button>
               <button className="confirm-deploy-btn-enad" onClick={deployDevice} disabled={submitting}>
-                {submitting ? <FaSpinner className="spinner-enad" /> : <FaCheck />}
                 {submitting ? 'Deploying...' : 'Confirm Deployment'}
               </button>
             </div>
@@ -2522,7 +2668,6 @@ const MyAssessments = () => {
             </div>
             <div className="modal-body-enad">
               <div className="confirm-message-enad">
-                <FaExclamationTriangle className="warning-icon-enad" />
                 <p>Are you sure you want to submit the final report?</p>
               </div>
               <div className="warning-box-enad">
@@ -2532,7 +2677,6 @@ const MyAssessments = () => {
             <div className="modal-actions-enad">
               <button className="cancel-btn-enad" onClick={closeReportConfirmModal}>Cancel</button>
               <button className="confirm-submit-btn-enad" onClick={submitFinalReport} disabled={submitting}>
-                {submitting ? <FaSpinner className="spinner-enad" /> : <FaCheck />}
                 {submitting ? 'Submitting...' : 'Confirm Submission'}
               </button>
             </div>

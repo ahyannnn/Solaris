@@ -87,6 +87,10 @@ const MyAssessments = () => {
   const [assessmentResults, setAssessmentResults] = useState(null);
   const [systemMetrics, setSystemMetrics] = useState(null);
 
+  // Modal states
+  const [showDeployConfirmModal, setShowDeployConfirmModal] = useState(false);
+  const [showReportConfirmModal, setShowReportConfirmModal] = useState(false);
+
   // New Quotation State with Equipment Selection
   const [selectedPanel, setSelectedPanel] = useState(null);
   const [selectedInverter, setSelectedInverter] = useState(null);
@@ -711,7 +715,7 @@ const MyAssessments = () => {
       averageIrradiance: iotData.averageIrradiance || 0,
       averageTemperature: iotData.averageTemperature || 0,
       averageHumidity: iotData.averageHumidity || 0,
-      temperatureRange: `${iotData.minTemperature?.toFixed(1) || 0}°C - ${iotData.maxTemperature?.toFixed(1) || 0}°C`,
+      temperatureRange: `${iotData.minTemperature?.toFixed(1) || 0}C - ${iotData.maxTemperature?.toFixed(1) || 0}C`,
       temperatureDerating: tempDerating.toFixed(1),
       gpsLocation: iotData.gpsCoordinates,
       recommendedSystemSize: recommendedSystemSize.toFixed(1),
@@ -1202,7 +1206,7 @@ const MyAssessments = () => {
         estimatedInstallationTime: metrics?.estimatedInstallationTime || assessmentForm.estimatedInstallationTime || 3,
         roofCondition: assessmentForm.roofCondition,
         structuralIntegrity: assessmentForm.structuralIntegrity,
-        temperatureRange: metrics?.temperatureRange || `${assessmentResults?.minTemperature?.toFixed(1) || 0}°C - ${assessmentResults?.maxTemperature?.toFixed(1) || 0}°C`,
+        temperatureRange: metrics?.temperatureRange || `${assessmentResults?.minTemperature?.toFixed(1) || 0}C - ${assessmentResults?.maxTemperature?.toFixed(1) || 0}C`,
         irradianceLevel: assessmentResults?.averageIrradiance || 0,
         siteSuitabilityScore: calculateSuitabilityScore(
           assessmentResults?.peakSunHours || 4.5,
@@ -1369,6 +1373,23 @@ const MyAssessments = () => {
     return ASSESSMENT_TYPES[type] || ASSESSMENT_TYPES.free_quote;
   };
 
+  // Modal handlers
+  const openDeployConfirmModal = () => {
+    setShowDeployConfirmModal(true);
+  };
+
+  const closeDeployConfirmModal = () => {
+    setShowDeployConfirmModal(false);
+  };
+
+  const openReportConfirmModal = () => {
+    setShowReportConfirmModal(true);
+  };
+
+  const closeReportConfirmModal = () => {
+    setShowReportConfirmModal(false);
+  };
+
   // Event handlers
   const handleSelectItem = (item) => {
     if (item.type === 'free_quote') {
@@ -1398,47 +1419,42 @@ const MyAssessments = () => {
   };
 
   const handleImageUpload = async (e) => {
-  const files = Array.from(e.target.files);
-  if (files.length === 0) return;
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
 
-  setUploading(true);
-  const formData = new FormData();
-  files.forEach(file => formData.append('images', file));
+    setUploading(true);
+    const formData = new FormData();
+    files.forEach(file => formData.append('images', file));
 
-  try {
-    const token = sessionStorage.getItem('token');
-    const response = await axios.post(
-      `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/upload-images`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.post(
+        `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/upload-images`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`
+          }
         }
+      );
+      
+      if (response.data.success) {
+        setSiteImages(prev => [...prev, ...response.data.images]);
+        showToast(`${response.data.images.length} image(s) uploaded successfully!`, 'success');
+        fetchPreAssessmentDetails(selectedItem._id);
+      } else {
+        showToast(response.data.message || 'Failed to upload images', 'error');
       }
-    );
-    
-    console.log('Upload response:', response.data);
-    
-    if (response.data.success) {
-      // Update site images state with the returned URLs
-      setSiteImages(prev => [...prev, ...response.data.images]);
-      showToast(`${response.data.images.length} image(s) uploaded successfully!`, 'success');
-      // Refresh assessment details to get updated site photos
-      fetchPreAssessmentDetails(selectedItem._id);
-    } else {
-      showToast(response.data.message || 'Failed to upload images', 'error');
+    } catch (err) {
+      console.error('Error uploading images:', err);
+      showToast(err.response?.data?.message || 'Failed to upload images', 'error');
+    } finally {
+      setUploading(false);
+      setShowImageUploader(false);
+      e.target.value = '';
     }
-  } catch (err) {
-    console.error('Error uploading images:', err);
-    showToast(err.response?.data?.message || 'Failed to upload images', 'error');
-  } finally {
-    setUploading(false);
-    setShowImageUploader(false);
-    // Clear the file input
-    e.target.value = '';
-  }
-};
+  };
 
   const validateAssessmentForm = () => {
     const requiredFields = [
@@ -1487,22 +1503,9 @@ const MyAssessments = () => {
       return;
     }
 
-    const confirmed = window.confirm(
-      `⚠️ DEPLOY DEVICE CONFIRMATION ⚠️\n\n` +
-      `Are you sure you want to deploy the device on site?\n\n` +
-      `📋 Device Details:\n` +
-      `• Device ID: ${selectedItem.iotDeviceId?.deviceId || selectedItem.assignedDeviceId || 'N/A'}\n` +
-      `• Device Name: ${selectedItem.iotDeviceId?.deviceName || selectedItem.assignedDevice?.deviceName || 'IoT Device'}\n\n` +
-      `📍 Location: ${getFullAddress(selectedItem.address)}\n\n` +
-      `📝 Deployment Notes:\n${deployNotes}\n\n` +
-      `⚠️ This will start 7-day data collection period.\n` +
-      `The device cannot be reassigned during this period.\n\n` +
-      `Click OK to confirm deployment.`
-    );
-
-    if (!confirmed) return;
-
     setSubmitting(true);
+    setShowDeployConfirmModal(false);
+    
     try {
       const token = sessionStorage.getItem('token');
       const response = await axios.post(
@@ -1522,8 +1525,9 @@ const MyAssessments = () => {
   };
 
   const submitFinalReport = async () => {
-    if (!window.confirm('Are you sure you want to submit the final report? This action cannot be undone.')) return;
     setSubmitting(true);
+    setShowReportConfirmModal(false);
+    
     try {
       const token = sessionStorage.getItem('token');
       await axios.post(
@@ -1817,7 +1821,7 @@ const MyAssessments = () => {
                 <div className="info-item-enad info-full-width-enad"><span className="info-label-enad">Address</span><span className="info-value-enad">{getFullAddress(selectedItem.address)}</span></div>
               </div>
               <div className="detail-section-enad">
-                <h3 className="detail-section-title-enad">Equipment Selection & Quotation</h3>
+                <h3 className="detail-section-title-enad">Equipment Selection and Quotation</h3>
 
                 {/* Basic Information */}
                 <div className="quotation-section">
@@ -1830,7 +1834,6 @@ const MyAssessments = () => {
                         type="date"
                         value={freeQuoteForm.quotationExpiryDate}
                         onChange={(e) => handleFreeQuoteFormChange('quotationExpiryDate', e.target.value)}
-
                         style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
                       />
                       <small className="form-hint-enad">Automatically set to 30 days from today</small>
@@ -1842,7 +1845,7 @@ const MyAssessments = () => {
 
                 {/* Solar Panels */}
                 <div className="quotation-section">
-                  <h4><FaSolarPanel /> Solar Panels</h4>
+                  <h4>Solar Panels</h4>
                   <div className="equipment-selection-row">
                     <div className="form-group-enad" style={{ flex: 2 }}>
                       <select value={freeQuoteSelectedPanel?._id || ''} onChange={(e) => { const panel = availablePanels.find(p => p._id === e.target.value); setFreeQuoteSelectedPanel(panel); if (panel && panel.unit === 'watt') setFreeQuotePanelQuantity(1); }}>
@@ -1858,7 +1861,7 @@ const MyAssessments = () => {
 
                 {/* Inverters */}
                 <div className="quotation-section">
-                  <h4><FaBolt /> Inverters</h4>
+                  <h4>Inverters</h4>
                   <div className="equipment-selection-row">
                     <div className="form-group-enad" style={{ flex: 2 }}>
                       <select value={freeQuoteSelectedInverter?._id || ''} onChange={(e) => { const inverter = availableInverters.find(i => i._id === e.target.value); setFreeQuoteSelectedInverter(inverter); }}>
@@ -1873,7 +1876,7 @@ const MyAssessments = () => {
 
                 {/* Batteries */}
                 <div className="quotation-section">
-                  <h4><FaBatteryFull /> Batteries (Optional)</h4>
+                  <h4>Batteries (Optional)</h4>
                   <div className="equipment-selection-row">
                     <div className="form-group-enad" style={{ flex: 2 }}>
                       <select value={freeQuoteSelectedBattery?._id || ''} onChange={(e) => { const battery = availableBatteries.find(b => b._id === e.target.value); setFreeQuoteSelectedBattery(battery); }}>
@@ -1888,7 +1891,7 @@ const MyAssessments = () => {
 
                 {/* Mounting Structure */}
                 <div className="quotation-section">
-                  <h4><FaTools /> Mounting Structure</h4>
+                  <h4>Mounting Structure</h4>
                   <div className="equipment-selection-row">
                     <div className="form-group-enad" style={{ flex: 2 }}>
                       <select value={freeQuoteSelectedMountingStructure?._id || ''} onChange={(e) => { const structure = availableMountingStructures.find(m => m._id === e.target.value); setFreeQuoteSelectedMountingStructure(structure); }}>
@@ -1903,7 +1906,7 @@ const MyAssessments = () => {
 
                 {/* Electrical Components */}
                 <div className="quotation-section">
-                  <h4><FaBolt /> Electrical Components</h4>
+                  <h4>Electrical Components</h4>
                   <button type="button" className="btn-add-item" onClick={freeQuoteAddElectricalComponent}><FaPlus /> Add Component</button>
                   {freeQuoteSelectedElectricalComponents.map((item, index) => (
                     <div key={index} className="additional-item-row">
@@ -1920,7 +1923,7 @@ const MyAssessments = () => {
 
                 {/* Cables */}
                 <div className="quotation-section">
-                  <h4><FaWifi /> Cables and Wiring</h4>
+                  <h4>Cables and Wiring</h4>
                   <button type="button" className="btn-add-item" onClick={freeQuoteAddCable}><FaPlus /> Add Cable</button>
                   {freeQuoteSelectedCables.map((item, index) => (
                     <div key={index} className="additional-item-row">
@@ -1938,7 +1941,7 @@ const MyAssessments = () => {
 
                 {/* Junction Boxes */}
                 <div className="quotation-section">
-                  <h4><FaBoxes /> Junction Boxes</h4>
+                  <h4>Junction Boxes</h4>
                   <button type="button" className="btn-add-item" onClick={freeQuoteAddJunctionBox}><FaPlus /> Add Junction Box</button>
                   {freeQuoteSelectedJunctionBoxes.map((item, index) => (
                     <div key={index} className="additional-item-row">
@@ -1955,7 +1958,7 @@ const MyAssessments = () => {
 
                 {/* Disconnect Switches */}
                 <div className="quotation-section">
-                  <h4><FaServer /> Disconnect Switches</h4>
+                  <h4>Disconnect Switches</h4>
                   <button type="button" className="btn-add-item" onClick={freeQuoteAddDisconnectSwitch}><FaPlus /> Add Switch</button>
                   {freeQuoteSelectedDisconnectSwitches.map((item, index) => (
                     <div key={index} className="additional-item-row">
@@ -1972,7 +1975,7 @@ const MyAssessments = () => {
 
                 {/* Meters */}
                 <div className="quotation-section">
-                  <h4><FaChartBar /> Meters</h4>
+                  <h4>Meters</h4>
                   <button type="button" className="btn-add-item" onClick={freeQuoteAddMeter}><FaPlus /> Add Meter</button>
                   {freeQuoteSelectedMeters.map((item, index) => (
                     <div key={index} className="additional-item-row">
@@ -2001,9 +2004,10 @@ const MyAssessments = () => {
                     </div>
                   ))}
                 </div>
-                {/* Installation Labor - Add this before the Complete Cost Summary */}
+
+                {/* Installation Labor */}
                 <div className="quotation-section">
-                  <h4><FaHardHat /> Installation Labor</h4>
+                  <h4>Installation Labor</h4>
                   <div className="labor-calculation">
                     <div className="labor-detail">
                       <span>Per kW installation ({freeQuoteForm.systemSize || 0} kW x ₱{config?.laborRates?.perKw || 5000})</span>
@@ -2020,7 +2024,6 @@ const MyAssessments = () => {
                   </div>
                 </div>
 
-
                 {/* Cost Summary */}
                 <div className="cost-summary-large" style={{ marginTop: '20px' }}>
                   <h3>Complete Cost Summary</h3>
@@ -2029,7 +2032,7 @@ const MyAssessments = () => {
                   <div className="summary-row"><span>Batteries:</span><span>{formatCurrency(freeQuoteCalculatedCosts.batteryCost)}</span></div>
                   <div className="summary-row"><span>Mounting Structure:</span><span>{formatCurrency(freeQuoteCalculatedCosts.mountingCost)}</span></div>
                   <div className="summary-row"><span>Electrical Components:</span><span>{formatCurrency(freeQuoteCalculatedCosts.electricalCost)}</span></div>
-                  <div className="summary-row"><span>Cables & Wiring:</span><span>{formatCurrency(freeQuoteCalculatedCosts.cableCost)}</span></div>
+                  <div className="summary-row"><span>Cables and Wiring:</span><span>{formatCurrency(freeQuoteCalculatedCosts.cableCost)}</span></div>
                   <div className="summary-row"><span>Junction Boxes:</span><span>{formatCurrency(freeQuoteCalculatedCosts.junctionBoxCost)}</span></div>
                   <div className="summary-row"><span>Disconnect Switches:</span><span>{formatCurrency(freeQuoteCalculatedCosts.disconnectSwitchCost)}</span></div>
                   <div className="summary-row"><span>Meters:</span><span>{formatCurrency(freeQuoteCalculatedCosts.meterCost)}</span></div>
@@ -2045,7 +2048,7 @@ const MyAssessments = () => {
 
                 <div className="action-buttons-enad" style={{ marginTop: '20px' }}>
                   <button onClick={generateQuotationPDF} disabled={generatingPDF || !freeQuoteForm.systemSize || freeQuoteCalculatedCosts.totalSystemCost === 0} className="btn-primary-enad">
-                    {generatingPDF ? <FaSpinner className="spinner-enad" /> : <FaFilePdf />} Generate & Upload PDF
+                    {generatingPDF ? <FaSpinner className="spinner-enad" /> : <FaFilePdf />} Generate and Upload PDF
                   </button>
                 </div>
               </div>
@@ -2124,7 +2127,7 @@ const MyAssessments = () => {
                     {iotAnalysis ? (
                       <div className="iot-analysis-grid-enad">
                         <div className="analysis-card-enad irradiance-enad"><FaSun className="analysis-icon-enad" /><div className="analysis-stats-enad"><div className="stat-enad"><span className="stat-label-enad">Avg Irradiance</span><span className="stat-value-enad">{iotAnalysis.averageIrradiance?.toFixed(0) || 0} W/m²</span></div><div className="stat-enad"><span className="stat-label-enad">Peak Irradiance</span><span className="stat-value-enad">{iotAnalysis.maxIrradiance?.toFixed(0) || 0} W/m²</span></div><div className="stat-enad"><span className="stat-label-enad">Peak Sun Hours</span><span className="stat-value-enad">{iotAnalysis.peakSunHours?.toFixed(1) || 0} hrs/day</span></div></div></div>
-                        <div className="analysis-card-enad temperature-enad"><FaThermometerHalf className="analysis-icon-enad" /><div className="analysis-stats-enad"><div className="stat-enad"><span className="stat-label-enad">Avg Temperature</span><span className="stat-value-enad">{iotAnalysis.averageTemperature?.toFixed(1) || 0}°C</span></div><div className="stat-enad"><span className="stat-label-enad">Temperature Range</span><span className="stat-value-enad">{iotAnalysis.minTemperature?.toFixed(1) || 0}°C - {iotAnalysis.maxTemperature?.toFixed(1) || 0}°C</span></div><div className="stat-enad"><span className="stat-label-enad">Efficiency Loss</span><span className="stat-value-enad">{iotAnalysis.efficiencyLoss || 0}%</span></div></div></div>
+                        <div className="analysis-card-enad temperature-enad"><FaThermometerHalf className="analysis-icon-enad" /><div className="analysis-stats-enad"><div className="stat-enad"><span className="stat-label-enad">Avg Temperature</span><span className="stat-value-enad">{iotAnalysis.averageTemperature?.toFixed(1) || 0}C</span></div><div className="stat-enad"><span className="stat-label-enad">Temperature Range</span><span className="stat-value-enad">{iotAnalysis.minTemperature?.toFixed(1) || 0}C - {iotAnalysis.maxTemperature?.toFixed(1) || 0}C</span></div><div className="stat-enad"><span className="stat-label-enad">Efficiency Loss</span><span className="stat-value-enad">{iotAnalysis.efficiencyLoss || 0}%</span></div></div></div>
                         <div className="analysis-card-enad humidity-enad"><FaTint className="analysis-icon-enad" /><div className="analysis-stats-enad"><div className="stat-enad"><span className="stat-label-enad">Avg Humidity</span><span className="stat-value-enad">{iotAnalysis.averageHumidity?.toFixed(0) || 0}%</span></div><div className="stat-enad"><span className="stat-label-enad">Humidity Range</span><span className="stat-value-enad">{iotAnalysis.minHumidity?.toFixed(0) || 0}% - {iotAnalysis.maxHumidity?.toFixed(0) || 0}%</span></div></div></div>
                         <div className="analysis-card-enad recommendations-enad"><FaChartBar className="analysis-icon-enad" /><div className="analysis-stats-enad"><div className="stat-enad"><span className="stat-label-enad">Recommended System Size</span><span className="stat-value-enad">{iotAnalysis.recommendedSystemSize || 0} kWp</span></div><div className="stat-enad"><span className="stat-label-enad">Optimal Orientation</span><span className="stat-value-enad">{iotAnalysis.recommendedOrientation || 'South-facing'}</span></div><div className="stat-enad"><span className="stat-label-enad">Recommended Tilt Angle</span><span className="stat-value-enad">{iotAnalysis.recommendedTiltAngle || 15}°</span></div><div className="stat-enad"><span className="stat-label-enad">Shading Detection</span><span className="stat-value-enad">{iotAnalysis.shadingPercentage ? `${iotAnalysis.shadingPercentage}% shading` : 'Minimal'}</span></div></div></div>
                       </div>
@@ -2143,7 +2146,7 @@ const MyAssessments = () => {
               <div>
                 <div className="action-buttons-enad">
                   <button onClick={saveSiteAssessment} disabled={submitting} className="btn-secondary-enad">{submitting ? <FaSpinner className="spinner-enad" /> : <FaSave />} Save Draft</button>
-                  {selectedItem.assessmentStatus !== 'device_deployed' && selectedItem.assessmentStatus !== 'data_collecting' && deviceAssigned && (<button onClick={deployDevice} disabled={submitting || !deployNotes || deployNotes.trim() === ''} className="btn-success-enad" style={{ opacity: (!deployNotes || deployNotes.trim() === '') ? 0.5 : 1 }}>{submitting ? <FaSpinner className="spinner-enad" /> : <FaMicrochip />} Deploy Device (Start 7-day Monitoring)</button>)}
+                  {selectedItem.assessmentStatus !== 'device_deployed' && selectedItem.assessmentStatus !== 'data_collecting' && deviceAssigned && (<button onClick={openDeployConfirmModal} disabled={submitting || !deployNotes || deployNotes.trim() === ''} className="btn-success-enad" style={{ opacity: (!deployNotes || deployNotes.trim() === '') ? 0.5 : 1 }}>{submitting ? <FaSpinner className="spinner-enad" /> : <FaMicrochip />} Deploy Device (Start 7-day Monitoring)</button>)}
                 </div>
                 <div className="form-group-enad"><label className="form-label-enad">Roof Condition</label><div className="options-group-enad">{ROOF_CONDITIONS.map(condition => (<button key={condition.value} type="button" onClick={() => handleAssessmentFormChange('roofCondition', condition.value)} className={`option-btn-enad ${assessmentForm.roofCondition === condition.value ? 'active-enad' : ''}`}>{condition.label}</button>))}</div></div>
                 <div className="form-group-enad"><label className="form-label-enad"><FaRulerCombined className="inline-icon" /> Roof Dimensions (meters) <span style={{ color: '#C62828' }}>*</span></label><div className="form-row-enad"><div className="dimension-input-enad"><FaArrowsAltH className="dimension-icon-small-enad" /><input type="number" step="0.1" value={assessmentForm.roofLength || ''} onChange={(e) => handleAssessmentFormChange('roofLength', parseFloat(e.target.value))} className="form-input-enad" placeholder="Length (m)" required /></div><div className="dimension-input-enad"><FaArrowsAltV className="dimension-icon-small-enad" /><input type="number" step="0.1" value={assessmentForm.roofWidth || ''} onChange={(e) => handleAssessmentFormChange('roofWidth', parseFloat(e.target.value))} className="form-input-enad" placeholder="Width (m)" required /></div></div><small className="form-hint-enad">Measured during site inspection (Required)</small></div>
@@ -2160,7 +2163,7 @@ const MyAssessments = () => {
               <div className="quotation-tab-enhanced">
                 <div className="action-buttons-enad">
                   {selectedItem.assessmentStatus !== 'completed' && (
-                    <button onClick={submitFinalReport} disabled={submitting} className="btn-success-enad">
+                    <button onClick={openReportConfirmModal} disabled={submitting} className="btn-success-enad">
                       {submitting ? <FaSpinner className="spinner-enad" /> : <FaCheckCircle />} Submit Final Report
                     </button>
                   )}
@@ -2178,11 +2181,11 @@ const MyAssessments = () => {
 
                 {assessmentResults && (
                   <div className="iot-metrics-section">
-                    <h4>📊 IoT Monitoring Results (7-Day Data)</h4>
+                    <h4>IoT Monitoring Results (7-Day Data)</h4>
                     <div className="iot-metrics-grid">
                       <div className="metric-item"><FaSun /><div><label>Peak Sun Hours</label><span>{assessmentResults.peakSunHours?.toFixed(1) || '—'} hrs/day</span></div></div>
                       <div className="metric-item"><FaPercent /><div><label>Shading Percentage</label><span>{assessmentResults.shadingPercentage?.toFixed(0) || '—'}%</span></div></div>
-                      <div className="metric-item"><FaThermometerHalf /><div><label>Avg Temperature</label><span>{assessmentResults.averageTemperature?.toFixed(1) || '—'}°C</span></div></div>
+                      <div className="metric-item"><FaThermometerHalf /><div><label>Avg Temperature</label><span>{assessmentResults.averageTemperature?.toFixed(1) || '—'}C</span></div></div>
                       <div className="metric-item"><FaTint /><div><label>Avg Humidity</label><span>{assessmentResults.averageHumidity?.toFixed(0) || '—'}%</span></div></div>
                       <div className="metric-item"><FaChartLine /><div><label>Temp Derating</label><span>{systemMetrics?.temperatureDerating || '—'}%</span></div></div>
                       <div className="metric-item"><FaLocation /><div><label>GPS Location</label><span>{assessmentResults.gpsCoordinates?.latitude && assessmentResults.gpsCoordinates?.longitude ? `${assessmentResults.gpsCoordinates.latitude.toFixed(4)}, ${assessmentResults.gpsCoordinates.longitude.toFixed(4)}` : 'Not available'}</span></div></div>
@@ -2193,7 +2196,7 @@ const MyAssessments = () => {
                 {systemMetrics && (
                   <>
                     <div className="system-recommendations">
-                      <h4>🎯 System Recommendation (Based on IoT Data)</h4>
+                      <h4>System Recommendation (Based on IoT Data)</h4>
                       <div className="recommendations-grid">
                         <div className="rec-item"><label>Recommended System Size</label><strong>{systemMetrics.recommendedSystemSize} kWp</strong></div>
                         <div className="rec-item"><label>Number of Panels Needed</label><strong>{systemMetrics.panelsNeeded} pcs</strong></div>
@@ -2206,7 +2209,7 @@ const MyAssessments = () => {
                       </div>
                     </div>
                     <div className="financial-projections">
-                      <h4>💰 Financial Projections</h4>
+                      <h4>Financial Projections</h4>
                       <div className="financial-grid">
                         <div className="fin-item"><label>Estimated Total Cost</label><strong>{formatCurrency(systemMetrics.estimatedTotalCost)}</strong></div>
                         <div className="fin-item"><label>Estimated Monthly Savings</label><strong>{formatCurrency(systemMetrics.estimatedMonthlySavings)}</strong></div>
@@ -2231,7 +2234,7 @@ const MyAssessments = () => {
 
                 {/* Solar Panels */}
                 <div className="quotation-section">
-                  <h4><FaSolarPanel /> Solar Panels</h4>
+                  <h4>Solar Panels</h4>
                   <div className="equipment-selection-row">
                     <div className="form-group-enad" style={{ flex: 2 }}>
                       <select value={selectedPanel?._id || ''} onChange={(e) => { const panel = availablePanels.find(p => p._id === e.target.value); setSelectedPanel(panel); if (panel && panel.unit === 'watt') setPanelQuantity(1); }}>
@@ -2247,7 +2250,7 @@ const MyAssessments = () => {
 
                 {/* Inverters */}
                 <div className="quotation-section">
-                  <h4><FaBolt /> Inverters</h4>
+                  <h4>Inverters</h4>
                   <div className="equipment-selection-row">
                     <div className="form-group-enad" style={{ flex: 2 }}>
                       <select value={selectedInverter?._id || ''} onChange={(e) => { const inverter = availableInverters.find(i => i._id === e.target.value); setSelectedInverter(inverter); }}>
@@ -2262,7 +2265,7 @@ const MyAssessments = () => {
 
                 {/* Batteries */}
                 <div className="quotation-section">
-                  <h4><FaBatteryFull /> Batteries (Optional)</h4>
+                  <h4>Batteries (Optional)</h4>
                   <div className="equipment-selection-row">
                     <div className="form-group-enad" style={{ flex: 2 }}>
                       <select value={selectedBattery?._id || ''} onChange={(e) => { const battery = availableBatteries.find(b => b._id === e.target.value); setSelectedBattery(battery); }}>
@@ -2277,7 +2280,7 @@ const MyAssessments = () => {
 
                 {/* Mounting Structure */}
                 <div className="quotation-section">
-                  <h4><FaTools /> Mounting Structure</h4>
+                  <h4>Mounting Structure</h4>
                   <div className="equipment-selection-row">
                     <div className="form-group-enad" style={{ flex: 2 }}>
                       <select value={selectedMountingStructure?._id || ''} onChange={(e) => { const structure = availableMountingStructures.find(m => m._id === e.target.value); setSelectedMountingStructure(structure); }}>
@@ -2292,7 +2295,7 @@ const MyAssessments = () => {
 
                 {/* Electrical Components */}
                 <div className="quotation-section">
-                  <h4><FaBolt /> Electrical Components</h4>
+                  <h4>Electrical Components</h4>
                   <button type="button" className="btn-add-item" onClick={addElectricalComponent}><FaPlus /> Add Component</button>
                   {selectedElectricalComponents.map((item, index) => (
                     <div key={index} className="additional-item-row">
@@ -2311,7 +2314,7 @@ const MyAssessments = () => {
 
                 {/* Cables */}
                 <div className="quotation-section">
-                  <h4><FaWifi /> Cables and Wiring</h4>
+                  <h4>Cables and Wiring</h4>
                   <button type="button" className="btn-add-item" onClick={addCable}><FaPlus /> Add Cable</button>
                   {selectedCables.map((item, index) => (
                     <div key={index} className="additional-item-row">
@@ -2331,7 +2334,7 @@ const MyAssessments = () => {
 
                 {/* Junction Boxes */}
                 <div className="quotation-section">
-                  <h4><FaBoxes /> Junction Boxes</h4>
+                  <h4>Junction Boxes</h4>
                   <button type="button" className="btn-add-item" onClick={addJunctionBox}><FaPlus /> Add Junction Box</button>
                   {selectedJunctionBoxes.map((item, index) => (
                     <div key={index} className="additional-item-row">
@@ -2350,7 +2353,7 @@ const MyAssessments = () => {
 
                 {/* Disconnect Switches */}
                 <div className="quotation-section">
-                  <h4><FaServer /> Disconnect Switches</h4>
+                  <h4>Disconnect Switches</h4>
                   <button type="button" className="btn-add-item" onClick={addDisconnectSwitch}><FaPlus /> Add Switch</button>
                   {selectedDisconnectSwitches.map((item, index) => (
                     <div key={index} className="additional-item-row">
@@ -2369,7 +2372,7 @@ const MyAssessments = () => {
 
                 {/* Meters */}
                 <div className="quotation-section">
-                  <h4><FaChartBar /> Meters</h4>
+                  <h4>Meters</h4>
                   <button type="button" className="btn-add-item" onClick={addMeter}><FaPlus /> Add Meter</button>
                   {selectedMeters.map((item, index) => (
                     <div key={index} className="additional-item-row">
@@ -2403,7 +2406,7 @@ const MyAssessments = () => {
 
                 {/* Installation Labor */}
                 <div className="quotation-section">
-                  <h4><FaHardHat /> Installation Labor</h4>
+                  <h4>Installation Labor</h4>
                   <div className="labor-calculation">
                     <div className="labor-detail">
                       <span>Per kW installation ({quotationForm.systemSize || 0} kW x ₱{config?.laborRates?.perKw || 5000})</span>
@@ -2428,7 +2431,7 @@ const MyAssessments = () => {
                   <div className="summary-row"><span>Batteries:</span><span>{formatCurrency(calculatedCosts.batteryCost)}</span></div>
                   <div className="summary-row"><span>Mounting Structure:</span><span>{formatCurrency(calculatedCosts.mountingCost)}</span></div>
                   <div className="summary-row"><span>Electrical Components:</span><span>{formatCurrency(calculatedCosts.electricalCost)}</span></div>
-                  <div className="summary-row"><span>Cables & Wiring:</span><span>{formatCurrency(calculatedCosts.cableCost)}</span></div>
+                  <div className="summary-row"><span>Cables and Wiring:</span><span>{formatCurrency(calculatedCosts.cableCost)}</span></div>
                   <div className="summary-row"><span>Junction Boxes:</span><span>{formatCurrency(calculatedCosts.junctionBoxCost)}</span></div>
                   <div className="summary-row"><span>Disconnect Switches:</span><span>{formatCurrency(calculatedCosts.disconnectSwitchCost)}</span></div>
                   <div className="summary-row"><span>Meters:</span><span>{formatCurrency(calculatedCosts.meterCost)}</span></div>
@@ -2438,15 +2441,9 @@ const MyAssessments = () => {
                   <div className="summary-row total"><span>TOTAL SYSTEM COST:</span><span>{formatCurrency(calculatedCosts.totalSystemCost)}</span></div>
                 </div>
 
-                {/* Payment Terms */}
-                {/* <div className="form-group-enad">
-                  <label>Payment Terms</label>
-                  <textarea value={quotationForm.paymentTerms} onChange={(e) => handleQuotationChange('paymentTerms', e.target.value)} rows={3} placeholder="e.g., 30% down payment, 70% upon completion" />
-                </div> */}
-
                 <div className="action-buttons-enad" style={{ marginTop: '20px' }}>
                   <button onClick={generateQuotationPDF} disabled={generatingPDF || !quotationForm.systemSize || calculatedCosts.totalSystemCost === 0} className="btn-primary-enad">
-                    {generatingPDF ? <FaSpinner className="spinner-enad" /> : <FaFilePdf />} Generate & Upload PDF
+                    {generatingPDF ? <FaSpinner className="spinner-enad" /> : <FaFilePdf />} Generate and Upload PDF
                   </button>
                 </div>
               </div>
@@ -2464,6 +2461,84 @@ const MyAssessments = () => {
           </div>
         </div>
       </div>
+
+      {/* Deploy Device Confirmation Modal */}
+      {showDeployConfirmModal && selectedItem && (
+        <div className="modal-overlay-enad" onClick={closeDeployConfirmModal}>
+          <div className="modal-content-enad confirm-modal-enad" onClick={e => e.stopPropagation()}>
+            <div className="modal-header-enad">
+              <h3>Confirm Device Deployment</h3>
+              <button className="modal-close-enad" onClick={closeDeployConfirmModal}>×</button>
+            </div>
+            <div className="modal-body-enad">
+              <div className="confirm-message-enad">
+                <FaExclamationTriangle className="warning-icon-enad" />
+                <p>Are you sure you want to deploy the device on site?</p>
+              </div>
+              <div className="device-details-confirm-enad">
+                <div className="detail-row-enad">
+                  <span className="detail-label-enad">Device ID:</span>
+                  <span className="detail-value-enad">{selectedItem.iotDeviceId?.deviceId || selectedItem.assignedDeviceId || 'N/A'}</span>
+                </div>
+                <div className="detail-row-enad">
+                  <span className="detail-label-enad">Device Name:</span>
+                  <span className="detail-value-enad">{selectedItem.iotDeviceId?.deviceName || selectedItem.assignedDevice?.deviceName || 'IoT Device'}</span>
+                </div>
+                <div className="detail-row-enad">
+                  <span className="detail-label-enad">Location:</span>
+                  <span className="detail-value-enad">{getFullAddress(selectedItem.address)}</span>
+                </div>
+                <div className="detail-row-enad">
+                  <span className="detail-label-enad">Deployment Notes:</span>
+                  <span className="detail-value-enad">{deployNotes}</span>
+                </div>
+              </div>
+              <div className="warning-box-enad">
+                <p>This action will:</p>
+                <ul>
+                  <li>Start 7-day data collection period</li>
+                  <li>The device cannot be reassigned during this period</li>
+                </ul>
+              </div>
+            </div>
+            <div className="modal-actions-enad">
+              <button className="cancel-btn-enad" onClick={closeDeployConfirmModal}>Cancel</button>
+              <button className="confirm-deploy-btn-enad" onClick={deployDevice} disabled={submitting}>
+                {submitting ? <FaSpinner className="spinner-enad" /> : <FaCheck />}
+                {submitting ? 'Deploying...' : 'Confirm Deployment'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Submit Final Report Confirmation Modal */}
+      {showReportConfirmModal && (
+        <div className="modal-overlay-enad" onClick={closeReportConfirmModal}>
+          <div className="modal-content-enad confirm-modal-enad" onClick={e => e.stopPropagation()}>
+            <div className="modal-header-enad">
+              <h3>Confirm Final Report Submission</h3>
+              <button className="modal-close-enad" onClick={closeReportConfirmModal}>×</button>
+            </div>
+            <div className="modal-body-enad">
+              <div className="confirm-message-enad">
+                <FaExclamationTriangle className="warning-icon-enad" />
+                <p>Are you sure you want to submit the final report?</p>
+              </div>
+              <div className="warning-box-enad">
+                <p>This action cannot be undone.</p>
+              </div>
+            </div>
+            <div className="modal-actions-enad">
+              <button className="cancel-btn-enad" onClick={closeReportConfirmModal}>Cancel</button>
+              <button className="confirm-submit-btn-enad" onClick={submitFinalReport} disabled={submitting}>
+                {submitting ? <FaSpinner className="spinner-enad" /> : <FaCheck />}
+                {submitting ? 'Submitting...' : 'Confirm Submission'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

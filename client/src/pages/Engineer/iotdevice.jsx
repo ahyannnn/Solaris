@@ -50,7 +50,6 @@ const IoTDevice = () => {
   const [sensorData, setSensorData] = useState([]);
   const [sensorStats, setSensorStats] = useState({});
   const [showDataModal, setShowDataModal] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -58,6 +57,7 @@ const IoTDevice = () => {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [gpsData, setGpsData] = useState(null);
   const [retrieving, setRetrieving] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_URL || '';
@@ -65,10 +65,11 @@ const IoTDevice = () => {
 
   const API_BASE_URL = getApiBaseUrl();
 
-  // Calculate shading percentage using multiple methods
+  // ✅ IMPROVED: Calculate shading percentage using multiple methods
   const calculateShadingPercentage = (readings) => {
     if (!readings || readings.length === 0) return 0;
     
+    // Method 1: Look for sudden drops in irradiance (typical of passing clouds/shading)
     let shadingEvents = 0;
     let totalReadings = 0;
     
@@ -76,9 +77,11 @@ const IoTDevice = () => {
       const prevIrradiance = readings[i-1].irradiance || 0;
       const currIrradiance = readings[i].irradiance || 0;
       
+      // Only consider during peak sun hours (9 AM - 3 PM)
       const hour = new Date(readings[i].timestamp).getHours();
       if (hour >= 9 && hour <= 15 && prevIrradiance > 200) {
         totalReadings++;
+        // A drop of more than 30% in irradiance within a short time indicates shading
         if (prevIrradiance > 0 && currIrradiance < prevIrradiance * 0.7) {
           shadingEvents++;
         }
@@ -87,11 +90,18 @@ const IoTDevice = () => {
     
     const shadingByDrops = totalReadings > 0 ? (shadingEvents / totalReadings) * 100 : 0;
     
-    const maxPossibleIrradiance = 950;
+    // Method 2: Compare to theoretical maximum irradiance for the location
+    // Peak irradiance in Philippines typically 800-1000 W/m²
+    const maxPossibleIrradiance = 950; // Typical for tropical regions
+    
+    // Find the maximum irradiance recorded
     const maxRecorded = Math.max(...readings.map(r => r.irradiance || 0));
+    
+    // Calculate shading based on how far below theoretical max
     const theoreticalMax = maxPossibleIrradiance;
     const shadingByMax = theoreticalMax > 0 ? ((theoreticalMax - maxRecorded) / theoreticalMax) * 100 : 0;
     
+    // Method 3: Look at variance in irradiance - high variance indicates intermittent shading
     const daylightReadings = readings.filter(r => {
       const hour = new Date(r.timestamp).getHours();
       return hour >= 8 && hour <= 16;
@@ -102,11 +112,17 @@ const IoTDevice = () => {
       const avg = daylightReadings.reduce((sum, r) => sum + (r.irradiance || 0), 0) / daylightReadings.length;
       variance = daylightReadings.reduce((sum, r) => sum + Math.pow((r.irradiance || 0) - avg, 2), 0) / daylightReadings.length;
       const stdDev = Math.sqrt(variance);
-      const cv = avg > 0 ? (stdDev / avg) * 100 : 0;
+      const cv = avg > 0 ? (stdDev / avg) * 100 : 0; // Coefficient of variation
+      // High coefficient of variation (>30%) indicates shading
       const shadingByVariance = Math.min(70, Math.max(0, cv - 20));
       
+      // Combine all methods with weights
       let finalShading = (shadingByDrops * 0.4) + (shadingByMax * 0.3) + (shadingByVariance * 0.3);
+      
+      // Ensure value is between 0 and 100
       finalShading = Math.min(100, Math.max(0, finalShading));
+      
+      
       
       return finalShading;
     }
@@ -114,13 +130,15 @@ const IoTDevice = () => {
     return shadingByDrops;
   };
 
-  // Calculate temperature derating
+  // ✅ IMPROVED: Calculate temperature derating
   const calculateTemperatureDerating = (readings) => {
     if (!readings || readings.length === 0) return 0;
     
-    const TEMP_COEFFICIENT = 0.4;
+    // Standard Temperature Coefficient for typical solar panels: -0.4% per °C above 25°C
+    const TEMP_COEFFICIENT = 0.4; // Positive value for derating calculation
     const STC_TEMPERATURE = 25;
     
+    // Get readings during peak sun hours (10 AM - 2 PM) when panels are hottest
     const peakHoursReadings = readings.filter(reading => {
       const hour = new Date(reading.timestamp).getHours();
       return hour >= 10 && hour <= 14;
@@ -128,19 +146,28 @@ const IoTDevice = () => {
     
     if (peakHoursReadings.length === 0) return 0;
     
+    // Calculate average temperature during peak hours
     const avgTemp = peakHoursReadings.reduce((sum, r) => sum + (r.temperature || 0), 0) / peakHoursReadings.length;
+    
+    // Calculate temperature difference above STC
     const tempDiff = Math.max(0, avgTemp - STC_TEMPERATURE);
+    
+    // Calculate derating: each °C above 25°C reduces efficiency by 0.4%
     const derating = tempDiff * TEMP_COEFFICIENT;
     
-    return Math.min(30, derating);
+    
+    
+    return Math.min(30, derating); // Cap at 30% max derating
   };
 
-  // Calculate peak sun hours using integration
+  // ✅ IMPROVED: Calculate peak sun hours using integration
   const calculatePeakSunHours = (readings) => {
     if (!readings || readings.length < 2) return 0;
     
+    // Sort readings by timestamp
     const sortedReadings = [...readings].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     
+    // Only consider readings during daylight hours (6 AM - 6 PM)
     const daylightReadings = sortedReadings.filter(r => {
       const hour = new Date(r.timestamp).getHours();
       return hour >= 6 && hour <= 18;
@@ -150,13 +177,17 @@ const IoTDevice = () => {
     
     let totalIrradianceKwh = 0;
     
+    // Trapezoidal integration to calculate area under the curve
     for (let i = 0; i < daylightReadings.length - 1; i++) {
-      const timeDiff = (new Date(daylightReadings[i + 1].timestamp) - new Date(daylightReadings[i].timestamp)) / (1000 * 60 * 60);
+      const timeDiff = (new Date(daylightReadings[i + 1].timestamp) - new Date(daylightReadings[i].timestamp)) / (1000 * 60 * 60); // hours
       const avgIrradiance = ((daylightReadings[i].irradiance || 0) + (daylightReadings[i + 1].irradiance || 0)) / 2;
-      totalIrradianceKwh += (avgIrradiance * timeDiff) / 1000;
+      totalIrradianceKwh += (avgIrradiance * timeDiff) / 1000; // Convert W/m² * hours to kWh/m²
     }
     
+    // Peak sun hours = total kWh/m² (since 1 peak sun hour = 1000 W/m² for 1 hour)
     const peakSunHours = totalIrradianceKwh;
+    
+    
     
     return Math.max(0, peakSunHours);
   };
@@ -258,15 +289,18 @@ const IoTDevice = () => {
       const readings = response.data.readings || [];
       const stats = response.data.stats || {};
       
+      // ✅ Calculate metrics from sensor data
       const calculatedPeakSunHours = calculatePeakSunHours(readings);
       const calculatedShadingPercentage = calculateShadingPercentage(readings);
       const calculatedTemperatureDerating = calculateTemperatureDerating(readings);
       
+      // Merge backend stats with calculated values (prioritize calculated values)
       const enhancedStats = {
         ...stats,
         peakSunHours: calculatedPeakSunHours > 0 ? calculatedPeakSunHours : (stats.peakSunHours || 0),
         shadingPercentage: calculatedShadingPercentage > 0 ? calculatedShadingPercentage : (stats.shadingPercentage || 0),
         temperatureDerating: calculatedTemperatureDerating > 0 ? calculatedTemperatureDerating : (stats.temperatureDerating || 0),
+        // Preserve original stats
         averageIrradiance: stats.averageIrradiance || 0,
         maxIrradiance: stats.maxIrradiance || 0,
         averageTemperature: stats.averageTemperature || 0,
@@ -276,6 +310,8 @@ const IoTDevice = () => {
         minHumidity: stats.minHumidity || 0,
         maxHumidity: stats.maxHumidity || 0
       };
+      
+      
       
       setSensorData(readings);
       setSensorStats(enhancedStats);
@@ -302,8 +338,13 @@ const IoTDevice = () => {
     await fetchSensorData(device.assessmentId);
   };
 
+  const openConfirmModal = () => {
+    setShowConfirmModal(true);
+  };
+
   const handleRetrieveDevice = async () => {
     if (!selectedDevice) return;
+
     setRetrieving(true);
     setShowConfirmModal(false);
     
@@ -328,14 +369,6 @@ const IoTDevice = () => {
     } finally {
       setRetrieving(false);
     }
-  };
-
-  const openConfirmModal = () => {
-    setShowConfirmModal(true);
-  };
-
-  const closeConfirmModal = () => {
-    setShowConfirmModal(false);
   };
 
   const downloadData = () => {
@@ -814,19 +847,19 @@ const IoTDevice = () => {
 
         {/* Confirmation Modal */}
         {showConfirmModal && selectedDevice && (
-          <div className="modal-overlay-iotdevicead" onClick={closeConfirmModal}>
+          <div className="modal-overlay-iotdevicead" onClick={() => setShowConfirmModal(false)}>
             <div className="modal-content-iotdevicead confirm-modal-iotdevicead" onClick={e => e.stopPropagation()}>
               <div className="modal-header-iotdevicead">
                 <h3>Confirm Device Retrieval</h3>
-                <button className="modal-close-iotdevicead" onClick={closeConfirmModal}>×</button>
+                <button className="modal-close-iotdevicead" onClick={() => setShowConfirmModal(false)}>×</button>
               </div>
-              
-              <div className="modal-body-iotdevicead">
+              <div className="modal-body-iotdevicead confirm-modal-body-iotdevicead">
+                <div className="warning-icon-iotdevicead">
+                  <FaExclamationTriangle />
+                </div>
                 <div className="confirm-message-iotdevicead">
-                  <FaExclamationTriangle className="warning-icon-iotdevicead" />
                   <p>Are you sure you want to retrieve this device?</p>
                 </div>
-                
                 <div className="device-details-confirm-iotdevicead">
                   <div className="detail-row-iotdevicead">
                     <span className="detail-label-iotdevicead">Device ID:</span>
@@ -845,9 +878,8 @@ const IoTDevice = () => {
                     <span className="detail-value-iotdevicead">{selectedDevice.clientName}</span>
                   </div>
                 </div>
-                
-                <div className="warning-box-iotdevicead">
-                  <p>This action will:</p>
+                <div className="warning-message-iotdevicead">
+                  <p><strong>⚠️ This will:</strong></p>
                   <ul>
                     <li>Mark the assessment status as "Data Analyzing"</li>
                     <li>Mark the device status as "Retrieved"</li>
@@ -855,18 +887,15 @@ const IoTDevice = () => {
                   </ul>
                 </div>
               </div>
-              
-              <div className="modal-actions-iotdevicead">
-                <button className="cancel-btn-iotdevicead" onClick={closeConfirmModal}>
-                  Cancel
-                </button>
+              <div className="modal-actions-iotdevicead confirm-actions-iotdevicead">
+                <button className="cancel-btn-iotdevicead" onClick={() => setShowConfirmModal(false)}>Cancel</button>
                 <button 
                   className="confirm-retrieve-btn-iotdevicead" 
                   onClick={handleRetrieveDevice}
                   disabled={retrieving}
                 >
                   {retrieving ? <FaSpinner className="spinner-enad" /> : <FaArrowCircleUp />}
-                  {retrieving ? 'Retrieving...' : 'Confirm Retrieval'}
+                  {retrieving ? 'Retrieving...' : 'Yes, Retrieve Device'}
                 </button>
               </div>
             </div>

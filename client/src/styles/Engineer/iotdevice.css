@@ -1030,3 +1030,145 @@
     transform: rotate(360deg);
   }
 }
+
+/* iotdevice.css - Add these styles */
+
+/* Confirmation Modal Styles */
+.confirm-modal-iotdevicead {
+  max-width: 500px;
+  width: 90%;
+}
+
+.confirm-modal-body-iotdevicead {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.warning-icon-iotdevicead {
+  font-size: 3rem;
+  color: #f97316;
+  margin-bottom: 1rem;
+}
+
+.confirm-message-iotdevicead {
+  margin-bottom: 1.5rem;
+}
+
+.confirm-message-iotdevicead p {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.device-details-confirm-iotdevicead {
+  background-color: #f9fafb;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.detail-row-iotdevicead {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.detail-row-iotdevicead:last-child {
+  border-bottom: none;
+}
+
+.detail-label-iotdevicead {
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.detail-value-iotdevicead {
+  color: #1f2937;
+  font-family: monospace;
+}
+
+.warning-message-iotdevicead {
+  background-color: #fffbeb;
+  border-left: 4px solid #f97316;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.warning-message-iotdevicead p {
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.warning-message-iotdevicead ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.warning-message-iotdevicead li {
+  margin: 0.25rem 0;
+  color: #78350f;
+  font-size: 0.875rem;
+}
+
+.confirm-actions-iotdevicead {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1rem 1.5rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.cancel-btn-iotdevicead {
+  padding: 0.6rem 1.25rem;
+  background-color: #f3f4f6;
+  border: none;
+  border-radius: 8px;
+  color: #4b5563;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn-iotdevicead:hover {
+  background-color: #e5e7eb;
+}
+
+.confirm-retrieve-btn-iotdevicead {
+  padding: 0.6rem 1.25rem;
+  background-color: #f97316;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.confirm-retrieve-btn-iotdevicead:hover:not(:disabled) {
+  background-color: #ea580c;
+}
+
+.confirm-retrieve-btn-iotdevicead:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinner-enad {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

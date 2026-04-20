@@ -65,11 +65,75 @@ const IoTDevice = () => {
 
   const API_BASE_URL = getApiBaseUrl();
 
-  // ✅ IMPROVED: Calculate shading percentage using multiple methods
+  // ==================== TIMEZONE FIX: Subtract 8 hours from UTC ====================
+  // This converts UTC+0 to Philippine time by subtracting 8 hours
+  const subtract8Hours = (date) => {
+    if (!date) return null;
+    const originalDate = new Date(date);
+    // Subtract 8 hours (8 * 60 * 60 * 1000 milliseconds)
+    return new Date(originalDate.getTime() - (8 * 60 * 60 * 1000));
+  };
+
+  const formatPhilippineTime = (date, options = {}) => {
+    if (!date) return 'N/A';
+    
+    const adjustedDate = subtract8Hours(date);
+    
+    const defaultOptions = {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    };
+    
+    return adjustedDate.toLocaleString('en-PH', { ...defaultOptions, ...options });
+  };
+
+  const formatPhilippineDateShort = (date, options = {}) => {
+    if (!date) return 'N/A';
+    
+    const adjustedDate = subtract8Hours(date);
+    
+    const defaultOptions = {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+    
+    return adjustedDate.toLocaleString('en-PH', { ...defaultOptions, ...options });
+  };
+
+  // For chart tooltips - subtract 8 hours
+  const formatTooltipDate = (timestamp) => {
+    if (!timestamp) return 'N/A';
+    const adjustedDate = subtract8Hours(timestamp);
+    return adjustedDate.toLocaleString('en-PH', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
+  // For chart X-axis - subtract 8 hours
+  const formatAxisDate = (timestamp) => {
+    if (!timestamp) return '';
+    const adjustedDate = subtract8Hours(timestamp);
+    return adjustedDate.toLocaleDateString('en-PH', {
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  // ==================== SOLAR METRICS CALCULATIONS ====================
   const calculateShadingPercentage = (readings) => {
     if (!readings || readings.length === 0) return 0;
     
-    // Method 1: Look for sudden drops in irradiance (typical of passing clouds/shading)
     let shadingEvents = 0;
     let totalReadings = 0;
     
@@ -77,11 +141,12 @@ const IoTDevice = () => {
       const prevIrradiance = readings[i-1].irradiance || 0;
       const currIrradiance = readings[i].irradiance || 0;
       
-      // Only consider during peak sun hours (9 AM - 3 PM)
-      const hour = new Date(readings[i].timestamp).getHours();
+      // Use adjusted time for hour calculation
+      const adjustedDate = subtract8Hours(readings[i].timestamp);
+      const hour = adjustedDate.getHours();
+      
       if (hour >= 9 && hour <= 15 && prevIrradiance > 200) {
         totalReadings++;
-        // A drop of more than 30% in irradiance within a short time indicates shading
         if (prevIrradiance > 0 && currIrradiance < prevIrradiance * 0.7) {
           shadingEvents++;
         }
@@ -90,20 +155,13 @@ const IoTDevice = () => {
     
     const shadingByDrops = totalReadings > 0 ? (shadingEvents / totalReadings) * 100 : 0;
     
-    // Method 2: Compare to theoretical maximum irradiance for the location
-    // Peak irradiance in Philippines typically 800-1000 W/m²
-    const maxPossibleIrradiance = 950; // Typical for tropical regions
-    
-    // Find the maximum irradiance recorded
+    const maxPossibleIrradiance = 950;
     const maxRecorded = Math.max(...readings.map(r => r.irradiance || 0));
+    const shadingByMax = maxPossibleIrradiance > 0 ? ((maxPossibleIrradiance - maxRecorded) / maxPossibleIrradiance) * 100 : 0;
     
-    // Calculate shading based on how far below theoretical max
-    const theoreticalMax = maxPossibleIrradiance;
-    const shadingByMax = theoreticalMax > 0 ? ((theoreticalMax - maxRecorded) / theoreticalMax) * 100 : 0;
-    
-    // Method 3: Look at variance in irradiance - high variance indicates intermittent shading
     const daylightReadings = readings.filter(r => {
-      const hour = new Date(r.timestamp).getHours();
+      const adjustedDate = subtract8Hours(r.timestamp);
+      const hour = adjustedDate.getHours();
       return hour >= 8 && hour <= 16;
     });
     
@@ -112,17 +170,11 @@ const IoTDevice = () => {
       const avg = daylightReadings.reduce((sum, r) => sum + (r.irradiance || 0), 0) / daylightReadings.length;
       variance = daylightReadings.reduce((sum, r) => sum + Math.pow((r.irradiance || 0) - avg, 2), 0) / daylightReadings.length;
       const stdDev = Math.sqrt(variance);
-      const cv = avg > 0 ? (stdDev / avg) * 100 : 0; // Coefficient of variation
-      // High coefficient of variation (>30%) indicates shading
+      const cv = avg > 0 ? (stdDev / avg) * 100 : 0;
       const shadingByVariance = Math.min(70, Math.max(0, cv - 20));
       
-      // Combine all methods with weights
       let finalShading = (shadingByDrops * 0.4) + (shadingByMax * 0.3) + (shadingByVariance * 0.3);
-      
-      // Ensure value is between 0 and 100
       finalShading = Math.min(100, Math.max(0, finalShading));
-      
-      
       
       return finalShading;
     }
@@ -130,46 +182,35 @@ const IoTDevice = () => {
     return shadingByDrops;
   };
 
-  // ✅ IMPROVED: Calculate temperature derating
   const calculateTemperatureDerating = (readings) => {
     if (!readings || readings.length === 0) return 0;
     
-    // Standard Temperature Coefficient for typical solar panels: -0.4% per °C above 25°C
-    const TEMP_COEFFICIENT = 0.4; // Positive value for derating calculation
+    const TEMP_COEFFICIENT = 0.4;
     const STC_TEMPERATURE = 25;
     
-    // Get readings during peak sun hours (10 AM - 2 PM) when panels are hottest
     const peakHoursReadings = readings.filter(reading => {
-      const hour = new Date(reading.timestamp).getHours();
+      const adjustedDate = subtract8Hours(reading.timestamp);
+      const hour = adjustedDate.getHours();
       return hour >= 10 && hour <= 14;
     });
     
     if (peakHoursReadings.length === 0) return 0;
     
-    // Calculate average temperature during peak hours
     const avgTemp = peakHoursReadings.reduce((sum, r) => sum + (r.temperature || 0), 0) / peakHoursReadings.length;
-    
-    // Calculate temperature difference above STC
     const tempDiff = Math.max(0, avgTemp - STC_TEMPERATURE);
-    
-    // Calculate derating: each °C above 25°C reduces efficiency by 0.4%
     const derating = tempDiff * TEMP_COEFFICIENT;
     
-    
-    
-    return Math.min(30, derating); // Cap at 30% max derating
+    return Math.min(30, derating);
   };
 
-  // ✅ IMPROVED: Calculate peak sun hours using integration
   const calculatePeakSunHours = (readings) => {
     if (!readings || readings.length < 2) return 0;
     
-    // Sort readings by timestamp
     const sortedReadings = [...readings].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     
-    // Only consider readings during daylight hours (6 AM - 6 PM)
     const daylightReadings = sortedReadings.filter(r => {
-      const hour = new Date(r.timestamp).getHours();
+      const adjustedDate = subtract8Hours(r.timestamp);
+      const hour = adjustedDate.getHours();
       return hour >= 6 && hour <= 18;
     });
     
@@ -177,21 +218,17 @@ const IoTDevice = () => {
     
     let totalIrradianceKwh = 0;
     
-    // Trapezoidal integration to calculate area under the curve
     for (let i = 0; i < daylightReadings.length - 1; i++) {
-      const timeDiff = (new Date(daylightReadings[i + 1].timestamp) - new Date(daylightReadings[i].timestamp)) / (1000 * 60 * 60); // hours
+      const timeDiff = (new Date(daylightReadings[i + 1].timestamp) - new Date(daylightReadings[i].timestamp)) / (1000 * 60 * 60);
       const avgIrradiance = ((daylightReadings[i].irradiance || 0) + (daylightReadings[i + 1].irradiance || 0)) / 2;
-      totalIrradianceKwh += (avgIrradiance * timeDiff) / 1000; // Convert W/m² * hours to kWh/m²
+      totalIrradianceKwh += (avgIrradiance * timeDiff) / 1000;
     }
     
-    // Peak sun hours = total kWh/m² (since 1 peak sun hour = 1000 W/m² for 1 hour)
     const peakSunHours = totalIrradianceKwh;
-    
-    
-    
     return Math.max(0, peakSunHours);
   };
 
+  // ==================== DATA FETCHING ====================
   useEffect(() => {
     fetchMyDevices();
   }, [currentPage]);
@@ -289,18 +326,15 @@ const IoTDevice = () => {
       const readings = response.data.readings || [];
       const stats = response.data.stats || {};
       
-      // ✅ Calculate metrics from sensor data
       const calculatedPeakSunHours = calculatePeakSunHours(readings);
       const calculatedShadingPercentage = calculateShadingPercentage(readings);
       const calculatedTemperatureDerating = calculateTemperatureDerating(readings);
       
-      // Merge backend stats with calculated values (prioritize calculated values)
       const enhancedStats = {
         ...stats,
         peakSunHours: calculatedPeakSunHours > 0 ? calculatedPeakSunHours : (stats.peakSunHours || 0),
         shadingPercentage: calculatedShadingPercentage > 0 ? calculatedShadingPercentage : (stats.shadingPercentage || 0),
         temperatureDerating: calculatedTemperatureDerating > 0 ? calculatedTemperatureDerating : (stats.temperatureDerating || 0),
-        // Preserve original stats
         averageIrradiance: stats.averageIrradiance || 0,
         maxIrradiance: stats.maxIrradiance || 0,
         averageTemperature: stats.averageTemperature || 0,
@@ -310,8 +344,6 @@ const IoTDevice = () => {
         minHumidity: stats.minHumidity || 0,
         maxHumidity: stats.maxHumidity || 0
       };
-      
-      
       
       setSensorData(readings);
       setSensorStats(enhancedStats);
@@ -374,14 +406,24 @@ const IoTDevice = () => {
   const downloadData = () => {
     if (!sensorData.length) return;
 
-    const csvData = sensorData.map(reading => ({
-      timestamp: new Date(reading.timestamp).toISOString(),
-      irradiance: reading.irradiance || 0,
-      temperature: reading.temperature || 0,
-      humidity: reading.humidity || 0
-    }));
+    const csvData = sensorData.map(reading => {
+      const adjustedDate = subtract8Hours(reading.timestamp);
+      return {
+        timestamp: adjustedDate.toLocaleString('en-PH', { 
+          year: 'numeric', 
+          month: '2-digit', 
+          day: '2-digit', 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          second: '2-digit' 
+        }),
+        irradiance: reading.irradiance || 0,
+        temperature: reading.temperature || 0,
+        humidity: reading.humidity || 0
+      };
+    });
 
-    const headers = ['Timestamp', 'Irradiance (W/m²)', 'Temperature (°C)', 'Humidity (%)'];
+    const headers = ['Timestamp (Philippine Time)', 'Irradiance (W/m²)', 'Temperature (°C)', 'Humidity (%)'];
     const csvRows = [headers];
 
     csvData.forEach(row => {
@@ -393,7 +435,7 @@ const IoTDevice = () => {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `sensor_data_${selectedDevice.deviceId}_${new Date().toISOString()}.csv`;
+    link.download = `sensor_data_${selectedDevice.deviceId}_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -411,19 +453,15 @@ const IoTDevice = () => {
     return badges[status] || <span className="status-badge-iotdevicead">{status}</span>;
   };
 
+  // Format date for display (subtracts 8 hours)
   const formatDate = (date) => {
-    if (!date) return 'N/A';
-    return new Date(date).toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return formatPhilippineDateShort(date);
   };
 
   const getDeviceStatusColor = (lastHeartbeat) => {
     if (!lastHeartbeat) return 'offline';
-    const hoursSince = (new Date() - new Date(lastHeartbeat)) / (1000 * 60 * 60);
+    const adjustedHeartbeat = subtract8Hours(lastHeartbeat);
+    const hoursSince = (new Date() - adjustedHeartbeat) / (1000 * 60 * 60);
     if (hoursSince < 1) return 'online';
     if (hoursSince < 24) return 'recent';
     return 'offline';
@@ -440,6 +478,7 @@ const IoTDevice = () => {
 
   const paginatedDevices = filteredDevices.slice((currentPage - 1) * 10, currentPage * 10);
 
+  // Chart data - timestamps are adjusted for display but keep original for calculations
   const chartData = sensorData.map(reading => ({
     timestamp: new Date(reading.timestamp).getTime(),
     irradiance: reading.irradiance || 0,
@@ -624,7 +663,7 @@ const IoTDevice = () => {
                   </div>
                 </div>
 
-                {/* KEY METRICS SECTION - Peak Sun Hours, Shading, Derating */}
+                {/* KEY METRICS SECTION */}
                 {sensorStats && hasValidSensorData && (
                   <div className="key-metrics-iotdevicead">
                     <h4>Key Solar Metrics</h4>
@@ -654,7 +693,7 @@ const IoTDevice = () => {
                   </div>
                 )}
 
-                {/* Stats Cards - Avg Irradiance, Temp, Humidity, Max Irradiance */}
+                {/* Stats Cards */}
                 {sensorStats && hasValidSensorData && (
                   <div className="stats-cards-iotdevicead">
                     <div className="stat-card-iotdevicead irradiance-iotdevicead">
@@ -684,7 +723,7 @@ const IoTDevice = () => {
                   </div>
                 )}
 
-                {/* Auto-refresh and Export buttons */}
+                {/* Controls */}
                 {hasValidSensorData && (
                   <div className="range-selector-iotdevicead">
                     <button onClick={downloadData} className="download-btn-iotdevicead" disabled={!sensorData.length}>
@@ -699,22 +738,23 @@ const IoTDevice = () => {
                   </div>
                 )}
 
-                {/* Charts */}
+                {/* CHARTS - With 8 hours subtracted */}
                 {chartData.length > 0 && hasValidSensorData && (
                   <>
                     <div className="chart-container-iotdevicead">
-                      <h4>Solar Irradiance</h4>
+                      <h4>Solar Irradiance (Philippine Time)</h4>
                       <div className="chart-iotdevicead">
                         <ResponsiveContainer width="100%" height={300}>
                           <AreaChart data={chartData}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis
                               dataKey="timestamp"
-                              tickFormatter={(ts) => new Date(ts).toLocaleDateString()}
+                              tickFormatter={formatAxisDate}
+                              domain={['auto', 'auto']}
                             />
                             <YAxis label={{ value: 'Irradiance (W/m²)', angle: -90, position: 'insideLeft' }} />
                             <Tooltip
-                              labelFormatter={(label) => new Date(label).toLocaleString()}
+                              labelFormatter={formatTooltipDate}
                               formatter={(value) => [`${value} W/m²`, 'Irradiance']}
                             />
                             <Legend />
@@ -731,19 +771,20 @@ const IoTDevice = () => {
                     </div>
 
                     <div className="chart-container-iotdevicead">
-                      <h4>Temperature & Humidity</h4>
+                      <h4>Temperature & Humidity (Philippine Time)</h4>
                       <div className="chart-iotdevicead">
                         <ResponsiveContainer width="100%" height={300}>
                           <ComposedChart data={chartData}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis
                               dataKey="timestamp"
-                              tickFormatter={(ts) => new Date(ts).toLocaleDateString()}
+                              tickFormatter={formatAxisDate}
+                              domain={['auto', 'auto']}
                             />
                             <YAxis yAxisId="left" label={{ value: 'Temperature (°C)', angle: -90, position: 'insideLeft' }} />
                             <YAxis yAxisId="right" orientation="right" label={{ value: 'Humidity (%)', angle: 90, position: 'insideRight' }} />
                             <Tooltip
-                              labelFormatter={(label) => new Date(label).toLocaleString()}
+                              labelFormatter={formatTooltipDate}
                             />
                             <Legend />
                             <Line
@@ -769,15 +810,15 @@ const IoTDevice = () => {
                   </>
                 )}
 
-                {/* Recent Readings Table */}
+                {/* Recent Readings Table - With 8 hours subtracted */}
                 {sensorData.length > 0 && hasValidSensorData && (
                   <div className="readings-table-iotdevicead">
-                    <h4>Recent Readings</h4>
+                    <h4>Recent Readings (Philippine Time)</h4>
                     <div className="table-container-iotdevicead">
                       <table className="readings-table">
                         <thead>
                           <tr>
-                            <th>Timestamp</th>
+                            <th>Timestamp (Philippine Time)</th>
                             <th>Irradiance (W/m²)</th>
                             <th>Temperature (°C)</th>
                             <th>Humidity (%)</th>
@@ -786,14 +827,14 @@ const IoTDevice = () => {
                         <tbody>
                           {sensorData.slice(0, 20).map((reading, idx) => (
                             <tr key={idx}>
-                              <td>{formatDate(reading.timestamp)}</td>
+                              <td>{formatPhilippineTime(reading.timestamp)}</td>
                               <td>{reading.irradiance || 0}</td>
                               <td>{reading.temperature?.toFixed(1) || 0}</td>
                               <td>{reading.humidity?.toFixed(0) || 0}%</td>
-                            </tr>
+                             </tr>
                           ))}
                         </tbody>
-                      </table>
+                       </table>
                     </div>
                   </div>
                 )}

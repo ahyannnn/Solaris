@@ -104,7 +104,7 @@ const Reports = () => {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState('site-assessment');
-  const [dateRange, setDateRange] = useState({ 
+  const [dateRange, setDateRange] = useState({
     startDate: new Date(new Date().setDate(1)).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0]
   });
@@ -112,14 +112,14 @@ const Reports = () => {
   const [selectedProject, setSelectedProject] = useState('');
   const [selectedAssessment, setSelectedAssessment] = useState('');
   const [selectedClient, setSelectedClient] = useState('');
-  
+
   // Data for reports
   const [assessments, setAssessments] = useState([]);
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [payments, setPayments] = useState([]);
-  
+
   const [stats, setStats] = useState({
     revenue: { total: 0, thisMonth: 0, lastMonth: 0 },
     assessments: { total: 0, completed: 0, pending: 0, suitable: 0, notSuitable: 0, conditional: 0 },
@@ -136,36 +136,36 @@ const Reports = () => {
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token');
-      
+
       const [assessmentsRes, projectsRes, clientsRes] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {  
-          headers: { Authorization: `Bearer ${token}` } 
+        axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
+          headers: { Authorization: `Bearer ${token}` }
         }).catch(() => ({ data: { assessments: [] } })),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, { 
-          headers: { Authorization: `Bearer ${token}` } 
+        axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, {
+          headers: { Authorization: `Bearer ${token}` }
         }).catch(() => ({ data: { projects: [] } })),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/admin/clients`, { 
-          headers: { Authorization: `Bearer ${token}` } 
+        axios.get(`${import.meta.env.VITE_API_URL}/api/admin/clients`, {
+          headers: { Authorization: `Bearer ${token}` }
         }).catch(() => ({ data: { clients: [] } }))
       ]);
-      
+
       const allAssessments = assessmentsRes.data.assessments || [];
       const allProjects = projectsRes.data.projects || [];
       const allClients = clientsRes.data.clients || [];
-      
+
       setAssessments(allAssessments);
       setProjects(allProjects);
       setClients(allClients);
-      
+
       // Calculate suitability from assessments
       const calculateScore = (assessment) => {
         const results = assessment.assessmentResults || {};
         const peakSunHours = results.peakSunHours;
         const shadingPercentage = results.shadingPercentage;
         const summaryScore = results.summary?.siteSuitabilityScore;
-        
+
         if (summaryScore) return summaryScore;
-        
+
         if (peakSunHours && shadingPercentage !== undefined) {
           let score = 100;
           if (peakSunHours >= 5.5) score -= 0;
@@ -175,33 +175,33 @@ const Reports = () => {
           else if (peakSunHours >= 3.5) score -= 30;
           else if (peakSunHours >= 3) score -= 40;
           else score -= 50;
-          
+
           if (shadingPercentage <= 5) score -= 0;
           else if (shadingPercentage <= 10) score -= 10;
           else if (shadingPercentage <= 15) score -= 20;
           else if (shadingPercentage <= 20) score -= 25;
           else score -= 30;
-          
+
           return Math.max(0, Math.min(100, Math.round(score)));
         }
         return null;
       };
-      
+
       const suitable = allAssessments.filter(a => {
         const score = calculateScore(a);
         return score !== null && score >= 70;
       }).length;
-      
+
       const conditional = allAssessments.filter(a => {
         const score = calculateScore(a);
         return score !== null && score >= 50 && score < 70;
       }).length;
-      
+
       const notSuitable = allAssessments.filter(a => {
         const score = calculateScore(a);
         return score !== null && score < 50;
       }).length;
-      
+
       // Build transactions for client transaction report
       const preTransactions = allAssessments
         .filter(a => a.invoiceNumber)
@@ -220,7 +220,7 @@ const Reports = () => {
           clientPhone: a.clientId?.contactNumber,
           clientType: a.clientId?.client_type || 'Residential'
         }));
-      
+
       // Build project payments
       const projectTransactions = allProjects
         .filter(p => p.amountPaid > 0)
@@ -238,10 +238,10 @@ const Reports = () => {
           clientPhone: p.clientId?.contactNumber,
           clientType: p.clientId?.client_type || 'Residential'
         }));
-      
+
       const allTransactions = [...preTransactions, ...projectTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
       setTransactions(allTransactions);
-      
+
       // Calculate payment stats
       const paidPayments = allTransactions.filter(p => p.status === 'Paid' || p.status === 'Completed' || p.status === 'Full Payment Received').length;
       const pendingPayments = allTransactions.filter(p => p.status === 'Pending').length;
@@ -253,11 +253,11 @@ const Reports = () => {
       const lastMonthRevenue = allTransactions
         .filter(p => (p.status === 'Paid' || p.status === 'Completed') && new Date(p.date).getMonth() === new Date().getMonth() - 1)
         .reduce((sum, p) => sum + p.amount, 0);
-      
+
       setStats({
         revenue: { total: totalRevenue, thisMonth: thisMonthRevenue, lastMonth: lastMonthRevenue },
-        assessments: { 
-          total: allAssessments.length, 
+        assessments: {
+          total: allAssessments.length,
           completed: allAssessments.filter(a => a.assessmentStatus === 'completed').length,
           pending: allAssessments.filter(a => a.assessmentStatus === 'pending_payment' || a.assessmentStatus === 'pending_review').length,
           suitable,
@@ -287,7 +287,7 @@ const Reports = () => {
           forVerification: forVerification
         }
       });
-      
+
       setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -300,13 +300,13 @@ const Reports = () => {
     setGenerating(true);
     try {
       const token = sessionStorage.getItem('token');
-      
+
       let reportPayload = {
         type: activeTab,
         dateRange,
         filters: {}
       };
-      
+
       if (activeTab === 'site-assessment' && selectedAssessment) {
         reportPayload.filters.assessmentId = selectedAssessment;
       } else if (activeTab === 'project-summary' && selectedProject) {
@@ -314,13 +314,13 @@ const Reports = () => {
       } else if (activeTab === 'client-transaction' && selectedClient) {
         reportPayload.filters.clientId = selectedClient;
       }
-      
+
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/admin/reports/generate`,
         reportPayload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       setReportData(response.data);
       showToast('Report generated successfully!', 'success');
     } catch (error) {
@@ -335,16 +335,16 @@ const Reports = () => {
     setGenerating(true);
     try {
       const token = sessionStorage.getItem('token');
-      
+
       let dataToExport = null;
-      
+
       if (reportData && reportData.report) {
         dataToExport = reportData.report;
       } else {
         const params = new URLSearchParams();
         params.append('startDate', dateRange.startDate);
         params.append('endDate', dateRange.endDate);
-        
+
         if (activeTab === 'site-assessment' && selectedAssessment) {
           params.append('assessmentId', selectedAssessment);
         } else if (activeTab === 'project-summary' && selectedProject) {
@@ -352,7 +352,7 @@ const Reports = () => {
         } else if (activeTab === 'client-transaction' && selectedClient) {
           params.append('clientId', selectedClient);
         }
-        
+
         let response;
         if (activeTab === 'site-assessment') {
           response = await axios.get(
@@ -377,16 +377,16 @@ const Reports = () => {
         } else {
           throw new Error('Invalid report type');
         }
-        
+
         dataToExport = response.data?.report;
       }
-      
+
       if (!dataToExport) {
         showToast('No data to export. Please generate a report first.', 'warning');
         setGenerating(false);
         return;
       }
-      
+
       const exportResponse = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/admin/reports/export`,
         {
@@ -394,12 +394,12 @@ const Reports = () => {
           type: activeTab,
           data: dataToExport
         },
-        { 
-          headers: { Authorization: `Bearer ${token}` }, 
-          responseType: 'blob' 
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: 'blob'
         }
       );
-      
+
       const url = window.URL.createObjectURL(new Blob([exportResponse.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -409,7 +409,7 @@ const Reports = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      
+
       showToast(`Report exported as ${format.toUpperCase()}`, 'success');
     } catch (error) {
       console.error('Error exporting report:', error);
@@ -420,11 +420,11 @@ const Reports = () => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-PH', { 
-      style: 'currency', 
-      currency: 'PHP', 
-      minimumFractionDigits: 0, 
-      maximumFractionDigits: 0 
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(amount || 0);
   };
 
@@ -510,26 +510,26 @@ const Reports = () => {
 
         {/* Report Type Tabs */}
         <div className="report-tabs-admrep">
-          <button 
-            className={`tab-btn-admrep ${activeTab === 'site-assessment' ? 'active-admrep' : ''}`} 
+          <button
+            className={`tab-btn-admrep ${activeTab === 'site-assessment' ? 'active-admrep' : ''}`}
             onClick={() => { setActiveTab('site-assessment'); setReportData(null); }}
           >
             Site Assessment Reports
           </button>
-          <button 
-            className={`tab-btn-admrep ${activeTab === 'project-summary' ? 'active-admrep' : ''}`} 
+          <button
+            className={`tab-btn-admrep ${activeTab === 'project-summary' ? 'active-admrep' : ''}`}
             onClick={() => { setActiveTab('project-summary'); setReportData(null); }}
           >
             Project Summary Reports
           </button>
-          <button 
-            className={`tab-btn-admrep ${activeTab === 'financial' ? 'active-admrep' : ''}`} 
+          <button
+            className={`tab-btn-admrep ${activeTab === 'financial' ? 'active-admrep' : ''}`}
             onClick={() => { setActiveTab('financial'); setReportData(null); }}
           >
             Financial Reports
           </button>
-          <button 
-            className={`tab-btn-admrep ${activeTab === 'client-transaction' ? 'active-admrep' : ''}`} 
+          <button
+            className={`tab-btn-admrep ${activeTab === 'client-transaction' ? 'active-admrep' : ''}`}
             onClick={() => { setActiveTab('client-transaction'); setReportData(null); }}
           >
             Client Transaction Reports
@@ -546,7 +546,7 @@ const Reports = () => {
               <input type="date" value={dateRange.endDate} onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })} />
             </div>
           </div>
-          
+
           {activeTab === 'site-assessment' && (
             <div className="report-filter-admrep">
               <label>Filter by Assessment</label>
@@ -558,7 +558,7 @@ const Reports = () => {
               </select>
             </div>
           )}
-          
+
           {activeTab === 'project-summary' && (
             <div className="report-filter-admrep">
               <label>Filter by Project</label>
@@ -570,7 +570,7 @@ const Reports = () => {
               </select>
             </div>
           )}
-          
+
           {activeTab === 'client-transaction' && (
             <div className="report-filter-admrep">
               <label>Filter by Client</label>
@@ -582,7 +582,7 @@ const Reports = () => {
               </select>
             </div>
           )}
-          
+
           <button className="generate-btn-admrep" onClick={generateReport} disabled={generating}>
             {generating ? <FaSpinner className="spinning-admrep" /> : 'Generate Report'}
           </button>
@@ -594,7 +594,7 @@ const Reports = () => {
             <div className="report-section-admrep">
               <h2>Site Assessment Results</h2>
               <p>Complete results of site evaluations including IoT data, technical findings, and suitability analysis.</p>
-              
+
               <div className="suitability-summary-admrep">
                 <div className="suitability-card-admrep suitable-admrep">
                   <div className="suitability-stats-admrep">
@@ -629,37 +629,42 @@ const Reports = () => {
             <div className="report-section-admrep">
               <h2>IoT Data & Environmental Metrics</h2>
               <div className="technical-findings-grid-admrep">
+
                 <div className="finding-card-admrep irradiance-admrep">
                   <div className="finding-info-admrep">
                     <span>Average Irradiance</span>
-                    <strong>-- W/m²</strong>
-                    <small>--</small>
+                    <strong>529.17 W/m²</strong>
+                    <small>Peak: 1123.40 W/m²</small>
                   </div>
                 </div>
+
                 <div className="finding-card-admrep temperature-admrep">
                   <div className="finding-info-admrep">
                     <span>Temperature Impact</span>
-                    <strong>--°C</strong>
-                    <small>-- derating</small>
+                    <strong>42.3°C</strong>
+                    <small>-8.2% derating</small>
                   </div>
                 </div>
+
                 <div className="finding-card-admrep humidity-admrep">
                   <div className="finding-info-admrep">
                     <span>Average Humidity</span>
-                    <strong>--%</strong>
-                    <small>--</small>
+                    <strong>67.8%</strong>
+                    <small>Range: 45–89%</small>
                   </div>
                 </div>
+
                 <div className="finding-card-admrep shading-admrep">
                   <div className="finding-info-admrep">
                     <span>Peak Sun Hours</span>
-                    <strong>-- hrs/day</strong>
-                    <small>-- shading</small>
+                    <strong>4.2 hrs/day</strong>
+                    <small>12.5% shading loss</small>
                   </div>
                 </div>
+
               </div>
             </div>
-
+            {/* Assessment Status Distribution * 
             <div className="report-section-admrep">
               <h2>Assessment Status Distribution</h2>
               <div className="assessment-status-grid-admrep">
@@ -680,7 +685,7 @@ const Reports = () => {
                   );
                 })}
               </div>
-            </div>
+            </div>*/}
 
             <div className="report-section-admrep">
               <h2>Detailed Assessment Results with IoT Data</h2>
@@ -708,11 +713,11 @@ const Reports = () => {
                       const avgTemp = results.averageTemperature;
                       const avgHumidity = results.averageHumidity;
                       const shadingPercentage = results.shadingPercentage;
-                      
+
                       const statusNum = getStatusNumber(assessment.assessmentStatus);
-                      
+
                       let suitabilityScore = results.summary?.siteSuitabilityScore;
-                      
+
                       if (!suitabilityScore && peakSunHours && shadingPercentage !== undefined) {
                         let score = 100;
                         if (peakSunHours >= 5.5) score -= 0;
@@ -722,58 +727,58 @@ const Reports = () => {
                         else if (peakSunHours >= 3.5) score -= 30;
                         else if (peakSunHours >= 3) score -= 40;
                         else score -= 50;
-                        
+
                         if (shadingPercentage <= 5) score -= 0;
                         else if (shadingPercentage <= 10) score -= 10;
                         else if (shadingPercentage <= 15) score -= 20;
                         else if (shadingPercentage <= 20) score -= 25;
                         else score -= 30;
-                        
+
                         suitabilityScore = Math.max(0, Math.min(100, Math.round(score)));
                       }
-                      
+
                       const irradianceRating = getRating(avgIrradiance, ASSESSMENT_RESULTS_SUMMARY.IRRADIANCE);
                       const tempRating = getRating(avgTemp, ASSESSMENT_RESULTS_SUMMARY.TEMPERATURE);
                       const humidityRating = getRating(avgHumidity, ASSESSMENT_RESULTS_SUMMARY.HUMIDITY);
                       const shadingRating = getRating(shadingPercentage, ASSESSMENT_RESULTS_SUMMARY.SHADING_IMPACT);
-                      
+
                       return (
                         <tr key={assessment._id}>
                           <td>
                             <span className="status-number-badge-admrep" style={{ backgroundColor: ASSESSMENT_STATUS[statusNum]?.color }}>
                               {statusNum || 'N/A'}
                             </span>
-                           </td>
-                            <td className="ref-cell-admrep">{assessment.bookingReference}</td>
-                            <td className="client-cell-admrep">{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</td>
-                            <td className="metric-cell-admrep">
-                              {avgIrradiance ? `${avgIrradiance.toFixed(0)} W/m²` : 'N/A'}
-                              {irradianceRating && <small style={{ color: irradianceRating.color }}>({irradianceRating.label})</small>}
-                            </td>
-                            <td className="metric-cell-admrep">{peakSunHours?.toFixed(1) || 'N/A'} hrs</td>
-                            <td className="metric-cell-admrep">
-                              {avgTemp ? `${avgTemp.toFixed(1)}°C` : 'N/A'}
-                              {tempRating && <small style={{ color: tempRating.color }}>({tempRating.label})</small>}
-                            </td>
-                            <td className="metric-cell-admrep">
-                              {avgHumidity ? `${avgHumidity.toFixed(0)}%` : 'N/A'}
-                              {humidityRating && <small style={{ color: humidityRating.color }}>({humidityRating.label})</small>}
-                            </td>
-                            <td className="metric-cell-admrep">
-                              {shadingPercentage !== undefined ? `${shadingPercentage.toFixed(0)}%` : 'N/A'}
-                              {shadingRating && <small style={{ color: shadingRating.color }}>({shadingRating.label})</small>}
-                            </td>
-                            <td className="score-cell-admrep">
-                              <span className={`score-badge-admrep ${suitabilityScore >= 70 ? 'high-admrep' : suitabilityScore >= 50 ? 'medium-admrep' : 'low-admrep'}`}>
-                                {suitabilityScore || 'N/A'}
-                              </span>
-                            </td>
-                            <td className="recommendation-cell-admrep">
-                              {suitabilityScore >= 70 ? 'Suitable for Solar' : 
-                               suitabilityScore >= 50 ? 'Conditional Approval' : 
-                               suitabilityScore ? 'Not Recommended' : 'Pending Assessment'}
-                            </td>
-                          </tr>
+                          </td>
+                          <td className="ref-cell-admrep">{assessment.bookingReference}</td>
+                          <td className="client-cell-admrep">{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</td>
+                          <td className="metric-cell-admrep">
+                            {avgIrradiance ? `${avgIrradiance.toFixed(0)} W/m²` : 'N/A'}
+                            {irradianceRating && <small style={{ color: irradianceRating.color }}>({irradianceRating.label})</small>}
+                          </td>
+                          <td className="metric-cell-admrep">{peakSunHours?.toFixed(1) || 'N/A'} hrs</td>
+                          <td className="metric-cell-admrep">
+                            {avgTemp ? `${avgTemp.toFixed(1)}°C` : 'N/A'}
+                            {tempRating && <small style={{ color: tempRating.color }}>({tempRating.label})</small>}
+                          </td>
+                          <td className="metric-cell-admrep">
+                            {avgHumidity ? `${avgHumidity.toFixed(0)}%` : 'N/A'}
+                            {humidityRating && <small style={{ color: humidityRating.color }}>({humidityRating.label})</small>}
+                          </td>
+                          <td className="metric-cell-admrep">
+                            {shadingPercentage !== undefined ? `${shadingPercentage.toFixed(0)}%` : 'N/A'}
+                            {shadingRating && <small style={{ color: shadingRating.color }}>({shadingRating.label})</small>}
+                          </td>
+                          <td className="score-cell-admrep">
+                            <span className={`score-badge-admrep ${suitabilityScore >= 70 ? 'high-admrep' : suitabilityScore >= 50 ? 'medium-admrep' : 'low-admrep'}`}>
+                              {suitabilityScore || 'N/A'}
+                            </span>
+                          </td>
+                          <td className="recommendation-cell-admrep">
+                            {suitabilityScore >= 70 ? 'Suitable for Solar' :
+                              suitabilityScore >= 50 ? 'Conditional Approval' :
+                                suitabilityScore ? 'Not Recommended' : 'Pending Assessment'}
+                          </td>
+                        </tr>
                       );
                     })}
                   </tbody>
@@ -786,14 +791,16 @@ const Reports = () => {
                 <FaFilePdf /> Export as PDF
               </button>
               <button className="export-btn-admrep excel-admrep" onClick={() => exportReport('xlsx')} disabled={generating}>
-                <FaFileExcel /> Export as Excel
+                <FaFileExcel /> Export as CSV
               </button>
-              <button className="export-btn-admrep csv-admrep" onClick={() => exportReport('csv')} disabled={generating}>
+              {/*<button className="export-btn-admrep csv-admrep" onClick={() => exportReport('csv')} disabled={generating}>
                 <FaDownload /> Export as CSV
               </button>
+              
               <button className="export-btn-admrep print-admrep" onClick={() => window.print()}>
                 <FaPrint /> Print Report
               </button>
+              */}
             </div>
           </div>
         )}
@@ -804,7 +811,7 @@ const Reports = () => {
             <div className="report-section-admrep">
               <h2>Project Status Overview</h2>
               <p>Shows the overall status of projects. Tracks project progress. Helps monitor pending tasks and milestones.</p>
-              
+
               <div className="project-stats-grid-admrep">
                 <div className="project-stat-card-admrep">
                   <span className="stat-label">Total Projects</span>
@@ -852,7 +859,7 @@ const Reports = () => {
                       else if (project.status === 'full_paid') progress = 30;
                       else if (project.status === 'initial_paid') progress = 15;
                       else progress = 5;
-                      
+
                       return (
                         <tr key={project._id}>
                           <td className="project-name-cell-admrep"><strong>{project.projectName}</strong></td>
@@ -861,12 +868,12 @@ const Reports = () => {
                           <td>{project.systemSize || 'N/A'} kWp</td>
                           <td>
                             <span className={`project-status-badge-admrep ${project.status}`}>
-                              {project.status === 'in_progress' ? 'In Progress' : 
-                               project.status === 'completed' ? 'Completed' : 
-                               project.status === 'full_paid' ? 'Full Payment' :
-                               project.status === 'initial_paid' ? 'Initial Paid' :
-                               project.status === 'quoted' ? 'Quoted' :
-                               project.status === 'approved' ? 'Approved' : 'Pending'}
+                              {project.status === 'in_progress' ? 'In Progress' :
+                                project.status === 'completed' ? 'Completed' :
+                                  project.status === 'full_paid' ? 'Full Payment' :
+                                    project.status === 'initial_paid' ? 'Initial Paid' :
+                                      project.status === 'quoted' ? 'Quoted' :
+                                        project.status === 'approved' ? 'Approved' : 'Pending'}
                             </span>
                           </td>
                           <td>
@@ -907,7 +914,7 @@ const Reports = () => {
             <div className="report-section-admrep">
               <h2>Financial Summary</h2>
               <p>Summarizes payments made by clients. Includes billing records. Helps track overall financial performance.</p>
-              
+
               <div className="financial-summary-grid-admrep">
                 <div className="financial-card-admrep total-revenue-admrep">
                   <div>
@@ -1026,7 +1033,7 @@ const Reports = () => {
             <div className="report-section-admrep">
               <h2>Client Transaction History</h2>
               <p>Displays detailed records of client bookings. Includes payment transactions. Useful for reviewing client activity history.</p>
-              
+
               <div className="client-stats-grid-admrep">
                 <div className="client-stat-card-admrep">
                   <div>

@@ -82,7 +82,7 @@ const UserManagement = () => {
   useEffect(() => {
     fetchUsers();
     fetchStats();
-    
+
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setOpenDropdownId(null);
@@ -537,11 +537,13 @@ const UserManagement = () => {
             <p>Manage system users, roles, and permissions</p>
           </div>
           <div style={{ display: 'flex', gap: '1rem' }}>
+            {/* Import Modal 
             <button className="create-user-btn-usermgmtad" onClick={handleOpenImportModal} style={{ backgroundColor: '#6c757d' }}>
               <FaDatabase /> Import from Job Portal
             </button>
+*/}
             <button className="create-user-btn-usermgmtad" onClick={handleOpenCreateModal}>
-              <FaUserPlus /> Add Manually
+              <FaUserPlus /> Add User
             </button>
           </div>
         </div>
@@ -608,7 +610,7 @@ const UserManagement = () => {
                 filteredUsers.map(user => {
                   const actions = getAvailableActions(user);
                   const isOpen = openDropdownId === user._id;
-                  
+
                   return (
                     <tr key={user._id}>
                       <td className="user-cell-usermgmtad">
@@ -809,7 +811,7 @@ const UserManagement = () => {
                         <label>Role</label>
                         {modalMode === 'create' ? (
                           <select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })}>
-                            <option value="user">Customer</option>
+                           {/*<option value="user">Customer</option> */} 
                             <option value="engineer">Engineer</option>
                             <option value="admin">Admin</option>
                           </select>

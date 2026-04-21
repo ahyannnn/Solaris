@@ -68,18 +68,30 @@ exports.register = async (req, res) => {
 
 /*
 =========================
-EMAIL + PASSWORD LOGIN
+EMAIL + PASSWORD LOGIN (UPDATED to accept email OR username)
 =========================
 */
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    // Note: 'email' parameter will now accept either email address OR username (fullName)
 
-    const user = await User.findOne({ email });
+    // Check if input is email (contains @) or username
+    const isEmail = email.includes('@') && email.includes('.');
+    
+    let user;
+    
+    if (isEmail) {
+      // Search by email
+      user = await User.findOne({ email: email.toLowerCase() });
+    } else {
+      // Search by username (fullName)
+      user = await User.findOne({ fullName: email });
+    }
 
     if (!user) {
       return res.status(400).json({
-        message: "Invalid email or password"
+        message: "Invalid email/username or password"
       });
     }
 
@@ -87,7 +99,7 @@ exports.login = async (req, res) => {
 
     if (!isMatch) {
       return res.status(400).json({
-        message: "Invalid email or password"
+        message: "Invalid email/username or password"
       });
     }
 
@@ -324,6 +336,39 @@ exports.checkEmail = async (req, res) => {
     });
   } catch (error) {
     console.error('Email check error:', error);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/*
+=========================
+CHECK USERNAME
+=========================
+*/
+exports.checkUsername = async (req, res) => {
+  try {
+    const { username } = req.body;
+    
+    if (!username) {
+      return res.status(400).json({ error: 'Username is required' });
+    }
+    
+    // Check if username exists in database
+    const existingUser = await User.findOne({ fullName: username });
+    
+    if (existingUser) {
+      return res.json({ 
+        exists: true, 
+        message: 'Username already taken' 
+      });
+    }
+    
+    return res.json({ 
+      exists: false, 
+      message: 'Username available' 
+    });
+  } catch (error) {
+    console.error('Username check error:', error);
     return res.status(500).json({ error: 'Server error' });
   }
 };

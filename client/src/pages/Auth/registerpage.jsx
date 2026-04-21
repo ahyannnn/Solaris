@@ -37,8 +37,13 @@ const RegisterPage = () => {
   const [emailChecking, setEmailChecking] = useState(false);
   const [isEmailTaken, setIsEmailTaken] = useState(false);
   
-  // Debounce timer ref
-  const debounceTimerRef = useRef(null);
+  // Username validation states
+  const [usernameChecking, setUsernameChecking] = useState(false);
+  const [isUsernameTaken, setIsUsernameTaken] = useState(false);
+  
+  // Debounce timer refs
+  const emailDebounceTimerRef = useRef(null);
+  const usernameDebounceTimerRef = useRef(null);
   
   // Add a ref to prevent double verification
   const isVerifyingRef = useRef(false);
@@ -55,11 +60,14 @@ const RegisterPage = () => {
     return () => clearTimeout(timer);
   }, [cooldown, isCooldownActive]);
 
-  // Cleanup debounce timer on unmount
+  // Cleanup debounce timers on unmount
   useEffect(() => {
     return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+      if (emailDebounceTimerRef.current) {
+        clearTimeout(emailDebounceTimerRef.current);
+      }
+      if (usernameDebounceTimerRef.current) {
+        clearTimeout(usernameDebounceTimerRef.current);
       }
     };
   }, []);
@@ -70,6 +78,41 @@ const RegisterPage = () => {
   };
 
   const closeModal = () => setModal({ show: false, message: '', type: '' });
+
+  // ==================== VALIDATION FUNCTIONS ====================
+
+  // Username validation
+  const validateUsername = (username) => {
+    if (!username) return null;
+    if (username.length < 3) return 'Username must be at least 3 characters';
+    if (username.length > 20) return 'Username must be less than 20 characters';
+    if (username.includes(' ')) return 'Username cannot contain spaces';
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) return 'Username can only contain letters, numbers, and underscores';
+    return null;
+  };
+
+  // Password validation - Complete rules
+  const validatePassword = (password) => {
+    if (!password) return null;
+    
+    if (password.length < 8) return 'Password must be at least 8 characters';
+    if (password.length > 16) return 'Password must be less than 16 characters';
+    if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
+    if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter';
+    if (!/[0-9]/.test(password)) return 'Password must contain at least one number';
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return 'Password must contain at least one special character (!@#$%^&* etc.)';
+    
+    return null;
+  };
+
+  // Email validation
+  const validateEmail = (email) => {
+    if (!email) return null;
+    if (!email.endsWith('@gmail.com')) return 'Please use a valid @gmail.com email address';
+    if (email.length < 10) return 'Email is too short';
+    if (email.length > 50) return 'Email is too long';
+    return null;
+  };
 
   // Function to check if email is already taken
   const checkEmailExists = async (email) => {
@@ -106,10 +149,53 @@ const RegisterPage = () => {
     }
   };
 
+  // Function to check if username is already taken
+  const checkUsernameExists = async (username) => {
+    if (!username || username.length < 3) {
+      setIsUsernameTaken(false);
+      setUsernameChecking(false);
+      return false;
+    }
+
+    // Don't check if there's already a validation error
+    const usernameError = validateUsername(username);
+    if (usernameError) {
+      setIsUsernameTaken(false);
+      setUsernameChecking(false);
+      return false;
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/check-username`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username })
+      });
+
+      const data = await response.json();
+      
+      if (data.exists) {
+        setIsUsernameTaken(true);
+        setErrors(prev => ({ ...prev, fullName: 'Username is already taken' }));
+        return true;
+      } else {
+        setIsUsernameTaken(false);
+        setErrors(prev => ({ ...prev, fullName: '' }));
+        return false;
+      }
+    } catch (error) {
+      console.error('Username check error:', error);
+      setIsUsernameTaken(false);
+      return false;
+    } finally {
+      setUsernameChecking(false);
+    }
+  };
+
   // Debounced email check (waits 3 seconds after user stops typing)
   const debouncedEmailCheck = (email) => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
+    if (emailDebounceTimerRef.current) {
+      clearTimeout(emailDebounceTimerRef.current);
     }
     
     if (!email || !email.endsWith('@gmail.com')) {
@@ -120,40 +206,124 @@ const RegisterPage = () => {
     
     setEmailChecking(true);
     
-    debounceTimerRef.current = setTimeout(() => {
+    emailDebounceTimerRef.current = setTimeout(() => {
       checkEmailExists(email);
+    }, 3000);
+  };
+
+  // Debounced username check (waits 3 seconds after user stops typing)
+  const debouncedUsernameCheck = (username) => {
+    if (usernameDebounceTimerRef.current) {
+      clearTimeout(usernameDebounceTimerRef.current);
+    }
+    
+    if (!username || username.length < 3) {
+      setIsUsernameTaken(false);
+      setUsernameChecking(false);
+      return;
+    }
+    
+    const usernameError = validateUsername(username);
+    if (usernameError) {
+      setIsUsernameTaken(false);
+      setUsernameChecking(false);
+      return;
+    }
+    
+    setUsernameChecking(true);
+    
+    usernameDebounceTimerRef.current = setTimeout(() => {
+      checkUsernameExists(username);
     }, 3000);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    if (errors[name]) setErrors({ ...errors, [name]: '' });
+    
+    // Real-time validation for each field
+    if (name === 'fullName') {
+      const usernameError = validateUsername(value);
+      setErrors(prev => ({ ...prev, fullName: usernameError || '' }));
+      
+      setIsUsernameTaken(false);
+      
+      if (usernameDebounceTimerRef.current) {
+        clearTimeout(usernameDebounceTimerRef.current);
+      }
+      
+      if (value && value.length >= 3 && !usernameError) {
+        debouncedUsernameCheck(value);
+      }
+    }
     
     if (name === 'email') {
+      const emailError = validateEmail(value);
+      setErrors(prev => ({ ...prev, email: emailError || '' }));
+      
       setIsEmailTaken(false);
       setEmailChecking(false);
-      setErrors(prev => ({ ...prev, email: '' }));
       
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+      if (emailDebounceTimerRef.current) {
+        clearTimeout(emailDebounceTimerRef.current);
       }
       
-      if (value && value.endsWith('@gmail.com')) {
+      if (value && value.endsWith('@gmail.com') && !emailError) {
         debouncedEmailCheck(value);
       }
+    }
+    
+    if (name === 'password') {
+      const passwordError = validatePassword(value);
+      setErrors(prev => ({ ...prev, password: passwordError || '' }));
+      
+      // Also validate confirm password when password changes
+      if (formData.confirmPassword && value !== formData.confirmPassword) {
+        setErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }));
+      } else if (formData.confirmPassword && value === formData.confirmPassword) {
+        setErrors(prev => ({ ...prev, confirmPassword: '' }));
+      }
+    }
+    
+    if (name === 'confirmPassword') {
+      if (value !== formData.password) {
+        setErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }));
+      } else {
+        setErrors(prev => ({ ...prev, confirmPassword: '' }));
+      }
+    }
+    
+    // Clear general error when user types
+    if (errors.general) {
+      setErrors(prev => ({ ...prev, general: '' }));
     }
   };
 
   const handleEmailBlur = async () => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
+    if (emailDebounceTimerRef.current) {
+      clearTimeout(emailDebounceTimerRef.current);
     }
     if (formData.email && formData.email.endsWith('@gmail.com')) {
-      setEmailChecking(true);
-      await checkEmailExists(formData.email);
+      const emailError = validateEmail(formData.email);
+      if (!emailError) {
+        setEmailChecking(true);
+        await checkEmailExists(formData.email);
+      }
     } else if (formData.email && !formData.email.endsWith('@gmail.com')) {
       setErrors(prev => ({ ...prev, email: 'Please use a valid @gmail.com email address' }));
+    }
+  };
+
+  const handleUsernameBlur = async () => {
+    if (usernameDebounceTimerRef.current) {
+      clearTimeout(usernameDebounceTimerRef.current);
+    }
+    if (formData.fullName && formData.fullName.length >= 3) {
+      const usernameError = validateUsername(formData.fullName);
+      if (!usernameError) {
+        setUsernameChecking(true);
+        await checkUsernameExists(formData.fullName);
+      }
     }
   };
 
@@ -182,15 +352,45 @@ const RegisterPage = () => {
 
   const validateStep1 = () => {
     const newErrors = {};
-    if (!formData.fullName) newErrors.fullName = 'Full name is required';
-    if (!formData.email) newErrors.email = 'Email is required';
-    else if (!formData.email.endsWith('@gmail.com')) newErrors.email = 'Please use a valid @gmail.com email address';
-    else if (isEmailTaken) newErrors.email = 'Email is already taken';
-    if (!formData.password) newErrors.password = 'Password is required';
-    else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
-    else if (!/(?=.*[0-9])/.test(formData.password)) newErrors.password = 'Password must contain at least one number';
-    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
-    if (!termsAccepted) newErrors.terms = 'You must agree to the Terms and Conditions';
+    
+    // Username validation
+    if (!formData.fullName) {
+      newErrors.fullName = 'Username is required';
+    } else {
+      const usernameError = validateUsername(formData.fullName);
+      if (usernameError) newErrors.fullName = usernameError;
+      else if (isUsernameTaken) newErrors.fullName = 'Username is already taken';
+    }
+    
+    // Email validation
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else {
+      const emailError = validateEmail(formData.email);
+      if (emailError) newErrors.email = emailError;
+      else if (isEmailTaken) newErrors.email = 'Email is already taken';
+    }
+    
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else {
+      const passwordError = validatePassword(formData.password);
+      if (passwordError) newErrors.password = passwordError;
+    }
+    
+    // Confirm password validation
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    // Terms validation
+    if (!termsAccepted) {
+      newErrors.terms = 'You must agree to the Terms and Conditions';
+    }
+    
     return newErrors;
   };
 
@@ -209,8 +409,11 @@ const RegisterPage = () => {
       return;
     }
 
-    const isTaken = await checkEmailExists(formData.email);
-    if (isTaken) {
+    // Final checks for email and username uniqueness
+    const isEmailTakenCheck = await checkEmailExists(formData.email);
+    const isUsernameTakenCheck = await checkUsernameExists(formData.fullName);
+    
+    if (isEmailTakenCheck || isUsernameTakenCheck) {
       return;
     }
 
@@ -452,6 +655,23 @@ const RegisterPage = () => {
     return `${seconds}s`;
   };
 
+  // Helper function to check if form is valid (for button disable state)
+  const isFormValid = () => {
+    return (
+      formData.fullName && 
+      !validateUsername(formData.fullName) &&
+      !isUsernameTaken &&
+      formData.email && 
+      !validateEmail(formData.email) &&
+      !isEmailTaken &&
+      formData.password && 
+      !validatePassword(formData.password) &&
+      formData.confirmPassword && 
+      formData.password === formData.confirmPassword &&
+      termsAccepted
+    );
+  };
+
   return (
     <>
       <Helmet>
@@ -515,23 +735,47 @@ const RegisterPage = () => {
                   )}
 
                   <form onSubmit={(e) => { e.preventDefault(); handleSendVerification(); }} className="register-form-reg">
+                    {/* USERNAME FIELD */}
                     <div className="form-group-reg">
-                      <label className="form-label-reg">Full Name</label>
+                      <label className="form-label-reg">Username</label>
                       <div className="input-wrapper-reg">
                         <FaUser className="input-icon-reg" />
                         <input
                           type="text"
                           name="fullName"
                           className={`form-input-reg ${errors.fullName ? 'input-error-reg' : ''}`}
-                          placeholder="Enter your full name"
+                          placeholder="Enter your username"
                           value={formData.fullName}
                           onChange={handleChange}
+                          onBlur={handleUsernameBlur}
                           disabled={isLoading || socialLoading !== ''}
                         />
+                        {usernameChecking && (
+                          <div className="email-checking-reg">
+                            <span className="checking-spinner"></span>
+                          </div>
+                        )}
+                        {!usernameChecking && isUsernameTaken && formData.fullName && (
+                          <div className="email-taken-reg">
+                            <span className="taken-icon">✗</span>
+                          </div>
+                        )}
+                        {!usernameChecking && !isUsernameTaken && formData.fullName && formData.fullName.length >= 3 && !errors.fullName && (
+                          <div className="email-available-reg">
+                            <span className="available-icon">✓</span>
+                          </div>
+                        )}
                       </div>
                       {errors.fullName && <span className="error-message-reg">{errors.fullName}</span>}
+                      {usernameChecking && formData.fullName && formData.fullName.length >= 3 && (
+                        <span className="checking-message-reg">Checking username availability...</span>
+                      )}
+                      {!usernameChecking && !isUsernameTaken && formData.fullName && formData.fullName.length >= 3 && !errors.fullName && (
+                        <span className="success-message-reg">✓ Username available</span>
+                      )}
                     </div>
 
+                    {/* EMAIL FIELD */}
                     <div className="form-group-reg">
                       <label className="form-label-reg">Email Address</label>
                       <div className="input-wrapper-reg">
@@ -540,7 +784,7 @@ const RegisterPage = () => {
                           type="email"
                           name="email"
                           className={`form-input-reg ${errors.email ? 'input-error-reg' : ''}`}
-                          placeholder="Enter your email (@gmail.com)"
+                          placeholder="Enter your email"
                           value={formData.email}
                           onChange={handleChange}
                           onBlur={handleEmailBlur}
@@ -574,6 +818,7 @@ const RegisterPage = () => {
                       )}
                     </div>
 
+                    {/* PASSWORD FIELD */}
                     <div className="form-group-reg">
                       <label className="form-label-reg">Password</label>
                       <div className="input-wrapper-reg">
@@ -597,8 +842,33 @@ const RegisterPage = () => {
                         </button>
                       </div>
                       {errors.password && <span className="error-message-reg">{errors.password}</span>}
+                      
+                      {/* Password requirements hint */}
+                      {formData.password && !errors.password && (
+                        <div className="password-hints-reg">
+                          <p className="hint-title-reg">Password must contain:</p>
+                          <ul className="hint-list-reg">
+                            <li className={formData.password.length >= 8 && formData.password.length <= 16 ? 'valid' : 'invalid'}>
+                              {formData.password.length >= 8 && formData.password.length <= 16 ? '✓' : '○'} 8-16 characters
+                            </li>
+                            <li className={/[A-Z]/.test(formData.password) ? 'valid' : 'invalid'}>
+                              {/[A-Z]/.test(formData.password) ? '✓' : '○'} Uppercase letter (A-Z)
+                            </li>
+                            <li className={/[a-z]/.test(formData.password) ? 'valid' : 'invalid'}>
+                              {/[a-z]/.test(formData.password) ? '✓' : '○'} Lowercase letter (a-z)
+                            </li>
+                            <li className={/[0-9]/.test(formData.password) ? 'valid' : 'invalid'}>
+                              {/[0-9]/.test(formData.password) ? '✓' : '○'} Number (0-9)
+                            </li>
+                            <li className={/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? 'valid' : 'invalid'}>
+                              {/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? '✓' : '○'} Special character (!@#$%^&* etc.)
+                            </li>
+                          </ul>
+                        </div>
+                      )}
                     </div>
 
+                    {/* CONFIRM PASSWORD FIELD */}
                     <div className="form-group-reg">
                       <label className="form-label-reg">Confirm Password</label>
                       <div className="input-wrapper-reg">
@@ -622,8 +892,12 @@ const RegisterPage = () => {
                         </button>
                       </div>
                       {errors.confirmPassword && <span className="error-message-reg">{errors.confirmPassword}</span>}
+                      {formData.confirmPassword && !errors.confirmPassword && formData.password === formData.confirmPassword && (
+                        <span className="success-message-reg">✓ Passwords match</span>
+                      )}
                     </div>
 
+                    {/* TERMS AND CONDITIONS */}
                     <div className="form-group-reg">
                       <label className="checkbox-label-reg">
                         <input
@@ -646,14 +920,16 @@ const RegisterPage = () => {
                       {errors.terms && <span className="error-message-reg">{errors.terms}</span>}
                     </div>
 
+                    {/* SUBMIT BUTTON */}
                     <button
                       type="submit"
                       className="register-submit-btn-reg"
-                      disabled={isLoading || socialLoading !== ''}
+                      disabled={isLoading || socialLoading !== '' || !isFormValid()}
                     >
                       {isLoading ? 'Sending Code...' : 'Send Verification Code'}
                     </button>
 
+                    {/* SOCIAL LOGIN */}
                     <div className="social-login-reg">
                       <p className="social-login-text-reg">Or sign up with</p>
                       <div className="social-buttons-reg">
@@ -673,6 +949,7 @@ const RegisterPage = () => {
                       </div>
                     </div>
 
+                    {/* LOGIN LINK */}
                     <div className="login-prompt-reg">
                       <p className="login-text-reg">
                         Already have an account? <Link to="/login" className="login-link-reg">Sign in</Link>

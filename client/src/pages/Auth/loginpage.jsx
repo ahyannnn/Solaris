@@ -76,10 +76,8 @@ const LoginPage = () => {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!formData.email.endsWith('@gmail.com')) {
-      newErrors.email = 'Please use a valid @gmail.com email address';
-    }
+      newErrors.email = 'Email or User Name is required';
+    } 
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
@@ -319,14 +317,14 @@ const LoginPage = () => {
               <form onSubmit={handleSubmit} className="login-form-login">
                 {/* EMAIL FIELD */}
                 <div className="form-group-login">
-                  <label className="form-label-login">Email Address</label>
+                  <label className="form-label-login">Email or User Name</label>
                   <div className="input-wrapper-login">
                     <FaEnvelope className="input-icon-login" />
                     <input
-                      type="email"
+                      type="text"
                       name="email"
                       className={`form-input-login ${errors.email ? 'input-error-login' : ''}`}
-                      placeholder="Enter your email"
+                      placeholder="Enter your email or username"
                       value={formData.email}
                       onChange={handleChange}
                       disabled={isLoading || socialLoading !== '' || isNavigating}

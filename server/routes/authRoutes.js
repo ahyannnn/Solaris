@@ -29,5 +29,6 @@ router.post("/reset-password", authController.resetPassword);
   Route to check if email already exists
 */
 router.post("/check-email", authController.checkEmail);
+router.post("/check-username", authController.checkUsername);
 
 module.exports = router;

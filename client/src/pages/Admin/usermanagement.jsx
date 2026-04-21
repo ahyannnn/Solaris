@@ -67,11 +67,9 @@ const UserManagement = () => {
   const [bulkImportMode, setBulkImportMode] = useState(false);
 
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    role: 'user',
     firstName: '',
     lastName: '',
+    email: '',
     contactNumber: '',
     password: '',
     confirmPassword: ''
@@ -248,10 +246,24 @@ const UserManagement = () => {
       applicant.position?.toLowerCase().includes(searchLower);
   });
 
+  // Function to combine name fields into fullName
+  const combineFullName = (firstName, lastName) => {
+    let fullName = firstName;
+    if (lastName) {
+      fullName += ` ${lastName}`;
+    }
+    return fullName;
+  };
+
   const handleOpenCreateModal = () => {
     setModalMode('create');
     setFormData({
-      fullName: '', email: '', role: 'engineer', firstName: '', lastName: '', contactNumber: '', password: '', confirmPassword: ''
+      firstName: '',
+      lastName: '',
+      email: '',
+      contactNumber: '',
+      password: '',
+      confirmPassword: ''
     });
     setFormErrors({});
     setShowUserModal(true);
@@ -260,12 +272,31 @@ const UserManagement = () => {
   const handleOpenEditModal = (user) => {
     setModalMode('edit');
     setSelectedUser(user);
+    
+    // Get first name and last name from clientInfo or parse from fullName
+    let firstName = '';
+    let lastName = '';
+    
+    if (user.clientInfo?.firstName && user.clientInfo?.lastName) {
+      // Use stored clientInfo if available
+      firstName = user.clientInfo.firstName;
+      lastName = user.clientInfo.lastName;
+    } else if (user.fullName) {
+      // Parse fullName - everything except the last word is first name
+      const nameParts = user.fullName.trim().split(' ');
+      if (nameParts.length === 1) {
+        firstName = nameParts[0];
+        lastName = '';
+      } else {
+        lastName = nameParts.pop(); // Last word is last name
+        firstName = nameParts.join(' '); // Everything else is first name
+      }
+    }
+
     setFormData({
-      fullName: user.fullName || '',
+      firstName: firstName,
+      lastName: lastName,
       email: user.email || '',
-      role: user.role || 'user',
-      firstName: user.clientInfo?.firstName || '',
-      lastName: user.clientInfo?.lastName || '',
       contactNumber: user.clientInfo?.contactNumber || '',
       password: '',
       confirmPassword: ''
@@ -312,9 +343,8 @@ const UserManagement = () => {
       if (formData.password && formData.password.length < 6) errors.password = 'Password must be at least 6 characters';
       if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match';
     }
-    if (!formData.fullName && (!formData.firstName || !formData.lastName)) {
-      errors.name = 'Full name or first/last name is required';
-    }
+    if (!formData.firstName) errors.firstName = 'First name is required';
+    if (!formData.lastName) errors.lastName = 'Last name is required';
     return errors;
   };
 
@@ -365,6 +395,7 @@ const UserManagement = () => {
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
+      const fullName = combineFullName(formData.firstName, formData.lastName);
       let response;
 
       if (modalMode === 'create') {
@@ -372,8 +403,8 @@ const UserManagement = () => {
           {
             email: formData.email,
             password: formData.password,
-            role: formData.role,
-            fullName: formData.fullName || `${formData.firstName} ${formData.lastName}`,
+            role: 'engineer',
+            fullName: fullName,
             firstName: formData.firstName,
             lastName: formData.lastName,
             contactNumber: formData.contactNumber
@@ -383,7 +414,7 @@ const UserManagement = () => {
       } else {
         response = await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/users/${selectedUser._id}`,
           {
-            fullName: formData.fullName,
+            fullName: fullName,
             firstName: formData.firstName,
             lastName: formData.lastName,
             contactNumber: formData.contactNumber
@@ -532,16 +563,17 @@ const UserManagement = () => {
 
       <div className="user-management-usermgmtad">
         <div className="user-management-header-usermgmtad">
+          
           <div>
             <h1>User Management</h1>
             <p>Manage system users, roles, and permissions</p>
           </div>
+          {/* 
+          <button className="create-user-btn-usermgmtad" onClick={handleOpenImportModal} style={{ backgroundColor: '#6c757d' }}>
+            <FaDatabase /> Import from Job Portal
+          </button>
+          */}
           <div style={{ display: 'flex', gap: '1rem' }}>
-            {/* Import Modal 
-            <button className="create-user-btn-usermgmtad" onClick={handleOpenImportModal} style={{ backgroundColor: '#6c757d' }}>
-              <FaDatabase /> Import from Job Portal
-            </button>
-*/}
             <button className="create-user-btn-usermgmtad" onClick={handleOpenCreateModal}>
               <FaUserPlus /> Add User
             </button>
@@ -796,37 +828,76 @@ const UserManagement = () => {
                 {(modalMode === 'edit' || modalMode === 'create') && (
                   <form className="user-form-usermgmtad">
                     <div className="form-row-usermgmtad">
-                      <div className="form-group-usermgmtad"><label>Full Name</label><input type="text" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} /><small>OR fill first/last name below</small></div>
-                    </div>
-                    <div className="form-row-usermgmtad">
-                      <div className="form-group-usermgmtad"><label>First Name</label><input type="text" value={formData.firstName} onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} /></div>
-                      <div className="form-group-usermgmtad"><label>Last Name</label><input type="text" value={formData.lastName} onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} /></div>
-                    </div>
-                    <div className="form-row-usermgmtad">
-                      <div className="form-group-usermgmtad"><label>Email Address *</label><input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} disabled={modalMode === 'edit'} className={formErrors.email ? 'error-usermgmtad' : ''} />{formErrors.email && <span className="error-text-usermgmtad">{formErrors.email}</span>}{modalMode === 'edit' && <small>Email cannot be changed</small>}</div>
-                      <div className="form-group-usermgmtad"><label>Contact Number</label><input type="tel" value={formData.contactNumber} onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })} /></div>
+                      <div className="form-group-usermgmtad">
+                        <label>First Name *</label>
+                        <input
+                          type="text"
+                          value={formData.firstName}
+                          onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                          className={formErrors.firstName ? 'error-usermgmtad' : ''}
+                        />
+                        {formErrors.firstName && <span className="error-text-usermgmtad">{formErrors.firstName}</span>}
+                      </div>
+                      
+                      <div className="form-group-usermgmtad">
+                        <label>Last Name *</label>
+                        <input
+                          type="text"
+                          value={formData.lastName}
+                          onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                          className={formErrors.lastName ? 'error-usermgmtad' : ''}
+                        />
+                        {formErrors.lastName && <span className="error-text-usermgmtad">{formErrors.lastName}</span>}
+                      </div>
                     </div>
                     <div className="form-row-usermgmtad">
                       <div className="form-group-usermgmtad">
-                        <label>Role</label>
-                        {modalMode === 'create' ? (
-                          <select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })}>
-                           {/*<option value="user">Customer</option> */} 
-                            <option value="engineer">Engineer</option>
-                            <option value="admin">Admin</option>
-                          </select>
-                        ) : (
-                          <div className="role-display-usermgmtad">
-                            <span className={`role-badge-display-usermgmtad ${formData.role}-usermgmtad`}>{formData.role === 'admin' ? 'Admin' : formData.role === 'engineer' ? 'Engineer' : 'Customer'}</span>
-                            <small>Role cannot be changed</small>
-                          </div>
-                        )}
+                        <label>Email Address *</label>
+                        <input
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          disabled={modalMode === 'edit'}
+                          className={formErrors.email ? 'error-usermgmtad' : ''}
+                        />
+                        {formErrors.email && <span className="error-text-usermgmtad">{formErrors.email}</span>}
+                        {modalMode === 'edit' && <small>Email cannot be changed</small>}
                       </div>
+                      <div className="form-group-usermgmtad">
+                        <label>Contact Number</label>
+                        <input
+                          type="tel"
+                          value={formData.contactNumber}
+                          onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div className="form-row-usermgmtad">
+                      
                     </div>
                     {modalMode === 'create' && (
                       <div className="form-row-usermgmtad">
-                        <div className="form-group-usermgmtad"><label>Password *</label><input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className={formErrors.password ? 'error-usermgmtad' : ''} />{formErrors.password && <span className="error-text-usermgmtad">{formErrors.password}</span>}</div>
-                        <div className="form-group-usermgmtad"><label>Confirm Password *</label><input type="password" value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} className={formErrors.confirmPassword ? 'error-usermgmtad' : ''} />{formErrors.confirmPassword && <span className="error-text-usermgmtad">{formErrors.confirmPassword}</span>}</div>
+                        <div className="form-group-usermgmtad">
+                          <label>Password *</label>
+                          <input
+                            type="password"
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            className={formErrors.password ? 'error-usermgmtad' : ''}
+                          />
+                          {formErrors.password && <span className="error-text-usermgmtad">{formErrors.password}</span>}
+                          <small>Password must be at least 6 characters</small>
+                        </div>
+                        <div className="form-group-usermgmtad">
+                          <label>Confirm Password *</label>
+                          <input
+                            type="password"
+                            value={formData.confirmPassword}
+                            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                            className={formErrors.confirmPassword ? 'error-usermgmtad' : ''}
+                          />
+                          {formErrors.confirmPassword && <span className="error-text-usermgmtad">{formErrors.confirmPassword}</span>}
+                        </div>
                       </div>
                     )}
                   </form>

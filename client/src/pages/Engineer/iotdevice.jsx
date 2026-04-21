@@ -423,7 +423,7 @@ const IoTDevice = () => {
       };
     });
 
-    const headers = ['Timestamp (Philippine Time)', 'Irradiance (W/m²)', 'Temperature (°C)', 'Humidity (%)'];
+    const headers = ['Timestamp', 'Irradiance (W/m²)', 'Temperature (°C)', 'Humidity (%)'];
     const csvRows = [headers];
 
     csvData.forEach(row => {
@@ -569,10 +569,7 @@ const IoTDevice = () => {
                       <div className="device-icon-iotdevicead">
                         <FaMicrochip />
                       </div>
-                      <div className="device-status-iotdevicead">
-                        <span className={`status-dot-iotdevicead ${statusColor}`}></span>
-                        {statusColor === 'online' ? 'Online' : statusColor === 'recent' ? 'Recent' : 'Offline'}
-                      </div>
+                      
                     </div>
 
                     <div className="device-info-iotdevicead">
@@ -583,10 +580,6 @@ const IoTDevice = () => {
                     </div>
 
                     <div className="device-stats-iotdevicead">
-                      <div className="stat-iotdevicead">
-                        <FaWifi />
-                        <span>{getDeviceStatusColor(device.lastHeartbeat) === 'online' ? 'Connected' : 'Disconnected'}</span>
-                      </div>
                       <div className="stat-iotdevicead">
                         <FaClock />
                         <span>{device.lastHeartbeat ? formatDate(device.lastHeartbeat) : 'N/A'}</span>
@@ -742,7 +735,7 @@ const IoTDevice = () => {
                 {chartData.length > 0 && hasValidSensorData && (
                   <>
                     <div className="chart-container-iotdevicead">
-                      <h4>Solar Irradiance (Philippine Time)</h4>
+                      <h4>Solar Irradiance</h4>
                       <div className="chart-iotdevicead">
                         <ResponsiveContainer width="100%" height={300}>
                           <AreaChart data={chartData}>
@@ -771,7 +764,7 @@ const IoTDevice = () => {
                     </div>
 
                     <div className="chart-container-iotdevicead">
-                      <h4>Temperature & Humidity (Philippine Time)</h4>
+                      <h4>Temperature & Humidity </h4>
                       <div className="chart-iotdevicead">
                         <ResponsiveContainer width="100%" height={300}>
                           <ComposedChart data={chartData}>
@@ -813,12 +806,12 @@ const IoTDevice = () => {
                 {/* Recent Readings Table - With 8 hours subtracted */}
                 {sensorData.length > 0 && hasValidSensorData && (
                   <div className="readings-table-iotdevicead">
-                    <h4>Recent Readings (Philippine Time)</h4>
+                    <h4>Recent Readings </h4>
                     <div className="table-container-iotdevicead">
                       <table className="readings-table">
                         <thead>
                           <tr>
-                            <th>Timestamp (Philippine Time)</th>
+                            <th>Timestamp</th>
                             <th>Irradiance (W/m²)</th>
                             <th>Temperature (°C)</th>
                             <th>Humidity (%)</th>

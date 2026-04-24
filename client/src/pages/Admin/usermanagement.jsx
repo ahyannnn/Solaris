@@ -56,7 +56,9 @@ const UserManagement = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalMode, setModalMode] = useState('view');
   const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 20 });
   const dropdownRef = useRef(null);
+  const buttonRefs = useRef({});
 
   const [showImportModal, setShowImportModal] = useState(false);
   const [hiredApplicants, setHiredApplicants] = useState([]);
@@ -86,9 +88,29 @@ const UserManagement = () => {
         setOpenDropdownId(null);
       }
     };
+    
+    const handleScroll = () => {
+      setOpenDropdownId(null);
+    };
+    
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, true);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
   }, [filterRole, currentPage]);
+
+  const handleDropdownClick = (event, userId) => {
+    event.stopPropagation();
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+    setDropdownPosition({
+      top: buttonRect.bottom + 5,
+      right: window.innerWidth - buttonRect.right - 10,
+    });
+    setOpenDropdownId(openDropdownId === userId ? null : userId);
+  };
 
   const fetchUsers = async () => {
     try {
@@ -246,7 +268,6 @@ const UserManagement = () => {
       applicant.position?.toLowerCase().includes(searchLower);
   });
 
-  // Function to combine name fields into fullName
   const combineFullName = (firstName, lastName) => {
     let fullName = firstName;
     if (lastName) {
@@ -273,23 +294,20 @@ const UserManagement = () => {
     setModalMode('edit');
     setSelectedUser(user);
     
-    // Get first name and last name from clientInfo or parse from fullName
     let firstName = '';
     let lastName = '';
     
     if (user.clientInfo?.firstName && user.clientInfo?.lastName) {
-      // Use stored clientInfo if available
       firstName = user.clientInfo.firstName;
       lastName = user.clientInfo.lastName;
     } else if (user.fullName) {
-      // Parse fullName - everything except the last word is first name
       const nameParts = user.fullName.trim().split(' ');
       if (nameParts.length === 1) {
         firstName = nameParts[0];
         lastName = '';
       } else {
-        lastName = nameParts.pop(); // Last word is last name
-        firstName = nameParts.join(' '); // Everything else is first name
+        lastName = nameParts.pop();
+        firstName = nameParts.join(' ');
       }
     }
 
@@ -563,17 +581,15 @@ const UserManagement = () => {
 
       <div className="user-management-usermgmtad">
         <div className="user-management-header-usermgmtad">
-          
           <div>
             <h1>User Management</h1>
             <p>Manage system users, roles, and permissions</p>
           </div>
           
-          <button className="create-user-btn-usermgmtad" onClick={handleOpenImportModal} style={{ backgroundColor: '#6c757d' }}>
-            <FaDatabase /> Import from Job Portal
-          </button>
-          
           <div style={{ display: 'flex', gap: '1rem' }}>
+            <button className="create-user-btn-usermgmtad" onClick={handleOpenImportModal} style={{ backgroundColor: '#6c757d' }}>
+              <FaDatabase /> Import from Job Portal
+            </button>
             <button className="create-user-btn-usermgmtad" onClick={handleOpenCreateModal}>
               <FaUserPlus /> Add User
             </button>
@@ -660,7 +676,7 @@ const UserManagement = () => {
                             <div className="import-badge-usermgmtad"><FaCloudUploadAlt /> Imported</div>
                           )}
                         </div>
-                      </td>
+                       </td>
                       <td className="email-cell-usermgmtad"><FaEnvelope className="email-icon-usermgmtad" />{user.email}</td>
                       <td className="contact-cell-usermgmtad">{user.clientInfo?.contactNumber || '—'}</td>
                       <td>{getRoleBadge(user.role)}</td>
@@ -668,27 +684,47 @@ const UserManagement = () => {
                       <td>{formatDate(user.createdAt)}</td>
                       <td>{formatDate(user.lastLogin)}</td>
                       <td style={{ textAlign: 'center', position: 'relative' }}>
-                        <div className="action-dropdown-container" ref={isOpen ? dropdownRef : null}>
-                          <button className="action-dropdown-toggle" onClick={() => setOpenDropdownId(isOpen ? null : user._id)}>
-                            Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
+                        <div className="action-dropdown-container-usermgmtad">
+                          <button 
+                            className="action-dropdown-toggle-usermgmtad"
+                            ref={el => buttonRefs.current[user._id] = el}
+                            onClick={(e) => handleDropdownClick(e, user._id)}
+                          >
+                            Action <FaChevronDown className={`dropdown-arrow-usermgmtad ${isOpen ? 'open-usermgmtad' : ''}`} />
                           </button>
                           {isOpen && (
-                            <div className="action-dropdown-menu">
+                            <div 
+                              className="action-dropdown-menu-usermgmtad"
+                              ref={dropdownRef}
+                              style={{
+                                position: 'fixed',
+                                top: dropdownPosition.top,
+                                right: dropdownPosition.right,
+                                zIndex: 9999,
+                              }}
+                            >
                               {actions.map((action, idx) => (
-                                <button key={idx} className={`dropdown-item ${action.color || ''}`} onClick={action.action}>
+                                <button 
+                                  key={idx} 
+                                  className={`dropdown-item-usermgmtad ${action.color || ''}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    action.action();
+                                  }}
+                                >
                                   {action.icon} <span>{action.label}</span>
                                 </button>
                               ))}
                             </div>
                           )}
                         </div>
-                      </td>
-                    </tr>
+                       </td>
+                     </tr>
                   );
                 })
               )}
             </tbody>
-          </table>
+           </table>
         </div>
 
         {totalPages > 1 && (
@@ -699,7 +735,7 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* Import Modal */}
+        {/* Import Modal - Keep as is */}
         {showImportModal && (
           <div className="modal-overlay-usermgmtad" onClick={() => setShowImportModal(false)}>
             <div className="modal-content-usermgmtad import-modal-usermgmtad" onClick={e => e.stopPropagation()}>
@@ -795,6 +831,7 @@ const UserManagement = () => {
           </div>
         )}
 
+        {/* Rest of the modals remain the same */}
         {/* User Modal (Create/Edit/View) */}
         {showUserModal && (
           <div className="modal-overlay-usermgmtad" onClick={() => setShowUserModal(false)}>
@@ -838,7 +875,6 @@ const UserManagement = () => {
                         />
                         {formErrors.firstName && <span className="error-text-usermgmtad">{formErrors.firstName}</span>}
                       </div>
-                      
                       <div className="form-group-usermgmtad">
                         <label>Last Name *</label>
                         <input
@@ -871,9 +907,6 @@ const UserManagement = () => {
                           onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
                         />
                       </div>
-                    </div>
-                    <div className="form-row-usermgmtad">
-                      
                     </div>
                     {modalMode === 'create' && (
                       <div className="form-row-usermgmtad">

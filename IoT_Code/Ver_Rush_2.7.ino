@@ -31,8 +31,7 @@ void logStorage(String msg) { Serial.println("💾 " + msg); }
 const char* default_ssid     = "RomyBaby2.4";
 const char* default_password = "SID-2023-003155";
 String default_serverURL = "https://solaris-34ej.onrender.com/api/sensor/data";
-const char* deviceId = "IOT-260409-0020";
-
+String default_deviceId = "IOT-260409-0020";
 
 // ------------------- AP -------------------
 const char* ap_ssid = "ESP32_Config";
@@ -43,8 +42,9 @@ Preferences preferences;
 // ------------------- CONFIGURABLE SETTINGS -------------------
 String savedSSID;
 String savedPASS;
-unsigned long logInterval = 20000;      // 15 minutes in ms
-unsigned long uploadInterval = 60000;  // 2 hours in ms
+String deviceId;
+unsigned long logInterval = 20000;      // 20 sec (adjust as needed)
+unsigned long uploadInterval = 60000;   // 1 min
 String serverURL = default_serverURL;
 
 // ------------------- LOGGING TIMERS -------------------
@@ -73,33 +73,46 @@ bool sdAvailable = false;
 TinyGPSPlus gps;
 HardwareSerial gpsSerial(1);
 
-// ------------------- RS485 -------------------
+// GPS state machine
+enum GpsState {
+  GPS_SEARCHING,  // trying to get first fix for up to 10 min
+  GPS_ACTIVE,     // got a fix, keep using live data
+  GPS_DISABLED    // timeout reached, use last saved location
+};
+GpsState gpsState = GPS_SEARCHING;
+unsigned long gpsStartTime = 0;
+float lastValidLat = 14.7683166;
+float lastValidLon = 120.9418555;
+float currentLat = 0.0;
+float currentLon = 0.0;
+
+// ------------------- RS485 (separate DE & RE) -------------------
 HardwareSerial rs485Serial(2);
 ModbusMaster node;
-#define MAX485_DE 33
-#define MAX485_RE 13
+#define RS485_DE 33   // Driver enable (active HIGH)
+#define RS485_RE 13   // Receiver enable (active LOW)
+
+void preTransmission() {
+  digitalWrite(RS485_DE, HIGH);   // Driver ON
+  digitalWrite(RS485_RE, HIGH);   // Receiver OFF (disable)
+  delay(2);
+}
+
+void postTransmission() {
+  digitalWrite(RS485_DE, LOW);    // Driver OFF
+  digitalWrite(RS485_RE, LOW);    // Receiver ON (enable)
+  delay(2);
+}
 
 // ------------------- DHT22 -------------------
 #define DHTPIN 14
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
 
-void preTransmission() {
-  digitalWrite(MAX485_DE, HIGH);   // TX ON
-  digitalWrite(MAX485_RE, LOW);    // disable receive (ACTIVE LOW logic)
-  delay(2);
-}
-
-void postTransmission() {
-  digitalWrite(MAX485_DE, LOW);    // RX ON
-  digitalWrite(MAX485_RE, LOW);    // enable receive again
-  delay(2);
-}
-
 // ===================================================
 // WIFI CONNECT
 // ===================================================
-  bool connectToWiFi(String ssid, String pass) {
+bool connectToWiFi(String ssid, String pass) {
   logNetwork("Clearing old WiFi credentials...");
   WiFi.disconnect(true, true);
   delay(1000);
@@ -139,7 +152,7 @@ bool sendToServer(String timestamp, float lat, float lon,
   http.addHeader("Content-Type", "application/json");
   http.setTimeout(20000);
   String json = "{";
-  json += "\"deviceId\":\"" + String(deviceId) + "\",";
+  json += "\"deviceId\":\"" + deviceId + "\",";
   json += "\"timestamp\":\"" + timestamp + "\",";
   json += "\"irradiance\":" + String(irradiance) + ",";
   json += "\"temperature\":" + String(temp) + ",";
@@ -223,8 +236,8 @@ void syncSDBacklog() {
       bool success = uploadSingleRecord(line);
       if (success) {
         logSuccess("Backlog record uploaded");
-       int lastComma = line.lastIndexOf(',');
-       String baseData = line.substring(0, lastComma);
+        int lastComma = line.lastIndexOf(',');
+        String baseData = line.substring(0, lastComma);
         line = baseData + ",1";
       } else {
         logError("Backlog upload failed, will retry later");
@@ -283,31 +296,48 @@ void handleRoot() {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ESP32 Setup</title>
   <style>
-    body { font-family: Arial; background: #f0f2f5; }
-    .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 12px; }
-    h2 { text-align: center; color: #1a73e8; }
-    label { font-weight: bold; display: block; margin-top: 15px; }
-    input { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; }
-    button { background: #1a73e8; color: white; border: none; padding: 12px; margin-top: 25px; width: 100%; border-radius: 6px; }
+    body { font-family: Arial; background: #f0f2f5; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h2 { text-align: center; color: #1a73e8; margin-bottom: 25px; }
+    h3 { color: #333; margin-top: 20px; border-bottom: 2px solid #1a73e8; padding-bottom: 5px; }
+    label { font-weight: bold; display: block; margin-top: 15px; color: #555; }
+    input { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+    input:focus { outline: none; border-color: #1a73e8; }
+    button { background: #1a73e8; color: white; border: none; padding: 12px; margin-top: 25px; width: 100%; border-radius: 6px; font-size: 16px; cursor: pointer; }
     button:hover { background: #0c5fcf; }
+    .info { background: #e8f0fe; padding: 10px; border-radius: 6px; margin-top: 20px; font-size: 12px; color: #555; }
   </style>
 </head>
 <body>
 <div class="container">
-  <h2>ESP32 Setup</h2>
+  <h2>ESP32 Solar Monitor Setup</h2>
   <form action="/save" method="POST">
+    <h3>WiFi Settings</h3>
     <label>WiFi SSID:</label>
     <input type="text" name="ssid" value=")rawliteral" + savedSSID + R"rawliteral(" required>
     <label>WiFi Password:</label>
-    <input type="password" name="pass" value=")rawliteral" + savedPASS + R"rawliteral(" required>
+    <input type="text" name="pass" value=")rawliteral" + savedPASS + R"rawliteral(" required>
+    
+    <h3>Device Settings</h3>
+    <label>Device ID:</label>
+    <input type="text" name="deviceId" value=")rawliteral" + deviceId + R"rawliteral(" required>
+    
+    <h3>Timing Settings</h3>
     <label>Logging Interval (minutes):</label>
     <input type="number" name="logInt" value=")rawliteral" + String(logInterval / 60000) + R"rawliteral(" required>
     <label>Upload Interval (minutes):</label>
     <input type="number" name="uploadInt" value=")rawliteral" + String(uploadInterval / 60000) + R"rawliteral(" required>
+    
+    <h3>Server Settings</h3>
     <label>Server URL:</label>
     <input type="url" name="serverURL" value=")rawliteral" + serverURL + R"rawliteral(" required>
-    <button type="submit">Save</button>
+    
+    <button type="submit">Save & Reboot</button>
   </form>
+  <div class="info">
+    Current Device ID: )rawliteral" + deviceId + R"rawliteral(<br>
+    Server: )rawliteral" + serverURL + R"rawliteral(
+  </div>
 </div>
 </body>
 </html>
@@ -323,12 +353,14 @@ void handleSave() {
 
   String newSSID = server.arg("ssid");
   String newPASS = server.arg("pass");
+  String newDeviceId = server.arg("deviceId");
   unsigned long newLogMin = server.arg("logInt").toInt();
   unsigned long newUploadMin = server.arg("uploadInt").toInt();
   String newServerURL = server.arg("serverURL");
 
   // Validate
-  if (newSSID.length() == 0 || newPASS.length() == 0 || newLogMin == 0 || newUploadMin == 0 || newServerURL.length() == 0) {
+  if (newSSID.length() == 0 || newPASS.length() == 0 || newDeviceId.length() == 0 || 
+      newLogMin == 0 || newUploadMin == 0 || newServerURL.length() == 0) {
     server.send(400, "text/plain", "Invalid input. All fields required.");
     return;
   }
@@ -337,6 +369,7 @@ void handleSave() {
   preferences.begin("config", false);
   preferences.putString("ssid", newSSID);
   preferences.putString("pass", newPASS);
+  preferences.putString("deviceId", newDeviceId);
   preferences.putULong("logInt", newLogMin * 60000);
   preferences.putULong("uploadInt", newUploadMin * 60000);
   preferences.putString("serverURL", newServerURL);
@@ -347,6 +380,29 @@ void handleSave() {
   ESP.restart();
 }
 
+// ===================================================
+// GPS HELPER: load/save last known location
+// ===================================================
+void loadLastGpsLocation() {
+  preferences.begin("gps", true);
+  lastValidLat = preferences.getFloat("lastLat", 0.0);
+  lastValidLon = preferences.getFloat("lastLon", 0.0);
+  preferences.end();
+  currentLat = lastValidLat;
+  currentLon = lastValidLon;
+  logInfo("Loaded last GPS location: " + String(lastValidLat,6) + ", " + String(lastValidLon,6));
+}
+
+void saveLastGpsLocation(float lat, float lon) {
+  if (lat == 0.0 && lon == 0.0) return; // don't save invalid
+  preferences.begin("gps", false);
+  preferences.putFloat("lastLat", lat);
+  preferences.putFloat("lastLon", lon);
+  preferences.end();
+  lastValidLat = lat;
+  lastValidLon = lon;
+  logSuccess("Saved GPS location: " + String(lat,6) + ", " + String(lon,6));
+}
 
 // ===================================================
 // SETUP
@@ -359,12 +415,21 @@ void setup() {
   preferences.begin("config", true);
   savedSSID = preferences.getString("ssid", default_ssid);
   savedPASS = preferences.getString("pass", default_password);
+  deviceId = preferences.getString("deviceId", default_deviceId);
   logInterval = preferences.getULong("logInt", 900000);   // 15 min default
   uploadInterval = preferences.getULong("uploadInt", 7200000); // 2h default
   serverURL = preferences.getString("serverURL", default_serverURL);
   preferences.end();
 
-  logInfo("Loaded config: SSID=" + savedSSID + " logInt(min)=" + String(logInterval/60000) + " uploadInt(min)=" + String(uploadInterval/60000));
+  logInfo("Loaded config:");
+  logInfo("  SSID: " + savedSSID);
+  logInfo("  Device ID: " + deviceId);
+  logInfo("  Log Interval: " + String(logInterval/60000) + " min");
+  logInfo("  Upload Interval: " + String(uploadInterval/60000) + " min");
+  logInfo("  Server URL: " + serverURL);
+
+  // Load last known GPS location
+  loadLastGpsLocation();
 
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAP(ap_ssid, ap_pass);
@@ -372,6 +437,8 @@ void setup() {
   apStartTime = millis();
   apRunning = true;
   logNetwork("AP Started (30 min window) | IP: " + WiFi.softAPIP().toString());
+  logNetwork("Connect to WiFi: " + String(ap_ssid) + " | Password: " + String(ap_pass));
+  logNetwork("Then open browser to: http://" + WiFi.softAPIP().toString());
 
   // Web server routes
   server.on("/", handleRoot);
@@ -383,7 +450,11 @@ void setup() {
   dht.begin();
 
   // Try to connect to saved WiFi (if any)
-  connectToWiFi(savedSSID, savedPASS);
+  if (savedSSID.length() > 0 && savedPASS.length() > 0) {
+    connectToWiFi(savedSSID, savedPASS);
+  } else {
+    logInfo("No saved WiFi credentials. Use AP mode to configure.");
+  }
 
   SPI.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
   sdAvailable = SD.begin(SD_CS);
@@ -391,14 +462,17 @@ void setup() {
   else logError("SD card FAILED");
 
   gpsSerial.begin(9600, SERIAL_8N1, 16, 17);
-  rs485Serial.begin(19200, SERIAL_8N1, 34, 32);
+  
+  // RS485: baud rate 4800 (factory default), RX=GPIO34, TX=GPIO32
+  rs485Serial.begin(4800, SERIAL_8N1, 34, 32);
 
-  pinMode(MAX485_DE, OUTPUT);
-  pinMode(MAX485_RE, OUTPUT);
+  pinMode(RS485_DE, OUTPUT);
+  pinMode(RS485_RE, OUTPUT);
+  // Start in receive mode
+  digitalWrite(RS485_DE, LOW);
+  digitalWrite(RS485_RE, LOW);
 
-  digitalWrite(MAX485_DE, LOW);
-  digitalWrite(MAX485_RE, LOW);
-  node.begin(1, rs485Serial);
+  node.begin(1, rs485Serial);        // sensor address = 1 (factory default)
   node.preTransmission(preTransmission);
   node.postTransmission(postTransmission);
 
@@ -406,6 +480,10 @@ void setup() {
   lastUploadTime = millis() - uploadInterval;
 
   syncRTCwithNTP();
+
+  // Start GPS search timer
+  gpsStartTime = millis();
+  logInfo("GPS searching for fix (timeout = 10 minutes)...");
 }
 
 // ===================================================
@@ -422,69 +500,58 @@ void loop() {
            now.year, now.month, now.day,
            now.hour, now.minute, now.second);
 
-  // GPS
-  float lat = 0.0, lon = 0.0;
-  while (gpsSerial.available()) gps.encode(gpsSerial.read());
-  if (gps.location.isValid()) {
-    lat = gps.location.lat();
-    lon = gps.location.lng();
+  // ---------- GPS state machine ----------
+  if (gpsState == GPS_SEARCHING) {
+    // Read GPS data
+    while (gpsSerial.available()) {
+      gps.encode(gpsSerial.read());
+    }
+    if (gps.location.isValid()) {
+      // Got a fix within timeout
+      currentLat = gps.location.lat();
+      currentLon = gps.location.lng();
+      saveLastGpsLocation(currentLat, currentLon);
+      gpsState = GPS_ACTIVE;
+      logSuccess("GPS fix obtained! Switching to active mode.");
+    } else if (millis() - gpsStartTime >= 600000UL) { // 10 minutes timeout
+      gpsState = GPS_DISABLED;
+      logError("GPS timeout: no fix after 10 minutes. Using last saved location.");
+      // currentLat / currentLon already hold last saved location from loadLastGpsLocation()
+    }
+  } 
+  else if (gpsState == GPS_ACTIVE) {
+    // Keep reading GPS for live updates
+    while (gpsSerial.available()) {
+      gps.encode(gpsSerial.read());
+    }
+    if (gps.location.isValid()) {
+      currentLat = gps.location.lat();
+      currentLon = gps.location.lng();
+      saveLastGpsLocation(currentLat, currentLon);
+    }
+    // If invalid, keep previous currentLat/currentLon (last valid)
   }
+  // If GPS_DISABLED, do nothing – currentLat/currentLon stay at last saved value
 
- // Irradiance (Modbus Pyranometer)
-float irradiance = -1;
-
-logSensor("Reading pyranometer...");
-
-uint8_t result = node.readHoldingRegisters(0x0000, 2);
-
-Serial.print("📡 Modbus Result Code: ");
-Serial.println(result);
-
-if (result == node.ku8MBSuccess) {
-  uint16_t high = node.getResponseBuffer(0);
-  uint16_t low  = node.getResponseBuffer(1);
-
-  Serial.print("📡 Raw High Word: ");
-  Serial.println(high);
-
-  Serial.print("📡 Raw Low Word: ");
-  Serial.println(low);
-
-  uint32_t rawValue = ((uint32_t)high << 16) | low;
-
-  Serial.print("📡 Combined Raw Value: ");
-  Serial.println(rawValue);
-
-  irradiance = rawValue / 10.0;
-
-  Serial.print("☀️ Irradiance: ");
-  Serial.print(irradiance);
-  Serial.println(" W/m²");
-
-} else {
-  logError("Pyranometer read FAILED");
-
-  switch(result) {
-    case 224:
-      Serial.println("Reason: Invalid Slave ID");
-      break;
-    case 225:
-      Serial.println("Reason: Invalid Function");
-      break;
-    case 226:
-      Serial.println("Reason: Response Timed Out");
-      break;
-    case 227:
-      Serial.println("Reason: Invalid CRC");
-      break;
-    case 228:
-      Serial.println("Reason: Buffer Error");
-      break;
-    default:
-      Serial.println("Reason: Unknown Error");
-      break;
+  // ========== READ SOLAR RADIATION ==========
+  float irradiance = -1.0f;
+  logSensor("Reading pyranometer...");
+  
+  uint8_t result = node.readHoldingRegisters(0x0000, 1);   // length = 1
+  
+  if (result == node.ku8MBSuccess) {
+    uint16_t raw = node.getResponseBuffer(0);
+    irradiance = (float)raw;   // value is in W/m² (no scaling)
+    logSuccess("Irradiance: " + String(irradiance) + " W/m²");
+  } else {
+    logError("Pyranometer read FAILED, Modbus error: " + String(result));
+    switch(result) {
+      case 224: Serial.println("  - Invalid slave ID (check sensor address)"); break;
+      case 226: Serial.println("  - Response timeout (check wiring, baud rate, power)"); break;
+      case 227: Serial.println("  - CRC mismatch (noise or wrong baud rate)"); break;
+      default: break;
+    }
   }
-}
 
   // DHT22
   float temperature = dht.readTemperature();
@@ -492,10 +559,10 @@ if (result == node.ku8MBSuccess) {
   if (isnan(temperature)) temperature = -99;
   if (isnan(humidity)) humidity = -99;
 
-  // Logging
+  // Logging (using currentLat / currentLon)
   if (millis() - lastLogTime >= logInterval) {
     lastLogTime = millis();
-    appendLogToSD(timestamp, lat, lon, irradiance, temperature, humidity);
+    appendLogToSD(timestamp, currentLat, currentLon, irradiance, temperature, humidity);
   }
 
   // Upload & backlog sync

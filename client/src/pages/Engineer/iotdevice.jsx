@@ -482,7 +482,9 @@ const IoTDevice = () => {
   const paginatedDevices = filteredDevices.slice((currentPage - 1) * 10, currentPage * 10);
 
   // Chart data - timestamps are adjusted for display but keep original for calculations
-  const chartData = sensorData.map(reading => ({
+  const chartData = [...sensorData]
+  .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)) 
+  .map(reading => ({
     timestamp: new Date(reading.timestamp).getTime(),
     irradiance: reading.irradiance || 0,
     temperature: reading.temperature || 0,

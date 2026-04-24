@@ -133,11 +133,16 @@ const UserManagement = () => {
       });
 
       if (response.data.success) {
-        setHiredApplicants(response.data.applicants);
+        const applicantsWithNormalizedEmail = response.data.applicants.map(applicant => ({
+          ...applicant,
+          email: applicant.email ? applicant.email.toLowerCase() : applicant.email
+        }));
+        
+        setHiredApplicants(applicantsWithNormalizedEmail);
         setImportStats({
           total: response.data.count,
-          notImported: response.data.applicants.filter(a => !a.imported).length,
-          alreadyImported: response.data.applicants.filter(a => a.imported).length
+          notImported: applicantsWithNormalizedEmail.filter(a => !a.imported).length,
+          alreadyImported: applicantsWithNormalizedEmail.filter(a => a.imported).length
         });
       }
     } catch (error) {
@@ -242,11 +247,9 @@ const UserManagement = () => {
     if (!applicantSearchTerm) return true;
     const searchLower = applicantSearchTerm.toLowerCase();
     return applicant.fullName?.toLowerCase().includes(searchLower) ||
-      applicant.email?.toLowerCase().includes(searchLower) ||
-      applicant.position?.toLowerCase().includes(searchLower);
+      applicant.email?.toLowerCase().includes(searchLower);
   });
 
-  // Function to combine name fields into fullName
   const combineFullName = (firstName, lastName) => {
     let fullName = firstName;
     if (lastName) {
@@ -273,23 +276,20 @@ const UserManagement = () => {
     setModalMode('edit');
     setSelectedUser(user);
     
-    // Get first name and last name from clientInfo or parse from fullName
     let firstName = '';
     let lastName = '';
     
     if (user.clientInfo?.firstName && user.clientInfo?.lastName) {
-      // Use stored clientInfo if available
       firstName = user.clientInfo.firstName;
       lastName = user.clientInfo.lastName;
     } else if (user.fullName) {
-      // Parse fullName - everything except the last word is first name
       const nameParts = user.fullName.trim().split(' ');
       if (nameParts.length === 1) {
         firstName = nameParts[0];
         lastName = '';
       } else {
-        lastName = nameParts.pop(); // Last word is last name
-        firstName = nameParts.join(' '); // Everything else is first name
+        lastName = nameParts.pop();
+        firstName = nameParts.join(' ');
       }
     }
 
@@ -396,12 +396,14 @@ const UserManagement = () => {
     try {
       const token = sessionStorage.getItem('token');
       const fullName = combineFullName(formData.firstName, formData.lastName);
+      const normalizedEmail = formData.email.toLowerCase();
+      
       let response;
 
       if (modalMode === 'create') {
         response = await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/users`,
           {
-            email: formData.email,
+            email: normalizedEmail,
             password: formData.password,
             role: 'engineer',
             fullName: fullName,
@@ -563,17 +565,15 @@ const UserManagement = () => {
 
       <div className="user-management-usermgmtad">
         <div className="user-management-header-usermgmtad">
-          
           <div>
             <h1>User Management</h1>
             <p>Manage system users, roles, and permissions</p>
           </div>
           
-          <button className="create-user-btn-usermgmtad" onClick={handleOpenImportModal} style={{ backgroundColor: '#6c757d' }}>
-            <FaDatabase /> Import from Job Portal
-          </button>
-          
           <div style={{ display: 'flex', gap: '1rem' }}>
+            <button className="create-user-btn-usermgmtad" onClick={handleOpenImportModal} style={{ backgroundColor: '#6c757d' }}>
+              <FaDatabase /> Import from Job Portal
+            </button>
             <button className="create-user-btn-usermgmtad" onClick={handleOpenCreateModal}>
               <FaUserPlus /> Add User
             </button>
@@ -617,7 +617,12 @@ const UserManagement = () => {
 
           <div className="search-box-usermgmtad">
             <FaSearch className="search-icon-usermgmtad" />
-            <input type="text" placeholder="Search by name, email, or contact number..." value={searchTerm} onChange={handleSearch} />
+            <input 
+              type="text" 
+              placeholder="Search by name or email..." 
+              value={searchTerm} 
+              onChange={handleSearch} 
+            />
           </div>
         </div>
 
@@ -627,17 +632,15 @@ const UserManagement = () => {
               <tr>
                 <th>User</th>
                 <th>Email</th>
-                <th>Contact</th>
                 <th>Role</th>
                 <th>Status</th>
                 <th>Created</th>
-                <th>Last Login</th>
                 <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.length === 0 ? (
-                <tr><td colSpan="8" className="empty-state-usermgmtad"><p>No users found</p></td></tr>
+                <tr><td colSpan="6" className="empty-state-usermgmtad"><p>No users found</p></td></tr>
               ) : (
                 filteredUsers.map(user => {
                   const actions = getAvailableActions(user);
@@ -648,25 +651,32 @@ const UserManagement = () => {
                       <td className="user-cell-usermgmtad">
                         <div className="user-avatar-usermgmtad">
                           {user.clientInfo?.firstName ? (
-                            <div className="avatar-initials-usermgmtad">{user.clientInfo.firstName[0]}{user.clientInfo.lastName?.[0]}</div>
+                            <div className="avatar-initials-usermgmtad">
+                              {user.clientInfo.firstName[0]}{user.clientInfo.lastName?.[0]}
+                            </div>
                           ) : <FaUserCircle />}
                         </div>
                         <div className="user-info-usermgmtad">
                           <div className="user-name-usermgmtad">{user.fullName}</div>
                           {user.clientInfo?.firstName && (
-                            <div className="user-detail-usermgmtad">{user.clientInfo.firstName} {user.clientInfo.lastName}</div>
+                            <div className="user-detail-usermgmtad">
+                              {user.clientInfo.firstName} {user.clientInfo.lastName}
+                            </div>
                           )}
                           {user.metadata?.importedFrom === 'job-portal' && (
-                            <div className="import-badge-usermgmtad"><FaCloudUploadAlt /> Imported</div>
+                            <div className="import-badge-usermgmtad">
+                              <FaCloudUploadAlt /> Imported
+                            </div>
                           )}
                         </div>
                       </td>
-                      <td className="email-cell-usermgmtad"><FaEnvelope className="email-icon-usermgmtad" />{user.email}</td>
-                      <td className="contact-cell-usermgmtad">{user.clientInfo?.contactNumber || '—'}</td>
+                      <td className="email-cell-usermgmtad">
+                        <FaEnvelope className="email-icon-usermgmtad" />
+                        {user.email?.toLowerCase()}
+                      </td>
                       <td>{getRoleBadge(user.role)}</td>
                       <td>{getStatusBadge(user.isActive)}</td>
                       <td>{formatDate(user.createdAt)}</td>
-                      <td>{formatDate(user.lastLogin)}</td>
                       <td style={{ textAlign: 'center', position: 'relative' }}>
                         <div className="action-dropdown-container" ref={isOpen ? dropdownRef : null}>
                           <button className="action-dropdown-toggle" onClick={() => setOpenDropdownId(isOpen ? null : user._id)}>
@@ -693,9 +703,21 @@ const UserManagement = () => {
 
         {totalPages > 1 && (
           <div className="pagination-usermgmtad">
-            <button className="page-btn-usermgmtad" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}><FaChevronLeft /> Previous</button>
+            <button 
+              className="page-btn-usermgmtad" 
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+              disabled={currentPage === 1}
+            >
+              <FaChevronLeft /> Previous
+            </button>
             <span className="page-info-usermgmtad">Page {currentPage} of {totalPages}</span>
-            <button className="page-btn-usermgmtad" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next <FaChevronRight /></button>
+            <button 
+              className="page-btn-usermgmtad" 
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+              disabled={currentPage === totalPages}
+            >
+              Next <FaChevronRight />
+            </button>
           </div>
         )}
 
@@ -720,7 +742,12 @@ const UserManagement = () => {
                 <div className="import-controls-usermgmtad">
                   <div className="search-box-usermgmtad">
                     <FaSearch className="search-icon-usermgmtad" />
-                    <input type="text" placeholder="Search applicants..." value={applicantSearchTerm} onChange={(e) => setApplicantSearchTerm(e.target.value)} />
+                    <input 
+                      type="text" 
+                      placeholder="Search applicants by name or email..." 
+                      value={applicantSearchTerm} 
+                      onChange={(e) => setApplicantSearchTerm(e.target.value)} 
+                    />
                   </div>
                   {filteredApplicants.length > 0 && (
                     <div className="bulk-actions-usermgmtad">
@@ -737,7 +764,10 @@ const UserManagement = () => {
                 </div>
                 <div className="applicants-table-container-usermgmtad">
                   {loadingApplicants ? (
-                    <div className="loading-spinner-usermgmtad"><FaSpinner className="spinner-usermgmtad" /><p>Loading...</p></div>
+                    <div className="loading-spinner-usermgmtad">
+                      <FaSpinner className="spinner-usermgmtad" />
+                      <p>Loading...</p>
+                    </div>
                   ) : (
                     <table className="applicants-table-usermgmtad">
                       <thead>
@@ -746,7 +776,6 @@ const UserManagement = () => {
                           <th>Name</th>
                           <th>Email</th>
                           <th>Phone</th>
-                          <th>Position</th>
                           <th>Submitted</th>
                           <th>Status</th>
                           <th>Actions</th>
@@ -754,17 +783,25 @@ const UserManagement = () => {
                       </thead>
                       <tbody>
                         {filteredApplicants.length === 0 ? (
-                          <tr><td colSpan={bulkImportMode ? 8 : 7} className="empty-state-usermgmtad"><p>No hired applicants found</p></td></tr>
+                          <tr><td colSpan={bulkImportMode ? 7 : 6} className="empty-state-usermgmtad"><p>No hired applicants found</p></td></tr>
                         ) : (
                           filteredApplicants.map(applicant => (
                             <tr key={applicant.id} className={applicant.imported ? 'imported-row-usermgmtad' : ''}>
                               {bulkImportMode && (
-                                <td><input type="checkbox" checked={selectedApplicants.includes(applicant.id)} onChange={() => toggleApplicantSelection(applicant.id)} disabled={applicant.imported} /></td>
+                                <td>
+                                  <input 
+                                    type="checkbox" 
+                                    checked={selectedApplicants.includes(applicant.id)} 
+                                    onChange={() => toggleApplicantSelection(applicant.id)} 
+                                    disabled={applicant.imported} 
+                                  />
+                                </td>
                               )}
-                              <td className="applicant-name-usermgmtad"><FaUserGraduate />{applicant.fullName}</td>
-                              <td>{applicant.email}</td>
+                              <td className="applicant-name-usermgmtad">
+                                <FaUserGraduate />{applicant.fullName}
+                              </td>
+                              <td>{applicant.email?.toLowerCase()}</td>
                               <td>{applicant.phone || '—'}</td>
-                              <td><span className="position-badge-usermgmtad">{applicant.position}</span></td>
                               <td>{formatDate(applicant.submittedAt)}</td>
                               <td>
                                 {applicant.imported ? (
@@ -795,7 +832,7 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* User Modal (Create/Edit/View) */}
+        {/* User Modal (Create/Edit/View) - Keep the same */}
         {showUserModal && (
           <div className="modal-overlay-usermgmtad" onClick={() => setShowUserModal(false)}>
             <div className={`modal-content-usermgmtad user-modal-usermgmtad ${modalMode}`} onClick={e => e.stopPropagation()}>
@@ -808,19 +845,55 @@ const UserManagement = () => {
                   <div className="user-details-view-usermgmtad">
                     <div className="detail-section-usermgmtad">
                       <h4>Account Information</h4>
-                      <div className="detail-row-usermgmtad"><span>Full Name:</span><strong>{selectedUser.fullName || '—'}</strong></div>
-                      <div className="detail-row-usermgmtad"><span>Email:</span><strong>{selectedUser.email}</strong></div>
-                      <div className="detail-row-usermgmtad"><span>Role:</span><strong>{getRoleBadge(selectedUser.role)}</strong></div>
-                      <div className="detail-row-usermgmtad"><span>Status:</span><strong>{getStatusBadge(selectedUser.isActive)}</strong></div>
-                      <div className="detail-row-usermgmtad"><span>Created:</span><strong>{formatDate(selectedUser.createdAt)}</strong></div>
-                      <div className="detail-row-usermgmtad"><span>Last Login:</span><strong>{formatDate(selectedUser.lastLogin)}</strong></div>
+                      <div className="detail-row-usermgmtad">
+                        <span>Full Name:</span>
+                        <strong>{selectedUser.fullName || '—'}</strong>
+                      </div>
+                      <div className="detail-row-usermgmtad">
+                        <span>Email:</span>
+                        <strong>{selectedUser.email?.toLowerCase() || '—'}</strong>
+                      </div>
+                      <div className="detail-row-usermgmtad">
+                        <span>Role:</span>
+                        <strong>{getRoleBadge(selectedUser.role)}</strong>
+                      </div>
+                      <div className="detail-row-usermgmtad">
+                        <span>Status:</span>
+                        <strong>{getStatusBadge(selectedUser.isActive)}</strong>
+                      </div>
+                      <div className="detail-row-usermgmtad">
+                        <span>Created:</span>
+                        <strong>{formatDate(selectedUser.createdAt)}</strong>
+                      </div>
                     </div>
                     {selectedUser.clientInfo && (
                       <div className="detail-section-usermgmtad">
                         <h4>Client Information</h4>
-                        <div className="detail-row-usermgmtad"><span>First Name:</span><strong>{selectedUser.clientInfo.firstName || '—'}</strong></div>
-                        <div className="detail-row-usermgmtad"><span>Last Name:</span><strong>{selectedUser.clientInfo.lastName || '—'}</strong></div>
-                        <div className="detail-row-usermgmtad"><span>Contact Number:</span><strong>{selectedUser.clientInfo.contactNumber || '—'}</strong></div>
+                        <div className="detail-row-usermgmtad">
+                          <span>First Name:</span>
+                          <strong>{selectedUser.clientInfo.firstName || '—'}</strong>
+                        </div>
+                        <div className="detail-row-usermgmtad">
+                          <span>Last Name:</span>
+                          <strong>{selectedUser.clientInfo.lastName || '—'}</strong>
+                        </div>
+                        <div className="detail-row-usermgmtad">
+                          <span>Contact Number:</span>
+                          <strong>{selectedUser.clientInfo.contactNumber || '—'}</strong>
+                        </div>
+                      </div>
+                    )}
+                    {selectedUser.metadata?.importedFrom === 'job-portal' && (
+                      <div className="detail-section-usermgmtad">
+                        <h4>Import Information</h4>
+                        <div className="detail-row-usermgmtad">
+                          <span>Imported From:</span>
+                          <strong>Job Portal</strong>
+                        </div>
+                        <div className="detail-row-usermgmtad">
+                          <span>Import Date:</span>
+                          <strong>{formatDate(selectedUser.metadata.importDate)}</strong>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -850,6 +923,7 @@ const UserManagement = () => {
                         {formErrors.lastName && <span className="error-text-usermgmtad">{formErrors.lastName}</span>}
                       </div>
                     </div>
+                    
                     <div className="form-row-usermgmtad">
                       <div className="form-group-usermgmtad">
                         <label>Email Address *</label>
@@ -863,6 +937,7 @@ const UserManagement = () => {
                         {formErrors.email && <span className="error-text-usermgmtad">{formErrors.email}</span>}
                         {modalMode === 'edit' && <small>Email cannot be changed</small>}
                       </div>
+                      
                       <div className="form-group-usermgmtad">
                         <label>Contact Number</label>
                         <input
@@ -872,9 +947,7 @@ const UserManagement = () => {
                         />
                       </div>
                     </div>
-                    <div className="form-row-usermgmtad">
-                      
-                    </div>
+
                     {modalMode === 'create' && (
                       <div className="form-row-usermgmtad">
                         <div className="form-group-usermgmtad">
@@ -906,7 +979,9 @@ const UserManagement = () => {
               <div className="modal-actions-usermgmtad">
                 <button className="cancel-btn-usermgmtad" onClick={() => setShowUserModal(false)}>Cancel</button>
                 {(modalMode === 'edit' || modalMode === 'create') && (
-                  <button className="save-btn-usermgmtad" onClick={handleSaveUser} disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Save User'}</button>
+                  <button className="save-btn-usermgmtad" onClick={handleSaveUser} disabled={isSubmitting}>
+                    {isSubmitting ? 'Saving...' : 'Save User'}
+                  </button>
                 )}
               </div>
             </div>
@@ -917,19 +992,46 @@ const UserManagement = () => {
         {showPasswordModal && selectedUser && (
           <div className="modal-overlay-usermgmtad" onClick={() => setShowPasswordModal(false)}>
             <div className="modal-content-usermgmtad password-modal-usermgmtad" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-usermgmtad"><h3>Reset Password</h3><button className="modal-close-usermgmtad" onClick={() => setShowPasswordModal(false)}>×</button></div>
+              <div className="modal-header-usermgmtad">
+                <h3>Reset Password</h3>
+                <button className="modal-close-usermgmtad" onClick={() => setShowPasswordModal(false)}>×</button>
+              </div>
               <div className="modal-body-usermgmtad">
-                <div className="user-info-summary-usermgmtad"><p><strong>User:</strong> {selectedUser.fullName || selectedUser.email}</p><p><strong>Role:</strong> {getRoleBadge(selectedUser.role)}</p></div>
-                <div className="form-row-usermgmtad">
-                  <div className="form-group-usermgmtad"><label>New Password *</label><input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className={passwordErrors.password ? 'error-usermgmtad' : ''} />{passwordErrors.password && <span className="error-text-usermgmtad">{passwordErrors.password}</span>}<small>Password must be at least 6 characters</small></div>
+                <div className="user-info-summary-usermgmtad">
+                  <p><strong>User:</strong> {selectedUser.fullName || selectedUser.email}</p>
+                  <p><strong>Role:</strong> {getRoleBadge(selectedUser.role)}</p>
                 </div>
                 <div className="form-row-usermgmtad">
-                  <div className="form-group-usermgmtad"><label>Confirm Password *</label><input type="password" value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} className={passwordErrors.confirmPassword ? 'error-usermgmtad' : ''} />{passwordErrors.confirmPassword && <span className="error-text-usermgmtad">{passwordErrors.confirmPassword}</span>}</div>
+                  <div className="form-group-usermgmtad">
+                    <label>New Password *</label>
+                    <input 
+                      type="password" 
+                      value={formData.password} 
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
+                      className={passwordErrors.password ? 'error-usermgmtad' : ''} 
+                    />
+                    {passwordErrors.password && <span className="error-text-usermgmtad">{passwordErrors.password}</span>}
+                    <small>Password must be at least 6 characters</small>
+                  </div>
+                </div>
+                <div className="form-row-usermgmtad">
+                  <div className="form-group-usermgmtad">
+                    <label>Confirm Password *</label>
+                    <input 
+                      type="password" 
+                      value={formData.confirmPassword} 
+                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} 
+                      className={passwordErrors.confirmPassword ? 'error-usermgmtad' : ''} 
+                    />
+                    {passwordErrors.confirmPassword && <span className="error-text-usermgmtad">{passwordErrors.confirmPassword}</span>}
+                  </div>
                 </div>
               </div>
               <div className="modal-actions-usermgmtad">
                 <button className="cancel-btn-usermgmtad" onClick={() => setShowPasswordModal(false)}>Cancel</button>
-                <button className="save-btn-usermgmtad" onClick={handleResetPassword} disabled={isSubmitting}>{isSubmitting ? 'Resetting...' : 'Reset Password'}</button>
+                <button className="save-btn-usermgmtad" onClick={handleResetPassword} disabled={isSubmitting}>
+                  {isSubmitting ? 'Resetting...' : 'Reset Password'}
+                </button>
               </div>
             </div>
           </div>
@@ -945,7 +1047,9 @@ const UserManagement = () => {
               <p className="warning-text-usermgmtad">This action cannot be undone.</p>
               <div className="modal-actions-usermgmtad">
                 <button className="cancel-btn-usermgmtad" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
-                <button className="delete-btn-usermgmtad" onClick={handleDeleteUser} disabled={isSubmitting}>{isSubmitting ? 'Deleting...' : 'Delete User'}</button>
+                <button className="delete-btn-usermgmtad" onClick={handleDeleteUser} disabled={isSubmitting}>
+                  {isSubmitting ? 'Deleting...' : 'Delete User'}
+                </button>
               </div>
             </div>
           </div>
@@ -960,7 +1064,9 @@ const UserManagement = () => {
               <p>Are you sure you want to <strong>{statusAction}</strong> <strong>{selectedUser.fullName || selectedUser.email}</strong>?</p>
               <div className="modal-actions-usermgmtad">
                 <button className="cancel-btn-usermgmtad" onClick={() => setShowStatusConfirm(false)}>Cancel</button>
-                <button className="delete-btn-usermgmtad" onClick={handleToggleStatus} disabled={isSubmitting}>{isSubmitting ? 'Processing...' : statusAction}</button>
+                <button className="delete-btn-usermgmtad" onClick={handleToggleStatus} disabled={isSubmitting}>
+                  {isSubmitting ? 'Processing...' : statusAction}
+                </button>
               </div>
             </div>
           </div>

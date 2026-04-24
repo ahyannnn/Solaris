@@ -8,6 +8,12 @@ const authMiddleware = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/roleMiddleware');
 const { verifyToken } = authMiddleware;
 
+// Helper function to normalize email to lowercase
+const normalizeEmail = (email) => {
+  if (!email) return '';
+  return email.toLowerCase().trim();
+};
+
 // ============ ADMIN ROUTES ============
 // Get all hired applicants from job portal
 router.get('/hired-applicants', verifyToken, admin, async (req, res) => {
@@ -17,21 +23,24 @@ router.get('/hired-applicants', verifyToken, admin, async (req, res) => {
     
     // Check which applicants are already imported
     const transformedApplicants = await Promise.all(hiredApplicants.map(async (applicant) => {
+      // Normalize email for checking
+      const normalizedEmail = normalizeEmail(applicant.personalInfo?.email);
+      
       // Check if already imported by metadata or email
       let existingUser = await User.findOne({ 
         'metadata.originalApplicantId': applicant._id.toString()
       });
       
-      if (!existingUser && applicant.personalInfo?.email) {
+      if (!existingUser && normalizedEmail) {
         existingUser = await User.findOne({ 
-          email: applicant.personalInfo.email 
+          email: normalizedEmail 
         });
       }
       
       return {
         id: applicant._id,
         fullName: applicant.personalInfo?.fullName || 'N/A',
-        email: applicant.personalInfo?.email || 'N/A',
+        email: normalizedEmail || 'N/A', // Return normalized email
         phone: applicant.personalInfo?.phone || 'N/A',
         position: applicant.personalInfo?.position || 'N/A',
         address: applicant.personalInfo?.address || '',
@@ -95,8 +104,11 @@ router.post('/import-engineer/:applicantId', verifyToken, admin, async (req, res
       });
     }
     
-    // Check if email already exists in system
-    const emailExists = await User.findOne({ email: applicant.personalInfo.email });
+    // Normalize email to lowercase
+    const normalizedEmail = normalizeEmail(applicant.personalInfo.email);
+    
+    // Check if email already exists in system (using normalized email)
+    const emailExists = await User.findOne({ email: normalizedEmail });
     if (emailExists) {
       return res.status(409).json({ 
         success: false, 
@@ -118,10 +130,10 @@ router.post('/import-engineer/:applicantId', verifyToken, admin, async (req, res
     const firstName = nameParts[0] || '';
     const lastName = nameParts.slice(1).join(' ') || '';
     
-    // Create new engineer user
+    // Create new engineer user with normalized email
     const newUser = new User({
-      email: applicant.personalInfo.email,
-      password: hashedPassword,
+      email: normalizedEmail, // Store as lowercase
+      passwordHash: hashedPassword, // Changed from 'password' to 'passwordHash' to match your schema
       role: role,
       fullName: fullName,
       isActive: true,
@@ -129,7 +141,7 @@ router.post('/import-engineer/:applicantId', verifyToken, admin, async (req, res
         firstName: firstName,
         lastName: lastName,
         contactNumber: applicant.personalInfo.phone || '',
-        email: applicant.personalInfo.email,
+        email: normalizedEmail, // Store as lowercase
         address: applicant.personalInfo.address || '',
         birthday: applicant.personalInfo.dateOfBirth || null,
         position: applicant.personalInfo.position || ''
@@ -139,8 +151,8 @@ router.post('/import-engineer/:applicantId', verifyToken, admin, async (req, res
         originalApplicantId: applicantId,
         importDate: new Date(),
         position: applicant.personalInfo.position,
-        hadResume: !!applicant.resume?.filename,
-        tempPassword: tempPassword // Store temporarily for email
+        hadResume: !!applicant.resume?.filename
+        // Removed tempPassword from metadata for security
       }
     });
     
@@ -150,7 +162,12 @@ router.post('/import-engineer/:applicantId', verifyToken, admin, async (req, res
     await jobPortalService.updateApplicantStatus(applicantId, 'imported');
     
     // TODO: Send email with temporary password
-    // await sendWelcomeEmail(applicant.personalInfo.email, tempPassword, fullName);
+    // await sendWelcomeEmail(normalizedEmail, tempPassword, fullName);
+    
+    // Log the temporary password for development (remove in production)
+    console.log(`✅ Imported engineer: ${fullName}`);
+    console.log(`📧 Email: ${normalizedEmail}`);
+    console.log(`🔑 Temporary password: ${tempPassword}`);
     
     res.json({
       success: true,
@@ -218,8 +235,11 @@ router.post('/bulk-import', verifyToken, admin, async (req, res) => {
           continue;
         }
         
+        // Normalize email to lowercase
+        const normalizedEmail = normalizeEmail(applicant.personalInfo.email);
+        
         // Check if email exists
-        const emailExists = await User.findOne({ email: applicant.personalInfo.email });
+        const emailExists = await User.findOne({ email: normalizedEmail });
         if (emailExists) {
           results.skipped.push({ 
             applicantId, 
@@ -239,8 +259,8 @@ router.post('/bulk-import', verifyToken, admin, async (req, res) => {
         const lastName = nameParts.slice(1).join(' ') || '';
         
         const newUser = new User({
-          email: applicant.personalInfo.email,
-          password: hashedPassword,
+          email: normalizedEmail, // Store as lowercase
+          passwordHash: hashedPassword, // Changed from 'password' to 'passwordHash'
           role: role,
           fullName: fullName,
           isActive: true,
@@ -248,7 +268,7 @@ router.post('/bulk-import', verifyToken, admin, async (req, res) => {
             firstName: firstName,
             lastName: lastName,
             contactNumber: applicant.personalInfo.phone || '',
-            email: applicant.personalInfo.email,
+            email: normalizedEmail, // Store as lowercase
             address: applicant.personalInfo.address || '',
             birthday: applicant.personalInfo.dateOfBirth || null,
             position: applicant.personalInfo.position || ''
@@ -270,9 +290,12 @@ router.post('/bulk-import', verifyToken, admin, async (req, res) => {
         results.successful.push({
           applicantId,
           name: fullName,
-          email: applicant.personalInfo.email,
-          userId: newUser._id
+          email: normalizedEmail,
+          userId: newUser._id,
+          tempPassword: tempPassword // Only for response, not stored
         });
+        
+        console.log(`✅ Bulk imported: ${fullName} (${normalizedEmail})`);
         
       } catch (error) {
         results.failed.push({ 
@@ -304,8 +327,12 @@ router.get('/import-stats', verifyToken, admin, async (req, res) => {
     // Count imported ones
     let importedCount = 0;
     for (const applicant of hiredApplicants) {
+      const normalizedEmail = normalizeEmail(applicant.personalInfo?.email);
       const imported = await User.findOne({ 
-        'metadata.originalApplicantId': applicant._id.toString() 
+        $or: [
+          { 'metadata.originalApplicantId': applicant._id.toString() },
+          { email: normalizedEmail }
+        ]
       });
       if (imported) importedCount++;
     }
@@ -342,7 +369,7 @@ router.get('/applicant/:applicantId', verifyToken, admin, async (req, res) => {
       applicant: {
         id: applicant._id,
         fullName: applicant.personalInfo?.fullName || 'N/A',
-        email: applicant.personalInfo?.email || 'N/A',
+        email: normalizeEmail(applicant.personalInfo?.email) || 'N/A', // Return normalized email
         phone: applicant.personalInfo?.phone || 'N/A',
         position: applicant.personalInfo?.position || 'N/A',
         address: applicant.personalInfo?.address || '',
@@ -370,7 +397,7 @@ router.get('/imported-engineers', verifyToken, admin, async (req, res) => {
     const importedEngineers = await User.find({ 
       'metadata.importedFrom': 'job-portal',
       role: 'engineer'
-    }).select('-password').sort({ 'metadata.importDate': -1 });
+    }).select('-passwordHash -password').sort({ 'metadata.importDate': -1 }); // Changed from '-password' to '-passwordHash'
     
     res.json({
       success: true,
@@ -422,6 +449,68 @@ router.post('/sync-status', verifyToken, admin, async (req, res) => {
     
   } catch (error) {
     console.error('Error syncing status:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Add this endpoint to fix existing imported users
+router.post('/fix-existing-emails', verifyToken, admin, async (req, res) => {
+  try {
+    // Find all users imported from job portal
+    const importedUsers = await User.find({ 
+      'metadata.importedFrom': 'job-portal' 
+    });
+    
+    let fixed = 0;
+    const fixes = [];
+    
+    for (const user of importedUsers) {
+      let needsSave = false;
+      const originalEmail = user.email;
+      const normalizedEmail = normalizeEmail(originalEmail);
+      
+      if (originalEmail !== normalizedEmail) {
+        user.email = normalizedEmail;
+        needsSave = true;
+        fixes.push({
+          id: user._id,
+          name: user.fullName,
+          oldEmail: originalEmail,
+          newEmail: normalizedEmail
+        });
+      }
+      
+      // Also fix clientInfo.email if it exists
+      if (user.clientInfo && user.clientInfo.email) {
+        const originalClientEmail = user.clientInfo.email;
+        const normalizedClientEmail = normalizeEmail(originalClientEmail);
+        if (originalClientEmail !== normalizedClientEmail) {
+          user.clientInfo.email = normalizedClientEmail;
+          needsSave = true;
+        }
+      }
+      
+      // Ensure password is in the correct field
+      if (user.password && !user.passwordHash) {
+        user.passwordHash = user.password;
+        user.password = undefined;
+        needsSave = true;
+      }
+      
+      if (needsSave) {
+        await user.save();
+        fixed++;
+      }
+    }
+    
+    res.json({
+      success: true,
+      message: `Fixed ${fixed} users`,
+      fixes: fixes
+    });
+    
+  } catch (error) {
+    console.error('Error fixing emails:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });

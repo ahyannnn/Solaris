@@ -376,8 +376,6 @@ class PDFGenerator {
          ]);
       }
 
-      // ... rest of the equipment rows (same as before)
-
       if (cb.equipment.mountingStructure && cb.equipment.mountingStructure.quantity > 0) {
          rows.push([
             'Mounting Structure',
@@ -545,7 +543,7 @@ class PDFGenerator {
       // Draw grand total - UPDATED to use Roboto
       doc.font(this.fonts.title).fontSize(12).fillColor(this.colors.secondary);
       doc.text('TOTAL PROJECT INVESTMENT', this.margin, y);
-      this.renderCurrency(doc, this.formatCurrency(data.calculatedTotalCost), this.pageWidth - this.margin - 110, y, { width: 110, align: 'right' }, 12);
+      this.renderCurrency(doc, this.formatCurrency(data.calculatedTotalCost), this.pageWidth - this.margin - 110, y, { width: 110, align: 'right' });
       y += 25;
 
       return y;
@@ -894,7 +892,7 @@ class PDFGenerator {
       this.drawFooter(doc, 1, 2);
    }
 
-   // Page 2 content for Pre-Assessment
+   // Page 2 content for Pre-Assessment - UPDATED with correct metrics
    async drawPreAssessmentPage2(doc, data) {
       let y = this.drawHeader(doc, true, 'SITE FINDINGS & ANALYSIS', data.bookingReference,
          data.quotationNumber, null, null);
@@ -907,39 +905,39 @@ class PDFGenerator {
          const leftColX = this.margin + 10;
          const rightColX = this.margin + 280;
 
-         // Left column - Irradiance & Temperature
+         // Left column - Irradiance (Range instead of Peak)
          doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
          doc.text('Solar Irradiance', leftColX, y);
          y += 14;
          doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
          doc.text(`Average: ${iot.averageIrradiance?.toFixed(0) || 0} W/m²`, leftColX + 10, y);
          y += 12;
-         doc.text(`Peak: ${iot.maxIrradiance?.toFixed(0) || 0} W/m²`, leftColX + 10, y);
+         doc.text(`Range: ${iot.minIrradiance?.toFixed(0) || 0} - ${iot.maxIrradiance?.toFixed(0) || 0} W/m²`, leftColX + 10, y);
          y += 12;
-         doc.text(`Sun Hours: ${iot.peakSunHours?.toFixed(1) || 0} hrs/day`, leftColX + 10, y);
+         doc.text(`Peak Sun Hours: ${iot.peakSunHours?.toFixed(1) || 0} hrs/day`, leftColX + 10, y);
          y += 16;
 
+         // Temperature - Range only (removed Efficiency Loss)
          doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
          doc.text('Temperature', leftColX, y);
          y += 14;
          doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
          doc.text(`Average: ${iot.averageTemperature?.toFixed(1) || 0}°C`, leftColX + 10, y);
          y += 12;
-         doc.text(`Range: ${iot.minTemperature?.toFixed(1) || 0}°C to ${iot.maxTemperature?.toFixed(1) || 0}°C`, leftColX + 10, y);
-         y += 12;
-         doc.text(`Efficiency Loss: ${iot.efficiencyLoss?.toFixed(1) || 0}%`, leftColX + 10, y);
+         doc.text(`Range: ${iot.minTemperature?.toFixed(1) || 0}°C - ${iot.maxTemperature?.toFixed(1) || 0}°C`, leftColX + 10, y);
          y += 16;
 
+         // Humidity - Range only
          doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
          doc.text('Humidity', leftColX, y);
          y += 14;
          doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
          doc.text(`Average: ${iot.averageHumidity?.toFixed(0) || 0}%`, leftColX + 10, y);
          y += 12;
-         doc.text(`Range: ${iot.minHumidity?.toFixed(0) || 0}% to ${iot.maxHumidity?.toFixed(0) || 0}%`, leftColX + 10, y);
+         doc.text(`Range: ${iot.minHumidity?.toFixed(0) || 0}% - ${iot.maxHumidity?.toFixed(0) || 0}%`, leftColX + 10, y);
          y += 16;
 
-         // Right column - System Recommendations
+         // Right column - System Recommendations (removed Shading Percentage)
          let rightY = y - 110;
          doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
          doc.text('System Recommendations', rightColX, rightY);
@@ -950,8 +948,6 @@ class PDFGenerator {
          doc.text(`Optimal Tilt Angle: ${iot.optimalTiltAngle || 15}°`, rightColX + 10, rightY);
          rightY += 12;
          doc.text(`Recommended System Size: ${iot.recommendedSystemSize || data.systemSize} kWp`, rightColX + 10, rightY);
-         rightY += 12;
-         doc.text(`Shading Percentage: ${iot.shadingPercentage || 0}%`, rightColX + 10, rightY);
          rightY += 16;
 
          if (iot.siteSuitabilityScore) {
@@ -960,6 +956,7 @@ class PDFGenerator {
             rightY += 14;
             doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
             doc.text(`${iot.siteSuitabilityScore}/100`, rightColX + 10, rightY);
+            rightY += 10;
          }
 
          y = Math.max(y, rightY);
@@ -1036,7 +1033,7 @@ class PDFGenerator {
             y += 18;
          }
 
-         // Engineer Recommendations at the bottom
+         // Engineer Recommendations at the bottom (removed Shading Percentage)
          if (sa.recommendations) {
             y = this.drawSectionHeader(doc, y, 'Engineer Recommendations');
             doc.font(this.fonts.body).fontSize(7).fillColor(this.colors.text);

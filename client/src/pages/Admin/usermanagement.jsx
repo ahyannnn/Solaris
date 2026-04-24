@@ -568,11 +568,11 @@ const UserManagement = () => {
             <h1>User Management</h1>
             <p>Manage system users, roles, and permissions</p>
           </div>
-          {/* 
+          
           <button className="create-user-btn-usermgmtad" onClick={handleOpenImportModal} style={{ backgroundColor: '#6c757d' }}>
             <FaDatabase /> Import from Job Portal
           </button>
-          */}
+          
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button className="create-user-btn-usermgmtad" onClick={handleOpenCreateModal}>
               <FaUserPlus /> Add User

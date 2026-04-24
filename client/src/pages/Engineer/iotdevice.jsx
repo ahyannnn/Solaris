@@ -76,9 +76,9 @@ const IoTDevice = () => {
 
   const formatPhilippineTime = (date, options = {}) => {
     if (!date) return 'N/A';
-    
+
     const adjustedDate = subtract8Hours(date);
-    
+
     const defaultOptions = {
       year: 'numeric',
       month: 'short',
@@ -87,22 +87,22 @@ const IoTDevice = () => {
       minute: '2-digit',
       second: '2-digit'
     };
-    
+
     return adjustedDate.toLocaleString('en-PH', { ...defaultOptions, ...options });
   };
 
   const formatPhilippineDateShort = (date, options = {}) => {
     if (!date) return 'N/A';
-    
+
     const adjustedDate = subtract8Hours(date);
-    
+
     const defaultOptions = {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     };
-    
+
     return adjustedDate.toLocaleString('en-PH', { ...defaultOptions, ...options });
   };
 
@@ -133,18 +133,18 @@ const IoTDevice = () => {
   // ==================== SOLAR METRICS CALCULATIONS ====================
   const calculateShadingPercentage = (readings) => {
     if (!readings || readings.length === 0) return 0;
-    
+
     let shadingEvents = 0;
     let totalReadings = 0;
-    
+
     for (let i = 1; i < readings.length; i++) {
-      const prevIrradiance = readings[i-1].irradiance || 0;
+      const prevIrradiance = readings[i - 1].irradiance || 0;
       const currIrradiance = readings[i].irradiance || 0;
-      
+
       // Use adjusted time for hour calculation
       const adjustedDate = subtract8Hours(readings[i].timestamp);
       const hour = adjustedDate.getHours();
-      
+
       if (hour >= 9 && hour <= 15 && prevIrradiance > 200) {
         totalReadings++;
         if (prevIrradiance > 0 && currIrradiance < prevIrradiance * 0.7) {
@@ -152,19 +152,19 @@ const IoTDevice = () => {
         }
       }
     }
-    
+
     const shadingByDrops = totalReadings > 0 ? (shadingEvents / totalReadings) * 100 : 0;
-    
+
     const maxPossibleIrradiance = 950;
     const maxRecorded = Math.max(...readings.map(r => r.irradiance || 0));
     const shadingByMax = maxPossibleIrradiance > 0 ? ((maxPossibleIrradiance - maxRecorded) / maxPossibleIrradiance) * 100 : 0;
-    
+
     const daylightReadings = readings.filter(r => {
       const adjustedDate = subtract8Hours(r.timestamp);
       const hour = adjustedDate.getHours();
       return hour >= 8 && hour <= 16;
     });
-    
+
     let variance = 0;
     if (daylightReadings.length > 0) {
       const avg = daylightReadings.reduce((sum, r) => sum + (r.irradiance || 0), 0) / daylightReadings.length;
@@ -172,58 +172,58 @@ const IoTDevice = () => {
       const stdDev = Math.sqrt(variance);
       const cv = avg > 0 ? (stdDev / avg) * 100 : 0;
       const shadingByVariance = Math.min(70, Math.max(0, cv - 20));
-      
+
       let finalShading = (shadingByDrops * 0.4) + (shadingByMax * 0.3) + (shadingByVariance * 0.3);
       finalShading = Math.min(100, Math.max(0, finalShading));
-      
+
       return finalShading;
     }
-    
+
     return shadingByDrops;
   };
 
   const calculateTemperatureDerating = (readings) => {
     if (!readings || readings.length === 0) return 0;
-    
+
     const TEMP_COEFFICIENT = 0.4;
     const STC_TEMPERATURE = 25;
-    
+
     const peakHoursReadings = readings.filter(reading => {
       const adjustedDate = subtract8Hours(reading.timestamp);
       const hour = adjustedDate.getHours();
       return hour >= 10 && hour <= 14;
     });
-    
+
     if (peakHoursReadings.length === 0) return 0;
-    
+
     const avgTemp = peakHoursReadings.reduce((sum, r) => sum + (r.temperature || 0), 0) / peakHoursReadings.length;
     const tempDiff = Math.max(0, avgTemp - STC_TEMPERATURE);
     const derating = tempDiff * TEMP_COEFFICIENT;
-    
+
     return Math.min(30, derating);
   };
 
   const calculatePeakSunHours = (readings) => {
     if (!readings || readings.length < 2) return 0;
-    
+
     const sortedReadings = [...readings].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-    
+
     const daylightReadings = sortedReadings.filter(r => {
       const adjustedDate = subtract8Hours(r.timestamp);
       const hour = adjustedDate.getHours();
       return hour >= 6 && hour <= 18;
     });
-    
+
     if (daylightReadings.length < 2) return 0;
-    
+
     let totalIrradianceKwh = 0;
-    
+
     for (let i = 0; i < daylightReadings.length - 1; i++) {
       const timeDiff = (new Date(daylightReadings[i + 1].timestamp) - new Date(daylightReadings[i].timestamp)) / (1000 * 60 * 60);
       const avgIrradiance = ((daylightReadings[i].irradiance || 0) + (daylightReadings[i + 1].irradiance || 0)) / 2;
       totalIrradianceKwh += (avgIrradiance * timeDiff) / 1000;
     }
-    
+
     const peakSunHours = totalIrradianceKwh;
     return Math.max(0, peakSunHours);
   };
@@ -259,8 +259,8 @@ const IoTDevice = () => {
 
       const assessmentsWithDevices = (response.data.assessments || []).filter(
         assessment => assessment.iotDeviceId &&
-          (assessment.assessmentStatus === 'device_deployed' || 
-           assessment.assessmentStatus === 'data_collecting')
+          (assessment.assessmentStatus === 'device_deployed' ||
+            assessment.assessmentStatus === 'data_collecting')
       );
 
       const deviceList = assessmentsWithDevices.map(assessment => ({
@@ -319,17 +319,20 @@ const IoTDevice = () => {
         `${API_BASE_URL}/api/pre-assessments/${assessmentId}/iot-data`,
         {
           headers: { Authorization: `Bearer ${token}` },
-          params: { limit: 10000 }
+          params: {
+            limit: 10000,
+            range: 'all'  // ← ADD THIS LINE - Fetches ALL data instead of last 7 days
+          }
         }
       );
 
       const readings = response.data.readings || [];
       const stats = response.data.stats || {};
-      
+
       const calculatedPeakSunHours = calculatePeakSunHours(readings);
       const calculatedShadingPercentage = calculateShadingPercentage(readings);
       const calculatedTemperatureDerating = calculateTemperatureDerating(readings);
-      
+
       const enhancedStats = {
         ...stats,
         peakSunHours: calculatedPeakSunHours > 0 ? calculatedPeakSunHours : (stats.peakSunHours || 0),
@@ -344,7 +347,7 @@ const IoTDevice = () => {
         minHumidity: stats.minHumidity || 0,
         maxHumidity: stats.maxHumidity || 0
       };
-      
+
       setSensorData(readings);
       setSensorStats(enhancedStats);
       setGpsData(stats.gps || null);
@@ -363,10 +366,10 @@ const IoTDevice = () => {
     setSensorStats({});
     setGpsData(null);
     setLastUpdated(null);
-    
+
     setSelectedDevice(device);
     setShowDataModal(true);
-    
+
     await fetchSensorData(device.assessmentId);
   };
 
@@ -379,10 +382,10 @@ const IoTDevice = () => {
 
     setRetrieving(true);
     setShowConfirmModal(false);
-    
+
     try {
       const token = sessionStorage.getItem('token');
-      
+
       const response = await axios.put(
         `${API_BASE_URL}/api/pre-assessments/${selectedDevice.assessmentId}/retrieve-device`,
         {},
@@ -390,11 +393,11 @@ const IoTDevice = () => {
       );
 
       showToast(response.data.message || 'Device retrieved successfully! Data analysis can now begin.', 'success');
-      
+
       setShowDataModal(false);
       setSelectedDevice(null);
       fetchMyDevices();
-      
+
     } catch (error) {
       console.error('Error retrieving device:', error);
       showToast(error.response?.data?.message || 'Failed to retrieve device', 'error');
@@ -409,13 +412,13 @@ const IoTDevice = () => {
     const csvData = sensorData.map(reading => {
       const adjustedDate = subtract8Hours(reading.timestamp);
       return {
-        timestamp: adjustedDate.toLocaleString('en-PH', { 
-          year: 'numeric', 
-          month: '2-digit', 
-          day: '2-digit', 
-          hour: '2-digit', 
-          minute: '2-digit', 
-          second: '2-digit' 
+        timestamp: adjustedDate.toLocaleString('en-PH', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
         }),
         irradiance: reading.irradiance || 0,
         temperature: reading.temperature || 0,
@@ -486,7 +489,7 @@ const IoTDevice = () => {
     humidity: reading.humidity || 0
   }));
 
-  const hasValidSensorData = sensorData.length > 0 && sensorData.some(reading => 
+  const hasValidSensorData = sensorData.length > 0 && sensorData.some(reading =>
     reading.irradiance > 0 || reading.temperature > 0 || reading.humidity > 0
   );
 
@@ -569,7 +572,7 @@ const IoTDevice = () => {
                       <div className="device-icon-iotdevicead">
                         <FaMicrochip />
                       </div>
-                      
+
                     </div>
 
                     <div className="device-info-iotdevicead">
@@ -824,10 +827,10 @@ const IoTDevice = () => {
                               <td>{reading.irradiance || 0}</td>
                               <td>{reading.temperature?.toFixed(1) || 0}</td>
                               <td>{reading.humidity?.toFixed(0) || 0}%</td>
-                             </tr>
+                            </tr>
                           ))}
                         </tbody>
-                       </table>
+                      </table>
                     </div>
                   </div>
                 )}
@@ -865,8 +868,8 @@ const IoTDevice = () => {
               <div className="modal-actions-iotdevicead">
                 <button className="close-btn-iotdevicead" onClick={() => setShowDataModal(false)}>Close</button>
                 {(selectedDevice.assessmentStatus === 'data_collecting' || selectedDevice.status === 'deployed') && (
-                  <button 
-                    className="retrieve-btn-iotdevicead" 
+                  <button
+                    className="retrieve-btn-iotdevicead"
                     onClick={openConfirmModal}
                     disabled={retrieving}
                   >
@@ -923,8 +926,8 @@ const IoTDevice = () => {
               </div>
               <div className="modal-actions-iotdevicead confirm-actions-iotdevicead">
                 <button className="cancel-btn-iotdevicead" onClick={() => setShowConfirmModal(false)}>Cancel</button>
-                <button 
-                  className="confirm-retrieve-btn-iotdevicead" 
+                <button
+                  className="confirm-retrieve-btn-iotdevicead"
                   onClick={handleRetrieveDevice}
                   disabled={retrieving}
                 >

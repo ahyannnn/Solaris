@@ -83,11 +83,29 @@ const EngineerProject = () => {
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
+      
+      // Determine the new status based on selection
+      let newStatus = progressForm.status;
+      
+      // If the project is full_paid (installment) and engineer selects completed, allow it
+      if (selectedProject.status === 'full_paid' && 
+          selectedProject.paymentPreference === 'installment' && 
+          progressForm.status === 'completed') {
+        newStatus = 'completed';
+      }
+      
+      // If current status is in_progress and engineer selects full_paid (final payment received)
+      if (selectedProject.status === 'in_progress' && 
+          progressForm.status === 'full_paid' && 
+          selectedProject.paymentPreference === 'installment') {
+        newStatus = 'full_paid';
+      }
+      
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/projects/${selectedProject._id}/progress`,
         {
           installationNotes: progressForm.installationNotes,
-          status: progressForm.status,
+          status: newStatus,
           sitePhotos: progressForm.sitePhotos
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -337,7 +355,7 @@ const EngineerProject = () => {
 
                   <div className="payment-info-engineerproject">
                     <div className="payment-stats">
-                      <span className="paid-amount">Paid: {formatCurrency(project.amountPaid)}</span>
+                      <span className="paid-amount"></span>
                       <span className="total-amount">Total: {formatCurrency(project.totalCost)}</span>
                     </div>
                     <div className="payment-method-badge">
@@ -352,6 +370,7 @@ const EngineerProject = () => {
                       <FaEye /> View Details
                     </button>
 
+                    {/* Start Installation button - for approved/initial_paid status */}
                     {canStart && !isInstallmentFullPaid && (
                       <button
                         className="action-btn start"
@@ -366,12 +385,13 @@ const EngineerProject = () => {
                       </button>
                     )}
 
-                    {(isInProgress || isProgressPaid || (isFullPaid && project.paymentPreference === 'installment')) && (
+                    {/* Update Progress button - for in_progress or progress_paid */}
+                    {(isInProgress || isProgressPaid) && (
                       <button
                         className="action-btn update"
                         onClick={() => {
                           setSelectedProject(project);
-                          const defaultStatus = (isFullPaid && project.paymentPreference === 'installment') ? 'completed' : project.status;
+                          const defaultStatus = project.status;
                           setProgressForm({ 
                             installationNotes: project.installationNotes || '', 
                             status: defaultStatus, 
@@ -381,7 +401,45 @@ const EngineerProject = () => {
                           setShowProgressModal(true);
                         }}
                       >
-                        <FaCheckCircle /> {isFullPaid && project.paymentPreference === 'installment' ? 'Complete Project' : 'Update Progress'}
+                        <FaCheckCircle /> Update Progress
+                      </button>
+                    )}
+
+                    {/* Complete Project button for full_paid (installment) */}
+                    {isFullPaid && project.paymentPreference === 'installment' && (
+                      <button
+                        className="action-btn complete"
+                        onClick={() => {
+                          setSelectedProject(project);
+                          setProgressForm({ 
+                            installationNotes: project.installationNotes || '', 
+                            status: 'completed', 
+                            sitePhotos: project.sitePhotos || [] 
+                          });
+                          setPreviewPhotos([]);
+                          setShowProgressModal(true);
+                        }}
+                      >
+                        <FaCheckCircle /> Complete Project
+                      </button>
+                    )}
+
+                    {/* Confirm Final Payment button for in_progress with installment */}
+                    {isInProgress && project.paymentPreference === 'installment' && (
+                      <button
+                        className="action-btn payment-received"
+                        onClick={() => {
+                          setSelectedProject(project);
+                          setProgressForm({ 
+                            installationNotes: project.installationNotes || '', 
+                            status: 'full_paid', 
+                            sitePhotos: project.sitePhotos || [] 
+                          });
+                          setPreviewPhotos([]);
+                          setShowProgressModal(true);
+                        }}
+                      >
+                        <FaMoneyBillWave /> Confirm Final Payment
                       </button>
                     )}
                   </div>
@@ -474,25 +532,73 @@ const EngineerProject = () => {
 
               <div className="form-group">
                 <label>Installation Notes</label>
-                <textarea rows="4" value={progressForm.installationNotes} onChange={(e) => setProgressForm({ ...progressForm, installationNotes: e.target.value })} placeholder="Describe the progress, challenges, next steps..." />
+                <textarea 
+                  rows="4" 
+                  value={progressForm.installationNotes} 
+                  onChange={(e) => setProgressForm({ ...progressForm, installationNotes: e.target.value })} 
+                  placeholder="Describe the progress, challenges, next steps..." 
+                />
               </div>
 
               <div className="form-group">
                 <label>Update Status</label>
                 <select value={progressForm.status} onChange={(e) => setProgressForm({ ...progressForm, status: e.target.value })}>
-                  <option value="in_progress">In Progress</option>
-                  <option value="progress_paid">Progress Payment Received</option>
-                  {selectedProject.paymentPreference === 'installment' && (
-                    <option value="full_paid">Final Payment Received - Complete Installation</option>
+                  {/* For in_progress projects - show normal options */}
+                  {selectedProject.status === 'in_progress' && (
+                    <>
+                      <option value="in_progress">In Progress</option>
+                      <option value="progress_paid">Progress Payment Received</option>
+                      {selectedProject.paymentPreference === 'installment' && (
+                        <option value="full_paid">Final Payment Received - Complete Installation</option>
+                      )}
+                      <option value="completed">Mark as Completed</option>
+                    </>
                   )}
-                  <option value="completed">Mark as Completed</option>
+                  
+                  {/* For progress_paid projects */}
+                  {selectedProject.status === 'progress_paid' && (
+                    <>
+                      <option value="progress_paid">Progress Paid - Continue Work</option>
+                      <option value="in_progress">Back to In Progress</option>
+                      {selectedProject.paymentPreference === 'installment' && (
+                        <option value="full_paid">Final Payment Received</option>
+                      )}
+                      <option value="completed">Mark as Completed</option>
+                    </>
+                  )}
+                  
+                  {/* For full_paid projects (installment) - only show completed */}
+                  {selectedProject.status === 'full_paid' && selectedProject.paymentPreference === 'installment' && (
+                    <>
+                      <option value="full_paid">Final Payment Received</option>
+                      <option value="completed">Mark as Completed</option>
+                    </>
+                  )}
+                  
+                  {/* For starting installation */}
+                  {selectedProject.status !== 'in_progress' && 
+                   selectedProject.status !== 'progress_paid' && 
+                   selectedProject.status !== 'full_paid' && (
+                    <>
+                      <option value="in_progress">Start Installation</option>
+                      <option value="completed">Mark as Completed</option>
+                    </>
+                  )}
                 </select>
               </div>
 
               <div className="form-group">
                 <label>Upload Site Photos</label>
                 <div className="photo-upload-area">
-                  <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} disabled={uploadingPhotos} id="photo-upload" style={{ display: 'none' }} />
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    multiple 
+                    onChange={handlePhotoUpload} 
+                    disabled={uploadingPhotos} 
+                    id="photo-upload" 
+                    style={{ display: 'none' }} 
+                  />
                   <label htmlFor="photo-upload" className={`upload-label ${uploadingPhotos ? 'uploading' : ''}`}>
                     <FaCamera /> {uploadingPhotos ? 'Uploading...' : 'Click to select photos'}
                   </label>

@@ -663,28 +663,34 @@ exports.updateProjectProgress = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this project' });
     }
 
-    // Validate status transition
+    // ✅ CORRECTED valid transitions based on your model
     const validTransitions = {
-      'approved': ['in_progress'],
-       'full_paid': ['in_progress'],
-      'initial_paid': ['in_progress'],
-      'in_progress': ['progress_paid', 'completed'],
-      'progress_paid': ['completed']
+      'quoted': ['approved'],
+      'approved': ['initial_paid', 'in_progress', 'cancelled'],
+      'initial_paid': ['in_progress', 'cancelled'],
+      'full_paid': ['in_progress', 'completed', 'cancelled'],  // ✅ Allow full_paid → completed
+      'in_progress': ['progress_paid', 'full_paid', 'completed', 'cancelled'],  // ✅ Allow in_progress → full_paid
+      'progress_paid': ['completed', 'in_progress', 'cancelled'],
+      'completed': [],  // Terminal state
+      'cancelled': []   // Terminal state
     };
 
     if (status && validTransitions[project.status] && !validTransitions[project.status].includes(status)) {
       return res.status(400).json({
-        message: `Cannot transition from ${project.status} to ${status}`
+        message: `Cannot transition from ${project.status} to ${status}. Allowed transitions: ${validTransitions[project.status]?.join(', ') || 'none'}`
       });
     }
 
     if (installationNotes) project.installationNotes = installationNotes;
     if (sitePhotos) project.sitePhotos = [...(project.sitePhotos || []), ...sitePhotos];
+    
     if (status) {
       const oldStatus = project.status;
       project.status = status;
 
-      project.projectUpdates = project.projectUpdates || [];
+      // Initialize projectUpdates array if it doesn't exist
+      if (!project.projectUpdates) project.projectUpdates = [];
+      
       project.projectUpdates.push({
         title: `Progress Updated: ${oldStatus} → ${status}`,
         description: installationNotes || `Project status changed to ${status}`,
@@ -692,10 +698,12 @@ exports.updateProjectProgress = async (req, res) => {
         updatedBy: engineerId
       });
 
+      // Set start date when project moves to in_progress
       if (status === 'in_progress' && !project.startDate) {
         project.startDate = new Date();
       }
 
+      // Set completion date when project moves to completed
       if (status === 'completed') {
         project.actualCompletionDate = new Date();
       }

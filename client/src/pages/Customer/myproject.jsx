@@ -118,6 +118,13 @@ const MyProject = () => {
       inv.invoiceType === paymentType
     );
 
+    // ✅ If final payment is paid, show previous payments as paid
+    const finalPaid = isPaymentPaid(project, 'final');
+    
+    if (paymentType !== 'final' && finalPaid) {
+      return { status: 'paid', text: 'Paid', color: '#10b981' };
+    }
+
     if (scheduleItem?.status === 'paid' || invoice?.paymentStatus === 'paid') {
       return { status: 'paid', text: 'Paid', color: '#10b981' };
     }
@@ -152,7 +159,7 @@ const MyProject = () => {
     if (project.paymentPreference === 'full') {
       if (project.status === 'completed') return 100;
       if (project.status === 'in_progress') return 60;
-      if (project.status === 'full_paid') return 40; // Installation started
+      if (project.status === 'full_paid') return 40;
       if (project.status === 'approved') return 15;
       return 5;
     }
@@ -161,7 +168,13 @@ const MyProject = () => {
     const progressPaid = isPaymentPaid(project, 'progress');
     const finalPaid = isPaymentPaid(project, 'final');
 
-    if (finalPaid) return 100;
+    // ✅ FIXED: When final payment is paid, show 90% (almost complete)
+    if (finalPaid) {
+      // If installation is completed, show 100%
+      if (project.status === 'completed') return 100;
+      // If final payment is made but installation not completed, show 90%
+      return 90;
+    }
     if (progressPaid) return 75;
     if (initialPaid) return 30;
     if (project.status === 'approved') return 15;
@@ -178,22 +191,24 @@ const MyProject = () => {
       return { message: 'Waiting for admin approval', action: 'Admin will review your project soon' };
     }
     if (project.status === 'approved' && !initialPaid && !fullPaid) {
-      return { message: 'Ready for payment', action: 'Complete payment to start installation' };
+      return { message: 'Ready for payment', action: 'Complete initial payment to start installation' };
     }
     
-    // For full payment plan, after payment is made
+    // For full payment plan
     if (fullPaid && project.paymentPreference === 'full') {
       return { message: 'Payment completed', action: 'Installation will begin soon' };
     }
     
-    if (initialPaid && !progressPaid) {
+    // ✅ FIXED: When final payment is paid but installation not complete
+    if (finalPaid && project.status !== 'completed') {
+      return { message: 'Final payment received', action: 'Engineer will complete the installation shortly' };
+    }
+    
+    if (initialPaid && !progressPaid && !finalPaid) {
       return { message: 'Installation starting soon', action: 'Engineer will be assigned shortly' };
     }
     if (progressPaid && !finalPaid) {
       return { message: 'Installation in progress', action: 'Your solar system is being installed' };
-    }
-    if (finalPaid || fullPaid) {
-      return { message: 'Almost complete', action: 'Final checks and activation' };
     }
     if (project.status === 'completed') {
       return { message: 'Project complete', action: 'Enjoy your solar energy!' };
@@ -227,13 +242,53 @@ const MyProject = () => {
           date: project.actualCompletionDate }
       ];
     } else {
+      // ✅ FIXED: If final payment is paid, progress payment should be considered completed
+      const isProgressCompleted = progressPaid || finalPaid;
+      const isInitialCompleted = initialPaid || finalPaid;
+      
       return [
-        { key: 'quotation', title: 'Quotation', desc: 'Project quoted', completed: true, date: project.createdAt },
-        { key: 'initial', title: 'Initial (30%)', desc: 'Down payment', completed: initialPaid, date: project.paymentSchedule?.find(p => p.type === 'initial')?.paidAt },
-        { key: 'installation', title: 'Installation', desc: 'System setup', completed: ['in_progress', 'progress_paid', 'completed'].includes(project.status), date: project.startDate },
-        { key: 'progress', title: 'Progress (40%)', desc: 'Milestone payment', completed: progressPaid, date: project.paymentSchedule?.find(p => p.type === 'progress')?.paidAt },
-        { key: 'final', title: 'Final (30%)', desc: 'Completion payment', completed: finalPaid, date: project.paymentSchedule?.find(p => p.type === 'final')?.paidAt },
-        { key: 'complete', title: 'Handover', desc: 'System activated', completed: project.status === 'completed', date: project.actualCompletionDate }
+        { 
+          key: 'quotation', 
+          title: 'Quotation', 
+          desc: 'Project quoted', 
+          completed: true, 
+          date: project.createdAt 
+        },
+        { 
+          key: 'initial', 
+          title: 'Initial (30%)', 
+          desc: 'Down payment', 
+          completed: isInitialCompleted,
+          date: project.paymentSchedule?.find(p => p.type === 'initial')?.paidAt 
+        },
+        { 
+          key: 'installation', 
+          title: 'Installation', 
+          desc: 'System setup', 
+          completed: ['in_progress', 'progress_paid', 'full_paid', 'completed'].includes(project.status) || finalPaid,
+          date: project.startDate 
+        },
+        { 
+          key: 'progress', 
+          title: 'Progress (40%)', 
+          desc: 'Milestone payment', 
+          completed: isProgressCompleted,
+          date: project.paymentSchedule?.find(p => p.type === 'progress')?.paidAt 
+        },
+        { 
+          key: 'final', 
+          title: 'Final (30%)', 
+          desc: 'Completion payment', 
+          completed: finalPaid, 
+          date: project.paymentSchedule?.find(p => p.type === 'final')?.paidAt 
+        },
+        { 
+          key: 'complete', 
+          title: 'Handover', 
+          desc: 'System activated', 
+          completed: project.status === 'completed', 
+          date: project.actualCompletionDate 
+        }
       ];
     }
   };
@@ -501,10 +556,10 @@ const MyProject = () => {
                     <p>{nextStep.action}</p>
                   </div>
                   <div className="cuspro-next-actions">
-                    {selectedProject.status === 'approved' && !isPaymentPaid(selectedProject, 'initial') && (
+                    {selectedProject.status === 'approved' && !isPaymentPaid(selectedProject, 'initial') && !isPaymentPaid(selectedProject, 'full') && (
                       <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Payment</button>
                     )}
-                    {(selectedProject.status === 'in_progress' && !isPaymentPaid(selectedProject, 'progress')) && (
+                    {(selectedProject.status === 'in_progress' && !isPaymentPaid(selectedProject, 'progress') && !isPaymentPaid(selectedProject, 'final')) && (
                       <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Progress Payment</button>
                     )}
                     {(selectedProject.status === 'progress_paid' && !isPaymentPaid(selectedProject, 'final')) && (

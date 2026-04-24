@@ -35,7 +35,9 @@ const ProjectManagement = () => {
   const [projectInvoices, setProjectInvoices] = useState([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 20 });
   const dropdownRef = useRef(null);
+  const buttonRefs = useRef({});
   const [stats, setStats] = useState({
     total: 0, quoted: 0, approved: 0, inProgress: 0, completed: 0, cancelled: 0, totalRevenue: 0
   });
@@ -54,8 +56,18 @@ const ProjectManagement = () => {
         setOpenDropdownId(null);
       }
     };
+    
+    const handleScroll = () => {
+      setOpenDropdownId(null);
+    };
+    
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, true);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
   }, [filter, currentPage]);
 
   const fetchProjects = async () => {
@@ -187,6 +199,16 @@ const ProjectManagement = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleDropdownClick = (event, projectId) => {
+    event.stopPropagation();
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+    setDropdownPosition({
+      top: buttonRect.bottom + 5,
+      right: window.innerWidth - buttonRect.right - 10,
+    });
+    setOpenDropdownId(openDropdownId === projectId ? null : projectId);
   };
 
   const formatCurrency = (amount) => {
@@ -355,21 +377,34 @@ const ProjectManagement = () => {
                       <td className="amount">{formatCurrency(project.amountPaid)}</td>
                       <td>{getStatusBadge(project.status)}</td>
                       <td style={{ textAlign: 'center', position: 'relative' }}>
-                        <div className="action-dropdown-container" ref={isOpen ? dropdownRef : null}>
+                        <div className="action-dropdown-container">
                           <button 
                             className="action-dropdown-toggle"
-                            onClick={() => setOpenDropdownId(isOpen ? null : project._id)}
+                            ref={el => buttonRefs.current[project._id] = el}
+                            onClick={(e) => handleDropdownClick(e, project._id)}
                           >
                             Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
                           </button>
                           
                           {isOpen && (
-                            <div className="action-dropdown-menu">
+                            <div 
+                              className="action-dropdown-menu"
+                              ref={dropdownRef}
+                              style={{
+                                position: 'fixed',
+                                top: dropdownPosition.top,
+                                right: dropdownPosition.right,
+                                zIndex: 9999,
+                              }}
+                            >
                               {actions.map((action, idx) => (
                                 <button 
                                   key={idx} 
                                   className={`dropdown-item ${action.color || ''}`}
-                                  onClick={action.action}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    action.action();
+                                  }}
                                 >
                                   {action.icon} <span>{action.label}</span>
                                 </button>
@@ -408,14 +443,16 @@ const ProjectManagement = () => {
                 {selectedProject.paymentSchedule?.length > 0 && (
                   <div className="detail-section"><h4>Payment Schedule</h4>
                     <table className="payment-table"><thead><tr><th>Type</th><th>Amount</th><th>Due</th><th>Status</th></tr></thead>
-                      <tbody>{selectedProject.paymentSchedule.map((p, i) => <tr key={i}><td>{p.type}</td><td>{formatCurrency(p.amount)}</td><td>{formatDate(p.dueDate)}</td><td>{p.status}</td></tr>)}</tbody></table>
+                      <tbody>{selectedProject.paymentSchedule.map((p, i) => <tr key={i}><td>{p.type}</td><td>{formatCurrency(p.amount)}</td><td>{formatDate(p.dueDate)}</td><td>{p.status}</td></tr>)}</tbody>
+                    </table>
                   </div>
                 )}
 
                 <div className="detail-section"><h4>Invoices</h4>
                   {loadingInvoices ? <FaSpinner className="spinning" /> : projectInvoices.length === 0 ? <p>No invoices</p> :
                     <table className="payment-table"><thead><tr><th>Invoice</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead>
-                      <tbody>{projectInvoices.map((inv, i) => <tr key={i}><td>{inv.invoiceNumber}</td><td>{inv.invoiceType}</td><td>{formatCurrency(inv.totalAmount)}</td><td>{inv.paymentStatus}</td></tr>)}</tbody></table>
+                      <tbody>{projectInvoices.map((inv, i) => <tr key={i}><td>{inv.invoiceNumber}</td><td>{inv.invoiceType}</td><td>{formatCurrency(inv.totalAmount)}</td><td>{inv.paymentStatus}</td></tr>)}</tbody>
+                    </table>
                   }
                 </div>
               </div>

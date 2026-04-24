@@ -66,11 +66,9 @@ const IoTDevice = () => {
   const API_BASE_URL = getApiBaseUrl();
 
   // ==================== TIMEZONE FIX: Subtract 8 hours from UTC ====================
-  // This converts UTC+0 to Philippine time by subtracting 8 hours
   const subtract8Hours = (date) => {
     if (!date) return null;
     const originalDate = new Date(date);
-    // Subtract 8 hours (8 * 60 * 60 * 1000 milliseconds)
     return new Date(originalDate.getTime() - (8 * 60 * 60 * 1000));
   };
 
@@ -106,7 +104,6 @@ const IoTDevice = () => {
     return adjustedDate.toLocaleString('en-PH', { ...defaultOptions, ...options });
   };
 
-  // For chart tooltips - subtract 8 hours
   const formatTooltipDate = (timestamp) => {
     if (!timestamp) return 'N/A';
     const adjustedDate = subtract8Hours(timestamp);
@@ -120,7 +117,6 @@ const IoTDevice = () => {
     });
   };
 
-  // For chart X-axis - subtract 8 hours
   const formatAxisDate = (timestamp) => {
     if (!timestamp) return '';
     const adjustedDate = subtract8Hours(timestamp);
@@ -128,6 +124,31 @@ const IoTDevice = () => {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  // ==================== CUSTOM TOOLTIP FOR CHART FIX ====================
+  const CustomChartTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="custom-chart-tooltip-fixed">
+          <div className="tooltip-time">
+            {formatTooltipDate(label)}
+          </div>
+          {payload.map((entry, index) => (
+            <div key={index} className="tooltip-item" style={{ color: entry.color }}>
+              <span className="tooltip-label">{entry.name}:</span>
+              <span className="tooltip-value">
+                {entry.value} 
+                {entry.name === 'Irradiance' ? ' W/m²' : 
+                  entry.name === 'Temperature' ? '°C' : 
+                  entry.name === 'Humidity' ? '%' : ''}
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
   };
 
   // ==================== SOLAR METRICS CALCULATIONS ====================
@@ -141,7 +162,6 @@ const IoTDevice = () => {
       const prevIrradiance = readings[i - 1].irradiance || 0;
       const currIrradiance = readings[i].irradiance || 0;
 
-      // Use adjusted time for hour calculation
       const adjustedDate = subtract8Hours(readings[i].timestamp);
       const hour = adjustedDate.getHours();
 
@@ -321,7 +341,7 @@ const IoTDevice = () => {
           headers: { Authorization: `Bearer ${token}` },
           params: {
             limit: 10000,
-            range: 'all'  // ← ADD THIS LINE - Fetches ALL data instead of last 7 days
+            range: 'all'
           }
         }
       );
@@ -456,7 +476,6 @@ const IoTDevice = () => {
     return badges[status] || <span className="status-badge-iotdevicead">{status}</span>;
   };
 
-  // Format date for display (subtracts 8 hours)
   const formatDate = (date) => {
     return formatPhilippineDateShort(date);
   };
@@ -481,7 +500,6 @@ const IoTDevice = () => {
 
   const paginatedDevices = filteredDevices.slice((currentPage - 1) * 10, currentPage * 10);
 
-  // Chart data - timestamps are adjusted for display but keep original for calculations
   const chartData = sensorData.map(reading => ({
     timestamp: new Date(reading.timestamp).getTime(),
     irradiance: reading.irradiance || 0,
@@ -572,7 +590,6 @@ const IoTDevice = () => {
                       <div className="device-icon-iotdevicead">
                         <FaMicrochip />
                       </div>
-
                     </div>
 
                     <div className="device-info-iotdevicead">
@@ -725,41 +742,44 @@ const IoTDevice = () => {
                     <button onClick={downloadData} className="download-btn-iotdevicead" disabled={!sensorData.length}>
                       <FaDownload /> Export CSV
                     </button>
-                    <button
-                      onClick={() => setAutoRefresh(!autoRefresh)}
-                      className={`auto-refresh-btn-iotdevicead ${autoRefresh ? 'active-iotdevicead' : ''}`}
-                    >
-                      <FaClock /> {autoRefresh ? 'Auto-refresh ON' : 'Auto-refresh OFF'}
-                    </button>
                   </div>
                 )}
 
-                {/* CHARTS - With 8 hours subtracted */}
+                {/* CHARTS - WITH CURSOR ALIGNMENT FIX */}
                 {chartData.length > 0 && hasValidSensorData && (
                   <>
                     <div className="chart-container-iotdevicead">
                       <h4>Solar Irradiance</h4>
                       <div className="chart-iotdevicead">
                         <ResponsiveContainer width="100%" height={300}>
-                          <AreaChart data={chartData}>
+                          <AreaChart 
+                            data={chartData}
+                            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                          >
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis
                               dataKey="timestamp"
                               tickFormatter={formatAxisDate}
                               domain={['auto', 'auto']}
+                              tick={{ fontSize: 11 }}
                             />
-                            <YAxis label={{ value: 'Irradiance (W/m²)', angle: -90, position: 'insideLeft' }} />
-                            <Tooltip
-                              labelFormatter={formatTooltipDate}
-                              formatter={(value) => [`${value} W/m²`, 'Irradiance']}
+                            <YAxis 
+                              label={{ value: 'Irradiance (W/m²)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }}
+                              tick={{ fontSize: 11 }}
                             />
-                            <Legend />
+                            <Tooltip 
+                              content={<CustomChartTooltip />}
+                              cursor={{ stroke: '#f97316', strokeWidth: 1.5, strokeDasharray: '4 4' }}
+                            />
+                            <Legend wrapperStyle={{ fontSize: '12px' }} />
                             <Area
                               type="monotone"
                               dataKey="irradiance"
                               stroke="#f97316"
                               fill="#fed7aa"
                               name="Irradiance"
+                              isAnimationActive={false}
+                              activeDot={{ r: 6, strokeWidth: 2 }}
                             />
                           </AreaChart>
                         </ResponsiveContainer>
@@ -767,22 +787,36 @@ const IoTDevice = () => {
                     </div>
 
                     <div className="chart-container-iotdevicead">
-                      <h4>Temperature & Humidity </h4>
+                      <h4>Temperature & Humidity</h4>
                       <div className="chart-iotdevicead">
                         <ResponsiveContainer width="100%" height={300}>
-                          <ComposedChart data={chartData}>
+                          <ComposedChart 
+                            data={chartData}
+                            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                          >
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis
                               dataKey="timestamp"
                               tickFormatter={formatAxisDate}
                               domain={['auto', 'auto']}
+                              tick={{ fontSize: 11 }}
                             />
-                            <YAxis yAxisId="left" label={{ value: 'Temperature (°C)', angle: -90, position: 'insideLeft' }} />
-                            <YAxis yAxisId="right" orientation="right" label={{ value: 'Humidity (%)', angle: 90, position: 'insideRight' }} />
-                            <Tooltip
-                              labelFormatter={formatTooltipDate}
+                            <YAxis 
+                              yAxisId="left" 
+                              label={{ value: 'Temperature (°C)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }}
+                              tick={{ fontSize: 11 }}
                             />
-                            <Legend />
+                            <YAxis 
+                              yAxisId="right" 
+                              orientation="right" 
+                              label={{ value: 'Humidity (%)', angle: 90, position: 'insideRight', style: { fontSize: '11px', fill: '#64748b' } }}
+                              tick={{ fontSize: 11 }}
+                            />
+                            <Tooltip 
+                              content={<CustomChartTooltip />}
+                              cursor={{ stroke: '#94a3b8', strokeWidth: 1.5, strokeDasharray: '4 4' }}
+                            />
+                            <Legend wrapperStyle={{ fontSize: '12px' }} />
                             <Line
                               yAxisId="left"
                               type="monotone"
@@ -790,6 +824,8 @@ const IoTDevice = () => {
                               stroke="#ef4444"
                               name="Temperature"
                               dot={false}
+                              isAnimationActive={false}
+                              activeDot={{ r: 6, strokeWidth: 2 }}
                             />
                             <Line
                               yAxisId="right"
@@ -798,6 +834,8 @@ const IoTDevice = () => {
                               stroke="#3b82f6"
                               name="Humidity"
                               dot={false}
+                              isAnimationActive={false}
+                              activeDot={{ r: 6, strokeWidth: 2 }}
                             />
                           </ComposedChart>
                         </ResponsiveContainer>
@@ -806,10 +844,10 @@ const IoTDevice = () => {
                   </>
                 )}
 
-                {/* Recent Readings Table - With 8 hours subtracted */}
+                {/* Recent Readings Table */}
                 {sensorData.length > 0 && hasValidSensorData && (
                   <div className="readings-table-iotdevicead">
-                    <h4>Recent Readings </h4>
+                    <h4>Recent Readings</h4>
                     <div className="table-container-iotdevicead">
                       <table className="readings-table">
                         <thead>
@@ -882,7 +920,7 @@ const IoTDevice = () => {
           </div>
         )}
 
-        {/* Confirmation Modal */}
+        {/* Simplified Confirmation Modal - No emoji warnings */}
         {showConfirmModal && selectedDevice && (
           <div className="modal-overlay-iotdevicead" onClick={() => setShowConfirmModal(false)}>
             <div className="modal-content-iotdevicead confirm-modal-iotdevicead" onClick={e => e.stopPropagation()}>
@@ -891,12 +929,8 @@ const IoTDevice = () => {
                 <button className="modal-close-iotdevicead" onClick={() => setShowConfirmModal(false)}>×</button>
               </div>
               <div className="modal-body-iotdevicead confirm-modal-body-iotdevicead">
-                <div className="warning-icon-iotdevicead">
-                  <FaExclamationTriangle />
-                </div>
-                <div className="confirm-message-iotdevicead">
-                  <p>Are you sure you want to retrieve this device?</p>
-                </div>
+                <p>Are you sure you want to retrieve this device?</p>
+                
                 <div className="device-details-confirm-iotdevicead">
                   <div className="detail-row-iotdevicead">
                     <span className="detail-label-iotdevicead">Device ID:</span>
@@ -915,8 +949,9 @@ const IoTDevice = () => {
                     <span className="detail-value-iotdevicead">{selectedDevice.clientName}</span>
                   </div>
                 </div>
-                <div className="warning-message-iotdevicead">
-                  <p><strong>⚠️ This will:</strong></p>
+
+                <div className="info-message-iotdevicead">
+                  <p>This will:</p>
                   <ul>
                     <li>Mark the assessment status as "Data Analyzing"</li>
                     <li>Mark the device status as "Retrieved"</li>

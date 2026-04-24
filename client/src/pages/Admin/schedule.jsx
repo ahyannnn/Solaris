@@ -35,7 +35,9 @@ const AdminSchedule = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 20 });
   const dropdownRef = useRef(null);
+  const buttonRefs = useRef({});
   const [stats, setStats] = useState({
     total: 0,
     scheduled: 0,
@@ -54,9 +56,29 @@ const AdminSchedule = () => {
         setOpenDropdownId(null);
       }
     };
+    
+    const handleScroll = () => {
+      setOpenDropdownId(null);
+    };
+    
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, true);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
   }, [filter, typeFilter, currentPage]);
+
+  const handleDropdownClick = (event, scheduleId) => {
+    event.stopPropagation();
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+    setDropdownPosition({
+      top: buttonRect.bottom + 5,
+      right: window.innerWidth - buttonRect.right - 10,
+    });
+    setOpenDropdownId(openDropdownId === scheduleId ? null : scheduleId);
+  };
 
   const fetchSchedules = async () => {
     try {
@@ -358,21 +380,34 @@ const AdminSchedule = () => {
                       <td>{getTypeBadge(schedule.type)}</td>
                       <td>{getStatusBadge(schedule.status)}</td>
                       <td style={{ textAlign: 'center', position: 'relative' }}>
-                        <div className="action-dropdown-container" ref={isOpen ? dropdownRef : null}>
+                        <div className="action-dropdown-container-adsche">
                           <button 
-                            className="action-dropdown-toggle"
-                            onClick={() => setOpenDropdownId(isOpen ? null : schedule._id)}
+                            className="action-dropdown-toggle-adsche"
+                            ref={el => buttonRefs.current[schedule._id] = el}
+                            onClick={(e) => handleDropdownClick(e, schedule._id)}
                           >
-                            Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
+                            Action <FaChevronDown className={`dropdown-arrow-adsche ${isOpen ? 'open-adsche' : ''}`} />
                           </button>
                           
                           {isOpen && (
-                            <div className="action-dropdown-menu">
+                            <div 
+                              className="action-dropdown-menu-adsche"
+                              ref={dropdownRef}
+                              style={{
+                                position: 'fixed',
+                                top: dropdownPosition.top,
+                                right: dropdownPosition.right,
+                                zIndex: 9999,
+                              }}
+                            >
                               {actions.map((action, idx) => (
                                 <button 
                                   key={idx} 
-                                  className={`dropdown-item ${action.color || ''}`}
-                                  onClick={action.action}
+                                  className={`dropdown-item-adsche ${action.color || ''}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    action.action();
+                                  }}
                                 >
                                   {action.icon} <span>{action.label}</span>
                                 </button>

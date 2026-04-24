@@ -75,7 +75,9 @@ const AdminBilling = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 20 });
   const dropdownRef = useRef(null);
+  const buttonRefs = useRef({});
   const [stats, setStats] = useState({
     totalPreAssessments: 0,
     pending: 0,
@@ -122,9 +124,29 @@ const AdminBilling = () => {
         setOpenDropdownId(null);
       }
     };
+    
+    const handleScroll = () => {
+      setOpenDropdownId(null);
+    };
+    
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, true);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
   }, [activeTab, filter, currentPage, debouncedSearchTerm]);
+
+  const handleDropdownClick = (event, itemId) => {
+    event.stopPropagation();
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+    setDropdownPosition({
+      top: buttonRect.bottom + 5,
+      right: window.innerWidth - buttonRect.right - 10,
+    });
+    setOpenDropdownId(openDropdownId === itemId ? null : itemId);
+  };
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -979,13 +1001,7 @@ const AdminBilling = () => {
                           <td>{getAssessmentStatusBadge(assessment.assessmentStatus)}</td>
                           <td className="receipt-cell-admbil">
                             {assessment.receiptUrl ? (
-                              <a
-                                href={assessment.receiptUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="receipt-link-admbil"
-                                onClick={(e) => e.stopPropagation()}
-                              >
+                              <a href={assessment.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link-admbil" onClick={(e) => e.stopPropagation()}>
                                 <FaReceipt /> View
                               </a>
                             ) : (
@@ -1000,12 +1016,25 @@ const AdminBilling = () => {
                             ) : assessment.paymentStatus === 'failed' ? (
                               <span className="failed-badge-admbil">Failed</span>
                             ) : (
-                              <div className="action-dropdown-container-admbil" ref={isOpen ? dropdownRef : null}>
-                                <button className="action-dropdown-toggle-admbil" onClick={() => setOpenDropdownId(isOpen ? null : assessment._id)}>
+                              <div className="action-dropdown-container-admbil">
+                                <button 
+                                  className="action-dropdown-toggle-admbil" 
+                                  ref={el => buttonRefs.current[assessment._id] = el}
+                                  onClick={(e) => handleDropdownClick(e, assessment._id)}
+                                >
                                   Action <FaChevronDown className={`dropdown-arrow-admbil ${isOpen ? 'open-admbil' : ''}`} />
                                 </button>
                                 {isOpen && (
-                                  <div className="action-dropdown-menu-admbil">
+                                  <div 
+                                    className="action-dropdown-menu-admbil"
+                                    ref={dropdownRef}
+                                    style={{
+                                      position: 'fixed',
+                                      top: dropdownPosition.top,
+                                      right: dropdownPosition.right,
+                                      zIndex: 9999,
+                                    }}
+                                  >
                                     {actions.map((action, idx) => (
                                       <button key={idx} className={`dropdown-item-admbil ${action.color || ''}`} onClick={action.action}>
                                         <span>{action.label}</span>
@@ -1076,13 +1105,7 @@ const AdminBilling = () => {
                           <td>{getPaymentStatusBadge(invoice.paymentStatus)}</td>
                           <td className="receipt-cell-admbil">
                             {invoice.receiptUrl ? (
-                              <a
-                                href={invoice.receiptUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="receipt-link-admbil"
-                                onClick={(e) => e.stopPropagation()}
-                              >
+                              <a href={invoice.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link-admbil" onClick={(e) => e.stopPropagation()}>
                                 <FaReceipt /> View
                               </a>
                             ) : (
@@ -1093,12 +1116,25 @@ const AdminBilling = () => {
                             {autoVerified ? (
                               <span className="verified-badge-admbil auto-verified-admbil">Auto-Verified</span>
                             ) : (
-                              <div className="action-dropdown-container-admbil" ref={isOpen ? dropdownRef : null}>
-                                <button className="action-dropdown-toggle-admbil" onClick={() => setOpenDropdownId(isOpen ? null : invoice._id)}>
+                              <div className="action-dropdown-container-admbil">
+                                <button 
+                                  className="action-dropdown-toggle-admbil" 
+                                  ref={el => buttonRefs.current[invoice._id] = el}
+                                  onClick={(e) => handleDropdownClick(e, invoice._id)}
+                                >
                                   Action <FaChevronDown className={`dropdown-arrow-admbil ${isOpen ? 'open-admbil' : ''}`} />
                                 </button>
                                 {isOpen && (
-                                  <div className="action-dropdown-menu-admbil">
+                                  <div 
+                                    className="action-dropdown-menu-admbil"
+                                    ref={dropdownRef}
+                                    style={{
+                                      position: 'fixed',
+                                      top: dropdownPosition.top,
+                                      right: dropdownPosition.right,
+                                      zIndex: 9999,
+                                    }}
+                                  >
                                     {actions.map((action, idx) => (
                                       <button key={idx} className={`dropdown-item-admbil ${action.color || ''}`} onClick={action.action}>
                                         <span>{action.label}</span>
@@ -1160,12 +1196,7 @@ const AdminBilling = () => {
                       <td>{getPaymentStatusBadge(transaction.status)}</td>
                       <td className="receipt-cell-admbil">
                         {transaction.receiptUrl ? (
-                          <a
-                            href={transaction.receiptUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="receipt-link-admbil"
-                          >
+                          <a href={transaction.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link-admbil">
                             <FaReceipt /> View
                           </a>
                         ) : (
@@ -1180,6 +1211,7 @@ const AdminBilling = () => {
           </div>
         )}
 
+        {/* Rest of modals remain the same */}
         {/* Verify Payment Modal */}
         {showVerifyModal && selectedAssessment && (
           <div className="modal-overlay-admbil" onClick={() => setShowVerifyModal(false)}>

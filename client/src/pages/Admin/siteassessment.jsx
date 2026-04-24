@@ -51,11 +51,9 @@ const SiteAssessment = () => {
   const [engineers, setEngineers] = useState([]);
   const [devices, setDevices] = useState([]);
   const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 20 });
+  const buttonRefs = useRef({});
   const dropdownRef = useRef(null);
-  const [stats, setStats] = useState({
-    freeQuotes: { total: 0, pending: 0, assigned: 0, processing: 0, completed: 0 },
-    preAssessments: { total: 0, pendingReview: 0, pendingPayment: 0, forVerification: 0, paid: 0, scheduled: 0, completed: 0, autoVerified: 0 }
-  });
 
   useEffect(() => {
     fetchData();
@@ -68,8 +66,18 @@ const SiteAssessment = () => {
         setOpenDropdownId(null);
       }
     };
+    
+    const handleScroll = () => {
+      setOpenDropdownId(null);
+    };
+    
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, true);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
   }, [activeTab, filter, currentPage]);
 
   const fetchData = async () => {
@@ -326,6 +334,16 @@ const SiteAssessment = () => {
     }
   };
 
+  const handleDropdownClick = (event, itemId) => {
+    event.stopPropagation();
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+    setDropdownPosition({
+      top: buttonRect.bottom + 5,
+      right: window.innerWidth - buttonRect.right - 10,
+    });
+    setOpenDropdownId(openDropdownId === itemId ? null : itemId);
+  };
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount || 0);
   };
@@ -499,6 +517,11 @@ const SiteAssessment = () => {
     </div>
   );
 
+  const [stats, setStats] = useState({
+    freeQuotes: { total: 0, pending: 0, assigned: 0, processing: 0, completed: 0 },
+    preAssessments: { total: 0, pendingReview: 0, pendingPayment: 0, forVerification: 0, paid: 0, scheduled: 0, completed: 0, autoVerified: 0 }
+  });
+
   if (loading && (activeTab === 'free-quotes' ? freeQuotes.length === 0 : preAssessments.length === 0)) {
     return <SkeletonLoader />;
   }
@@ -615,16 +638,26 @@ const SiteAssessment = () => {
                       )}
                       <td>{getStatusBadge(getDisplayStatus(item), activeTab === 'free-quotes' ? 'free-quote' : 'pre-assessment')}</td>
                       <td style={{ textAlign: 'center', position: 'relative' }}>
-                        <div className="action-dropdown-container" ref={isOpen ? dropdownRef : null}>
+                        <div className="action-dropdown-container">
                           <button 
                             className="action-dropdown-toggle"
-                            onClick={() => setOpenDropdownId(isOpen ? null : item._id)}
+                            ref={el => buttonRefs.current[item._id] = el}
+                            onClick={(e) => handleDropdownClick(e, item._id)}
                           >
                             Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
                           </button>
                           
                           {isOpen && (
-                            <div className="action-dropdown-menu">
+                            <div 
+                              className="action-dropdown-menu"
+                              ref={dropdownRef}
+                              style={{
+                                position: 'fixed',
+                                top: dropdownPosition.top,
+                                right: dropdownPosition.right,
+                                zIndex: 9999,
+                              }}
+                            >
                               {actions.map((action, idx) => (
                                 action.disabled ? (
                                   <div key={idx} className={`dropdown-item disabled ${action.color || ''}`}>
@@ -634,7 +667,10 @@ const SiteAssessment = () => {
                                   <button 
                                     key={idx} 
                                     className={`dropdown-item ${action.color || ''}`}
-                                    onClick={action.action}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      action.action();
+                                    }}
                                   >
                                     {action.icon} <span>{action.label}</span>
                                   </button>

@@ -691,9 +691,11 @@ const UserManagement = () => {
                             </div>
                           )}
                         </div>
-                       </td>
-                      <td className="email-cell-usermgmtad"><FaEnvelope className="email-icon-usermgmtad" />{user.email}</td>
-                      <td className="contact-cell-usermgmtad">{user.clientInfo?.contactNumber || '—'}</td>
+                      </td>
+                      <td className="email-cell-usermgmtad">
+                        <FaEnvelope className="email-icon-usermgmtad" />
+                        {user.email}
+                      </td>
                       <td>{getRoleBadge(user.role)}</td>
                       <td>{getStatusBadge(user.isActive)}</td>
                       <td>{formatDate(user.createdAt)}</td>
@@ -732,13 +734,13 @@ const UserManagement = () => {
                             </div>
                           )}
                         </div>
-                       </td>
-                     </tr>
+                      </td>
+                    </tr>
                   );
                 })
               )}
             </tbody>
-           </table>
+          </table>
         </div>
 
         {totalPages > 1 && (
@@ -761,7 +763,7 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* Import Modal - Keep as is */}
+        {/* Import Modal */}
         {showImportModal && (
           <div className="modal-overlay-usermgmtad" onClick={() => setShowImportModal(false)}>
             <div className="modal-content-usermgmtad import-modal-usermgmtad" onClick={e => e.stopPropagation()}>
@@ -872,7 +874,6 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* Rest of the modals remain the same */}
         {/* User Modal (Create/Edit/View) */}
         {showUserModal && (
           <div className="modal-overlay-usermgmtad" onClick={() => setShowUserModal(false)}>

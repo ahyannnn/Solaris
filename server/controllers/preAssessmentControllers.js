@@ -232,24 +232,24 @@ exports.generateQuotationPDF = async (req, res) => {
           const irradianceValues = sensorData.map(d => d.irradiance || 0).filter(v => v > 0);
           const temperatureValues = sensorData.map(d => d.temperature || 0).filter(t => t && t > 0);
           const humidityValues = sensorData.map(d => d.humidity || 0).filter(h => h && h > 0);
-          
+
           // Calculate min/max properly - exclude zeros
           const minIrradiance = irradianceValues.length > 0 ? Math.min(...irradianceValues) : 0;
           const maxIrradiance = irradianceValues.length > 0 ? Math.max(...irradianceValues) : 0;
-          const avgIrradiance = irradianceValues.length > 0 
-            ? irradianceValues.reduce((a, b) => a + b, 0) / irradianceValues.length 
+          const avgIrradiance = irradianceValues.length > 0
+            ? irradianceValues.reduce((a, b) => a + b, 0) / irradianceValues.length
             : 0;
-          
+
           const minTemperature = temperatureValues.length > 0 ? Math.min(...temperatureValues) : 0;
           const maxTemperature = temperatureValues.length > 0 ? Math.max(...temperatureValues) : 0;
-          const avgTemperature = temperatureValues.length > 0 
-            ? temperatureValues.reduce((a, b) => a + b, 0) / temperatureValues.length 
+          const avgTemperature = temperatureValues.length > 0
+            ? temperatureValues.reduce((a, b) => a + b, 0) / temperatureValues.length
             : 0;
-          
+
           const minHumidity = humidityValues.length > 0 ? Math.min(...humidityValues) : 0;
           const maxHumidity = humidityValues.length > 0 ? Math.max(...humidityValues) : 0;
-          const avgHumidity = humidityValues.length > 0 
-            ? humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length 
+          const avgHumidity = humidityValues.length > 0
+            ? humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length
             : 0;
 
           // Calculate peak sun hours correctly
@@ -759,10 +759,16 @@ exports.approveBooking = async (req, res) => {
     res.status(500).json({ message: 'Failed to process booking' });
   }
 };
-// controllers/preAssessmentControllers.js
+// Helper function to round to 2 decimal places
+const roundTo2Decimals = (value) => {
+  if (value === null || value === undefined || value === '') return 0;
+  const num = parseFloat(value);
+  return isNaN(num) ? 0 : parseFloat(num.toFixed(2));
+};
 
-// controllers/preAssessmentControllers.js
-
+// @desc    Create a new pre-assessment booking
+// @route   POST /api/pre-assessments
+// @access  Private (Customer)
 exports.createPreAssessment = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -772,10 +778,20 @@ exports.createPreAssessment = async (req, res) => {
       propertyType,
       desiredCapacity,
       roofType,
-      roofLength,      // Add this
-      roofWidth,       // Add this
-      systemType, // Add this
-      preferredDate
+      roofLength,
+      roofWidth,
+      systemType,
+      preferredDate,
+      // NEW FIELDS
+      monthlyBill,
+      rate,
+      consumption,
+      dayConsumption,
+      nightConsumption,
+      dayPercentage,
+      nightPercentage,
+      totalDailyConsumption,
+      targetSavings,  // ✅ ADD TARGET SAVINGS
     } = req.body;
 
     const client = await Client.findOne({ userId });
@@ -799,21 +815,33 @@ exports.createPreAssessment = async (req, res) => {
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     const bookingReference = `PA-${year}${month}${day}-${random}`;
 
-    const preAssessment = new PreAssessment({
+    // Prepare the pre-assessment data with new fields (rounded to 2 decimals)
+    const preAssessmentData = {
       clientId: client._id,
       addressId,
       propertyType,
       desiredCapacity: desiredCapacity || '',
-      systemType: systemType || null, // Add this
+      systemType: systemType || null,
       roofType: roofType || '',
-      roofLength: roofLength ? parseFloat(roofLength) : null,      // Add this
-      roofWidth: roofWidth ? parseFloat(roofWidth) : null,        // Add this
+      roofLength: roofLength ? parseFloat(roofLength) : null,
+      roofWidth: roofWidth ? parseFloat(roofWidth) : null,
       preferredDate: new Date(preferredDate),
       paymentStatus: 'pending',
       assessmentStatus: 'pending_review',
       bookingReference,
-    });
+      // NEW FIELDS - rounded to 2 decimal places
+      monthlyBill: roundTo2Decimals(monthlyBill),
+      rate: roundTo2Decimals(rate),
+      consumption: roundTo2Decimals(consumption),
+      dayConsumption: roundTo2Decimals(dayConsumption),
+      nightConsumption: roundTo2Decimals(nightConsumption),
+      dayPercentage: roundTo2Decimals(dayPercentage),
+      nightPercentage: roundTo2Decimals(nightPercentage),
+      totalDailyConsumption: roundTo2Decimals(totalDailyConsumption),
+      targetSavings: targetSavings ? parseInt(targetSavings) : null,  // ✅ ADD TARGET SAVINGS
+    };
 
+    const preAssessment = new PreAssessment(preAssessmentData);
     await preAssessment.save();
 
     res.status(201).json({
@@ -826,8 +854,16 @@ exports.createPreAssessment = async (req, res) => {
         preferredDate: preAssessment.preferredDate,
         assessmentStatus: preAssessment.assessmentStatus,
         paymentStatus: preAssessment.paymentStatus,
-        roofLength: preAssessment.roofLength,    // Add this
-        roofWidth: preAssessment.roofWidth       // Add this
+        roofLength: preAssessment.roofLength,
+        roofWidth: preAssessment.roofWidth,
+        // NEW FIELDS in response (already rounded)
+        monthlyBill: preAssessment.monthlyBill,
+        rate: preAssessment.rate,
+        consumption: preAssessment.consumption,
+        dayPercentage: preAssessment.dayPercentage,
+        nightPercentage: preAssessment.nightPercentage,
+        totalDailyConsumption: preAssessment.totalDailyConsumption,
+        targetSavings: preAssessment.targetSavings,  // ✅ ADD TARGET SAVINGS
       }
     });
 
@@ -1907,8 +1943,6 @@ exports.getAllPreAssessments = async (req, res) => {
   }
 };
 
-// controllers/preAssessmentControllers.js
-
 // @desc    Get client's pre-assessments
 // @route   GET /api/pre-assessments/my-bookings
 // @access  Private (Customer)
@@ -1951,11 +1985,20 @@ exports.getMyPreAssessments = async (req, res) => {
       finalQuotation: assessment.finalQuotation,
       quotationUrl: assessment.quotation?.quotationUrl || assessment.finalQuotation,
       sitePhotos: assessment.sitePhotos || [],
-      // ✅ ADD RECEIPT FIELDS
       receiptUrl: assessment.receiptUrl,
-      receiptNumber: assessment.receiptNumber
+      receiptNumber: assessment.receiptNumber,
+      // NEW FIELDS
+      monthlyBill: assessment.monthlyBill,
+      rate: assessment.rate,
+      consumption: assessment.consumption,
+      dayConsumption: assessment.dayConsumption,
+      nightConsumption: assessment.nightConsumption,
+      dayPercentage: assessment.dayPercentage,
+      nightPercentage: assessment.nightPercentage,
+      totalDailyConsumption: assessment.totalDailyConsumption,
+      targetSavings: assessment.targetSavings  // ✅ ADD TARGET SAVINGS
     }));
-    console.log(formattedAssessments.receiptUrl);
+
     res.json({
       success: true,
       assessments: formattedAssessments
@@ -2361,9 +2404,24 @@ exports.getPreAssessmentById = async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
+    // Create response with rounded decimal fields
+    const assessmentObj = assessment.toObject();
+
+    // Round numeric fields to 2 decimal places
+    assessmentObj.monthlyBill = roundTo2Decimals(assessmentObj.monthlyBill);
+    assessmentObj.rate = roundTo2Decimals(assessmentObj.rate);
+    assessmentObj.consumption = roundTo2Decimals(assessmentObj.consumption);
+    assessmentObj.dayConsumption = roundTo2Decimals(assessmentObj.dayConsumption);
+    assessmentObj.nightConsumption = roundTo2Decimals(assessmentObj.nightConsumption);
+    assessmentObj.dayPercentage = roundTo2Decimals(assessmentObj.dayPercentage);
+    assessmentObj.nightPercentage = roundTo2Decimals(assessmentObj.nightPercentage);
+    assessmentObj.totalDailyConsumption = roundTo2Decimals(assessmentObj.totalDailyConsumption);
+    // targetSavings is integer, no rounding needed
+    assessmentObj.targetSavings = assessmentObj.targetSavings;
+
     res.json({
       success: true,
-      assessment
+      assessment: assessmentObj
     });
 
   } catch (error) {
@@ -2451,27 +2509,16 @@ exports.getIoTData = async (req, res) => {
 
     console.log('=== getIoTData Called ===');
     console.log('Assessment ID:', id);
-    console.log('Engineer ID:', engineerId);
 
-    // IMPORTANT: Populate the iotDeviceId to get the full device object
+    // Populate the iotDeviceId to get the full device object
     const assessment = await PreAssessment.findById(id).populate('iotDeviceId');
 
     if (!assessment) {
-      console.log('❌ Pre-assessment not found for ID:', id);
       return res.status(404).json({ message: 'Pre-assessment not found' });
     }
 
-    console.log('✅ Pre-assessment found:', {
-      bookingReference: assessment.bookingReference,
-      assessmentStatus: assessment.assessmentStatus,
-      iotDeviceId: assessment.iotDeviceId?._id,
-      iotDeviceIdString: assessment.iotDeviceId?.deviceId,
-      assignedEngineerId: assessment.assignedEngineerId
-    });
-
     // Check if engineer is assigned to this assessment
     if (assessment.assignedEngineerId.toString() !== engineerId) {
-      console.log('❌ Authorization failed');
       return res.status(403).json({ message: 'Not authorized to view this data' });
     }
 
@@ -2479,7 +2526,6 @@ exports.getIoTData = async (req, res) => {
     const deviceId = assessment.iotDeviceId?.deviceId;
 
     if (!deviceId) {
-      console.log('❌ No deviceId found in iotDeviceId');
       return res.status(404).json({ message: 'No device associated with this assessment' });
     }
 
@@ -2505,95 +2551,124 @@ exports.getIoTData = async (req, res) => {
         break;
     }
 
-    console.log('Searching SensorData for deviceId:', deviceId);
-    console.log('Date query:', dateQuery);
-
     // Get IoT data from SensorData table
     const sensorData = await SensorData.find({
       deviceId: deviceId,
       ...dateQuery
     })
-      .sort({ timestamp: -1 })
+      .sort({ timestamp: 1 })  // Ascending for calculations
       .limit(parseInt(limit));
 
     console.log(`📊 Found ${sensorData.length} sensor readings`);
 
-    if (sensorData.length > 0) {
-      console.log('Sample reading:', {
-        timestamp: sensorData[0].timestamp,
-        irradiance: sensorData[0].irradiance,
-        temperature: sensorData[0].temperature,
-        humidity: sensorData[0].humidity
-      });
-    }
-
-    // Get device for GPS data
-    const device = assessment.iotDeviceId;
-
-    // Get GPS reading from the latest sensor data
-    let gpsData = null;
-    if (sensorData.length > 0) {
-      // Find the latest reading with GPS data
-      const readingWithGps = sensorData.find(r => r.gps && (r.gps.latitude || r.gps.longitude));
-      if (readingWithGps && readingWithGps.gps) {
-        gpsData = readingWithGps.gps;
-        console.log('✅ GPS data found in sensor readings:', gpsData);
-      }
-    }
-
-    // If no GPS from sensor, use assessment address
-    if (!gpsData && assessment.addressId) {
-      console.log('No GPS data from sensor, using assessment address');
-      gpsData = { latitude: null, longitude: null };
-    }
-
-    // Calculate statistics
+    // ============ CALCULATE STATISTICS ============
     const stats = {
       totalReadings: sensorData.length,
       dataCollectionStart: assessment.dataCollectionStart,
       dataCollectionEnd: assessment.dataCollectionEnd,
+
+      // Irradiance Metrics
       averageIrradiance: 0,
       maxIrradiance: 0,
+      minIrradiance: 0,
+      peakSunHours: 0,
+
+      // Temperature Metrics
       averageTemperature: 0,
       minTemperature: 0,
       maxTemperature: 0,
+
+      // Humidity Metrics
       averageHumidity: 0,
       minHumidity: 0,
       maxHumidity: 0,
-      peakSunHours: 0,
-      gps: gpsData
+
+      // GPS
+      gps: null
     };
 
     if (sensorData.length > 0) {
-      console.log('Calculating statistics...');
-
-      // Irradiance stats
+      // ============ IRRADIANCE METRICS ============
       const irradianceValues = sensorData.map(d => d.irradiance || 0);
-      stats.averageIrradiance = irradianceValues.reduce((a, b) => a + b, 0) / irradianceValues.length;
-      stats.maxIrradiance = Math.max(...irradianceValues);
+      const positiveIrradiance = irradianceValues.filter(v => v > 0);
 
-      // Temperature stats
-      const tempValues = sensorData.map(d => d.temperature).filter(t => t && t !== 0);
+      stats.averageIrradiance = positiveIrradiance.length > 0
+        ? Math.round((positiveIrradiance.reduce((a, b) => a + b, 0) / positiveIrradiance.length) * 10) / 10
+        : 0;
+      stats.maxIrradiance = Math.max(...irradianceValues);
+      stats.minIrradiance = positiveIrradiance.length > 0 ? Math.min(...positiveIrradiance) : 0;
+
+      // ============ PEAK SUN HOURS (≥1000 W/m²) - AVERAGE PER DAY ============
+      const INTERVAL_HOURS = 0.25; // 15 minutes = 0.25 hours
+      let totalPeakSunHoursOverPeriod = 0;
+      let intervalsAbove1000 = 0;
+
+      if (sensorData.length >= 2) {
+        for (let i = 0; i < sensorData.length - 1; i++) {
+          const avgIrradiance = (sensorData[i].irradiance + sensorData[i + 1].irradiance) / 2;
+
+          // Only count when irradiance reaches 1000 W/m² (full sun condition)
+          if (avgIrradiance >= 1000) {
+            totalPeakSunHoursOverPeriod += INTERVAL_HOURS;
+            intervalsAbove1000++;
+          }
+        }
+      }
+
+      // Calculate number of days in the data collection period
+      let numberOfDays = 1;
+      if (sensorData.length > 0) {
+        const firstTimestamp = new Date(sensorData[0].timestamp);
+        const lastTimestamp = new Date(sensorData[sensorData.length - 1].timestamp);
+        const timeDiffMs = lastTimestamp - firstTimestamp;
+        numberOfDays = Math.max(1, Math.ceil(timeDiffMs / (1000 * 60 * 60 * 24)));
+      }
+
+      // Average Peak Sun Hours PER DAY
+      const averagePeakSunHoursPerDay = totalPeakSunHoursOverPeriod / numberOfDays;
+      stats.peakSunHours = Math.round(averagePeakSunHoursPerDay * 10) / 10;
+
+      // ============ TEMPERATURE METRICS ============
+      const tempValues = sensorData
+        .map(d => d.temperature)
+        .filter(t => t !== null && t !== undefined && t !== 0 && t > 0 && t < 60);
+
       if (tempValues.length > 0) {
-        stats.averageTemperature = tempValues.reduce((a, b) => a + b, 0) / tempValues.length;
+        stats.averageTemperature = Math.round((tempValues.reduce((a, b) => a + b, 0) / tempValues.length) * 10) / 10;
         stats.minTemperature = Math.min(...tempValues);
         stats.maxTemperature = Math.max(...tempValues);
       }
 
-      // Humidity stats
-      const humidityValues = sensorData.map(d => d.humidity).filter(h => h && h !== 0);
+      // ============ HUMIDITY METRICS ============
+      const humidityValues = sensorData
+        .map(d => d.humidity)
+        .filter(h => h !== null && h !== undefined && h !== 0 && h > 0 && h <= 100);
+
       if (humidityValues.length > 0) {
-        stats.averageHumidity = humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length;
+        stats.averageHumidity = Math.round(humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length);
         stats.minHumidity = Math.min(...humidityValues);
         stats.maxHumidity = Math.max(...humidityValues);
       }
 
-      // Calculate peak sun hours
-      const peakReadings = irradianceValues.filter(i => i > 200).length;
-      stats.peakSunHours = Math.round((peakReadings / 4) * 10) / 10;
+      // ============ GPS DATA ============
+      const readingWithGps = sensorData.find(r => r.gps && (r.gps.latitude || r.gps.longitude));
+      if (readingWithGps && readingWithGps.gps) {
+        stats.gps = readingWithGps.gps;
+      }
+
+      console.log('Calculated stats:', {
+        totalReadings: stats.totalReadings,
+        totalPeakSunHoursOverPeriod: totalPeakSunHoursOverPeriod.toFixed(1) + ' hours',
+        numberOfDays: numberOfDays,
+        peakSunHours: stats.peakSunHours + ' hours/day',
+        intervalsAbove1000: intervalsAbove1000,
+        avgIrradiance: stats.averageIrradiance,
+        avgTemp: stats.averageTemperature,
+        avgHumidity: stats.averageHumidity
+      });
     }
 
-    // Format readings for frontend
+    // Format readings for frontend (only needed data)
     const formattedReadings = sensorData.map(reading => ({
       timestamp: reading.timestamp,
       irradiance: reading.irradiance || 0,
@@ -2601,14 +2676,11 @@ exports.getIoTData = async (req, res) => {
       humidity: reading.humidity || 0
     }));
 
-    console.log('=== Response Summary ===');
-    console.log(`Sending ${formattedReadings.length} readings to frontend`);
-    console.log('=======================\n');
-
+    // Return only what frontend needs
     res.json({
       success: true,
       readings: formattedReadings,
-      stats,
+      stats: stats,
       device: {
         deviceId: assessment.iotDeviceId?.deviceId,
         deviceName: assessment.iotDeviceId?.deviceName,
@@ -2633,186 +2705,160 @@ exports.retrieveDevice = async (req, res) => {
 
     console.log('=== RETRIEVE DEVICE STARTED ===');
     console.log('Assessment ID:', id);
-    console.log('Engineer ID:', engineerId);
 
     const assessment = await PreAssessment.findById(id);
     if (!assessment) {
-      console.log('❌ Pre-assessment not found');
       return res.status(404).json({ message: 'Pre-assessment not found' });
     }
 
-    console.log('Current assessment status:', assessment.assessmentStatus);
-    console.log('Current deviceDeployedAt:', assessment.deviceDeployedAt);
-    console.log('Current dataCollectionStart:', assessment.dataCollectionStart);
-
     // Check if engineer is assigned
     if (assessment.assignedEngineerId.toString() !== engineerId) {
-      console.log('❌ Not authorized');
       return res.status(403).json({ message: 'Not authorized' });
     }
 
     // Check if device exists
     if (!assessment.iotDeviceId) {
-      console.log('❌ No device associated');
       return res.status(400).json({ message: 'No device associated with this assessment' });
     }
 
     // Get device details
     const device = await IoTDevice.findById(assessment.iotDeviceId);
     if (!device) {
-      console.log('❌ IoT Device not found');
       return res.status(404).json({ message: 'IoT Device not found' });
     }
 
     const deviceId = device.deviceId;
     console.log('Device ID:', deviceId);
-    console.log('Device status before:', device.status);
 
-    // Get start date for sensor query
-    let startDate = assessment.deviceDeployedAt;
-    
-    if (!startDate) {
-      startDate = assessment.dataCollectionStart;
-      console.log('⚠️ deviceDeployedAt not found, using dataCollectionStart:', startDate);
-    }
-    
-    if (!startDate) {
-      startDate = new Date();
-      startDate.setDate(startDate.getDate() - 7);
-      console.log('⚠️ No deployment date found, using last 7 days:', startDate);
-    }
+    // ============ FIX: Get ALL sensor data first (no date filter) ============
+    let sensorData = await SensorData.find({
+      deviceId: deviceId
+    }).sort({ timestamp: 1 });
 
-    console.log('Using start date for sensor query:', startDate);
+    console.log(`Total sensor readings found for device ${deviceId}: ${sensorData.length}`);
 
-    // Query sensor data with progressive buffer
-    let sensorData = await getSensorDataWithBuffer(deviceId, startDate);
-    
+    // If still no data, try case-insensitive or partial match
     if (sensorData.length === 0) {
-      return res.status(404).json({ 
-        message: 'No sensor data found for this device. The device may not have sent any readings yet.'
+      // Try to find any sensor data with similar deviceId
+      const allSensorData = await SensorData.find().limit(5);
+      console.log('Sample deviceIds in SensorData:', allSensorData.map(s => s.deviceId));
+
+      return res.status(404).json({
+        message: 'No sensor data found for this device.',
+        deviceId: deviceId,
+        hint: 'Check if the device has sent any data yet. The device may still be collecting data.'
       });
     }
 
     console.log(`✅ Processing ${sensorData.length} sensor readings`);
 
-    // ============ CALCULATIONS ============
-    
-    // Get all value ranges using proper filtering
-    const irradianceRange = getIrradianceRange(sensorData);
-    const tempRange = getTemperatureRange(sensorData);
-    const humidityRange = getHumidityRange(sensorData);
-    
-    // Calculate Peak Sun Hours (PSH)
-    const peakSunHours = calculatePeakSunHours(sensorData);
-    
-    // Get daily energy consumption
-    const dailyEnergyConsumption = getDailyEnergyConsumption(assessment);
-    
-    // Calculate Recommended System Size (kW)
-    const SYSTEM_EFFICIENCY = 0.8;
-    const recommendedSystemSize = calculateRecommendedSystemSize(dailyEnergyConsumption, peakSunHours, SYSTEM_EFFICIENCY);
-    
-    // Calculate Number of Panels Needed
-    const PANEL_RATING_WATTS = 400;
-    const panelsNeeded = calculatePanelsNeeded(recommendedSystemSize, PANEL_RATING_WATTS);
-    
-    // Calculate Optimal Panel Angle
-    const latitude = assessment.addressId?.latitude || 14.5;
-    const optimalAngle = calculateOptimalPanelAngle(latitude);
-    
-    // Calculate other metrics
-    const avgTemperature = tempRange.average;
-    const shadingPercentage = calculateShadingPercentage(irradianceRange.values);
-    const temperatureDerating = calculateTemperatureDerating(avgTemperature);
-    
-    // Calculate financial metrics
-    const estimatedAnnualProduction = calculateAnnualProduction(recommendedSystemSize, peakSunHours);
-    const estimatedAnnualSavings = calculateAnnualSavings(estimatedAnnualProduction);
-    const systemCost = calculateSystemCost(recommendedSystemSize);
-    const paybackPeriod = calculatePaybackPeriod(systemCost, estimatedAnnualSavings);
-    const co2Offset = calculateCO2Offset(estimatedAnnualProduction);
-    
-    // Calculate site suitability score
-    const siteSuitabilityScore = calculateSiteSuitabilityScore(peakSunHours, shadingPercentage, temperatureDerating);
+    // ============ Calculate actual date range from the data ============
+    const actualStartDate = sensorData[0].timestamp;
+    const actualEndDate = sensorData[sensorData.length - 1].timestamp;
 
-    console.log('Calculated values:', {
-      peakSunHours,
-      dailyEnergyConsumption,
-      recommendedSystemSize,
-      panelsNeeded,
-      optimalAngle,
-      avgTemperature,
-      minTemperature: tempRange.min,
-      maxTemperature: tempRange.max,
-      minHumidity: humidityRange.min,
-      maxHumidity: humidityRange.max,
-      minIrradiance: irradianceRange.min,
-      maxIrradiance: irradianceRange.max,
-      shadingPercentage,
-      temperatureDerating,
-      estimatedAnnualProduction,
-      estimatedAnnualSavings,
-      paybackPeriod,
-      siteSuitabilityScore
-    });
+    // Calculate number of days from actual data
+    const timeDiffMs = new Date(actualEndDate) - new Date(actualStartDate);
+    const numberOfDays = Math.max(1, Math.ceil(timeDiffMs / (1000 * 60 * 60 * 24)));
 
-    // Get GPS data
+    console.log(`Data range: ${actualStartDate} to ${actualEndDate} (${numberOfDays} days)`);
+
+    // ============ PROCESS IRRADIANCE METRICS ============
+    const irradianceValues = sensorData.map(d => d.irradiance || 0);
+    const positiveIrradiance = irradianceValues.filter(v => v > 0);
+
+    const averageIrradiance = positiveIrradiance.length > 0
+      ? positiveIrradiance.reduce((a, b) => a + b, 0) / positiveIrradiance.length
+      : 0;
+    const maxIrradiance = irradianceValues.length > 0 ? Math.max(...irradianceValues) : 0;
+    const minIrradiance = positiveIrradiance.length > 0 ? Math.min(...positiveIrradiance) : 0;
+
+    // ============ PEAK SUN HOURS (≥1000 W/m²) - AVERAGE PER DAY ============
+    const INTERVAL_HOURS = 0.25; // 15 minutes = 0.25 hours
+    let totalPeakSunHoursOverPeriod = 0;
+    let intervalsAbove1000 = 0;
+
+    if (sensorData.length >= 2) {
+      for (let i = 0; i < sensorData.length - 1; i++) {
+        const avgIrradiance = (sensorData[i].irradiance + sensorData[i + 1].irradiance) / 2;
+
+        if (avgIrradiance >= 1000) {
+          totalPeakSunHoursOverPeriod += INTERVAL_HOURS;
+          intervalsAbove1000++;
+        }
+      }
+    }
+
+    // Average Peak Sun Hours PER DAY
+    const averagePeakSunHoursPerDay = totalPeakSunHoursOverPeriod / numberOfDays;
+    const peakSunHours = Math.round(averagePeakSunHoursPerDay * 10) / 10;
+
+    // ============ PROCESS TEMPERATURE METRICS ============
+    const tempValues = sensorData
+      .map(d => d.temperature)
+      .filter(t => t !== null && t !== undefined && t !== 0 && t > 0 && t < 60);
+
+    const averageTemperature = tempValues.length > 0
+      ? tempValues.reduce((a, b) => a + b, 0) / tempValues.length
+      : 0;
+    const maxTemperature = tempValues.length > 0 ? Math.max(...tempValues) : 0;
+    const minTemperature = tempValues.length > 0 ? Math.min(...tempValues) : 0;
+
+    // ============ PROCESS HUMIDITY METRICS ============
+    const humidityValues = sensorData
+      .map(d => d.humidity)
+      .filter(h => h !== null && h !== undefined && h !== 0 && h > 0 && h <= 100);
+
+    const averageHumidity = humidityValues.length > 0
+      ? humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length
+      : 0;
+    const maxHumidity = humidityValues.length > 0 ? Math.max(...humidityValues) : 0;
+    const minHumidity = humidityValues.length > 0 ? Math.min(...humidityValues) : 0;
+
+    // ============ PROCESS GPS DATA ============
     const readingWithGps = sensorData.find(r => r.gps && (r.gps.latitude || r.gps.longitude));
     const gpsCoordinates = readingWithGps?.gps || null;
 
-    // Generate recommendations
-    const recommendationsArray = generateRecommendations(peakSunHours, shadingPercentage, temperatureDerating, optimalAngle);
-    const recommendationsString = recommendationsArray.join(' ');
+    console.log('Processed data:', {
+      totalReadings: sensorData.length,
+      totalPeakSunHoursOverPeriod: totalPeakSunHoursOverPeriod.toFixed(1) + ' hours',
+      numberOfDays: numberOfDays,
+      peakSunHours: peakSunHours + ' hours/day',
+      intervalsAbove1000: intervalsAbove1000,
+      averageIrradiance: averageIrradiance.toFixed(1) + ' W/m²',
+      maxIrradiance: maxIrradiance + ' W/m²',
+      averageTemperature: averageTemperature.toFixed(1) + '°C',
+      temperatureRange: `${minTemperature.toFixed(1)}°C - ${maxTemperature.toFixed(1)}°C`,
+      averageHumidity: averageHumidity.toFixed(0) + '%',
+    });
 
-    // Save all data to assessment
+    // Save data to assessment
     assessment.assessmentResults = {
-      // Basic Info
-      dataCollectionStart: assessment.dataCollectionStart || sensorData[0]?.timestamp,
+      dataCollectionStart: assessment.dataCollectionStart || actualStartDate,
       dataCollectionEnd: new Date(),
       totalReadings: sensorData.length,
-      
+
       // Irradiance Metrics
-      averageIrradiance: irradianceRange.average,
-      maxIrradiance: irradianceRange.max,
-      minIrradiance: irradianceRange.min,
+      averageIrradiance: Math.round(averageIrradiance * 10) / 10,
+      maxIrradiance: maxIrradiance,
+      minIrradiance: minIrradiance,
       peakSunHours: peakSunHours,
-      
+      intervalsAbove1000: intervalsAbove1000,
+
       // Temperature Metrics
-      averageTemperature: tempRange.average,
-      maxTemperature: tempRange.max,
-      minTemperature: tempRange.min,
-      temperatureDerating: temperatureDerating,
-      
+      averageTemperature: Math.round(averageTemperature * 10) / 10,
+      maxTemperature: maxTemperature,
+      minTemperature: minTemperature,
+
       // Humidity Metrics
-      averageHumidity: humidityRange.average,
-      maxHumidity: humidityRange.max,
-      minHumidity: humidityRange.min,
-      
-      // Site Analysis
-      shadingPercentage: shadingPercentage,
-      optimalPanelAngle: optimalAngle,
+      averageHumidity: Math.round(averageHumidity),
+      maxHumidity: maxHumidity,
+      minHumidity: minHumidity,
+
+      // GPS Location
       gpsCoordinates: {
         latitude: gpsCoordinates?.latitude || null,
         longitude: gpsCoordinates?.longitude || null
-      },
-      
-      // System Design
-      dailyEnergyConsumption: dailyEnergyConsumption,
-      recommendedSystemSize: recommendedSystemSize,
-      panelsNeeded: panelsNeeded,
-      panelRatingWatts: PANEL_RATING_WATTS,
-      systemEfficiency: SYSTEM_EFFICIENCY,
-      
-      // Financial Metrics
-      estimatedAnnualProduction: estimatedAnnualProduction,
-      estimatedAnnualSavings: estimatedAnnualSavings,
-      estimatedSystemCost: systemCost,
-      paybackPeriod: paybackPeriod,
-      co2Offset: co2Offset,
-      
-      // Suitability
-      siteSuitabilityScore: siteSuitabilityScore,
-      recommendations: recommendationsString
+      }
     };
 
     // Update assessment main fields
@@ -2821,52 +2867,26 @@ exports.retrieveDevice = async (req, res) => {
     assessment.totalReadings = sensorData.length;
     assessment.deviceRetrievedAt = new Date();
     assessment.deviceRetrievedBy = engineerId;
-    
-    if (!assessment.dataCollectionStart && sensorData.length > 0) {
-      assessment.dataCollectionStart = sensorData[0].timestamp;
-    }
-    
-    // Update system design fields
-    assessment.finalSystemSize = recommendedSystemSize;
-    assessment.panelsNeeded = panelsNeeded;
-    assessment.estimatedAnnualProduction = estimatedAnnualProduction;
-    assessment.estimatedAnnualSavings = estimatedAnnualSavings;
-    assessment.paybackPeriod = paybackPeriod;
-    assessment.co2Offset = co2Offset;
 
-    // Update engineer assessment
-    if (!assessment.engineerAssessment) {
-      assessment.engineerAssessment = {};
+    if (!assessment.dataCollectionStart && sensorData.length > 0) {
+      assessment.dataCollectionStart = actualStartDate;
     }
-    assessment.engineerAssessment.shadingAnalysis = `${shadingPercentage}% shading detected during monitoring period`;
-    assessment.engineerAssessment.recommendations = recommendationsString;
-    assessment.engineerAssessment.optimalPanelAngle = optimalAngle;
-    assessment.engineerAssessment.temperatureRange = {
-      min: tempRange.min,
-      max: tempRange.max,
-      average: tempRange.average
-    };
-    assessment.engineerAssessment.humidityRange = {
-      min: humidityRange.min,
-      max: humidityRange.max,
-      average: humidityRange.average
-    };
 
     // Update device status
     if (device) {
       device.status = 'retrieved';
       device.retrievedAt = new Date();
       device.retrievedBy = engineerId;
-      device.retrievalNotes = `Device retrieved. PSH: ${peakSunHours}, System: ${recommendedSystemSize}kW, Panels: ${panelsNeeded}`;
-      
+      device.retrievalNotes = `Device retrieved. Readings: ${sensorData.length}, PSH: ${peakSunHours} hours/day, ${intervalsAbove1000} intervals ≥1000 W/m²`;
+
       if (!device.deploymentHistory) device.deploymentHistory = [];
       device.deploymentHistory.push({
         preAssessmentId: assessment._id,
         retrievedAt: new Date(),
         retrievedBy: engineerId,
-        notes: `Total readings: ${sensorData.length}. PSH: ${peakSunHours}`
+        notes: `Total readings: ${sensorData.length}. Peak Sun Hours: ${peakSunHours} hours/day (${intervalsAbove1000} intervals)`
       });
-      
+
       await device.save();
     }
 
@@ -2874,7 +2894,7 @@ exports.retrieveDevice = async (req, res) => {
 
     res.json({
       success: true,
-      message: `Device retrieved successfully. Analyzed ${sensorData.length} readings.`,
+      message: `Device retrieved successfully. Processed ${sensorData.length} readings over ${numberOfDays} days. Average Peak Sun Hours: ${peakSunHours} hours/day (${intervalsAbove1000} intervals ≥1000 W/m²)`,
       assessment: {
         id: assessment._id,
         status: assessment.assessmentStatus,
@@ -2887,7 +2907,290 @@ exports.retrieveDevice = async (req, res) => {
     res.status(500).json({ message: 'Failed to retrieve device', error: error.message });
   }
 };
+// @desc    Get system recommendations based on IoT data and customer inputs
+// @route   GET /api/pre-assessments/:id/system-recommendations
+// @access  Private (Engineer, Admin)
+exports.getSystemRecommendations = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
 
+    // Fetch the assessment with all needed data
+    const assessment = await PreAssessment.findById(id)
+      .populate('clientId', 'contactFirstName contactLastName')
+      .populate('addressId');
+
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    // Check authorization
+    const client = await Client.findOne({ userId });
+    if (userRole !== 'admin' && userRole !== 'engineer' && assessment.clientId._id.toString() !== client?._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // ============ COLLECT EXISTING DATA FROM SCHEMA ============
+
+    // Get IoT data from assessmentResults
+    const iotData = assessment.assessmentResults || {};
+
+    // Get customer electric bill data
+    const monthlyBill = assessment.monthlyBill || 0;
+    const rate = assessment.rate || 12;
+    const consumption = assessment.consumption || 0;
+    const totalDailyConsumption = assessment.totalDailyConsumption || 0;
+    const targetSavings = assessment.targetSavings || 100;
+    const dayPercentage = assessment.dayPercentage || 60;
+    const nightPercentage = assessment.nightPercentage || 40;
+
+    // Get system type from assessment
+    const systemType = assessment.systemType || 'grid-tie';
+
+    // Battery type (default to LiFePO4)
+    const batteryType = 'lifepo4'; // Could be stored in assessment or passed from frontend
+    const DEPTH_OF_DISCHARGE = batteryType === 'lifepo4' ? 0.8 : 0.5; // 80% for LiFePO4, 50% for Gel/AGM
+
+    // Get roof dimensions
+    const roofLength = assessment.engineerAssessment?.roofLength || assessment.roofLength || 10;
+    const roofWidth = assessment.engineerAssessment?.roofWidth || assessment.roofWidth || 8;
+
+    // Get IoT metrics
+    const peakSunHours = iotData.peakSunHours || 4.5;
+    const shadingPercentage = iotData.shadingPercentage || 0;
+    const averageIrradiance = iotData.averageIrradiance || 0;
+    const averageTemperature = iotData.averageTemperature || 0;
+    const averageHumidity = iotData.averageHumidity || 0;
+    const minTemperature = iotData.minTemperature || 0;
+    const maxTemperature = iotData.maxTemperature || 0;
+    const minHumidity = iotData.minHumidity || 0;
+    const maxHumidity = iotData.maxHumidity || 0;
+    const gpsCoordinates = iotData.gpsCoordinates || null;
+    const totalReadings = iotData.totalReadings || 0;
+
+    // Calculate daily energy need (use totalDailyConsumption if available, otherwise calculate)
+    let dailyEnergyNeed = totalDailyConsumption;
+    if (dailyEnergyNeed === 0 && monthlyBill > 0 && rate > 0) {
+      const monthlyKwh = monthlyBill / rate;
+      dailyEnergyNeed = monthlyKwh / 30;
+    }
+
+    // Apply target savings for PV system size
+    const adjustedDailyEnergyNeed = dailyEnergyNeed * (targetSavings / 100);
+
+    // Use ACTUAL daily consumption for battery sizing (not adjusted by target savings)
+    const actualDailyConsumption = dailyEnergyNeed;
+
+    // ============ SYSTEM SIZE CALCULATIONS ============
+    let recommendedSystemSize = 0;
+    let batteryCapacityKwh = 0;
+    let inverterSize = 0;
+
+    if (systemType === 'grid-tie') {
+      // Grid-Tie: total daily consumption (kW)
+      recommendedSystemSize = adjustedDailyEnergyNeed;
+      inverterSize = Math.ceil(recommendedSystemSize); // Same as system size
+      batteryCapacityKwh = 0;
+
+    } else if (systemType === 'hybrid') {
+      // Hybrid: (total daily consumption × 1.3 safety factor) / peak sun hours
+      recommendedSystemSize = (adjustedDailyEnergyNeed * 1.3) / peakSunHours;
+      recommendedSystemSize = Math.round(recommendedSystemSize * 10) / 10;
+
+      // Inverter: same as system size (1:1 ratio)
+      inverterSize = Math.ceil(recommendedSystemSize);
+
+      // Battery: ACTUAL daily consumption / depth of discharge
+      batteryCapacityKwh = actualDailyConsumption / DEPTH_OF_DISCHARGE;
+      batteryCapacityKwh = Math.round(batteryCapacityKwh * 10) / 10;
+
+    } else if (systemType === 'off-grid') {
+      // Off-Grid: (total daily consumption × 1.3 safety factor) / peak sun hours
+      recommendedSystemSize = (adjustedDailyEnergyNeed * 1.3) / peakSunHours;
+      recommendedSystemSize = Math.round(recommendedSystemSize * 10) / 10;
+
+      // Inverter: same as system size (1:1 ratio)
+      inverterSize = Math.ceil(recommendedSystemSize);
+
+      // Battery: ACTUAL daily consumption / depth of discharge
+      batteryCapacityKwh = actualDailyConsumption / DEPTH_OF_DISCHARGE;
+      batteryCapacityKwh = Math.round(batteryCapacityKwh * 10) / 10;
+
+    } else {
+      // Default
+      recommendedSystemSize = adjustedDailyEnergyNeed;
+      inverterSize = Math.ceil(recommendedSystemSize);
+      batteryCapacityKwh = 0;
+    }
+
+    // Calculate panels needed (550W panels = 0.55 kW)
+    const panelWattage = 0.55;
+    const panelsNeeded = Math.ceil(recommendedSystemSize / panelWattage);
+
+    // Calculate temperature derating
+    const tempDerating = Math.max(0, (averageTemperature - 25) * -0.004) * 100;
+
+    // Calculate performance ratio
+    const performanceRatio = 0.85 - (shadingPercentage / 100) - (Math.abs(tempDerating) / 100);
+
+    // Determine optimal orientation
+    let optimalOrientation = 'South';
+    if (peakSunHours > 5.5) optimalOrientation = 'South';
+    else if (peakSunHours > 4.5) optimalOrientation = 'South-East';
+    else if (peakSunHours > 3.5) optimalOrientation = 'East-West';
+    else optimalOrientation = 'East';
+
+    // Calculate optimal tilt angle
+    const optimalTilt = Math.min(30, Math.max(10, Math.floor(peakSunHours * 2.5)));
+
+    // Calculate available roof area
+    const availableRoofArea = roofLength * roofWidth;
+
+    // Calculate installation time
+    const estimatedInstallationTime = Math.ceil(panelsNeeded / 4) + 1;
+
+    // Calculate costs
+    const equipmentCost = panelsNeeded * 15000 + inverterSize * 8000;
+    const batteryCost = batteryCapacityKwh * 12000;
+    const installationCost = panelsNeeded * 2000;
+    const totalCost = equipmentCost + batteryCost + installationCost;
+
+    // Calculate financial metrics
+    const electricityRate = rate;
+    const annualProduction = recommendedSystemSize * peakSunHours * 365 * 0.8;
+    const estimatedAnnualProduction = Math.round(annualProduction);
+    const estimatedMonthlySavings = Math.round((annualProduction * electricityRate) / 12);
+    const estimatedAnnualSavings = Math.round(estimatedMonthlySavings * 12);
+
+    // Calculate payback period
+    let paybackPeriod = 0;
+    if (estimatedAnnualSavings > 0) {
+      paybackPeriod = Math.round((totalCost / estimatedAnnualSavings) * 10) / 10;
+    }
+
+    // Calculate CO2 offset
+    const co2Offset = Math.round(annualProduction * 0.5);
+
+    // Calculate site suitability score
+    let siteSuitabilityScore = 100;
+    if (peakSunHours < 4) siteSuitabilityScore -= 35;
+    else if (peakSunHours < 4.5) siteSuitabilityScore -= 20;
+    else if (peakSunHours < 5) siteSuitabilityScore -= 10;
+
+    if (shadingPercentage > 20) siteSuitabilityScore -= 25;
+    else if (shadingPercentage > 10) siteSuitabilityScore -= 15;
+    else if (shadingPercentage > 5) siteSuitabilityScore -= 5;
+
+    if (tempDerating > 15) siteSuitabilityScore -= 15;
+    else if (tempDerating > 10) siteSuitabilityScore -= 8;
+    else if (tempDerating > 5) siteSuitabilityScore -= 3;
+
+    siteSuitabilityScore = Math.max(0, Math.min(100, siteSuitabilityScore));
+
+    // Temperature and humidity ranges
+    const temperatureRange = `${minTemperature.toFixed(1)}°C - ${maxTemperature.toFixed(1)}°C`;
+    const humidityRange = `${minHumidity.toFixed(0)}% - ${maxHumidity.toFixed(0)}%`;
+
+    // Day and night consumption
+    const dayConsumption = adjustedDailyEnergyNeed * (dayPercentage / 100);
+    const nightConsumption = adjustedDailyEnergyNeed * (nightPercentage / 100);
+
+    // ============ PREPARE RESPONSE ============
+    const systemMetrics = {
+      // System Type
+      systemType: systemType,
+      batteryType: batteryType,
+      depthOfDischarge: DEPTH_OF_DISCHARGE * 100,
+
+      // IoT Data
+      peakSunHours: roundTo2Decimals(peakSunHours),
+      shadingPercentage: roundTo2Decimals(shadingPercentage),
+      temperatureDerating: roundTo2Decimals(tempDerating),
+      averageIrradiance: roundTo2Decimals(averageIrradiance),
+      averageTemperature: roundTo2Decimals(averageTemperature),
+      averageHumidity: roundTo2Decimals(averageHumidity),
+      temperatureRange: temperatureRange,
+      humidityRange: humidityRange,
+      gpsLocation: gpsCoordinates,
+      totalReadings: totalReadings,
+
+      // Customer Bill Data
+      monthlyBill: roundTo2Decimals(monthlyBill),
+      electricityRate: rate,
+      monthlyConsumption: roundTo2Decimals(consumption),
+      dailyEnergyNeed: roundTo2Decimals(dailyEnergyNeed),
+      targetSavings: targetSavings,
+      adjustedDailyEnergyNeed: roundTo2Decimals(adjustedDailyEnergyNeed),
+      dayPercentage: roundTo2Decimals(dayPercentage),
+      nightPercentage: roundTo2Decimals(nightPercentage),
+
+      // Consumption Breakdown
+      dayConsumption: roundTo2Decimals(dayConsumption),
+      nightConsumption: roundTo2Decimals(nightConsumption),
+
+      // System Design
+      recommendedSystemSize: roundTo2Decimals(recommendedSystemSize),
+      inverterSize: inverterSize,
+      batteryCapacityKwh: roundTo2Decimals(batteryCapacityKwh),
+      panelsNeeded: panelsNeeded,
+      panelWattage: panelWattage,
+      performanceRatio: roundTo2Decimals(performanceRatio),
+
+      // Installation
+      optimalOrientation: optimalOrientation,
+      optimalTilt: optimalTilt,
+      roofLength: roofLength,
+      roofWidth: roofWidth,
+      availableRoofArea: roundTo2Decimals(availableRoofArea),
+      estimatedInstallationTime: estimatedInstallationTime,
+
+      // Financial
+      estimatedEquipmentCost: roundTo2Decimals(equipmentCost),
+      estimatedBatteryCost: roundTo2Decimals(batteryCost),
+      estimatedInstallationCost: roundTo2Decimals(installationCost),
+      estimatedTotalCost: roundTo2Decimals(totalCost),
+      estimatedAnnualProduction: estimatedAnnualProduction,
+      estimatedMonthlySavings: estimatedMonthlySavings,
+      estimatedAnnualSavings: estimatedAnnualSavings,
+      paybackPeriod: roundTo2Decimals(paybackPeriod),
+      co2Offset: co2Offset,
+
+      // Suitability
+      siteSuitabilityScore: siteSuitabilityScore,
+
+      // Data Collection Info
+      dataCollectionStart: assessment.dataCollectionStart,
+      dataCollectionEnd: assessment.dataCollectionEnd,
+
+      // Formula reference
+      formula: {
+        systemType: systemType,
+        pvFormula: systemType === 'grid-tie'
+          ? `System Size = ${roundTo2Decimals(adjustedDailyEnergyNeed)} kW`
+          : `System Size = (${roundTo2Decimals(adjustedDailyEnergyNeed)} * 1.3) ÷ ${roundTo2Decimals(peakSunHours)} = ${roundTo2Decimals(recommendedSystemSize)} kW`,
+        inverterFormula: `Inverter = ${roundTo2Decimals(recommendedSystemSize)} kW`,
+        batteryFormula: batteryCapacityKwh > 0
+          ? `Battery = ${roundTo2Decimals(actualDailyConsumption)} ÷ ${DEPTH_OF_DISCHARGE} = ${roundTo2Decimals(batteryCapacityKwh)} kWh`
+          : 'No battery required for grid-tie system'
+      }
+    };
+
+    res.json({
+      success: true,
+      systemMetrics: systemMetrics,
+      assessment: {
+        id: assessment._id,
+        bookingReference: assessment.bookingReference,
+        propertyType: assessment.propertyType
+      }
+    });
+
+  } catch (error) {
+    console.error('Get system recommendations error:', error);
+    res.status(500).json({ message: 'Failed to get system recommendations', error: error.message });
+  }
+};
 // ============ HELPER FUNCTIONS ============
 
 /**
@@ -2897,25 +3200,25 @@ exports.retrieveDevice = async (req, res) => {
 function getIrradianceRange(sensorData) {
   const irradianceValues = sensorData.map(d => d.irradiance || 0);
   const positiveIrradiance = irradianceValues.filter(i => i > 0);
-  
-  const average = irradianceValues.length > 0 
-    ? irradianceValues.reduce((a, b) => a + b, 0) / irradianceValues.length 
+
+  const average = irradianceValues.length > 0
+    ? irradianceValues.reduce((a, b) => a + b, 0) / irradianceValues.length
     : 0;
-  
-  const max = irradianceValues.length > 0 
-    ? Math.max(...irradianceValues) 
+
+  const max = irradianceValues.length > 0
+    ? Math.max(...irradianceValues)
     : 0;
-  
+
   // Only use positive values for min to avoid 0
-  const min = positiveIrradiance.length > 0 
-    ? Math.min(...positiveIrradiance) 
+  const min = positiveIrradiance.length > 0
+    ? Math.min(...positiveIrradiance)
     : 0;
-  
-  return { 
-    average: Math.round(average * 10) / 10, 
-    max, 
+
+  return {
+    average: Math.round(average * 10) / 10,
+    max,
     min,
-    values: irradianceValues 
+    values: irradianceValues
   };
 }
 
@@ -2927,24 +3230,24 @@ function getTemperatureRange(sensorData) {
   const tempValues = sensorData
     .map(d => d.temperature)
     .filter(t => t !== null && t !== undefined && t !== 0 && t > 0 && t < 60);
-  
+
   if (tempValues.length === 0) {
     console.log('⚠️ No valid temperature readings found, using defaults');
-    return { 
-      min: 25, 
-      max: 32, 
+    return {
+      min: 25,
+      max: 32,
       average: 28,
       values: []
     };
   }
-  
+
   const min = Math.min(...tempValues);
   const max = Math.max(...tempValues);
   const average = tempValues.reduce((a, b) => a + b, 0) / tempValues.length;
-  
-  return { 
-    min: Math.round(min * 10) / 10, 
-    max: Math.round(max * 10) / 10, 
+
+  return {
+    min: Math.round(min * 10) / 10,
+    max: Math.round(max * 10) / 10,
     average: Math.round(average * 10) / 10,
     values: tempValues
   };
@@ -2958,24 +3261,24 @@ function getHumidityRange(sensorData) {
   const humidityValues = sensorData
     .map(d => d.humidity)
     .filter(h => h !== null && h !== undefined && h !== 0 && h > 0 && h <= 100);
-  
+
   if (humidityValues.length === 0) {
     console.log('⚠️ No valid humidity readings found, using defaults');
-    return { 
-      min: 65, 
-      max: 85, 
+    return {
+      min: 65,
+      max: 85,
       average: 75,
       values: []
     };
   }
-  
+
   const min = Math.min(...humidityValues);
   const max = Math.max(...humidityValues);
   const average = humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length;
-  
-  return { 
-    min: Math.round(min), 
-    max: Math.round(max), 
+
+  return {
+    min: Math.round(min),
+    max: Math.round(max),
     average: Math.round(average),
     values: humidityValues
   };
@@ -2987,14 +3290,14 @@ function getHumidityRange(sensorData) {
  */
 function calculatePeakSunHours(sensorData) {
   if (!sensorData || sensorData.length < 2) return 4.5;
-  
+
   let totalPSH = 0;
   let totalHours = 0;
-  
+
   for (let i = 0; i < sensorData.length - 1; i++) {
     const timeDiff = (new Date(sensorData[i + 1].timestamp) - new Date(sensorData[i].timestamp)) / (1000 * 60 * 60);
     const avgIrradiance = (sensorData[i].irradiance + sensorData[i + 1].irradiance) / 2;
-    
+
     // Only count if there's meaningful irradiance (daylight hours)
     if (avgIrradiance > 10) {
       // Convert W/m² to kW/m² (divide by 1000) and multiply by hours
@@ -3003,13 +3306,13 @@ function calculatePeakSunHours(sensorData) {
       totalHours += timeDiff;
     }
   }
-  
+
   let result = Math.round(totalPSH * 10) / 10;
-  
+
   // Sanity check - PSH should be between 3-7 hours for Philippines
   if (result > 8) result = 5.5;
   if (result < 2) result = 4.0;
-  
+
   return result;
 }
 
@@ -3028,7 +3331,7 @@ function getDailyEnergyConsumption(assessment) {
  */
 function calculateRecommendedSystemSize(dailyConsumption, peakSunHours, efficiency = 0.8) {
   if (!peakSunHours || peakSunHours <= 0) return 5.0;
-  
+
   const systemSize = dailyConsumption / (peakSunHours * efficiency);
   const result = Math.max(1, Math.round(systemSize * 10) / 10);
   return result;
@@ -3048,8 +3351,8 @@ function calculatePanelsNeeded(systemSizeKw, panelRatingW = 400) {
 function calculateOptimalPanelAngle(latitude) {
   const currentMonth = new Date().getMonth() + 1;
   let angle;
-  
-  switch(currentMonth) {
+
+  switch (currentMonth) {
     case 1: angle = (latitude + 23.4) * 0.734899; break;
     case 2: angle = (latitude + 15.6) * 0.835051; break;
     case 3: angle = (latitude + 7.8) * 0.952525; break;
@@ -3064,10 +3367,10 @@ function calculateOptimalPanelAngle(latitude) {
     case 12: angle = (latitude + 15.6) * 0.679192; break;
     default: angle = latitude;
   }
-  
+
   const direction = angle >= 0 ? "South-facing" : "North-facing";
   const absoluteAngle = Math.abs(Math.round(angle));
-  
+
   return {
     angle: absoluteAngle,
     direction: direction,
@@ -3082,9 +3385,9 @@ function calculateOptimalPanelAngle(latitude) {
 function calculateShadingPercentage(irradianceValues) {
   const daylightReadings = irradianceValues.filter(i => i > 10);
   const shadedReadings = irradianceValues.filter(i => i > 10 && i < 100);
-  
+
   if (daylightReadings.length === 0) return 0;
-  
+
   const percentage = (shadedReadings.length / daylightReadings.length) * 100;
   return Math.round(percentage);
 }
@@ -3095,12 +3398,12 @@ function calculateShadingPercentage(irradianceValues) {
 function calculateTemperatureDerating(avgTemperature) {
   const STC_TEMP = 25;
   const TEMP_COEFFICIENT = -0.004;
-  
+
   if (avgTemperature <= STC_TEMP) return 0;
-  
+
   const tempDiff = avgTemperature - STC_TEMP;
   const derating = Math.abs(tempDiff * TEMP_COEFFICIENT * 100);
-  
+
   return Math.round(derating * 10) / 10;
 }
 
@@ -3151,22 +3454,22 @@ function calculateCO2Offset(annualProductionKwh) {
  */
 function calculateSiteSuitabilityScore(peakSunHours, shadingPercentage, temperatureDerating) {
   let score = 100;
-  
+
   if (peakSunHours >= 5.5) score -= 0;
   else if (peakSunHours >= 5.0) score -= 10;
   else if (peakSunHours >= 4.5) score -= 20;
   else if (peakSunHours >= 4.0) score -= 35;
   else score -= 50;
-  
+
   if (shadingPercentage > 30) score -= 25;
   else if (shadingPercentage > 20) score -= 15;
   else if (shadingPercentage > 10) score -= 8;
   else if (shadingPercentage > 5) score -= 3;
-  
+
   if (temperatureDerating > 15) score -= 15;
   else if (temperatureDerating > 10) score -= 8;
   else if (temperatureDerating > 5) score -= 3;
-  
+
   return Math.max(0, Math.min(100, score));
 }
 
@@ -3175,7 +3478,7 @@ function calculateSiteSuitabilityScore(peakSunHours, shadingPercentage, temperat
  */
 function generateRecommendations(peakSunHours, shadingPercentage, temperatureDerating, optimalAngle) {
   const recommendations = [];
-  
+
   if (peakSunHours >= 5.5) {
     recommendations.push(`Excellent solar resource with ${peakSunHours} peak sun hours - ideal for solar installation`);
   } else if (peakSunHours >= 4.5) {
@@ -3183,19 +3486,19 @@ function generateRecommendations(peakSunHours, shadingPercentage, temperatureDer
   } else {
     recommendations.push(`Moderate solar resource (${peakSunHours} PSH) - consider higher efficiency panels`);
   }
-  
+
   recommendations.push(`Set panels at ${optimalAngle.angle}° ${optimalAngle.direction} for optimal year-round production`);
-  
+
   if (shadingPercentage > 15) {
     recommendations.push(`Significant shading detected (${shadingPercentage}%) - trim trees or use micro-inverters`);
   } else if (shadingPercentage > 5) {
     recommendations.push(`Minor shading detected (${shadingPercentage}%) - monitor impact on production`);
   }
-  
+
   if (temperatureDerating > 10) {
     recommendations.push(`High temperature derating (${temperatureDerating}%) - ensure proper panel ventilation`);
   }
-  
+
   return recommendations;
 }
 
@@ -3206,51 +3509,51 @@ async function getSensorDataWithBuffer(deviceId, startDate) {
   // Try 2-hour buffer
   let queryStartDate = new Date(startDate);
   queryStartDate.setHours(queryStartDate.getHours() - 2);
-  
-  let sensorData = await SensorData.find({ 
+
+  let sensorData = await SensorData.find({
     deviceId: deviceId,
     timestamp: { $gte: queryStartDate }
   }).sort({ timestamp: 1 });
-  
+
   if (sensorData.length > 0) {
     console.log(`Found ${sensorData.length} readings with 2-hour buffer`);
     return sensorData;
   }
-  
+
   // Try 24-hour buffer
   queryStartDate = new Date(startDate);
   queryStartDate.setHours(queryStartDate.getHours() - 24);
-  sensorData = await SensorData.find({ 
+  sensorData = await SensorData.find({
     deviceId: deviceId,
     timestamp: { $gte: queryStartDate }
   }).sort({ timestamp: 1 });
-  
+
   if (sensorData.length > 0) {
     console.log(`Found ${sensorData.length} readings with 24-hour buffer`);
     return sensorData;
   }
-  
+
   // Try 7-day buffer
   queryStartDate = new Date(startDate);
   queryStartDate.setDate(queryStartDate.getDate() - 7);
-  sensorData = await SensorData.find({ 
+  sensorData = await SensorData.find({
     deviceId: deviceId,
     timestamp: { $gte: queryStartDate }
   }).sort({ timestamp: 1 });
-  
+
   if (sensorData.length > 0) {
     console.log(`Found ${sensorData.length} readings with 7-day buffer`);
     return sensorData;
   }
-  
+
   // Try 14-day buffer
   queryStartDate = new Date(startDate);
   queryStartDate.setDate(queryStartDate.getDate() - 14);
-  sensorData = await SensorData.find({ 
+  sensorData = await SensorData.find({
     deviceId: deviceId,
     timestamp: { $gte: queryStartDate }
   }).sort({ timestamp: 1 });
-  
+
   console.log(`Found ${sensorData.length} readings with 14-day buffer`);
   return sensorData;
 }

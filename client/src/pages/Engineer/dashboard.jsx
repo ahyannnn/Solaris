@@ -365,9 +365,7 @@ const EngineerDashboard = () => {
                     <div className="engdas-device-name">{device?.deviceName || 'IoT Device'}</div>
                     <div className="engdas-device-id">{device?.deviceId || 'N/A'}</div>
                   </div>
-                  <div className="engdas-device-status online-engdas">
-                    <FaWifi /> Online
-                  </div>
+                  
                 </div>
               ))
             )}

@@ -10,19 +10,31 @@ const preAssessmentSchema = new mongoose.Schema({
   roofType: { type: String, enum: ['concrete', 'metal', 'tile', 'other'] },
   roofLength: { type: Number, default: null },
   roofWidth: { type: Number, default: null },
-  systemType: { 
-    type: String, 
+  systemType: {
+    type: String,
     enum: ['grid-tie', 'hybrid', 'off-grid'],
     default: null
   },
   preferredDate: { type: Date, required: true },
 
+  // ============ NEW FIELDS ============
+  monthlyBill: { type: Number, default: 0 },        // Monthly bill amount in PHP
+  rate: { type: Number, default: 0 },               // Rate per kWh in PHP
+  consumption: { type: Number, default: 0 },        // Monthly consumption in kWh
+  dayConsumption: { type: Number, default: 0 },     // Daytime consumption in kWh
+  nightConsumption: { type: Number, default: 0 },   // Nighttime consumption in kWh
+  dayPercentage: { type: Number, default: 0 },      // Day consumption percentage
+  nightPercentage: { type: Number, default: 0 },    // Night consumption percentage
+  totalDailyConsumption: { type: Number, default: 0 },
+  targetSavings: { type: Number, enum: [100, 75, 50, 25], default: null },
+  // ====================================
+
   // Payment
   assessmentFee: { type: Number, default: 1500 },
   bookingReference: { type: String, unique: true },
-  invoiceNumber: { 
-    type: String, 
-    unique: true, 
+  invoiceNumber: {
+    type: String,
+    unique: true,
     sparse: true
   },
   paymentMethod: { type: String, enum: ['gcash', 'card', 'cash'], default: null },
@@ -33,20 +45,20 @@ const preAssessmentSchema = new mongoose.Schema({
   paymentGateway: { type: String, enum: ['paymongo', 'manual'], default: 'manual' },
   autoVerified: { type: Boolean, default: false },
   paymentCompletedAt: Date,
-  
+
   paymentStatus: {
     type: String,
     enum: ['pending', 'for_verification', 'paid', 'failed'],
     default: 'pending'
   },
-  
+
   assessmentStatus: {
     type: String,
-    enum: ['pending_review', 'pending_payment', 'scheduled', 'site_visit_ongoing', 
-           'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft', 
-           'quotation_generated', 'quotation_accepted', 'completed', 'cancelled'],
+    enum: ['pending_review', 'pending_payment', 'scheduled', 'site_visit_ongoing',
+      'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft',
+      'quotation_generated', 'quotation_accepted', 'completed', 'cancelled'],
     default: 'pending_review'
-  }, 
+  },
 
   // IoT Device Integration
   iotDeviceId: { type: mongoose.Schema.Types.ObjectId, ref: 'IoTDevice' },
@@ -194,31 +206,31 @@ preAssessmentSchema.add({
     dataCollectionStart: Date,
     dataCollectionEnd: Date,
     totalReadings: { type: Number, default: 0 },
-    
+
     // Irradiance Metrics
     averageIrradiance: { type: Number, default: 0 },
     maxIrradiance: { type: Number, default: 0 },
     minIrradiance: { type: Number, default: 0 },
     peakSunHours: { type: Number, default: 0 },
-    
+
     // Temperature Metrics
     averageTemperature: { type: Number, default: 0 },
     maxTemperature: { type: Number, default: 0 },
     minTemperature: { type: Number, default: 0 },
     temperatureDerating: { type: Number, default: 0 },
-    
+
     // Humidity Metrics
     averageHumidity: { type: Number, default: 0 },
     maxHumidity: { type: Number, default: 0 },
     minHumidity: { type: Number, default: 0 },
-    
+
     // Site Analysis
     shadingPercentage: { type: Number, default: 0 },
     gpsCoordinates: {
       latitude: Number,
       longitude: Number
     },
-    
+
     // Legacy fields (keep for compatibility)
     totalIrradiance: { type: Number, default: 0 },
     recommendedPanelCount: { type: Number, default: 0 },
@@ -226,7 +238,7 @@ preAssessmentSchema.add({
     structuralAssessment: String,
     electricalAssessment: String,
     safetyAssessment: String,
-    
+
     // Summary Calculations
     summary: {
       totalDays: { type: Number, default: 0 },

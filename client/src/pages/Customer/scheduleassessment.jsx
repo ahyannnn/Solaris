@@ -9,7 +9,15 @@ import {
   FaChevronRight,
   FaDownload,
   FaImages,
-  FaEye
+  FaEye,
+  FaLightbulb,
+  FaSun,
+  FaMoon,
+  FaPlug,
+  FaTrash,
+  FaPlus,
+  FaSave,
+  FaMoneyBillWave
 } from 'react-icons/fa';
 import '../../styles/Customer/scheduleassessment.css';
 
@@ -36,6 +44,34 @@ const ScheduleAssessment = () => {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+
+  // Electric Bill Input States
+  const [electricBillInput, setElectricBillInput] = useState({
+    monthlyBill: '',      // Monthly bill amount in PHP
+    ratePerKwh: '',       // Rate per kWh in PHP
+    monthlyKwh: ''        // Monthly consumption in kWh
+  });
+
+  // Appliances States
+  const [appliances, setAppliances] = useState([]);
+  const [showApplianceModal, setShowApplianceModal] = useState(false);
+  const [editingAppliance, setEditingAppliance] = useState(null);
+  const [applianceForm, setApplianceForm] = useState({
+    name: '',
+    powerWatts: '',
+    quantity: '',
+    dayHours: '',
+    nightHours: ''
+  });
+
+  // Calculation Results
+  const [calculationResults, setCalculationResults] = useState({
+    totalDailyConsumption: 0,
+    dayConsumption: 0,      // ✅ ADD
+    nightConsumption: 0,    // ✅ ADD
+    dayPercentage: 0,
+    nightPercentage: 0
+  });
 
   const SYSTEM_TYPES = [
     { value: 'grid-tie', label: 'Grid-Tie System', description: 'Connected to utility grid, no batteries' },
@@ -67,7 +103,8 @@ const ScheduleAssessment = () => {
     roofLength: '',
     roofWidth: '',
     preferredDate: '',
-    paymentMethod: 'gcash'
+    paymentMethod: 'gcash',
+    targetSavings: ''
   });
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -75,6 +112,141 @@ const ScheduleAssessment = () => {
 
   const [freeQuotes, setFreeQuotes] = useState([]);
   const [preAssessments, setPreAssessments] = useState([]);
+
+  // Calculate consumption based on appliances and electric bill
+  const calculateConsumption = () => {
+    // Get monthly consumption from input, default to 0
+    const monthlyKwh = parseFloat(electricBillInput.monthlyKwh) || 0;
+
+    // CORRECT - with parentheses
+    const totalDailyKwh = electricBillInput.monthlyBill / (electricBillInput.ratePerKwh * 30);
+
+    // Calculate day and night consumption from appliances (sum of all appliances)
+    let totalDayWatts = 0;
+    let totalNightWatts = 0;
+
+    appliances.forEach(appliance => {
+      // Calculate daily energy for THIS appliance
+      const applianceDayWatts = appliance.powerWatts * appliance.quantity * appliance.dayHours;
+      const applianceNightWatts = appliance.powerWatts * appliance.quantity * appliance.nightHours;
+
+      // Add to totals
+      totalDayWatts += applianceDayWatts;
+      totalNightWatts += applianceNightWatts;
+    });
+
+    // Convert to kWh - RAW appliance consumption (NO SCALE FACTOR)
+    const dayKwh = totalDayWatts / 1000;
+    const nightKwh = totalNightWatts / 1000;
+    const totalKwhFromAppliances = dayKwh + nightKwh;
+
+    let finalDayKwh = 0;
+    let finalNightKwh = 0;
+    let dayPercent = 0;
+    let nightPercent = 0;
+
+    // Use raw appliance consumption values directly
+    if (totalKwhFromAppliances > 0) {
+      // Use the actual appliance consumption values
+      finalDayKwh = dayKwh;
+      finalNightKwh = nightKwh;
+      // Calculate percentages based on raw values
+      dayPercent = (finalDayKwh / totalKwhFromAppliances) * 100;
+      nightPercent = (finalNightKwh / totalKwhFromAppliances) * 100;
+    } else if (totalDailyKwh > 0) {
+      // If no appliances but monthly consumption exists, use default 60/40 split
+      finalDayKwh = totalDailyKwh * 0.6;
+      finalNightKwh = totalDailyKwh * 0.4;
+      dayPercent = 60;
+      nightPercent = 40;
+    }
+
+    setCalculationResults({
+      totalDailyConsumption: totalDailyKwh,
+      dayConsumption: finalDayKwh,
+      nightConsumption: finalNightKwh,
+      dayPercentage: dayPercent,
+      nightPercentage: nightPercent
+    });
+  };
+
+  // Auto-calculate when appliances or electric bill data changes
+  useEffect(() => {
+    if (appliances.length > 0 || electricBillInput.monthlyKwh) {
+      calculateConsumption();
+    } else {
+      // Reset results when no data
+      setCalculationResults({
+        totalDailyConsumption: 0,
+        dayConsumption: 0,      // ✅ ADD
+        nightConsumption: 0,    // ✅ ADD
+        dayPercentage: 0,
+        nightPercentage: 0
+      });
+    }
+  }, [appliances, electricBillInput.monthlyKwh]);
+
+  // Handle electric bill input changes
+  const handleElectricBillChange = (e) => {
+    const { name, value } = e.target;
+    setElectricBillInput(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Handle appliance form changes
+  const handleApplianceFormChange = (e) => {
+    const { name, value } = e.target;
+    setApplianceForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Add or update appliance
+  const saveAppliance = () => {
+    if (!applianceForm.name || !applianceForm.powerWatts || !applianceForm.quantity) {
+      showToast('Please fill in all required fields', 'warning');
+      return;
+    }
+
+    const newAppliance = {
+      id: editingAppliance?.id || Date.now(),
+      name: applianceForm.name,
+      powerWatts: parseFloat(applianceForm.powerWatts),
+      quantity: parseInt(applianceForm.quantity),
+      dayHours: parseFloat(applianceForm.dayHours) || 0,
+      nightHours: parseFloat(applianceForm.nightHours) || 0
+    };
+
+    if (editingAppliance) {
+      setAppliances(prev => prev.map(a => a.id === editingAppliance.id ? newAppliance : a));
+      showToast('Appliance updated successfully', 'success');
+    } else {
+      setAppliances(prev => [...prev, newAppliance]);
+      showToast('Appliance added successfully', 'success');
+    }
+
+    setShowApplianceModal(false);
+    setEditingAppliance(null);
+    setApplianceForm({ name: '', powerWatts: '', quantity: '', dayHours: '', nightHours: '' });
+  };
+
+  // Edit appliance
+  const editAppliance = (appliance) => {
+    setEditingAppliance(appliance);
+    setApplianceForm({
+      name: appliance.name,
+      powerWatts: appliance.powerWatts,
+      quantity: appliance.quantity,
+      dayHours: appliance.dayHours,
+      nightHours: appliance.nightHours
+    });
+    setShowApplianceModal(true);
+  };
+
+  // Delete appliance
+  const deleteAppliance = (id) => {
+    if (window.confirm('Are you sure you want to remove this appliance?')) {
+      setAppliances(prev => prev.filter(a => a.id !== id));
+      showToast('Appliance removed', 'info');
+    }
+  };
 
   // Photo Modal Functions
   const openPhotoModal = (photos, index) => {
@@ -185,7 +357,6 @@ const ScheduleAssessment = () => {
       const assessments = preAssessmentsRes.data.assessments || [];
       const quotes = freeQuotesRes.data.quotes || [];
 
-      // Check if there's a pending free quote
       const hasPending = quotes.some(quote =>
         quote.status === 'pending' ||
         quote.status === 'assigned' ||
@@ -194,11 +365,10 @@ const ScheduleAssessment = () => {
 
       setHasPendingFreeQuote(hasPending);
 
-      // For each assessment, extract engineer info and site photos
       const assessmentsWithEngineer = await Promise.all(assessments.map(async (assessment) => {
         let engineerName = 'Not assigned yet';
-
         let engineerId = null;
+
         if (assessment.assignedEngineerId) {
           if (typeof assessment.assignedEngineerId === 'object') {
             engineerId = assessment.assignedEngineerId._id || assessment.assignedEngineerId.id;
@@ -213,7 +383,6 @@ const ScheduleAssessment = () => {
               headers: { Authorization: `Bearer ${token}` }
             });
             const engineer = engineerRes.data.user;
-
             if (engineer) {
               engineerName = engineer.fullName ||
                 (engineer.firstName && engineer.lastName ? `${engineer.firstName} ${engineer.lastName}` : null) ||
@@ -227,12 +396,10 @@ const ScheduleAssessment = () => {
           }
         }
 
-      
-
         return {
           ...assessment,
           engineerName,
-          sitePhotos: assessment.sitePhotos || [] // Ensure it's always an array
+          sitePhotos: assessment.sitePhotos || []
         };
       }));
 
@@ -300,16 +467,23 @@ const ScheduleAssessment = () => {
     }
   };
 
-  const sendPreAssessmentConfirmationEmail = async (invoiceNumber, amount, propertyType, desiredCapacity, systemType, roofType, roofLength, roofWidth, preferredDate, address, paymentMethod) => {
+  const sendPreAssessmentConfirmationEmail = async (invoiceNumber, amount, propertyType, desiredCapacity, roofType, preferredDate, address) => {
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/email/send-pre-assessment-confirmation`, {
-        email: user.email, name: getFullName(), invoiceNumber, amount, propertyType, desiredCapacity, systemType, roofType, roofLength, roofWidth, preferredDate, address, paymentMethod
+        email: user.email,
+        name: getFullName(),
+        invoiceNumber,
+        amount,
+        propertyType,
+        desiredCapacity,
+        roofType,
+        preferredDate,
+        address
       });
     } catch (emailError) {
       console.error('Failed to send pre-assessment confirmation email:', emailError);
     }
   };
-
   const handleFreeQuoteSubmit = () => {
     if (!freeQuoteData.monthlyBill) {
       showToast('Please enter your monthly electricity bill', 'warning');
@@ -349,6 +523,10 @@ const ScheduleAssessment = () => {
     if (!formData.propertyType) errors.propertyType = 'Property type is required';
     if (!formData.preferredDate) errors.preferredDate = 'Preferred date is required';
     if (!selectedAddress) errors.address = 'Please select an address';
+    if (appliances.length === 0) errors.appliances = 'Please add at least one appliance';
+    if (!electricBillInput.monthlyKwh) {
+      errors.monthlyKwh = 'Please enter your monthly consumption in kWh';
+    }
     return errors;
   };
 
@@ -371,14 +549,43 @@ const ScheduleAssessment = () => {
     try {
       const token = sessionStorage.getItem('token');
       const bookingPayload = {
-        clientId: user?._id, addressId: selectedAddress?._id || null,
-        propertyType: formData.propertyType, desiredCapacity: formData.desiredCapacity,
-        systemType: formData.systemType, roofType: formData.roofType,
-        roofLength: formData.roofLength, roofWidth: formData.roofWidth,
+        clientId: user?._id,
+        addressId: selectedAddress?._id || null,
+        propertyType: formData.propertyType,
+        desiredCapacity: formData.desiredCapacity,  // ✅ Use formData.desiredCapacity
+        systemType: formData.systemType,
+        roofType: formData.roofType,
+        roofLength: formData.roofLength,
+        roofWidth: formData.roofWidth,
         preferredDate: formData.preferredDate,
+        // ✅ Use electricBillInput for electric bill data
+        monthlyBill: electricBillInput.monthlyBill,
+        rate: electricBillInput.ratePerKwh,
+        consumption: electricBillInput.monthlyKwh,
+        // ✅ Use calculationResults for consumption analysis
+        dayConsumption: calculationResults.dayConsumption,      // ✅ ADD
+        nightConsumption: calculationResults.nightConsumption,  // ✅ ADD
+        dayPercentage: calculationResults.dayPercentage,
+        nightPercentage: calculationResults.nightPercentage,
+        totalDailyConsumption: calculationResults.totalDailyConsumption,
+        targetSavings: formData.targetSavings ? parseInt(formData.targetSavings) : null
       };
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, bookingPayload, { headers: { Authorization: `Bearer ${token}` } });
-      await sendPreAssessmentConfirmationEmail(response.data.booking.invoiceNumber, response.data.booking.assessmentFee, formData.propertyType, formData.desiredCapacity, formData.systemType, formData.roofType, formData.roofLength, formData.roofWidth, formData.preferredDate, getFullAddress(), formData.paymentMethod);
+
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, bookingPayload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // Send email confirmation
+      await sendPreAssessmentConfirmationEmail(
+        response.data.booking.invoiceNumber,
+        response.data.booking.assessmentFee,
+        formData.propertyType,
+        formData.desiredCapacity,  // ✅ Use formData.desiredCapacity
+        formData.roofType,
+        formData.preferredDate,
+        getFullAddress()
+      );
+
       setShowConfirmDialog(false);
       setTermsAccepted(false);
       setPreAssessmentData({
@@ -526,7 +733,7 @@ const ScheduleAssessment = () => {
           </ul>
         </div>
         <div className="quote-actions-cusset">
-          <button onClick={() => { setShowPreAssessmentSuccess(false); setCurrentStep('service-selection'); setFormData({ ...formData, preferredDate: '', desiredCapacity: '', systemType: '', roofType: '', roofLength: '', roofWidth: '' }); }} className="schedule-btn-secondary-cusset">Book Another</button>
+          <button onClick={() => { setShowPreAssessmentSuccess(false); setCurrentStep('service-selection'); setFormData({ ...formData, preferredDate: '', desiredCapacity: '', systemType: '', roofType: '', roofLength: '', roofWidth: '' }); setAppliances([]); setElectricBillInput({ monthlyBill: '', ratePerKwh: '', monthlyKwh: '' }); }} className="schedule-btn-secondary-cusset">Book Another</button>
           <button onClick={() => navigate('/app/customer')} className="schedule-btn-primary-cusset">Go to Dashboard</button>
         </div>
       </div>
@@ -587,6 +794,7 @@ const ScheduleAssessment = () => {
                   <label>Desired Capacity (kW)</label>
                   <input type="text" name="desiredCapacity" value={freeQuoteData.desiredCapacity} onChange={handleInputChange} placeholder="e.g., 5kW (optional)" className="schedule-form-input-cusset" />
                 </div>
+
                 <div className="schedule-form-group-cusset">
                   <label>Preferred System Type</label>
                   <select name="systemType" value={freeQuoteData.systemType} onChange={handleInputChange} className="schedule-form-select-cusset">
@@ -619,13 +827,13 @@ const ScheduleAssessment = () => {
                 <h2>Pre Assessment</h2>
                 <span className="service-badge-cusset paid-cusset">₱1,500</span>
               </div>
-              <p className="service-description-cusset">Professional on-site assessment with 7-day IoT monitoring for accurate data and detailed report.</p>
+              <p className="service-description-cusset">Professional on-site assessment with detailed energy consumption analysis and accurate system sizing.</p>
               <ul className="service-features-cusset">
-                <li>On-site visit with monitoring device</li>
+                <li>Enter monthly consumption (kWh)</li>
+                <li>List your appliances with day & night usage hours</li>
+                <li>Automatic day/night calculation from appliances</li>
                 <li>7-day environmental data collection</li>
                 <li>Accurate system size recommendation</li>
-                <li>Detailed assessment report</li>
-                <li>Professional engineer consultation</li>
               </ul>
               <div className="card-button-container-cusset">
                 <button className="btn-paid-assessment-cusset" onClick={() => setCurrentStep('form')}>Book Pre Assessment</button>
@@ -719,15 +927,13 @@ const ScheduleAssessment = () => {
             </div>
           )}
 
-          {/* Details Modal - UPDATED with Photo Gallery */}
+          {/* Details Modal */}
           {showDetailsModal && selectedRequest && (
             <div className="schedule-modal-overlay-cusset" onClick={() => setShowDetailsModal(false)}>
               <div className="schedule-modal-cusset status-modal-cusset" onClick={e => e.stopPropagation()}>
                 <h2>Request Details</h2>
 
-                {/* Check if it's a free quote or pre-assessment */}
                 {selectedRequest.quotationReference ? (
-                  // Free Quote Content
                   <>
                     <div className="status-detail-section">
                       <h3>Quote Information</h3>
@@ -746,7 +952,6 @@ const ScheduleAssessment = () => {
                     )}
                   </>
                 ) : (
-                  // Pre-Assessment Content
                   <>
                     <div className="status-detail-section">
                       <h3>Booking Information</h3>
@@ -764,7 +969,6 @@ const ScheduleAssessment = () => {
                     </div>
                     <div className="status-detail-section"><h3>Address</h3><p>{getRequestAddress(selectedRequest)}</p></div>
 
-                    {/* ✅ Site Photos Section - Check if photos exist */}
                     {selectedRequest.sitePhotos && selectedRequest.sitePhotos.length > 0 && (
                       <div className="status-detail-section">
                         <h3>Site Photos ({selectedRequest.sitePhotos.length})</h3>
@@ -889,7 +1093,9 @@ const ScheduleAssessment = () => {
           </div>
           <h1 className="schedule-title-cusset">Book Pre Assessment</h1>
           <p className="schedule-subtitle-cusset">Complete the form below to schedule your professional pre-assessment (₱1,500)</p>
+
           <div className="pre-assessment-form-wrapper-cusset">
+            {/* Contact & Address Section */}
             <div className="schedule-info-section-cusset">
               <h3 className="schedule-section-title-cusset">Contact & Address Information</h3>
               <div className="combined-info-card-cusset" onClick={() => setShowInfoModal(true)}>
@@ -903,19 +1109,179 @@ const ScheduleAssessment = () => {
                 <div className="combined-info-hint-cusset">Click to view full details and manage settings</div>
               </div>
             </div>
+
+            {/* Electric Bill Section */}
             <div className="schedule-assessment-details-section-cusset">
+              <h3 className="schedule-section-title-cusset">
+                <FaMoneyBillWave /> Electricity Bill Information
+              </h3>
+              <p className="section-description-cusset">Enter your current electricity details</p>
+
+              <div className="electric-bill-section-cusset">
+                <div className="schedule-form-grid-cusset">
+                  <div className="schedule-form-group-cusset">
+                    <label>Monthly Consumption (kWh) *</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      name="monthlyKwh"
+                      value={electricBillInput.monthlyKwh}
+                      onChange={handleElectricBillChange}
+                      placeholder="e.g., 500"
+                      className={`schedule-form-input-cusset ${validationErrors.monthlyKwh ? 'error' : ''}`}
+                    />
+                    <small>Your average monthly electricity consumption in kWh</small>
+                    {validationErrors.monthlyKwh && <div className="error-message-cusset">{validationErrors.monthlyKwh}</div>}
+                  </div>
+                  <div className="schedule-form-group-cusset">
+                    <label>Monthly Electric Bill (₱)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="monthlyBill"
+                      value={electricBillInput.monthlyBill}
+                      onChange={handleElectricBillChange}
+                      placeholder="e.g., 5000"
+                      className="schedule-form-input-cusset"
+                    />
+                    <small>Your average monthly electricity bill amount (optional)</small>
+                  </div>
+                  <div className="schedule-form-group-cusset">
+                    <label>Rate per kWh (₱)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="ratePerKwh"
+                      value={electricBillInput.ratePerKwh}
+                      onChange={handleElectricBillChange}
+                      placeholder="e.g., 11.50"
+                      className="schedule-form-input-cusset"
+                    />
+                    <small>Check your electric bill for the rate (optional)</small>
+                  </div>
+                </div>
+              </div>
+
+              {/* Appliances Section */}
+              <div className="appliances-section-cusset">
+                <div className="appliances-header-cusset">
+                  <h4><FaPlug /> Your Appliances</h4>
+                  <button
+                    type="button"
+                    className="add-appliance-btn-cusset"
+                    onClick={() => {
+                      setEditingAppliance(null);
+                      setApplianceForm({ name: '', powerWatts: '', quantity: '', dayHours: '', nightHours: '' });
+                      setShowApplianceModal(true);
+                    }}
+                  >
+                    <FaPlus /> Add Appliance
+                  </button>
+                </div>
+
+                {validationErrors.appliances && (
+                  <div className="error-message-cusset">{validationErrors.appliances}</div>
+                )}
+
+                {appliances.length === 0 ? (
+                  <div className="empty-appliances-cusset">
+                    <FaLightbulb />
+                    <p>No appliances added yet. Click "Add Appliance" to list your electrical devices.</p>
+                    <small>Include major appliances like air conditioning, refrigerator, lighting, etc.</small>
+                  </div>
+                ) : (
+                  <div className="appliances-table-container-cusset">
+                    <table className="appliances-table-cusset">
+                      <thead>
+                        <tr>
+                          <th>Appliance</th>
+                          <th>Power (W)</th>
+                          <th>Qty</th>
+                          <th>Day Hours</th>
+                          <th>Night Hours</th>
+                          <th>Day Energy (kWh)</th>
+                          <th>Night Energy (kWh)</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {appliances.map(appliance => {
+                          const dayEnergy = (appliance.powerWatts * appliance.quantity * appliance.dayHours) / 1000;
+                          const nightEnergy = (appliance.powerWatts * appliance.quantity * appliance.nightHours) / 1000;
+                          return (
+                            <tr key={appliance.id}>
+                              <td><strong>{appliance.name}</strong></td>
+                              <td>{appliance.powerWatts} W</td>
+                              <td>{appliance.quantity}</td>
+                              <td>{appliance.dayHours} hrs</td>
+                              <td>{appliance.nightHours} hrs</td>
+                              <td>{dayEnergy.toFixed(2)} kWh</td>
+                              <td>{nightEnergy.toFixed(2)} kWh</td>
+                              <td>
+                                <button className="edit-appliance-btn" onClick={() => editAppliance(appliance)}>
+                                  <FaEye /> Edit
+                                </button>
+                                <button className="delete-appliance-btn" onClick={() => deleteAppliance(appliance.id)}>
+                                  <FaTrash /> Delete
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {appliances.length > 0 && electricBillInput.monthlyKwh && (
+                <div className="consumption-results-cusset">
+                  <h4>Your Energy Profile</h4>
+                  <div className="results-grid-cusset">
+                    <div className="result-card-cusset day-result">
+                      <FaSun className="result-icon" />
+                      <div className="result-info">
+                        <span className="result-label">Day Consumption</span>
+                        <span className="result-value">{calculationResults.dayConsumption?.toFixed(2) || 0} kWh</span>
+                        <span className="result-percentage">({calculationResults.dayPercentage?.toFixed(1) || 0}%)</span>
+                      </div>
+                    </div>
+                    <div className="result-card-cusset night-result">
+                      <FaMoon className="result-icon" />
+                      <div className="result-info">
+                        <span className="result-label">Night Consumption</span>
+                        <span className="result-value">{calculationResults.nightConsumption?.toFixed(2) || 0} kWh</span>
+                        <span className="result-percentage">({calculationResults.nightPercentage?.toFixed(1) || 0}%)</span>
+                      </div>
+                    </div>
+                    <div className="result-card-cusset total-result">
+                      <FaLightbulb className="result-icon" />
+                      <div className="result-info">
+                        <span className="result-label">Total Daily</span>
+                        <span className="result-value">{calculationResults.totalDailyConsumption?.toFixed(2) || 0} kWh/day</span>
+                        <small>Based on monthly consumption ÷ 30 days</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {(!electricBillInput.monthlyKwh || appliances.length === 0) && (
+                <div className="info-message-cusset">
+                  <p>Please enter your monthly consumption and add at least one appliance to see your energy profile.</p>
+                </div>
+              )}
+
               <h3 className="schedule-section-title-cusset">Assessment Details</h3>
               <div className="schedule-assessment-form-cusset">
                 <div className="schedule-form-grid-cusset">
                   <div className="schedule-form-group-cusset">
                     <label>Property Type *</label>
                     <select name="propertyType" value={formData.propertyType} onChange={handleInputChange} className="schedule-form-select-cusset">
-                      <option value="residential">Residential</option><option value="commercial">Commercial</option><option value="industrial">Industrial</option>
+                      <option value="residential">Residential</option>
+                      <option value="commercial">Commercial</option>
+                      <option value="industrial">Industrial</option>
                     </select>
-                  </div>
-                  <div className="schedule-form-group-cusset">
-                    <label>Desired Capacity (kW)</label>
-                    <input type="text" name="desiredCapacity" value={formData.desiredCapacity} onChange={handleInputChange} className="schedule-form-input-cusset" placeholder="e.g., 5kW (optional)" />
                   </div>
                   <div className="schedule-form-group-cusset">
                     <label>Preferred System Type</label>
@@ -925,9 +1291,42 @@ const ScheduleAssessment = () => {
                     </select>
                   </div>
                   <div className="schedule-form-group-cusset">
+                    <label>Desired Capacity (kW)</label>
+                    <input
+                      type="text"
+                      name="desiredCapacity"
+                      value={formData.desiredCapacity}
+                      onChange={handleInputChange}
+                      placeholder="e.g., 5kW (optional)"
+                      className="schedule-form-input-cusset"
+                    />
+                    <small>Optional: Specify your desired system capacity</small>
+                  </div>
+                  {/* ✅ ADD TARGET SAVINGS FIELD HERE */}
+                  <div className="schedule-form-group-cusset">
+                    <label>Target Savings (%)</label>
+                    <select
+                      name="targetSavings"
+                      value={formData.targetSavings}
+                      onChange={handleInputChange}
+                      className="schedule-form-select-cusset"
+                    >
+                      <option value="">Select target savings (optional)</option>
+                      <option value="100">100% - Fully offset my bill</option>
+                      <option value="75">75% - Significant reduction</option>
+                      <option value="50">50% - Balanced approach</option>
+                      <option value="25">25% - Basic savings</option>
+                    </select>
+                    <small>Help us size your system based on your savings goal</small>
+                  </div>
+                  <div className="schedule-form-group-cusset">
                     <label>Roof Type</label>
                     <select name="roofType" value={formData.roofType} onChange={handleInputChange} className="schedule-form-select-cusset">
-                      <option value="">Select</option><option value="concrete">Concrete</option><option value="metal">Metal</option><option value="tile">Tile</option><option value="other">Other</option>
+                      <option value="">Select</option>
+                      <option value="concrete">Concrete</option>
+                      <option value="metal">Metal</option>
+                      <option value="tile">Tile</option>
+                      <option value="other">Other</option>
                     </select>
                   </div>
                   <div className="schedule-form-group-cusset">
@@ -940,19 +1339,110 @@ const ScheduleAssessment = () => {
                   <div className="schedule-form-group-cusset">
                     <label>Preferred Start Date *</label>
                     <input type="date" name="preferredDate" value={formData.preferredDate} onChange={handleInputChange} className="schedule-form-input-cusset" min={new Date().toISOString().split('T')[0]} />
+                    {validationErrors.preferredDate && <div className="error-message-cusset">{validationErrors.preferredDate}</div>}
                   </div>
                 </div>
+
                 <div className="schedule-fee-card-cusset">
                   <strong>Pre Assessment Fee: ₱1,500.00</strong>
                   <p>Your booking will be confirmed by our admin. You will receive payment instructions after confirmation.</p>
+                  <small>Includes: On-site visit, 7-day monitoring, detailed analysis, and system recommendation.</small>
                 </div>
+
                 <div className="form-actions-cusset">
-                  <button onClick={handleSubmitClick} className="schedule-btn-submit-cusset">Continue to Confirmation</button>
+                  <button
+                    onClick={handleSubmitClick}
+                    className="schedule-btn-submit-cusset"
+                    disabled={appliances.length === 0 || !electricBillInput.monthlyKwh}
+                  >
+                    Continue to Confirmation
+                  </button>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* Appliance Modal */}
+          {showApplianceModal && (
+            <div className="schedule-modal-overlay-cusset" onClick={() => setShowApplianceModal(false)}>
+              <div className="schedule-modal-cusset appliance-modal-cusset" onClick={e => e.stopPropagation()}>
+                <div className="modal-header-cusset">
+                  <h3>{editingAppliance ? 'Edit Appliance' : 'Add Appliance'}</h3>
+                  <button className="modal-close-cusset" onClick={() => setShowApplianceModal(false)}>×</button>
+                </div>
+                <div className="modal-body-cusset">
+                  <div className="schedule-form-group-cusset">
+                    <label>Appliance Name *</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={applianceForm.name}
+                      onChange={handleApplianceFormChange}
+                      placeholder="e.g., Air Conditioner, Refrigerator, TV"
+                      className="schedule-form-input-cusset"
+                    />
+                  </div>
+                  <div className="schedule-form-group-cusset">
+                    <label>Power Rating (Watts) *</label>
+                    <input
+                      type="number"
+                      name="powerWatts"
+                      value={applianceForm.powerWatts}
+                      onChange={handleApplianceFormChange}
+                      placeholder="e.g., 1500"
+                      className="schedule-form-input-cusset"
+                    />
+                    <small>Check the label on your appliance for watts (W)</small>
+                  </div>
+                  <div className="schedule-form-group-cusset">
+                    <label>Quantity *</label>
+                    <input
+                      type="number"
+                      name="quantity"
+                      value={applianceForm.quantity}
+                      onChange={handleApplianceFormChange}
+                      placeholder="e.g., 2"
+                      className="schedule-form-input-cusset"
+                    />
+                  </div>
+                  <div className="schedule-form-group-cusset">
+                    <label><FaSun /> Day Usage Hours *</label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      name="dayHours"
+                      value={applianceForm.dayHours}
+                      onChange={handleApplianceFormChange}
+                      placeholder="e.g., 8"
+                      className="schedule-form-input-cusset"
+                    />
+                    <small>Hours used during daytime (6 AM - 6 PM)</small>
+                  </div>
+                  <div className="schedule-form-group-cusset">
+                    <label><FaMoon /> Night Usage Hours *</label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      name="nightHours"
+                      value={applianceForm.nightHours}
+                      onChange={handleApplianceFormChange}
+                      placeholder="e.g., 4"
+                      className="schedule-form-input-cusset"
+                    />
+                    <small>Hours used during nighttime (6 PM - 6 AM)</small>
+                  </div>
+                </div>
+                <div className="modal-actions-cusset">
+                  <button className="cancel-btn-cusset" onClick={() => setShowApplianceModal(false)}>Cancel</button>
+                  <button className="save-btn-cusset" onClick={saveAppliance}>
+                    <FaSave /> {editingAppliance ? 'Update' : 'Add'} Appliance
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Info Modal */}
           {showInfoModal && (
             <div className="schedule-modal-overlay-cusset" onClick={() => setShowInfoModal(false)}>
               <div className="schedule-modal-cusset info-modal-cusset" onClick={e => e.stopPropagation()}>
@@ -986,14 +1476,32 @@ const ScheduleAssessment = () => {
             </div>
           )}
 
+          {/* Confirmation Dialog */}
           {showConfirmDialog && (
             <div className="schedule-modal-overlay-cusset" onClick={() => setShowConfirmDialog(false)}>
               <div className="schedule-modal-cusset" onClick={e => e.stopPropagation()}>
                 <h2>Confirm Pre Assessment</h2>
                 <div className="schedule-modal-summary-cusset">
-                  <div className="schedule-summary-section-cusset"><h4>Contact</h4><p><strong>Name:</strong> {getFullName()}</p><p><strong>Contact:</strong> {formData.contactNumber}</p></div>
-                  <div className="schedule-summary-section-cusset"><h4>Address</h4><p>{getFullAddress()}</p></div>
-                  <div className="schedule-summary-section-cusset"><h4>Details</h4><p><strong>Property:</strong> {formData.propertyType}</p><p><strong>Date:</strong> {formData.preferredDate}</p><p><strong>Fee:</strong> ₱1,500.00</p></div>
+                  <div className="schedule-summary-section-cusset">
+                    <h4>Contact</h4>
+                    <p><strong>Name:</strong> {getFullName()}</p>
+                    <p><strong>Contact:</strong> {formData.contactNumber}</p>
+                  </div>
+                  <div className="schedule-summary-section-cusset">
+                    <h4>Address</h4>
+                    <p>{getFullAddress()}</p>
+                  </div>
+                  <div className="schedule-summary-section-cusset">
+                    <h4>Energy Profile</h4>
+                    <p><strong>Total Daily:</strong> {calculationResults.totalDailyConsumption.toFixed(2)} kWh</p>
+                    <p><strong>Day/Night:</strong> {calculationResults.dayPercentage.toFixed(0)}% / {calculationResults.nightPercentage.toFixed(0)}%</p>
+                  </div>
+                  <div className="schedule-summary-section-cusset">
+                    <h4>Assessment Details</h4>
+                    <p><strong>Property:</strong> {formData.propertyType}</p>
+                    <p><strong>Date:</strong> {formData.preferredDate}</p>
+                    <p><strong>Fee:</strong> ₱1,500.00</p>
+                  </div>
                 </div>
                 <div className="schedule-modal-checkbox-cusset">
                   <label>

@@ -23,7 +23,7 @@ const {
   updateSiteAssessment,
   uploadQuotationPDF,
   uploadSiteImages,
-
+getSystemRecommendations,
   submitPayment,
   submitAssessmentReport,
   getAssessmentDocuments,
@@ -68,7 +68,8 @@ router.put('/:id/update-assessment', verifyToken, engineer, updateSiteAssessment
 router.post('/:id/upload-quotation', verifyToken, engineer, upload.single('quotation'), uploadQuotationPDF);
 router.post('/:id/upload-images', verifyToken, engineer, upload.array('images', 10), uploadSiteImages);
 router.get('/:id/documents', verifyToken, getAssessmentDocuments);
-
+// In your routes/preAssessmentRoutes.js or similar
+router.get('/:id/system-recommendations', verifyToken, engineer, getSystemRecommendations);
 router.post('/:id/add-comment', verifyToken, engineer, addEngineerComment);
 router.get('/:id/comments', verifyToken, getAssessmentComments);
 

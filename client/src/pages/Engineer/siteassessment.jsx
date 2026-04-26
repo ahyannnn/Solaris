@@ -28,6 +28,12 @@ const MyAssessments = () => {
   const [config, setConfig] = useState(null);
   const [assessmentResults, setAssessmentResults] = useState(null);
   const [systemMetrics, setSystemMetrics] = useState(null);
+  const [loadingMetrics, setLoadingMetrics] = useState(false);
+  // Add this with your other state declarations (around line 100)
+
+  const [laborCostPercentage, setLaborCostPercentage] = useState(20); // Default 20%
+  const [isEditingLaborCost, setIsEditingLaborCost] = useState(false);
+  const [manualLaborCost, setManualLaborCost] = useState(0);
 
   // Modal states
   const [showDeployConfirmModal, setShowDeployConfirmModal] = useState(false);
@@ -185,6 +191,30 @@ const MyAssessments = () => {
 
   const showToast = (message, type) => {
     alert(message);
+  };
+
+  // ============ NEW: Fetch system recommendations from backend ============
+  const fetchSystemRecommendations = async (assessmentId) => {
+    try {
+      setLoadingMetrics(true);
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(
+        `${API_BASE_URL}/api/pre-assessments/${assessmentId}/system-recommendations`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        setSystemMetrics(response.data.systemMetrics);
+        return response.data.systemMetrics;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching system recommendations:', error);
+      showToast('Failed to load system recommendations', 'error');
+      return null;
+    } finally {
+      setLoadingMetrics(false);
+    }
   };
 
   // Free Quote Equipment helper functions
@@ -370,15 +400,9 @@ const MyAssessments = () => {
 
     const totalEquipmentCost = panelCost + inverterCost + batteryCost + mountingCost +
       electricalCost + cableCost + junctionBoxCost + disconnectSwitchCost + meterCost + additionalCost;
+    const installationLaborCost = totalEquipmentCost * (laborCostPercentage / 100);
 
-    let installationLaborCost = 0;
-    if (config?.laborRates) {
-      const systemSize = freeQuoteForm.systemSize || 5;
-      installationLaborCost = (systemSize * config.laborRates.perKw) + (freeQuotePanelQuantity * config.laborRates.perPanel);
-      installationLaborCost = Math.max(installationLaborCost, config.laborRates.minimumFee || 10000);
-    } else {
-      installationLaborCost = (freeQuoteForm.systemSize || 5) * 5000;
-    }
+
 
     const totalSystemCost = totalEquipmentCost + installationLaborCost;
 
@@ -425,6 +449,16 @@ const MyAssessments = () => {
       }
     }
     setSelectedCables(updated);
+  };
+
+  // Calculate roof area in square meters
+  const calculateRoofArea = (length, width) => {
+    const l = parseFloat(length) || 0;
+    const w = parseFloat(width) || 0;
+    if (l > 0 && w > 0) {
+      return (l * w).toFixed(1);
+    }
+    return null;
   };
 
   const removeCable = (index) => {
@@ -584,14 +618,8 @@ const MyAssessments = () => {
     const totalEquipmentCost = panelCost + inverterCost + batteryCost + mountingCost +
       electricalCost + cableCost + junctionBoxCost + disconnectSwitchCost + meterCost + additionalCost;
 
-    let installationLaborCost = 0;
-    if (config?.laborRates) {
-      const systemSize = quotationForm.systemSize || 5;
-      installationLaborCost = (systemSize * config.laborRates.perKw) + (panelQuantity * config.laborRates.perPanel);
-      installationLaborCost = Math.max(installationLaborCost, config.laborRates.minimumFee || 10000);
-    } else {
-      installationLaborCost = (quotationForm.systemSize || 5) * 5000;
-    }
+    // Calculate installation labor cost based on percentage
+    const installationLaborCost = totalEquipmentCost * (laborCostPercentage / 100);
 
     const totalSystemCost = totalEquipmentCost + installationLaborCost;
 
@@ -618,87 +646,6 @@ const MyAssessments = () => {
       totalCost: totalSystemCost,
       panelsNeeded: panelQuantity
     }));
-  };
-
-  // Function to calculate system metrics from IoT data
-  const calculateSystemMetrics = (iotData) => {
-    if (!iotData) return null;
-
-    const peakSunHours = iotData.peakSunHours || 4.5;
-    const shadingPercentage = iotData.shadingPercentage || 0;
-    const avgTemp = iotData.averageTemperature || 25;
-    const tempDerating = Math.max(0, (avgTemp - 25) * -0.004) * 100;
-
-    const dailyEnergyNeed = 20;
-    const systemEfficiency = 0.8;
-    const recommendedSystemSize = dailyEnergyNeed / (peakSunHours * systemEfficiency);
-    const panelWattage = 0.55;
-    const panelsNeeded = Math.ceil(recommendedSystemSize / panelWattage);
-    const inverterSize = Math.ceil(recommendedSystemSize * 1.2);
-    const performanceRatio = 0.85 - (shadingPercentage / 100) - (tempDerating / 100);
-
-    let optimalOrientation = 'South';
-    if (peakSunHours > 5.5) optimalOrientation = 'South';
-    else if (peakSunHours > 4.5) optimalOrientation = 'South-East';
-    else if (peakSunHours > 3.5) optimalOrientation = 'East-West';
-    else optimalOrientation = 'East';
-
-    const optimalTilt = Math.min(30, Math.max(10, Math.floor(peakSunHours * 2.5)));
-    const roofArea = (assessmentForm.roofLength || 10) * (assessmentForm.roofWidth || 8);
-    const estimatedInstallationTime = Math.ceil(panelsNeeded / 4) + 1;
-    const equipmentCost = panelsNeeded * 15000 + inverterSize * 8000;
-    const installationCost = panelsNeeded * 2000;
-    const totalCost = equipmentCost + installationCost;
-    const electricityRate = 12;
-    const annualProduction = recommendedSystemSize * peakSunHours * 365 * systemEfficiency;
-    const monthlySavings = (annualProduction * electricityRate) / 12;
-    const paybackPeriod = totalCost / (monthlySavings * 12);
-    const co2Offset = annualProduction * 0.5;
-
-    return {
-      peakSunHours,
-      shadingPercentage,
-      averageIrradiance: iotData.averageIrradiance || 0,
-      averageTemperature: iotData.averageTemperature || 0,
-      averageHumidity: iotData.averageHumidity || 0,
-      temperatureRange: `${iotData.minTemperature?.toFixed(1) || 0}C - ${iotData.maxTemperature?.toFixed(1) || 0}C`,
-      temperatureDerating: tempDerating.toFixed(1),
-      gpsLocation: iotData.gpsCoordinates,
-      recommendedSystemSize: recommendedSystemSize.toFixed(1),
-      panelsNeeded,
-      inverterSize,
-      performanceRatio: (performanceRatio * 100).toFixed(1),
-      optimalOrientation,
-      optimalTilt,
-      availableRoofArea: roofArea.toFixed(1),
-      estimatedInstallationTime,
-      estimatedTotalCost: totalCost,
-      estimatedMonthlySavings: monthlySavings,
-      paybackPeriod: paybackPeriod.toFixed(1),
-      co2Offset: co2Offset.toFixed(0),
-      annualProduction: annualProduction.toFixed(0)
-    };
-  };
-
-  const calculateSuitabilityScore = (peakSunHours, shadingPercentage, tempDerating) => {
-    let score = 100;
-    if (peakSunHours >= 5.5) score += 0;
-    else if (peakSunHours >= 5) score -= 5;
-    else if (peakSunHours >= 4.5) score -= 10;
-    else if (peakSunHours >= 4) score -= 20;
-    else score -= 35;
-
-    if (shadingPercentage <= 5) score += 0;
-    else if (shadingPercentage <= 10) score -= 10;
-    else if (shadingPercentage <= 15) score -= 20;
-    else score -= 30;
-
-    if (tempDerating >= -3) score += 0;
-    else if (tempDerating >= -5) score -= 10;
-    else if (tempDerating >= -8) score -= 20;
-    else score -= 30;
-
-    return Math.max(0, Math.min(100, Math.round(score)));
   };
 
   const ASSESSMENT_TYPES = {
@@ -988,7 +935,16 @@ const MyAssessments = () => {
         roofWidth: assessment.roofWidth,
         dataCollectionStart: assessment.dataCollectionStart,
         dataCollectionEnd: assessment.dataCollectionEnd,
-        totalReadings: assessment.totalReadings
+        totalReadings: assessment.totalReadings,
+        monthlyBill: assessment.monthlyBill || 0,
+        rate: assessment.rate || 0,
+        consumption: assessment.consumption || 0,
+        dayconsumption: assessment.dayConsumption || 0,
+        nightConsumption: assessment.nightConsumption || 0,
+        dayPercentage: assessment.dayPercentage || 0,
+        nightPercentage: assessment.nightPercentage || 0,
+        totalDailyConsumption: assessment.totalDailyConsumption || 0,
+        targetSavings: assessment.targetSavings || 0
       };
 
       setSelectedItem(formattedAssessment);
@@ -1057,8 +1013,10 @@ const MyAssessments = () => {
 
       if (assessment.assessmentResults) {
         setAssessmentResults(assessment.assessmentResults);
-        const metrics = calculateSystemMetrics(assessment.assessmentResults);
-        setSystemMetrics(metrics);
+
+        // Fetch system recommendations from backend
+        const metrics = await fetchSystemRecommendations(assessmentId);
+
         if (metrics && !quotationForm.systemSize) {
           setQuotationForm(prev => ({
             ...prev,
@@ -1089,7 +1047,7 @@ const MyAssessments = () => {
       );
       setIotAnalysis(response.data.analysis);
       showToast('IoT data analysis completed successfully!', 'success');
-      fetchPreAssessmentDetails(selectedItem._id);
+      await fetchPreAssessmentDetails(selectedItem._id);
     } catch (err) {
       console.error('Error analyzing IoT data:', err);
       showToast(err.response?.data?.message || 'Failed to analyze IoT data', 'error');
@@ -1098,208 +1056,172 @@ const MyAssessments = () => {
     }
   };
 
-  // Main PDF Generation Function - Handles BOTH Free Quote AND Pre-Assessment
-const generateQuotationPDF = async () => {
-  const isFreeQuote = selectedType === 'free_quote';
+  // Main PDF Generation Function
+  const generateQuotationPDF = async () => {
+    const isFreeQuote = selectedType === 'free_quote';
 
-  const systemSize = isFreeQuote ? freeQuoteForm.systemSize : quotationForm.systemSize;
-  const totalCost = isFreeQuote ? freeQuoteCalculatedCosts.totalSystemCost : calculatedCosts.totalSystemCost;
+    const systemSize = isFreeQuote ? freeQuoteForm.systemSize : quotationForm.systemSize;
+    const totalCost = isFreeQuote ? freeQuoteCalculatedCosts.totalSystemCost : calculatedCosts.totalSystemCost;
 
-  if (!systemSize || parseFloat(systemSize) <= 0) {
-    showToast('Please enter a valid system size (greater than 0)', 'warning');
-    return;
-  }
-
-  if (!totalCost || parseFloat(totalCost) <= 0) {
-    showToast('Please enter a valid total cost (greater than 0)', 'warning');
-    return;
-  }
-
-  setGeneratingPDF(true);
-  try {
-    const token = sessionStorage.getItem('token');
-    const endpoint = isFreeQuote
-      ? `${API_BASE_URL}/api/free-quotes/${selectedItem._id}/generate-quotation`
-      : `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/generate-quotation`;
-
-    const metrics = !isFreeQuote && (systemMetrics || (assessmentResults ? calculateSystemMetrics(assessmentResults) : null));
-
-    // ✅ FIXED: Include ALL min/max fields from assessmentResults
-    const iotDataForPDF = !isFreeQuote ? {
-      // Basic metrics
-      totalReadings: assessmentResults?.totalReadings || iotAnalysis?.totalReadings || 0,
-      peakSunHours: assessmentResults?.peakSunHours || iotAnalysis?.peakSunHours || metrics?.peakSunHours || 0,
-      
-      // ✅ Irradiance metrics (with min and max)
-      averageIrradiance: assessmentResults?.averageIrradiance || iotAnalysis?.averageIrradiance || 0,
-      maxIrradiance: assessmentResults?.maxIrradiance || iotAnalysis?.maxIrradiance || 0,
-      minIrradiance: assessmentResults?.minIrradiance || iotAnalysis?.minIrradiance || 0,
-      
-      // ✅ Temperature metrics (with min and max)
-      averageTemperature: assessmentResults?.averageTemperature || iotAnalysis?.averageTemperature || 0,
-      maxTemperature: assessmentResults?.maxTemperature || iotAnalysis?.maxTemperature || 0,
-      minTemperature: assessmentResults?.minTemperature || iotAnalysis?.minTemperature || 0,
-      temperatureDerating: assessmentResults?.temperatureDerating || iotAnalysis?.efficiencyLoss || metrics?.temperatureDerating || 0,
-      
-      // ✅ Humidity metrics (with min and max)
-      averageHumidity: assessmentResults?.averageHumidity || iotAnalysis?.averageHumidity || 0,
-      maxHumidity: assessmentResults?.maxHumidity || iotAnalysis?.maxHumidity || 0,
-      minHumidity: assessmentResults?.minHumidity || iotAnalysis?.minHumidity || 0,
-      
-      // Shading percentage
-      shadingPercentage: assessmentResults?.shadingPercentage || iotAnalysis?.shadingPercentage || metrics?.shadingPercentage || 0,
-      
-      // Date range
-      dataCollectionStart: selectedItem?.dataCollectionStart,
-      dataCollectionEnd: selectedItem?.dataCollectionEnd,
-      
-      // GPS
-      gpsCoordinates: assessmentResults?.gpsCoordinates || iotAnalysis?.gpsLocation,
-      
-      // System recommendations
-      optimalOrientation: metrics?.optimalOrientation || iotAnalysis?.recommendedOrientation || 'South-facing',
-      optimalTiltAngle: metrics?.optimalTilt || iotAnalysis?.recommendedTiltAngle || 15,
-      recommendedSystemSize: metrics?.recommendedSystemSize || iotAnalysis?.recommendedSystemSize || systemSize,
-      
-      // Equipment specs
-      panelsNeeded: metrics?.panelsNeeded || panelQuantity,
-      inverterSize: metrics?.inverterSize || Math.ceil(parseFloat(systemSize) * 1.2),
-      performanceRatio: metrics?.performanceRatio || 85,
-      
-      // Financial metrics
-      estimatedMonthlySavings: metrics?.estimatedMonthlySavings || 0,
-      estimatedAnnualSavings: (metrics?.estimatedMonthlySavings || 0) * 12,
-      paybackPeriod: metrics?.paybackPeriod || 0,
-      estimatedAnnualProduction: metrics?.annualProduction || (parseFloat(systemSize) * 1200),
-      co2Offset: metrics?.co2Offset || (parseFloat(systemSize) * 800),
-      
-      // Site assessment
-      roofArea: metrics?.availableRoofArea || (assessmentForm.roofLength * assessmentForm.roofWidth),
-      estimatedInstallationTime: metrics?.estimatedInstallationTime || assessmentForm.estimatedInstallationTime || 3,
-      roofCondition: assessmentForm.roofCondition,
-      structuralIntegrity: assessmentForm.structuralIntegrity,
-      
-      // Temperature and irradiance info
-      temperatureRange: metrics?.temperatureRange || (assessmentResults?.minTemperature && assessmentResults?.maxTemperature 
-        ? `${assessmentResults.minTemperature.toFixed(1)}°C - ${assessmentResults.maxTemperature.toFixed(1)}°C`
-        : `${(assessmentResults?.minTemperature || 25).toFixed(1)}°C - ${(assessmentResults?.maxTemperature || 32).toFixed(1)}°C`),
-      irradianceLevel: assessmentResults?.averageIrradiance || 0,
-      
-      // Suitability score
-      siteSuitabilityScore: calculateSuitabilityScore(
-        assessmentResults?.peakSunHours || 4.5,
-        assessmentResults?.shadingPercentage || 0,
-        assessmentResults?.temperatureDerating || 0
-      )
-    } : null;
-
-    
-
-    const payload = isFreeQuote ? {
-      quotationNumber: freeQuoteForm.quotationNumber,
-      quotationExpiryDate: freeQuoteForm.quotationExpiryDate,
-      systemSize: parseFloat(freeQuoteForm.systemSize),
-      systemType: freeQuoteForm.systemType,
-      panelsNeeded: freeQuotePanelQuantity,
-      panelType: freeQuoteSelectedPanel?.name || '',
-      inverterType: freeQuoteSelectedInverter?.name || '',
-      batteryType: freeQuoteSelectedBattery?.name || '',
-      installationCost: freeQuoteCalculatedCosts.installationLaborCost,
-      equipmentCost: freeQuoteCalculatedCosts.totalEquipmentCost,
-      totalCost: freeQuoteCalculatedCosts.totalSystemCost,
-      paymentTerms: freeQuoteForm.paymentTerms,
-      warrantyYears: parseInt(freeQuoteForm.warrantyYears) || 10,
-      remarks: freeQuoteForm.remarks,
-      includeIoTData: false,
-      equipmentDetails: {
-        panel: freeQuoteSelectedPanel,
-        panelQuantity: freeQuotePanelQuantity,
-        inverter: freeQuoteSelectedInverter,
-        inverterQuantity: freeQuoteInverterQuantity,
-        battery: freeQuoteSelectedBattery,
-        batteryQuantity: freeQuoteBatteryQuantity,
-        mountingStructure: freeQuoteSelectedMountingStructure,
-        mountingStructureQuantity: freeQuoteMountingStructureQuantity,
-        electricalComponents: freeQuoteSelectedElectricalComponents.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        })),
-        cables: freeQuoteSelectedCables.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, length: item.length, price: item.price, total: item.total
-        })),
-        junctionBoxes: freeQuoteSelectedJunctionBoxes.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        })),
-        disconnectSwitches: freeQuoteSelectedDisconnectSwitches.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        })),
-        meters: freeQuoteSelectedMeters.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        })),
-        additionalEquipment: freeQuoteAdditionalEquipment.map(item => ({
-          name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        }))
-      }
-    } : {
-      quotationNumber: quotationForm.quotationNumber,
-      quotationExpiryDate: quotationForm.quotationExpiryDate,
-      systemSize: parseFloat(quotationForm.systemSize),
-      systemType: quotationForm.systemType,
-      panelsNeeded: panelQuantity,
-      panelType: selectedPanel?.name || '',
-      inverterType: selectedInverter?.name || '',
-      batteryType: selectedBattery?.name || '',
-      installationCost: calculatedCosts.installationLaborCost,
-      equipmentCost: calculatedCosts.totalEquipmentCost,
-      totalCost: calculatedCosts.totalSystemCost,
-      paymentTerms: quotationForm.paymentTerms,
-      warrantyYears: parseInt(quotationForm.warrantyYears) || 10,
-      includeIoTData: includeIoTData,
-      iotData: includeIoTData ? iotDataForPDF : null,
-      equipmentDetails: {
-        panel: selectedPanel,
-        panelQuantity: panelQuantity,
-        inverter: selectedInverter,
-        inverterQuantity: inverterQuantity,
-        battery: selectedBattery,
-        batteryQuantity: batteryQuantity,
-        mountingStructure: selectedMountingStructure,
-        mountingStructureQuantity: mountingStructureQuantity,
-        electricalComponents: selectedElectricalComponents.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        })),
-        cables: selectedCables.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, length: item.length, price: item.price, total: item.total
-        })),
-        junctionBoxes: selectedJunctionBoxes.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        })),
-        disconnectSwitches: selectedDisconnectSwitches.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        })),
-        meters: selectedMeters.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        })),
-        additionalEquipment: additionalEquipment.map(item => ({
-          name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        }))
-      }
-    };
-
-    const response = await axios.post(endpoint, payload, { headers: { Authorization: `Bearer ${token}` } });
-    showToast('Quotation PDF generated and uploaded successfully!', 'success');
-
-    if (isFreeQuote) {
-      fetchFreeQuoteDetails(selectedItem._id);
-    } else {
-      fetchPreAssessmentDetails(selectedItem._id);
+    if (!systemSize || parseFloat(systemSize) <= 0) {
+      showToast('Please enter a valid system size (greater than 0)', 'warning');
+      return;
     }
-  } catch (err) {
-    console.error('Error generating PDF:', err);
-    showToast(err.response?.data?.message || 'Failed to generate PDF', 'error');
-  } finally {
-    setGeneratingPDF(false);
-  }
-};
+
+    if (!totalCost || parseFloat(totalCost) <= 0) {
+      showToast('Please enter a valid total cost (greater than 0)', 'warning');
+      return;
+    }
+
+    setGeneratingPDF(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const endpoint = isFreeQuote
+        ? `${API_BASE_URL}/api/free-quotes/${selectedItem._id}/generate-quotation`
+        : `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/generate-quotation`;
+
+      const iotDataForPDF = !isFreeQuote ? {
+        totalReadings: assessmentResults?.totalReadings || 0,
+        peakSunHours: systemMetrics?.peakSunHours || assessmentResults?.peakSunHours || 0,
+        averageIrradiance: systemMetrics?.averageIrradiance || assessmentResults?.averageIrradiance || 0,
+        maxIrradiance: systemMetrics?.maxIrradiance || assessmentResults?.maxIrradiance || 0,
+        minIrradiance: systemMetrics?.minIrradiance || assessmentResults?.minIrradiance || 0,
+        averageTemperature: systemMetrics?.averageTemperature || assessmentResults?.averageTemperature || 0,
+        maxTemperature: systemMetrics?.maxTemperature || assessmentResults?.maxTemperature || 0,
+        minTemperature: systemMetrics?.minTemperature || assessmentResults?.minTemperature || 0,
+        temperatureDerating: systemMetrics?.temperatureDerating || 0,
+        averageHumidity: systemMetrics?.averageHumidity || assessmentResults?.averageHumidity || 0,
+        maxHumidity: systemMetrics?.maxHumidity || assessmentResults?.maxHumidity || 0,
+        minHumidity: systemMetrics?.minHumidity || assessmentResults?.minHumidity || 0,
+        shadingPercentage: systemMetrics?.shadingPercentage || 0,
+        dataCollectionStart: selectedItem?.dataCollectionStart,
+        dataCollectionEnd: selectedItem?.dataCollectionEnd,
+        gpsCoordinates: systemMetrics?.gpsLocation || assessmentResults?.gpsCoordinates,
+        optimalOrientation: systemMetrics?.optimalOrientation || 'South-facing',
+        optimalTiltAngle: systemMetrics?.optimalTilt || 15,
+        recommendedSystemSize: systemMetrics?.recommendedSystemSize || systemSize,
+        panelsNeeded: systemMetrics?.panelsNeeded || panelQuantity,
+        inverterSize: systemMetrics?.inverterSize || Math.ceil(parseFloat(systemSize) * 1.2),
+        performanceRatio: systemMetrics?.performanceRatio || 85,
+        estimatedMonthlySavings: systemMetrics?.estimatedMonthlySavings || 0,
+        estimatedAnnualSavings: systemMetrics?.estimatedAnnualSavings || 0,
+        paybackPeriod: systemMetrics?.paybackPeriod || 0,
+        estimatedAnnualProduction: systemMetrics?.estimatedAnnualProduction || (parseFloat(systemSize) * 1200),
+        co2Offset: systemMetrics?.co2Offset || (parseFloat(systemSize) * 800),
+        roofArea: systemMetrics?.availableRoofArea || (assessmentForm.roofLength * assessmentForm.roofWidth),
+        estimatedInstallationTime: systemMetrics?.estimatedInstallationTime || assessmentForm.estimatedInstallationTime || 3,
+        roofCondition: assessmentForm.roofCondition,
+        structuralIntegrity: assessmentForm.structuralIntegrity,
+        temperatureRange: systemMetrics?.temperatureRange || `${assessmentResults?.minTemperature || 25}°C - ${assessmentResults?.maxTemperature || 32}°C`,
+        irradianceLevel: systemMetrics?.averageIrradiance || 0,
+        siteSuitabilityScore: systemMetrics?.siteSuitabilityScore || 85
+      } : null;
+
+      const payload = isFreeQuote ? {
+        quotationNumber: freeQuoteForm.quotationNumber,
+        quotationExpiryDate: freeQuoteForm.quotationExpiryDate,
+        systemSize: parseFloat(freeQuoteForm.systemSize),
+        systemType: freeQuoteForm.systemType,
+        panelsNeeded: freeQuotePanelQuantity,
+        panelType: freeQuoteSelectedPanel?.name || '',
+        inverterType: freeQuoteSelectedInverter?.name || '',
+        batteryType: freeQuoteSelectedBattery?.name || '',
+        installationCost: freeQuoteCalculatedCosts.installationLaborCost,
+        equipmentCost: freeQuoteCalculatedCosts.totalEquipmentCost,
+        totalCost: freeQuoteCalculatedCosts.totalSystemCost,
+        paymentTerms: freeQuoteForm.paymentTerms,
+        warrantyYears: parseInt(freeQuoteForm.warrantyYears) || 10,
+        remarks: freeQuoteForm.remarks,
+        includeIoTData: false,
+        equipmentDetails: {
+          panel: freeQuoteSelectedPanel,
+          panelQuantity: freeQuotePanelQuantity,
+          inverter: freeQuoteSelectedInverter,
+          inverterQuantity: freeQuoteInverterQuantity,
+          battery: freeQuoteSelectedBattery,
+          batteryQuantity: freeQuoteBatteryQuantity,
+          mountingStructure: freeQuoteSelectedMountingStructure,
+          mountingStructureQuantity: freeQuoteMountingStructureQuantity,
+          electricalComponents: freeQuoteSelectedElectricalComponents.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          })),
+          cables: freeQuoteSelectedCables.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, length: item.length, price: item.price, total: item.total
+          })),
+          junctionBoxes: freeQuoteSelectedJunctionBoxes.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          })),
+          disconnectSwitches: freeQuoteSelectedDisconnectSwitches.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          })),
+          meters: freeQuoteSelectedMeters.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          })),
+          additionalEquipment: freeQuoteAdditionalEquipment.map(item => ({
+            name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          }))
+        }
+      } : {
+        quotationNumber: quotationForm.quotationNumber,
+        quotationExpiryDate: quotationForm.quotationExpiryDate,
+        systemSize: parseFloat(quotationForm.systemSize),
+        systemType: quotationForm.systemType,
+        panelsNeeded: panelQuantity,
+        panelType: selectedPanel?.name || '',
+        inverterType: selectedInverter?.name || '',
+        batteryType: selectedBattery?.name || '',
+        installationCost: calculatedCosts.installationLaborCost,
+        equipmentCost: calculatedCosts.totalEquipmentCost,
+        totalCost: calculatedCosts.totalSystemCost,
+        paymentTerms: quotationForm.paymentTerms,
+        warrantyYears: parseInt(quotationForm.warrantyYears) || 10,
+        includeIoTData: includeIoTData,
+        iotData: includeIoTData ? iotDataForPDF : null,
+        equipmentDetails: {
+          panel: selectedPanel,
+          panelQuantity: panelQuantity,
+          inverter: selectedInverter,
+          inverterQuantity: inverterQuantity,
+          battery: selectedBattery,
+          batteryQuantity: batteryQuantity,
+          mountingStructure: selectedMountingStructure,
+          mountingStructureQuantity: mountingStructureQuantity,
+          electricalComponents: selectedElectricalComponents.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          })),
+          cables: selectedCables.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, length: item.length, price: item.price, total: item.total
+          })),
+          junctionBoxes: selectedJunctionBoxes.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          })),
+          disconnectSwitches: selectedDisconnectSwitches.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          })),
+          meters: selectedMeters.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          })),
+          additionalEquipment: additionalEquipment.map(item => ({
+            name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          }))
+        }
+      };
+
+      const response = await axios.post(endpoint, payload, { headers: { Authorization: `Bearer ${token}` } });
+      showToast('Quotation PDF generated and uploaded successfully!', 'success');
+
+      if (isFreeQuote) {
+        fetchFreeQuoteDetails(selectedItem._id);
+      } else {
+        fetchPreAssessmentDetails(selectedItem._id);
+      }
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      showToast(err.response?.data?.message || 'Failed to generate PDF', 'error');
+    } finally {
+      setGeneratingPDF(false);
+    }
+  };
 
   // Utility functions
   const hasDeviceAssigned = (item) => {
@@ -1618,15 +1540,6 @@ const generateQuotationPDF = async () => {
     freeQuoteSelectedMeters, freeQuoteAdditionalEquipment,
     freeQuoteForm.systemSize, config
   ]);
-
-  useEffect(() => {
-    if (assessmentResults) {
-      const metrics = calculateSystemMetrics(assessmentResults);
-      setSystemMetrics(metrics);
-    } else {
-      setSystemMetrics(null);
-    }
-  }, [assessmentResults]);
 
   // Skeleton Loader Components
   const SkeletonCard = () => (
@@ -2049,17 +1962,42 @@ const generateQuotationPDF = async () => {
                   ))}
                 </div>
 
-                {/* Installation Labor */}
+                {/* Installation Labor - Free Quote */}
                 <div className="quotation-section">
                   <h4>Installation Labor</h4>
+
+                  {/* Labor Cost Percentage Input */}
+                  <div className="labor-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                        Labor Cost (% of Equipment)
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        min="0"
+                        max="100"
+                        className="assessment-form-input-enad"
+                        value={laborCostPercentage}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          setLaborCostPercentage(Math.min(100, Math.max(0, value)));
+                          setTimeout(() => freeQuoteCalculateTotalCosts(), 0);
+                        }}
+                        style={{ width: '100px' }}
+                      />
+                      <small className="form-hint-enad">Default: 20% of total equipment cost</small>
+                    </div>
+                  </div>
+
                   <div className="labor-calculation">
                     <div className="labor-detail">
-                      <span>Per kW installation ({freeQuoteForm.systemSize || 0} kW x ₱{config?.laborRates?.perKw || 5000})</span>
-                      <span>{formatCurrency((freeQuoteForm.systemSize || 0) * (config?.laborRates?.perKw || 5000))}</span>
+                      <span>Total Equipment Cost:</span>
+                      <span>{formatCurrency(freeQuoteCalculatedCosts.totalEquipmentCost)}</span>
                     </div>
                     <div className="labor-detail">
-                      <span>Per panel installation ({freeQuotePanelQuantity} panels x ₱{config?.laborRates?.perPanel || 1000})</span>
-                      <span>{formatCurrency(freeQuotePanelQuantity * (config?.laborRates?.perPanel || 1000))}</span>
+                      <span>Labor Cost ({laborCostPercentage}%):</span>
+                      <span>{formatCurrency(freeQuoteCalculatedCosts.installationLaborCost)}</span>
                     </div>
                     <div className="labor-total">
                       <strong>Total Labor Cost</strong>
@@ -2113,8 +2051,6 @@ const generateQuotationPDF = async () => {
   const StatusConfig = getStatusConfig(selectedItem);
   const TypeConfig = getTypeConfig('pre_assessment');
   const deviceAssigned = hasDeviceAssigned(selectedItem);
-  const hasDataCollection = selectedItem.dataCollectionStart && selectedItem.dataCollectionEnd;
-  const canAnalyze = selectedItem.dataCollectionEnd && !iotAnalysis;
 
   return (
     <>
@@ -2155,8 +2091,41 @@ const generateQuotationPDF = async () => {
                   <div className="info-item-enad"><span className="info-label-enad">Property Type</span><span className="info-value-enad capitalize">{selectedItem.propertyType}</span></div>
                   {selectedItem.systemType && <div className="info-item-enad"><span className="info-label-enad">Preferred System Type</span><span className="info-value-enad">{getSystemTypeLabel(selectedItem.systemType)}</span></div>}
                   <div className="info-item-enad"><span className="info-label-enad">Roof Type</span><span className="info-value-enad capitalize">{selectedItem.roofType || 'Not specified'}</span></div>
-                  {(selectedItem.roofLength || selectedItem.roofWidth) && <div className="info-item-enad"><span className="info-label-enad">Roof Dimensions (from client)</span><span className="info-value-enad">{selectedItem.roofLength ? `${selectedItem.roofLength}m` : '?'} x {selectedItem.roofWidth ? `${selectedItem.roofWidth}m` : '?'}</span></div>}
+                  {(selectedItem.roofLength || selectedItem.roofWidth) && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Roof Dimensions</span>
+                      <span className="info-value-enad">
+                        {selectedItem.roofLength ? `${selectedItem.roofLength}m` : '?'} × {selectedItem.roofWidth ? `${selectedItem.roofWidth}m` : '?'}
+                        {calculateRoofArea(selectedItem.roofLength, selectedItem.roofWidth) && (
+                          <span style={{ display: 'block', fontSize: '12px', color: '#000000' }}>
+                            ({calculateRoofArea(selectedItem.roofLength, selectedItem.roofWidth)} m²)
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  )}
                   <div className="info-item-enad"><span className="info-label-enad">Desired Capacity</span><span className="info-value-enad">{selectedItem.desiredCapacity || 'Not specified'}</span></div>
+
+                  <div className="info-item-enad"><span className="info-label-enad">Monthly Bill</span><span className="info-value-enad">{formatCurrency(selectedItem.monthlyBill || 0)}</span></div>
+                  <div className="info-item-enad"><span className="info-label-enad">Monthly Consumption</span><span className="info-value-enad">{selectedItem.consumption || 0} kWh</span></div>
+                  <div className="info-item-enad"><span className="info-label-enad">Rate per kWh</span><span className="info-value-enad">₱{(selectedItem.rate || 0).toFixed(2)}</span></div>
+                  <div className="info-item-enad">
+                    <span className="info-label-enad">Day Consumption</span>
+                    <span className="info-value-enad">{selectedItem.dayConsumption?.toFixed(2) || 0} kWh</span>
+                  </div>
+                  <div className="info-item-enad">
+                    <span className="info-label-enad">Night Consumption</span>
+                    <span className="info-value-enad">{selectedItem.nightConsumption?.toFixed(2) || 0} kWh</span>
+                  </div>
+                  <div className="info-item-enad"><span className="info-label-enad">Day/Night Usage</span><span className="info-value-enad">{selectedItem.dayPercentage || 0}% / {selectedItem.nightPercentage || 0}%</span></div>
+                  <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption</span><span className="info-value-enad">{selectedItem.totalDailyConsumption || 0} kWh/day</span></div>
+                  {selectedItem.targetSavings && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Target Savings</span>
+                      <span className="info-value-enad">{selectedItem.targetSavings}%</span>
+                    </div>
+                  )}
+
                   <div className="info-item-enad"><span className="info-label-enad">Booked Date</span><span className="info-value-enad">{formatDate(selectedItem.bookedAt)}</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Preferred Date</span><span className="info-value-enad">{formatDate(selectedItem.preferredDate)}</span></div>
                   {selectedItem.siteVisitDate && <div className="info-item-enad"><span className="info-label-enad">Site Visit Date</span><span className="info-value-enad">{formatDate(selectedItem.siteVisitDate)}</span></div>}
@@ -2168,47 +2137,35 @@ const generateQuotationPDF = async () => {
                   <div className="info-item-enad"><span className="info-label-enad">Payment Status</span><span className={`status-badge-enad ${selectedItem.paymentStatus === 'paid' ? 'completed-enad' : 'pending-enad'}`}>{selectedItem.paymentStatus}</span></div>
                 </div>
 
-                {hasDataCollection && (
-                  <div className="detail-section-enad">
-                    <div className="section-header-enad"><h3 className="detail-section-title-enad">IoT Data Analysis (7-Day Monitoring)</h3>{canAnalyze && <button onClick={analyzeIoTData} disabled={analyzingData} className="btn-secondary-enad" style={{ padding: '5px 12px', fontSize: '12px' }}>{analyzingData ? 'Analyzing...' : 'Analyze Data'}</button>}</div>
-                    {iotAnalysis ? (
-                      <div className="iot-analysis-grid-enad">
-                        <div className="analysis-card-enad irradiance-enad">
-                          <div className="analysis-stats-enad">
-                            <div className="stat-enad"><span className="stat-label-enad">Avg Irradiance</span><span className="stat-value-enad">{iotAnalysis.averageIrradiance?.toFixed(0) || 0} W/m²</span></div>
-                            <div className="stat-enad"><span className="stat-label-enad">Peak Irradiance</span><span className="stat-value-enad">{iotAnalysis.maxIrradiance?.toFixed(0) || 0} W/m²</span></div>
-                            <div className="stat-enad"><span className="stat-label-enad">Peak Sun Hours</span><span className="stat-value-enad">{iotAnalysis.peakSunHours?.toFixed(1) || 0} hrs/day</span></div>
-                          </div>
-                        </div>
-                        <div className="analysis-card-enad temperature-enad">
-                          <div className="analysis-stats-enad">
-                            <div className="stat-enad"><span className="stat-label-enad">Avg Temperature</span><span className="stat-value-enad">{iotAnalysis.averageTemperature?.toFixed(1) || 0}C</span></div>
-                            <div className="stat-enad"><span className="stat-label-enad">Temperature Range</span><span className="stat-value-enad">{iotAnalysis.minTemperature?.toFixed(1) || 0}C - {iotAnalysis.maxTemperature?.toFixed(1) || 0}C</span></div>
-                            <div className="stat-enad"><span className="stat-label-enad">Efficiency Loss</span><span className="stat-value-enad">{iotAnalysis.efficiencyLoss || 0}%</span></div>
-                          </div>
-                        </div>
-                        <div className="analysis-card-enad humidity-enad">
-                          <div className="analysis-stats-enad">
-                            <div className="stat-enad"><span className="stat-label-enad">Avg Humidity</span><span className="stat-value-enad">{iotAnalysis.averageHumidity?.toFixed(0) || 0}%</span></div>
-                            <div className="stat-enad"><span className="stat-label-enad">Humidity Range</span><span className="stat-value-enad">{iotAnalysis.minHumidity?.toFixed(0) || 0}% - {iotAnalysis.maxHumidity?.toFixed(0) || 0}%</span></div>
-                          </div>
-                        </div>
-                        <div className="analysis-card-enad recommendations-enad">
-                          <div className="analysis-stats-enad">
-                            <div className="stat-enad"><span className="stat-label-enad">Recommended System Size</span><span className="stat-value-enad">{iotAnalysis.recommendedSystemSize || 0} kWp</span></div>
-                            <div className="stat-enad"><span className="stat-label-enad">Optimal Orientation</span><span className="stat-value-enad">{iotAnalysis.recommendedOrientation || 'South-facing'}</span></div>
-                            <div className="stat-enad"><span className="stat-label-enad">Recommended Tilt Angle</span><span className="stat-value-enad">{iotAnalysis.recommendedTiltAngle || 15}°</span></div>
-                            <div className="stat-enad"><span className="stat-label-enad">Shading Detection</span><span className="stat-value-enad">{iotAnalysis.shadingPercentage ? `${iotAnalysis.shadingPercentage}% shading` : 'Minimal'}</span></div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (<div className="no-data-enad"><p>Click "Analyze Data" to process the 7-day IoT monitoring data and get system recommendations.</p></div>)}
-                  </div>
-                )}
-
                 {deviceAssigned ? (
-                  <div className="device-card-enad"><div className="device-card-title-enad">Assigned Device</div><div className="device-info-enad"><div className="device-info-item-enad"><span className="device-info-label-enad">Device ID</span><span className="device-info-value-enad">{selectedItem.iotDeviceId?.deviceId || selectedItem.assignedDevice?.deviceId || selectedItem.assignedDeviceId || 'N/A'}</span></div><div className="device-info-item-enad"><span className="device-info-label-enad">Device Name</span><span className="device-info-value-enad">{selectedItem.iotDeviceId?.deviceName || selectedItem.assignedDevice?.deviceName || 'IoT Device'}</span></div><div className="device-info-item-enad"><span className="device-info-label-enad">Status</span><span className={`device-info-value-enad ${selectedItem.deviceDeployedAt ? 'text-green-600' : 'text-yellow-600'}`}>{selectedItem.deviceDeployedAt ? 'Deployed' : 'Ready for Deployment'}</span></div>{selectedItem.deviceDeployedAt && (<div className="device-info-item-enad"><span className="device-info-label-enad">Deployed At</span><span className="device-info-value-enad">{formatDateTime(selectedItem.deviceDeployedAt)}</span></div>)}</div></div>
-                ) : (<div className="no-device-card-enad">No device assigned yet. Please contact admin.</div>)}
+                  <div className="device-card-enad">
+                    <div className="device-card-title-enad">Assigned Device</div>
+                    <div className="device-info-enad">
+                      <div className="device-info-item-enad">
+                        <span className="device-info-label-enad">Device ID</span>
+                        <span className="device-info-value-enad">{selectedItem.iotDeviceId?.deviceId || selectedItem.assignedDevice?.deviceId || selectedItem.assignedDeviceId || 'N/A'}</span>
+                      </div>
+                      <div className="device-info-item-enad">
+                        <span className="device-info-label-enad">Device Name</span>
+                        <span className="device-info-value-enad">{selectedItem.iotDeviceId?.deviceName || selectedItem.assignedDevice?.deviceName || 'IoT Device'}</span>
+                      </div>
+                      <div className="device-info-item-enad">
+                        <span className="device-info-label-enad">Status</span>
+                        <span className={`device-info-value-enad ${selectedItem.deviceDeployedAt ? 'text-green-600' : 'text-yellow-600'}`}>
+                          {selectedItem.deviceDeployedAt ? 'Deployed' : 'Ready for Deployment'}
+                        </span>
+                      </div>
+                      {selectedItem.deviceDeployedAt && (
+                        <div className="device-info-item-enad">
+                          <span className="device-info-label-enad">Deployed At</span>
+                          <span className="device-info-value-enad">{formatDateTime(selectedItem.deviceDeployedAt)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="no-device-card-enad">No device assigned yet. Please contact admin.</div>
+                )}
               </div>
             )}
 
@@ -2273,6 +2230,7 @@ const generateQuotationPDF = async () => {
               </div>
             )}
 
+            {/* Quotation Tab */}
             {activeTab === 'quotation' && (
               <div className="quotation-tab-enhanced">
                 <div className="action-buttons-enad">
@@ -2293,14 +2251,11 @@ const generateQuotationPDF = async () => {
                   )}
                 </div>
 
+                {/* IoT Monitoring Results */}
                 {assessmentResults && (
                   <div className="iot-metrics-section">
                     <h4>IoT Monitoring Results (7-Day Data Collection)</h4>
                     <div className="iot-metrics-grid">
-                      {/* Basic Stats */}
-                      
-
-                      {/* Irradiance Metrics */}
                       <div className="metric-item">
                         <div>
                           <label>Peak Sun Hours</label>
@@ -2325,8 +2280,6 @@ const generateQuotationPDF = async () => {
                           <span>{assessmentResults.minIrradiance?.toFixed(0) || '—'} W/m²</span>
                         </div>
                       </div>
-
-                      {/* Temperature Metrics */}
                       <div className="metric-item">
                         <div>
                           <label>Average Temperature</label>
@@ -2339,9 +2292,6 @@ const generateQuotationPDF = async () => {
                           <span>{assessmentResults.minTemperature?.toFixed(1) || '—'}°C - {assessmentResults.maxTemperature?.toFixed(1) || '—'}°C</span>
                         </div>
                       </div>
-                      
-
-                      {/* Humidity Metrics */}
                       <div className="metric-item">
                         <div>
                           <label>Average Humidity</label>
@@ -2354,55 +2304,65 @@ const generateQuotationPDF = async () => {
                           <span>{assessmentResults.minHumidity?.toFixed(0) || '—'}% - {assessmentResults.maxHumidity?.toFixed(0) || '—'}%</span>
                         </div>
                       </div>
-
-
-                      {/* GPS Location */}
                       {assessmentResults.gpsCoordinates?.latitude && assessmentResults.gpsCoordinates?.longitude && (
                         <div className="metric-item full-width">
                           <div>
                             <label>GPS Location</label>
                             <span>
                               {assessmentResults.gpsCoordinates.latitude.toFixed(6)}, {assessmentResults.gpsCoordinates.longitude.toFixed(6)}
-                              
                             </span>
                           </div>
                         </div>
                       )}
-                      
                     </div>
-
-                    
                   </div>
                 )}
-                {systemMetrics && (
+
+                {/* System Recommendations - From Backend */}
+                {loadingMetrics ? (
+                  <div className="loading-metrics">Loading system recommendations...</div>
+                ) : systemMetrics ? (
                   <>
                     <div className="system-recommendations">
-                      <h4>System Recommendation (Based on IoT Data)</h4>
+                      <h4>System Recommendation</h4>
                       <div className="recommendations-grid">
-                        <div className="rec-item"><label>Recommended System Size</label><strong>{systemMetrics.recommendedSystemSize} kWp</strong></div>
-                        <div className="rec-item"><label>Number of Panels Needed</label><strong>{systemMetrics.panelsNeeded} pcs</strong></div>
-                        <div className="rec-item"><label>Inverter Size</label><strong>{systemMetrics.inverterSize} kW</strong></div>
-                        <div className="rec-item"><label>Performance Ratio</label><strong>{systemMetrics.performanceRatio}%</strong></div>
-                        <div className="rec-item"><label>Optimal Orientation</label><strong>{systemMetrics.optimalOrientation}</strong></div>
-                        <div className="rec-item"><label>Optimal Tilt Angle</label><strong>{systemMetrics.optimalTilt}°</strong></div>
-                        <div className="rec-item"><label>Available Roof Area</label><strong>{systemMetrics.availableRoofArea} m²</strong></div>
-                        <div className="rec-item"><label>Est. Installation Time</label><strong>{systemMetrics.estimatedInstallationTime} days</strong></div>
+                        <div className="rec-item">
+                          <label>Recommended System Size</label>
+                          <strong>{systemMetrics.recommendedSystemSize} kWp</strong>
+                        </div>
+
+                        {/* Only show Battery Size for Hybrid or Off-Grid, NOT for Grid-Tie */}
+                        {systemMetrics.systemType !== 'grid-tie' && (
+                          <div className="rec-item">
+                            <label>Battery Size</label>
+                            <strong>{systemMetrics.batteryCapacityKwh} kWh</strong>
+                          </div>
+                        )}
+
+                        <div className="rec-item">
+                          <label>Inverter Size</label>
+                          <strong>{systemMetrics.inverterSize} kW</strong>
+                        </div>
+                        <div className="rec-item">
+                          <label>Optimal Orientation</label>
+                          <strong>{systemMetrics.optimalOrientation}</strong>
+                        </div>
+                        <div className="rec-item">
+                          <label>Optimal Tilt Angle</label>
+                          <strong>{systemMetrics.optimalTilt}°</strong>
+                        </div>
+                        <div className="rec-item">
+                          <label>Available Roof Area</label>
+                          <strong>{systemMetrics.availableRoofArea} m²</strong>
+                        </div>
                       </div>
                     </div>
-                    {/*<div className="financial-projections">
-                      <h4>Financial Projections</h4>
-                      <div className="financial-grid">
-                        <div className="fin-item"><label>Estimated Total Cost</label><strong>{formatCurrency(systemMetrics.estimatedTotalCost)}</strong></div>
-                        <div className="fin-item"><label>Estimated Monthly Savings</label><strong>{formatCurrency(systemMetrics.estimatedMonthlySavings)}</strong></div>
-                        <div className="fin-item"><label>Payback Period</label><strong>{systemMetrics.paybackPeriod} years</strong></div>
-                        <div className="fin-item"><label>CO2 Offset</label><strong>{systemMetrics.co2Offset} kg/year</strong></div>
-                        <div className="fin-item"><label>Annual Production</label><strong>{systemMetrics.annualProduction} kWh</strong></div>
-                      </div>
-                    </div>*/}
                   </>
+                ) : (
+                  <div className="no-metrics">No system recommendations available yet. Please ensure IoT data has been collected and device has been retrieved.</div>
                 )}
 
-                {/* Basic Info */}
+                {/* Basic Info Form */}
                 <div className="quotation-section">
                   <h4>Basic Information</h4>
                   <div className="form-grid-enad">
@@ -2610,14 +2570,42 @@ const generateQuotationPDF = async () => {
                 {/* Installation Labor */}
                 <div className="quotation-section">
                   <h4>Installation Labor</h4>
+
+                  {/* Labor Cost Percentage Input */}
+                  <div className="labor-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                          Labor Cost (%)
+                        </label>
+                        <input
+                          type="number"
+                          step="1"
+                          min="0"
+                          max="100"
+                          className="assessment-form-input-enad"
+                          value={laborCostPercentage}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
+                            setLaborCostPercentage(Math.min(100, Math.max(0, value)));
+                            setTimeout(() => calculateTotalCosts(), 0);
+                          }}
+                          style={{ width: '100px' }}
+                        />
+                        <small className="form-hint-enad">Default: 20% of total equipment cost</small>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Labor Cost Display */}
                   <div className="labor-calculation">
                     <div className="labor-detail">
-                      <span>Per kW installation ({quotationForm.systemSize || 0} kW x ₱{config?.laborRates?.perKw || 5000})</span>
-                      <span>{formatCurrency((quotationForm.systemSize || 0) * (config?.laborRates?.perKw || 5000))}</span>
+                      <span>Total Equipment Cost:</span>
+                      <span>{formatCurrency(calculatedCosts.totalEquipmentCost)}</span>
                     </div>
                     <div className="labor-detail">
-                      <span>Per panel installation ({panelQuantity} panels x ₱{config?.laborRates?.perPanel || 1000})</span>
-                      <span>{formatCurrency(panelQuantity * (config?.laborRates?.perPanel || 1000))}</span>
+                      <span>Labor Cost ({laborCostPercentage}%):</span>
+                      <span>{formatCurrency(calculatedCosts.installationLaborCost)}</span>
                     </div>
                     <div className="labor-total">
                       <strong>Total Labor Cost</strong>

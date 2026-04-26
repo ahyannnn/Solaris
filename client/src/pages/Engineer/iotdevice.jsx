@@ -1,45 +1,28 @@
 // pages/Engineer/IoTDevice.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import {
   FaSearch,
-  FaEye,
   FaSpinner,
   FaChevronLeft,
   FaChevronRight,
   FaChartLine,
   FaCalendarAlt,
-  FaMapMarkerAlt,
   FaMicrochip,
-  FaBatteryFull,
-  FaBatteryHalf,
-  FaBatteryQuarter,
-  FaBatteryEmpty,
-  FaWifi,
   FaDownload,
   FaThermometerHalf,
-  FaTachometerAlt,
   FaClock,
   FaSun,
   FaTint,
-  FaChartArea,
-  FaChartBar,
   FaExclamationTriangle,
   FaCheckCircle,
   FaTimesCircle,
-  FaArrowLeft,
-  FaTools,
-  FaPlug,
-  FaPowerOff,
-  FaTemperatureHigh,
-  FaCloudSun,
-  FaPercent,
   FaArrowCircleUp,
   FaBoxOpen
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart, Bar } from 'recharts';
+import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from 'recharts';
 import '../../styles/Engineer/iotdevice.css';
 
 const IoTDevice = () => {
@@ -53,7 +36,6 @@ const IoTDevice = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [gpsData, setGpsData] = useState(null);
   const [retrieving, setRetrieving] = useState(false);
@@ -65,43 +47,35 @@ const IoTDevice = () => {
 
   const API_BASE_URL = getApiBaseUrl();
 
-  // ==================== TIMEZONE FIX: Subtract 8 hours from UTC ====================
+  // ==================== TIMEZONE FIX ====================
   const subtract8Hours = (date) => {
     if (!date) return null;
     const originalDate = new Date(date);
     return new Date(originalDate.getTime() - (8 * 60 * 60 * 1000));
   };
 
-  const formatPhilippineTime = (date, options = {}) => {
+  const formatPhilippineTime = (date) => {
     if (!date) return 'N/A';
-
     const adjustedDate = subtract8Hours(date);
-
-    const defaultOptions = {
+    return adjustedDate.toLocaleString('en-PH', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit'
-    };
-
-    return adjustedDate.toLocaleString('en-PH', { ...defaultOptions, ...options });
+    });
   };
 
-  const formatPhilippineDateShort = (date, options = {}) => {
+  const formatPhilippineDateShort = (date) => {
     if (!date) return 'N/A';
-
     const adjustedDate = subtract8Hours(date);
-
-    const defaultOptions = {
+    return adjustedDate.toLocaleString('en-PH', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
-    };
-
-    return adjustedDate.toLocaleString('en-PH', { ...defaultOptions, ...options });
+    });
   };
 
   const formatTooltipDate = (timestamp) => {
@@ -126,22 +100,20 @@ const IoTDevice = () => {
     });
   };
 
-  // ==================== CUSTOM TOOLTIP FOR CHART FIX ====================
+  // ==================== CUSTOM TOOLTIP ====================
   const CustomChartTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
         <div className="custom-chart-tooltip-fixed">
-          <div className="tooltip-time">
-            {formatTooltipDate(label)}
-          </div>
+          <div className="tooltip-time">{formatTooltipDate(label)}</div>
           {payload.map((entry, index) => (
             <div key={index} className="tooltip-item" style={{ color: entry.color }}>
               <span className="tooltip-label">{entry.name}:</span>
               <span className="tooltip-value">
-                {entry.value} 
-                {entry.name === 'Irradiance' ? ' W/m²' : 
-                  entry.name === 'Temperature' ? '°C' : 
-                  entry.name === 'Humidity' ? '%' : ''}
+                {entry.value}
+                {entry.name === 'Irradiance' ? ' W/m²' :
+                  entry.name === 'Temperature' ? '°C' :
+                    entry.name === 'Humidity' ? '%' : ''}
               </span>
             </div>
           ))}
@@ -151,116 +123,10 @@ const IoTDevice = () => {
     return null;
   };
 
-  // ==================== SOLAR METRICS CALCULATIONS ====================
-  const calculateShadingPercentage = (readings) => {
-    if (!readings || readings.length === 0) return 0;
-
-    let shadingEvents = 0;
-    let totalReadings = 0;
-
-    for (let i = 1; i < readings.length; i++) {
-      const prevIrradiance = readings[i - 1].irradiance || 0;
-      const currIrradiance = readings[i].irradiance || 0;
-
-      const adjustedDate = subtract8Hours(readings[i].timestamp);
-      const hour = adjustedDate.getHours();
-
-      if (hour >= 9 && hour <= 15 && prevIrradiance > 200) {
-        totalReadings++;
-        if (prevIrradiance > 0 && currIrradiance < prevIrradiance * 0.7) {
-          shadingEvents++;
-        }
-      }
-    }
-
-    const shadingByDrops = totalReadings > 0 ? (shadingEvents / totalReadings) * 100 : 0;
-
-    const maxPossibleIrradiance = 950;
-    const maxRecorded = Math.max(...readings.map(r => r.irradiance || 0));
-    const shadingByMax = maxPossibleIrradiance > 0 ? ((maxPossibleIrradiance - maxRecorded) / maxPossibleIrradiance) * 100 : 0;
-
-    const daylightReadings = readings.filter(r => {
-      const adjustedDate = subtract8Hours(r.timestamp);
-      const hour = adjustedDate.getHours();
-      return hour >= 8 && hour <= 16;
-    });
-
-    let variance = 0;
-    if (daylightReadings.length > 0) {
-      const avg = daylightReadings.reduce((sum, r) => sum + (r.irradiance || 0), 0) / daylightReadings.length;
-      variance = daylightReadings.reduce((sum, r) => sum + Math.pow((r.irradiance || 0) - avg, 2), 0) / daylightReadings.length;
-      const stdDev = Math.sqrt(variance);
-      const cv = avg > 0 ? (stdDev / avg) * 100 : 0;
-      const shadingByVariance = Math.min(70, Math.max(0, cv - 20));
-
-      let finalShading = (shadingByDrops * 0.4) + (shadingByMax * 0.3) + (shadingByVariance * 0.3);
-      finalShading = Math.min(100, Math.max(0, finalShading));
-
-      return finalShading;
-    }
-
-    return shadingByDrops;
-  };
-
-  const calculateTemperatureDerating = (readings) => {
-    if (!readings || readings.length === 0) return 0;
-
-    const TEMP_COEFFICIENT = 0.4;
-    const STC_TEMPERATURE = 25;
-
-    const peakHoursReadings = readings.filter(reading => {
-      const adjustedDate = subtract8Hours(reading.timestamp);
-      const hour = adjustedDate.getHours();
-      return hour >= 10 && hour <= 14;
-    });
-
-    if (peakHoursReadings.length === 0) return 0;
-
-    const avgTemp = peakHoursReadings.reduce((sum, r) => sum + (r.temperature || 0), 0) / peakHoursReadings.length;
-    const tempDiff = Math.max(0, avgTemp - STC_TEMPERATURE);
-    const derating = tempDiff * TEMP_COEFFICIENT;
-
-    return Math.min(30, derating);
-  };
-
-  const calculatePeakSunHours = (readings) => {
-    if (!readings || readings.length < 2) return 0;
-
-    const sortedReadings = [...readings].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-    const daylightReadings = sortedReadings.filter(r => {
-      const adjustedDate = subtract8Hours(r.timestamp);
-      const hour = adjustedDate.getHours();
-      return hour >= 6 && hour <= 18;
-    });
-
-    if (daylightReadings.length < 2) return 0;
-
-    let totalIrradianceKwh = 0;
-
-    for (let i = 0; i < daylightReadings.length - 1; i++) {
-      const timeDiff = (new Date(daylightReadings[i + 1].timestamp) - new Date(daylightReadings[i].timestamp)) / (1000 * 60 * 60);
-      const avgIrradiance = ((daylightReadings[i].irradiance || 0) + (daylightReadings[i + 1].irradiance || 0)) / 2;
-      totalIrradianceKwh += (avgIrradiance * timeDiff) / 1000;
-    }
-
-    const peakSunHours = totalIrradianceKwh;
-    return Math.max(0, peakSunHours);
-  };
-
-  // ==================== DATA FETCHING ====================
+  // ==================== DATA FETCHING (NO CALCULATIONS) ====================
   useEffect(() => {
     fetchMyDevices();
   }, [currentPage]);
-
-  useEffect(() => {
-    if (autoRefresh && selectedDevice) {
-      const interval = setInterval(() => {
-        fetchSensorData(selectedDevice.assessmentId);
-      }, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [autoRefresh, selectedDevice]);
 
   const fetchMyDevices = async () => {
     try {
@@ -307,33 +173,17 @@ const IoTDevice = () => {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching devices:', error);
-
-      let errorMessage = 'Failed to fetch your devices. ';
-      if (error.response?.status === 401) {
-        errorMessage += 'Authentication failed. Please login again.';
-      } else if (error.response?.status === 404) {
-        errorMessage += 'API endpoint not found. Please check API configuration.';
-      } else if (error.code === 'ERR_NETWORK') {
-        errorMessage += 'Network error. Cannot connect to server.';
-      } else {
-        errorMessage += error.response?.data?.message || error.message;
-      }
-
-      showToast(errorMessage, 'error');
+      showToast('Failed to fetch your devices', 'error');
       setLoading(false);
     }
   };
 
+  // Fetch sensor data - BACKEND PROVIDES CALCULATED STATS
   const fetchSensorData = async (assessmentId) => {
     if (!assessmentId) return;
 
     try {
       const token = sessionStorage.getItem('token');
-
-      if (!token) {
-        showToast('Authentication failed. Please login again.', 'error');
-        return;
-      }
 
       const response = await axios.get(
         `${API_BASE_URL}/api/pre-assessments/${assessmentId}/iot-data`,
@@ -346,30 +196,32 @@ const IoTDevice = () => {
         }
       );
 
+      // ✅ BACKEND PROVIDES: readings + pre-calculated stats
       const readings = response.data.readings || [];
       const stats = response.data.stats || {};
 
-      const calculatedPeakSunHours = calculatePeakSunHours(readings);
-      const calculatedShadingPercentage = calculateShadingPercentage(readings);
-      const calculatedTemperatureDerating = calculateTemperatureDerating(readings);
-
-      const enhancedStats = {
-        ...stats,
-        peakSunHours: calculatedPeakSunHours > 0 ? calculatedPeakSunHours : (stats.peakSunHours || 0),
-        shadingPercentage: calculatedShadingPercentage > 0 ? calculatedShadingPercentage : (stats.shadingPercentage || 0),
-        temperatureDerating: calculatedTemperatureDerating > 0 ? calculatedTemperatureDerating : (stats.temperatureDerating || 0),
+      // ✅ JUST DISPLAY - NO CALCULATIONS
+      setSensorData(readings);
+      setSensorStats({
+        // Irradiance Metrics
         averageIrradiance: stats.averageIrradiance || 0,
         maxIrradiance: stats.maxIrradiance || 0,
+        minIrradiance: stats.minIrradiance || 0,
+        peakSunHours: stats.peakSunHours || 0,
+
+        // Temperature Metrics
         averageTemperature: stats.averageTemperature || 0,
         minTemperature: stats.minTemperature || 0,
         maxTemperature: stats.maxTemperature || 0,
+
+        // Humidity Metrics
         averageHumidity: stats.averageHumidity || 0,
         minHumidity: stats.minHumidity || 0,
-        maxHumidity: stats.maxHumidity || 0
-      };
+        maxHumidity: stats.maxHumidity || 0,
 
-      setSensorData(readings);
-      setSensorStats(enhancedStats);
+        // Metadata
+        totalReadings: stats.totalReadings || readings.length
+      });
       setGpsData(stats.gps || null);
       setLastUpdated(new Date());
     } catch (error) {
@@ -397,6 +249,7 @@ const IoTDevice = () => {
     setShowConfirmModal(true);
   };
 
+  // ✅ SEND REQUEST - NO CALCULATIONS
   const handleRetrieveDevice = async () => {
     if (!selectedDevice) return;
 
@@ -412,7 +265,7 @@ const IoTDevice = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      showToast(response.data.message || 'Device retrieved successfully! Data analysis can now begin.', 'success');
+      showToast(response.data.message || 'Device retrieved successfully!', 'success');
 
       setShowDataModal(false);
       setSelectedDevice(null);
@@ -463,21 +316,6 @@ const IoTDevice = () => {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-  };
-
-  const getStatusBadge = (status) => {
-    const badges = {
-      'deployed': <span className="status-badge-iotdevicead deployed-iotdevicead"><FaCheckCircle /> Deployed</span>,
-      'data_collecting': <span className="status-badge-iotdevicead collecting-iotdevicead"><FaChartLine /> Collecting Data</span>,
-      'maintenance': <span className="status-badge-iotdevicead maintenance-iotdevicead"><FaTools /> Maintenance</span>,
-      'retired': <span className="status-badge-iotdevicead retired-iotdevicead"><FaTimesCircle /> Retired</span>,
-      'retrieved': <span className="status-badge-iotdevicead retrieved-iotdevicead"><FaBoxOpen /> Retrieved</span>
-    };
-    return badges[status] || <span className="status-badge-iotdevicead">{status}</span>;
-  };
-
-  const formatDate = (date) => {
-    return formatPhilippineDateShort(date);
   };
 
   const getDeviceStatusColor = (lastHeartbeat) => {
@@ -547,7 +385,7 @@ const IoTDevice = () => {
         <div className="iot-header-iotdevicead">
           <div>
             <h1>My IoT Devices</h1>
-            <p>Monitor and view data from your deployed devices</p>
+            <p>Monitor environmental data from your deployed devices</p>
           </div>
           <div className="stats-summary-iotdevicead">
             <div className="stat-item-iotdevicead">
@@ -582,41 +420,38 @@ const IoTDevice = () => {
         ) : (
           <>
             <div className="devices-grid-iotdevicead">
-              {paginatedDevices.map(device => {
-                const statusColor = getDeviceStatusColor(device.lastHeartbeat);
-                return (
-                  <div key={device._id} className="device-card-iotdevicead">
-                    <div className="device-card-header-iotdevicead">
-                      <div className="device-icon-iotdevicead">
-                        <FaMicrochip />
-                      </div>
-                    </div>
-
-                    <div className="device-info-iotdevicead">
-                      <h3>{device.deviceName}</h3>
-                      <p className="device-id-iotdevicead">{device.deviceId}</p>
-                      <p className="client-name-iotdevicead">{device.clientName}</p>
-                      <p className="booking-ref-iotdevicead">{device.bookingReference}</p>
-                    </div>
-
-                    <div className="device-stats-iotdevicead">
-                      <div className="stat-iotdevicead">
-                        <FaClock />
-                        <span>{device.lastHeartbeat ? formatDate(device.lastHeartbeat) : 'N/A'}</span>
-                      </div>
-                    </div>
-
-                    <div className="device-actions-iotdevicead">
-                      <button
-                        className="view-data-btn-iotdevicead"
-                        onClick={() => handleViewDeviceData(device)}
-                      >
-                        <FaChartLine /> View Data
-                      </button>
+              {paginatedDevices.map(device => (
+                <div key={device._id} className="device-card-iotdevicead">
+                  <div className="device-card-header-iotdevicead">
+                    <div className="device-icon-iotdevicead">
+                      <FaMicrochip />
                     </div>
                   </div>
-                );
-              })}
+
+                  <div className="device-info-iotdevicead">
+                    <h3>{device.deviceName}</h3>
+                    <p className="device-id-iotdevicead">{device.deviceId}</p>
+                    <p className="client-name-iotdevicead">{device.clientName}</p>
+                    <p className="booking-ref-iotdevicead">{device.bookingReference}</p>
+                  </div>
+
+                  <div className="device-stats-iotdevicead">
+                    <div className="stat-iotdevicead">
+                      <FaClock />
+                      <span>{device.lastHeartbeat ? formatPhilippineDateShort(device.lastHeartbeat) : 'N/A'}</span>
+                    </div>
+                  </div>
+
+                  <div className="device-actions-iotdevicead">
+                    <button
+                      className="view-data-btn-iotdevicead"
+                      onClick={() => handleViewDeviceData(device)}
+                    >
+                      <FaChartLine /> View Data
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {totalPages > 1 && (
@@ -646,7 +481,7 @@ const IoTDevice = () => {
           <div className="modal-overlay-iotdevicead" onClick={() => setShowDataModal(false)}>
             <div className="modal-content-iotdevicead data-modal-iotdevicead" onClick={e => e.stopPropagation()}>
               <div className="modal-header-iotdevicead">
-                <h3>Device Data: {selectedDevice.deviceName}</h3>
+                <h3>Environmental Data: {selectedDevice.deviceName}</h3>
                 <button className="modal-close-iotdevicead" onClick={() => setShowDataModal(false)}>×</button>
               </div>
 
@@ -664,57 +499,37 @@ const IoTDevice = () => {
                     <FaCalendarAlt />
                     <div>
                       <label>Deployed</label>
-                      <p>{formatDate(selectedDevice.deployedAt)}</p>
+                      <p>{formatPhilippineDateShort(selectedDevice.deployedAt)}</p>
                     </div>
                   </div>
                   <div className="summary-item-iotdevicead">
                     <FaClock />
                     <div>
                       <label>Last Data</label>
-                      <p>{lastUpdated ? formatDate(lastUpdated) : 'N/A'}</p>
+                      <p>{lastUpdated ? formatPhilippineDateShort(lastUpdated) : 'N/A'}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* KEY METRICS SECTION */}
-                {sensorStats && hasValidSensorData && (
-                  <div className="key-metrics-iotdevicead">
-                    <h4>Key Solar Metrics</h4>
-                    <div className="metrics-grid-iotdevicead">
-                      <div className="metric-card-iotdevicead">
-                        <FaSun className="metric-icon" />
-                        <div>
-                          <span className="metric-value">{sensorStats.peakSunHours?.toFixed(1) || 0}</span>
-                          <span className="metric-label">Peak Sun Hours (hrs/day)</span>
-                        </div>
-                      </div>
-                      <div className="metric-card-iotdevicead">
-                        <FaPercent className="metric-icon" />
-                        <div>
-                          <span className="metric-value">{sensorStats.shadingPercentage?.toFixed(0) || 0}%</span>
-                          <span className="metric-label">Shading Percentage</span>
-                        </div>
-                      </div>
-                      <div className="metric-card-iotdevicead">
-                        <FaTemperatureHigh className="metric-icon" />
-                        <div>
-                          <span className="metric-value">{sensorStats.temperatureDerating?.toFixed(1) || 0}%</span>
-                          <span className="metric-label">Temperature Derating</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
 
-                {/* Stats Cards */}
+
+                {/* Stats Cards - Display only */}
                 {sensorStats && hasValidSensorData && (
                   <div className="stats-cards-iotdevicead">
+                   
+                    <div className="stat-card-iotdevicead irradiance-iotdevicead">
+                      <FaSun />
+                      <div>
+                        <span className="stat-value-iotdevicead">{sensorStats.peakSunHours?.toFixed(1) || 0} h/day</span>
+                         <span className="stat-label-iotdevicead">Peak Sun Hours</span>
+                       </div>
+                    </div>
                     <div className="stat-card-iotdevicead irradiance-iotdevicead">
                       <FaSun />
                       <div>
                         <span className="stat-value-iotdevicead">{sensorStats.averageIrradiance?.toFixed(0) || 0} W/m²</span>
                         <span className="stat-label-iotdevicead">Avg Irradiance</span>
-                        <span className="stat-trend-iotdevicead">Max: {sensorStats.maxIrradiance?.toFixed(0) || 0}</span>
+                        <span className="stat-trend-iotdevicead">Max: {sensorStats.maxIrradiance?.toFixed(0) || 0} | Min: {sensorStats.minIrradiance?.toFixed(0) || 0}</span>
                       </div>
                     </div>
                     <div className="stat-card-iotdevicead temperature-iotdevicead">
@@ -745,98 +560,38 @@ const IoTDevice = () => {
                   </div>
                 )}
 
-                {/* CHARTS - WITH CURSOR ALIGNMENT FIX */}
+                {/* CHARTS */}
                 {chartData.length > 0 && hasValidSensorData && (
                   <>
                     <div className="chart-container-iotdevicead">
-                      <h4>Solar Irradiance</h4>
+                      <h4>Solar Irradiance (W/m²)</h4>
                       <div className="chart-iotdevicead">
                         <ResponsiveContainer width="100%" height={300}>
-                          <AreaChart 
-                            data={chartData}
-                            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                          >
+                          <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis
-                              dataKey="timestamp"
-                              tickFormatter={formatAxisDate}
-                              domain={['auto', 'auto']}
-                              tick={{ fontSize: 11 }}
-                            />
-                            <YAxis 
-                              label={{ value: 'Irradiance (W/m²)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }}
-                              tick={{ fontSize: 11 }}
-                            />
-                            <Tooltip 
-                              content={<CustomChartTooltip />}
-                              cursor={{ stroke: '#f97316', strokeWidth: 1.5, strokeDasharray: '4 4' }}
-                            />
+                            <XAxis dataKey="timestamp" tickFormatter={formatAxisDate} domain={['auto', 'auto']} tick={{ fontSize: 11 }} />
+                            <YAxis label={{ value: 'Irradiance (W/m²)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }} tick={{ fontSize: 11 }} />
+                            <Tooltip content={<CustomChartTooltip />} cursor={{ stroke: '#f97316', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
                             <Legend wrapperStyle={{ fontSize: '12px' }} />
-                            <Area
-                              type="monotone"
-                              dataKey="irradiance"
-                              stroke="#f97316"
-                              fill="#fed7aa"
-                              name="Irradiance"
-                              isAnimationActive={false}
-                              activeDot={{ r: 6, strokeWidth: 2 }}
-                            />
+                            <Area type="monotone" dataKey="irradiance" stroke="#f97316" fill="#fed7aa" name="Irradiance" isAnimationActive={false} activeDot={{ r: 6, strokeWidth: 2 }} />
                           </AreaChart>
                         </ResponsiveContainer>
                       </div>
                     </div>
 
                     <div className="chart-container-iotdevicead">
-                      <h4>Temperature & Humidity</h4>
+                      <h4>Temperature (°C) & Humidity (%)</h4>
                       <div className="chart-iotdevicead">
                         <ResponsiveContainer width="100%" height={300}>
-                          <ComposedChart 
-                            data={chartData}
-                            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                          >
+                          <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis
-                              dataKey="timestamp"
-                              tickFormatter={formatAxisDate}
-                              domain={['auto', 'auto']}
-                              tick={{ fontSize: 11 }}
-                            />
-                            <YAxis 
-                              yAxisId="left" 
-                              label={{ value: 'Temperature (°C)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }}
-                              tick={{ fontSize: 11 }}
-                            />
-                            <YAxis 
-                              yAxisId="right" 
-                              orientation="right" 
-                              label={{ value: 'Humidity (%)', angle: 90, position: 'insideRight', style: { fontSize: '11px', fill: '#64748b' } }}
-                              tick={{ fontSize: 11 }}
-                            />
-                            <Tooltip 
-                              content={<CustomChartTooltip />}
-                              cursor={{ stroke: '#94a3b8', strokeWidth: 1.5, strokeDasharray: '4 4' }}
-                            />
+                            <XAxis dataKey="timestamp" tickFormatter={formatAxisDate} domain={['auto', 'auto']} tick={{ fontSize: 11 }} />
+                            <YAxis yAxisId="left" label={{ value: 'Temperature (°C)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }} tick={{ fontSize: 11 }} />
+                            <YAxis yAxisId="right" orientation="right" label={{ value: 'Humidity (%)', angle: 90, position: 'insideRight', style: { fontSize: '11px', fill: '#64748b' } }} tick={{ fontSize: 11 }} />
+                            <Tooltip content={<CustomChartTooltip />} cursor={{ stroke: '#94a3b8', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
                             <Legend wrapperStyle={{ fontSize: '12px' }} />
-                            <Line
-                              yAxisId="left"
-                              type="monotone"
-                              dataKey="temperature"
-                              stroke="#ef4444"
-                              name="Temperature"
-                              dot={false}
-                              isAnimationActive={false}
-                              activeDot={{ r: 6, strokeWidth: 2 }}
-                            />
-                            <Line
-                              yAxisId="right"
-                              type="monotone"
-                              dataKey="humidity"
-                              stroke="#3b82f6"
-                              name="Humidity"
-                              dot={false}
-                              isAnimationActive={false}
-                              activeDot={{ r: 6, strokeWidth: 2 }}
-                            />
+                            <Line yAxisId="left" type="monotone" dataKey="temperature" stroke="#ef4444" name="Temperature" dot={false} isAnimationActive={false} activeDot={{ r: 6, strokeWidth: 2 }} />
+                            <Line yAxisId="right" type="monotone" dataKey="humidity" stroke="#3b82f6" name="Humidity" dot={false} isAnimationActive={false} activeDot={{ r: 6, strokeWidth: 2 }} />
                           </ComposedChart>
                         </ResponsiveContainer>
                       </div>
@@ -847,16 +602,11 @@ const IoTDevice = () => {
                 {/* Recent Readings Table */}
                 {sensorData.length > 0 && hasValidSensorData && (
                   <div className="readings-table-iotdevicead">
-                    <h4>Recent Readings</h4>
+                    <h4>Recent Readings (Every 15 minutes)</h4>
                     <div className="table-container-iotdevicead">
                       <table className="readings-table">
                         <thead>
-                          <tr>
-                            <th>Timestamp</th>
-                            <th>Irradiance (W/m²)</th>
-                            <th>Temperature (°C)</th>
-                            <th>Humidity (%)</th>
-                          </tr>
+                          <tr><th>Timestamp</th><th>Irradiance (W/m²)</th><th>Temperature (°C)</th><th>Humidity (%)</th></tr>
                         </thead>
                         <tbody>
                           {sensorData.slice(0, 20).map((reading, idx) => (
@@ -891,12 +641,7 @@ const IoTDevice = () => {
                     <p><strong>Longitude:</strong> {gpsData.longitude || 'N/A'}</p>
                   </div>
                   {gpsData.latitude && gpsData.longitude && (
-                    <a
-                      href={`https://www.google.com/maps?q=${gpsData.latitude},${gpsData.longitude}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="view-map-btn"
-                    >
+                    <a href={`https://www.google.com/maps?q=${gpsData.latitude},${gpsData.longitude}`} target="_blank" rel="noopener noreferrer" className="view-map-btn">
                       View on Google Maps
                     </a>
                   )}
@@ -906,11 +651,7 @@ const IoTDevice = () => {
               <div className="modal-actions-iotdevicead">
                 <button className="close-btn-iotdevicead" onClick={() => setShowDataModal(false)}>Close</button>
                 {(selectedDevice.assessmentStatus === 'data_collecting' || selectedDevice.status === 'deployed') && (
-                  <button
-                    className="retrieve-btn-iotdevicead"
-                    onClick={openConfirmModal}
-                    disabled={retrieving}
-                  >
+                  <button className="retrieve-btn-iotdevicead" onClick={openConfirmModal} disabled={retrieving}>
                     {retrieving ? <FaSpinner className="spinner-enad" /> : <FaArrowCircleUp />}
                     {retrieving ? 'Retrieving...' : 'Retrieve Device'}
                   </button>
@@ -920,7 +661,7 @@ const IoTDevice = () => {
           </div>
         )}
 
-        {/* Simplified Confirmation Modal - No emoji warnings */}
+        {/* Confirmation Modal */}
         {showConfirmModal && selectedDevice && (
           <div className="modal-overlay-iotdevicead" onClick={() => setShowConfirmModal(false)}>
             <div className="modal-content-iotdevicead confirm-modal-iotdevicead" onClick={e => e.stopPropagation()}>
@@ -930,24 +671,12 @@ const IoTDevice = () => {
               </div>
               <div className="modal-body-iotdevicead confirm-modal-body-iotdevicead">
                 <p>Are you sure you want to retrieve this device?</p>
-                
+
                 <div className="device-details-confirm-iotdevicead">
-                  <div className="detail-row-iotdevicead">
-                    <span className="detail-label-iotdevicead">Device ID:</span>
-                    <span className="detail-value-iotdevicead">{selectedDevice.deviceId}</span>
-                  </div>
-                  <div className="detail-row-iotdevicead">
-                    <span className="detail-label-iotdevicead">Device Name:</span>
-                    <span className="detail-value-iotdevicead">{selectedDevice.deviceName}</span>
-                  </div>
-                  <div className="detail-row-iotdevicead">
-                    <span className="detail-label-iotdevicead">Assessment:</span>
-                    <span className="detail-value-iotdevicead">{selectedDevice.bookingReference}</span>
-                  </div>
-                  <div className="detail-row-iotdevicead">
-                    <span className="detail-label-iotdevicead">Client:</span>
-                    <span className="detail-value-iotdevicead">{selectedDevice.clientName}</span>
-                  </div>
+                  <div className="detail-row-iotdevicead"><span className="detail-label-iotdevicead">Device ID:</span><span className="detail-value-iotdevicead">{selectedDevice.deviceId}</span></div>
+                  <div className="detail-row-iotdevicead"><span className="detail-label-iotdevicead">Device Name:</span><span className="detail-value-iotdevicead">{selectedDevice.deviceName}</span></div>
+                  <div className="detail-row-iotdevicead"><span className="detail-label-iotdevicead">Assessment:</span><span className="detail-value-iotdevicead">{selectedDevice.bookingReference}</span></div>
+                  <div className="detail-row-iotdevicead"><span className="detail-label-iotdevicead">Client:</span><span className="detail-value-iotdevicead">{selectedDevice.clientName}</span></div>
                 </div>
 
                 <div className="info-message-iotdevicead">
@@ -961,11 +690,7 @@ const IoTDevice = () => {
               </div>
               <div className="modal-actions-iotdevicead confirm-actions-iotdevicead">
                 <button className="cancel-btn-iotdevicead" onClick={() => setShowConfirmModal(false)}>Cancel</button>
-                <button
-                  className="confirm-retrieve-btn-iotdevicead"
-                  onClick={handleRetrieveDevice}
-                  disabled={retrieving}
-                >
+                <button className="confirm-retrieve-btn-iotdevicead" onClick={handleRetrieveDevice} disabled={retrieving}>
                   {retrieving ? <FaSpinner className="spinner-enad" /> : <FaArrowCircleUp />}
                   {retrieving ? 'Retrieving...' : 'Yes, Retrieve Device'}
                 </button>
@@ -974,13 +699,7 @@ const IoTDevice = () => {
           </div>
         )}
 
-        <ToastNotification
-          show={toast.show}
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-          position="bottom-right"
-        />
+        <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} position="bottom-right" />
       </div>
     </>
   );

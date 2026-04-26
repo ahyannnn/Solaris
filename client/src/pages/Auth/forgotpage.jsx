@@ -432,7 +432,7 @@ const ForgotPasswordPage = () => {
                 </div>
                 <div className="brand-feature-forgot">
                   <span className="feature-dot-forgot"></span>
-                  <span>5-Year Warranty</span>
+                  <span>Up to 25-Year Warranty</span>
                 </div>
               </div>
             </div>

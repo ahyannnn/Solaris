@@ -714,7 +714,7 @@ const RegisterPage = () => {
               <div className="brand-features-reg">
                 <div className="brand-feature-reg"><span className="feature-dot-reg"></span> Free Solar Estimate</div>
                 <div className="brand-feature-reg"><span className="feature-dot-reg"></span> Professional Installation</div>
-                <div className="brand-feature-reg"><span className="feature-dot-reg"></span> 5-Year Warranty</div>
+                <div className="brand-feature-reg"><span className="feature-dot-reg"></span> Up to 25-Year Warranty</div>
               </div>
             </div>
           </div>

@@ -14,7 +14,7 @@ const TermsPage = () => {
         <div className="terms-page-container">
           <div className="terms-header">
             <h1>Terms and Conditions</h1>
-            <p className="terms-effective-date">Effective Date: December 2024</p>
+            <p className="terms-effective-date">Effective Date: 2026</p>
             <p className="terms-intro">Please read these Terms and Conditions carefully before using the SOLARIS platform.</p>
           </div>
 

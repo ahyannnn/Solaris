@@ -28,6 +28,12 @@ const AdminDashboard = () => {
     devices: { total: 0, active: 0, deployed: 0 }
   });
   const [recentActivities, setRecentActivities] = useState([]);
+  const [monthlyData, setMonthlyData] = useState({
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    freeQuotes: new Array(12).fill(0),
+    assessments: new Array(12).fill(0),
+    revenue: new Array(12).fill(0)
+  });
 
   useEffect(() => {
     fetchDashboardData();
@@ -42,7 +48,8 @@ const AdminDashboard = () => {
         freeQuotesRes,
         preAssessmentsRes,
         devicesRes,
-        revenueRes
+        projectsRes,
+        clientsRes
       ] = await Promise.all([
         axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -53,9 +60,12 @@ const AdminDashboard = () => {
         axios.get(`${import.meta.env.VITE_API_URL}/api/admin/devices`, {
           headers: { Authorization: `Bearer ${token}` }
         }).catch(() => ({ data: { total: 0, active: 0, deployed: 0 } })),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/admin/revenue`, {
+        axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, {
           headers: { Authorization: `Bearer ${token}` }
-        }).catch(() => ({ data: { total: 0, thisMonth: 0 } }))
+        }).catch(() => ({ data: { projects: [] } })),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/admin/clients`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(() => ({ data: { clients: [] } }))
       ]);
 
       const freeQuotes = freeQuotesRes.data.quotes || [];
@@ -66,6 +76,53 @@ const AdminDashboard = () => {
       const pendingAssessments = assessments.filter(a => a.paymentStatus === 'pending');
       const completedAssessments = assessments.filter(a => a.assessmentStatus === 'completed');
       const scheduledAssessments = assessments.filter(a => a.assessmentStatus === 'scheduled');
+
+      const projects = projectsRes.data.projects || [];
+
+      // Build transactions from assessments
+      const preTransactions = assessments
+        .filter(a => a.invoiceNumber)
+        .map(a => ({
+          id: a._id,
+          type: 'Pre-Assessment Booking',
+          reference: a.bookingReference,
+          invoiceNumber: a.invoiceNumber,
+          amount: a.assessmentFee || 0,
+          method: a.paymentGateway === 'paymongo' ? 'PayMongo' : (a.paymentMethod || 'cash'),
+          status: a.paymentStatus === 'paid' ? 'Paid' : a.paymentStatus === 'for_verification' ? 'For Verification' : 'Pending',
+          date: a.confirmedAt || a.bookedAt || a.createdAt,
+          client: `${a.clientId?.contactFirstName || ''} ${a.clientId?.contactLastName || ''}`.trim(),
+          clientId: a.clientId?._id,
+          clientEmail: a.clientId?.userId?.email,
+          clientPhone: a.clientId?.contactNumber,
+          clientType: a.clientId?.client_type || 'Residential'
+        }));
+
+      // Build project payments
+      const projectTransactions = projects
+        .filter(p => p.amountPaid > 0)
+        .map(p => ({
+          id: p._id,
+          type: 'Project Payment',
+          reference: p.projectReference,
+          projectName: p.projectName,
+          amount: p.amountPaid || 0,
+          method: 'Manual',
+          status: p.status === 'completed' ? 'Completed' : p.status === 'full_paid' ? 'Full Payment Received' : 'In Progress',
+          date: p.startDate || p.createdAt,
+          client: `${p.clientId?.contactFirstName || ''} ${p.clientId?.contactLastName || ''}`.trim(),
+          clientId: p.clientId?._id,
+          clientPhone: p.clientId?.contactNumber,
+          clientType: p.clientId?.client_type || 'Residential'
+        }));
+
+      const allTransactions = [...preTransactions, ...projectTransactions];
+      
+      // Calculate revenue totals
+      const totalRevenue = allTransactions.reduce((sum, p) => sum + (p.amount || 0), 0);
+      const thisMonthRevenue = allTransactions
+        .filter(p => (p.status === 'Paid' || p.status === 'Completed' || p.status === 'Full Payment Received') && new Date(p.date).getMonth() === new Date().getMonth())
+        .reduce((sum, p) => sum + (p.amount || 0), 0);
 
       setStats({
         freeQuotes: {
@@ -79,12 +136,55 @@ const AdminDashboard = () => {
           completed: completedAssessments.length,
           scheduled: scheduledAssessments.length
         },
-        revenue: revenueRes.data,
+        revenue: { 
+          total: totalRevenue, 
+          thisMonth: thisMonthRevenue 
+        },
         devices: devicesRes.data
       });
 
+      // Process monthly data from actual API data
+      const monthlyFreeQuotes = new Array(12).fill(0);
+      const monthlyAssessments = new Array(12).fill(0);
+      const monthlyRevenue = new Array(12).fill(0);
+      
+      // Group free quotes by month
+      freeQuotes.forEach(quote => {
+        if (quote.requestedAt) {
+          const month = new Date(quote.requestedAt).getMonth();
+          monthlyFreeQuotes[month]++;
+        }
+      });
+      
+      // Group assessments by month
+      assessments.forEach(assessment => {
+        if (assessment.bookedAt) {
+          const month = new Date(assessment.bookedAt).getMonth();
+          monthlyAssessments[month]++;
+        }
+      });
+      
+      // Group completed payments by month for revenue
+      const completedPayments = allTransactions.filter(p => 
+        p.status === 'Paid' || p.status === 'Completed' || p.status === 'Full Payment Received'
+      );
+      
+      completedPayments.forEach(payment => {
+        if (payment.date) {
+          const month = new Date(payment.date).getMonth();
+          monthlyRevenue[month] += payment.amount || 0;
+        }
+      });
+      
+      setMonthlyData({
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        freeQuotes: monthlyFreeQuotes,
+        assessments: monthlyAssessments,
+        revenue: monthlyRevenue
+      });
+
       const activities = generateRecentActivities(freeQuotes, assessments);
-      setRecentActivities(activities);
+      setRecentActivities(activities.slice(0, 3));
 
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
@@ -97,7 +197,7 @@ const AdminDashboard = () => {
   const generateRecentActivities = (freeQuotes, assessments) => {
     const activities = [];
 
-    freeQuotes.slice(0, 4).forEach(quote => {
+    freeQuotes.slice(0, 2).forEach(quote => {
       activities.push({
         id: `quote-${quote._id}`,
         type: 'free-quote',
@@ -108,7 +208,7 @@ const AdminDashboard = () => {
       });
     });
 
-    assessments.slice(0, 6).forEach(assessment => {
+    assessments.slice(0, 3).forEach(assessment => {
       let message = '';
       
       if (assessment.paymentStatus === 'for_verification') {
@@ -126,12 +226,12 @@ const AdminDashboard = () => {
         type: 'pre-assessment',
         message,
         time: new Date(assessment.bookedAt).toLocaleString(),
-        status: assessment.assessmentStatus,
+        status: assessment.assessmentStatus || assessment.paymentStatus,
         action: `/app/admin/siteassessment`
       });
     });
 
-    return activities.sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 10);
+    return activities.sort((a, b) => new Date(b.time) - new Date(a.time));
   };
 
   const formatCurrency = (amount) => {
@@ -213,59 +313,87 @@ const AdminDashboard = () => {
   };
 
   const Charts = () => {
-    const monthlyData = {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      assessments: [5, 8, 12, 15, 20, 25, 30, 35, 40, 45, 50, 55],
-      revenue: [5000, 8000, 12000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000, 55000]
-    };
-
-    const maxAssessments = Math.max(...monthlyData.assessments);
-    const maxRevenue = Math.max(...monthlyData.revenue);
+    const maxFreeQuotes = Math.max(...monthlyData.freeQuotes, 1);
+    const maxAssessments = Math.max(...monthlyData.assessments, 1);
+    const maxComparison = Math.max(maxFreeQuotes, maxAssessments);
+    const maxRevenue = Math.max(...monthlyData.revenue, 1);
 
     return (
       <div className="adsih-charts-row">
+        {/* Free Quotes vs Pre-Assessments Chart */}
         <div className="adsih-chart-card">
           <div className="adsih-chart-header">
-            <h3>Assessment Trends</h3>
-            <button className="adsih-export-btn" onClick={() => console.log('Export')}>
-              <FaDownload /> Export
-            </button>
+            <h3>Free Quotes vs Pre-Assessments</h3>
+            
           </div>
           <div className="adsih-chart-body">
-            <div className="adsih-bar-chart">
-              {monthlyData.assessments.map((value, index) => (
-                <div key={index} className="adsih-bar-item">
-                  <div 
-                    className="adsih-bar" 
-                    style={{ height: `${(value / maxAssessments) * 120}px` }}
-                  >
-                    <span className="adsih-bar-value">{value}</span>
+            <div className="adsih-comparison-chart">
+              <div className="adsih-bar-chart dual-bars">
+                {monthlyData.labels.map((label, index) => (
+                  <div key={index} className="adsih-dual-bar-item">
+                    <div className="adsih-bars-container">
+                      <div 
+                        className="adsih-bar adsih-quote-bar" 
+                        style={{ height: `${(monthlyData.freeQuotes[index] / maxComparison) * 160}px` }}
+                      >
+                        {monthlyData.freeQuotes[index] > 0 && (
+                          <span className="adsih-bar-value">{monthlyData.freeQuotes[index]}</span>
+                        )}
+                      </div>
+                      <div 
+                        className="adsih-bar adsih-assessment-bar" 
+                        style={{ height: `${(monthlyData.assessments[index] / maxComparison) * 160}px` }}
+                      >
+                        {monthlyData.assessments[index] > 0 && (
+                          <span className="adsih-bar-value">{monthlyData.assessments[index]}</span>
+                        )}
+                      </div>
+                    </div>
+                    <span className="adsih-bar-label">{label}</span>
                   </div>
-                  <span className="adsih-bar-label">{monthlyData.labels[index]}</span>
+                ))}
+              </div>
+              <div className="adsih-chart-legend">
+                <div className="adsih-legend-item">
+                  <div className="adsih-legend-color quote-color"></div>
+                  <span>Free Quotes</span>
                 </div>
-              ))}
+                <div className="adsih-legend-item">
+                  <div className="adsih-legend-color assessment-color"></div>
+                  <span>Pre-Assessments</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
+        {/* Revenue Overview Chart */}
         <div className="adsih-chart-card">
           <div className="adsih-chart-header">
             <h3>Revenue Overview</h3>
+            
           </div>
           <div className="adsih-chart-body">
-            <div className="adsih-bar-chart">
-              {monthlyData.revenue.map((value, index) => (
-                <div key={index} className="adsih-bar-item">
-                  <div 
-                    className="adsih-bar adsih-revenue-bar" 
-                    style={{ height: `${(value / maxRevenue) * 120}px` }}
-                  >
-                    <span className="adsih-bar-value">{formatCurrency(value)}</span>
+            {monthlyData.revenue.every(v => v === 0) ? (
+              <div className="adsih-empty-chart">
+                <p>No revenue data available</p>
+                <small>Complete payments to see revenue trends</small>
+              </div>
+            ) : (
+              <div className="adsih-bar-chart">
+                {monthlyData.revenue.map((value, index) => (
+                  <div key={index} className="adsih-bar-item">
+                    <div 
+                      className="adsih-bar adsih-revenue-bar" 
+                      style={{ height: `${(value / maxRevenue) * 160}px` }}
+                    >
+                      {value > 0 && <span className="adsih-bar-value">{formatCurrency(value)}</span>}
+                    </div>
+                    <span className="adsih-bar-label">{monthlyData.labels[index]}</span>
                   </div>
-                  <span className="adsih-bar-label">{monthlyData.labels[index]}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

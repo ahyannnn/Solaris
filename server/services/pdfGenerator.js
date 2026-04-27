@@ -32,15 +32,16 @@ class PDFGenerator {
       this.maxY = this.pageHeight - this.margin;
       this.minY = this.margin;
 
-      // Colors
+      // Colors - All text black, table header #92D050, total #FFFF00
       this.colors = {
-         primary: '#1a3a5c',
-         secondary: '#2c6e2c',
-         text: '#333333',
-         headerBg: '#e8f0f8',
-         border: '#cccccc'
+         primary: '#000000',      // Changed to black
+         secondary: '#000000',    // Changed to black
+         text: '#000000',         // Changed to black
+         headerBg: '#92D050',     // Table header background color
+         border: '#000000',       // Border color black
+         total: '#000000'         // Total color
       };
-      
+
       // ✅ Flag to track if Roboto font is available
       this.robotoAvailable = false;
    }
@@ -50,7 +51,7 @@ class PDFGenerator {
       try {
          const fontsPath = path.join(__dirname, '../fonts');
          const robotoPath = path.join(fontsPath, 'Roboto-Regular.ttf');
-         
+
          if (fs.existsSync(robotoPath)) {
             doc.registerFont('Roboto-Regular', robotoPath);
             this.robotoAvailable = true;
@@ -77,26 +78,31 @@ class PDFGenerator {
       return `₱ ${validAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
    }
 
-   // ✅ Helper: Render currency text with Roboto font
+   // ✅ Helper: Render currency text with Roboto font and total color
    renderCurrency(doc, text, x, y, options = {}) {
       const defaultOptions = {
          width: 100,
          align: 'right',
          size: this.fontSizes.currency
       };
-      
+
       const mergedOptions = { ...defaultOptions, ...options };
-      
+
       // Use Roboto font for currency (supports ₱)
       doc.font(this.fonts.currency).fontSize(mergedOptions.size);
+
+      // Check if this is a total value (contains "TOTAL" or is the grand total)
+      // Use yellow color (#FFFF00) for totals
+      doc.fillColor(this.colors.total);
       doc.text(text, x, y, {
          width: mergedOptions.width,
          align: mergedOptions.align,
          continued: false
       });
-      
+
       // Reset to default font for subsequent text
       doc.font(this.fonts.body);
+      doc.fillColor(this.colors.text);
    }
 
    // Helper: Format date
@@ -119,20 +125,20 @@ class PDFGenerator {
       return currentY;
    }
 
-   // Draw professional header - UPDATED with currency support
+   // Draw professional header - UPDATED with black text
    drawHeader(doc, showRightText = true, rightText = null, reference = null, quotationNumber = null, date = null, expiryDate = null) {
-      // Left side - Company info
-      doc.font(this.fonts.title).fontSize(this.fontSizes.title).fillColor(this.colors.primary);
-      doc.text('SOLARIS ENGINEERING', this.margin, this.minY + 10);
-      doc.font(this.fonts.body).fontSize(this.fontSizes.body).fillColor('#4a627a');
+      // Left side - Company info - Black text
+      doc.font(this.fonts.title).fontSize(this.fontSizes.title).fillColor('#000000');
+      doc.text('SALFER ENGINEERING', this.margin, this.minY + 10);
+      doc.font(this.fonts.body).fontSize(this.fontSizes.body).fillColor('#000000');
       doc.text('Professional Solar Energy Solutions', this.margin, this.minY + 32);
       doc.text('www.solarisengineering.com', this.margin, this.minY + 46);
 
-      // Right side - Document info
+      // Right side - Document info - Black text
       if (showRightText && rightText) {
          doc.font(this.fonts.title)
             .fontSize(14)
-            .fillColor(this.colors.secondary);
+            .fillColor('#000000');
 
          doc.text(
             rightText,
@@ -144,7 +150,7 @@ class PDFGenerator {
             }
          );
 
-         doc.font(this.fonts.body).fontSize(8).fillColor('#4a627a');
+         doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
          let yOffset = this.minY + 32;
 
          if (reference) {
@@ -167,10 +173,10 @@ class PDFGenerator {
       return this.minY + 80;
    }
 
-   // Draw footer
+   // Draw footer - black text
    drawFooter(doc, pageNumber, totalPages, customText = null) {
       const footerY = this.maxY - 20;
-      doc.font(this.fonts.footer).fontSize(this.fontSizes.footer).fillColor('#888888');
+      doc.font(this.fonts.footer).fontSize(this.fontSizes.footer).fillColor('#000000');
 
       if (customText) {
          doc.text(customText, this.margin, footerY - 15, { align: 'center', width: this.pageWidth - (this.margin * 2) });
@@ -179,16 +185,16 @@ class PDFGenerator {
       doc.text(`Page ${pageNumber} of ${totalPages}`, this.margin, footerY, { align: 'center', width: this.pageWidth - (this.margin * 2) });
    }
 
-   // Draw table header with borders
+   // Draw table header with borders - UPDATED with #92D050 background and black text
    drawTableHeader(doc, y, columns) {
       const tableX = this.margin;
       const tableWidth = this.pageWidth - (this.margin * 2);
 
-      // Draw header background
+      // Draw header background - #92D050
       doc.rect(tableX, y - 8, tableWidth, 22).fill(this.colors.headerBg);
 
-      // Draw header text
-      doc.font(this.fonts.tableHeader).fontSize(this.fontSizes.tableHeader).fillColor(this.colors.primary);
+      // Draw header text - Black
+      doc.font(this.fonts.tableHeader).fontSize(this.fontSizes.tableHeader).fillColor('#000000');
 
       let currentX = tableX;
       columns.forEach(col => {
@@ -201,8 +207,8 @@ class PDFGenerator {
          currentX += col.width;
       });
 
-      // Draw header border lines
-      doc.strokeColor(this.colors.border).lineWidth(0.5);
+      // Draw header border lines - Black
+      doc.strokeColor('#000000').lineWidth(0.5);
 
       // Top border
       doc.moveTo(tableX, y - 8).lineTo(tableX + tableWidth, y - 8).stroke();
@@ -212,7 +218,7 @@ class PDFGenerator {
       return y + 22;
    }
 
-   // Draw table row with borders - UPDATED to handle currency with Roboto
+   // Draw table row with borders - UPDATED with black text
    drawTableRow(doc, y, columns, values, isLastRow = false) {
       const tableX = this.margin;
       const tableWidth = this.pageWidth - (this.margin * 2);
@@ -223,10 +229,13 @@ class PDFGenerator {
          // Clean the value - remove any special characters
          value = String(value).replace(/[±+=]/g, '').trim();
          const align = col.align || 'left';
-         
+
          // Check if this is an amount column (contains ₱)
          const isAmountColumn = value.includes('₱') || col.label === 'Amount' || col.label === 'Total' || col.label === 'Unit Price';
-         
+
+         // Black text for all table content
+         doc.fillColor('#000000');
+
          if (isAmountColumn) {
             // Use Roboto font for currency values
             doc.font(this.fonts.currency).fontSize(this.fontSizes.currency);
@@ -237,7 +246,7 @@ class PDFGenerator {
             // Reset to body font
             doc.font(this.fonts.tableBody);
          } else {
-            doc.font(this.fonts.tableBody).fontSize(this.fontSizes.tableBody).fillColor(this.colors.text);
+            doc.font(this.fonts.tableBody).fontSize(this.fontSizes.tableBody);
             doc.text(value, currentX + (align === 'right' ? col.width - 5 : 5), y, {
                width: col.width - 10,
                align: align
@@ -246,7 +255,7 @@ class PDFGenerator {
          currentX += col.width;
       });
 
-      // Draw bottom border
+      // Draw bottom border - Black
       if (!isLastRow) {
          doc.moveTo(tableX, y + 16).lineTo(tableX + tableWidth, y + 16).stroke();
       }
@@ -254,18 +263,18 @@ class PDFGenerator {
       return y + 18;
    }
 
-   // Draw section header
+   // Draw section header - black text
    drawSectionHeader(doc, y, title) {
-      doc.font(this.fonts.sectionHeader).fontSize(this.fontSizes.sectionHeader).fillColor(this.colors.primary);
+      doc.font(this.fonts.sectionHeader).fontSize(this.fontSizes.sectionHeader).fillColor('#000000');
       doc.text(title, this.margin, y);
       return y + 18;
    }
 
-   // Draw client info section
+   // Draw client info section - black text
    drawClientInfo(doc, y, data) {
       y = this.drawSectionHeader(doc, y, 'CLIENT INFORMATION');
 
-      doc.font(this.fonts.body).fontSize(this.fontSizes.body).fillColor(this.colors.text);
+      doc.font(this.fonts.body).fontSize(this.fontSizes.body).fillColor('#000000');
       doc.text(`Name: ${data.clientName || 'N/A'}`, this.margin + 10, y);
       y += 14;
 
@@ -293,7 +302,7 @@ class PDFGenerator {
       return y;
    }
 
-   // Draw system specs - UPDATED for currency
+   // Draw system specs - UPDATED for black text
    drawSystemSpecs(doc, y, data) {
       y = this.drawSectionHeader(doc, y, 'PROPOSED SYSTEM');
 
@@ -320,17 +329,17 @@ class PDFGenerator {
             y = this.drawSectionHeader(doc, y, 'PROPOSED SYSTEM');
          }
 
-         doc.font(this.fonts.sectionHeader).fillColor('#555555').text(label, this.margin + 10, y);
-         doc.font(this.fonts.body).fillColor(this.colors.text).text(value, this.margin + 130, y);
+         doc.font(this.fonts.sectionHeader).fillColor('#000000').text(label, this.margin + 10, y);
+         doc.font(this.fonts.body).fillColor('#000000').text(value, this.margin + 130, y);
          y += 14;
       });
 
       return y + 10;
    }
 
-   // Draw equipment cost breakdown table - UPDATED to use Roboto for amounts
+   // Draw equipment cost breakdown table - UPDATED to use black text
    drawEquipmentTable(doc, y, data) {
-      y = this.drawSectionHeader(doc, y, 'EQUIPMENT COST BREAKDOWN');
+      y = this.drawSectionHeader(doc, y, 'SOLAR PV PROPOSAL');
 
       const columns = [
          { label: 'Equipment Type', width: 90, align: 'left' },
@@ -485,24 +494,28 @@ class PDFGenerator {
             y = this.minY;
             this.drawHeader(doc, true, 'PRE-ASSESSMENT REPORT', data.bookingReference, data.quotationNumber,
                this.formatDate(new Date()), this.formatDate(data.quotationExpiryDate));
-            y = this.drawSectionHeader(doc, y, 'EQUIPMENT COST BREAKDOWN');
+            y = this.drawSectionHeader(doc, y, 'SOLAR PV PROPOSAL');
             y = this.drawTableHeader(doc, y, columns);
          }
 
          y = this.drawTableRow(doc, y, columns, rows[i], i === rows.length - 1);
       }
 
-      // Draw subtotal - UPDATED to use Roboto
+      // Draw subtotal - Black text with regular fill, total in yellow
       y += 5;
-      doc.font(this.fonts.tableHeader).fontSize(this.fontSizes.tableHeader).fillColor(this.colors.primary);
+      doc.font(this.fonts.tableHeader).fontSize(this.fontSizes.tableHeader).fillColor('#000000');
       doc.text('SUBTOTAL (EQUIPMENT)', this.pageWidth - this.margin - 220, y, { width: 110, align: 'right' });
-      this.renderCurrency(doc, this.formatCurrency(data.calculatedEquipmentTotal), this.pageWidth - this.margin - 110, y, { width: 110, align: 'right' });
+      // Use renderCurrency which applies yellow color
+      doc.font(this.fonts.currency).fontSize(this.fontSizes.currency).fillColor(this.colors.total);
+      doc.text(this.formatCurrency(data.calculatedEquipmentTotal), this.pageWidth - this.margin - 110, y, { width: 110, align: 'right' });
+      doc.fillColor('#000000'); // Reset to black
+      doc.font(this.fonts.body);
       y += 18;
 
       return y;
    }
 
-   // Draw installation cost section - UPDATED to use Roboto
+   // Draw installation cost section - UPDATED with black text, total in yellow
    drawInstallationCost(doc, y, data) {
       y = this.drawSectionHeader(doc, y, 'INSTALLATION COST');
 
@@ -515,8 +528,7 @@ class PDFGenerator {
 
       const cb = data.costBreakdown;
       const rows = [
-         [`Per kW (${cb.installation.perKw.quantity} kW × ${this.formatCurrency(cb.installation.perKw.rate)})`, this.formatCurrency(cb.installation.perKw.total)],
-         [`Per Panel (${cb.installation.perPanel.quantity} × ${this.formatCurrency(cb.installation.perPanel.rate)})`, this.formatCurrency(cb.installation.perPanel.total)]
+         [`Installation Labor (${cb.installation.percentage || 20}% of Equipment Cost)`, this.formatCurrency(cb.installation.total)]
       ];
 
       rows.forEach((row, index) => {
@@ -533,17 +545,20 @@ class PDFGenerator {
          y = this.drawTableRow(doc, y, columns, row, index === rows.length - 1);
       });
 
-      // Draw subtotal - UPDATED to use Roboto
+      // Draw subtotal - Black text with regular fill
       y += 5;
-      doc.font(this.fonts.tableHeader).fontSize(this.fontSizes.tableHeader).fillColor(this.colors.primary);
-      doc.text('SUBTOTAL (INSTALLATION)', this.pageWidth - this.margin - 220, y, { width: 110, align: 'right' });
-      this.renderCurrency(doc, this.formatCurrency(data.calculatedInstallationTotal), this.pageWidth - this.margin - 110, y, { width: 110, align: 'right' });
+      doc.font(this.fonts.tableHeader).fontSize(this.fontSizes.tableHeader).fillColor('#000000');
+   
+      doc.font(this.fonts.currency).fontSize(this.fontSizes.currency).fillColor(this.colors.total)
+      doc.fillColor('#000000');
       y += 18;
 
-      // Draw grand total - UPDATED to use Roboto
-      doc.font(this.fonts.title).fontSize(12).fillColor(this.colors.secondary);
-      doc.text('TOTAL PROJECT INVESTMENT', this.margin, y);
-      this.renderCurrency(doc, this.formatCurrency(data.calculatedTotalCost), this.pageWidth - this.margin - 110, y, { width: 110, align: 'right' });
+      // Draw grand total - Yellow color for total
+      doc.font(this.fonts.title).fontSize(12).fillColor('#000000');
+      doc.text('TOTAL PACKAGE PRICE (Indirect cost included)', this.margin, y);
+      doc.font(this.fonts.currency).fontSize(12).fillColor(this.colors.total);
+      doc.text(this.formatCurrency(data.calculatedTotalCost), this.pageWidth - this.margin - 110, y, { width: 110, align: 'right' });
+      doc.fillColor('#000000');
       y += 25;
 
       return y;
@@ -568,9 +583,9 @@ class PDFGenerator {
                quoteData.quotationNumber, this.formatDate(new Date()),
                this.formatDate(quoteData.quotationExpiryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)));
 
-            // Client Information
+            // Client Information - Black text
             y = this.drawSectionHeader(doc, y, 'CLIENT INFORMATION');
-            doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+            doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
             doc.text(`Name: ${quoteData.clientName}`, this.margin + 10, y);
             y += 14;
             if (quoteData.clientPhone) doc.text(`Contact: ${quoteData.clientPhone}`, this.margin + 10, y);
@@ -582,7 +597,7 @@ class PDFGenerator {
             if (quoteData.address) doc.text(`Address: ${quoteData.address.substring(0, 80)}`, this.margin + 10, y);
             y += 18;
 
-            // System Specifications
+            // System Specifications - Black text
             y = this.drawSectionHeader(doc, y, 'SYSTEM SPECIFICATIONS');
 
             const specs = [
@@ -596,15 +611,15 @@ class PDFGenerator {
             ];
 
             specs.forEach(([label, value]) => {
-               doc.font(this.fonts.sectionHeader).fontSize(7).fillColor('#555555').text(label, this.margin + 10, y);
-               doc.font(this.fonts.body).fillColor(this.colors.text).text(value, this.margin + 110, y, { width: 200 });
+               doc.font(this.fonts.sectionHeader).fontSize(7).fillColor('#000000').text(label, this.margin + 10, y);
+               doc.font(this.fonts.body).fillColor('#000000').text(value, this.margin + 110, y, { width: 200 });
                y += 14;
             });
 
             y += 10;
 
             // Equipment Cost Breakdown Table
-            y = this.drawSectionHeader(doc, y, 'EQUIPMENT COST BREAKDOWN');
+            y = this.drawSectionHeader(doc, y, 'SOLAR PV PROPOSAL');
 
             const columns = [
                { label: 'Type', width: 50, align: 'left' },
@@ -760,7 +775,7 @@ class PDFGenerator {
                   this.drawHeader(doc, true, 'SOLAR QUOTATION', quoteData.quotationReference,
                      quoteData.quotationNumber, this.formatDate(new Date()),
                      this.formatDate(quoteData.quotationExpiryDate));
-                  y = this.drawSectionHeader(doc, y, 'EQUIPMENT COST BREAKDOWN');
+                  y = this.drawSectionHeader(doc, y, 'SOLAR PV PROPOSAL');
                   y = this.drawTableHeader(doc, y, columns);
                }
 
@@ -769,11 +784,13 @@ class PDFGenerator {
 
             y += 5;
 
-            // Equipment Subtotal - UPDATED to use Roboto
+            // Equipment Subtotal - Yellow color for amount
             const equipmentTotal = quoteData.calculatedEquipmentTotal || quoteData.equipmentCost || 0;
-            doc.font(this.fonts.tableHeader).fontSize(8).fillColor(this.colors.primary);
+            doc.font(this.fonts.tableHeader).fontSize(8).fillColor('#000000');
             doc.text('SUBTOTAL (EQUIPMENT)', this.pageWidth - this.margin - 200, y, { width: 100, align: 'right' });
-            this.renderCurrency(doc, this.formatCurrency(equipmentTotal), this.pageWidth - this.margin - 95, y, { width: 90, align: 'right' });
+            doc.font(this.fonts.currency).fontSize(8).fillColor(this.colors.total);
+            doc.text(this.formatCurrency(equipmentTotal), this.pageWidth - this.margin - 95, y, { width: 90, align: 'right' });
+            doc.fillColor('#000000');
             y += 18;
 
             // Installation Cost Section
@@ -798,17 +815,19 @@ class PDFGenerator {
 
             y += 5;
 
-            // Grand Total - UPDATED to use Roboto
+            // Grand Total - Yellow color for total amount
             const grandTotal = quoteData.calculatedTotalCost || quoteData.totalCost || 0;
-            doc.font(this.fonts.title).fontSize(11).fillColor(this.colors.secondary);
+            doc.font(this.fonts.title).fontSize(11).fillColor('#000000');
             doc.text('TOTAL INVESTMENT', this.margin, y);
-            this.renderCurrency(doc, this.formatCurrency(grandTotal), this.pageWidth - this.margin - 95, y, { width: 90, align: 'right' });
+            doc.font(this.fonts.currency).fontSize(11).fillColor(this.colors.total);
+            doc.text(this.formatCurrency(grandTotal), this.pageWidth - this.margin - 95, y, { width: 90, align: 'right' });
+            doc.fillColor('#000000');
             y += 20;
 
             // Payment Terms
             if (quoteData.paymentTerms && y + 35 < this.maxY) {
                y = this.drawSectionHeader(doc, y, 'PAYMENT TERMS');
-               doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+               doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
                doc.text(quoteData.paymentTerms, this.margin + 10, y, {
                   width: this.pageWidth - (this.margin * 2) - 10,
                   align: 'left'
@@ -819,7 +838,7 @@ class PDFGenerator {
             // Remarks
             if (quoteData.remarks && y + 35 < this.maxY) {
                y = this.drawSectionHeader(doc, y, 'REMARKS');
-               doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+               doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
                doc.text(quoteData.remarks, this.margin + 10, y, {
                   width: this.pageWidth - (this.margin * 2) - 10,
                   align: 'left'
@@ -881,10 +900,10 @@ class PDFGenerator {
       y = this.drawEquipmentTable(doc, y, data);
       y = this.drawInstallationCost(doc, y, data);
 
-      // Payment terms if space allows
+      // Payment terms if space allows - Black text
       if (data.paymentTerms && y + 60 < this.maxY) {
          y = this.drawSectionHeader(doc, y, 'PAYMENT TERMS');
-         doc.font(this.fonts.body).fontSize(this.fontSizes.body).fillColor(this.colors.text);
+         doc.font(this.fonts.body).fontSize(this.fontSizes.body).fillColor('#000000');
          const termsShort = data.paymentTerms.length > 200 ? data.paymentTerms.substring(0, 197) + '...' : data.paymentTerms;
          doc.text(termsShort, this.margin + 10, y, { width: this.pageWidth - (this.margin * 2) - 10 });
       }
@@ -892,7 +911,7 @@ class PDFGenerator {
       this.drawFooter(doc, 1, 2);
    }
 
-   // Page 2 content for Pre-Assessment - UPDATED with correct metrics
+   // Page 2 content for Pre-Assessment - UPDATED with black text
    async drawPreAssessmentPage2(doc, data) {
       let y = this.drawHeader(doc, true, 'SITE FINDINGS & ANALYSIS', data.bookingReference,
          data.quotationNumber, null, null);
@@ -905,11 +924,11 @@ class PDFGenerator {
          const leftColX = this.margin + 10;
          const rightColX = this.margin + 280;
 
-         // Left column - Irradiance (Range instead of Peak)
-         doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
+         // Left column - Irradiance - Black text
+         doc.font(this.fonts.sectionHeader).fontSize(8).fillColor('#000000');
          doc.text('Solar Irradiance', leftColX, y);
          y += 14;
-         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+         doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
          doc.text(`Average: ${iot.averageIrradiance?.toFixed(0) || 0} W/m²`, leftColX + 10, y);
          y += 12;
          doc.text(`Range: ${iot.minIrradiance?.toFixed(0) || 0} - ${iot.maxIrradiance?.toFixed(0) || 0} W/m²`, leftColX + 10, y);
@@ -917,32 +936,32 @@ class PDFGenerator {
          doc.text(`Peak Sun Hours: ${iot.peakSunHours?.toFixed(1) || 0} hrs/day`, leftColX + 10, y);
          y += 16;
 
-         // Temperature - Range only (removed Efficiency Loss)
-         doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
+         // Temperature - Black text
+         doc.font(this.fonts.sectionHeader).fontSize(8).fillColor('#000000');
          doc.text('Temperature', leftColX, y);
          y += 14;
-         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+         doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
          doc.text(`Average: ${iot.averageTemperature?.toFixed(1) || 0}°C`, leftColX + 10, y);
          y += 12;
          doc.text(`Range: ${iot.minTemperature?.toFixed(1) || 0}°C - ${iot.maxTemperature?.toFixed(1) || 0}°C`, leftColX + 10, y);
          y += 16;
 
-         // Humidity - Range only
-         doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
+         // Humidity - Black text
+         doc.font(this.fonts.sectionHeader).fontSize(8).fillColor('#000000');
          doc.text('Humidity', leftColX, y);
          y += 14;
-         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+         doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
          doc.text(`Average: ${iot.averageHumidity?.toFixed(0) || 0}%`, leftColX + 10, y);
          y += 12;
          doc.text(`Range: ${iot.minHumidity?.toFixed(0) || 0}% - ${iot.maxHumidity?.toFixed(0) || 0}%`, leftColX + 10, y);
          y += 16;
 
-         // Right column - System Recommendations (removed Shading Percentage)
+         // Right column - System Recommendations - Black text
          let rightY = y - 110;
-         doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
+         doc.font(this.fonts.sectionHeader).fontSize(8).fillColor('#000000');
          doc.text('System Recommendations', rightColX, rightY);
          rightY += 14;
-         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+         doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
          doc.text(`Optimal Orientation: ${iot.optimalOrientation || 'South-facing'}`, rightColX + 10, rightY);
          rightY += 12;
          doc.text(`Optimal Tilt Angle: ${iot.optimalTiltAngle || 15}°`, rightColX + 10, rightY);
@@ -951,10 +970,10 @@ class PDFGenerator {
          rightY += 16;
 
          if (iot.siteSuitabilityScore) {
-            doc.font(this.fonts.sectionHeader).fontSize(8).fillColor(this.colors.secondary);
+            doc.font(this.fonts.sectionHeader).fontSize(8).fillColor('#000000');
             doc.text('Site Suitability Score', rightColX, rightY);
             rightY += 14;
-            doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+            doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
             doc.text(`${iot.siteSuitabilityScore}/100`, rightColX + 10, rightY);
             rightY += 10;
          }
@@ -963,7 +982,7 @@ class PDFGenerator {
          y += 10;
       }
 
-      // Performance Estimates
+      // Performance Estimates - Black text
       if (data.performanceEstimates) {
          const requiredSpace = 80;
          if (y + requiredSpace > this.maxY - 80) {
@@ -976,28 +995,33 @@ class PDFGenerator {
          y = this.drawSectionHeader(doc, y, 'ESTIMATED PERFORMANCE');
 
          const pe = data.performanceEstimates;
-         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+         doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
          doc.text(`Annual Production: ${pe.annualProduction?.toLocaleString() || 0} kWh`, this.margin + 10, y);
          y += 14;
-         
-         // Use Roboto for currency amounts
+
+         // Use black text for labels, yellow for amounts? No, keep all black for consistency
          doc.text(`Annual Savings: `, this.margin + 10, y);
-         this.renderCurrency(doc, this.formatCurrency(pe.annualSavings), this.margin + 110, y, { width: 100, align: 'left' });
+         doc.font(this.fonts.currency).fontSize(8);
+         doc.text(this.formatCurrency(pe.annualSavings), this.margin + 110, y, { width: 100, align: 'left' });
+         doc.font(this.fonts.body);
          y += 14;
-         
+
          if (pe.monthlySavings) {
             doc.text(`Monthly Savings: `, this.margin + 10, y);
-            this.renderCurrency(doc, this.formatCurrency(pe.monthlySavings), this.margin + 110, y, { width: 100, align: 'left' });
+            doc.font(this.fonts.currency).fontSize(8);
+            doc.text(this.formatCurrency(pe.monthlySavings), this.margin + 110, y, { width: 100, align: 'left' });
+            doc.font(this.fonts.body);
             y += 14;
          }
-         
+
+         doc.fillColor('#000000');
          doc.text(`Payback Period: ${pe.paybackPeriod || 0} years`, this.margin + 10, y);
          y += 14;
          doc.text(`CO₂ Reduction: ${pe.co2Offset?.toLocaleString() || 0} kg/year`, this.margin + 10, y);
          y += 20;
       }
 
-      // Site Assessment
+      // Site Assessment - Black text
       if (data.siteAssessment) {
          const requiredSpace = 100;
          if (y + requiredSpace > this.maxY - 60) {
@@ -1010,7 +1034,7 @@ class PDFGenerator {
          y = this.drawSectionHeader(doc, y, 'SITE ASSESSMENT');
 
          const sa = data.siteAssessment;
-         doc.font(this.fonts.body).fontSize(8).fillColor(this.colors.text);
+         doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
 
          if (sa.roofCondition) {
             doc.text(`Roof Condition: ${sa.roofCondition}`, this.margin + 10, y);
@@ -1033,22 +1057,22 @@ class PDFGenerator {
             y += 18;
          }
 
-         // Engineer Recommendations at the bottom (removed Shading Percentage)
+         // Engineer Recommendations at the bottom - Black text
          if (sa.recommendations) {
             y = this.drawSectionHeader(doc, y, 'Engineer Recommendations');
-            doc.font(this.fonts.body).fontSize(7).fillColor(this.colors.text);
-            
+            doc.font(this.fonts.body).fontSize(7).fillColor('#000000');
+
             // Split long text into multiple lines
             const recommendations = sa.recommendations;
             const maxWidth = this.pageWidth - (this.margin * 2) - 20;
             const lines = [];
             let currentLine = '';
-            
+
             for (let i = 0; i < recommendations.length; i++) {
                const char = recommendations[i];
                const testLine = currentLine + char;
                const textWidth = doc.widthOfString(testLine, { font: this.fonts.body, size: 7 });
-               
+
                if (textWidth > maxWidth) {
                   lines.push(currentLine);
                   currentLine = char;
@@ -1057,7 +1081,7 @@ class PDFGenerator {
                }
             }
             if (currentLine) lines.push(currentLine);
-            
+
             lines.forEach(line => {
                doc.text(line, this.margin + 10, y, { width: maxWidth, align: 'left' });
                y += 12;

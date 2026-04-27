@@ -172,85 +172,122 @@ const Quotation = () => {
     }
   };
 
-  // Helper function to check if initial payment is completed for a project
-  const isInitialPaymentCompleted = (projectId) => {
-    const projectInvoices = allItems.filter(item => 
-      item.type === 'project' && 
+  // Helper function to check if downpayment is completed for a project (50-50 plan)
+  const isDownpaymentCompleted = (projectId) => {
+    const projectInvoices = allItems.filter(item =>
+      item.type === 'project' &&
       item.projectId === projectId
     );
-    
+    const downpaymentInvoice = projectInvoices.find(inv => inv.invoiceType === 'downpayment');
+    return downpaymentInvoice && downpaymentInvoice.status === 'paid';
+  };
+
+  // Helper function to check if initial payment is completed for a project (30-60-10 plan)
+  const isInitialPaymentCompleted = (projectId) => {
+    const projectInvoices = allItems.filter(item =>
+      item.type === 'project' &&
+      item.projectId === projectId
+    );
     const initialInvoice = projectInvoices.find(inv => inv.invoiceType === 'initial');
     return initialInvoice && initialInvoice.status === 'paid';
   };
 
   // Helper function to check if progress payment is completed for a project
   const isProgressPaymentCompleted = (projectId) => {
-    const projectInvoices = allItems.filter(item => 
-      item.type === 'project' && 
+    const projectInvoices = allItems.filter(item =>
+      item.type === 'project' &&
       item.projectId === projectId
     );
-    
     const progressInvoice = projectInvoices.find(inv => inv.invoiceType === 'progress');
     return progressInvoice && progressInvoice.status === 'paid';
   };
 
+  // Helper function to check if final payment is completed (for 30-60-10, final is 30%)
+  const isFinalPaymentCompleted = (projectId) => {
+    const projectInvoices = allItems.filter(item =>
+      item.type === 'project' &&
+      item.projectId === projectId
+    );
+    const finalInvoice = projectInvoices.find(inv => inv.invoiceType === 'final');
+    return finalInvoice && finalInvoice.status === 'paid';
+  };
+
   // Check if Pay Now button should be disabled for an item
   const isPayNowDisabled = (item) => {
-    // Only apply logic for project items with installment payment types
     if (item.type !== 'project') return false;
-    
+
     const invoiceType = item.invoiceType;
     const projectId = item.projectId;
-    
-    // For Progress payment - disable if Initial is not paid
+
+    // For 50-50 plan: Final payment - disable if Downpayment not paid
+    if (invoiceType === 'final') {
+      // Check if this is from 50-50 plan or 30-60-10 plan
+      const hasDownpayment = allItems.some(inv => inv.projectId === projectId && inv.invoiceType === 'downpayment');
+      if (hasDownpayment) {
+        // 50-50 plan: final payment requires downpayment
+        return !isDownpaymentCompleted(projectId);
+      } else {
+        // 30-60-10 plan: final payment (30%) requires progress payment
+        return !isProgressPaymentCompleted(projectId);
+      }
+    }
+
+    // For Retention payment (10%) - disable if Final not paid
+    if (invoiceType === 'retention') {
+      return !isFinalPaymentCompleted(projectId);
+    }
+
+    // For Progress payment - disable if Initial not paid (30-60-10 plan)
     if (invoiceType === 'progress') {
       return !isInitialPaymentCompleted(projectId);
     }
-    
-    // For Final payment - disable if Progress is not paid
-    if (invoiceType === 'final') {
-      // Check if Progress is paid, but also ensure Initial is paid (should be true if Progress is paid)
-      const isProgressPaid = isProgressPaymentCompleted(projectId);
-      return !isProgressPaid;
-    }
-    
-    // Initial payment is always enabled
+
+    // Downpayment and Initial are always enabled
     return false;
   };
 
   // Get disabled reason for tooltip or display
   const getPayNowDisabledReason = (item) => {
     if (item.type !== 'project') return null;
-    
+
     const invoiceType = item.invoiceType;
     const projectId = item.projectId;
-    
+
     if (invoiceType === 'progress') {
-      return 'Initial payment must be completed first';
+      return 'Initial payment (30%) must be completed first';
     }
-    
+
     if (invoiceType === 'final') {
-      return 'Progress payment must be completed first';
+      const hasDownpayment = allItems.some(inv => inv.projectId === projectId && inv.invoiceType === 'downpayment');
+      if (hasDownpayment) {
+        return 'Downpayment (50%) must be completed first';
+      } else {
+        return 'Progress payment (60%) must be completed first';
+      }
     }
-    
+
+    if (invoiceType === 'retention') {
+      return 'Final payment (30%) must be completed first. Retention fee is released after project completion and warranty period.';
+    }
+
     return null;
   };
 
   const handleViewReceipt = async (item) => {
     try {
       let receiptUrl = null;
-      
+
       if (item.type === 'pre-assessment') {
         receiptUrl = item.receiptUrl;
       } else if (item.type === 'project') {
         receiptUrl = item.receiptUrl;
       }
-      
+
       if (!receiptUrl) {
         showToast('No receipt available for this transaction', 'warning');
         return;
       }
-      
+
       window.open(receiptUrl, '_blank');
     } catch (error) {
       console.error('Error viewing receipt:', error);
@@ -262,7 +299,7 @@ const Quotation = () => {
     try {
       let receiptUrl = null;
       let receiptNumber = null;
-      
+
       if (item.type === 'pre-assessment') {
         receiptUrl = item.receiptUrl;
         receiptNumber = item.receiptNumber;
@@ -270,16 +307,16 @@ const Quotation = () => {
         receiptUrl = item.receiptUrl;
         receiptNumber = item.receiptNumber;
       }
-      
+
       if (!receiptUrl) {
         showToast('No receipt available for this transaction', 'warning');
         return;
       }
-      
+
       const response = await axios.get(receiptUrl, {
         responseType: 'blob'
       });
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -288,7 +325,7 @@ const Quotation = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      
+
       showToast('Receipt downloaded successfully!', 'success');
     } catch (error) {
       console.error('Error downloading receipt:', error);
@@ -373,7 +410,7 @@ const Quotation = () => {
       showToast(reason, 'warning');
       return;
     }
-    
+
     setSelectedItem({
       ...invoice,
       _id: invoice.projectId,
@@ -448,7 +485,7 @@ const Quotation = () => {
       showToast(reason, 'warning');
       return;
     }
-    
+
     if (item.type === 'project') {
       handleProjectInvoicePayment(item);
     } else {
@@ -522,7 +559,7 @@ const Quotation = () => {
       setSuccessMessage('Quotation Accepted!');
       setSuccessDetails({
         title: 'Quotation Accepted Successfully',
-        message: `Your quotation has been accepted. ${selectedPaymentPreference === 'full' ? 'You can now proceed with full payment.' : 'Invoices will be generated for each payment milestone.'}`,
+        message: `Your quotation has been accepted. ${selectedPaymentPreference === 'full' ? 'You can now proceed with full payment.' : selectedPaymentPreference === 'thirty_sixty_ten' ? 'Invoices will be generated: 30% Downpayment, 60% Progress, 10% Retention (released after warranty).' : selectedPaymentPreference === 'fifty_fifty' ? 'Invoices will be generated: 50% Downpayment, 50% Final.' : 'Invoices will be generated for each payment milestone.'}`,
         reference: response.data.project?.projectReference
       });
       setShowSuccessModal(true);
@@ -927,7 +964,7 @@ const Quotation = () => {
               });
               const alreadyProjectCreated = isPreAssessment && (item.assessmentStatus === 'quotation_accepted' || projectExists);
               const hasReceipt = item.receiptUrl;
-              
+
               // Check if Pay Now button should be disabled
               const isPayNowButtonDisabled = isPayNowDisabled(item);
               const disabledReason = getPayNowDisabledReason(item);
@@ -954,9 +991,11 @@ const Quotation = () => {
                       )}
                       {!isPreAssessment && item.invoiceType && (
                         <span className={`invoice-type-label ${item.invoiceType}`}>
+                          {item.invoiceType === 'downpayment' && 'Downpayment (50%)'}
                           {item.invoiceType === 'initial' && 'Initial (30%)'}
-                          {item.invoiceType === 'progress' && 'Progress (40%)'}
-                          {item.invoiceType === 'final' && 'Final (30%)'}
+                          {item.invoiceType === 'progress' && 'Progress (40% or 60%)'}
+                          {item.invoiceType === 'final' && 'Final Payment (30%)'}
+                          {item.invoiceType === 'retention' && 'Retention Fee (10%)'}
                           {item.invoiceType === 'full' && 'Full Payment'}
                         </span>
                       )}
@@ -1119,6 +1158,40 @@ const Quotation = () => {
               </div>
               <div className="cuspro-payment-preference-section">
                 <h4>Payment Option</h4>
+
+                {/* Option 1: 50% - 50% Installment */}
+                <div
+                  className={`cuspro-preference-option ${selectedPaymentPreference === 'fifty_fifty' ? 'selected' : ''}`}
+                  onClick={() => setSelectedPaymentPreference('fifty_fifty')}
+                >
+                  <input type="radio" checked={selectedPaymentPreference === 'fifty_fifty'} readOnly />
+                  <div className="cuspro-preference-content">
+                    <strong>50% - 50% Installment</strong>
+                    <div className="cuspre-preference-details">
+                      <span>Downpayment (50%): {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.5)}</span>
+                      <span>Final Payment (50%): {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.5)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Option 2: 30% - 60% - 10% (with 10% Retention) */}
+                <div
+                  className={`cuspro-preference-option ${selectedPaymentPreference === 'thirty_sixty_ten' ? 'selected' : ''}`}
+                  onClick={() => setSelectedPaymentPreference('thirty_sixty_ten')}
+                >
+                  <input type="radio" checked={selectedPaymentPreference === 'thirty_sixty_ten'} readOnly />
+                  <div className="cuspro-preference-content">
+                    <strong>Installment with Retention (30% - 60% - 10%)</strong>
+                    <div className="cuspre-preference-details">
+                      <span>Downpayment (30%): {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.3)}</span>
+                      <span>Progress Payment (60%): {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.6)}</span>
+                      <span className="retention-note">Retention Fee (10%): {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.1)}</span>
+                  
+                    </div>
+                  </div>
+                </div>
+
+                {/* Option 3: 30% - 40% - 30% Installment */}
                 <div
                   className={`cuspro-preference-option ${selectedPaymentPreference === 'installment' ? 'selected' : ''}`}
                   onClick={() => setSelectedPaymentPreference('installment')}
@@ -1127,12 +1200,14 @@ const Quotation = () => {
                   <div className="cuspro-preference-content">
                     <strong>Installment (30% - 40% - 30%)</strong>
                     <div className="cuspre-preference-details">
-                      <span>Initial: {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.3)}</span>
-                      <span>Progress: {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.4)}</span>
-                      <span>Final: {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.3)}</span>
+                      <span>Initial (30%): {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.3)}</span>
+                      <span>Progress (40%): {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.4)}</span>
+                      <span>Final (30%): {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.3)}</span>
                     </div>
                   </div>
                 </div>
+
+                {/* Option 4: Full Payment */}
                 <div
                   className={`cuspro-preference-option ${selectedPaymentPreference === 'full' ? 'selected' : ''}`}
                   onClick={() => setSelectedPaymentPreference('full')}
@@ -1390,10 +1465,12 @@ const Quotation = () => {
                       )}
                       {detailsItem.invoiceType && (
                         <p><strong>Invoice Type:</strong> {
-                          detailsItem.invoiceType === 'initial' ? 'Initial (30%)' :
-                            detailsItem.invoiceType === 'progress' ? 'Progress (40%)' :
-                              detailsItem.invoiceType === 'final' ? 'Final (30%)' :
-                                detailsItem.invoiceType === 'full' ? 'Full Payment' : detailsItem.invoiceType
+                          detailsItem.invoiceType === 'downpayment' ? 'Downpayment (50%)' :
+                            detailsItem.invoiceType === 'initial' ? 'Initial (30%)' :
+                              detailsItem.invoiceType === 'progress' ? 'Progress (40% or 60%)' :
+                                detailsItem.invoiceType === 'final' ? 'Final Payment (30%)' :
+                                  detailsItem.invoiceType === 'retention' ? 'Retention Fee (10%)' :
+                                    detailsItem.invoiceType === 'full' ? 'Full Payment' : detailsItem.invoiceType
                         }</p>
                       )}
                     </div>

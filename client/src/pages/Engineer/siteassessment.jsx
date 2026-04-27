@@ -32,6 +32,8 @@ const MyAssessments = () => {
   // Add this with your other state declarations (around line 100)
 
   const [laborCostPercentage, setLaborCostPercentage] = useState(20); // Default 20%
+  const [overheadContingencyPercentage, setOverheadContingencyPercentage] = useState(15); // Default 15%
+  const [contractorProfitPercentage, setContractorProfitPercentage] = useState(10); // Default 10%
   const [isEditingLaborCost, setIsEditingLaborCost] = useState(false);
   const [manualLaborCost, setManualLaborCost] = useState(0);
 
@@ -81,8 +83,6 @@ const MyAssessments = () => {
   const [freeQuoteSelectedDisconnectSwitches, setFreeQuoteSelectedDisconnectSwitches] = useState([]);
   const [freeQuoteSelectedMeters, setFreeQuoteSelectedMeters] = useState([]);
   const [freeQuoteAdditionalEquipment, setFreeQuoteAdditionalEquipment] = useState([]);
-
-  // Free Quote Cost calculations
   const [freeQuoteCalculatedCosts, setFreeQuoteCalculatedCosts] = useState({
     panelCost: 0,
     inverterCost: 0,
@@ -96,10 +96,11 @@ const MyAssessments = () => {
     additionalCost: 0,
     totalEquipmentCost: 0,
     installationLaborCost: 0,
+    subtotalCost: 0, // New: Equipment + Labor
+    overheadContingencyCost: 0, // New
+    contractorProfitCost: 0, // New
     totalSystemCost: 0
   });
-
-  // Cost calculations
   const [calculatedCosts, setCalculatedCosts] = useState({
     panelCost: 0,
     inverterCost: 0,
@@ -113,6 +114,9 @@ const MyAssessments = () => {
     additionalCost: 0,
     totalEquipmentCost: 0,
     installationLaborCost: 0,
+    subtotalCost: 0, // New: Equipment + Labor
+    overheadContingencyCost: 0, // New
+    contractorProfitCost: 0, // New
     totalSystemCost: 0
   });
 
@@ -364,7 +368,6 @@ const MyAssessments = () => {
     setTimeout(() => freeQuoteCalculateTotalCosts(), 0);
   };
 
-  // Free Quote cost calculation (NO IoT data)
   const freeQuoteCalculateTotalCosts = () => {
     let panelCost = 0;
     if (freeQuoteSelectedPanel) {
@@ -400,11 +403,21 @@ const MyAssessments = () => {
 
     const totalEquipmentCost = panelCost + inverterCost + batteryCost + mountingCost +
       electricalCost + cableCost + junctionBoxCost + disconnectSwitchCost + meterCost + additionalCost;
+
+    // Calculate installation labor cost based on percentage
     const installationLaborCost = totalEquipmentCost * (laborCostPercentage / 100);
 
+    // ✅ Calculate subtotal (Equipment + Labor)
+    const subtotalCost = totalEquipmentCost + installationLaborCost;
 
+    // ✅ Calculate Overhead & Contingency (based on subtotal)
+    const overheadContingencyCost = subtotalCost * (overheadContingencyPercentage / 100);
 
-    const totalSystemCost = totalEquipmentCost + installationLaborCost;
+    // ✅ Calculate Contractor Profit (based on subtotal)
+    const contractorProfitCost = subtotalCost * (contractorProfitPercentage / 100);
+
+    // ✅ Total System Cost = Subtotal + Overhead & Contingency + Contractor Profit
+    const totalSystemCost = subtotalCost + overheadContingencyCost + contractorProfitCost;
 
     setFreeQuoteCalculatedCosts({
       panelCost,
@@ -419,6 +432,9 @@ const MyAssessments = () => {
       additionalCost,
       totalEquipmentCost,
       installationLaborCost,
+      subtotalCost,                    // ✅ Added
+      overheadContingencyCost,         // ✅ Added
+      contractorProfitCost,            // ✅ Added
       totalSystemCost
     });
 
@@ -429,7 +445,7 @@ const MyAssessments = () => {
       totalCost: totalSystemCost,
       panelsNeeded: freeQuotePanelQuantity
     }));
-  };
+  }
 
   // Pre-Assessment Equipment helper functions
   const addCable = () => {
@@ -581,7 +597,6 @@ const MyAssessments = () => {
     setTimeout(() => calculateTotalCosts(), 0);
   };
 
-  // Calculate total costs based on selections
   const calculateTotalCosts = () => {
     let panelCost = 0;
     if (selectedPanel) {
@@ -621,7 +636,17 @@ const MyAssessments = () => {
     // Calculate installation labor cost based on percentage
     const installationLaborCost = totalEquipmentCost * (laborCostPercentage / 100);
 
-    const totalSystemCost = totalEquipmentCost + installationLaborCost;
+    // ✅ Calculate subtotal (Equipment + Labor)
+    const subtotalCost = totalEquipmentCost + installationLaborCost;
+
+    // ✅ Calculate Overhead & Contingency (based on subtotal)
+    const overheadContingencyCost = subtotalCost * (overheadContingencyPercentage / 100);
+
+    // ✅ Calculate Contractor Profit (based on subtotal)
+    const contractorProfitCost = subtotalCost * (contractorProfitPercentage / 100);
+
+    // ✅ Total System Cost = Subtotal + Overhead & Contingency + Contractor Profit
+    const totalSystemCost = subtotalCost + overheadContingencyCost + contractorProfitCost;
 
     setCalculatedCosts({
       panelCost,
@@ -636,6 +661,9 @@ const MyAssessments = () => {
       additionalCost,
       totalEquipmentCost,
       installationLaborCost,
+      subtotalCost,                    // ✅ Added
+      overheadContingencyCost,         // ✅ Added
+      contractorProfitCost,            // ✅ Added
       totalSystemCost
     });
 
@@ -646,7 +674,7 @@ const MyAssessments = () => {
       totalCost: totalSystemCost,
       panelsNeeded: panelQuantity
     }));
-  };
+  }
 
   const ASSESSMENT_TYPES = {
     free_quote: {
@@ -1225,9 +1253,20 @@ const MyAssessments = () => {
 
   // Utility functions
   const hasDeviceAssigned = (item) => {
-    return !!(item.iotDeviceId || item.assignedDevice || item.assignedDeviceId);
-  };
+    // Check if device exists
+    const hasDevice = !!(item.iotDeviceId || item.assignedDevice || item.assignedDeviceId);
 
+    if (!hasDevice) return false;
+
+    // Check if device status is 'assigned'
+    // Status could be in different places depending on your data structure
+    const deviceStatus = item.iotDeviceId?.status ||
+      item.assignedDevice?.status ||
+      item.deviceStatus ||
+      item.iotDeviceStatus;
+
+    return hasDevice && deviceStatus === 'assigned';
+  };
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -1400,6 +1439,12 @@ const MyAssessments = () => {
   };
 
   const deployDevice = async () => {
+    // Add this check at the beginning
+    if (!hasDeviceAssigned(selectedItem)) {
+      showToast('Cannot deploy: No device assigned or device is not in assigned status', 'error');
+      return;
+    }
+
     if (!deployNotes || deployNotes.trim() === '') {
       showToast('Please enter deployment notes before deploying the device', 'warning');
       return;
@@ -1962,15 +2007,60 @@ const MyAssessments = () => {
                   ))}
                 </div>
 
-                {/* Installation Labor - Free Quote */}
+                {/* Installation Labor */}
                 <div className="quotation-section">
                   <h4>Installation Labor</h4>
 
                   {/* Labor Cost Percentage Input */}
                   <div className="labor-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                          Labor Cost (%)
+                        </label>
+                        <input
+                          type="number"
+                          step="1"
+                          min="0"
+                          max="100"
+                          className="assessment-form-input-enad"
+                          value={laborCostPercentage}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
+                            setLaborCostPercentage(Math.min(100, Math.max(0, value)));
+                            setTimeout(() => calculateTotalCosts(), 0);
+                          }}
+                          style={{ width: '100px' }}
+                        />
+                        <small className="form-hint-enad">Default: 20% of total equipment cost</small>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Labor Cost Display */}
+                  <div className="labor-calculation">
+                    <div className="labor-detail">
+                      <span>Total Equipment Cost:</span>
+                      <span>{formatCurrency(calculatedCosts.totalEquipmentCost)}</span>
+                    </div>
+                    <div className="labor-detail">
+                      <span>Labor Cost ({laborCostPercentage}%):</span>
+                      <span>{formatCurrency(calculatedCosts.installationLaborCost)}</span>
+                    </div>
+                    <div className="labor-total">
+                      <strong>Subtotal (Equipment + Labor)</strong>
+                      <strong>{formatCurrency(calculatedCosts.subtotalCost)}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Overhead & Contingency */}
+                <div className="quotation-section">
+                  <h4>Overhead & Contingency</h4>
+                  <div className="cost-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
                     <div>
                       <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                        Labor Cost (% of Equipment)
+                        Overhead & Contingency (% of Subtotal)
                       </label>
                       <input
                         type="number"
@@ -1978,50 +2068,85 @@ const MyAssessments = () => {
                         min="0"
                         max="100"
                         className="assessment-form-input-enad"
-                        value={laborCostPercentage}
+                        value={overheadContingencyPercentage}
                         onChange={(e) => {
                           const value = parseInt(e.target.value) || 0;
-                          setLaborCostPercentage(Math.min(100, Math.max(0, value)));
-                          setTimeout(() => freeQuoteCalculateTotalCosts(), 0);
+                          setOverheadContingencyPercentage(Math.min(100, Math.max(0, value)));
+                          setTimeout(() => calculateTotalCosts(), 0);
                         }}
                         style={{ width: '100px' }}
                       />
-                      <small className="form-hint-enad">Default: 20% of total equipment cost</small>
+                      <small className="form-hint-enad">Default: 15% of subtotal (Equipment + Labor)</small>
                     </div>
                   </div>
-
-                  <div className="labor-calculation">
-                    <div className="labor-detail">
-                      <span>Total Equipment Cost:</span>
-                      <span>{formatCurrency(freeQuoteCalculatedCosts.totalEquipmentCost)}</span>
+                  <div className="cost-calculation">
+                    <div className="cost-detail">
+                      <span>Subtotal (Equipment + Labor):</span>
+                      <span>{formatCurrency(calculatedCosts.subtotalCost)}</span>
                     </div>
-                    <div className="labor-detail">
-                      <span>Labor Cost ({laborCostPercentage}%):</span>
-                      <span>{formatCurrency(freeQuoteCalculatedCosts.installationLaborCost)}</span>
-                    </div>
-                    <div className="labor-total">
-                      <strong>Total Labor Cost</strong>
-                      <strong>{formatCurrency(freeQuoteCalculatedCosts.installationLaborCost)}</strong>
+                    <div className="cost-detail">
+                      <span>Overhead & Contingency ({overheadContingencyPercentage}%):</span>
+                      <span>{formatCurrency(calculatedCosts.overheadContingencyCost)}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Cost Summary */}
-                <div className="cost-summary-large" style={{ marginTop: '20px' }}>
+                {/* Contractor Profit */}
+                <div className="quotation-section">
+                  <h4>Contractor Profit</h4>
+                  <div className="cost-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                        Contractor Profit (% of Subtotal)
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        min="0"
+                        max="100"
+                        className="assessment-form-input-enad"
+                        value={contractorProfitPercentage}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          setContractorProfitPercentage(Math.min(100, Math.max(0, value)));
+                          setTimeout(() => calculateTotalCosts(), 0);
+                        }}
+                        style={{ width: '100px' }}
+                      />
+                      <small className="form-hint-enad">Default: 10% of subtotal (Equipment + Labor)</small>
+                    </div>
+                  </div>
+                  <div className="cost-calculation">
+                    <div className="cost-detail">
+                      <span>Subtotal (Equipment + Labor):</span>
+                      <span>{formatCurrency(calculatedCosts.subtotalCost)}</span>
+                    </div>
+                    <div className="cost-detail">
+                      <span>Contractor Profit ({contractorProfitPercentage}%):</span>
+                      <span>{formatCurrency(calculatedCosts.contractorProfitCost)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Complete Cost Summary */}
+                <div className="cost-summary-large">
                   <h3>Complete Cost Summary</h3>
-                  <div className="summary-row"><span>Solar Panels:</span><span>{formatCurrency(freeQuoteCalculatedCosts.panelCost)}</span></div>
-                  <div className="summary-row"><span>Inverters:</span><span>{formatCurrency(freeQuoteCalculatedCosts.inverterCost)}</span></div>
-                  <div className="summary-row"><span>Batteries:</span><span>{formatCurrency(freeQuoteCalculatedCosts.batteryCost)}</span></div>
-                  <div className="summary-row"><span>Mounting Structure:</span><span>{formatCurrency(freeQuoteCalculatedCosts.mountingCost)}</span></div>
-                  <div className="summary-row"><span>Electrical Components:</span><span>{formatCurrency(freeQuoteCalculatedCosts.electricalCost)}</span></div>
-                  <div className="summary-row"><span>Cables and Wiring:</span><span>{formatCurrency(freeQuoteCalculatedCosts.cableCost)}</span></div>
-                  <div className="summary-row"><span>Junction Boxes:</span><span>{formatCurrency(freeQuoteCalculatedCosts.junctionBoxCost)}</span></div>
-                  <div className="summary-row"><span>Disconnect Switches:</span><span>{formatCurrency(freeQuoteCalculatedCosts.disconnectSwitchCost)}</span></div>
-                  <div className="summary-row"><span>Meters:</span><span>{formatCurrency(freeQuoteCalculatedCosts.meterCost)}</span></div>
-                  <div className="summary-row"><span>Additional Equipment:</span><span>{formatCurrency(freeQuoteCalculatedCosts.additionalCost)}</span></div>
-                  <div className="summary-row"><span>Equipment Total:</span><span>{formatCurrency(freeQuoteCalculatedCosts.totalEquipmentCost)}</span></div>
-                  <div className="summary-row"><span>Installation Labor:</span><span>{formatCurrency(freeQuoteCalculatedCosts.installationLaborCost)}</span></div>
-                  <div className="summary-row total"><span>TOTAL SYSTEM COST:</span><span>{formatCurrency(freeQuoteCalculatedCosts.totalSystemCost)}</span></div>
+                  <div className="summary-row"><span>Solar Panels:</span><span>{formatCurrency(calculatedCosts.panelCost)}</span></div>
+                  <div className="summary-row"><span>Inverters:</span><span>{formatCurrency(calculatedCosts.inverterCost)}</span></div>
+                  <div className="summary-row"><span>Batteries:</span><span>{formatCurrency(calculatedCosts.batteryCost)}</span></div>
+                  <div className="summary-row"><span>Mounting Structure:</span><span>{formatCurrency(calculatedCosts.mountingCost)}</span></div>
+                  <div className="summary-row"><span>Electrical Components:</span><span>{formatCurrency(calculatedCosts.electricalCost)}</span></div>
+                  <div className="summary-row"><span>Cables and Wiring:</span><span>{formatCurrency(calculatedCosts.cableCost)}</span></div>
+                  <div className="summary-row"><span>Junction Boxes:</span><span>{formatCurrency(calculatedCosts.junctionBoxCost)}</span></div>
+                  <div className="summary-row"><span>Disconnect Switches:</span><span>{formatCurrency(calculatedCosts.disconnectSwitchCost)}</span></div>
+                  <div className="summary-row"><span>Meters:</span><span>{formatCurrency(calculatedCosts.meterCost)}</span></div>
+                  <div className="summary-row"><span>Additional Equipment:</span><span>{formatCurrency(calculatedCosts.additionalCost)}</span></div>
+                  <div className="summary-row"><span>Equipment Total:</span><span>{formatCurrency(calculatedCosts.totalEquipmentCost)}</span></div>
+                  <div className="summary-row"><span>Installation Labor ({laborCostPercentage}%):</span><span>{formatCurrency(calculatedCosts.installationLaborCost)}</span></div>
+                  <div className="summary-row"><span>Subtotal (Equipment + Labor):</span><span>{formatCurrency(calculatedCosts.subtotalCost)}</span></div>
+                  <div className="summary-row"><span>Overhead & Contingency ({overheadContingencyPercentage}%):</span><span>{formatCurrency(calculatedCosts.overheadContingencyCost)}</span></div>
+                  <div className="summary-row"><span>Contractor Profit ({contractorProfitPercentage}%):</span><span>{formatCurrency(calculatedCosts.contractorProfitCost)}</span></div>
+                  <div className="summary-row total"><span>TOTAL SYSTEM COST:</span><span>{formatCurrency(calculatedCosts.totalSystemCost)}</span></div>
                 </div>
 
                 {/* Payment Terms & Remarks */}
@@ -2569,14 +2694,14 @@ const MyAssessments = () => {
 
                 {/* Installation Labor */}
                 <div className="quotation-section">
-                  <h4>Installation Labor</h4>
+
 
                   {/* Labor Cost Percentage Input */}
                   <div className="labor-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
                       <div>
                         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                          Labor Cost (%)
+                          Labor Cost (% of Equipment)
                         </label>
                         <input
                           type="number"
@@ -2608,8 +2733,76 @@ const MyAssessments = () => {
                       <span>{formatCurrency(calculatedCosts.installationLaborCost)}</span>
                     </div>
                     <div className="labor-total">
-                      <strong>Total Labor Cost</strong>
-                      <strong>{formatCurrency(calculatedCosts.installationLaborCost)}</strong>
+                      <strong>Subtotal</strong>
+                      <strong>{formatCurrency(calculatedCosts.subtotalCost)}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Overhead & Contingency */}
+                <div className="quotation-section">
+
+                  <div className="cost-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                        Overhead & Contingency
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        min="0"
+                        max="100"
+                        className="assessment-form-input-enad"
+                        value={overheadContingencyPercentage}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          setOverheadContingencyPercentage(Math.min(100, Math.max(0, value)));
+                          setTimeout(() => calculateTotalCosts(), 0);
+                        }}
+                        style={{ width: '100px' }}
+                      />
+
+                    </div>
+                  </div>
+                  <div className="cost-calculation">
+
+                    <div className="cost-detail">
+                      <span>Overhead & Contingency ({overheadContingencyPercentage}%):</span>
+                      <span>{formatCurrency(calculatedCosts.overheadContingencyCost)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contractor Profit */}
+                <div className="quotation-section">
+
+                  <div className="cost-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                        Contractor Profit
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        min="0"
+                        max="100"
+                        className="assessment-form-input-enad"
+                        value={contractorProfitPercentage}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          setContractorProfitPercentage(Math.min(100, Math.max(0, value)));
+                          setTimeout(() => calculateTotalCosts(), 0);
+                        }}
+                        style={{ width: '100px' }}
+                      />
+
+                    </div>
+                  </div>
+                  <div className="cost-calculation">
+
+                    <div className="cost-detail">
+                      <span>Contractor Profit ({contractorProfitPercentage}%):</span>
+                      <span>{formatCurrency(calculatedCosts.contractorProfitCost)}</span>
                     </div>
                   </div>
                 </div>
@@ -2629,6 +2822,9 @@ const MyAssessments = () => {
                   <div className="summary-row"><span>Additional Equipment:</span><span>{formatCurrency(calculatedCosts.additionalCost)}</span></div>
                   <div className="summary-row"><span>Equipment Total:</span><span>{formatCurrency(calculatedCosts.totalEquipmentCost)}</span></div>
                   <div className="summary-row"><span>Installation Labor:</span><span>{formatCurrency(calculatedCosts.installationLaborCost)}</span></div>
+                  <div className="summary-row"><span>Direct Cost:</span><span>{formatCurrency(calculatedCosts.subtotalCost)}</span></div>
+                  <div className="summary-row"><span>Overhead & Contingency:</span><span>{formatCurrency(calculatedCosts.overheadContingencyCost)}</span></div>
+                  <div className="summary-row"><span>Contractor Profit:</span><span>{formatCurrency(calculatedCosts.contractorProfitCost)}</span></div>
                   <div className="summary-row total"><span>TOTAL SYSTEM COST:</span><span>{formatCurrency(calculatedCosts.totalSystemCost)}</span></div>
                 </div>
 
@@ -2701,7 +2897,6 @@ const MyAssessments = () => {
         </div>
       </div>
 
-      {/* Deploy Device Confirmation Modal */}
       {showDeployConfirmModal && selectedItem && (
         <div className="modal-overlay-enad" onClick={closeDeployConfirmModal}>
           <div className="modal-content-enad confirm-modal-enad" onClick={e => e.stopPropagation()}>
@@ -2723,6 +2918,10 @@ const MyAssessments = () => {
                   <span className="detail-value-enad">{selectedItem.iotDeviceId?.deviceName || selectedItem.assignedDevice?.deviceName || 'IoT Device'}</span>
                 </div>
                 <div className="detail-row-enad">
+                  <span className="detail-label-enad">Device Status:</span>
+                  <span className="detail-value-enad" style={{ color: '#4CAF50' }}>Assigned ✓</span>
+                </div>
+                <div className="detail-row-enad">
                   <span className="detail-label-enad">Location:</span>
                   <span className="detail-value-enad">{getFullAddress(selectedItem.address)}</span>
                 </div>
@@ -2735,6 +2934,7 @@ const MyAssessments = () => {
                 <p>This action will:</p>
                 <ul>
                   <li>Start 7-day data collection period</li>
+                  <li>The device status will be updated to "deployed"</li>
                   <li>The device cannot be reassigned during this period</li>
                 </ul>
               </div>

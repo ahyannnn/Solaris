@@ -363,39 +363,14 @@ exports.generateQuotationPDF = async (req, res) => {
         additional: equipmentDetails?.additionalEquipment || []
       },
       installation: {
-        perKw: {
-          rate: 5000,
-          quantity: systemSize || 0,
-          total: (systemSize || 0) * 5000
-        },
-        perPanel: {
-          rate: 1000,
-          quantity: equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0,
-          total: (equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) * 1000
-        },
-        minimumFee: 10000,
-        total: Math.max(
-          ((systemSize || 0) * 5000) + ((equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) * 1000),
-          10000
-        )
+        total: installationCost || 0,
       }
     };
 
-    // Calculate totals
-    const calculatedEquipmentTotal =
-      costBreakdown.equipment.panels.total +
-      costBreakdown.equipment.inverter.total +
-      costBreakdown.equipment.battery.total +
-      costBreakdown.equipment.mountingStructure.total +
-      costBreakdown.equipment.electricalComponents.total +
-      costBreakdown.equipment.cables.total +
-      costBreakdown.equipment.junctionBoxes.total +
-      costBreakdown.equipment.disconnectSwitches.total +
-      costBreakdown.equipment.meters.total +
-      costBreakdown.equipment.additional.reduce((sum, item) => sum + (item.total || 0), 0);
-
-    const calculatedInstallationTotal = costBreakdown.installation.total;
-    const calculatedTotalCost = calculatedEquipmentTotal + calculatedInstallationTotal;
+    // Use values directly from frontend (no recalculation)
+    const calculatedEquipmentTotal = equipmentCost || 0;
+    const calculatedInstallationTotal = installationCost || 0;
+    const calculatedTotalCost = totalCost || 0;
 
     // Prepare data for PDF with IoT metrics
     const pdfData = {

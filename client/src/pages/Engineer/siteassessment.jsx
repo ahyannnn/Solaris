@@ -1252,20 +1252,8 @@ const MyAssessments = () => {
   };
 
   // Utility functions
-  const hasDeviceAssigned = (item) => {
-    // Check if device exists
-    const hasDevice = !!(item.iotDeviceId || item.assignedDevice || item.assignedDeviceId);
-
-    if (!hasDevice) return false;
-
-    // Check if device status is 'assigned'
-    // Status could be in different places depending on your data structure
-    const deviceStatus = item.iotDeviceId?.status ||
-      item.assignedDevice?.status ||
-      item.deviceStatus ||
-      item.iotDeviceStatus;
-
-    return hasDevice && deviceStatus === 'assigned';
+   const hasDeviceAssigned = (item) => {
+    return !!(item.iotDeviceId || item.assignedDevice || item.assignedDeviceId);
   };
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';

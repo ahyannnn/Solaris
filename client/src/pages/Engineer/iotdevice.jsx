@@ -516,13 +516,13 @@ const IoTDevice = () => {
                 {/* Stats Cards - Display only */}
                 {sensorStats && hasValidSensorData && (
                   <div className="stats-cards-iotdevicead">
-                   
+
                     <div className="stat-card-iotdevicead irradiance-iotdevicead">
                       <FaSun />
                       <div>
                         <span className="stat-value-iotdevicead">{sensorStats.peakSunHours?.toFixed(1) || 0} h/day</span>
-                         <span className="stat-label-iotdevicead">Peak Sun Hours</span>
-                       </div>
+                        <span className="stat-label-iotdevicead">Peak Sun Hours</span>
+                      </div>
                     </div>
                     <div className="stat-card-iotdevicead irradiance-iotdevicead">
                       <FaSun />
@@ -570,7 +570,11 @@ const IoTDevice = () => {
                           <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="timestamp" tickFormatter={formatAxisDate} domain={['auto', 'auto']} tick={{ fontSize: 11 }} />
-                            <YAxis label={{ value: 'Irradiance (W/m²)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }} tick={{ fontSize: 11 }} />
+                            <YAxis
+                              domain={[0, 'auto']}
+                              label={{ value: 'Irradiance (W/m²)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }}
+                              tick={{ fontSize: 11 }}
+                            />
                             <Tooltip content={<CustomChartTooltip />} cursor={{ stroke: '#f97316', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
                             <Legend wrapperStyle={{ fontSize: '12px' }} />
                             <Area type="monotone" dataKey="irradiance" stroke="#f97316" fill="#fed7aa" name="Irradiance" isAnimationActive={false} activeDot={{ r: 6, strokeWidth: 2 }} />
@@ -586,12 +590,41 @@ const IoTDevice = () => {
                           <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="timestamp" tickFormatter={formatAxisDate} domain={['auto', 'auto']} tick={{ fontSize: 11 }} />
-                            <YAxis yAxisId="left" label={{ value: 'Temperature (°C)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }} tick={{ fontSize: 11 }} />
-                            <YAxis yAxisId="right" orientation="right" label={{ value: 'Humidity (%)', angle: 90, position: 'insideRight', style: { fontSize: '11px', fill: '#64748b' } }} tick={{ fontSize: 11 }} />
+                            <YAxis
+                              yAxisId="left"
+                              domain={[0, 50]}  // ✅ Temperature range: 0 to 50°C
+                              label={{ value: 'Temperature (°C)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }}
+                              tick={{ fontSize: 11 }}
+                            />
+                            <YAxis
+                              yAxisId="right"
+                              orientation="right"
+                              domain={[0, 100]}  // ✅ Humidity range: 0 to 100%
+                              label={{ value: 'Humidity (%)', angle: 90, position: 'insideRight', style: { fontSize: '11px', fill: '#64748b' } }}
+                              tick={{ fontSize: 11 }}
+                            />
                             <Tooltip content={<CustomChartTooltip />} cursor={{ stroke: '#94a3b8', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
                             <Legend wrapperStyle={{ fontSize: '12px' }} />
-                            <Line yAxisId="left" type="monotone" dataKey="temperature" stroke="#ef4444" name="Temperature" dot={false} isAnimationActive={false} activeDot={{ r: 6, strokeWidth: 2 }} />
-                            <Line yAxisId="right" type="monotone" dataKey="humidity" stroke="#3b82f6" name="Humidity" dot={false} isAnimationActive={false} activeDot={{ r: 6, strokeWidth: 2 }} />
+                            <Line
+                              yAxisId="left"
+                              type="monotone"
+                              dataKey="temperature"
+                              stroke="#ef4444"
+                              name="Temperature"
+                              dot={false}
+                              isAnimationActive={false}
+                              activeDot={{ r: 6, strokeWidth: 2 }}
+                            />
+                            <Line
+                              yAxisId="right"
+                              type="monotone"
+                              dataKey="humidity"
+                              stroke="#3b82f6"
+                              name="Humidity"
+                              dot={false}
+                              isAnimationActive={false}
+                              activeDot={{ r: 6, strokeWidth: 2 }}
+                            />
                           </ComposedChart>
                         </ResponsiveContainer>
                       </div>

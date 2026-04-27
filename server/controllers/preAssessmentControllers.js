@@ -24,7 +24,6 @@ const SYSTEM_TYPES = [
   { value: 'off-grid', label: 'Off-Grid System', description: 'Standalone with batteries, not connected to grid' }
 ];
 
-
 // @desc    Create PayMongo payment intent for pre-assessment
 // @route   POST /api/pre-assessments/:id/create-payment-intent
 // @access  Private (Customer)
@@ -100,6 +99,7 @@ exports.createPayMongoPaymentIntent = async (req, res) => {
     res.status(500).json({ message: 'Failed to create payment intent', error: error.message });
   }
 };
+
 // @desc    Get PayMongo payment status
 // @route   GET /api/pre-assessments/paymongo-status/:paymentIntentId
 // @access  Private (Customer)
@@ -125,6 +125,7 @@ exports.getPayMongoPaymentStatus = async (req, res) => {
     res.status(500).json({ message: 'Failed to get payment status', error: error.message });
   }
 };
+
 // @desc    Verify PayMongo payment after redirect
 // @route   POST /api/pre-assessments/verify-paymongo-payment
 // @access  Private (Customer)
@@ -183,7 +184,8 @@ exports.verifyPayMongoPayment = async (req, res) => {
     res.status(500).json({ message: 'Failed to verify payment', error: error.message });
   }
 };
-// @desc    Generate Quotation PDF for Pre-Assessment (ENHANCED with ALL equipment)
+
+// @desc    Generate Quotation PDF for Pre-Assessment (MODIFIED with pricing model)
 // @route   POST /api/pre-assessments/:id/generate-quotation
 // @access  Private (Engineer)
 exports.generateQuotationPDF = async (req, res) => {
@@ -206,7 +208,9 @@ exports.generateQuotationPDF = async (req, res) => {
       warrantyYears,
       includeIoTData,
       iotData,  // IoT data from frontend
-      equipmentDetails  // Detailed equipment breakdown
+      equipmentDetails,  // Detailed equipment breakdown
+      overheadPercentage, // NEW: overhead override
+      profitPercentage    // NEW: profit override
     } = req.body;
 
     const assessment = await PreAssessment.findById(id)
@@ -268,15 +272,15 @@ exports.generateQuotationPDF = async (req, res) => {
             // Irradiance metrics
             averageIrradiance: avgIrradiance,
             maxIrradiance: maxIrradiance,
-            minIrradiance: minIrradiance,  // ✅ ADDED
+            minIrradiance: minIrradiance,
             peakSunHours: peakSunHours,
             // Temperature metrics
             averageTemperature: avgTemperature,
-            minTemperature: minTemperature,  // ✅ ADDED
+            minTemperature: minTemperature,
             maxTemperature: maxTemperature,
             // Humidity metrics
             averageHumidity: avgHumidity,
-            minHumidity: minHumidity,  // ✅ ADDED
+            minHumidity: minHumidity,
             maxHumidity: maxHumidity,
             // System recommendations
             recommendedSystemSize: ((avgIrradiance / 1000) * 0.8).toFixed(1),
@@ -313,14 +317,39 @@ exports.generateQuotationPDF = async (req, res) => {
       };
     }
 
-    // Prepare ENHANCED cost breakdown with ALL equipment types
+    // ---------- REVISED COST BREAKDOWN ----------
+    const panelQty = equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0;
+    const sysSize = parseFloat(systemSize) || 0;
+
+    // MODIFIED: Mounting changed to 1000 per panel (as per Excel)
+    const mountingStructureTotal = panelQty * 1000;
+
+    // MODIFIED: Default BOS fallback when no detailed equipment provided
+    const hasDetailedBOS = equipmentDetails?.electricalComponents?.length > 0 ||
+                           equipmentDetails?.cables?.length > 0 ||
+                           equipmentDetails?.junctionBoxes?.length > 0 ||
+                           equipmentDetails?.disconnectSwitches?.length > 0 ||
+                           equipmentDetails?.meters?.length > 0;
+    let totalBOS = 0;
+    if (hasDetailedBOS) {
+      totalBOS = (equipmentDetails.electricalComponents || []).reduce((sum, item) => sum + (item.total || 0), 0) +
+                 (equipmentDetails.cables || []).reduce((sum, item) => sum + (item.total || 0), 0) +
+                 (equipmentDetails.junctionBoxes || []).reduce((sum, item) => sum + (item.total || 0), 0) +
+                 (equipmentDetails.disconnectSwitches || []).reduce((sum, item) => sum + (item.total || 0), 0) +
+                 (equipmentDetails.meters || []).reduce((sum, item) => sum + (item.total || 0), 0) +
+                 (equipmentDetails.additionalEquipment || []).reduce((sum, item) => sum + (item.total || 0), 0);
+    } else {
+      // Default per-kW BOS rate (5000 PHP/kW)
+      totalBOS = sysSize * 5000;
+    }
+
     const costBreakdown = {
       equipment: {
         panels: {
           name: equipmentDetails?.panel?.name || panelType || 'Solar Panels',
-          quantity: equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0,
+          quantity: panelQty,
           unitPrice: equipmentDetails?.panel?.price || 0,
-          total: (equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) * (equipmentDetails?.panel?.price || 0)
+          total: panelQty * (equipmentDetails?.panel?.price || 0)
         },
         inverter: {
           name: equipmentDetails?.inverter?.name || inverterType || 'Inverter',
@@ -336,66 +365,59 @@ exports.generateQuotationPDF = async (req, res) => {
         },
         mountingStructure: {
           name: equipmentDetails?.mountingStructure?.name || 'Mounting Structure',
-          quantity: equipmentDetails?.mountingStructureQuantity || Math.ceil((equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) / 4),
-          unitPrice: equipmentDetails?.mountingStructure?.price || 3500,
-          total: (equipmentDetails?.mountingStructureQuantity || Math.ceil((equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) / 4)) * (equipmentDetails?.mountingStructure?.price || 3500)
+          quantity: panelQty,
+          unitPrice: 1000,   // Fixed 1000 per panel
+          total: mountingStructureTotal
         },
         electricalComponents: {
           items: equipmentDetails?.electricalComponents || [],
-          total: (equipmentDetails?.electricalComponents || []).reduce((sum, item) => sum + (item.total || 0), 0)
+          total: hasDetailedBOS ? (equipmentDetails?.electricalComponents || []).reduce((sum, item) => sum + (item.total || 0), 0) : 0
         },
         cables: {
           items: equipmentDetails?.cables || [],
-          total: (equipmentDetails?.cables || []).reduce((sum, item) => sum + (item.total || 0), 0)
+          total: hasDetailedBOS ? (equipmentDetails?.cables || []).reduce((sum, item) => sum + (item.total || 0), 0) : 0
         },
         junctionBoxes: {
           items: equipmentDetails?.junctionBoxes || [],
-          total: (equipmentDetails?.junctionBoxes || []).reduce((sum, item) => sum + (item.total || 0), 0)
+          total: hasDetailedBOS ? (equipmentDetails?.junctionBoxes || []).reduce((sum, item) => sum + (item.total || 0), 0) : 0
         },
         disconnectSwitches: {
           items: equipmentDetails?.disconnectSwitches || [],
-          total: (equipmentDetails?.disconnectSwitches || []).reduce((sum, item) => sum + (item.total || 0), 0)
+          total: hasDetailedBOS ? (equipmentDetails?.disconnectSwitches || []).reduce((sum, item) => sum + (item.total || 0), 0) : 0
         },
         meters: {
           items: equipmentDetails?.meters || [],
-          total: (equipmentDetails?.meters || []).reduce((sum, item) => sum + (item.total || 0), 0)
+          total: hasDetailedBOS ? (equipmentDetails?.meters || []).reduce((sum, item) => sum + (item.total || 0), 0) : 0
         },
-        additional: equipmentDetails?.additionalEquipment || []
+        additional: equipmentDetails?.additionalEquipment || [],
+        bosTotal: totalBOS   // aggregated BOS
       },
       installation: {
-        perKw: {
-          rate: 5000,
-          quantity: systemSize || 0,
-          total: (systemSize || 0) * 5000
-        },
-        perPanel: {
-          rate: 1000,
-          quantity: equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0,
-          total: (equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) * 1000
-        },
-        minimumFee: 10000,
-        total: Math.max(
-          ((systemSize || 0) * 5000) + ((equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0) * 1000),
-          10000
-        )
+        // MODIFIED: installation cost = 5000 * systemSize_kW only, min 10000
+        ratePerKw: 5000,
+        systemSizeKw: sysSize,
+        total: Math.max(sysSize * 5000, 10000)
       }
     };
 
-    // Calculate totals
+    // Sum all equipment items (including BOS total and additional)
     const calculatedEquipmentTotal =
       costBreakdown.equipment.panels.total +
       costBreakdown.equipment.inverter.total +
       costBreakdown.equipment.battery.total +
       costBreakdown.equipment.mountingStructure.total +
-      costBreakdown.equipment.electricalComponents.total +
-      costBreakdown.equipment.cables.total +
-      costBreakdown.equipment.junctionBoxes.total +
-      costBreakdown.equipment.disconnectSwitches.total +
-      costBreakdown.equipment.meters.total +
+      totalBOS +
       costBreakdown.equipment.additional.reduce((sum, item) => sum + (item.total || 0), 0);
 
     const calculatedInstallationTotal = costBreakdown.installation.total;
-    const calculatedTotalCost = calculatedEquipmentTotal + calculatedInstallationTotal;
+    const directCost = calculatedEquipmentTotal + calculatedInstallationTotal;
+
+    // NEW: Overhead and profit (configurable, defaults 10% overhead, 20% profit)
+    const ohPct = (overheadPercentage !== undefined ? parseFloat(overheadPercentage) : 10) / 100;
+    const profitPct = (profitPercentage !== undefined ? parseFloat(profitPercentage) : 20) / 100;
+    const overheadAmount = directCost * ohPct;
+    const profitAmount = directCost * profitPct;
+    const calculatedTotalCost = directCost + overheadAmount + profitAmount;
 
     // Prepare data for PDF with IoT metrics
     const pdfData = {
@@ -408,9 +430,9 @@ exports.generateQuotationPDF = async (req, res) => {
         `${assessment.addressId.houseOrBuilding} ${assessment.addressId.street}, ${assessment.addressId.barangay}, ${assessment.addressId.cityMunicipality}` : null,
       quotationNumber: quotationNumber || `Q-${assessment.bookingReference}`,
       quotationExpiryDate: quotationExpiryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      systemSize: parseFloat(systemSize),
+      systemSize: sysSize,
       systemTypeLabel: SYSTEM_TYPES.find(t => t.value === systemType)?.label || systemType,
-      panelsNeeded: equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0,
+      panelsNeeded: panelQty,
       panelType: equipmentDetails?.panel?.name || panelType,
       inverterType: equipmentDetails?.inverter?.name || inverterType,
       batteryType: equipmentDetails?.battery?.name || batteryType,
@@ -420,6 +442,8 @@ exports.generateQuotationPDF = async (req, res) => {
       calculatedEquipmentTotal,
       calculatedInstallationTotal,
       calculatedTotalCost,
+      overheadAmount,
+      profitAmount,
       iotAnalysis,  // Now includes min/max fields
       siteAssessment: {
         roofCondition: assessment.engineerAssessment?.roofCondition,
@@ -430,18 +454,18 @@ exports.generateQuotationPDF = async (req, res) => {
         recommendations: assessment.engineerAssessment?.recommendations
       },
       performanceEstimates: iotAnalysis ? {
-        annualProduction: iotAnalysis.annualProduction || (systemSize || 0) * 1200,
-        annualSavings: iotAnalysis.estimatedAnnualSavings || (calculatedTotalCost || 0) * 0.15,
+        annualProduction: iotAnalysis.annualProduction || sysSize * 1200,
+        annualSavings: iotAnalysis.estimatedAnnualSavings || calculatedTotalCost * 0.15,
         monthlySavings: iotAnalysis.estimatedMonthlySavings || 0,
-        paybackPeriod: iotAnalysis.paybackPeriod || Math.ceil((calculatedTotalCost || 0) / ((systemSize || 1) * 1200 * 0.1)),
-        co2Offset: iotAnalysis.co2Offset || (systemSize || 0) * 800,
+        paybackPeriod: iotAnalysis.paybackPeriod || Math.ceil(calculatedTotalCost / ((sysSize || 1) * 1200 * 0.1)),
+        co2Offset: iotAnalysis.co2Offset || sysSize * 800,
         siteSuitabilityScore: iotAnalysis.siteSuitabilityScore || 85
       } : {
-        annualProduction: (systemSize || 0) * 1200,
-        annualSavings: (calculatedTotalCost || 0) * 0.15,
+        annualProduction: sysSize * 1200,
+        annualSavings: calculatedTotalCost * 0.15,
         monthlySavings: 0,
-        paybackPeriod: Math.ceil((calculatedTotalCost || 0) / ((systemSize || 1) * 1200 * 0.1)),
-        co2Offset: (systemSize || 0) * 800,
+        paybackPeriod: Math.ceil(calculatedTotalCost / ((sysSize || 1) * 1200 * 0.1)),
+        co2Offset: sysSize * 800,
         siteSuitabilityScore: 85
       },
       dataCollectionStart: assessment.dataCollectionStart,
@@ -492,11 +516,13 @@ exports.generateQuotationPDF = async (req, res) => {
       relatedId: assessment._id,
       metadata: {
         quotationNumber: quotationNumber || `Q-${assessment.bookingReference}`,
-        systemSize,
+        systemSize: sysSize,
         systemType,
         totalCost: calculatedTotalCost,
         includeIoTData: !!includeIoTData,
         hasIoTData: !!iotAnalysis,
+        overheadPercentage: overheadPercentage || 10,
+        profitPercentage: profitPercentage || 20,
         generatedAt: new Date().toISOString()
       }
     });
@@ -511,9 +537,9 @@ exports.generateQuotationPDF = async (req, res) => {
       quotationDate: new Date(),
       quotationExpiryDate: quotationExpiryDate ? new Date(quotationExpiryDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       systemDetails: {
-        systemSize: parseFloat(systemSize),
+        systemSize: sysSize,
         systemType,
-        panelsNeeded: equipmentDetails?.panelQuantity || parseInt(panelsNeeded) || 0,
+        panelsNeeded: panelQty,
         panelType: equipmentDetails?.panel?.name || panelType,
         inverterType: equipmentDetails?.inverter?.name || inverterType,
         batteryType: equipmentDetails?.battery?.name || batteryType,
@@ -532,7 +558,8 @@ exports.generateQuotationPDF = async (req, res) => {
           junctionBoxes: costBreakdown.equipment.junctionBoxes,
           disconnectSwitches: costBreakdown.equipment.disconnectSwitches,
           meters: costBreakdown.equipment.meters,
-          additional: costBreakdown.equipment.additional
+          additional: costBreakdown.equipment.additional,
+          bosTotal: totalBOS
         }
       },
       generatedAt: new Date(),
@@ -554,6 +581,8 @@ exports.generateQuotationPDF = async (req, res) => {
         totalCost: calculatedTotalCost,
         equipmentCost: calculatedEquipmentTotal,
         installationCost: calculatedInstallationTotal,
+        overhead: overheadAmount,
+        profit: profitAmount,
         size: `${(pdfBuffer.length / 1024).toFixed(1)} KB`
       }
     });
@@ -564,7 +593,7 @@ exports.generateQuotationPDF = async (req, res) => {
   }
 };
 
-// @desc    Generate Free Quote PDF
+// @desc    Generate Free Quote PDF (unchanged)
 // @route   POST /api/free-quotes/:id/generate-quotation
 // @access  Private (Engineer)
 exports.generateFreeQuotePDF = async (req, res) => {
@@ -691,78 +720,10 @@ exports.generateFreeQuotePDF = async (req, res) => {
     res.status(500).json({ message: 'Failed to generate quotation PDF', error: error.message });
   }
 };
+
 // @desc    Create a new pre-assessment booking
 // @route   POST /api/pre-assessments
 // @access  Private (Customer)
-// controllers/preAssessmentControllers.js
-
-// controllers/preAssessmentControllers.js
-// controllers/preAssessmentControllers.js
-
-// @desc    Approve or reject booking (Admin only)
-// @route   PUT /api/pre-assessments/:id/approve-booking
-// @access  Private (Admin)
-// controllers/preAssessmentControllers.js
-
-// @desc    Approve or reject booking (Admin only)
-// @route   PUT /api/pre-assessments/:id/approve-booking
-// @access  Private (Admin)
-exports.approveBooking = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { approved, notes } = req.body;
-
-    const assessment = await PreAssessment.findById(id);
-    if (!assessment) {
-      return res.status(404).json({ message: 'Pre-assessment not found' });
-    }
-
-    // Check if booking is pending review
-    if (assessment.assessmentStatus !== 'pending_review') {
-      return res.status(400).json({ message: 'Booking already processed' });
-    }
-
-    if (approved) {
-      // Generate invoice number only when approved
-      const date = new Date();
-      const year = date.getFullYear().toString().slice(-2);
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-      const invoiceNumber = `INV-${year}${month}${day}-${random}`;
-
-      assessment.invoiceNumber = invoiceNumber;
-      assessment.paymentStatus = 'pending';
-      assessment.assessmentStatus = 'pending_payment'; // After approval, goes to pending payment
-      assessment.adminRemarks = notes || 'Booking approved';
-    } else {
-      assessment.assessmentStatus = 'cancelled';
-      assessment.adminRemarks = notes || 'Booking rejected by admin';
-    }
-
-    await assessment.save();
-
-    res.json({
-      success: true,
-      message: approved ? 'Booking approved. Invoice generated.' : 'Booking rejected.',
-      assessment: {
-        _id: assessment._id,
-        bookingReference: assessment.bookingReference,
-        invoiceNumber: assessment.invoiceNumber,
-        assessmentStatus: assessment.assessmentStatus,
-        paymentStatus: assessment.paymentStatus
-      }
-    });
-
-  } catch (error) {
-    console.error('Approve booking error:', error);
-    res.status(500).json({ message: 'Failed to process booking' });
-  }
-};
-// controllers/preAssessmentControllers.js
-
-// controllers/preAssessmentControllers.js
-
 exports.createPreAssessment = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -772,9 +733,9 @@ exports.createPreAssessment = async (req, res) => {
       propertyType,
       desiredCapacity,
       roofType,
-      roofLength,      // Add this
-      roofWidth,       // Add this
-      systemType, // Add this
+      roofLength,
+      roofWidth,
+      systemType,
       preferredDate
     } = req.body;
 
@@ -804,10 +765,10 @@ exports.createPreAssessment = async (req, res) => {
       addressId,
       propertyType,
       desiredCapacity: desiredCapacity || '',
-      systemType: systemType || null, // Add this
+      systemType: systemType || null,
       roofType: roofType || '',
-      roofLength: roofLength ? parseFloat(roofLength) : null,      // Add this
-      roofWidth: roofWidth ? parseFloat(roofWidth) : null,        // Add this
+      roofLength: roofLength ? parseFloat(roofLength) : null,
+      roofWidth: roofWidth ? parseFloat(roofWidth) : null,
       preferredDate: new Date(preferredDate),
       paymentStatus: 'pending',
       assessmentStatus: 'pending_review',
@@ -826,8 +787,8 @@ exports.createPreAssessment = async (req, res) => {
         preferredDate: preAssessment.preferredDate,
         assessmentStatus: preAssessment.assessmentStatus,
         paymentStatus: preAssessment.paymentStatus,
-        roofLength: preAssessment.roofLength,    // Add this
-        roofWidth: preAssessment.roofWidth       // Add this
+        roofLength: preAssessment.roofLength,
+        roofWidth: preAssessment.roofWidth
       }
     });
 
@@ -836,6 +797,7 @@ exports.createPreAssessment = async (req, res) => {
     res.status(500).json({ message: 'Failed to book pre-assessment', error: error.message });
   }
 };
+
 // @desc    Submit GCash payment with proof
 // @route   POST /api/pre-assessments/submit-payment
 // @access  Private (Customer)
@@ -912,6 +874,7 @@ exports.submitPayment = async (req, res) => {
     res.status(500).json({ message: 'Failed to submit payment' });
   }
 };
+
 // @desc    Submit payment proof (GCash) with Cloudinary storage
 // @route   POST /api/pre-assessments/payment
 // @access  Private (Customer)
@@ -1095,7 +1058,7 @@ exports.verifyPayment = async (req, res) => {
         preAssessment.autoVerified = false;
       }
 
-      // ✅ GENERATE RECEIPT
+      // GENERATE RECEIPT
       try {
         const customerName = `${preAssessment.clientId.contactFirstName || ''} ${preAssessment.clientId.contactLastName || ''}`.trim();
 
@@ -1123,7 +1086,6 @@ exports.verifyPayment = async (req, res) => {
         console.log(`✅ Receipt generated for pre-assessment ${preAssessment.bookingReference}: ${receipt.receiptNumber}`);
       } catch (receiptError) {
         console.error('Receipt generation error:', receiptError);
-        // Don't block verification if receipt fails, just log it
       }
 
     } else {
@@ -1157,10 +1119,62 @@ exports.verifyPayment = async (req, res) => {
     res.status(500).json({ message: 'Failed to verify payment', error: error.message });
   }
 };
-// ============ ENGINEER ASSESSMENT FUNCTIONS ============
 
-// In preAssessmentControllers.js, update the getEngineerAssessments function:
-// Add to preAssessmentControllers.js
+// @desc    Approve or reject booking (Admin only)
+// @route   PUT /api/pre-assessments/:id/approve-booking
+// @access  Private (Admin)
+exports.approveBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approved, notes } = req.body;
+
+    const assessment = await PreAssessment.findById(id);
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    if (assessment.assessmentStatus !== 'pending_review') {
+      return res.status(400).json({ message: 'Booking already processed' });
+    }
+
+    if (approved) {
+      const date = new Date();
+      const year = date.getFullYear().toString().slice(-2);
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      const invoiceNumber = `INV-${year}${month}${day}-${random}`;
+
+      assessment.invoiceNumber = invoiceNumber;
+      assessment.paymentStatus = 'pending';
+      assessment.assessmentStatus = 'pending_payment';
+      assessment.adminRemarks = notes || 'Booking approved';
+    } else {
+      assessment.assessmentStatus = 'cancelled';
+      assessment.adminRemarks = notes || 'Booking rejected by admin';
+    }
+
+    await assessment.save();
+
+    res.json({
+      success: true,
+      message: approved ? 'Booking approved. Invoice generated.' : 'Booking rejected.',
+      assessment: {
+        _id: assessment._id,
+        bookingReference: assessment.bookingReference,
+        invoiceNumber: assessment.invoiceNumber,
+        assessmentStatus: assessment.assessmentStatus,
+        paymentStatus: assessment.paymentStatus
+      }
+    });
+
+  } catch (error) {
+    console.error('Approve booking error:', error);
+    res.status(500).json({ message: 'Failed to process booking' });
+  }
+};
+
+// ============ ENGINEER ASSESSMENT FUNCTIONS ============
 
 // @desc    Analyze IoT data and generate recommendations
 // @route   POST /api/pre-assessments/:id/analyze-iot-data
@@ -1179,7 +1193,6 @@ exports.analyzeIoTData = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    // Fetch sensor data
     const sensorData = await SensorData.find({
       preAssessmentId: assessment._id
     }).sort({ timestamp: 1 });
@@ -1188,7 +1201,6 @@ exports.analyzeIoTData = async (req, res) => {
       return res.status(400).json({ message: 'No sensor data available for analysis' });
     }
 
-    // Calculate statistics
     const irradianceValues = sensorData.map(d => d.irradiance || 0).filter(v => v > 0);
     const temperatureValues = sensorData.map(d => d.temperature || 0);
     const humidityValues = sensorData.map(d => d.humidity || 0);
@@ -1206,10 +1218,8 @@ exports.analyzeIoTData = async (req, res) => {
     const minHumidity = Math.min(...humidityValues);
     const maxHumidity = Math.max(...humidityValues);
 
-    // Calculate recommended system size based on irradiance
     const recommendedSystemSize = (peakSunHours * 0.8).toFixed(1);
 
-    // Determine optimal orientation based on time of day analysis
     const hourData = {};
     sensorData.forEach(d => {
       const hour = new Date(d.timestamp).getHours();
@@ -1231,7 +1241,6 @@ exports.analyzeIoTData = async (req, res) => {
       peakHour > 12 ? 'West-facing' : 'South-facing';
     const recommendedTiltAngle = Math.min(45, Math.max(10, Math.floor(peakSunHours * 3)));
 
-    // Calculate shading percentage
     const shadingPercentage = ((irradianceValues.filter(v => v < 200).length / irradianceValues.length) * 100).toFixed(1);
 
     const analysisResults = {
@@ -1254,12 +1263,11 @@ exports.analyzeIoTData = async (req, res) => {
       dataCollectionEnd: assessment.dataCollectionEnd
     };
 
-    // Store analysis in assessment
     assessment.assessmentResults = {
       totalIrradiance: irradianceValues.reduce((a, b) => a + b, 0),
       averageTemperature,
       shadingPercentage: parseFloat(shadingPercentage),
-      recommendedPanelCount: Math.ceil(recommendedSystemSize * 1000 / 400), // Assuming 400W panels
+      recommendedPanelCount: Math.ceil(recommendedSystemSize * 1000 / 400),
       estimatedSystemSize: recommendedSystemSize,
       structuralAssessment: assessment.engineerAssessment?.structuralIntegrity || 'Pending',
       electricalAssessment: 'Based on site inspection',
@@ -1279,6 +1287,7 @@ exports.analyzeIoTData = async (req, res) => {
     res.status(500).json({ message: 'Failed to analyze IoT data', error: error.message });
   }
 };
+
 exports.getEngineerAssessments = async (req, res) => {
   try {
     const engineerId = req.user.id;
@@ -1308,11 +1317,8 @@ exports.getEngineerAssessments = async (req, res) => {
 
     const total = await PreAssessment.countDocuments(query);
 
-    // Console log collected emails
     assessments.forEach((assessment, index) => {
       const email = assessment.clientId?.userId?.email;
-
-
     });
 
     res.json({
@@ -1383,8 +1389,6 @@ exports.startAssessment = async (req, res) => {
   }
 };
 
-// controllers/preAssessmentControllers.js
-
 // @desc    Update site assessment details (Engineer)
 // @route   PUT /api/pre-assessments/:id/update-assessment
 // @access  Private (Engineer)
@@ -1394,8 +1398,8 @@ exports.updateSiteAssessment = async (req, res) => {
     const engineerId = req.user.id;
     const {
       roofCondition,
-      roofLength,                    // Add this
-      roofWidth,                     // Add this
+      roofLength,
+      roofWidth,
       structuralIntegrity,
       shadingAnalysis,
       recommendedPanelPlacement,
@@ -1418,8 +1422,8 @@ exports.updateSiteAssessment = async (req, res) => {
     if (!assessment.engineerAssessment) assessment.engineerAssessment = {};
 
     assessment.engineerAssessment.roofCondition = roofCondition;
-    assessment.engineerAssessment.roofLength = roofLength ? parseFloat(roofLength) : null;        // Add this
-    assessment.engineerAssessment.roofWidth = roofWidth ? parseFloat(roofWidth) : null;          // Add this
+    assessment.engineerAssessment.roofLength = roofLength ? parseFloat(roofLength) : null;
+    assessment.engineerAssessment.roofWidth = roofWidth ? parseFloat(roofWidth) : null;
     assessment.engineerAssessment.structuralIntegrity = structuralIntegrity;
     assessment.engineerAssessment.shadingAnalysis = shadingAnalysis;
     assessment.engineerAssessment.recommendedPanelPlacement = recommendedPanelPlacement;
@@ -1478,7 +1482,6 @@ exports.uploadQuotationPDF = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized for this assessment' });
     }
 
-    // Process the uploaded PDF
     const processedFile = await processUpload(
       req,
       req.file,
@@ -1492,7 +1495,6 @@ exports.uploadQuotationPDF = async (req, res) => {
 
     const fileUrl = getFileUrl(req, processedFile);
 
-    // Save file record
     const fileRecord = new File({
       filename: processedFile.filename,
       originalName: processedFile.originalName,
@@ -1514,7 +1516,6 @@ exports.uploadQuotationPDF = async (req, res) => {
 
     await fileRecord.save();
 
-    // Add to assessment documents
     if (!assessment.assessmentDocuments) assessment.assessmentDocuments = [];
     assessment.assessmentDocuments.push({
       fileId: fileRecord._id,
@@ -1523,7 +1524,6 @@ exports.uploadQuotationPDF = async (req, res) => {
       uploadedAt: new Date()
     });
 
-    // Update quotation details
     assessment.quotation = {
       quotationFileId: fileRecord._id,
       quotationUrl: fileUrl,
@@ -1546,7 +1546,6 @@ exports.uploadQuotationPDF = async (req, res) => {
       generatedBy: engineerId
     };
 
-    // Update final quotation field
     assessment.finalQuotation = fileUrl;
     assessment.assessmentStatus = 'report_draft';
 
@@ -1603,7 +1602,6 @@ exports.submitAssessmentReport = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized for this assessment' });
     }
 
-    // Update assessment with final results
     assessment.finalSystemSize = finalSystemSize;
     assessment.finalSystemCost = finalSystemCost;
     assessment.recommendedSystemType = recommendedSystemType;
@@ -1615,13 +1613,11 @@ exports.submitAssessmentReport = async (req, res) => {
     assessment.engineerRecommendations = engineerRecommendations;
     assessment.technicalFindings = technicalFindings;
 
-    // Update status
     assessment.assessmentStatus = 'completed';
     assessment.completedAt = new Date();
 
     await assessment.save();
 
-    // Add engineer comment
     if (!assessment.engineerComments) assessment.engineerComments = [];
     assessment.engineerComments.push({
       comment: 'Final assessment report submitted with quotation',
@@ -1712,7 +1708,6 @@ exports.addEngineerComment = async (req, res) => {
 
     await assessment.save();
 
-    // Populate user info
     await assessment.populate('engineerComments.commentedBy', 'firstName lastName email role');
 
     res.json({
@@ -1757,8 +1752,6 @@ exports.getAssessmentComments = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch comments', error: error.message });
   }
 };
-
-// ============ EXISTING FUNCTIONS ============
 
 // @desc    Get payment history for customer
 // @route   GET /api/pre-assessments/payments
@@ -1907,8 +1900,6 @@ exports.getAllPreAssessments = async (req, res) => {
   }
 };
 
-// controllers/preAssessmentControllers.js
-
 // @desc    Get client's pre-assessments
 // @route   GET /api/pre-assessments/my-bookings
 // @access  Private (Customer)
@@ -1927,7 +1918,6 @@ exports.getMyPreAssessments = async (req, res) => {
       .populate('quotation.quotationFileId')
       .sort({ bookedAt: -1 });
 
-    // Format the response to include all necessary fields
     const formattedAssessments = assessments.map(assessment => ({
       _id: assessment._id,
       bookingReference: assessment.bookingReference,
@@ -1951,7 +1941,6 @@ exports.getMyPreAssessments = async (req, res) => {
       finalQuotation: assessment.finalQuotation,
       quotationUrl: assessment.quotation?.quotationUrl || assessment.finalQuotation,
       sitePhotos: assessment.sitePhotos || [],
-      // ✅ ADD RECEIPT FIELDS
       receiptUrl: assessment.receiptUrl,
       receiptNumber: assessment.receiptNumber
     }));
@@ -1966,6 +1955,7 @@ exports.getMyPreAssessments = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch bookings', error: error.message });
   }
 };
+
 // @desc    Update payment status (Admin only)
 // @route   PUT /api/pre-assessments/:id/update-payment-status
 // @access  Private (Admin)
@@ -1991,7 +1981,6 @@ exports.updatePaymentStatus = async (req, res) => {
 
     let receipt = null;
 
-    // ✅ GENERATE RECEIPT WHEN MARKING AS PAID
     if (paymentStatus === 'paid' && oldStatus !== 'paid') {
       assessment.confirmedAt = new Date();
       assessment.verifiedBy = adminId;
@@ -2024,7 +2013,6 @@ exports.updatePaymentStatus = async (req, res) => {
         console.log(`✅ Receipt generated for cash payment: ${receipt.receiptNumber}`);
       } catch (receiptError) {
         console.error('Receipt generation error:', receiptError);
-        // Don't block status update if receipt fails
       }
     }
 
@@ -2050,6 +2038,7 @@ exports.updatePaymentStatus = async (req, res) => {
     res.status(500).json({ message: 'Failed to update payment status' });
   }
 };
+
 // @desc    Engineer deploys device on site (Engineer only)
 // @route   POST /api/pre-assessments/:id/deploy-device
 // @access  Private (Engineer)
@@ -2066,12 +2055,10 @@ exports.deployDevice = async (req, res) => {
       return res.status(404).json({ message: 'Pre-assessment not found' });
     }
 
-    // Check if engineer is assigned to this assessment
     if (assessment.assignedEngineerId?.toString() !== engineerId) {
       return res.status(403).json({ message: 'Not authorized for this assessment' });
     }
 
-    // Check if device is assigned - check both possible fields
     const deviceId = assessment.assignedDeviceId || assessment.iotDeviceId;
 
     if (!deviceId) {
@@ -2080,7 +2067,6 @@ exports.deployDevice = async (req, res) => {
       });
     }
 
-    // Find the device
     const device = await IoTDevice.findById(deviceId);
     if (!device) {
       return res.status(404).json({ message: 'Assigned device not found' });
@@ -2089,9 +2075,7 @@ exports.deployDevice = async (req, res) => {
     console.log('Current device status:', device.status);
     console.log('Current assessment status:', assessment.assessmentStatus);
 
-    // Check if device is already deployed
     if (device.status === 'deployed' || device.status === 'data_collecting') {
-      // If already deployed, just update the assessment if needed
       if (assessment.assessmentStatus !== 'device_deployed') {
         assessment.assessmentStatus = 'device_deployed';
         assessment.deviceDeployedAt = new Date();
@@ -2116,9 +2100,7 @@ exports.deployDevice = async (req, res) => {
       });
     }
 
-    // Check if device is in assigned status
     if (device.status !== 'assigned') {
-      // If device is available, we need to update it to assigned first
       if (device.status === 'available') {
         console.log('Device is available, updating to assigned first...');
         device.status = 'assigned';
@@ -2133,13 +2115,11 @@ exports.deployDevice = async (req, res) => {
       }
     }
 
-    // Engineer deploys device on site
     device.status = 'deployed';
     device.deployedAt = new Date();
     device.deployedBy = engineerId;
     device.deploymentNotes = notes || 'Device deployed on site';
 
-    // Update deployment history
     if (device.deploymentHistory && device.deploymentHistory.length > 0) {
       const lastDeployment = device.deploymentHistory[device.deploymentHistory.length - 1];
       if (lastDeployment) {
@@ -2148,7 +2128,6 @@ exports.deployDevice = async (req, res) => {
         lastDeployment.notes = notes;
       }
     } else {
-      // If no deployment history, create one
       device.deploymentHistory = [{
         preAssessmentId: assessment._id,
         assignedAt: device.assignedAt || new Date(),
@@ -2162,7 +2141,6 @@ exports.deployDevice = async (req, res) => {
     await device.save();
     console.log('✅ Device status updated to: deployed');
 
-    // Update assessment
     assessment.iotDeviceId = device._id;
     assessment.assignedDeviceId = device._id;
     assessment.deviceDeployedAt = new Date();
@@ -2211,7 +2189,6 @@ exports.uploadSiteImages = async (req, res) => {
       return res.status(404).json({ message: 'Pre-assessment not found' });
     }
 
-    // Check if engineer is assigned
     if (assessment.assignedEngineerId?.toString() !== engineerId) {
       return res.status(403).json({ message: 'Not authorized' });
     }
@@ -2239,7 +2216,6 @@ exports.uploadSiteImages = async (req, res) => {
           console.log(`✅ Uploaded: ${processedFile.filename} (${processedFile.storageType})`);
           imageUrls.push(processedFile.url);
 
-          // Create file record
           const fileRecord = new File({
             filename: processedFile.filename,
             originalName: file.originalname,
@@ -2277,15 +2253,12 @@ exports.uploadSiteImages = async (req, res) => {
       });
     }
 
-    // Initialize sitePhotos array if it doesn't exist
     if (!assessment.sitePhotos) {
       assessment.sitePhotos = [];
     }
 
-    // Add new images to existing ones
     assessment.sitePhotos.push(...imageUrls);
 
-    // Store file references in assessment documents
     if (!assessment.assessmentDocuments) {
       assessment.assessmentDocuments = [];
     }
@@ -2453,7 +2426,6 @@ exports.getIoTData = async (req, res) => {
     console.log('Assessment ID:', id);
     console.log('Engineer ID:', engineerId);
 
-    // IMPORTANT: Populate the iotDeviceId to get the full device object
     const assessment = await PreAssessment.findById(id).populate('iotDeviceId');
 
     if (!assessment) {
@@ -2469,13 +2441,11 @@ exports.getIoTData = async (req, res) => {
       assignedEngineerId: assessment.assignedEngineerId
     });
 
-    // Check if engineer is assigned to this assessment
     if (assessment.assignedEngineerId.toString() !== engineerId) {
       console.log('❌ Authorization failed');
       return res.status(403).json({ message: 'Not authorized to view this data' });
     }
 
-    // Get the actual deviceId from the populated iotDeviceId object
     const deviceId = assessment.iotDeviceId?.deviceId;
 
     if (!deviceId) {
@@ -2485,7 +2455,6 @@ exports.getIoTData = async (req, res) => {
 
     console.log('✅ Using deviceId:', deviceId);
 
-    // Build date range query
     let dateQuery = {};
     const now = new Date();
 
@@ -2508,7 +2477,6 @@ exports.getIoTData = async (req, res) => {
     console.log('Searching SensorData for deviceId:', deviceId);
     console.log('Date query:', dateQuery);
 
-    // Get IoT data from SensorData table
     const sensorData = await SensorData.find({
       deviceId: deviceId,
       ...dateQuery
@@ -2527,13 +2495,10 @@ exports.getIoTData = async (req, res) => {
       });
     }
 
-    // Get device for GPS data
     const device = assessment.iotDeviceId;
 
-    // Get GPS reading from the latest sensor data
     let gpsData = null;
     if (sensorData.length > 0) {
-      // Find the latest reading with GPS data
       const readingWithGps = sensorData.find(r => r.gps && (r.gps.latitude || r.gps.longitude));
       if (readingWithGps && readingWithGps.gps) {
         gpsData = readingWithGps.gps;
@@ -2541,13 +2506,11 @@ exports.getIoTData = async (req, res) => {
       }
     }
 
-    // If no GPS from sensor, use assessment address
     if (!gpsData && assessment.addressId) {
       console.log('No GPS data from sensor, using assessment address');
       gpsData = { latitude: null, longitude: null };
     }
 
-    // Calculate statistics
     const stats = {
       totalReadings: sensorData.length,
       dataCollectionStart: assessment.dataCollectionStart,
@@ -2567,12 +2530,10 @@ exports.getIoTData = async (req, res) => {
     if (sensorData.length > 0) {
       console.log('Calculating statistics...');
 
-      // Irradiance stats
       const irradianceValues = sensorData.map(d => d.irradiance || 0);
       stats.averageIrradiance = irradianceValues.reduce((a, b) => a + b, 0) / irradianceValues.length;
       stats.maxIrradiance = Math.max(...irradianceValues);
 
-      // Temperature stats
       const tempValues = sensorData.map(d => d.temperature).filter(t => t && t !== 0);
       if (tempValues.length > 0) {
         stats.averageTemperature = tempValues.reduce((a, b) => a + b, 0) / tempValues.length;
@@ -2580,7 +2541,6 @@ exports.getIoTData = async (req, res) => {
         stats.maxTemperature = Math.max(...tempValues);
       }
 
-      // Humidity stats
       const humidityValues = sensorData.map(d => d.humidity).filter(h => h && h !== 0);
       if (humidityValues.length > 0) {
         stats.averageHumidity = humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length;
@@ -2588,12 +2548,10 @@ exports.getIoTData = async (req, res) => {
         stats.maxHumidity = Math.max(...humidityValues);
       }
 
-      // Calculate peak sun hours
       const peakReadings = irradianceValues.filter(i => i > 200).length;
       stats.peakSunHours = Math.round((peakReadings / 4) * 10) / 10;
     }
 
-    // Format readings for frontend
     const formattedReadings = sensorData.map(reading => ({
       timestamp: reading.timestamp,
       irradiance: reading.irradiance || 0,
@@ -2623,7 +2581,7 @@ exports.getIoTData = async (req, res) => {
   }
 };
 
-// @desc    Retrieve device after data collection and save data to pre-assessment
+// @desc    Retrieve device after data collection and save data to pre-assessment (MODIFIED panel wattage)
 // @route   PUT /api/pre-assessments/:id/retrieve-device
 // @access  Private (Engineer)
 exports.retrieveDevice = async (req, res) => {
@@ -2645,19 +2603,16 @@ exports.retrieveDevice = async (req, res) => {
     console.log('Current deviceDeployedAt:', assessment.deviceDeployedAt);
     console.log('Current dataCollectionStart:', assessment.dataCollectionStart);
 
-    // Check if engineer is assigned
     if (assessment.assignedEngineerId.toString() !== engineerId) {
       console.log('❌ Not authorized');
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    // Check if device exists
     if (!assessment.iotDeviceId) {
       console.log('❌ No device associated');
       return res.status(400).json({ message: 'No device associated with this assessment' });
     }
 
-    // Get device details
     const device = await IoTDevice.findById(assessment.iotDeviceId);
     if (!device) {
       console.log('❌ IoT Device not found');
@@ -2668,7 +2623,6 @@ exports.retrieveDevice = async (req, res) => {
     console.log('Device ID:', deviceId);
     console.log('Device status before:', device.status);
 
-    // Get start date for sensor query
     let startDate = assessment.deviceDeployedAt;
     
     if (!startDate) {
@@ -2684,7 +2638,6 @@ exports.retrieveDevice = async (req, res) => {
 
     console.log('Using start date for sensor query:', startDate);
 
-    // Query sensor data with progressive buffer
     let sensorData = await getSensorDataWithBuffer(deviceId, startDate);
     
     if (sensorData.length === 0) {
@@ -2695,44 +2648,34 @@ exports.retrieveDevice = async (req, res) => {
 
     console.log(`✅ Processing ${sensorData.length} sensor readings`);
 
-    // ============ CALCULATIONS ============
-    
-    // Get all value ranges using proper filtering
     const irradianceRange = getIrradianceRange(sensorData);
     const tempRange = getTemperatureRange(sensorData);
     const humidityRange = getHumidityRange(sensorData);
     
-    // Calculate Peak Sun Hours (PSH)
     const peakSunHours = calculatePeakSunHours(sensorData);
     
-    // Get daily energy consumption
     const dailyEnergyConsumption = getDailyEnergyConsumption(assessment);
     
-    // Calculate Recommended System Size (kW)
     const SYSTEM_EFFICIENCY = 0.8;
     const recommendedSystemSize = calculateRecommendedSystemSize(dailyEnergyConsumption, peakSunHours, SYSTEM_EFFICIENCY);
     
-    // Calculate Number of Panels Needed
-    const PANEL_RATING_WATTS = 400;
+    // *** MODIFIED: Panel rating changed from 400W to 550W to match Excel ***
+    const PANEL_RATING_WATTS = 550;
     const panelsNeeded = calculatePanelsNeeded(recommendedSystemSize, PANEL_RATING_WATTS);
     
-    // Calculate Optimal Panel Angle
     const latitude = assessment.addressId?.latitude || 14.5;
     const optimalAngle = calculateOptimalPanelAngle(latitude);
     
-    // Calculate other metrics
     const avgTemperature = tempRange.average;
     const shadingPercentage = calculateShadingPercentage(irradianceRange.values);
     const temperatureDerating = calculateTemperatureDerating(avgTemperature);
     
-    // Calculate financial metrics
     const estimatedAnnualProduction = calculateAnnualProduction(recommendedSystemSize, peakSunHours);
     const estimatedAnnualSavings = calculateAnnualSavings(estimatedAnnualProduction);
     const systemCost = calculateSystemCost(recommendedSystemSize);
     const paybackPeriod = calculatePaybackPeriod(systemCost, estimatedAnnualSavings);
     const co2Offset = calculateCO2Offset(estimatedAnnualProduction);
     
-    // Calculate site suitability score
     const siteSuitabilityScore = calculateSiteSuitabilityScore(peakSunHours, shadingPercentage, temperatureDerating);
 
     console.log('Calculated values:', {
@@ -2756,39 +2699,31 @@ exports.retrieveDevice = async (req, res) => {
       siteSuitabilityScore
     });
 
-    // Get GPS data
     const readingWithGps = sensorData.find(r => r.gps && (r.gps.latitude || r.gps.longitude));
     const gpsCoordinates = readingWithGps?.gps || null;
 
-    // Generate recommendations
     const recommendationsArray = generateRecommendations(peakSunHours, shadingPercentage, temperatureDerating, optimalAngle);
     const recommendationsString = recommendationsArray.join(' ');
 
-    // Save all data to assessment
     assessment.assessmentResults = {
-      // Basic Info
       dataCollectionStart: assessment.dataCollectionStart || sensorData[0]?.timestamp,
       dataCollectionEnd: new Date(),
       totalReadings: sensorData.length,
       
-      // Irradiance Metrics
       averageIrradiance: irradianceRange.average,
       maxIrradiance: irradianceRange.max,
       minIrradiance: irradianceRange.min,
       peakSunHours: peakSunHours,
       
-      // Temperature Metrics
       averageTemperature: tempRange.average,
       maxTemperature: tempRange.max,
       minTemperature: tempRange.min,
       temperatureDerating: temperatureDerating,
       
-      // Humidity Metrics
       averageHumidity: humidityRange.average,
       maxHumidity: humidityRange.max,
       minHumidity: humidityRange.min,
       
-      // Site Analysis
       shadingPercentage: shadingPercentage,
       optimalPanelAngle: optimalAngle,
       gpsCoordinates: {
@@ -2796,26 +2731,22 @@ exports.retrieveDevice = async (req, res) => {
         longitude: gpsCoordinates?.longitude || null
       },
       
-      // System Design
       dailyEnergyConsumption: dailyEnergyConsumption,
       recommendedSystemSize: recommendedSystemSize,
       panelsNeeded: panelsNeeded,
       panelRatingWatts: PANEL_RATING_WATTS,
       systemEfficiency: SYSTEM_EFFICIENCY,
       
-      // Financial Metrics
       estimatedAnnualProduction: estimatedAnnualProduction,
       estimatedAnnualSavings: estimatedAnnualSavings,
       estimatedSystemCost: systemCost,
       paybackPeriod: paybackPeriod,
       co2Offset: co2Offset,
       
-      // Suitability
       siteSuitabilityScore: siteSuitabilityScore,
       recommendations: recommendationsString
     };
 
-    // Update assessment main fields
     assessment.assessmentStatus = 'data_analyzing';
     assessment.dataCollectionEnd = new Date();
     assessment.totalReadings = sensorData.length;
@@ -2826,7 +2757,6 @@ exports.retrieveDevice = async (req, res) => {
       assessment.dataCollectionStart = sensorData[0].timestamp;
     }
     
-    // Update system design fields
     assessment.finalSystemSize = recommendedSystemSize;
     assessment.panelsNeeded = panelsNeeded;
     assessment.estimatedAnnualProduction = estimatedAnnualProduction;
@@ -2834,7 +2764,6 @@ exports.retrieveDevice = async (req, res) => {
     assessment.paybackPeriod = paybackPeriod;
     assessment.co2Offset = co2Offset;
 
-    // Update engineer assessment
     if (!assessment.engineerAssessment) {
       assessment.engineerAssessment = {};
     }
@@ -2852,7 +2781,6 @@ exports.retrieveDevice = async (req, res) => {
       average: humidityRange.average
     };
 
-    // Update device status
     if (device) {
       device.status = 'retrieved';
       device.retrievedAt = new Date();
@@ -2888,12 +2816,8 @@ exports.retrieveDevice = async (req, res) => {
   }
 };
 
-// ============ HELPER FUNCTIONS ============
+// ============ HELPER FUNCTIONS (unchanged except where noted) ============
 
-/**
- * Get Irradiance metrics (min, max, average)
- * Filters out zero values for min calculation
- */
 function getIrradianceRange(sensorData) {
   const irradianceValues = sensorData.map(d => d.irradiance || 0);
   const positiveIrradiance = irradianceValues.filter(i => i > 0);
@@ -2906,7 +2830,6 @@ function getIrradianceRange(sensorData) {
     ? Math.max(...irradianceValues) 
     : 0;
   
-  // Only use positive values for min to avoid 0
   const min = positiveIrradiance.length > 0 
     ? Math.min(...positiveIrradiance) 
     : 0;
@@ -2919,10 +2842,6 @@ function getIrradianceRange(sensorData) {
   };
 }
 
-/**
- * Get Temperature metrics (min, max, average)
- * Filters out invalid values (0, null, undefined)
- */
 function getTemperatureRange(sensorData) {
   const tempValues = sensorData
     .map(d => d.temperature)
@@ -2950,10 +2869,6 @@ function getTemperatureRange(sensorData) {
   };
 }
 
-/**
- * Get Humidity metrics (min, max, average)
- * Filters out invalid values (0, null, undefined, >100)
- */
 function getHumidityRange(sensorData) {
   const humidityValues = sensorData
     .map(d => d.humidity)
@@ -2981,10 +2896,6 @@ function getHumidityRange(sensorData) {
   };
 }
 
-/**
- * Calculate Peak Sun Hours (PSH)
- * Hours where solar irradiance reaches 1000 W/m²
- */
 function calculatePeakSunHours(sensorData) {
   if (!sensorData || sensorData.length < 2) return 4.5;
   
@@ -2995,9 +2906,7 @@ function calculatePeakSunHours(sensorData) {
     const timeDiff = (new Date(sensorData[i + 1].timestamp) - new Date(sensorData[i].timestamp)) / (1000 * 60 * 60);
     const avgIrradiance = (sensorData[i].irradiance + sensorData[i + 1].irradiance) / 2;
     
-    // Only count if there's meaningful irradiance (daylight hours)
     if (avgIrradiance > 10) {
-      // Convert W/m² to kW/m² (divide by 1000) and multiply by hours
       const pshContribution = (avgIrradiance / 1000) * timeDiff;
       totalPSH += pshContribution;
       totalHours += timeDiff;
@@ -3006,45 +2915,32 @@ function calculatePeakSunHours(sensorData) {
   
   let result = Math.round(totalPSH * 10) / 10;
   
-  // Sanity check - PSH should be between 3-7 hours for Philippines
   if (result > 8) result = 5.5;
   if (result < 2) result = 4.0;
   
   return result;
 }
 
-/**
- * Get Daily Energy Consumption (kWh/day)
- */
 function getDailyEnergyConsumption(assessment) {
   if (assessment.dailyEnergyConsumption) {
     return assessment.dailyEnergyConsumption;
   }
-  return 20; // Default for residential Philippines
+  return 20;
 }
 
-/**
- * Calculate Recommended System Size (kW)
- */
 function calculateRecommendedSystemSize(dailyConsumption, peakSunHours, efficiency = 0.8) {
   if (!peakSunHours || peakSunHours <= 0) return 5.0;
   
   const systemSize = dailyConsumption / (peakSunHours * efficiency);
-  const result = Math.max(1, Math.round(systemSize * 10) / 10);
-  return result;
+  return Math.max(1, Math.round(systemSize * 10) / 10);
 }
 
-/**
- * Calculate Number of Panels Needed
- */
-function calculatePanelsNeeded(systemSizeKw, panelRatingW = 400) {
+// *** MODIFIED default panel rating from 400 to 550 ***
+function calculatePanelsNeeded(systemSizeKw, panelRatingW = 550) {
   const panels = (systemSizeKw * 1000) / panelRatingW;
   return Math.max(1, Math.ceil(panels));
 }
 
-/**
- * Calculate Optimal Panel Angle based on month and latitude
- */
 function calculateOptimalPanelAngle(latitude) {
   const currentMonth = new Date().getMonth() + 1;
   let angle;
@@ -3076,9 +2972,6 @@ function calculateOptimalPanelAngle(latitude) {
   };
 }
 
-/**
- * Calculate Shading Percentage
- */
 function calculateShadingPercentage(irradianceValues) {
   const daylightReadings = irradianceValues.filter(i => i > 10);
   const shadedReadings = irradianceValues.filter(i => i > 10 && i < 100);
@@ -3089,9 +2982,6 @@ function calculateShadingPercentage(irradianceValues) {
   return Math.round(percentage);
 }
 
-/**
- * Calculate Temperature Derating
- */
 function calculateTemperatureDerating(avgTemperature) {
   const STC_TEMP = 25;
   const TEMP_COEFFICIENT = -0.004;
@@ -3104,51 +2994,33 @@ function calculateTemperatureDerating(avgTemperature) {
   return Math.round(derating * 10) / 10;
 }
 
-/**
- * Calculate Annual Production (kWh/year)
- */
 function calculateAnnualProduction(systemSizeKw, peakSunHours) {
   const PERFORMANCE_RATIO = 0.8;
   const annualProduction = systemSizeKw * peakSunHours * 365 * PERFORMANCE_RATIO;
   return Math.round(annualProduction);
 }
 
-/**
- * Calculate Annual Savings (PHP/year)
- */
 function calculateAnnualSavings(annualProductionKwh) {
   const ELECTRICITY_RATE = 12;
   return Math.round(annualProductionKwh * ELECTRICITY_RATE);
 }
 
-/**
- * Calculate Total System Cost (PHP)
- */
 function calculateSystemCost(systemSizeKw) {
   const COST_PER_KW = 65000;
   return Math.round(systemSizeKw * COST_PER_KW);
 }
 
-/**
- * Calculate Payback Period (years)
- */
 function calculatePaybackPeriod(systemCost, annualSavings) {
   if (annualSavings <= 0) return 0;
   const period = systemCost / annualSavings;
   return Math.round(period * 100) / 100;
 }
 
-/**
- * Calculate CO2 Offset (kg/year)
- */
 function calculateCO2Offset(annualProductionKwh) {
   const CO2_PER_KWH = 0.5;
   return Math.round(annualProductionKwh * CO2_PER_KWH);
 }
 
-/**
- * Calculate Site Suitability Score (0-100)
- */
 function calculateSiteSuitabilityScore(peakSunHours, shadingPercentage, temperatureDerating) {
   let score = 100;
   
@@ -3170,9 +3042,6 @@ function calculateSiteSuitabilityScore(peakSunHours, shadingPercentage, temperat
   return Math.max(0, Math.min(100, score));
 }
 
-/**
- * Generate Recommendations
- */
 function generateRecommendations(peakSunHours, shadingPercentage, temperatureDerating, optimalAngle) {
   const recommendations = [];
   
@@ -3199,11 +3068,7 @@ function generateRecommendations(peakSunHours, shadingPercentage, temperatureDer
   return recommendations;
 }
 
-/**
- * Get sensor data with progressive buffer
- */
 async function getSensorDataWithBuffer(deviceId, startDate) {
-  // Try 2-hour buffer
   let queryStartDate = new Date(startDate);
   queryStartDate.setHours(queryStartDate.getHours() - 2);
   
@@ -3217,7 +3082,6 @@ async function getSensorDataWithBuffer(deviceId, startDate) {
     return sensorData;
   }
   
-  // Try 24-hour buffer
   queryStartDate = new Date(startDate);
   queryStartDate.setHours(queryStartDate.getHours() - 24);
   sensorData = await SensorData.find({ 
@@ -3230,7 +3094,6 @@ async function getSensorDataWithBuffer(deviceId, startDate) {
     return sensorData;
   }
   
-  // Try 7-day buffer
   queryStartDate = new Date(startDate);
   queryStartDate.setDate(queryStartDate.getDate() - 7);
   sensorData = await SensorData.find({ 
@@ -3243,7 +3106,6 @@ async function getSensorDataWithBuffer(deviceId, startDate) {
     return sensorData;
   }
   
-  // Try 14-day buffer
   queryStartDate = new Date(startDate);
   queryStartDate.setDate(queryStartDate.getDate() - 14);
   sensorData = await SensorData.find({ 

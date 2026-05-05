@@ -7,470 +7,548 @@ const router = express.Router();
 const verificationCodes = new Map();
 
 // Generate 6-digit code
-const generateCode = () => Math.floor(100000 + Math.random()  * 900000).toString();
+const generateCode = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 // ==================== CLOUDINARY LOGO URL ====================
-const CLOUDINARY_LOGO = "https://res.cloudinary.com/dz9x2kpar/image/upload/v1774690308/solar-tps/payment-proofs/payment_PA-260327-629_1774690307311.png";
+const CLOUDINARY_LOGO = "https://d1yei2z3i6k35z.cloudfront.net/15683293/697d9fdf337fa_salferlogo.png";
 
-// ==================== MINIMALISTIC EMAIL TEMPLATES ====================
-
-// Base styles - Black & Orange theme
+// ==================== MODERN PREMIUM EMAIL STYLES ====================
 const baseStyles = `
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: #f5f5f5;
+    * {
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      box-sizing: border-box;
     }
-    .container {
-      max-width: 560px;
+    body {
+      background-color: #f5f7fa;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      margin: 0;
+      padding: 24px 0;
+    }
+    .email-wrapper {
+      max-width: 580px;
       margin: 0 auto;
-      background: #ffffff;
-      border: 1px solid #e0e0e0;
+      background-color: #f5f7fa;
+      padding: 16px;
     }
+    .email-container {
+      background-color: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02);
+      overflow: hidden;
+      width: 100%;
+    }
+    /* Header with logo and name centered */
     .header {
-      background: #000000;
-      padding: 32px 24px;
+      background: #0f1115;
+      padding: 28px 24px 24px;
       text-align: center;
-      border-bottom: 2px solid #ff6b00;
+      border-bottom: none;
     }
     .header-logo {
       max-width: 60px;
       height: auto;
-      margin-bottom: 12px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      display: inline-block;
     }
-    .header h1 {
+    .company-name {
       color: #ffffff;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
       margin: 0;
-      font-size: 20px;
-      font-weight: 500;
-      letter-spacing: 0.5px;
+      line-height: 1.3;
     }
+    .company-sub {
+      color: #ff9a3c;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.8px;
+      margin: 6px 0 0;
+      text-transform: uppercase;
+    }
+    .gradient-divider {
+      height: 3px;
+      background: linear-gradient(90deg, #ff7a00, #ff9a3c, #ff7a00);
+      width: 60px;
+      margin: 20px auto 0;
+      border-radius: 4px;
+    }
+    /* Content area */
     .content {
-      padding: 32px 28px;
+      padding: 36px 32px 32px;
     }
     .title {
-      font-size: 22px;
-      color: #000000;
+      font-size: 26px;
+      font-weight: 700;
+      color: #0f1115;
       margin: 0 0 12px 0;
-      font-weight: 500;
-    }
-    .code-box {
-      background: #f8f8f8;
-      padding: 20px;
-      text-align: center;
-      margin: 24px 0;
-    }
-    .code {
-      font-size: 28px;
-      font-weight: 600;
-      letter-spacing: 3px;
-      color: #ff6b00;
+      letter-spacing: -0.3px;
+      line-height: 1.2;
     }
     .text {
-      color: #333333;
+      color: #1a1a1a;
+      font-size: 16px;
       line-height: 1.5;
       margin: 8px 0;
+    }
+    .text-secondary {
+      color: #555555;
       font-size: 15px;
+      margin: 6px 0;
     }
     .text-small {
-      color: #666666;
+      color: #888888;
       font-size: 13px;
       line-height: 1.4;
-    }
-    .footer {
-      background: #fafafa;
-      padding: 20px;
-      text-align: center;
-      border-top: 1px solid #e0e0e0;
-    }
-    .footer p {
-      color: #888888;
-      font-size: 11px;
-      margin: 4px 0;
-    }
-    .info-box {
-      background: #f8f8f8;
-      padding: 16px 20px;
-      margin: 20px 0;
-    }
-    .info-box p {
       margin: 6px 0;
-      font-size: 14px;
-      color: #333;
+    }
+    /* Modern Code Box */
+    .code-box {
+      background: #f8fafc;
+      border-radius: 20px;
+      padding: 28px 20px;
+      text-align: center;
+      margin: 28px 0;
+      border: 1px solid #eaedf2;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+    .code {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: 6px;
+      color: #ff7a00;
+      display: inline-block;
+      font-family: 'SF Mono', 'Menlo', monospace;
+    }
+    /* Info, Success, Warning boxes */
+    .info-box {
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin: 24px 0;
+      border-left: 3px solid #ff7a00;
     }
     .success-box {
-      background: #fef5e8;
-      padding: 16px 20px;
-      margin: 20px 0;
-      border-left: 3px solid #ff6b00;
+      background: #fef9f0;
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin: 24px 0;
+      border-left: 3px solid #ff9a3c;
     }
     .warning-box {
       background: #fff8f0;
-      padding: 16px 20px;
-      margin: 20px 0;
-      border-left: 3px solid #ff6b00;
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin: 24px 0;
+      border-left: 3px solid #ff7a00;
     }
     .pending-box {
-      background: #fef5e8;
-      padding: 16px 20px;
-      margin: 20px 0;
-      border-left: 3px solid #ff6b00;
+      background: #fef7e8;
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin: 24px 0;
+      border-left: 3px solid #ff9a3c;
     }
-    hr {
-      border: none;
-      border-top: 1px solid #e0e0e0;
-      margin: 20px 0;
+    .info-box p, .success-box p, .warning-box p, .pending-box p {
+      margin: 6px 0;
+      font-size: 14px;
+      color: #1a1a1a;
     }
-    .divider {
+    .info-box strong, .success-box strong, .warning-box strong, .pending-box strong {
+      font-weight: 600;
+      color: #0f1115;
+    }
+    .divider-light {
       height: 1px;
-      background: #e0e0e0;
-      margin: 20px 0;
+      background: #eaeaea;
+      margin: 28px 0 20px;
+    }
+    .footer {
+      background: #ffffff;
+      padding: 24px 32px 32px;
+      text-align: center;
+      border-top: 1px solid #eaeaea;
+    }
+    .footer p {
+      color: #888888;
+      font-size: 12px;
+      line-height: 1.4;
+      margin: 6px 0;
+    }
+    /* Responsive */
+    @media only screen and (max-width: 500px) {
+      .content {
+        padding: 28px 24px;
+      }
+      .title {
+        font-size: 22px;
+      }
+      .code {
+        font-size: 30px;
+        letter-spacing: 4px;
+      }
+      .header {
+        padding: 24px 20px;
+      }
+      .company-name {
+        font-size: 20px;
+      }
+    }
+    @media only screen and (max-width: 420px) {
+      .code {
+        font-size: 26px;
+        letter-spacing: 3px;
+      }
+      .content {
+        padding: 24px 20px;
+      }
+    }
+    /* Outlook fallback */
+    .outlook-fallback {
+      border-collapse: collapse;
+      width: 100%;
     }
   </style>
 `;
 
-// Verification Email Template
+// Helper to generate centered header HTML (logo on top, name below, all centered)
+const getHeaderHtml = () => `
+  <div class="header">
+    <img src="${CLOUDINARY_LOGO}" alt="Salfare Engineering" class="header-logo" />
+    <div class="company-name">Salfare Engineering</div>
+    <div class="company-sub">Solar Technology Enterprise</div>
+    <div class="gradient-divider"></div>
+  </div>
+`;
+
+// =============== VERIFICATION EMAIL ===============
 const verificationTemplate = (email, code) => `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Email Verification</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify your email</title>
   ${baseStyles}
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <img src="${CLOUDINARY_LOGO}" alt="SOLARIS" class="header-logo" />
-      <h1>SOLARIS</h1>
-    </div>
-    <div class="content">
-      <h2 class="title">Verify your email</h2>
-      <p class="text">Hello,</p>
-      <p class="text">Use the code below to verify your email address.</p>
-      
-      <div class="code-box">
-        <div class="code">${code}</div>
+<body style="margin:0;padding:0;background-color:#f5f7fa;">
+  <div class="email-wrapper">
+    <div class="email-container">
+      ${getHeaderHtml()}
+      <div class="content">
+        <h2 class="title">Verify your email</h2>
+        <p class="text">Hello,</p>
+        <p class="text-secondary">Use the secure code below to verify your email address and activate your account.</p>
+        <div class="code-box">
+          <span class="code">${code}</span>
+        </div>
+        <p class="text-small">This code expires in 10 minutes.</p>
+        <p class="text-small">Email: ${email}</p>
+        <div class="divider-light"></div>
+        <p class="text-small">If you didn't request this, please ignore this email.</p>
       </div>
-      
-      <p class="text-small">This code expires in 10 minutes.</p>
-      <p class="text-small">Email: ${email}</p>
-      <p class="text-small" style="margin-top: 20px;">If you didn't request this, please ignore this email.</p>
-    </div>
-    <div class="footer">
-      <p>© ${new Date().getFullYear()} SOLARIS</p>
-      <p>Solar Site Pre-Assessment System</p>
+      <div class="footer">
+        <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
+        <p>Professional Solar Site Pre-Assessment System</p>
+      </div>
     </div>
   </div>
 </body>
 </html>
 `;
 
-// Welcome Email Template
+// =============== WELCOME EMAIL ===============
 const welcomeTemplate = (name, email) => `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Welcome to SOLARIS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Salfare Engineering</title>
   ${baseStyles}
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <img src="${CLOUDINARY_LOGO}" alt="SOLARIS" class="header-logo" />
-      <h1>SOLARIS</h1>
-    </div>
-    <div class="content">
-      <h2 class="title">Welcome, ${name}</h2>
-      <p class="text">Your account has been successfully created with ${email}.</p>
-      
-      <div class="info-box">
-        <p><strong>Get started with SOLARIS</strong></p>
-        <p>• Request free quotations</p>
-        <p>• Book site pre-assessments</p>
-        <p>• Track project progress</p>
-        <p>• View assessment reports</p>
+<body style="margin:0;padding:0;background-color:#f5f7fa;">
+  <div class="email-wrapper">
+    <div class="email-container">
+      ${getHeaderHtml()}
+      <div class="content">
+        <h2 class="title">Welcome, ${name}</h2>
+        <p class="text">Your account has been successfully created with <strong>${email}</strong>. You are now part of Salfare Engineering's solar energy transformation.</p>
+        <div class="info-box">
+          <p><strong>Get started with Salfare Engineering</strong></p>
+          <p>• Request free quotations — instant estimates</p>
+          <p>• Book professional site pre-assessments</p>
+          <p>• Track project progress in real time</p>
+          <p>• Download detailed assessment reports</p>
+        </div>
+        <p class="text-secondary">Log in to your dashboard and take the first step toward energy independence.</p>
+        <div class="divider-light"></div>
+        <p class="text-small">Need help? Our support team is ready to assist you.</p>
       </div>
-      
-      <p class="text-small">Log in to your account to begin your solar journey.</p>
-    </div>
-    <div class="footer">
-      <p>© ${new Date().getFullYear()} SOLARIS</p>
-      <p>Solar Site Pre-Assessment System</p>
+      <div class="footer">
+        <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
+        <p>Professional Solar Site Pre-Assessment System</p>
+      </div>
     </div>
   </div>
 </body>
 </html>
 `;
 
-// Forgot Password Template
+// =============== FORGOT PASSWORD ===============
 const forgotPasswordTemplate = (email, code) => `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Password Reset</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset your password</title>
   ${baseStyles}
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <img src="${CLOUDINARY_LOGO}" alt="SOLARIS" class="header-logo" />
-      <h1>SOLARIS</h1>
-    </div>
-    <div class="content">
-      <h2 class="title">Reset your password</h2>
-      <p class="text">Hello,</p>
-      <p class="text">We received a request to reset your password. Use the code below:</p>
-      
-      <div class="code-box">
-        <div class="code">${code}</div>
+<body style="margin:0;padding:0;background-color:#f5f7fa;">
+  <div class="email-wrapper">
+    <div class="email-container">
+      ${getHeaderHtml()}
+      <div class="content">
+        <h2 class="title">Reset your password</h2>
+        <p class="text">Hello,</p>
+        <p class="text-secondary">We received a request to reset your password. Use the secure code below to create a new password.</p>
+        <div class="code-box">
+          <span class="code">${code}</span>
+        </div>
+        <p class="text-small">This code is valid for 10 minutes.</p>
+        <div class="divider-light"></div>
+        <p class="text-small">If you didn't request a reset, you can safely ignore this message.</p>
       </div>
-      
-      <p class="text-small">This code expires in 10 minutes.</p>
-      <p class="text-small">Email: ${email}</p>
-      <p class="text-small" style="margin-top: 20px;">If you didn't request this, please ignore this email.</p>
-    </div>
-    <div class="footer">
-      <p>© ${new Date().getFullYear()} SOLARIS</p>
-      <p>Solar Site Pre-Assessment System</p>
+      <div class="footer">
+        <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
+        <p>Professional Solar Site Pre-Assessment System</p>
+      </div>
     </div>
   </div>
 </body>
 </html>
 `;
 
-// Password Reset Success Template
+// =============== PASSWORD RESET SUCCESS ===============
 const resetSuccessTemplate = (email) => `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Password Reset Successful</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password reset successful</title>
   ${baseStyles}
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <img src="${CLOUDINARY_LOGO}" alt="SOLARIS" class="header-logo" />
-      <h1>SOLARIS</h1>
-    </div>
-    <div class="content">
-      <h2 class="title">Password reset successful</h2>
-      
-      <div class="success-box">
-        <p style="color: #ff6b00; margin: 0;"><strong>✓ Password changed</strong></p>
+<body style="margin:0;padding:0;background-color:#f5f7fa;">
+  <div class="email-wrapper">
+    <div class="email-container">
+      ${getHeaderHtml()}
+      <div class="content">
+        <h2 class="title">Password reset successful</h2>
+        <div class="success-box">
+          <p><strong>Your password has been changed</strong></p>
+        </div>
+        <p class="text">Hello,</p>
+        <p class="text-secondary">Your password has been successfully reset for <strong>${email}</strong>.</p>
+        <p class="text-secondary">You can now log in with your new password and continue managing your solar projects.</p>
+        <div class="divider-light"></div>
+        <p class="text-small">If you didn't make this change, please contact our support team immediately.</p>
       </div>
-      
-      <p class="text">Hello,</p>
-      <p class="text">Your password has been successfully reset for ${email}.</p>
-      <p class="text">You can now log in with your new password.</p>
-      <p class="text-small" style="margin-top: 20px;">If you didn't make this change, please contact support.</p>
-    </div>
-    <div class="footer">
-      <p>© ${new Date().getFullYear()} SOLARIS</p>
-      <p>Solar Site Pre-Assessment System</p>
+      <div class="footer">
+        <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
+        <p>Professional Solar Site Pre-Assessment System</p>
+      </div>
     </div>
   </div>
 </body>
 </html>
 `;
 
-// Free Quotation Request Template
+// =============== FREE QUOTE REQUEST ===============
 const freeQuoteTemplate = (name, quoteReference, monthlyBill, propertyType, desiredCapacity, address) => `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quotation Request Received</title>
   ${baseStyles}
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <img src="${CLOUDINARY_LOGO}" alt="SOLARIS" class="header-logo" />
-      <h1>SOLARIS</h1>
-    </div>
-    <div class="content">
-      <h2 class="title">Quotation request received</h2>
-      <p class="text">Hello ${name},</p>
-      <p class="text">Thank you for requesting a quotation. Your request is being processed.</p>
-      
-      <div class="info-box">
-        <p><strong>Reference:</strong> ${quoteReference}</p>
-        <p><strong>Monthly Bill:</strong> ₱${parseInt(monthlyBill).toLocaleString()}</p>
-        <p><strong>Property Type:</strong> ${propertyType}</p>
-        ${desiredCapacity ? `<p><strong>Desired Capacity:</strong> ${desiredCapacity}</p>` : ''}
-        <p><strong>Address:</strong> ${address}</p>
+<body style="margin:0;padding:0;background-color:#f5f7fa;">
+  <div class="email-wrapper">
+    <div class="email-container">
+      ${getHeaderHtml()}
+      <div class="content">
+        <h2 class="title">Quotation request received</h2>
+        <p class="text">Hello ${name},</p>
+        <p class="text-secondary">Thank you for trusting Salfare Engineering. Your quotation request has been submitted and is being processed.</p>
+        <div class="info-box">
+          <p><strong>Reference ID:</strong> ${quoteReference}</p>
+          <p><strong>Monthly Bill:</strong> ₱${parseInt(monthlyBill).toLocaleString()}</p>
+          <p><strong>Property Type:</strong> ${propertyType}</p>
+          ${desiredCapacity ? `<p><strong>Desired Capacity:</strong> ${desiredCapacity}</p>` : ''}
+          <p><strong>Address:</strong> ${address}</p>
+        </div>
+        <div class="success-box">
+          <p><strong>What's next?</strong></p>
+          <p>• Our energy experts will review within 2-3 business days</p>
+          <p>• You will receive a detailed quotation via email</p>
+          <p>• An engineer may reach out for site clarification</p>
+        </div>
+        <p class="text-small">We are committed to bringing you the best solar solution.</p>
       </div>
-      
-      <div class="success-box">
-        <p><strong>What's next?</strong></p>
-        <p>• Review within 2-3 business days</p>
-        <p>• Detailed quotation via email</p>
-        <p>• Engineer may contact you</p>
+      <div class="footer">
+        <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
+        <p>Professional Solar Site Pre-Assessment System</p>
       </div>
-    </div>
-    <div class="footer">
-      <p>© ${new Date().getFullYear()} SOLARIS</p>
-      <p>Solar Site Pre-Assessment System</p>
     </div>
   </div>
 </body>
 </html>
 `;
 
-// Pre-Assessment Booking Template
+// =============== PRE-ASSESSMENT BOOKING ===============
 const preAssessmentTemplate = (name, invoiceNumber, amount, propertyType, desiredCapacity, roofType, preferredDate, address) => `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Pre-Assessment Booking Confirmation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pre-Assessment Booking</title>
   ${baseStyles}
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <img src="${CLOUDINARY_LOGO}" alt="SOLARIS" class="header-logo" />
-      <h1>SOLARIS</h1>
-    </div>
-    <div class="content">
-      <h2 class="title">Booking confirmation</h2>
-      <p class="text">Hello ${name},</p>
-      <p class="text">Your pre-assessment booking has been created. Please complete payment to schedule.</p>
-      
-      <div class="info-box">
-        <p><strong>Invoice:</strong> ${invoiceNumber}</p>
-        <p><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
-        <p><strong>Property:</strong> ${propertyType}</p>
-        ${desiredCapacity ? `<p><strong>Capacity:</strong> ${desiredCapacity}</p>` : ''}
-        ${roofType ? `<p><strong>Roof Type:</strong> ${roofType}</p>` : ''}
-        <p><strong>Preferred Date:</strong> ${new Date(preferredDate).toLocaleDateString('en-PH')}</p>
-        <p><strong>Address:</strong> ${address}</p>
+<body style="margin:0;padding:0;background-color:#f5f7fa;">
+  <div class="email-wrapper">
+    <div class="email-container">
+      ${getHeaderHtml()}
+      <div class="content">
+        <h2 class="title">Booking confirmation</h2>
+        <p class="text">Hello ${name},</p>
+        <p class="text-secondary">Your pre-assessment booking has been created. Please complete the payment to secure your schedule.</p>
+        <div class="info-box">
+          <p><strong>Invoice Number:</strong> ${invoiceNumber}</p>
+          <p><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
+          <p><strong>Property Type:</strong> ${propertyType}</p>
+          ${desiredCapacity ? `<p><strong>Desired Capacity:</strong> ${desiredCapacity}</p>` : ''}
+          ${roofType ? `<p><strong>Roof Type:</strong> ${roofType}</p>` : ''}
+          <p><strong>Preferred Date:</strong> ${new Date(preferredDate).toLocaleDateString('en-PH')}</p>
+          <p><strong>Address:</strong> ${address}</p>
+        </div>
+        <div class="warning-box">
+          <p><strong>Payment instructions</strong></p>
+          <p>1. Log in to your Salfare Engineering dashboard</p>
+          <p>2. Navigate to Billing section</p>
+          <p>3. Pay invoice <strong>${invoiceNumber}</strong> using available methods</p>
+        </div>
+        <p class="text-small">Booking will be confirmed after payment verification.</p>
       </div>
-      
-      <div class="warning-box">
-        <p><strong>Payment instructions</strong></p>
-        <p>1. Log in to your account</p>
-        <p>2. Go to Billing section</p>
-        <p>3. Pay invoice ${invoiceNumber}</p>
+      <div class="footer">
+        <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
+        <p>Professional Solar Site Pre-Assessment System</p>
       </div>
-      
-      <p class="text-small">Booking confirmed after payment verification.</p>
-    </div>
-    <div class="footer">
-      <p>© ${new Date().getFullYear()} SOLARIS</p>
-      <p>Solar Site Pre-Assessment System</p>
     </div>
   </div>
 </body>
 </html>
 `;
 
-// Payment Submission Confirmation Template
+// =============== PAYMENT SUBMISSION CONFIRMATION ===============
 const paymentSubmissionTemplate = (name, invoiceNumber, amount, referenceNumber, propertyType, preferredDate) => `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Payment Received</title>
   ${baseStyles}
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <img src="${CLOUDINARY_LOGO}" alt="SOLARIS" class="header-logo" />
-      <h1>SOLARIS</h1>
-    </div>
-    <div class="content">
-      <h2 class="title">Payment received</h2>
-      <p class="text">Hello ${name},</p>
-      <p class="text">We received your payment. Our team is verifying it.</p>
-      
-      <div class="pending-box">
-        <p><strong>Payment details</strong></p>
-        <p><strong>Invoice:</strong> ${invoiceNumber}</p>
-        <p><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
-        <p><strong>Reference:</strong> ${referenceNumber}</p>
-        <p><strong>Property:</strong> ${propertyType}</p>
-        <p><strong>Preferred Date:</strong> ${new Date(preferredDate).toLocaleDateString('en-PH')}</p>
+<body style="margin:0;padding:0;background-color:#f5f7fa;">
+  <div class="email-wrapper">
+    <div class="email-container">
+      ${getHeaderHtml()}
+      <div class="content">
+        <h2 class="title">Payment received</h2>
+        <p class="text">Hello ${name},</p>
+        <p class="text-secondary">We have received your payment. Our finance team will verify the transaction shortly.</p>
+        <div class="pending-box">
+          <p><strong>Payment details</strong></p>
+          <p><strong>Invoice:</strong> ${invoiceNumber}</p>
+          <p><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
+          <p><strong>Reference Number:</strong> ${referenceNumber}</p>
+          <p><strong>Property Type:</strong> ${propertyType}</p>
+          <p><strong>Preferred Date:</strong> ${new Date(preferredDate).toLocaleDateString('en-PH')}</p>
+        </div>
+        <div class="warning-box">
+          <p><strong>Verification in progress</strong></p>
+          <p>• Usually takes 24-48 hours</p>
+          <p>• You will receive a confirmation email once verified</p>
+          <p>• Track status in your dashboard</p>
+        </div>
       </div>
-      
-      <div class="warning-box">
-        <p><strong>What's next?</strong></p>
-        <p>• Verification within 24-48 hours</p>
-        <p>• Confirmation email after verification</p>
-        <p>• Track status in your dashboard</p>
+      <div class="footer">
+        <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
+        <p>Professional Solar Site Pre-Assessment System</p>
       </div>
-    </div>
-    <div class="footer">
-      <p>© ${new Date().getFullYear()} SOLARIS</p>
-      <p>Solar Site Pre-Assessment System</p>
     </div>
   </div>
 </body>
 </html>
 `;
 
-// Payment Verified Confirmation Template
+// =============== PAYMENT VERIFIED CONFIRMATION ===============
 const paymentVerifiedTemplate = (name, invoiceNumber, amount, propertyType, preferredDate) => `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Payment Verified</title>
   ${baseStyles}
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <img src="${CLOUDINARY_LOGO}" alt="SOLARIS" class="header-logo" />
-      <h1>SOLARIS</h1>
-    </div>
-    <div class="content">
-      <h2 class="title">Payment verified</h2>
-      <p class="text">Hello ${name},</p>
-      <p class="text">Great news! Your payment has been verified.</p>
-      
-      <div class="success-box">
-        <p><strong>✓ Payment verified</strong></p>
-        <p><strong>Invoice:</strong> ${invoiceNumber}</p>
-        <p><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
+<body style="margin:0;padding:0;background-color:#f5f7fa;">
+  <div class="email-wrapper">
+    <div class="email-container">
+      ${getHeaderHtml()}
+      <div class="content">
+        <h2 class="title">Payment verified</h2>
+        <p class="text">Hello ${name},</p>
+        <p class="text-secondary">Great news. Your payment has been officially verified. Your site pre-assessment is now confirmed.</p>
+        <div class="success-box">
+          <p><strong>Payment verified</strong></p>
+          <p><strong>Invoice:</strong> ${invoiceNumber}</p>
+          <p><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
+        </div>
+        <div class="info-box">
+          <p><strong>Assessment details</strong></p>
+          <p><strong>Property Type:</strong> ${propertyType}</p>
+          <p><strong>Preferred Date:</strong> ${new Date(preferredDate).toLocaleDateString('en-PH')}</p>
+        </div>
+        <div class="success-box">
+          <p><strong>What's next?</strong></p>
+          <p>• Our team will confirm the exact schedule</p>
+          <p>• A certified engineer will be assigned</p>
+          <p>• You will receive reminders prior to the assessment</p>
+        </div>
+        <p class="text-small">Thank you for moving forward with Salfare Engineering.</p>
       </div>
-      
-      <div class="info-box">
-        <p><strong>Assessment details</strong></p>
-        <p><strong>Property:</strong> ${propertyType}</p>
-        <p><strong>Preferred Date:</strong> ${new Date(preferredDate).toLocaleDateString('en-PH')}</p>
+      <div class="footer">
+        <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
+        <p>Professional Solar Site Pre-Assessment System</p>
       </div>
-      
-      <div class="success-box">
-        <p><strong>What's next?</strong></p>
-        <p>• Team will confirm schedule</p>
-        <p>• Engineer assigned to your assessment</p>
-        <p>• Reminders before assessment date</p>
-      </div>
-    </div>
-    <div class="footer">
-      <p>© ${new Date().getFullYear()} SOLARIS</p>
-      <p>Solar Site Pre-Assessment System</p>
     </div>
   </div>
 </body>
 </html>
 `;
 
-// ==================== EMAIL ENDPOINTS ====================
+// ==================== ALL ROUTES (backend logic untouched) ====================
 
-/*
-=========================
-SEND VERIFICATION EMAIL
-=========================
-*/
 router.post("/send-verification", async (req, res) => {
   try {
     const { email, name } = req.body;
@@ -479,7 +557,6 @@ router.post("/send-verification", async (req, res) => {
     const normalizedEmail = email.toLowerCase().trim();
     const code = generateCode();
     
-    // Store with normalized email
     verificationCodes.set(normalizedEmail, { 
       code, 
       timestamp: Date.now(), 
@@ -487,12 +564,10 @@ router.post("/send-verification", async (req, res) => {
       attempts: 0 
     });
     
-    console.log('✅ Code stored for:', normalizedEmail, 'Code:', code);
-    console.log('📦 All stored codes:', Array.from(verificationCodes.keys()));
+    console.log('Code stored for:', normalizedEmail, 'Code:', code);
     
-    // Send email
     await axios.post('https://api.brevo.com/v3/smtp/email', {
-      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
+      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "Salfare Engineering" },
       to: [{ email }],
       subject: "Verify your email address",
       htmlContent: verificationTemplate(email, code)
@@ -507,11 +582,6 @@ router.post("/send-verification", async (req, res) => {
   }
 });
 
-/*
-=========================
-SEND PASSWORD RESET CODE
-=========================
-*/
 router.post("/send-reset-code", async (req, res) => {
   try {
     const { email } = req.body;
@@ -530,7 +600,7 @@ router.post("/send-reset-code", async (req, res) => {
     console.log('Reset code stored for:', normalizedEmail, 'Code:', code);
 
     await axios.post('https://api.brevo.com/v3/smtp/email', {
-      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
+      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "Salfare Engineering" },
       to: [{ email }],
       subject: "Password reset code",
       htmlContent: forgotPasswordTemplate(email, code)
@@ -545,11 +615,6 @@ router.post("/send-reset-code", async (req, res) => {
   }
 });
 
-/*
-=========================
-RESEND CODE
-=========================
-*/
 router.post("/resend-code", async (req, res) => {
   try {
     const { email, name } = req.body;
@@ -559,7 +624,6 @@ router.post("/resend-code", async (req, res) => {
     const code = generateCode();
     
     verificationCodes.delete(normalizedEmail);
-    
     verificationCodes.set(normalizedEmail, { 
       code, 
       timestamp: Date.now(), 
@@ -567,10 +631,10 @@ router.post("/resend-code", async (req, res) => {
       attempts: 0 
     });
     
-    console.log('🔄 New code sent for:', normalizedEmail, 'Code:', code);
+    console.log('New code sent for:', normalizedEmail, 'Code:', code);
     
     await axios.post('https://api.brevo.com/v3/smtp/email', {
-      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
+      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "Salfare Engineering" },
       to: [{ email }],
       subject: "New verification code",
       htmlContent: verificationTemplate(email, code)
@@ -585,35 +649,23 @@ router.post("/resend-code", async (req, res) => {
   }
 });
 
-/*
-=========================
-VERIFY CODE
-=========================
-*/
 router.post("/verify-code", (req, res) => {
   try {
     const email = req.body.email?.toLowerCase().trim();
     const { code } = req.body;
 
-    console.log('🔍 Verifying code for email:', email);
-    console.log('📦 Current stored codes:', Array.from(verificationCodes.entries()));
-
+    console.log('Verifying code for email:', email);
     const stored = verificationCodes.get(email);
 
     if (!stored) {
-      console.log('❌ No code found for email:', email);
       return res.status(400).json({
         success: false,
         message: "No code found. Please request a new code."
       });
     }
 
-    console.log('📝 Stored code:', stored.code, 'Received code:', code);
-    console.log('⏰ Time elapsed:', (Date.now() - stored.timestamp) / 1000, 'seconds');
-
     if (Date.now() - stored.timestamp > 10 * 60 * 1000) {
       verificationCodes.delete(email);
-      console.log('⏰ Code expired for:', email);
       return res.status(400).json({
         success: false,
         message: "Code expired. Please request a new code."
@@ -624,10 +676,7 @@ router.post("/verify-code", (req, res) => {
       const attempts = stored.attempts ? stored.attempts + 1 : 1;
       stored.attempts = attempts;
       verificationCodes.set(email, stored);
-      
       const attemptsLeft = 3 - attempts;
-      console.log('❌ Invalid code. Attempts:', attempts, 'Left:', attemptsLeft);
-      
       if (attemptsLeft <= 0) {
         verificationCodes.delete(email);
         return res.status(400).json({
@@ -635,7 +684,6 @@ router.post("/verify-code", (req, res) => {
           message: "Too many invalid attempts. Please request a new code."
         });
       }
-      
       return res.status(400).json({
         success: false,
         message: `Invalid code. ${attemptsLeft} attempts remaining.`
@@ -643,35 +691,22 @@ router.post("/verify-code", (req, res) => {
     }
 
     verificationCodes.delete(email);
-    console.log('✅ Code verified successfully for:', email);
-
-    res.json({
-      success: true,
-      message: "Code verified successfully"
-    });
+    res.json({ success: true, message: "Code verified successfully" });
   } catch (error) {
     console.error("Verify code error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Verification failed. Please try again."
-    });
+    res.status(500).json({ success: false, message: "Verification failed. Please try again." });
   }
 });
 
-/*
-=========================
-SEND WELCOME EMAIL
-=========================
-*/
 router.post("/send-welcome", async (req, res) => {
   try {
     const { email, name } = req.body;
     if (!email || !name) return res.status(400).json({ success: false, message: "Email and name required" });
 
     await axios.post('https://api.brevo.com/v3/smtp/email', {
-      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
+      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "Salfare Engineering" },
       to: [{ email }],
-      subject: "Welcome to SOLARIS",
+      subject: "Welcome to Salfare Engineering",
       htmlContent: welcomeTemplate(name, email)
     }, {
       headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json" }
@@ -684,18 +719,13 @@ router.post("/send-welcome", async (req, res) => {
   }
 });
 
-/*
-=========================
-SEND RESET SUCCESS EMAIL
-=========================
-*/
 router.post("/send-reset-success", async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ success: false, message: "Email required" });
 
     await axios.post('https://api.brevo.com/v3/smtp/email', {
-      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
+      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "Salfare Engineering" },
       to: [{ email }],
       subject: "Password reset successful",
       htmlContent: resetSuccessTemplate(email)
@@ -710,21 +740,15 @@ router.post("/send-reset-success", async (req, res) => {
   }
 });
 
-/*
-=========================
-SEND FREE QUOTE CONFIRMATION EMAIL
-=========================
-*/
 router.post("/send-free-quote-confirmation", async (req, res) => {
   try {
     const { email, name, quoteReference, monthlyBill, propertyType, desiredCapacity, address } = req.body;
-    
     if (!email || !name || !quoteReference) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
 
     await axios.post('https://api.brevo.com/v3/smtp/email', {
-      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
+      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "Salfare Engineering" },
       to: [{ email }],
       subject: `Quotation request received - ${quoteReference}`,
       htmlContent: freeQuoteTemplate(name, quoteReference, monthlyBill, propertyType, desiredCapacity, address)
@@ -739,21 +763,15 @@ router.post("/send-free-quote-confirmation", async (req, res) => {
   }
 });
 
-/*
-=========================
-SEND PRE-ASSESSMENT CONFIRMATION EMAIL
-=========================
-*/
 router.post("/send-pre-assessment-confirmation", async (req, res) => {
   try {
     const { email, name, invoiceNumber, amount, propertyType, desiredCapacity, roofType, preferredDate, address } = req.body;
-    
     if (!email || !name || !invoiceNumber) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
 
     await axios.post('https://api.brevo.com/v3/smtp/email', {
-      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
+      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "Salfare Engineering" },
       to: [{ email }],
       subject: `Booking confirmation - ${invoiceNumber}`,
       htmlContent: preAssessmentTemplate(name, invoiceNumber, amount, propertyType, desiredCapacity, roofType, preferredDate, address)
@@ -768,21 +786,15 @@ router.post("/send-pre-assessment-confirmation", async (req, res) => {
   }
 });
 
-/*
-=========================
-SEND PAYMENT SUBMISSION CONFIRMATION EMAIL
-=========================
-*/
 router.post("/send-payment-confirmation", async (req, res) => {
   try {
     const { email, name, invoiceNumber, amount, referenceNumber, propertyType, preferredDate } = req.body;
-    
     if (!email || !name || !invoiceNumber) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
 
     await axios.post('https://api.brevo.com/v3/smtp/email', {
-      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
+      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "Salfare Engineering" },
       to: [{ email }],
       subject: `Payment received - ${invoiceNumber}`,
       htmlContent: paymentSubmissionTemplate(name, invoiceNumber, amount, referenceNumber, propertyType, preferredDate)
@@ -797,21 +809,15 @@ router.post("/send-payment-confirmation", async (req, res) => {
   }
 });
 
-/*
-=========================
-SEND PAYMENT VERIFIED EMAIL
-=========================
-*/
 router.post("/send-payment-verified", async (req, res) => {
   try {
     const { email, name, invoiceNumber, amount, propertyType, preferredDate } = req.body;
-    
     if (!email || !name || !invoiceNumber) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
 
     await axios.post('https://api.brevo.com/v3/smtp/email', {
-      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
+      sender: { email: process.env.BREVO_SENDER_EMAIL, name: "Salfare Engineering" },
       to: [{ email }],
       subject: `Payment verified - ${invoiceNumber}`,
       htmlContent: paymentVerifiedTemplate(name, invoiceNumber, amount, propertyType, preferredDate)

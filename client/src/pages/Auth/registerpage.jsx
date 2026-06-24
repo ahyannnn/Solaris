@@ -95,13 +95,13 @@ const RegisterPage = () => {
 
   // Middle name validation (optional)
   const validateMiddleName = (middleName) => {
-    if (!middleName) return null; // Optional field
+    if (!middleName) return null;
     if (middleName.length > 50) return 'Middle name must be less than 50 characters';
     if (!/^[a-zA-Z\s'-]+$/.test(middleName)) return 'Middle name can only contain letters, spaces, apostrophes, and hyphens';
     return null;
   };
 
-  // Password validation - Complete rules
+  // Password validation
   const validatePassword = (password) => {
     if (!password) return null;
     
@@ -159,7 +159,7 @@ const RegisterPage = () => {
     }
   };
 
-  // Debounced email check (waits 3 seconds after user stops typing)
+  // Debounced email check
   const debouncedEmailCheck = (email) => {
     if (emailDebounceTimerRef.current) {
       clearTimeout(emailDebounceTimerRef.current);
@@ -182,7 +182,6 @@ const RegisterPage = () => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     
-    // Real-time validation for each field
     if (name === 'firstName') {
       const firstNameError = validateFirstName(value);
       setErrors(prev => ({ ...prev, firstName: firstNameError || '' }));
@@ -218,7 +217,6 @@ const RegisterPage = () => {
       const passwordError = validatePassword(value);
       setErrors(prev => ({ ...prev, password: passwordError || '' }));
       
-      // Also validate confirm password when password changes
       if (formData.confirmPassword && value !== formData.confirmPassword) {
         setErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }));
       } else if (formData.confirmPassword && value === formData.confirmPassword) {
@@ -234,7 +232,6 @@ const RegisterPage = () => {
       }
     }
     
-    // Clear general error when user types
     if (errors.general) {
       setErrors(prev => ({ ...prev, general: '' }));
     }
@@ -281,7 +278,6 @@ const RegisterPage = () => {
   const validateStep1 = () => {
     const newErrors = {};
     
-    // First name validation
     if (!formData.firstName) {
       newErrors.firstName = 'First name is required';
     } else {
@@ -289,7 +285,6 @@ const RegisterPage = () => {
       if (firstNameError) newErrors.firstName = firstNameError;
     }
     
-    // Last name validation
     if (!formData.lastName) {
       newErrors.lastName = 'Last name is required';
     } else {
@@ -297,11 +292,9 @@ const RegisterPage = () => {
       if (lastNameError) newErrors.lastName = lastNameError;
     }
     
-    // Middle name validation (optional)
     const middleNameError = validateMiddleName(formData.middleName);
     if (middleNameError) newErrors.middleName = middleNameError;
     
-    // Email validation
     if (!formData.email) {
       newErrors.email = 'Email is required';
     } else {
@@ -310,7 +303,6 @@ const RegisterPage = () => {
       else if (isEmailTaken) newErrors.email = 'Email is already taken';
     }
     
-    // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else {
@@ -318,14 +310,12 @@ const RegisterPage = () => {
       if (passwordError) newErrors.password = passwordError;
     }
     
-    // Confirm password validation
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
     
-    // Terms validation
     if (!termsAccepted) {
       newErrors.terms = 'You must agree to the Terms and Conditions';
     }
@@ -348,7 +338,6 @@ const RegisterPage = () => {
       return;
     }
 
-    // Final check for email uniqueness
     const isEmailTakenCheck = await checkEmailExists(formData.email);
     
     if (isEmailTakenCheck) {
@@ -358,7 +347,6 @@ const RegisterPage = () => {
     setIsLoading(true);
     setErrors({});
 
-    // Combine first and last name for fullName
     const fullName = `${formData.firstName} ${formData.lastName}`.trim();
 
     try {
@@ -391,7 +379,6 @@ const RegisterPage = () => {
   const handleVerifyCode = async (e) => {
     e.preventDefault();
     
-    // Prevent double verification
     if (isVerifyingRef.current) {
       console.log('Already verifying, skipping...');
       return;
@@ -425,12 +412,10 @@ const RegisterPage = () => {
         setErrors({ code: data.message || 'Invalid verification code' });
         isVerifyingRef.current = false;
       } else {
-        // Store verified data and register
         setVerifiedCode({
           email: formData.email.toLowerCase(),
           code: verificationCode
         });
-        // Call register immediately
         await registerUser(formData.email.toLowerCase(), verificationCode);
       }
     } catch (error) {
@@ -444,17 +429,16 @@ const RegisterPage = () => {
 
   const registerUser = async (email, verificationCode) => {
     try {
-      // Combine first and last name for fullName
       const fullName = `${formData.firstName} ${formData.lastName}`.trim();
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fullName: fullName,                          // For users table
-          contactFirstName: formData.firstName,        // For clients table
-          contactMiddleName: formData.middleName,      // For clients table
-          contactLastName: formData.lastName,          // For clients table
+          fullName: fullName,
+          contactFirstName: formData.firstName,
+          contactMiddleName: formData.middleName,
+          contactLastName: formData.lastName,
           email: email,
           password: formData.password
         })
@@ -549,17 +533,16 @@ const RegisterPage = () => {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      // Parse Google displayName into first, middle, last
       const parsedName = parseGoogleName(user.displayName);
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google-register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fullName: user.displayName,                  // For users table
-          contactFirstName: parsedName.firstName,      // For clients table
-          contactMiddleName: parsedName.middleName,    // For clients table
-          contactLastName: parsedName.lastName,        // For clients table
+          fullName: user.displayName,
+          contactFirstName: parsedName.firstName,
+          contactMiddleName: parsedName.middleName,
+          contactLastName: parsedName.lastName,
           email: user.email.toLowerCase(),
           googleId: user.uid,
           photoURL: user.photoURL
@@ -597,7 +580,6 @@ const RegisterPage = () => {
     }
   };
 
-  // Helper function to parse Google displayName
   const parseGoogleName = (displayName) => {
     if (!displayName) return { firstName: '', middleName: '', lastName: '' };
     
@@ -607,7 +589,6 @@ const RegisterPage = () => {
     if (parts.length === 1) return { firstName: parts[0], middleName: '', lastName: '' };
     if (parts.length === 2) return { firstName: parts[0], middleName: '', lastName: parts[1] };
     
-    // 3+ parts: first, middle(s), last
     const firstName = parts[0];
     const lastName = parts[parts.length - 1];
     const middleName = parts.slice(1, -1).join(' ');
@@ -628,7 +609,6 @@ const RegisterPage = () => {
     return `${seconds}s`;
   };
 
-  // Helper function to check if form is valid (for button disable state)
   const isFormValid = () => {
     return (
       formData.firstName && 
@@ -646,6 +626,44 @@ const RegisterPage = () => {
     );
   };
 
+  const getBrandingContent = (step) => {
+    switch(step) {
+      case 1:
+        return {
+          title: 'Create Account',
+          subtitle: 'Start your solar journey',
+          description: 'Join Salfer Engineering to access solar solutions and manage your renewable energy projects.',
+          features: ['Free Solar Estimate', 'Professional Installation', 'Up to 25-Year Warranty']
+        };
+      case 2:
+        return {
+          title: 'Verify Email',
+          subtitle: 'Almost there!',
+          description: 'We\'ve sent a verification code to your email. Enter it below to complete your registration.',
+          features: ['Secure Verification', 'Instant Access', 'Get Started Today']
+        };
+      case 3:
+        return {
+          title: 'Registration Complete!',
+          subtitle: 'Welcome to Salfer Engineering',
+          description: 'Your account has been successfully created. You can now access all our solar solutions and manage your projects.',
+          features: ['Start Exploring', 'Manage Projects', 'Track Progress']
+        };
+      default:
+        return {
+          title: 'Create Account',
+          subtitle: 'Start your solar journey',
+          description: 'Join Salfer Engineering to access solar solutions.',
+          features: ['Free Solar Estimate', 'Professional Installation', 'Up to 25-Year Warranty']
+        };
+    }
+  };
+
+  // ===== FIXED POSITIONING LOGIC =====
+  // Step 2: Form on LEFT, Branding on RIGHT
+  // Steps 1 & 3: Form on RIGHT, Branding on LEFT
+  const isStep2 = currentStep === 2;
+
   return (
     <>
       <Helmet>
@@ -653,385 +671,358 @@ const RegisterPage = () => {
         <meta name="description" content="Create a new account with Salfer Engineering to access solar solutions and manage your renewable energy projects." />
       </Helmet>
 
-      <div className="register-page-reg">
+      <div className="new-register-page">
         {modal.show && (
-          <div className="modal-overlay-reg" onClick={closeModal}>
-            <div className={`modal-content-reg ${modal.type}`} onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header-reg">
-                <span className="modal-icon-reg">{modal.type === 'warning' ? '⚠️' : '❌'}</span>
+          <div className="new-register-modal-overlay" onClick={closeModal}>
+            <div className={`new-register-modal-content ${modal.type}`} onClick={(e) => e.stopPropagation()}>
+              <div className="new-register-modal-header">
+                <span className="new-register-modal-icon">{modal.type === 'warning' ? '⚠️' : '❌'}</span>
                 <h3>{modal.type === 'warning' ? 'Account Already Exists' : 'Registration Failed'}</h3>
               </div>
-              <div className="modal-body-reg">
+              <div className="new-register-modal-body">
                 <p>{modal.message}</p>
                 {modal.type === 'warning' && (
                   <p style={{ marginTop: '10px', fontSize: '14px' }}>
-                    <Link to="/login" className="login-link-reg">Click here to sign in</Link>
+                    <Link to="/login" className="new-register-login-link">Click here to sign in</Link>
                   </p>
                 )}
               </div>
-              <button className="modal-close-btn-reg" onClick={closeModal}>Got it</button>
+              <button className="new-register-modal-close-btn" onClick={closeModal}>Got it</button>
             </div>
           </div>
         )}
 
-        <div className="register-card-reg">
-          <div className="register-branding-reg">
-            <div className="branding-content-reg">
-              <div className="brand-logo-reg">
-                <img src={logo} alt="Salfer Engineering" className="brand-logo-img-reg" />
-                <h1 className="brand-name-reg">Salfer Engineering</h1>
-              </div>
-              <h2 className="brand-tagline-reg">Solar Technology Enterprise</h2>
-              <p className="brand-description-reg">
-                Join Salfer Engineering to access solar solutions and manage your renewable energy projects.
-              </p>
-              <div className="brand-features-reg">
-                <div className="brand-feature-reg"><span className="feature-dot-reg"></span> Free Solar Estimate</div>
-                <div className="brand-feature-reg"><span className="feature-dot-reg"></span> Professional Installation</div>
-                <div className="brand-feature-reg"><span className="feature-dot-reg"></span> Up to 25-Year Warranty</div>
-              </div>
+        {/* ===== BRANDING SECTION ===== */}
+        {/* Step 2: Right | Steps 1 & 3: Left */}
+        <div className={`new-register-branding ${isStep2 ? 'branding-right' : 'branding-left'}`}>
+          <div className="new-register-branding-content">
+            <div className="new-register-brand-header">
+              <img src={logo} alt="Salfer Engineering" className="new-register-brand-logo" />
+              <h1 className="new-register-brand-name">Salfer Engineering</h1>
+            </div>
+            <h2 className="new-register-brand-tagline">
+              {getBrandingContent(currentStep).title}
+            </h2>
+            <p className="new-register-brand-description">
+              {getBrandingContent(currentStep).description}
+            </p>
+            <div className="new-register-brand-features">
+              {getBrandingContent(currentStep).features.map((feature, index) => (
+                <div className="new-register-brand-feature" key={index}>
+                  <span className="new-register-feature-dot"></span>
+                  <span>{feature}</span>
+                </div>
+              ))}
             </div>
           </div>
+        </div>
 
-          <div className="register-form-container-reg">
-            <div className="register-form-wrapper-reg">
-              {currentStep === 1 && (
-                <>
-                  <div className="form-header-reg">
-                    <h2 className="form-title-reg">Create Account</h2>
-                    <p className="form-subtitle-reg">Enter your details to get started</p>
+        {/* ===== FORM SECTION ===== */}
+        {/* Step 2: Left | Steps 1 & 3: Right */}
+        <div 
+          key={currentStep} // Force re-render when step changes
+          className={`new-register-form-container ${isStep2 ? 'form-left' : 'form-right'}`}
+        >
+          <div className="new-register-form-wrapper">
+            {currentStep === 1 && (
+              <>
+                <div className="new-register-form-header">
+                  <h2 className="new-register-form-title">Create Account</h2>
+                  <p className="new-register-form-subtitle">Enter your details to get started</p>
+                </div>
+
+                {errors.general && (
+                  <div className="new-register-general-error">
+                    {errors.general}
+                  </div>
+                )}
+
+                <form onSubmit={(e) => { e.preventDefault(); handleSendVerification(); }} className="new-register-form">
+                  <div className="new-register-form-group">
+                    <label className="new-register-form-label">First Name</label>
+                    <div className="new-register-input-wrapper">
+                      <FaUser className="new-register-input-icon" />
+                      <input
+                        type="text"
+                        name="firstName"
+                        className={`new-register-form-input ${errors.firstName ? 'new-register-input-error' : ''}`}
+                        placeholder="Enter your first name"
+                        value={formData.firstName}
+                        onChange={handleChange}
+                        disabled={isLoading || socialLoading !== ''}
+                      />
+                    </div>
+                    {errors.firstName && <span className="new-register-error-message">{errors.firstName}</span>}
                   </div>
 
-                  {errors.general && (
-                    <div className="general-error-reg">
-                      {errors.general}
+                  <div className="new-register-form-group">
+                    <label className="new-register-form-label">Middle Name <span className="new-register-optional">(Optional)</span></label>
+                    <div className="new-register-input-wrapper">
+                      <FaUser className="new-register-input-icon" />
+                      <input
+                        type="text"
+                        name="middleName"
+                        className={`new-register-form-input ${errors.middleName ? 'new-register-input-error' : ''}`}
+                        placeholder="Enter your middle name (optional)"
+                        value={formData.middleName}
+                        onChange={handleChange}
+                        disabled={isLoading || socialLoading !== ''}
+                      />
                     </div>
-                  )}
+                    {errors.middleName && <span className="new-register-error-message">{errors.middleName}</span>}
+                  </div>
 
-                  <form onSubmit={(e) => { e.preventDefault(); handleSendVerification(); }} className="register-form-reg">
-                    {/* FIRST NAME FIELD */}
-                    <div className="form-group-reg">
-                      <label className="form-label-reg">First Name <span className="required-star">*</span></label>
-                      <div className="input-wrapper-reg">
-                        <FaUser className="input-icon-reg" />
-                        <input
-                          type="text"
-                          name="firstName"
-                          className={`form-input-reg ${errors.firstName ? 'input-error-reg' : ''}`}
-                          placeholder="Enter your first name"
-                          value={formData.firstName}
-                          onChange={handleChange}
-                          disabled={isLoading || socialLoading !== ''}
-                        />
-                      </div>
-                      {errors.firstName && <span className="error-message-reg">{errors.firstName}</span>}
+                  <div className="new-register-form-group">
+                    <label className="new-register-form-label">Last Name</label>
+                    <div className="new-register-input-wrapper">
+                      <FaUser className="new-register-input-icon" />
+                      <input
+                        type="text"
+                        name="lastName"
+                        className={`new-register-form-input ${errors.lastName ? 'new-register-input-error' : ''}`}
+                        placeholder="Enter your last name"
+                        value={formData.lastName}
+                        onChange={handleChange}
+                        disabled={isLoading || socialLoading !== ''}
+                      />
                     </div>
+                    {errors.lastName && <span className="new-register-error-message">{errors.lastName}</span>}
+                  </div>
 
-                    {/* MIDDLE NAME FIELD */}
-                    <div className="form-group-reg">
-                      <label className="form-label-reg">Middle Name <span className="optional-label">(Optional)</span></label>
-                      <div className="input-wrapper-reg">
-                        <FaUser className="input-icon-reg" />
-                        <input
-                          type="text"
-                          name="middleName"
-                          className={`form-input-reg ${errors.middleName ? 'input-error-reg' : ''}`}
-                          placeholder="Enter your middle name"
-                          value={formData.middleName}
-                          onChange={handleChange}
-                          disabled={isLoading || socialLoading !== ''}
-                        />
-                      </div>
-                      {errors.middleName && <span className="error-message-reg">{errors.middleName}</span>}
-                    </div>
-
-                    {/* LAST NAME FIELD */}
-                    <div className="form-group-reg">
-                      <label className="form-label-reg">Last Name <span className="required-star">*</span></label>
-                      <div className="input-wrapper-reg">
-                        <FaUser className="input-icon-reg" />
-                        <input
-                          type="text"
-                          name="lastName"
-                          className={`form-input-reg ${errors.lastName ? 'input-error-reg' : ''}`}
-                          placeholder="Enter your last name"
-                          value={formData.lastName}
-                          onChange={handleChange}
-                          disabled={isLoading || socialLoading !== ''}
-                        />
-                      </div>
-                      {errors.lastName && <span className="error-message-reg">{errors.lastName}</span>}
-                    </div>
-
-                    {/* EMAIL FIELD */}
-                    <div className="form-group-reg">
-                      <label className="form-label-reg">Email Address <span className="required-star">*</span></label>
-                      <div className="input-wrapper-reg">
-                        <FaEnvelope className="input-icon-reg" />
-                        <input
-                          type="email"
-                          name="email"
-                          className={`form-input-reg ${errors.email ? 'input-error-reg' : ''}`}
-                          placeholder="Enter your email"
-                          value={formData.email}
-                          onChange={handleChange}
-                          onBlur={handleEmailBlur}
-                          disabled={isLoading || socialLoading !== ''}
-                        />
-                        {emailChecking && (
-                          <div className="email-checking-reg">
-                            <span className="checking-spinner"></span>
-                          </div>
-                        )}
-                        {!emailChecking && isEmailTaken && formData.email && (
-                          <div className="email-taken-reg">
-                            <span className="taken-icon">✗</span>
-                          </div>
-                        )}
-                        {!emailChecking && !isEmailTaken && formData.email && formData.email.endsWith('@gmail.com') && !errors.email && (
-                          <div className="email-available-reg">
-                            <span className="available-icon">✓</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {emailChecking && formData.email && formData.email.endsWith('@gmail.com') && (
-                        <span className="checking-message-reg">Checking email availability...</span>
+                  <div className="new-register-form-group">
+                    <label className="new-register-form-label">Email Address</label>
+                    <div className="new-register-input-wrapper">
+                      <FaEnvelope className="new-register-input-icon" />
+                      <input
+                        type="email"
+                        name="email"
+                        className={`new-register-form-input ${errors.email ? 'new-register-input-error' : ''}`}
+                        placeholder="Enter your email address"
+                        value={formData.email}
+                        onChange={handleChange}
+                        onBlur={handleEmailBlur}
+                        disabled={isLoading || socialLoading !== ''}
+                      />
+                      {emailChecking && (
+                        <div className="new-register-email-checking">
+                          <span className="new-register-checking-spinner"></span>
+                        </div>
                       )}
-
-                      {errors.email && <span className="error-message-reg">{errors.email}</span>}
-
+                      {!emailChecking && isEmailTaken && formData.email && (
+                        <div className="new-register-email-taken">
+                          <span className="new-register-taken-icon">✗</span>
+                        </div>
+                      )}
                       {!emailChecking && !isEmailTaken && formData.email && formData.email.endsWith('@gmail.com') && !errors.email && (
-                        <span className="success-message-reg">✓ Email available</span>
-                      )}
-                    </div>
-
-                    {/* PASSWORD FIELD */}
-                    <div className="form-group-reg">
-                      <label className="form-label-reg">Password <span className="required-star">*</span></label>
-                      <div className="input-wrapper-reg">
-                        <FaLock className="input-icon-reg" />
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          name="password"
-                          className={`form-input-reg ${errors.password ? 'input-error-reg' : ''}`}
-                          placeholder="Create a password"
-                          value={formData.password}
-                          onChange={handleChange}
-                          disabled={isLoading || socialLoading !== ''}
-                        />
-                        <button
-                          type="button"
-                          className="password-toggle-reg"
-                          onClick={() => setShowPassword(!showPassword)}
-                          disabled={isLoading || socialLoading !== ''}
-                        >
-                          {showPassword ? <FaEyeSlash /> : <FaEye />}
-                        </button>
-                      </div>
-                      {errors.password && <span className="error-message-reg">{errors.password}</span>}
-                      
-                      {/* Password requirements hint */}
-                      {formData.password && !errors.password && (
-                        <div className="password-hints-reg">
-                          <p className="hint-title-reg">Password must contain:</p>
-                          <ul className="hint-list-reg">
-                            <li className={formData.password.length >= 8 && formData.password.length <= 16 ? 'valid' : 'invalid'}>
-                              {formData.password.length >= 8 && formData.password.length <= 16 ? '✓' : '○'} 8-16 characters
-                            </li>
-                            <li className={/[A-Z]/.test(formData.password) ? 'valid' : 'invalid'}>
-                              {/[A-Z]/.test(formData.password) ? '✓' : '○'} Uppercase letter (A-Z)
-                            </li>
-                            <li className={/[a-z]/.test(formData.password) ? 'valid' : 'invalid'}>
-                              {/[a-z]/.test(formData.password) ? '✓' : '○'} Lowercase letter (a-z)
-                            </li>
-                            <li className={/[0-9]/.test(formData.password) ? 'valid' : 'invalid'}>
-                              {/[0-9]/.test(formData.password) ? '✓' : '○'} Number (0-9)
-                            </li>
-                            <li className={/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? 'valid' : 'invalid'}>
-                              {/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? '✓' : '○'} Special character (!@#$%^&* etc.)
-                            </li>
-                          </ul>
+                        <div className="new-register-email-available">
+                          <span className="new-register-available-icon">✓</span>
                         </div>
                       )}
                     </div>
+                    {emailChecking && formData.email && formData.email.endsWith('@gmail.com') && (
+                      <span className="new-register-checking-message">Checking email availability...</span>
+                    )}
+                    {errors.email && <span className="new-register-error-message">{errors.email}</span>}
+                    {!emailChecking && !isEmailTaken && formData.email && formData.email.endsWith('@gmail.com') && !errors.email && (
+                      <span className="new-register-success-message">✓ Email available</span>
+                    )}
+                  </div>
 
-                    {/* CONFIRM PASSWORD FIELD */}
-                    <div className="form-group-reg">
-                      <label className="form-label-reg">Confirm Password <span className="required-star">*</span></label>
-                      <div className="input-wrapper-reg">
-                        <FaLock className="input-icon-reg" />
-                        <input
-                          type={showConfirmPassword ? 'text' : 'password'}
-                          name="confirmPassword"
-                          className={`form-input-reg ${errors.confirmPassword ? 'input-error-reg' : ''}`}
-                          placeholder="Confirm your password"
-                          value={formData.confirmPassword}
-                          onChange={handleChange}
-                          disabled={isLoading || socialLoading !== ''}
-                        />
+                  <div className="new-register-form-group">
+                    <label className="new-register-form-label">Password</label>
+                    <div className="new-register-input-wrapper">
+                      <FaLock className="new-register-input-icon" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        name="password"
+                        className={`new-register-form-input ${errors.password ? 'new-register-input-error' : ''}`}
+                        placeholder="Create a password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        disabled={isLoading || socialLoading !== ''}
+                      />
+                      <button
+                        type="button"
+                        className="new-register-password-toggle"
+                        onClick={() => setShowPassword(!showPassword)}
+                        disabled={isLoading || socialLoading !== ''}
+                      >
+                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
+                    {errors.password && <span className="new-register-error-message">{errors.password}</span>}
+                  </div>
+
+                  <div className="new-register-form-group">
+                    <label className="new-register-form-label">Confirm Password</label>
+                    <div className="new-register-input-wrapper">
+                      <FaLock className="new-register-input-icon" />
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        name="confirmPassword"
+                        className={`new-register-form-input ${errors.confirmPassword ? 'new-register-input-error' : ''}`}
+                        placeholder="Confirm your password"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        disabled={isLoading || socialLoading !== ''}
+                      />
+                      <button
+                        type="button"
+                        className="new-register-password-toggle"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        disabled={isLoading || socialLoading !== ''}
+                      >
+                        {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
+                    {errors.confirmPassword && <span className="new-register-error-message">{errors.confirmPassword}</span>}
+                    {formData.confirmPassword && !errors.confirmPassword && formData.password === formData.confirmPassword && (
+                      <span className="new-register-success-message">✓ Passwords match</span>
+                    )}
+                  </div>
+
+                  <div className="new-register-form-group">
+                    <label className="new-register-checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={termsAccepted}
+                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                        className="new-register-terms-checkbox"
+                      />
+                      <span className="new-register-checkbox-text">
+                        I agree to the{' '}
                         <button
                           type="button"
-                          className="password-toggle-reg"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          disabled={isLoading || socialLoading !== ''}
+                          className="new-register-terms-link"
+                          onClick={openTermsInNewTab}
                         >
-                          {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                          Terms and Conditions
                         </button>
-                      </div>
-                      {errors.confirmPassword && <span className="error-message-reg">{errors.confirmPassword}</span>}
-                      {formData.confirmPassword && !errors.confirmPassword && formData.password === formData.confirmPassword && (
-                        <span className="success-message-reg">✓ Passwords match</span>
-                      )}
-                    </div>
+                      </span>
+                    </label>
+                    {errors.terms && <span className="new-register-error-message">{errors.terms}</span>}
+                  </div>
 
-                    {/* TERMS AND CONDITIONS */}
-                    <div className="form-group-reg">
-                      <label className="checkbox-label-reg">
+                  <button
+                    type="submit"
+                    className="new-register-submit-btn"
+                    disabled={isLoading || socialLoading !== '' || !isFormValid()}
+                  >
+                    {isLoading ? 'Sending Code...' : 'Send Verification Code'}
+                  </button>
+
+                  <div className="new-register-social">
+                    <p className="new-register-social-text">Or sign up with</p>
+                    <div className="new-register-social-buttons">
+                      <button
+                        type="button"
+                        className={`new-register-social-btn new-register-google-btn ${socialLoading === 'google' ? 'new-register-loading' : ''}`}
+                        onClick={handleGoogleRegister}
+                        disabled={isLoading || socialLoading !== ''}
+                      >
+                        {socialLoading === 'google' ? (
+                          <span className="new-register-loading-spinner"></span>
+                        ) : (
+                          <FcGoogle className="new-register-google-icon" />
+                        )}
+                        <span className="new-register-google-text">Continue with Google</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="new-register-login-prompt">
+                    <p className="new-register-login-text">
+                      Already have an account? <Link to="/login" className="new-register-login-link">Sign in</Link>
+                    </p>
+                  </div>
+                </form>
+              </>
+            )}
+
+            {/* ===== STEP 2: Verification Code - FORM ON LEFT ===== */}
+            {currentStep === 2 && (
+              <>
+                <div className="new-register-form-header">
+                  <h2 className="new-register-form-title">Verify Your Email</h2>
+                  <p className="new-register-form-subtitle">
+                    We've sent a 6-digit code to <strong>{formData.email}</strong>
+                  </p>
+                </div>
+
+                {errors.code && (
+                  <div className="new-register-general-error">
+                    {errors.code}
+                  </div>
+                )}
+
+                <form onSubmit={handleVerifyCode} className="new-register-form">
+                  <div className="new-register-code-input-group">
+                    <div className="new-register-code-inputs">
+                      {code.map((digit, index) => (
                         <input
-                          type="checkbox"
-                          checked={termsAccepted}
-                          onChange={(e) => setTermsAccepted(e.target.checked)}
-                          className="terms-checkbox-reg"
+                          key={index}
+                          id={`code-${index}`}
+                          type="text"
+                          maxLength="1"
+                          className={`new-register-code-input ${errors.code ? 'new-register-input-error' : ''}`}
+                          value={digit}
+                          onChange={(e) => handleCodeChange(index, e.target.value)}
+                          onKeyDown={(e) => handleKeyDown(index, e)}
+                          disabled={isLoading}
                         />
-                        <span className="checkbox-text-reg">
-                          I agree to the{' '}
-                          <button
-                            type="button"
-                            className="terms-link-reg"
-                            onClick={openTermsInNewTab}
-                          >
-                            Terms and Conditions
-                          </button>
-                          <span className="required-star">*</span>
-                        </span>
-                      </label>
-                      {errors.terms && <span className="error-message-reg">{errors.terms}</span>}
+                      ))}
                     </div>
+                  </div>
 
-                    {/* SUBMIT BUTTON */}
-                    <button
-                      type="submit"
-                      className="register-submit-btn-reg"
-                      disabled={isLoading || socialLoading !== '' || !isFormValid()}
-                    >
-                      {isLoading ? 'Sending Code...' : 'Send Verification Code'}
-                    </button>
+                  <button
+                    type="submit"
+                    className="new-register-submit-btn"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Verifying...' : 'Verify Code'}
+                  </button>
 
-                    {/* SOCIAL LOGIN */}
-                    <div className="social-login-reg">
-                      <p className="social-login-text-reg">Or sign up with</p>
-                      <div className="social-buttons-reg">
-                        <button
-                          type="button"
-                          className={`social-btn-reg google-reg ${socialLoading === 'google' ? 'loading-reg' : ''}`}
-                          onClick={handleGoogleRegister}
-                          disabled={isLoading || socialLoading !== ''}
-                        >
-                          {socialLoading === 'google' ? (
-                            <span className="loading-spinner-reg"></span>
-                          ) : (
-                            <FcGoogle className="google-icon-reg" />
-                          )}
-                          <span className="google-text-reg">Continue with Google</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* LOGIN LINK */}
-                    <div className="login-prompt-reg">
-                      <p className="login-text-reg">
-                        Already have an account? <Link to="/login" className="login-link-reg">Sign in</Link>
-                      </p>
-                    </div>
-                  </form>
-                </>
-              )}
-
-              {currentStep === 2 && (
-                <>
-                  <div className="form-header-reg">
-                    <h2 className="form-title-reg">Verify Your Email</h2>
-                    <p className="form-subtitle-reg">
-                      We've sent a 6-digit code to <strong>{formData.email}</strong>
+                  <div className="new-register-resend-code">
+                    <p className="new-register-resend-text">
+                      Didn't receive code?{' '}
+                      <button
+                        type="button"
+                        className="new-register-resend-link"
+                        onClick={handleResendCode}
+                        disabled={isCooldownActive}
+                      >
+                        {isCooldownActive ? `Resend (${formatCooldown()})` : 'Resend'}
+                      </button>
                     </p>
                   </div>
 
-                  {errors.code && (
-                    <div className="general-error-reg">
-                      {errors.code}
-                    </div>
-                  )}
-
-                  <form onSubmit={handleVerifyCode} className="register-form-reg">
-                    <div className="code-input-group-reg">
-                      <div className="code-inputs-reg">
-                        {code.map((digit, index) => (
-                          <input
-                            key={index}
-                            id={`code-${index}`}
-                            type="text"
-                            maxLength="1"
-                            className={`code-input-reg ${errors.code ? 'input-error-reg' : ''}`}
-                            value={digit}
-                            onChange={(e) => handleCodeChange(index, e.target.value)}
-                            onKeyDown={(e) => handleKeyDown(index, e)}
-                            disabled={isLoading}
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="register-submit-btn-reg"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? 'Verifying...' : 'Verify Code'}
-                    </button>
-
-                    <div className="resend-code-reg">
-                      <p className="resend-text-reg">
-                        Didn't receive code?{' '}
-                        <button
-                          type="button"
-                          className="resend-link-reg"
-                          onClick={handleResendCode}
-                          disabled={isCooldownActive}
-                        >
-                          {isCooldownActive ? `Resend (${formatCooldown()})` : 'Resend'}
-                        </button>
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      className="back-button-reg"
-                      onClick={() => setCurrentStep(1)}
-                      disabled={isLoading}
-                    >
-                      <FaArrowLeft /> Back to Registration
-                    </button>
-                  </form>
-                </>
-              )}
-
-              {currentStep === 3 && (
-                <div className="success-container-reg">
-                  <div className="success-icon-reg">✓</div>
-                  <h2 className="success-title-reg">Successfully Registered!</h2>
-                  <p className="success-text-reg">
-                    Your account has been created successfully. You can now log in to access your solar projects.
-                  </p>
                   <button
-                    onClick={handleBackToLogin}
-                    className="back-to-login-btn-reg"
+                    type="button"
+                    className="new-register-back-button"
+                    onClick={() => setCurrentStep(1)}
+                    disabled={isLoading}
                   >
-                    Back to Login
+                    <FaArrowLeft /> Back to Registration
                   </button>
-                </div>
-              )}
-            </div>
+                </form>
+              </>
+            )}
+
+            {currentStep === 3 && (
+              <div className="new-register-success-container">
+                <div className="new-register-success-icon">✓</div>
+                <h2 className="new-register-success-title">Successfully Registered!</h2>
+                <p className="new-register-success-text">
+                  Your account has been created successfully. You can now log in to access your solar projects.
+                </p>
+                <button
+                  onClick={handleBackToLogin}
+                  className="new-register-back-to-login-btn"
+                >
+                  Back to Login
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

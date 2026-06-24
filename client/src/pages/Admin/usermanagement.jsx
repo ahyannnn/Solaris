@@ -12,7 +12,6 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaSpinner,
-  FaFilter,
   FaChevronLeft,
   FaChevronRight,
   FaEye,
@@ -21,11 +20,6 @@ import {
   FaCheck,
   FaExclamationTriangle,
   FaKey,
-  FaSave,
-  FaDatabase,
-  FaUserGraduate,
-  FaCloudUploadAlt,
-  FaCheckDouble,
   FaChevronDown
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
@@ -60,14 +54,6 @@ const UserManagement = () => {
   const dropdownRef = useRef(null);
   const buttonRefs = useRef({});
 
-  const [showImportModal, setShowImportModal] = useState(false);
-  const [hiredApplicants, setHiredApplicants] = useState([]);
-  const [loadingApplicants, setLoadingApplicants] = useState(false);
-  const [selectedApplicants, setSelectedApplicants] = useState([]);
-  const [importStats, setImportStats] = useState(null);
-  const [applicantSearchTerm, setApplicantSearchTerm] = useState('');
-  const [bulkImportMode, setBulkImportMode] = useState(false);
-
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -79,7 +65,6 @@ const UserManagement = () => {
   const [formErrors, setFormErrors] = useState({});
   const [passwordErrors, setPasswordErrors] = useState({});
 
-  // Fixed: Added missing dependencies
   useEffect(() => {
     fetchUsers();
     fetchStats();
@@ -101,7 +86,7 @@ const UserManagement = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('scroll', handleScroll, true);
     };
-  }, [filterRole, currentPage]); // Keep these dependencies
+  }, [filterRole, currentPage]);
 
   const handleDropdownClick = (event, userId) => {
     event.stopPropagation();
@@ -147,112 +132,6 @@ const UserManagement = () => {
     }
   };
 
-  const fetchHiredApplicants = async () => {
-    try {
-      setLoadingApplicants(true);
-      const token = sessionStorage.getItem('token');
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/job-portal/hired-applicants`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.data.success) {
-        const applicantsWithNormalizedEmail = response.data.applicants.map(applicant => ({
-          ...applicant,
-          email: applicant.email ? applicant.email.toLowerCase() : applicant.email
-        }));
-        
-        setHiredApplicants(applicantsWithNormalizedEmail);
-        setImportStats({
-          total: response.data.count,
-          notImported: applicantsWithNormalizedEmail.filter(a => !a.imported).length,
-          alreadyImported: applicantsWithNormalizedEmail.filter(a => a.imported).length
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching hired applicants:', error);
-      showToast('Failed to fetch hired applicants from job portal', 'error');
-    } finally {
-      setLoadingApplicants(false);
-    }
-  };
-
-  const handleOpenImportModal = () => {
-    setShowImportModal(true);
-    fetchHiredApplicants();
-    setSelectedApplicants([]);
-    setBulkImportMode(false);
-  };
-
-  const handleImportEngineer = async (applicantId) => {
-    setIsSubmitting(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/job-portal/import-engineer/${applicantId}`,
-        { role: 'engineer' },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (response.data.success) {
-        showToast(`Successfully imported ${response.data.user.fullName} as engineer`, 'success');
-        fetchUsers();
-        fetchStats();
-        fetchHiredApplicants();
-        setSelectedApplicants([]);
-      }
-    } catch (error) {
-      console.error('Error importing engineer:', error);
-      showToast(error.response?.data?.message || 'Failed to import engineer', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleBulkImport = async () => {
-    if (selectedApplicants.length === 0) {
-      showToast('Please select at least one applicant to import', 'warning');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/job-portal/bulk-import`,
-        { applicantIds: selectedApplicants, role: 'engineer' },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (response.data.success) {
-        showToast(response.data.message, 'success');
-        fetchUsers();
-        fetchStats();
-        fetchHiredApplicants();
-        setSelectedApplicants([]);
-        setBulkImportMode(false);
-      }
-    } catch (error) {
-      console.error('Error in bulk import:', error);
-      showToast(error.response?.data?.message || 'Failed to perform bulk import', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const toggleApplicantSelection = (applicantId) => {
-    setSelectedApplicants(prev =>
-      prev.includes(applicantId) ? prev.filter(id => id !== applicantId) : [...prev, applicantId]
-    );
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedApplicants.length === filteredApplicants.length) {
-      setSelectedApplicants([]);
-    } else {
-      setSelectedApplicants(filteredApplicants.map(a => a.id));
-    }
-  };
-
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
@@ -264,13 +143,6 @@ const UserManagement = () => {
     return user.fullName?.toLowerCase().includes(searchLower) ||
       user.email?.toLowerCase().includes(searchLower) ||
       user.clientInfo?.contactNumber?.includes(searchTerm);
-  });
-
-  const filteredApplicants = hiredApplicants.filter(applicant => {
-    if (!applicantSearchTerm) return true;
-    const searchLower = applicantSearchTerm.toLowerCase();
-    return applicant.fullName?.toLowerCase().includes(searchLower) ||
-      applicant.email?.toLowerCase().includes(searchLower);
   });
 
   const combineFullName = (firstName, lastName) => {
@@ -593,14 +465,9 @@ const UserManagement = () => {
             <p>Manage system users, roles, and permissions</p>
           </div>
           
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <button className="create-user-btn-usermgmtad-finalday" onClick={handleOpenImportModal} style={{ backgroundColor: '#6c757d' }}>
-              <FaDatabase /> Import from Job Portal
-            </button>
-            <button className="create-user-btn-usermgmtad-finalday" onClick={handleOpenCreateModal}>
-              <FaUserPlus /> Add User
-            </button>
-          </div>
+          <button className="create-user-btn-usermgmtad-finalday" onClick={handleOpenCreateModal}>
+            <FaUserPlus /> Add User
+          </button>
         </div>
 
         <div className="user-stats-cards-usermgmtad-finalday">
@@ -675,16 +542,12 @@ const UserManagement = () => {
                         <div className="user-avatar-usermgmtad-finalday">
                           {user.clientInfo?.firstName ? (
                             <div className="avatar-initials-usermgmtad-finalday">{user.clientInfo.firstName[0]}{user.clientInfo.lastName?.[0]}</div>
-                          ) : <FaUserCircle />}
+                          ) : (
+                            <FaUserCircle className="avatar-icon-usermgmtad-finalday" />
+                          )}
                         </div>
                         <div className="user-info-usermgmtad-finalday">
-                          <div className="user-name-usermgmtad-finalday">{user.fullName}</div>
-                          {user.clientInfo?.firstName && (
-                            <div className="user-detail-usermgmtad-finalday">{user.clientInfo.firstName} {user.clientInfo.lastName}</div>
-                          )}
-                          {user.metadata?.importedFrom === 'job-portal' && (
-                            <div className="import-badge-usermgmtad-finalday"><FaCloudUploadAlt /> Imported</div>
-                          )}
+                          <div className="user-name-usermgmtad-finalday">{user.fullName || '—'}</div>
                         </div>
                       </td>
                       <td className="email-cell-usermgmtad-finalday">
@@ -746,113 +609,6 @@ const UserManagement = () => {
             <button className="page-btn-usermgmtad-finalday" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}><FaChevronLeft /> Previous</button>
             <span className="page-info-usermgmtad-finalday">Page {currentPage} of {totalPages}</span>
             <button className="page-btn-usermgmtad-finalday" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next <FaChevronRight /></button>
-          </div>
-        )}
-
-        {/* Import Modal */}
-        {showImportModal && (
-          <div className="modal-overlay-usermgmtad-finalday" onClick={() => setShowImportModal(false)}>
-            <div className="modal-content-usermgmtad-finalday import-modal-usermgmtad-finalday" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-usermgmtad-finalday">
-                <h3><FaDatabase /> Import Engineers from Job Portal</h3>
-                <button className="modal-close-usermgmtad-finalday" onClick={() => setShowImportModal(false)}>×</button>
-              </div>
-              <div className="modal-body-usermgmtad-finalday">
-                {importStats && (
-                  <div className="import-stats-usermgmtad-finalday">
-                    <div className="stat-badge-usermgmtad-finalday">
-                      <span>Total Hired: {importStats.total}</span>
-                      <span>Not Imported: {importStats.notImported}</span>
-                      <span>Already Imported: {importStats.alreadyImported}</span>
-                    </div>
-                  </div>
-                )}
-                <div className="import-controls-usermgmtad-finalday">
-                  <div className="search-box-usermgmtad-finalday">
-                    <FaSearch className="search-icon-usermgmtad-finalday" />
-                    <input type="text" placeholder="Search applicants..." value={applicantSearchTerm} onChange={(e) => setApplicantSearchTerm(e.target.value)} />
-                  </div>
-                  {filteredApplicants.length > 0 && (
-                    <div className="bulk-actions-usermgmtad-finalday">
-                      <button className="bulk-import-btn-usermgmtad-finalday" onClick={() => setBulkImportMode(!bulkImportMode)}>
-                        {bulkImportMode ? 'Cancel Bulk Mode' : 'Bulk Import Mode'}
-                      </button>
-                      {bulkImportMode && selectedApplicants.length > 0 && (
-                        <button className="import-selected-btn-usermgmtad-finalday" onClick={handleBulkImport} disabled={isSubmitting}>
-                          {isSubmitting ? 'Importing...' : `Import Selected (${selectedApplicants.length})`}
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div className="applicants-table-container-usermgmtad-finalday">
-                  {loadingApplicants ? (
-                    <div className="loading-spinner-usermgmtad-finalday"><FaSpinner className="spinner-usermgmtad-finalday" /><p>Loading...</p></div>
-                  ) : (
-                    <table className="applicants-table-usermgmtad-finalday">
-                      <thead>
-                        <tr>
-                          {bulkImportMode && <th><input type="checkbox" checked={selectedApplicants.length === filteredApplicants.length && filteredApplicants.length > 0} onChange={toggleSelectAll} /></th>}
-                          <th>Name</th>
-                          <th>Email</th>
-                          <th>Phone</th>
-                          <th>Position</th>
-                          <th>Submitted</th>
-                          <th>Status</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredApplicants.length === 0 ? (
-                          <tr>
-                            <td colSpan={bulkImportMode ? 8 : 7} className="empty-state-usermgmtad-finalday">
-                              <p>No hired applicants found</p>
-                            </td>
-                          </tr>
-                        ) : (
-                          filteredApplicants.map(applicant => (
-                            <tr key={applicant.id} className={applicant.imported ? 'imported-row-usermgmtad-finalday' : ''}>
-                              {bulkImportMode && (
-                                <td>
-                                  <input 
-                                    type="checkbox" 
-                                    checked={selectedApplicants.includes(applicant.id)} 
-                                    onChange={() => toggleApplicantSelection(applicant.id)} 
-                                    disabled={applicant.imported} 
-                                  />
-                                </td>
-                              )}
-                              <td className="applicant-name-usermgmtad-finalday"><FaUserGraduate />{applicant.fullName}</td>
-                              <td>{applicant.email}</td>
-                              <td>{applicant.phone || '—'}</td>
-                              <td><span className="position-badge-usermgmtad-finalday">{applicant.position}</span></td>
-                              <td>{formatDate(applicant.submittedAt)}</td>
-                              <td>
-                                {applicant.imported ? (
-                                  <span className="imported-badge-usermgmtad-finalday"><FaCheckDouble /> Imported</span>
-                                ) : (
-                                  <span className="pending-badge-usermgmtad-finalday">Pending Import</span>
-                                )}
-                              </td>
-                              <td>
-                                {!applicant.imported && (
-                                  <button className="import-btn-usermgmtad-finalday" onClick={() => handleImportEngineer(applicant.id)} disabled={isSubmitting}>
-                                    <FaCloudUploadAlt /> Import
-                                  </button>
-                                )}
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-              </div>
-              <div className="modal-actions-usermgmtad-finalday">
-                <button className="cancel-btn-usermgmtad-finalday" onClick={() => setShowImportModal(false)}>Close</button>
-              </div>
-            </div>
           </div>
         )}
 

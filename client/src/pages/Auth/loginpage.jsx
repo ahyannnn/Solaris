@@ -76,8 +76,10 @@ const LoginPage = () => {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.email) {
-      newErrors.email = 'Email or User Name is required';
-    } 
+      newErrors.email = 'Email address is required';
+    } else if (!formData.email.endsWith('@gmail.com')) {
+      newErrors.email = 'Please use a valid @gmail.com email address';
+    }
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
@@ -85,8 +87,6 @@ const LoginPage = () => {
 
     return newErrors;
   };
-
-  // In LoginPage.jsx, after successful authentication, add setup check:
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -112,7 +112,7 @@ const LoginPage = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: formData.email,
+          email: formData.email.toLowerCase(),
           password: formData.password,
           rememberMe
         }),
@@ -139,7 +139,6 @@ const LoginPage = () => {
           userRole: data.user.role || 'user',
           userPhotoURL: data.user.photoURL || '',
           userId: data.user.id || ''
-          // REMOVE hasCompletedSetup - don't store it
         };
 
         Object.entries(userData).forEach(([key, value]) => {
@@ -155,7 +154,6 @@ const LoginPage = () => {
 
         setTimeout(() => {
           window.dispatchEvent(new Event('storage'));
-          // Always go to app - let SetupGuard handle redirect
           navigate("/app", { replace: true });
         }, 50);
       }
@@ -211,7 +209,7 @@ const LoginPage = () => {
         },
         body: JSON.stringify({
           fullName: user.displayName,
-          email: user.email,
+          email: user.email.toLowerCase(),
           googleId: user.uid,
           photoURL: user.photoURL,
           rememberMe
@@ -238,7 +236,8 @@ const LoginPage = () => {
           userName: data.user.fullName || '',
           userEmail: data.user.email || '',
           userRole: data.user.role || 'user',
-          userPhotoURL: data.user.photoURL || ''
+          userPhotoURL: data.user.photoURL || '',
+          userId: data.user.id || ''
         };
 
         Object.entries(userData).forEach(([key, value]) => {
@@ -315,16 +314,16 @@ const LoginPage = () => {
               )}
 
               <form onSubmit={handleSubmit} className="login-form-login">
-                {/* EMAIL FIELD */}
+                {/* EMAIL FIELD - UPDATED */}
                 <div className="form-group-login">
-                  <label className="form-label-login">Email or User Name</label>
+                  <label className="form-label-login">Email Address <span className="required-star">*</span></label>
                   <div className="input-wrapper-login">
                     <FaEnvelope className="input-icon-login" />
                     <input
-                      type="text"
+                      type="email"
                       name="email"
                       className={`form-input-login ${errors.email ? 'input-error-login' : ''}`}
-                      placeholder="Enter your email or username"
+                      placeholder="Enter your email address"
                       value={formData.email}
                       onChange={handleChange}
                       disabled={isLoading || socialLoading !== '' || isNavigating}
@@ -335,7 +334,7 @@ const LoginPage = () => {
 
                 {/* PASSWORD FIELD */}
                 <div className="form-group-login">
-                  <label className="form-label-login">Password</label>
+                  <label className="form-label-login">Password <span className="required-star">*</span></label>
                   <div className="input-wrapper-login">
                     <FaLock className="input-icon-login" />
                     <input
@@ -361,7 +360,19 @@ const LoginPage = () => {
 
                 {/* REMEMBER ME & FORGOT PASSWORD */}
                 <div className="row-actions-login">
-
+                  <div className="remember-me-login">
+                    <input
+                      type="checkbox"
+                      id="rememberMe"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="remember-checkbox-login"
+                      disabled={isLoading || socialLoading !== '' || isNavigating}
+                    />
+                    <label htmlFor="rememberMe" className="remember-label-login">
+                      Remember me
+                    </label>
+                  </div>
 
                   <Link to="/forgotpassword" className="forgot-link-login">
                     Forgot password?

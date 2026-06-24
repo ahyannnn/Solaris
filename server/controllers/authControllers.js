@@ -5,12 +5,12 @@ const jwt = require("jsonwebtoken");
 
 /*
 =========================
-REGISTER
+REGISTER (UPDATED)
 =========================
 */
 exports.register = async (req, res) => {
   try {
-    const { fullName, email, password } = req.body;
+    const { fullName, contactFirstName, contactMiddleName, contactLastName, email, password } = req.body;
 
     // Check if email exists
     const existingUser = await User.findOne({ email });
@@ -24,7 +24,7 @@ exports.register = async (req, res) => {
 
     // Create new user
     const newUser = new User({
-      fullName,
+      fullName,  // Combined first + last name for display
       email,
       passwordHash,
       role: "user",
@@ -33,15 +33,17 @@ exports.register = async (req, res) => {
 
     await newUser.save();
 
-    let client = await Client.findOne({ userId: newUser._id });
+    // Create client record with contact name fields
+    const client = new Client({
+      userId: newUser._id,
+      contactFirstName: contactFirstName,
+      contactMiddleName: contactMiddleName || '',  // Optional
+      contactLastName: contactLastName,
+      account_setup: false,
+      client_type: "Residential"  // Default
+    });
 
-    if (!client) {
-      client = new Client({
-        userId: newUser._id,
-        account_setup: false
-      });
-      await client.save();
-    }
+    await client.save();
 
     // Generate JWT
     const token = jwt.sign(
@@ -68,30 +70,19 @@ exports.register = async (req, res) => {
 
 /*
 =========================
-EMAIL + PASSWORD LOGIN (UPDATED to accept email OR username)
+LOGIN (UPDATED - email only)
 =========================
 */
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    // Note: 'email' parameter will now accept either email address OR username (fullName)
 
-    // Check if input is email (contains @) or username
-    const isEmail = email.includes('@') && email.includes('.');
-    
-    let user;
-    
-    if (isEmail) {
-      // Search by email
-      user = await User.findOne({ email: email.toLowerCase() });
-    } else {
-      // Search by username (fullName)
-      user = await User.findOne({ fullName: email });
-    }
+    // Search by email only (username removed)
+    const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) {
       return res.status(400).json({
-        message: "Invalid email/username or password"
+        message: "Invalid email or password"
       });
     }
 
@@ -99,7 +90,7 @@ exports.login = async (req, res) => {
 
     if (!isMatch) {
       return res.status(400).json({
-        message: "Invalid email/username or password"
+        message: "Invalid email or password"
       });
     }
 
@@ -126,12 +117,12 @@ exports.login = async (req, res) => {
 
 /*
 =========================
-GOOGLE REGISTER
+GOOGLE REGISTER (UPDATED)
 =========================
 */
 exports.googleRegister = async (req, res) => {
   try {
-    const { fullName, email, googleId, photoURL } = req.body;
+    const { fullName, contactFirstName, contactMiddleName, contactLastName, email, googleId, photoURL } = req.body;
 
     // Check if user already exists
     let user = await User.findOne({ email });
@@ -144,12 +135,16 @@ exports.googleRegister = async (req, res) => {
         { expiresIn: "7d" }
       );
 
-      // Ensure client exists
+      // Ensure client exists with contact name fields
       let client = await Client.findOne({ userId: user._id });
       if (!client) {
         client = new Client({
           userId: user._id,
+          contactFirstName: contactFirstName || '',
+          contactMiddleName: contactMiddleName || '',
+          contactLastName: contactLastName || '',
           account_setup: false,
+          client_type: "Residential"
         });
         await client.save();
       }
@@ -168,7 +163,7 @@ exports.googleRegister = async (req, res) => {
     const passwordHash = await bcrypt.hash(randomPassword, salt);
 
     user = new User({
-      fullName,
+      fullName: fullName || `${contactFirstName} ${contactLastName}`.trim(),
       email,
       passwordHash,
       provider: "google",
@@ -179,10 +174,14 @@ exports.googleRegister = async (req, res) => {
 
     await user.save();
 
-    // Create a new client record for this user
-    let client = new Client({
+    // Create a new client record with contact name fields
+    const client = new Client({
       userId: user._id,
+      contactFirstName: contactFirstName || '',
+      contactMiddleName: contactMiddleName || '',
+      contactLastName: contactLastName || '',
       account_setup: false,
+      client_type: "Residential"
     });
     await client.save();
 
@@ -211,12 +210,12 @@ exports.googleRegister = async (req, res) => {
 
 /*
 =========================
-GOOGLE LOGIN
+GOOGLE LOGIN (UPDATED)
 =========================
 */
 exports.googleLogin = async (req, res) => {
   try {
-    const { fullName, email, googleId, photoURL } = req.body;
+    const { fullName, contactFirstName, contactMiddleName, contactLastName, email, googleId, photoURL } = req.body;
 
     if (!email) {
       return res.status(400).json({
@@ -232,7 +231,7 @@ exports.googleLogin = async (req, res) => {
       const passwordHash = await bcrypt.hash(randomPassword, salt);
 
       user = new User({
-        fullName,
+        fullName: fullName || `${contactFirstName} ${contactLastName}`.trim(),
         email,
         passwordHash,
         provider: "google",
@@ -242,6 +241,17 @@ exports.googleLogin = async (req, res) => {
       });
 
       await user.save();
+
+      // Create client with contact name fields
+      const client = new Client({
+        userId: user._id,
+        contactFirstName: contactFirstName || '',
+        contactMiddleName: contactMiddleName || '',
+        contactLastName: contactLastName || '',
+        account_setup: false,
+        client_type: "Residential"
+      });
+      await client.save();
     }
 
     const token = jwt.sign(
@@ -340,35 +350,3 @@ exports.checkEmail = async (req, res) => {
   }
 };
 
-/*
-=========================
-CHECK USERNAME
-=========================
-*/
-exports.checkUsername = async (req, res) => {
-  try {
-    const { username } = req.body;
-    
-    if (!username) {
-      return res.status(400).json({ error: 'Username is required' });
-    }
-    
-    // Check if username exists in database
-    const existingUser = await User.findOne({ fullName: username });
-    
-    if (existingUser) {
-      return res.json({ 
-        exists: true, 
-        message: 'Username already taken' 
-      });
-    }
-    
-    return res.json({ 
-      exists: false, 
-      message: 'Username available' 
-    });
-  } catch (error) {
-    console.error('Username check error:', error);
-    return res.status(500).json({ error: 'Server error' });
-  }
-};

@@ -21,7 +21,9 @@ const RegisterPage = () => {
   const [isCooldownActive, setIsCooldownActive] = useState(false);
 
   const [formData, setFormData] = useState({
-    fullName: '',
+    firstName: '',
+    middleName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -37,13 +39,8 @@ const RegisterPage = () => {
   const [emailChecking, setEmailChecking] = useState(false);
   const [isEmailTaken, setIsEmailTaken] = useState(false);
   
-  // Username validation states
-  const [usernameChecking, setUsernameChecking] = useState(false);
-  const [isUsernameTaken, setIsUsernameTaken] = useState(false);
-  
   // Debounce timer refs
   const emailDebounceTimerRef = useRef(null);
-  const usernameDebounceTimerRef = useRef(null);
   
   // Add a ref to prevent double verification
   const isVerifyingRef = useRef(false);
@@ -66,9 +63,6 @@ const RegisterPage = () => {
       if (emailDebounceTimerRef.current) {
         clearTimeout(emailDebounceTimerRef.current);
       }
-      if (usernameDebounceTimerRef.current) {
-        clearTimeout(usernameDebounceTimerRef.current);
-      }
     };
   }, []);
 
@@ -81,13 +75,29 @@ const RegisterPage = () => {
 
   // ==================== VALIDATION FUNCTIONS ====================
 
-  // Username validation
-  const validateUsername = (username) => {
-    if (!username) return null;
-    if (username.length < 3) return 'Username must be at least 3 characters';
-    if (username.length > 20) return 'Username must be less than 20 characters';
-    if (username.includes(' ')) return 'Username cannot contain spaces';
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) return 'Username can only contain letters, numbers, and underscores';
+  // First name validation
+  const validateFirstName = (firstName) => {
+    if (!firstName) return null;
+    if (firstName.length < 2) return 'First name must be at least 2 characters';
+    if (firstName.length > 50) return 'First name must be less than 50 characters';
+    if (!/^[a-zA-Z\s'-]+$/.test(firstName)) return 'First name can only contain letters, spaces, apostrophes, and hyphens';
+    return null;
+  };
+
+  // Last name validation
+  const validateLastName = (lastName) => {
+    if (!lastName) return null;
+    if (lastName.length < 2) return 'Last name must be at least 2 characters';
+    if (lastName.length > 50) return 'Last name must be less than 50 characters';
+    if (!/^[a-zA-Z\s'-]+$/.test(lastName)) return 'Last name can only contain letters, spaces, apostrophes, and hyphens';
+    return null;
+  };
+
+  // Middle name validation (optional)
+  const validateMiddleName = (middleName) => {
+    if (!middleName) return null; // Optional field
+    if (middleName.length > 50) return 'Middle name must be less than 50 characters';
+    if (!/^[a-zA-Z\s'-]+$/.test(middleName)) return 'Middle name can only contain letters, spaces, apostrophes, and hyphens';
     return null;
   };
 
@@ -149,49 +159,6 @@ const RegisterPage = () => {
     }
   };
 
-  // Function to check if username is already taken
-  const checkUsernameExists = async (username) => {
-    if (!username || username.length < 3) {
-      setIsUsernameTaken(false);
-      setUsernameChecking(false);
-      return false;
-    }
-
-    // Don't check if there's already a validation error
-    const usernameError = validateUsername(username);
-    if (usernameError) {
-      setIsUsernameTaken(false);
-      setUsernameChecking(false);
-      return false;
-    }
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/check-username`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username })
-      });
-
-      const data = await response.json();
-      
-      if (data.exists) {
-        setIsUsernameTaken(true);
-        setErrors(prev => ({ ...prev, fullName: 'Username is already taken' }));
-        return true;
-      } else {
-        setIsUsernameTaken(false);
-        setErrors(prev => ({ ...prev, fullName: '' }));
-        return false;
-      }
-    } catch (error) {
-      console.error('Username check error:', error);
-      setIsUsernameTaken(false);
-      return false;
-    } finally {
-      setUsernameChecking(false);
-    }
-  };
-
   // Debounced email check (waits 3 seconds after user stops typing)
   const debouncedEmailCheck = (email) => {
     if (emailDebounceTimerRef.current) {
@@ -211,50 +178,24 @@ const RegisterPage = () => {
     }, 3000);
   };
 
-  // Debounced username check (waits 3 seconds after user stops typing)
-  const debouncedUsernameCheck = (username) => {
-    if (usernameDebounceTimerRef.current) {
-      clearTimeout(usernameDebounceTimerRef.current);
-    }
-    
-    if (!username || username.length < 3) {
-      setIsUsernameTaken(false);
-      setUsernameChecking(false);
-      return;
-    }
-    
-    const usernameError = validateUsername(username);
-    if (usernameError) {
-      setIsUsernameTaken(false);
-      setUsernameChecking(false);
-      return;
-    }
-    
-    setUsernameChecking(true);
-    
-    usernameDebounceTimerRef.current = setTimeout(() => {
-      checkUsernameExists(username);
-    }, 3000);
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     
     // Real-time validation for each field
-    if (name === 'fullName') {
-      const usernameError = validateUsername(value);
-      setErrors(prev => ({ ...prev, fullName: usernameError || '' }));
-      
-      setIsUsernameTaken(false);
-      
-      if (usernameDebounceTimerRef.current) {
-        clearTimeout(usernameDebounceTimerRef.current);
-      }
-      
-      if (value && value.length >= 3 && !usernameError) {
-        debouncedUsernameCheck(value);
-      }
+    if (name === 'firstName') {
+      const firstNameError = validateFirstName(value);
+      setErrors(prev => ({ ...prev, firstName: firstNameError || '' }));
+    }
+    
+    if (name === 'middleName') {
+      const middleNameError = validateMiddleName(value);
+      setErrors(prev => ({ ...prev, middleName: middleNameError || '' }));
+    }
+    
+    if (name === 'lastName') {
+      const lastNameError = validateLastName(value);
+      setErrors(prev => ({ ...prev, lastName: lastNameError || '' }));
     }
     
     if (name === 'email') {
@@ -314,19 +255,6 @@ const RegisterPage = () => {
     }
   };
 
-  const handleUsernameBlur = async () => {
-    if (usernameDebounceTimerRef.current) {
-      clearTimeout(usernameDebounceTimerRef.current);
-    }
-    if (formData.fullName && formData.fullName.length >= 3) {
-      const usernameError = validateUsername(formData.fullName);
-      if (!usernameError) {
-        setUsernameChecking(true);
-        await checkUsernameExists(formData.fullName);
-      }
-    }
-  };
-
   const handleCodeChange = (index, value) => {
     if (value.length <= 1) {
       const newCode = [...code];
@@ -353,14 +281,25 @@ const RegisterPage = () => {
   const validateStep1 = () => {
     const newErrors = {};
     
-    // Username validation
-    if (!formData.fullName) {
-      newErrors.fullName = 'Username is required';
+    // First name validation
+    if (!formData.firstName) {
+      newErrors.firstName = 'First name is required';
     } else {
-      const usernameError = validateUsername(formData.fullName);
-      if (usernameError) newErrors.fullName = usernameError;
-      else if (isUsernameTaken) newErrors.fullName = 'Username is already taken';
+      const firstNameError = validateFirstName(formData.firstName);
+      if (firstNameError) newErrors.firstName = firstNameError;
     }
+    
+    // Last name validation
+    if (!formData.lastName) {
+      newErrors.lastName = 'Last name is required';
+    } else {
+      const lastNameError = validateLastName(formData.lastName);
+      if (lastNameError) newErrors.lastName = lastNameError;
+    }
+    
+    // Middle name validation (optional)
+    const middleNameError = validateMiddleName(formData.middleName);
+    if (middleNameError) newErrors.middleName = middleNameError;
     
     // Email validation
     if (!formData.email) {
@@ -409,16 +348,18 @@ const RegisterPage = () => {
       return;
     }
 
-    // Final checks for email and username uniqueness
+    // Final check for email uniqueness
     const isEmailTakenCheck = await checkEmailExists(formData.email);
-    const isUsernameTakenCheck = await checkUsernameExists(formData.fullName);
     
-    if (isEmailTakenCheck || isUsernameTakenCheck) {
+    if (isEmailTakenCheck) {
       return;
     }
 
     setIsLoading(true);
     setErrors({});
+
+    // Combine first and last name for fullName
+    const fullName = `${formData.firstName} ${formData.lastName}`.trim();
 
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/email/send-verification`, {
@@ -426,7 +367,7 @@ const RegisterPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: formData.email.toLowerCase(),
-          name: formData.fullName
+          name: fullName
         })
       });
 
@@ -503,11 +444,17 @@ const RegisterPage = () => {
 
   const registerUser = async (email, verificationCode) => {
     try {
+      // Combine first and last name for fullName
+      const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fullName: formData.fullName,
+          fullName: fullName,                          // For users table
+          contactFirstName: formData.firstName,        // For clients table
+          contactMiddleName: formData.middleName,      // For clients table
+          contactLastName: formData.lastName,          // For clients table
           email: email,
           password: formData.password
         })
@@ -548,12 +495,13 @@ const RegisterPage = () => {
 
   const sendWelcomeEmail = async (email) => {
     try {
+      const fullName = `${formData.firstName} ${formData.lastName}`.trim();
       await fetch(`${import.meta.env.VITE_API_URL}/api/email/send-welcome`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email,
-          name: formData.fullName
+          name: fullName
         })
       });
     } catch (error) {
@@ -566,12 +514,13 @@ const RegisterPage = () => {
 
     setIsLoading(true);
     try {
+      const fullName = `${formData.firstName} ${formData.lastName}`.trim();
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/email/resend-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: formData.email.toLowerCase(),
-          name: formData.fullName
+          name: fullName
         })
       });
 
@@ -600,11 +549,17 @@ const RegisterPage = () => {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
+      // Parse Google displayName into first, middle, last
+      const parsedName = parseGoogleName(user.displayName);
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google-register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fullName: user.displayName,
+          fullName: user.displayName,                  // For users table
+          contactFirstName: parsedName.firstName,      // For clients table
+          contactMiddleName: parsedName.middleName,    // For clients table
+          contactLastName: parsedName.lastName,        // For clients table
           email: user.email.toLowerCase(),
           googleId: user.uid,
           photoURL: user.photoURL
@@ -642,6 +597,24 @@ const RegisterPage = () => {
     }
   };
 
+  // Helper function to parse Google displayName
+  const parseGoogleName = (displayName) => {
+    if (!displayName) return { firstName: '', middleName: '', lastName: '' };
+    
+    const parts = displayName.trim().split(/\s+/);
+    
+    if (parts.length === 0) return { firstName: '', middleName: '', lastName: '' };
+    if (parts.length === 1) return { firstName: parts[0], middleName: '', lastName: '' };
+    if (parts.length === 2) return { firstName: parts[0], middleName: '', lastName: parts[1] };
+    
+    // 3+ parts: first, middle(s), last
+    const firstName = parts[0];
+    const lastName = parts[parts.length - 1];
+    const middleName = parts.slice(1, -1).join(' ');
+    
+    return { firstName, middleName, lastName };
+  };
+
   const handleBackToLogin = () => {
     navigate('/login');
   };
@@ -658,9 +631,10 @@ const RegisterPage = () => {
   // Helper function to check if form is valid (for button disable state)
   const isFormValid = () => {
     return (
-      formData.fullName && 
-      !validateUsername(formData.fullName) &&
-      !isUsernameTaken &&
+      formData.firstName && 
+      !validateFirstName(formData.firstName) &&
+      formData.lastName && 
+      !validateLastName(formData.lastName) &&
       formData.email && 
       !validateEmail(formData.email) &&
       !isEmailTaken &&
@@ -735,49 +709,63 @@ const RegisterPage = () => {
                   )}
 
                   <form onSubmit={(e) => { e.preventDefault(); handleSendVerification(); }} className="register-form-reg">
-                    {/* USERNAME FIELD */}
+                    {/* FIRST NAME FIELD */}
                     <div className="form-group-reg">
-                      <label className="form-label-reg">Username</label>
+                      <label className="form-label-reg">First Name <span className="required-star">*</span></label>
                       <div className="input-wrapper-reg">
                         <FaUser className="input-icon-reg" />
                         <input
                           type="text"
-                          name="fullName"
-                          className={`form-input-reg ${errors.fullName ? 'input-error-reg' : ''}`}
-                          placeholder="Enter your username"
-                          value={formData.fullName}
+                          name="firstName"
+                          className={`form-input-reg ${errors.firstName ? 'input-error-reg' : ''}`}
+                          placeholder="Enter your first name"
+                          value={formData.firstName}
                           onChange={handleChange}
-                          onBlur={handleUsernameBlur}
                           disabled={isLoading || socialLoading !== ''}
                         />
-                        {usernameChecking && (
-                          <div className="email-checking-reg">
-                            <span className="checking-spinner"></span>
-                          </div>
-                        )}
-                        {!usernameChecking && isUsernameTaken && formData.fullName && (
-                          <div className="email-taken-reg">
-                            <span className="taken-icon">✗</span>
-                          </div>
-                        )}
-                        {!usernameChecking && !isUsernameTaken && formData.fullName && formData.fullName.length >= 3 && !errors.fullName && (
-                          <div className="email-available-reg">
-                            <span className="available-icon">✓</span>
-                          </div>
-                        )}
                       </div>
-                      {errors.fullName && <span className="error-message-reg">{errors.fullName}</span>}
-                      {usernameChecking && formData.fullName && formData.fullName.length >= 3 && (
-                        <span className="checking-message-reg">Checking username availability...</span>
-                      )}
-                      {!usernameChecking && !isUsernameTaken && formData.fullName && formData.fullName.length >= 3 && !errors.fullName && (
-                        <span className="success-message-reg">✓ Username available</span>
-                      )}
+                      {errors.firstName && <span className="error-message-reg">{errors.firstName}</span>}
+                    </div>
+
+                    {/* MIDDLE NAME FIELD */}
+                    <div className="form-group-reg">
+                      <label className="form-label-reg">Middle Name <span className="optional-label">(Optional)</span></label>
+                      <div className="input-wrapper-reg">
+                        <FaUser className="input-icon-reg" />
+                        <input
+                          type="text"
+                          name="middleName"
+                          className={`form-input-reg ${errors.middleName ? 'input-error-reg' : ''}`}
+                          placeholder="Enter your middle name"
+                          value={formData.middleName}
+                          onChange={handleChange}
+                          disabled={isLoading || socialLoading !== ''}
+                        />
+                      </div>
+                      {errors.middleName && <span className="error-message-reg">{errors.middleName}</span>}
+                    </div>
+
+                    {/* LAST NAME FIELD */}
+                    <div className="form-group-reg">
+                      <label className="form-label-reg">Last Name <span className="required-star">*</span></label>
+                      <div className="input-wrapper-reg">
+                        <FaUser className="input-icon-reg" />
+                        <input
+                          type="text"
+                          name="lastName"
+                          className={`form-input-reg ${errors.lastName ? 'input-error-reg' : ''}`}
+                          placeholder="Enter your last name"
+                          value={formData.lastName}
+                          onChange={handleChange}
+                          disabled={isLoading || socialLoading !== ''}
+                        />
+                      </div>
+                      {errors.lastName && <span className="error-message-reg">{errors.lastName}</span>}
                     </div>
 
                     {/* EMAIL FIELD */}
                     <div className="form-group-reg">
-                      <label className="form-label-reg">Email Address</label>
+                      <label className="form-label-reg">Email Address <span className="required-star">*</span></label>
                       <div className="input-wrapper-reg">
                         <FaEnvelope className="input-icon-reg" />
                         <input
@@ -820,7 +808,7 @@ const RegisterPage = () => {
 
                     {/* PASSWORD FIELD */}
                     <div className="form-group-reg">
-                      <label className="form-label-reg">Password</label>
+                      <label className="form-label-reg">Password <span className="required-star">*</span></label>
                       <div className="input-wrapper-reg">
                         <FaLock className="input-icon-reg" />
                         <input
@@ -870,7 +858,7 @@ const RegisterPage = () => {
 
                     {/* CONFIRM PASSWORD FIELD */}
                     <div className="form-group-reg">
-                      <label className="form-label-reg">Confirm Password</label>
+                      <label className="form-label-reg">Confirm Password <span className="required-star">*</span></label>
                       <div className="input-wrapper-reg">
                         <FaLock className="input-icon-reg" />
                         <input
@@ -915,6 +903,7 @@ const RegisterPage = () => {
                           >
                             Terms and Conditions
                           </button>
+                          <span className="required-star">*</span>
                         </span>
                       </label>
                       {errors.terms && <span className="error-message-reg">{errors.terms}</span>}

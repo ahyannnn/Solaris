@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import {
-  FaSolarPanel,
   FaUser,
   FaPhone,
   FaHome,
@@ -16,8 +15,11 @@ import {
   FaCalendarAlt,
   FaBuilding,
   FaRoad,
-  FaIndustry
+  FaIndustry,
+  FaUserFriends,
+  FaUsers
 } from 'react-icons/fa';
+import logo from '../../assets/Salfare_Logo.png';
 import '../../styles/Customer/setupacc.css';
 
 const SetupAccount = () => {
@@ -39,7 +41,7 @@ const SetupAccount = () => {
   ];
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
-  // Form Data - Removed firstName, middleName, lastName (already in clients table)
+  // Form Data
   const [formData, setFormData] = useState({
     accountType: 'residential',
     companyName: '',
@@ -72,7 +74,6 @@ const SetupAccount = () => {
           const data = await response.json();
           setClientData(data.client);
           
-          // Pre-fill form with existing data if available
           if (data.client) {
             setFormData(prev => ({
               ...prev,
@@ -111,7 +112,6 @@ const SetupAccount = () => {
     if (!formData.birthDay) newErrors.birthDay = 'Day is required';
     if (!formData.birthYear) newErrors.birthYear = 'Year is required';
 
-    // Validate phone number
     if (formData.phoneNumber) {
       const phoneRegex = /^(09|\+639)\d{9}$/;
       if (!phoneRegex.test(formData.phoneNumber.replace(/\s/g, ''))) {
@@ -158,12 +158,10 @@ const SetupAccount = () => {
     setApiError('');
 
     try {
-      // Format birthday as proper date
       const birthday = formData.birthYear && formData.birthMonth && formData.birthDay
         ? `${formData.birthYear}-${String(formData.birthMonth).padStart(2, '0')}-${String(formData.birthDay).padStart(2, '0')}`
         : null;
 
-      // STEP 1: Update Client Info (Only missing fields - NOT name fields)
       const clientUpdate = {
         contactNumber: formData.phoneNumber,
         client_type: formData.accountType === 'residential' ? 'Residential' :
@@ -188,7 +186,6 @@ const SetupAccount = () => {
         throw new Error(clientData.message || 'Failed to update client information');
       }
 
-      // STEP 2: Add Address to Address Table
       const addressData = {
         houseOrBuilding: formData.houseOrBuilding,
         street: formData.street,
@@ -215,7 +212,6 @@ const SetupAccount = () => {
         throw new Error(addressResult.message || 'Failed to save address');
       }
 
-      // Mark setup as complete in session
       sessionStorage.setItem('hasCompletedSetup', 'true');
       sessionStorage.setItem('clientData', JSON.stringify({
         ...clientData.client,
@@ -232,7 +228,6 @@ const SetupAccount = () => {
   };
 
   const handleContinueToDashboard = () => {
-    // Update sessionStorage to mark setup as complete
     sessionStorage.setItem('hasCompletedSetup', 'true');
     navigate('/app/customer');
   };
@@ -257,12 +252,61 @@ const SetupAccount = () => {
 
   const getBusinessIcon = () => {
     if (formData.accountType === 'company') {
-      return <FaBuilding className="setup-input-icon" />;
+      return <FaBuilding className="new-setup-input-icon" />;
     } else if (formData.accountType === 'industrial') {
-      return <FaIndustry className="setup-input-icon" />;
+      return <FaIndustry className="new-setup-input-icon" />;
     }
     return null;
   };
+
+  // Get account type icon
+  const getAccountTypeIcon = () => {
+    if (formData.accountType === 'residential') {
+      return <FaUser className="new-setup-select-icon" />;
+    } else if (formData.accountType === 'company') {
+      return <FaBuilding className="new-setup-select-icon" />;
+    } else if (formData.accountType === 'industrial') {
+      return <FaIndustry className="new-setup-select-icon" />;
+    }
+    return <FaUser className="new-setup-select-icon" />;
+  };
+
+  // Get branding content based on step
+  const getBrandingContent = (step) => {
+    switch(step) {
+      case 1:
+        return {
+          title: 'Complete Your Profile',
+          subtitle: 'Tell us about yourself',
+          description: 'We need a few details to personalize your solar experience. This helps us provide better service.',
+          features: ['Personalized Solar Solutions', 'Accurate Assessment', 'Better Service']
+        };
+      case 2:
+        return {
+          title: 'Address Information',
+          subtitle: 'Where are you located?',
+          description: 'Your address helps us determine solar potential and provide accurate installation estimates.',
+          features: ['Site Assessment', 'Solar Potential Analysis', 'Installation Planning']
+        };
+      case 3:
+        return {
+          title: 'Setup Complete!',
+          subtitle: 'You\'re all set',
+          description: 'Your account is now fully configured. You can start exploring solar solutions and book assessments.',
+          features: ['Ready to Go', 'Explore Solutions', 'Book Assessments']
+        };
+      default:
+        return {
+          title: 'Complete Your Profile',
+          subtitle: 'Tell us about yourself',
+          description: 'We need a few details to personalize your solar experience.',
+          features: ['Personalized Solar Solutions', 'Accurate Assessment', 'Better Service']
+        };
+    }
+  };
+
+  // Form starts on LEFT for step 1 & 3, RIGHT for step 2
+  const isFormLeft = currentStep === 1 || currentStep === 3;
 
   return (
     <>
@@ -271,351 +315,329 @@ const SetupAccount = () => {
         <meta name="description" content="Finish setting up your Salfer Engineering account by providing your personal information and address details to access your solar project dashboard." />
       </Helmet>
 
-      <div className="setup-page">
-        <div className="setup-card">
-          {/* Left Side - Progress */}
-          <div className="setup-progress">
-            <div className="setup-progress-header">
-              <div className="setup-logo-container">
-                <div className="setup-logo-icon">
-                  <FaSolarPanel />
+      <div className="new-setup-page">
+        {/* FORM SECTION - Step 1: Left, Step 2: Right, Step 3: Left */}
+        <div className={`new-setup-form-container ${isFormLeft ? 'form-left' : 'form-right'}`}>
+          <div className="new-setup-form-wrapper">
+            {/* Step 1: Personal Information */}
+            {currentStep === 1 && (
+              <>
+                <div className="new-setup-form-header">
+                  <h2 className="new-setup-form-title">Complete Your Profile</h2>
+                  <p className="new-setup-form-subtitle">Tell us more about yourself</p>
                 </div>
-                <h1 className="setup-logo-text">SOLARIS</h1>
-              </div>
-              <p className="setup-progress-subtitle">Complete your account setup</p>
-            </div>
 
-            <div className="setup-steps-container">
-              <div className={`setup-step-item ${currentStep >= 1 ? 'active' : ''} ${currentStep > 1 ? 'completed' : ''}`}>
-                <div className="setup-step-indicator">
-                  {currentStep > 1 ? '✓' : '1'}
-                </div>
-                <div className="setup-step-info">
-                  <span className="setup-step-label">Step 1</span>
-                  <span className="setup-step-title">Personal Info</span>
-                </div>
-              </div>
-
-              <div className={`setup-step-line ${currentStep >= 2 ? 'active' : ''}`}></div>
-
-              <div className={`setup-step-item ${currentStep >= 2 ? 'active' : ''} ${currentStep > 2 ? 'completed' : ''}`}>
-                <div className="setup-step-indicator">
-                  {currentStep > 2 ? '✓' : '2'}
-                </div>
-                <div className="setup-step-info">
-                  <span className="setup-step-label">Step 2</span>
-                  <span className="setup-step-title">Address</span>
-                </div>
-              </div>
-
-              <div className={`setup-step-line ${currentStep >= 3 ? 'active' : ''}`}></div>
-
-              <div className={`setup-step-item ${currentStep >= 3 ? 'active' : ''}`}>
-                <div className="setup-step-indicator">3</div>
-                <div className="setup-step-info">
-                  <span className="setup-step-label">Step 3</span>
-                  <span className="setup-step-title">Complete</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Side - Form */}
-          <div className="setup-form-container">
-            <div className="setup-form-wrapper">
-              {/* Step 1: Personal Information */}
-              {currentStep === 1 && (
-                <>
-                  <div className="setup-form-header">
-                    <h2 className="setup-form-title">Complete Your Profile</h2>
-                    <p className="setup-form-subtitle">Tell us more about yourself</p>
+                {clientData && (
+                  <div className="new-setup-info-box">
+                    <p className="new-setup-info-text">
+                      Welcome, <strong className="new-setup-welcome-name">{clientData.contactFirstName} {clientData.contactLastName}</strong>!
+                    </p>
+                    <p className="new-setup-info-subtext">
+                      Your name is already saved. Please complete the rest of your profile.
+                    </p>
                   </div>
+                )}
 
-                  {clientData && (
-                    <div className="setup-info-box">
-                      <p className="setup-info-text">
-                        <strong>Welcome, {clientData.contactFirstName} {clientData.contactLastName}!</strong>
-                      </p>
-                      <p className="setup-info-subtext">
-                        Your name is already saved. Please complete the rest of your profile.
-                      </p>
-                    </div>
-                  )}
-
-                  <form className="setup-form">
-                    {/* ACCOUNT TYPE */}
-                    <div className="setup-form-group">
-                      <label className="setup-form-label">Account Type <span className="setup-required">*</span></label>
+                <form className="new-setup-form">
+                  {/* ACCOUNT TYPE - WITH ICON */}
+                  <div className="new-setup-form-group">
+                    <label className="new-setup-form-label">Account Type <span className="new-setup-required">*</span></label>
+                    <div className="new-setup-select-wrapper">
+                      {getAccountTypeIcon()}
                       <select
                         name="accountType"
                         value={formData.accountType}
                         onChange={handleChange}
-                        className={`setup-select ${errors.accountType ? 'error' : ''}`}
+                        className={`new-setup-select ${errors.accountType ? 'error' : ''}`}
                       >
                         <option value="residential">Residential</option>
                         <option value="company">Company</option>
                         <option value="industrial">Industrial</option>
                       </select>
-                      {errors.accountType && <span className="setup-error-message">{errors.accountType}</span>}
                     </div>
-
-                    {/* BUSINESS/COMPANY NAME - shown for company and industrial accounts */}
-                    {(formData.accountType === 'company' || formData.accountType === 'industrial') && (
-                      <div className="setup-form-group">
-                        <label className="setup-form-label">{getBusinessLabel()} <span className="setup-required">*</span></label>
-                        <div className="setup-input-wrapper">
-                          {getBusinessIcon()}
-                          <input
-                            type="text"
-                            name="companyName"
-                            value={formData.companyName}
-                            onChange={handleChange}
-                            className={`setup-form-input ${errors.companyName ? 'error' : ''}`}
-                            placeholder={getBusinessPlaceholder()}
-                          />
-                        </div>
-                        {errors.companyName && <span className="setup-error-message">{errors.companyName}</span>}
-                      </div>
-                    )}
-
-                    {/* PHONE NUMBER */}
-                    <div className="setup-form-group">
-                      <label className="setup-form-label">Phone Number <span className="setup-required">*</span></label>
-                      <div className="setup-input-wrapper">
-                        <FaPhone className="setup-input-icon" />
-                        <input
-                          type="tel"
-                          name="phoneNumber"
-                          value={formData.phoneNumber}
-                          onChange={handleChange}
-                          className={`setup-form-input ${errors.phoneNumber ? 'error' : ''}`}
-                          placeholder="09XXXXXXXXX"
-                        />
-                      </div>
-                      {errors.phoneNumber && <span className="setup-error-message">{errors.phoneNumber}</span>}
-                    </div>
-
-                    {/* BIRTHDAY - 3 DROPDOWNS */}
-                    <div className="setup-form-group">
-                      <label className="setup-form-label">Birthday <span className="setup-required">*</span></label>
-                      <div className="setup-birthday-row">
-                        <div className="setup-select-wrapper">
-                          <FaCalendarAlt className="setup-select-icon" />
-                          <select
-                            name="birthMonth"
-                            value={formData.birthMonth}
-                            onChange={handleChange}
-                            className={`setup-select ${errors.birthMonth ? 'error' : ''}`}
-                          >
-                            <option value="">Month</option>
-                            {months.map((month, index) => (
-                              <option key={index} value={index + 1}>{month}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div className="setup-select-wrapper">
-                          <select
-                            name="birthDay"
-                            value={formData.birthDay}
-                            onChange={handleChange}
-                            className={`setup-select ${errors.birthDay ? 'error' : ''}`}
-                          >
-                            <option value="">Day</option>
-                            {days.map(day => (
-                              <option key={day} value={day}>{day}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div className="setup-select-wrapper">
-                          <select
-                            name="birthYear"
-                            value={formData.birthYear}
-                            onChange={handleChange}
-                            className={`setup-select ${errors.birthYear ? 'error' : ''}`}
-                          >
-                            <option value="">Year</option>
-                            {years.map(year => (
-                              <option key={year} value={year}>{year}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      {(errors.birthMonth || errors.birthDay || errors.birthYear) && (
-                        <span className="setup-error-message">Complete birthday is required</span>
-                      )}
-                    </div>
-
-                    <div className="setup-form-actions">
-                      <button
-                        type="button"
-                        onClick={handleNext}
-                        className="setup-btn-next"
-                      >
-                        Next Step <FaArrowRight />
-                      </button>
-                    </div>
-                  </form>
-                </>
-              )}
-
-              {/* Step 2: Address Information */}
-              {currentStep === 2 && (
-                <>
-                  <div className="setup-form-header">
-                    <h2 className="setup-form-title">Address Information</h2>
-                    <p className="setup-form-subtitle">Where are you located?</p>
+                    {errors.accountType && <span className="new-setup-error-message">{errors.accountType}</span>}
                   </div>
 
-                  {apiError && (
-                    <div className="setup-api-error">
-                      <span className="setup-error-message">{apiError}</span>
+                  {/* BUSINESS/COMPANY NAME */}
+                  {(formData.accountType === 'company' || formData.accountType === 'industrial') && (
+                    <div className="new-setup-form-group">
+                      <label className="new-setup-form-label">{getBusinessLabel()} <span className="new-setup-required">*</span></label>
+                      <div className="new-setup-input-wrapper">
+                        {getBusinessIcon()}
+                        <input
+                          type="text"
+                          name="companyName"
+                          value={formData.companyName}
+                          onChange={handleChange}
+                          className={`new-setup-form-input ${errors.companyName ? 'error' : ''}`}
+                          placeholder={getBusinessPlaceholder()}
+                        />
+                      </div>
+                      {errors.companyName && <span className="new-setup-error-message">{errors.companyName}</span>}
                     </div>
                   )}
 
-                  <form onSubmit={handleSubmit} className="setup-form">
-                    {/* HOUSE/BUILDING NUMBER */}
-                    <div className="setup-form-group">
-                      <label className="setup-form-label">House/Building No. <span className="setup-required">*</span></label>
-                      <div className="setup-input-wrapper">
-                        <FaHome className="setup-input-icon" />
-                        <input
-                          type="text"
-                          name="houseOrBuilding"
-                          value={formData.houseOrBuilding}
-                          onChange={handleChange}
-                          className={`setup-form-input ${errors.houseOrBuilding ? 'error' : ''}`}
-                          placeholder="Enter house/building number"
-                        />
-                      </div>
-                      {errors.houseOrBuilding && <span className="setup-error-message">{errors.houseOrBuilding}</span>}
+                  {/* PHONE NUMBER */}
+                  <div className="new-setup-form-group">
+                    <label className="new-setup-form-label">Phone Number <span className="new-setup-required">*</span></label>
+                    <div className="new-setup-input-wrapper">
+                      <FaPhone className="new-setup-input-icon" />
+                      <input
+                        type="tel"
+                        name="phoneNumber"
+                        value={formData.phoneNumber}
+                        onChange={handleChange}
+                        className={`new-setup-form-input ${errors.phoneNumber ? 'error' : ''}`}
+                        placeholder="09XXXXXXXXX"
+                      />
                     </div>
-
-                    {/* STREET */}
-                    <div className="setup-form-group">
-                      <label className="setup-form-label">Street <span className="setup-required">*</span></label>
-                      <div className="setup-input-wrapper">
-                        <FaRoad className="setup-input-icon" />
-                        <input
-                          type="text"
-                          name="street"
-                          value={formData.street}
-                          onChange={handleChange}
-                          className={`setup-form-input ${errors.street ? 'error' : ''}`}
-                          placeholder="Enter street name"
-                        />
-                      </div>
-                      {errors.street && <span className="setup-error-message">{errors.street}</span>}
-                    </div>
-
-                    {/* BARANGAY */}
-                    <div className="setup-form-group">
-                      <label className="setup-form-label">Barangay <span className="setup-required">*</span></label>
-                      <div className="setup-input-wrapper">
-                        <FaCity className="setup-input-icon" />
-                        <input
-                          type="text"
-                          name="barangay"
-                          value={formData.barangay}
-                          onChange={handleChange}
-                          className={`setup-form-input ${errors.barangay ? 'error' : ''}`}
-                          placeholder="Enter barangay"
-                        />
-                      </div>
-                      {errors.barangay && <span className="setup-error-message">{errors.barangay}</span>}
-                    </div>
-
-                    {/* CITY/MUNICIPALITY */}
-                    <div className="setup-form-group">
-                      <label className="setup-form-label">City/Municipality <span className="setup-required">*</span></label>
-                      <div className="setup-input-wrapper">
-                        <FaCity className="setup-input-icon" />
-                        <input
-                          type="text"
-                          name="cityMunicipality"
-                          value={formData.cityMunicipality}
-                          onChange={handleChange}
-                          className={`setup-form-input ${errors.cityMunicipality ? 'error' : ''}`}
-                          placeholder="Enter city/municipality"
-                        />
-                      </div>
-                      {errors.cityMunicipality && <span className="setup-error-message">{errors.cityMunicipality}</span>}
-                    </div>
-
-                    {/* PROVINCE */}
-                    <div className="setup-form-group">
-                      <label className="setup-form-label">Province <span className="setup-required">*</span></label>
-                      <div className="setup-input-wrapper">
-                        <FaGlobe className="setup-input-icon" />
-                        <input
-                          type="text"
-                          name="province"
-                          value={formData.province}
-                          onChange={handleChange}
-                          className={`setup-form-input ${errors.province ? 'error' : ''}`}
-                          placeholder="Enter province"
-                        />
-                      </div>
-                      {errors.province && <span className="setup-error-message">{errors.province}</span>}
-                    </div>
-
-                    {/* ZIP CODE */}
-                    <div className="setup-form-group">
-                      <label className="setup-form-label">ZIP Code <span className="setup-required">*</span></label>
-                      <div className="setup-input-wrapper">
-                        <FaMailBulk className="setup-input-icon" />
-                        <input
-                          type="text"
-                          name="zipCode"
-                          value={formData.zipCode}
-                          onChange={handleChange}
-                          className={`setup-form-input ${errors.zipCode ? 'error' : ''}`}
-                          placeholder="Enter ZIP code"
-                          maxLength="4"
-                        />
-                      </div>
-                      {errors.zipCode && <span className="setup-error-message">{errors.zipCode}</span>}
-                    </div>
-
-                    <div className="setup-form-actions">
-                      <button
-                        type="button"
-                        onClick={handleBack}
-                        className="setup-btn-back"
-                      >
-                        <FaArrowLeft /> Back
-                      </button>
-                      <button
-                        type="submit"
-                        className="setup-btn-submit"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? 'Saving...' : 'Complete Setup'}
-                      </button>
-                    </div>
-                  </form>
-                </>
-              )}
-
-              {/* Step 3: Success */}
-              {currentStep === 3 && (
-                <div className="setup-success-container">
-                  <div className="setup-success-icon">
-                    <FaCheckCircle />
+                    {errors.phoneNumber && <span className="new-setup-error-message">{errors.phoneNumber}</span>}
                   </div>
-                  <h2 className="setup-success-title">✓ All Set-Up</h2>
-                  <p className="setup-success-message">
-                    Your account setup is complete. You can now access your dashboard and start booking assessments.
-                  </p>
-                  <button
-                    onClick={handleContinueToDashboard}
-                    className="setup-btn-dashboard"
-                  >
-                    Continue to Dashboard
-                  </button>
+
+                  {/* BIRTHDAY */}
+                  <div className="new-setup-form-group">
+                    <label className="new-setup-form-label">Birthday <span className="new-setup-required">*</span></label>
+                    <div className="new-setup-birthday-row">
+                      <div className="new-setup-select-wrapper">
+                        <FaCalendarAlt className="new-setup-select-icon" />
+                        <select
+                          name="birthMonth"
+                          value={formData.birthMonth}
+                          onChange={handleChange}
+                          className={`new-setup-select ${errors.birthMonth ? 'error' : ''}`}
+                        >
+                          <option value="">Month</option>
+                          {months.map((month, index) => (
+                            <option key={index} value={index + 1}>{month}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="new-setup-select-wrapper">
+                        <select
+                          name="birthDay"
+                          value={formData.birthDay}
+                          onChange={handleChange}
+                          className={`new-setup-select ${errors.birthDay ? 'error' : ''}`}
+                        >
+                          <option value="">Day</option>
+                          {days.map(day => (
+                            <option key={day} value={day}>{day}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="new-setup-select-wrapper">
+                        <select
+                          name="birthYear"
+                          value={formData.birthYear}
+                          onChange={handleChange}
+                          className={`new-setup-select ${errors.birthYear ? 'error' : ''}`}
+                        >
+                          <option value="">Year</option>
+                          {years.map(year => (
+                            <option key={year} value={year}>{year}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    {(errors.birthMonth || errors.birthDay || errors.birthYear) && (
+                      <span className="new-setup-error-message">Complete birthday is required</span>
+                    )}
+                  </div>
+
+                  <div className="new-setup-form-actions">
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      className="new-setup-btn-next"
+                    >
+                      Next Step <FaArrowRight />
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+
+            {/* Step 2: Address Information */}
+            {currentStep === 2 && (
+              <>
+                <div className="new-setup-form-header">
+                  <h2 className="new-setup-form-title">Address Information</h2>
+                  <p className="new-setup-form-subtitle">Where are you located?</p>
                 </div>
-              )}
+
+                {apiError && (
+                  <div className="new-setup-api-error">
+                    <span className="new-setup-error-message">{apiError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="new-setup-form">
+                  {/* HOUSE/BUILDING NUMBER */}
+                  <div className="new-setup-form-group">
+                    <label className="new-setup-form-label">House/Building No. <span className="new-setup-required">*</span></label>
+                    <div className="new-setup-input-wrapper">
+                      <FaHome className="new-setup-input-icon" />
+                      <input
+                        type="text"
+                        name="houseOrBuilding"
+                        value={formData.houseOrBuilding}
+                        onChange={handleChange}
+                        className={`new-setup-form-input ${errors.houseOrBuilding ? 'error' : ''}`}
+                        placeholder="Enter house/building number"
+                      />
+                    </div>
+                    {errors.houseOrBuilding && <span className="new-setup-error-message">{errors.houseOrBuilding}</span>}
+                  </div>
+
+                  {/* STREET */}
+                  <div className="new-setup-form-group">
+                    <label className="new-setup-form-label">Street <span className="new-setup-required">*</span></label>
+                    <div className="new-setup-input-wrapper">
+                      <FaRoad className="new-setup-input-icon" />
+                      <input
+                        type="text"
+                        name="street"
+                        value={formData.street}
+                        onChange={handleChange}
+                        className={`new-setup-form-input ${errors.street ? 'error' : ''}`}
+                        placeholder="Enter street name"
+                      />
+                    </div>
+                    {errors.street && <span className="new-setup-error-message">{errors.street}</span>}
+                  </div>
+
+                  {/* BARANGAY */}
+                  <div className="new-setup-form-group">
+                    <label className="new-setup-form-label">Barangay <span className="new-setup-required">*</span></label>
+                    <div className="new-setup-input-wrapper">
+                      <FaCity className="new-setup-input-icon" />
+                      <input
+                        type="text"
+                        name="barangay"
+                        value={formData.barangay}
+                        onChange={handleChange}
+                        className={`new-setup-form-input ${errors.barangay ? 'error' : ''}`}
+                        placeholder="Enter barangay"
+                      />
+                    </div>
+                    {errors.barangay && <span className="new-setup-error-message">{errors.barangay}</span>}
+                  </div>
+
+                  {/* CITY/MUNICIPALITY */}
+                  <div className="new-setup-form-group">
+                    <label className="new-setup-form-label">City/Municipality <span className="new-setup-required">*</span></label>
+                    <div className="new-setup-input-wrapper">
+                      <FaCity className="new-setup-input-icon" />
+                      <input
+                        type="text"
+                        name="cityMunicipality"
+                        value={formData.cityMunicipality}
+                        onChange={handleChange}
+                        className={`new-setup-form-input ${errors.cityMunicipality ? 'error' : ''}`}
+                        placeholder="Enter city/municipality"
+                      />
+                    </div>
+                    {errors.cityMunicipality && <span className="new-setup-error-message">{errors.cityMunicipality}</span>}
+                  </div>
+
+                  {/* PROVINCE */}
+                  <div className="new-setup-form-group">
+                    <label className="new-setup-form-label">Province <span className="new-setup-required">*</span></label>
+                    <div className="new-setup-input-wrapper">
+                      <FaGlobe className="new-setup-input-icon" />
+                      <input
+                        type="text"
+                        name="province"
+                        value={formData.province}
+                        onChange={handleChange}
+                        className={`new-setup-form-input ${errors.province ? 'error' : ''}`}
+                        placeholder="Enter province"
+                      />
+                    </div>
+                    {errors.province && <span className="new-setup-error-message">{errors.province}</span>}
+                  </div>
+
+                  {/* ZIP CODE */}
+                  <div className="new-setup-form-group">
+                    <label className="new-setup-form-label">ZIP Code <span className="new-setup-required">*</span></label>
+                    <div className="new-setup-input-wrapper">
+                      <FaMailBulk className="new-setup-input-icon" />
+                      <input
+                        type="text"
+                        name="zipCode"
+                        value={formData.zipCode}
+                        onChange={handleChange}
+                        className={`new-setup-form-input ${errors.zipCode ? 'error' : ''}`}
+                        placeholder="Enter ZIP code"
+                        maxLength="4"
+                      />
+                    </div>
+                    {errors.zipCode && <span className="new-setup-error-message">{errors.zipCode}</span>}
+                  </div>
+
+                  <div className="new-setup-form-actions">
+                    <button
+                      type="button"
+                      onClick={handleBack}
+                      className="new-setup-btn-back"
+                    >
+                      <FaArrowLeft /> Back
+                    </button>
+                    <button
+                      type="submit"
+                      className="new-setup-btn-submit"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Saving...' : 'Complete Setup'}
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+
+            {/* Step 3: Success */}
+            {currentStep === 3 && (
+              <div className="new-setup-success-container">
+                <div className="new-setup-success-icon">
+                  <FaCheckCircle />
+                </div>
+                <h2 className="new-setup-success-title">✓ All Set!</h2>
+                <p className="new-setup-success-message">
+                  Your account setup is complete. You can now access your dashboard and start booking assessments.
+                </p>
+                <button
+                  onClick={handleContinueToDashboard}
+                  className="new-setup-btn-dashboard"
+                >
+                  Continue to Dashboard
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* BRANDING SECTION - Opposite of form */}
+        <div className={`new-setup-branding ${!isFormLeft ? 'branding-left' : 'branding-right'}`}>
+          <div className="new-setup-branding-content">
+            <div className="new-setup-brand-header">
+              <img src={logo} alt="Salfer Engineering" className="new-setup-brand-logo" />
+              <h1 className="new-setup-brand-name">Salfer Engineering</h1>
+            </div>
+            <h2 className="new-setup-brand-tagline">
+              {getBrandingContent(currentStep).title}
+            </h2>
+            <p className="new-setup-brand-description">
+              {getBrandingContent(currentStep).description}
+            </p>
+            <div className="new-setup-brand-features">
+              {getBrandingContent(currentStep).features.map((feature, index) => (
+                <div className="new-setup-brand-feature" key={index}>
+                  <span className="new-setup-feature-dot"></span>
+                  <span>{feature}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

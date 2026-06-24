@@ -401,6 +401,52 @@ const ForgotPasswordPage = () => {
     navigate('/login');
   };
 
+  // Get step-specific branding content
+  const getBrandingContent = (step) => {
+    switch(step) {
+      case 1:
+        return {
+          title: 'Forgot Password?',
+          subtitle: 'Reset your password',
+          description: 'Enter your email address and we\'ll send you a verification code to reset your password.',
+          features: ['Secure Password Reset', 'Email Verification', 'Quick Recovery']
+        };
+      case 2:
+        return {
+          title: 'Verify Code',
+          subtitle: 'Check your email',
+          description: 'We\'ve sent a 6-digit verification code to your email. Enter it below to continue.',
+          features: ['Secure Verification', 'Instant Access', 'Protect Your Account']
+        };
+      case 3:
+        return {
+          title: 'Create New Password',
+          subtitle: 'Secure your account',
+          description: 'Create a strong new password for your account. Make sure it\'s unique and secure.',
+          features: ['Strong Password', 'Account Security', 'Peace of Mind']
+        };
+      case 4:
+        return {
+          title: 'Password Reset Complete!',
+          subtitle: 'You\'re all set',
+          description: 'Your password has been successfully reset. You can now log in with your new password.',
+          features: ['Ready to Go', 'Secure Access', 'Welcome Back']
+        };
+      default:
+        return {
+          title: 'Forgot Password?',
+          subtitle: 'Reset your password',
+          description: 'Enter your email address and we\'ll send you a verification code.',
+          features: ['Secure Password Reset', 'Email Verification', 'Quick Recovery']
+        };
+    }
+  };
+
+  // ===== FIXED POSITIONING LOGIC =====
+  // Step 2: Form on LEFT, Branding on RIGHT
+  // Steps 1, 3, 4: Form on RIGHT, Branding on LEFT
+  const isStep2 = step === 2;
+
   return (
     <>
       <Helmet>
@@ -408,282 +454,280 @@ const ForgotPasswordPage = () => {
         <meta name="description" content="Reset your password for your Salfer Engineering account to continue managing your solar projects." />
       </Helmet>
 
-      <div className="forgot-page-forgot">
-        <div className="forgot-card-forgot">
-          {/* Left Side - Branding */}
-          <div className="forgot-branding-forgot">
-            <div className="branding-content-forgot">
-              <div className="brand-logo-forgot">
-                <img src={logo} alt="Salfer Engineering" className="brand-logo-img-forgot" />
-                <h1 className="brand-name-forgot">Salfer Engineering</h1>
-              </div>
-              <h2 className="brand-tagline-forgot">Solar Technology Enterprise</h2>
-              <p className="brand-description-forgot">
-                Reset your password to continue managing your solar projects
-              </p>
-              <div className="brand-features-forgot">
-                <div className="brand-feature-forgot">
-                  <span className="feature-dot-forgot"></span>
-                  <span>Free Solar Estimate</span>
+      <div className="new-forgot-page">
+        {/* ===== BRANDING SECTION ===== */}
+        {/* Step 2: Right | Steps 1, 3, 4: Left */}
+        <div className={`new-forgot-branding ${isStep2 ? 'branding-right' : 'branding-left'}`}>
+          <div className="new-forgot-branding-content">
+            <div className="new-forgot-brand-header">
+              <img src={logo} alt="Salfer Engineering" className="new-forgot-brand-logo" />
+              <h1 className="new-forgot-brand-name">Salfer Engineering</h1>
+            </div>
+            <h2 className="new-forgot-brand-tagline">
+              {getBrandingContent(step).title}
+            </h2>
+            <p className="new-forgot-brand-description">
+              {getBrandingContent(step).description}
+            </p>
+            <div className="new-forgot-brand-features">
+              {getBrandingContent(step).features.map((feature, index) => (
+                <div className="new-forgot-brand-feature" key={index}>
+                  <span className="new-forgot-feature-dot"></span>
+                  <span>{feature}</span>
                 </div>
-                <div className="brand-feature-forgot">
-                  <span className="feature-dot-forgot"></span>
-                  <span>Professional Installation</span>
-                </div>
-                <div className="brand-feature-forgot">
-                  <span className="feature-dot-forgot"></span>
-                  <span>Up to 25-Year Warranty</span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
+        </div>
 
-          {/* Right Side - Form */}
-          <div className="forgot-form-container-forgot">
-            <div className="forgot-form-wrapper-forgot">
-              {/* Step 1: Email */}
-              {step === 1 && (
-                <>
-                  <div className="form-header-forgot">
-                    <h2 className="form-title-forgot">Forgot Password?</h2>
-                    <p className="form-subtitle-forgot">
-                      Enter your email and we'll send you a 6-digit code
-                    </p>
-                  </div>
-
-                  {errors.email && (
-                    <div className="general-error-forgot">
-                      {errors.email}
-                    </div>
-                  )}
-
-                  <form onSubmit={handleEmailSubmit} className="forgot-form-forgot">
-                    <div className="form-group-forgot">
-                      <label htmlFor="email" className="form-label-forgot">
-                        Email Address
-                      </label>
-                      <div className="input-wrapper-forgot">
-                        <FaEnvelope className="input-icon-forgot" />
-                        <input
-                          type="email"
-                          id="email"
-                          className={`form-input-forgot ${errors.email ? 'input-error-forgot' : ''}`}
-                          placeholder="Enter your email"
-                          value={email}
-                          onChange={handleEmailChange}
-                          onBlur={handleEmailBlur}
-                          disabled={isLoading}
-                        />
-                        {/* Show checking spinner */}
-                        {emailChecking && (
-                          <div className="email-checking-forgot">
-                            <span className="checking-spinner-forgot"></span>
-                          </div>
-                        )}
-                        {/* Show exists indicator */}
-                        {!emailChecking && emailExists && email && (
-                          <div className="email-exists-forgot">
-                            <span className="exists-icon-forgot">✓</span>
-                          </div>
-                        )}
-                      </div>
-                      {/* Show checking message */}
-                      {emailChecking && email && email.includes('@') && (
-                        <span className="checking-message-forgot">Checking email...</span>
-                      )}
-                      {/* Show success message if email exists */}
-                      {!emailChecking && emailExists && email && (
-                        <span className="success-message-forgot">✓ Email found</span>
-                      )}
-                    </div>
-
-                    <button
-                      type="submit"
-                      className={`forgot-submit-btn-forgot ${isLoading ? 'loading-forgot' : ''}`}
-                      disabled={isLoading || !emailExists}
-                    >
-                      {isLoading ? 'Sending...' : 'Send Code'}
-                    </button>
-                  </form>
-                </>
-              )}
-
-              {/* Step 2: 6-digit Code */}
-              {step === 2 && (
-                <>
-                  <div className="form-header-forgot">
-                    <h2 className="form-title-forgot">Enter Code</h2>
-                    <p className="form-subtitle-forgot">
-                      We've sent a 6-digit code to <strong>{email}</strong>
-                    </p>
-                  </div>
-
-                  {errors.code && (
-                    <div className="general-error-forgot">
-                      {errors.code}
-                    </div>
-                  )}
-
-                  <form onSubmit={handleCodeSubmit} className="forgot-form-forgot">
-                    <div className="code-input-group-forgot">
-                      <div className="code-inputs-forgot">
-                        {code.map((digit, index) => (
-                          <input
-                            key={index}
-                            id={`code-${index}`}
-                            type="text"
-                            maxLength="1"
-                            className={`code-input-forgot ${errors.code ? 'input-error-forgot' : ''}`}
-                            value={digit}
-                            onChange={(e) => handleCodeChange(index, e.target.value)}
-                            onKeyDown={(e) => handleKeyDown(index, e)}
-                            disabled={isLoading}
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className={`forgot-submit-btn-forgot ${isLoading ? 'loading-forgot' : ''}`}
-                      disabled={isLoading}
-                    >
-                      {isLoading ? 'Verifying...' : 'Verify Code'}
-                    </button>
-
-                    <div className="resend-code-forgot">
-                      <p className="resend-text-forgot">
-                        Didn't receive code?{' '}
-                        <button
-                          type="button"
-                          className="resend-link-forgot"
-                          onClick={handleResendCode}
-                          disabled={isCooldownActive}
-                        >
-                          {isCooldownActive ? `Resend (${formatCooldown()})` : 'Resend'}
-                        </button>
-                      </p>
-                    </div>
-                  </form>
-                </>
-              )}
-
-              {/* Step 3: New Password & Confirm Password */}
-              {step === 3 && (
-                <>
-                  <div className="form-header-forgot">
-                    <h2 className="form-title-forgot">Reset Password</h2>
-                    <p className="form-subtitle-forgot">
-                      Enter your new password
-                    </p>
-                  </div>
-
-                  {errors.password && (
-                    <div className="general-error-forgot">
-                      {errors.password}
-                    </div>
-                  )}
-
-                  <form onSubmit={handlePasswordSubmit} className="forgot-form-forgot">
-                    {/* New Password */}
-                    <div className="form-group-forgot">
-                      <label htmlFor="newPassword" className="form-label-forgot">
-                        New Password
-                      </label>
-                      <div className="input-wrapper-forgot">
-                        <FaLock className="input-icon-forgot" />
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          id="newPassword"
-                          className={`form-input-forgot ${errors.password ? 'input-error-forgot' : ''}`}
-                          placeholder="Enter new password"
-                          value={password}
-                          onChange={handlePasswordChange}
-                          disabled={isLoading}
-                        />
-                        <button
-                          type="button"
-                          className="password-toggle-forgot"
-                          onClick={() => setShowPassword(!showPassword)}
-                          disabled={isLoading}
-                        >
-                          {showPassword ? <FaEyeSlash /> : <FaEye />}
-                        </button>
-                      </div>
-                      {errors.password && <span className="error-message-forgot">{errors.password}</span>}
-                    </div>
-
-                    {/* Confirm Password */}
-                    <div className="form-group-forgot">
-                      <label htmlFor="confirmPassword" className="form-label-forgot">
-                        Confirm Password
-                      </label>
-                      <div className="input-wrapper-forgot">
-                        <FaLock className="input-icon-forgot" />
-                        <input
-                          type={showConfirmPassword ? 'text' : 'password'}
-                          id="confirmPassword"
-                          className={`form-input-forgot ${errors.confirmPassword ? 'input-error-forgot' : ''}`}
-                          placeholder="Confirm new password"
-                          value={confirmPassword}
-                          onChange={handleConfirmPasswordChange}
-                          disabled={isLoading}
-                        />
-                        <button
-                          type="button"
-                          className="password-toggle-forgot"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          disabled={isLoading}
-                        >
-                          {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                        </button>
-                      </div>
-                      {errors.confirmPassword && <span className="error-message-forgot">{errors.confirmPassword}</span>}
-                    </div>
-
-                    <button
-                      type="submit"
-                      className={`forgot-submit-btn-forgot ${isLoading ? 'loading-forgot' : ''}`}
-                      disabled={isLoading}
-                    >
-                      {isLoading ? 'Resetting...' : 'Reset Password'}
-                    </button>
-                  </form>
-                </>
-              )}
-
-              {/* Step 4: Success */}
-              {step === 4 && (
-                <>
-                  <div className="success-message-container-forgot">
-                    <div className="success-icon-forgot">✓</div>
-                    <h3 className="success-title-forgot">Password Changed!</h3>
-                    <p className="success-text-forgot">
-                      Your password has been reset successfully
-                    </p>
-
-                    <button
-                      onClick={handleBackToLogin}
-                      className="back-to-login-btn-forgot"
-                    >
-                      Back to Login
-                    </button>
-                  </div>
-                </>
-              )}
-
-              {/* Sign Up Link - show on steps 1-3 only */}
-              {step !== 4 && (
-                <div className="signup-prompt-forgot">
-                  <p className="signup-text-forgot">
-                    Don't have an account?{' '}
-                    <Link to="/register" className="signup-link-forgot">
-                      Sign up
-                    </Link>
+        {/* ===== FORM SECTION ===== */}
+        {/* Step 2: Left | Steps 1, 3, 4: Right */}
+        <div 
+          key={step} // Force re-render when step changes
+          className={`new-forgot-form-container ${isStep2 ? 'form-left' : 'form-right'}`}
+        >
+          <div className="new-forgot-form-wrapper">
+            {/* Step 1: Email */}
+            {step === 1 && (
+              <>
+                <div className="new-forgot-form-header">
+                  <h2 className="new-forgot-form-title">Forgot Password?</h2>
+                  <p className="new-forgot-form-subtitle">
+                    Enter your email and we'll send you a 6-digit code
                   </p>
                 </div>
-              )}
-            </div>
+
+                {errors.email && (
+                  <div className="new-forgot-general-error">
+                    {errors.email}
+                  </div>
+                )}
+
+                <form onSubmit={handleEmailSubmit} className="new-forgot-form">
+                  <div className="new-forgot-form-group">
+                    <label htmlFor="email" className="new-forgot-form-label">
+                      Email Address
+                    </label>
+                    <div className="new-forgot-input-wrapper">
+                      <FaEnvelope className="new-forgot-input-icon" />
+                      <input
+                        type="email"
+                        id="email"
+                        className={`new-forgot-form-input ${errors.email ? 'new-forgot-input-error' : ''}`}
+                        placeholder="Enter your email"
+                        value={email}
+                        onChange={handleEmailChange}
+                        onBlur={handleEmailBlur}
+                        disabled={isLoading}
+                      />
+                      {emailChecking && (
+                        <div className="new-forgot-email-checking">
+                          <span className="new-forgot-checking-spinner"></span>
+                        </div>
+                      )}
+                      {!emailChecking && emailExists && email && (
+                        <div className="new-forgot-email-exists">
+                          <span className="new-forgot-exists-icon">✓</span>
+                        </div>
+                      )}
+                    </div>
+                    {emailChecking && email && email.includes('@') && (
+                      <span className="new-forgot-checking-message">Checking email...</span>
+                    )}
+                    {!emailChecking && emailExists && email && (
+                      <span className="new-forgot-success-message">✓ Email found</span>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    className={`new-forgot-submit-btn ${isLoading ? 'new-forgot-loading' : ''}`}
+                    disabled={isLoading || !emailExists}
+                  >
+                    {isLoading ? 'Sending...' : 'Send Code'}
+                  </button>
+                </form>
+              </>
+            )}
+
+            {/* Step 2: 6-digit Code - FORM ON LEFT */}
+            {step === 2 && (
+              <>
+                <div className="new-forgot-form-header">
+                  <h2 className="new-forgot-form-title">Enter Code</h2>
+                  <p className="new-forgot-form-subtitle">
+                    We've sent a 6-digit code to <strong>{email}</strong>
+                  </p>
+                </div>
+
+                {errors.code && (
+                  <div className="new-forgot-general-error">
+                    {errors.code}
+                  </div>
+                )}
+
+                <form onSubmit={handleCodeSubmit} className="new-forgot-form">
+                  <div className="new-forgot-code-input-group">
+                    <div className="new-forgot-code-inputs">
+                      {code.map((digit, index) => (
+                        <input
+                          key={index}
+                          id={`code-${index}`}
+                          type="text"
+                          maxLength="1"
+                          className={`new-forgot-code-input ${errors.code ? 'new-forgot-input-error' : ''}`}
+                          value={digit}
+                          onChange={(e) => handleCodeChange(index, e.target.value)}
+                          onKeyDown={(e) => handleKeyDown(index, e)}
+                          disabled={isLoading}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className={`new-forgot-submit-btn ${isLoading ? 'new-forgot-loading' : ''}`}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Verifying...' : 'Verify Code'}
+                  </button>
+
+                  <div className="new-forgot-resend-code">
+                    <p className="new-forgot-resend-text">
+                      Didn't receive code?{' '}
+                      <button
+                        type="button"
+                        className="new-forgot-resend-link"
+                        onClick={handleResendCode}
+                        disabled={isCooldownActive}
+                      >
+                        {isCooldownActive ? `Resend (${formatCooldown()})` : 'Resend'}
+                      </button>
+                    </p>
+                  </div>
+                </form>
+              </>
+            )}
+
+            {/* Step 3: New Password & Confirm Password */}
+            {step === 3 && (
+              <>
+                <div className="new-forgot-form-header">
+                  <h2 className="new-forgot-form-title">Reset Password</h2>
+                  <p className="new-forgot-form-subtitle">
+                    Enter your new password
+                  </p>
+                </div>
+
+                {errors.password && (
+                  <div className="new-forgot-general-error">
+                    {errors.password}
+                  </div>
+                )}
+
+                <form onSubmit={handlePasswordSubmit} className="new-forgot-form">
+                  {/* New Password */}
+                  <div className="new-forgot-form-group">
+                    <label htmlFor="newPassword" className="new-forgot-form-label">
+                      New Password
+                    </label>
+                    <div className="new-forgot-input-wrapper">
+                      <FaLock className="new-forgot-input-icon" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        id="newPassword"
+                        className={`new-forgot-form-input ${errors.password ? 'new-forgot-input-error' : ''}`}
+                        placeholder="Enter new password"
+                        value={password}
+                        onChange={handlePasswordChange}
+                        disabled={isLoading}
+                      />
+                      <button
+                        type="button"
+                        className="new-forgot-password-toggle"
+                        onClick={() => setShowPassword(!showPassword)}
+                        disabled={isLoading}
+                      >
+                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
+                    {errors.password && <span className="new-forgot-error-message">{errors.password}</span>}
+                  </div>
+
+                  {/* Confirm Password */}
+                  <div className="new-forgot-form-group">
+                    <label htmlFor="confirmPassword" className="new-forgot-form-label">
+                      Confirm Password
+                    </label>
+                    <div className="new-forgot-input-wrapper">
+                      <FaLock className="new-forgot-input-icon" />
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        id="confirmPassword"
+                        className={`new-forgot-form-input ${errors.confirmPassword ? 'new-forgot-input-error' : ''}`}
+                        placeholder="Confirm new password"
+                        value={confirmPassword}
+                        onChange={handleConfirmPasswordChange}
+                        disabled={isLoading}
+                      />
+                      <button
+                        type="button"
+                        className="new-forgot-password-toggle"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        disabled={isLoading}
+                      >
+                        {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
+                    {errors.confirmPassword && <span className="new-forgot-error-message">{errors.confirmPassword}</span>}
+                    {confirmPassword && !errors.confirmPassword && password === confirmPassword && (
+                      <span className="new-forgot-success-message">✓ Passwords match</span>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    className={`new-forgot-submit-btn ${isLoading ? 'new-forgot-loading' : ''}`}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Resetting...' : 'Reset Password'}
+                  </button>
+                </form>
+              </>
+            )}
+
+            {/* Step 4: Success */}
+            {step === 4 && (
+              <>
+                <div className="new-forgot-success-container">
+                  <div className="new-forgot-success-icon">✓</div>
+                  <h3 className="new-forgot-success-title">Password Changed!</h3>
+                  <p className="new-forgot-success-text">
+                    Your password has been reset successfully
+                  </p>
+
+                  <button
+                    onClick={handleBackToLogin}
+                    className="new-forgot-back-to-login-btn"
+                  >
+                    Back to Login
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Sign Up Link - show on steps 1-3 only */}
+            {step !== 4 && (
+              <div className="new-forgot-signup-prompt">
+                <p className="new-forgot-signup-text">
+                  Don't have an account?{' '}
+                  <Link to="/register" className="new-forgot-signup-link">
+                    Sign up
+                  </Link>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

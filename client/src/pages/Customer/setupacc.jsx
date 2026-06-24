@@ -1,5 +1,5 @@
-// pages/Customer/setupacc.jsx (Updated with Residential instead of Individual)
-import React, { useState } from 'react';
+// pages/Customer/setupacc.jsx
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import {
@@ -7,7 +7,6 @@ import {
   FaUser,
   FaPhone,
   FaHome,
-  FaMapMarkerAlt,
   FaCity,
   FaGlobe,
   FaMailBulk,
@@ -17,9 +16,7 @@ import {
   FaCalendarAlt,
   FaBuilding,
   FaRoad,
-  FaHashtag,
-  FaIndustry,
-  FaHome as FaHouse
+  FaIndustry
 } from 'react-icons/fa';
 import '../../styles/Customer/setupacc.css';
 
@@ -28,6 +25,7 @@ const SetupAccount = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
+  const [clientData, setClientData] = useState(null);
 
   const token = sessionStorage.getItem('token');
 
@@ -41,18 +39,15 @@ const SetupAccount = () => {
   ];
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
-  // Form Data - Updated field names to match database schema
+  // Form Data - Removed firstName, middleName, lastName (already in clients table)
   const [formData, setFormData] = useState({
-    accountType: 'residential',  // Changed from 'individual' to 'residential'
+    accountType: 'residential',
     companyName: '',
-    firstName: '',
-    middleName: '',
-    lastName: '',
     phoneNumber: '',
     birthMonth: '',
     birthDay: '',
     birthYear: '',
-    // Address fields - updated to match Address model
+    // Address fields
     houseOrBuilding: '',
     street: '',
     barangay: '',
@@ -62,6 +57,41 @@ const SetupAccount = () => {
   });
 
   const [errors, setErrors] = useState({});
+
+  // Fetch existing client data on mount
+  useEffect(() => {
+    const fetchClientData = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/clients/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setClientData(data.client);
+          
+          // Pre-fill form with existing data if available
+          if (data.client) {
+            setFormData(prev => ({
+              ...prev,
+              accountType: data.client.client_type ? 
+                data.client.client_type.toLowerCase() : 'residential',
+              companyName: data.client.companyName || '',
+              phoneNumber: data.client.contactNumber || '',
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching client data:', error);
+      }
+    };
+
+    if (token) {
+      fetchClientData();
+    }
+  }, [token]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -76,8 +106,6 @@ const SetupAccount = () => {
     if ((formData.accountType === 'company' || formData.accountType === 'industrial') && !formData.companyName) {
       newErrors.companyName = `${formData.accountType === 'company' ? 'Company' : 'Business/Organization'} name is required`;
     }
-    if (!formData.firstName) newErrors.firstName = 'First name is required';
-    if (!formData.lastName) newErrors.lastName = 'Last name is required';
     if (!formData.phoneNumber) newErrors.phoneNumber = 'Phone number is required';
     if (!formData.birthMonth) newErrors.birthMonth = 'Month is required';
     if (!formData.birthDay) newErrors.birthDay = 'Day is required';
@@ -135,11 +163,8 @@ const SetupAccount = () => {
         ? `${formData.birthYear}-${String(formData.birthMonth).padStart(2, '0')}-${String(formData.birthDay).padStart(2, '0')}`
         : null;
 
-      // STEP 1: Update Client Info (Personal Information)
+      // STEP 1: Update Client Info (Only missing fields - NOT name fields)
       const clientUpdate = {
-        contactFirstName: formData.firstName,
-        contactMiddleName: formData.middleName,
-        contactLastName: formData.lastName,
         contactNumber: formData.phoneNumber,
         client_type: formData.accountType === 'residential' ? 'Residential' :
                      formData.accountType === 'company' ? 'Company' : 'Industrial',
@@ -190,7 +215,8 @@ const SetupAccount = () => {
         throw new Error(addressResult.message || 'Failed to save address');
       }
 
-      // Store combined data in sessionStorage
+      // Mark setup as complete in session
+      sessionStorage.setItem('hasCompletedSetup', 'true');
       sessionStorage.setItem('clientData', JSON.stringify({
         ...clientData.client,
         primaryAddress: addressResult.address
@@ -205,7 +231,11 @@ const SetupAccount = () => {
     }
   };
 
-  const handleContinueToDashboard = () => navigate('/app/customer');
+  const handleContinueToDashboard = () => {
+    // Update sessionStorage to mark setup as complete
+    sessionStorage.setItem('hasCompletedSetup', 'true');
+    navigate('/app/customer');
+  };
 
   const getBusinessLabel = () => {
     if (formData.accountType === 'company') {
@@ -297,9 +327,20 @@ const SetupAccount = () => {
               {currentStep === 1 && (
                 <>
                   <div className="setup-form-header">
-                    <h2 className="setup-form-title">Personal Information</h2>
-                    <p className="setup-form-subtitle">Tell us about yourself</p>
+                    <h2 className="setup-form-title">Complete Your Profile</h2>
+                    <p className="setup-form-subtitle">Tell us more about yourself</p>
                   </div>
+
+                  {clientData && (
+                    <div className="setup-info-box">
+                      <p className="setup-info-text">
+                        <strong>Welcome, {clientData.contactFirstName} {clientData.contactLastName}!</strong>
+                      </p>
+                      <p className="setup-info-subtext">
+                        Your name is already saved. Please complete the rest of your profile.
+                      </p>
+                    </div>
+                  )}
 
                   <form className="setup-form">
                     {/* ACCOUNT TYPE */}
@@ -336,56 +377,6 @@ const SetupAccount = () => {
                         {errors.companyName && <span className="setup-error-message">{errors.companyName}</span>}
                       </div>
                     )}
-
-                    {/* FIRST NAME */}
-                    <div className="setup-form-group">
-                      <label className="setup-form-label">First Name <span className="setup-required">*</span></label>
-                      <div className="setup-input-wrapper">
-                        <FaUser className="setup-input-icon" />
-                        <input
-                          type="text"
-                          name="firstName"
-                          value={formData.firstName}
-                          onChange={handleChange}
-                          className={`setup-form-input ${errors.firstName ? 'error' : ''}`}
-                          placeholder="Enter first name"
-                        />
-                      </div>
-                      {errors.firstName && <span className="setup-error-message">{errors.firstName}</span>}
-                    </div>
-
-                    {/* MIDDLE NAME */}
-                    <div className="setup-form-group">
-                      <label className="setup-form-label">Middle Name</label>
-                      <div className="setup-input-wrapper">
-                        <FaUser className="setup-input-icon" />
-                        <input
-                          type="text"
-                          name="middleName"
-                          value={formData.middleName}
-                          onChange={handleChange}
-                          className="setup-form-input"
-                          placeholder="Enter middle name (optional)"
-                        />
-                      </div>
-                    </div>
-
-                    {/* LAST NAME */}
-                    <div className="setup-form-group">
-                      <label className="setup-form-label">Last Name <span className="setup-required">*</span></label>
-                      <div className="setup-input-wrapper">
-                        <FaUser className="setup-input-icon" />
-                        <input
-                          type="text"
-                          name="lastName"
-                          value={formData.lastName}
-                          onChange={handleChange}
-                          className={`setup-form-input ${errors.lastName ? 'error' : ''}`}
-                          placeholder="Enter last name"
-                        />
-                      </div>
-                      {errors.lastName && <span className="setup-error-message">{errors.lastName}</span>}
-                    </div>
 
                     {/* PHONE NUMBER */}
                     <div className="setup-form-group">

@@ -17,7 +17,6 @@ router.post("/login", authController.login);
   Route for Google authentication
 */
 router.post("/google-login", authController.googleLogin);
-
 router.post("/google-register", authController.googleRegister);
 
 /*
@@ -29,6 +28,7 @@ router.post("/reset-password", authController.resetPassword);
   Route to check if email already exists
 */
 router.post("/check-email", authController.checkEmail);
-router.post("/check-username", authController.checkUsername);
+
+
 
 module.exports = router;

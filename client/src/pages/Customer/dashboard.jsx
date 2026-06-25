@@ -155,84 +155,6 @@ const Dashboard = () => {
     );
   };
 
-  const WelcomeSkeleton = () => (
-    <div className="welcome-section-cusdash">
-      <div className="welcome-content-cusdash">
-        <div className="skeleton-line-cusdash skeleton-title-cusdash"></div>
-        <div className="skeleton-line-cusdash skeleton-text-cusdash"></div>
-      </div>
-      <div className="welcome-actions-cusdash">
-        <div className="skeleton-button-cusdash"></div>
-        <div className="skeleton-button-cusdash"></div>
-      </div>
-    </div>
-  );
-
-  const StatsSkeleton = () => (
-    <div className="stats-grid-cusdash">
-      {[1, 2, 3, 4].map((item) => (
-        <div key={item} className="stat-card-cusdash skeleton-card-cusdash">
-          <div className="skeleton-line-cusdash skeleton-label-cusdash"></div>
-          <div className="skeleton-line-cusdash skeleton-value-cusdash"></div>
-          <div className="skeleton-line-cusdash skeleton-trend-cusdash"></div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const ProjectSkeleton = () => (
-    <div className="project-card-enhanced-cusdash skeleton-card-cusdash">
-      <div className="project-header-cusdash">
-        <div className="project-info-cusdash">
-          <div className="skeleton-line-cusdash skeleton-project-name-cusdash"></div>
-          <div className="skeleton-line-cusdash skeleton-project-system-cusdash"></div>
-        </div>
-        <div className="skeleton-badge-cusdash"></div>
-      </div>
-      <div className="project-content-layout-cusdash">
-        <div className="skeleton-progress-ring-cusdash"></div>
-        <div className="project-details-cusdash">
-          <div className="project-metric-cusdash">
-            <div className="skeleton-line-cusdash skeleton-metric-label-cusdash"></div>
-            <div className="skeleton-line-cusdash skeleton-metric-value-cusdash"></div>
-          </div>
-          <div className="project-metric-cusdash">
-            <div className="skeleton-line-cusdash skeleton-metric-label-cusdash"></div>
-            <div className="skeleton-line-cusdash skeleton-metric-value-cusdash"></div>
-          </div>
-          <div className="skeleton-button-cusdash skeleton-action-cusdash"></div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const ActivitySkeleton = () => (
-    <div className="activities-card-cusdash skeleton-card-cusdash">
-      <div className="activities-list-cusdash">
-        {[1, 2, 3].map((item) => (
-          <div key={item} className="activity-item-cusdash">
-            <div className="activity-content-cusdash">
-              <div className="skeleton-line-cusdash skeleton-activity-title-cusdash"></div>
-              <div className="skeleton-line-cusdash skeleton-activity-ref-cusdash"></div>
-              <div className="skeleton-line-cusdash skeleton-activity-date-cusdash"></div>
-            </div>
-            <div className="skeleton-badge-cusdash skeleton-status-cusdash"></div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const InfoCardSkeleton = () => (
-    <div className="info-card-cusdash skeleton-card-cusdash">
-      <div className="info-card-content-cusdash">
-        <div className="skeleton-line-cusdash skeleton-card-value-cusdash"></div>
-        <div className="skeleton-line-cusdash skeleton-card-label-cusdash"></div>
-        <div className="skeleton-line-cusdash skeleton-card-link-cusdash"></div>
-      </div>
-    </div>
-  );
-
   if (loading) {
     return (
       <>
@@ -240,30 +162,41 @@ const Dashboard = () => {
           <title>Dashboard | Salfer Engineering</title>
         </Helmet>
         <div className="dashboard-container-cusdash">
-          <WelcomeSkeleton />
-          <StatsSkeleton />
-          
-          <div className="dashboard-main-cusdash">
-            <div className="section-header-cusdash">
-              <div className="skeleton-line-cusdash skeleton-section-title-cusdash"></div>
+          {/* Skeleton Loading */}
+          <div className="welcome-section-cusdash">
+            <div className="welcome-content-cusdash">
+              <div className="skeleton-line-cusdash skeleton-title-cusdash"></div>
+              <div className="skeleton-line-cusdash skeleton-text-cusdash"></div>
             </div>
-            <div className="row-layout-cusdash">
-              <div className="project-section-cusdash">
-                <ProjectSkeleton />
-              </div>
-              <div className="activities-section-cusdash">
-                <div className="section-header-cusdash">
-                  <div className="skeleton-line-cusdash skeleton-section-title-cusdash"></div>
-                </div>
-                <ActivitySkeleton />
-              </div>
+            <div className="welcome-actions-cusdash">
+              <div className="skeleton-button-cusdash"></div>
+              <div className="skeleton-button-cusdash"></div>
             </div>
           </div>
-          
-          <div className="info-grid-cusdash">
-            <InfoCardSkeleton />
-            <InfoCardSkeleton />
-            <InfoCardSkeleton />
+          <div className="stats-grid-cusdash">
+            {[1, 2, 3, 4].map((item) => (
+              <div key={item} className="stat-card-cusdash skeleton-card-cusdash">
+                <div className="skeleton-line-cusdash skeleton-label-cusdash"></div>
+                <div className="skeleton-line-cusdash skeleton-value-cusdash"></div>
+                <div className="skeleton-line-cusdash skeleton-trend-cusdash"></div>
+              </div>
+            ))}
+          </div>
+          <div className="row-layout-cusdash">
+            <div className="project-section-cusdash">
+              <div className="skeleton-card-cusdash" style={{ padding: '24px', borderRadius: 'var(--radius-2xl)' }}>
+                <div className="skeleton-line-cusdash skeleton-project-name-cusdash"></div>
+                <div className="skeleton-line-cusdash skeleton-project-system-cusdash"></div>
+                <div className="skeleton-progress-ring-cusdash" style={{ marginTop: '16px' }}></div>
+              </div>
+            </div>
+            <div className="activities-section-cusdash">
+              <div className="skeleton-card-cusdash" style={{ padding: '20px', borderRadius: 'var(--radius-2xl)' }}>
+                <div className="skeleton-line-cusdash skeleton-activity-title-cusdash"></div>
+                <div className="skeleton-line-cusdash skeleton-activity-ref-cusdash"></div>
+                <div className="skeleton-line-cusdash skeleton-activity-date-cusdash"></div>
+              </div>
+            </div>
           </div>
         </div>
       </>
@@ -277,7 +210,7 @@ const Dashboard = () => {
       </Helmet>
 
       <div className="dashboard-container-cusdash">
-        {/* Welcome Section - Premium SaaS Hero */}
+        {/* Welcome Section */}
         <div className="welcome-section-cusdash">
           <div className="welcome-content-cusdash">
             <h1 className="page-title-cusdash">Dashboard</h1>
@@ -293,7 +226,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Project Selector - Clean Select */}
+        {/* Project Selector */}
         {projectsList.length > 1 && (
           <div className="project-selector-container-cusdash">
             <label className="selector-label-cusdash">Active Project</label>
@@ -316,12 +249,12 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Stats Cards - NO ICONS */}
+        {/* Stats Cards - Simplified */}
         <div className="stats-grid-cusdash">
           <div className="stat-card-cusdash">
             <div className="stat-content-cusdash">
               <span className="stat-label-cusdash">Active Projects</span>
-              <span className="stat-value-cusdash">{project ? 1 : 0}</span>
+              <span className="stat-value-cusdash">{projectsList.filter(p => p.status !== 'completed').length}</span>
               <span className="stat-trend-cusdash">
                 {project ? `${getProjectProgress()}% complete` : 'No active projects'}
               </span>
@@ -329,21 +262,21 @@ const Dashboard = () => {
           </div>
           <div className="stat-card-cusdash">
             <div className="stat-content-cusdash">
-              <span className="stat-label-cusdash">Free Quotes</span>
+              <span className="stat-label-cusdash">Quotes</span>
               <span className="stat-value-cusdash">{recentQuotes.length}</span>
               <span className="stat-trend-cusdash">Recent requests</span>
             </div>
           </div>
           <div className="stat-card-cusdash">
             <div className="stat-content-cusdash">
-              <span className="stat-label-cusdash">Pending Payments</span>
+              <span className="stat-label-cusdash">Payments</span>
               <span className="stat-value-cusdash">{pendingPayments.length}</span>
-              <span className="stat-trend-cusdash">Awaiting payment</span>
+              <span className="stat-trend-cusdash">Pending</span>
             </div>
           </div>
           <div className="stat-card-cusdash">
             <div className="stat-content-cusdash">
-              <span className="stat-label-cusdash">Appointments</span>
+              <span className="stat-label-cusdash">Assessments</span>
               <span className="stat-value-cusdash">{upcomingAppointments.length}</span>
               <span className="stat-trend-cusdash">Upcoming</span>
             </div>
@@ -352,7 +285,7 @@ const Dashboard = () => {
 
         {/* Row Layout: Active Project + Recent Activity */}
         <div className="row-layout-cusdash">
-          {/* Left: Active Project Card */}
+          {/* Active Project */}
           <div className="project-section-cusdash">
             <div className="section-header-cusdash">
               <h2 className="section-title-cusdash">Active Project</h2>
@@ -411,7 +344,7 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* Right: Recent Activity - Timeline Style */}
+          {/* Recent Activity */}
           <div className="activities-section-cusdash">
             <div className="section-header-cusdash">
               <h2 className="section-title-cusdash">Recent Activity</h2>
@@ -464,51 +397,6 @@ const Dashboard = () => {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Info Cards - NO ICONS */}
-        <div className="info-grid-cusdash">
-          <div className="info-card-cusdash">
-            <div className="info-card-content-cusdash">
-              <span className="card-value-large-cusdash">{projectsList.filter(p => p.status !== 'completed').length}</span>
-              <span className="card-label-cusdash">Active Projects</span>
-              <p className="card-description-cusdash">Track your solar installation progress</p>
-              <Link to="/app/customer/project" className="card-link-cusdash">
-                View Projects
-                <svg className="arrow-icon-cusdash" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M1 7H13M13 7L7 1M13 7L7 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </Link>
-            </div>
-          </div>
-
-          <div className="info-card-cusdash">
-            <div className="info-card-content-cusdash">
-              <span className="card-value-large-cusdash">{pendingPayments.length}</span>
-              <span className="card-label-cusdash">Pending Payments</span>
-              <p className="card-description-cusdash">Complete your payments to continue</p>
-              <Link to="billing" className="card-link-cusdash">
-                Make Payment
-                <svg className="arrow-icon-cusdash" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M1 7H13M13 7L7 1M13 7L7 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </Link>
-            </div>
-          </div>
-
-          <div className="info-card-cusdash">
-            <div className="info-card-content-cusdash">
-              <span className="card-value-large-cusdash">{upcomingAppointments.length}</span>
-              <span className="card-label-cusdash">Upcoming</span>
-              <p className="card-description-cusdash">Scheduled site assessments</p>
-              <Link to="book-assessment" className="card-link-cusdash">
-                Schedule Now
-                <svg className="arrow-icon-cusdash" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M1 7H13M13 7L7 1M13 7L7 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </Link>
             </div>
           </div>
         </div>

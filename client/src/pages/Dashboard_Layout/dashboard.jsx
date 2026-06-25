@@ -3,42 +3,27 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import axios from 'axios';
 import {
-  FaSolarPanel,
   FaTachometerAlt,
   FaUsers,
-  FaMapMarkerAlt,
   FaMicrochip,
   FaChartBar,
-  FaFileAlt,
   FaCog,
   FaBell,
-  FaUserCircle,
   FaSignOutAlt,
   FaBars,
   FaTimes,
   FaChevronDown,
-  FaSearch,
   FaClipboardList,
   FaProjectDiagram,
   FaFileInvoiceDollar,
   FaClipboardCheck,
-  FaUserCog,
   FaCalendarAlt,
-  FaFileInvoice,
-  FaChartLine,
   FaHeadset,
   FaHome,
-  FaCreditCard,
-  FaQuestionCircle,
-  FaBell as FaBellSolid,
-  FaAddressBook,
-  FaLock,
-  FaShieldAlt,
-  FaPalette,
-  FaKey,
-  FaRegClock,
+  FaTools,
+  FaSearch,
   FaRegCalendarAlt,
-  FaTools
+  FaSun
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
 import profileImage from '../../assets/profile.png';
@@ -52,16 +37,12 @@ const Dashboard = () => {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [maintenanceStatus, setMaintenanceStatus] = useState({ isUnderMaintenance: false, title: '' });
 
-  const profileRef = useRef(null);
-  const notificationsRef = useRef(null);
   const settingsDropdownRef = useRef(null);
   const supportDropdownRef = useRef(null);
   const sidebarSettingsDropdownRef = useRef(null);
   const sidebarSupportDropdownRef = useRef(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
   const [settingsDropdownOpen, setSettingsDropdownOpen] = useState(false);
   const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
   const [sidebarSettingsOpen, setSidebarSettingsOpen] = useState(false);
@@ -98,9 +79,7 @@ const Dashboard = () => {
       { icon: <FaClipboardCheck />, label: 'My Assessments', path: '/app/engineer/assessment' },
       { icon: <FaProjectDiagram />, label: 'My Projects', path: '/app/engineer/project' },
       { icon: <FaMicrochip />, label: 'Device Data', path: '/app/engineer/device' },
-      //{ icon: <FaFileAlt />, label: 'Reports', path: '/app/engineer/reports' },
       { icon: <FaClipboardList />, label: 'Schedule', path: '/app/engineer/schedule' },
-      //{ icon: <FaUserCog />, label: 'Profile', path: '/app/engineer/profile' },
     ],
 
     user: [
@@ -114,7 +93,6 @@ const Dashboard = () => {
   const settingsSubmenu = [
     { label: 'Profile', path: '/app/customer/settings?tab=profile' },
     { label: 'Addresses', path: '/app/customer/settings?tab=addresses' },
-   
   ];
 
   const supportSubmenu = [
@@ -156,15 +134,9 @@ const Dashboard = () => {
     }
   }, [isAdmin]);
 
-  // Handle click outside for all dropdowns
+  // Handle click outside for dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
-        setProfileOpen(false);
-      }
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
-        setNotificationsOpen(false);
-      }
       if (settingsDropdownRef.current && !settingsDropdownRef.current.contains(event.target)) {
         setSettingsDropdownOpen(false);
       }
@@ -197,7 +169,6 @@ const Dashboard = () => {
           setSidebarOpen(false);
         }
       }
-      setProfileOpen(false);
     };
 
     handleResize();
@@ -243,27 +214,6 @@ const Dashboard = () => {
     }
   }, [navigate, location.pathname, initialized, isNavigating]);
 
-  // Generate breadcrumb based on current path
-  const getBreadcrumb = () => {
-    const pathnames = location.pathname.split('/').filter(x => x);
-    const breadcrumbs = [];
-
-    if (pathnames.length === 0) return [{ name: 'Dashboard', path: '/app' }];
-
-    let currentPath = '';
-    for (let i = 0; i < pathnames.length; i++) {
-      currentPath += `/${pathnames[i]}`;
-      let name = pathnames[i].charAt(0).toUpperCase() + pathnames[i].slice(1);
-      if (name === 'App') name = 'Dashboard';
-      if (name === 'Customer') continue;
-      breadcrumbs.push({ name, path: currentPath });
-    }
-
-    return breadcrumbs;
-  };
-
-  const breadcrumbs = getBreadcrumb();
-
   const getRoleDisplay = () => {
     switch (userRole) {
       case 'admin': return 'Administrator';
@@ -278,24 +228,6 @@ const Dashboard = () => {
       case 'admin': return 'role-badge-admin';
       case 'engineer': return 'role-badge-engineer';
       default: return 'role-badge-user';
-    }
-  };
-
-  const getSettingsPath = () => {
-    switch (userRole) {
-      case 'admin': return '/app/settings';
-      case 'engineer': return '/app/engineersettings';
-      case 'user': return '/app/customer/settings?tab=profile';
-      default: return '/app/settings';
-    }
-  };
-
-  const getProfilePath = () => {
-    switch (userRole) {
-      case 'admin': return '/app/profile';
-      case 'engineer': return '/app/engineerprofile';
-      case 'user': return '/app/customer/settings?tab=profile';
-      default: return '/app/profile';
     }
   };
 
@@ -378,21 +310,11 @@ const Dashboard = () => {
     if (isMobile()) {
       setSidebarOpen(false);
     }
-    setProfileOpen(false);
-    setNotificationsOpen(false);
     setSettingsDropdownOpen(false);
     setSupportDropdownOpen(false);
     setSidebarSettingsOpen(false);
     setSidebarSupportOpen(false);
 
-    setTimeout(() => setIsNavigating(false), 500);
-  };
-
-  const handleProfileNavigation = (path) => {
-    if (isNavigating) return;
-    setIsNavigating(true);
-    navigate(path);
-    setProfileOpen(false);
     setTimeout(() => setIsNavigating(false), 500);
   };
 
@@ -406,318 +328,21 @@ const Dashboard = () => {
     ));
   };
 
-  const handleProfileClick = () => {
-    if (isMobile()) return;
-    if (isCustomer) {
-      setProfileOpen(!profileOpen);
-    }
+  // Get page title from pathname
+  const getPageTitle = () => {
+    const path = location.pathname;
+    const segments = path.split('/').filter(x => x);
+    
+    const filtered = segments.filter(s => 
+      s !== 'app' && s !== 'customer' && s !== 'admin' && s !== 'engineer'
+    );
+    
+    if (filtered.length === 0) return 'Dashboard';
+    
+    const title = filtered[filtered.length - 1];
+    return title.charAt(0).toUpperCase() + title.slice(1).replace(/-/g, ' ');
   };
 
-  // ========== CUSTOMER LAYOUT ==========
-  if (isCustomer) {
-    return (
-      <div className="dashboard-layout-dashboard customer-dashboard-layout-dashboard">
-        {/* Sidebar Overlay */}
-        {sidebarOpen && isMobile() && <div className="sidebar-overlay-layout-dashboard" onClick={() => setSidebarOpen(false)} />}
-        
-        {/* Sidebar Drawer - ONLY for mobile, contains profile and all navigation */}
-        <aside className={`customer-sidebar-layout-dashboard ${sidebarOpen && isMobile() ? 'open-layout-dashboard' : ''}`}>
-          <div className="sidebar-header-layout-dashboard">
-            <div className="logo-container-layout-dashboard">
-              <div className="logo-icon-layout-dashboard">
-                <img src={logo} alt="Salfer Engineering" className="sidebar-logo-img-layout-dashboard" />
-              </div>
-              <h1 className="logo-text-layout-dashboard">Salfer Engineering</h1>
-            </div>
-            <button 
-              className="sidebar-close-btn"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <FaTimes />
-            </button>
-          </div>
-
-          {/* Profile Section in Sidebar - Mobile only */}
-          <div className="sidebar-user-info-layout-dashboard">
-            <div className="sidebar-user-avatar-layout-dashboard">
-              <img
-                src={userPhoto || profileImage}
-                alt={userName}
-                className="sidebar-profile-image-layout-dashboard"
-              />
-            </div>
-            <div className="sidebar-user-details-layout-dashboard">
-              <span className="sidebar-user-name-layout-dashboard">{userName}</span>
-              <span className="sidebar-user-role-layout-dashboard">{getRoleDisplay()}</span>
-            </div>
-          </div>
-
-          <nav className="sidebar-nav-layout-dashboard">
-            {currentMenu.map((item, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  handleNavigation(item.path);
-                  setSidebarOpen(false);
-                }}
-                className={`nav-item-layout-dashboard ${isActive(item.path) ? 'active-layout-dashboard' : ''}`}
-                disabled={isNavigating}
-              >
-                <span className="nav-icon-layout-dashboard">{item.icon}</span>
-                <span className="nav-label-layout-dashboard">{item.label}</span>
-              </button>
-            ))}
-            
-            {/* Settings dropdown in sidebar */}
-            <div className="settings-dropdown-wrapper-layout-dashboard" ref={sidebarSettingsDropdownRef}>
-              <button
-                onClick={() => setSidebarSettingsOpen(!sidebarSettingsOpen)}
-                className={`nav-item-layout-dashboard ${isSettingsActive() ? 'active-layout-dashboard' : ''}`}
-                disabled={isNavigating}
-              >
-                <span className="nav-icon-layout-dashboard"><FaCog /></span>
-                <span className="nav-label-layout-dashboard">Settings</span>
-                <FaChevronDown className={`dropdown-arrow-layout-dashboard ${sidebarSettingsOpen ? 'open-layout-dashboard' : ''}`} />
-              </button>
-              {sidebarSettingsOpen && (
-                <div className="sidebar-dropdown-menu">
-                  {settingsSubmenu.map((item, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        handleSettingsNavigation(item.path);
-                        setSidebarOpen(false);
-                      }}
-                      className="sidebar-dropdown-item"
-                      disabled={isNavigating}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Support dropdown in sidebar */}
-            <div className="settings-dropdown-wrapper-layout-dashboard" ref={sidebarSupportDropdownRef}>
-              <button
-                onClick={() => setSidebarSupportOpen(!sidebarSupportOpen)}
-                className={`nav-item-layout-dashboard ${isSupportActive() ? 'active-layout-dashboard' : ''}`}
-                disabled={isNavigating}
-              >
-                <span className="nav-icon-layout-dashboard"><FaHeadset /></span>
-                <span className="nav-label-layout-dashboard">Support</span>
-                <FaChevronDown className={`dropdown-arrow-layout-dashboard ${sidebarSupportOpen ? 'open-layout-dashboard' : ''}`} />
-              </button>
-              {sidebarSupportOpen && (
-                <div className="sidebar-dropdown-menu">
-                  {supportSubmenu.map((item, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        handleSupportNavigation(item.path);
-                        setSidebarOpen(false);
-                      }}
-                      className="sidebar-dropdown-item"
-                      disabled={isNavigating}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Logout button */}
-            <button
-              onClick={() => {
-                handleLogout();
-                setSidebarOpen(false);
-              }}
-              className="nav-item-layout-dashboard logout-sidebar-btn"
-              disabled={isNavigating}
-            >
-              <span className="nav-icon-layout-dashboard"><FaSignOutAlt /></span>
-              <span className="nav-label-layout-dashboard">Logout</span>
-            </button>
-          </nav>
-        </aside>
-
-        <main className="customer-main-content-layout-dashboard">
-          <header className="customer-header-layout-dashboard">
-            <div className="customer-header-left-layout-dashboard">
-              <div className="customer-logo-layout-dashboard">
-                {/* Hamburger button INSIDE sidebar for mobile */}
-                {isMobile() && (
-                  <button 
-                    className="mobile-hamburger-btn-sidebar"
-                    onClick={() => setSidebarOpen(true)}
-                  >
-                    <FaBars />
-                  </button>
-                )}
-                <img src={logo} alt="Salfer Engineering" className="customer-logo-img-layout-dashboard" />
-                <span className="customer-logo-text-layout-dashboard">Salfer Engineering</span>
-              </div>
-
-              {/* Desktop Navigation - Visible on desktop only */}
-              <nav className="customer-nav-links-layout-dashboard desktop-nav">
-                {currentMenu.map((item, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleNavigation(item.path)}
-                    className={`customer-nav-link-layout-dashboard ${isActive(item.path) ? 'active-layout-dashboard' : ''}`}
-                    disabled={isNavigating}
-                  >
-                    <span className="customer-nav-link-label-layout-dashboard">{item.label}</span>
-                  </button>
-                ))}
-
-                {/* Support Dropdown in Header */}
-                <div className="settings-dropdown-wrapper-layout-dashboard" ref={supportDropdownRef}>
-                  <button
-                    onClick={() => setSupportDropdownOpen(!supportDropdownOpen)}
-                    className={`customer-nav-link-layout-dashboard settings-dropdown-btn-layout-dashboard ${isSupportActive() ? 'active-layout-dashboard' : ''}`}
-                    disabled={isNavigating}
-                  >
-                    <span className="customer-nav-link-label-layout-dashboard">Support</span>
-                    <FaChevronDown className={`dropdown-arrow-layout-dashboard ${supportDropdownOpen ? 'open-layout-dashboard' : ''}`} />
-                  </button>
-
-                  {supportDropdownOpen && (
-                    <div className="settings-dropdown-menu-layout-dashboard">
-                      {supportSubmenu.map((item, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleSupportNavigation(item.path)}
-                          className="settings-dropdown-item-layout-dashboard"
-                          disabled={isNavigating}
-                        >
-                          <span className="dropdown-item-label-layout-dashboard">{item.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Settings Dropdown in Header */}
-                <div className="settings-dropdown-wrapper-layout-dashboard" ref={settingsDropdownRef}>
-                  <button
-                    onClick={() => setSettingsDropdownOpen(!settingsDropdownOpen)}
-                    className={`customer-nav-link-layout-dashboard settings-dropdown-btn-layout-dashboard ${isSettingsActive() ? 'active-layout-dashboard' : ''}`}
-                    disabled={isNavigating}
-                  >
-                    <span className="customer-nav-link-label-layout-dashboard">Settings</span>
-                    <FaChevronDown className={`dropdown-arrow-layout-dashboard ${settingsDropdownOpen ? 'open-layout-dashboard' : ''}`} />
-                  </button>
-
-                  {settingsDropdownOpen && (
-                    <div className="settings-dropdown-menu-layout-dashboard">
-                      {settingsSubmenu.map((item, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleSettingsNavigation(item.path)}
-                          className="settings-dropdown-item-layout-dashboard"
-                          disabled={isNavigating}
-                        >
-                          <span className="dropdown-item-label-layout-dashboard">{item.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </nav>
-            </div>
-
-            <div className="customer-header-right-layout-dashboard">
-              {/* Notifications */}
-              <div className="notification-wrapper-layout-dashboard" ref={notificationsRef}>
-                <button
-                  className="notification-btn-layout-dashboard"
-                  onClick={() => setNotificationsOpen(!notificationsOpen)}
-                  disabled={isNavigating}
-                >
-                  <FaBell />
-                  {unreadCount > 0 && <span className="notification-badge-layout-dashboard">{unreadCount}</span>}
-                </button>
-
-                {notificationsOpen && (
-                  <div className="notification-dropdown-layout-dashboard">
-                    <div className="notification-header-layout-dashboard">
-                      <h3>Notifications</h3>
-                      {unreadCount > 0 && (
-                        <span className="mark-read-layout-dashboard" onClick={markAllAsRead}>
-                          Mark all as read
-                        </span>
-                      )}
-                    </div>
-                    <div className="notification-list-layout-dashboard">
-                      {notifications.length > 0 ? (
-                        notifications.map(notif => (
-                          <div
-                            key={notif.id}
-                            className={`notification-item-layout-dashboard ${!notif.read ? 'unread-layout-dashboard' : ''}`}
-                            onClick={() => markAsRead(notif.id)}
-                          >
-                            <p className="notification-message-layout-dashboard">{notif.message}</p>
-                            <span className="notification-time-layout-dashboard">{notif.time}</span>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="notification-empty-layout-dashboard">
-                          <FaBellSolid className="empty-icon-layout-dashboard" />
-                          <p>No notifications</p>
-                        </div>
-                      )}
-                    </div>
-                    <div className="notification-footer-layout-dashboard">
-                      <button onClick={() => handleNavigation('/app/notifications')} disabled={isNavigating}>
-                        View all
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Profile - Desktop only, hidden on mobile */}
-              {!isMobile() && (
-                <div className="profile-wrapper-layout-dashboard" ref={profileRef}>
-                  <div
-                    className={`profile-btn-layout-dashboard clickable-profile`}
-                    onClick={handleProfileClick}
-                  >
-                    <img
-                      src={userPhoto || profileImage}
-                      alt={userName}
-                      className="profile-image-layout-dashboard"
-                    />
-                    <span className="profile-name-layout-dashboard">{userName}</span>
-                    <FaChevronDown className={`dropdown-icon-layout-dashboard ${profileOpen ? 'open-layout-dashboard' : ''}`} />
-                  </div>
-
-                  {profileOpen && (
-                    <div className="profile-dropdown-layout-dashboard">
-                      <div className="profile-menu-layout-dashboard">
-                        <button onClick={handleLogout} className="dropdown-item-layout-dashboard logout-layout-dashboard" disabled={isNavigating}>
-                          <FaSignOutAlt /> Logout
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </header>
-
-          <div className="customer-content-area-layout-dashboard">
-            <Outlet />
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // ========== ADMIN/ENGINEER LAYOUT ==========
   return (
     <div className="dashboard-layout-dashboard">
       {/* Mobile Hamburger Button */}
@@ -731,36 +356,24 @@ const Dashboard = () => {
 
       {sidebarOpen && <div className="sidebar-overlay-layout-dashboard" onClick={() => setSidebarOpen(false)} />}
 
-      <aside className={`sidebar-layout-dashboard ${sidebarOpen ? 'open-layout-dashboard' : ''} ${isAdmin ? 'admin-sidebar-layout-dashboard' : 'engineer-sidebar-layout-dashboard'}`}>
+      {/* SIDEBAR - Solar Theme */}
+      <aside className={`sidebar-layout-dashboard ${sidebarOpen ? 'open-layout-dashboard' : ''}`}>
         <div className="sidebar-header-layout-dashboard">
           <div className="logo-container-layout-dashboard">
             <div className="logo-icon-layout-dashboard">
               <img src={logo} alt="Salfer Engineering" className="sidebar-logo-img-layout-dashboard" />
             </div>
-            <h1 className="logo-text-layout-dashboard">Salfer Engineering</h1>
+            <h1 className="logo-text-layout-dashboard">
+              <FaSun className="logo-sun-icon" />
+              Salfer Engineering
+            </h1>
           </div>
-        </div>
-
-        <div className="user-info-layout-dashboard">
-          <div className="user-avatar-layout-dashboard">
-            {userPhoto ? (
-              <img
-                src={userPhoto}
-                alt={userName}
-                style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }}
-              />
-            ) : (
-              <img
-                src={profileImage}
-                alt="Profile"
-                style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }}
-              />
-            )}
-          </div>
-          <div className="user-details-layout-dashboard">
-            <span className="user-name-layout-dashboard">{userName}</span>
-            <span className="user-role-layout-dashboard">{getRoleDisplay()}</span>
-          </div>
+          <button 
+            className="sidebar-close-btn"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <FaTimes />
+          </button>
         </div>
 
         <nav className="sidebar-nav-layout-dashboard">
@@ -778,6 +391,84 @@ const Dashboard = () => {
               <span className="nav-label-layout-dashboard">{item.label}</span>
             </button>
           ))}
+          
+          {/* Settings dropdown */}
+          <div className="settings-dropdown-wrapper-layout-dashboard" ref={sidebarSettingsDropdownRef}>
+            <button
+              onClick={() => setSidebarSettingsOpen(!sidebarSettingsOpen)}
+              className={`nav-item-layout-dashboard ${isSettingsActive() ? 'active-layout-dashboard' : ''}`}
+              disabled={isNavigating}
+            >
+              <span className="nav-icon-layout-dashboard"><FaCog /></span>
+              <span className="nav-label-layout-dashboard">Settings</span>
+              <FaChevronDown className={`dropdown-arrow-layout-dashboard ${sidebarSettingsOpen ? 'open-layout-dashboard' : ''}`} />
+            </button>
+            {sidebarSettingsOpen && (
+              <div className="sidebar-dropdown-menu">
+                {settingsSubmenu.map((item, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      handleSettingsNavigation(item.path);
+                      if (isMobile()) setSidebarOpen(false);
+                    }}
+                    className="sidebar-dropdown-item"
+                    disabled={isNavigating}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Support dropdown */}
+          <div className="settings-dropdown-wrapper-layout-dashboard" ref={sidebarSupportDropdownRef}>
+            <button
+              onClick={() => setSidebarSupportOpen(!sidebarSupportOpen)}
+              className={`nav-item-layout-dashboard ${isSupportActive() ? 'active-layout-dashboard' : ''}`}
+              disabled={isNavigating}
+            >
+              <span className="nav-icon-layout-dashboard"><FaHeadset /></span>
+              <span className="nav-label-layout-dashboard">Support</span>
+              <FaChevronDown className={`dropdown-arrow-layout-dashboard ${sidebarSupportOpen ? 'open-layout-dashboard' : ''}`} />
+            </button>
+            {sidebarSupportOpen && (
+              <div className="sidebar-dropdown-menu">
+                {supportSubmenu.map((item, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      handleSupportNavigation(item.path);
+                      if (isMobile()) setSidebarOpen(false);
+                    }}
+                    className="sidebar-dropdown-item"
+                    disabled={isNavigating}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Notifications */}
+          <button
+            onClick={() => {
+              handleNavigation('/app/notifications');
+              if (isMobile()) setSidebarOpen(false);
+            }}
+            className="nav-item-layout-dashboard"
+            disabled={isNavigating}
+          >
+            <span className="nav-icon-layout-dashboard">
+              <FaBell />
+              {unreadCount > 0 && <span className="sidebar-notification-badge">{unreadCount}</span>}
+            </span>
+            <span className="nav-label-layout-dashboard">Notifications</span>
+          </button>
+
+          {/* Logout - at the bottom */}
           <button
             onClick={() => {
               handleLogout();
@@ -792,108 +483,64 @@ const Dashboard = () => {
         </nav>
       </aside>
 
+      {/* MAIN CONTENT */}
       <main className="main-content-layout-dashboard">
+        {/* HEADER */}
         <header className="dashboard-header-layout-dashboard">
           <div className="header-left-layout-dashboard">
-            <div className="breadcrumb-layout-dashboard">
-              <FaHome className="breadcrumb-home-icon" />
-              {breadcrumbs.map((crumb, index) => (
-                <span key={index}>
-                  <span className="breadcrumb-separator">/</span>
-                  <button
-                    className="breadcrumb-link"
-                    onClick={() => handleNavigation(crumb.path)}
-                  >
-                    {crumb.name}
-                  </button>
-                </span>
-              ))}
-            </div>
-            <div className={`role-badge-layout-dashboard ${getRoleBadgeClass()}`}>
-              {getRoleDisplay()}
-            </div>
-          </div>
-
-          <div className="header-search-layout-dashboard">
-            <FaSearch className="search-icon-layout-dashboard" />
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              disabled={isNavigating}
-            />
-          </div>
-
-          <div className="header-right-layout-dashboard">
-            <div className="datetime-layout-dashboard">
-              <FaRegCalendarAlt className="datetime-icon" />
-              <span className="datetime-text">{formatDateTime()}</span>
-            </div>
-
+            <h1 className="page-title-layout-dashboard">{getPageTitle()}</h1>
+            {!isCustomer && (
+              <div className={`role-badge-layout-dashboard ${getRoleBadgeClass()}`}>
+                {getRoleDisplay()}
+              </div>
+            )}
             {isAdmin && maintenanceStatus.isUnderMaintenance && (
               <div className="maintenance-warning">
                 <FaTools className="maintenance-icon" />
-                <span className="maintenance-text">Maintenance Mode Active</span>
+                <span className="maintenance-text">Maintenance Mode</span>
+              </div>
+            )}
+          </div>
+
+          <div className="header-right-layout-dashboard">
+            {/* Search */}
+            <div className="header-search-wrapper">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                disabled={isNavigating}
+                className="header-search-input"
+              />
+              <button className="search-btn-layout-dashboard">
+                <FaSearch />
+              </button>
+            </div>
+
+            {/* Calendar - Admin/Engineer only */}
+            {!isCustomer && (
+              <div className="datetime-layout-dashboard">
+                <FaRegCalendarAlt className="datetime-icon" />
+                <span className="datetime-text">{formatDateTime()}</span>
               </div>
             )}
 
-            <div className="header-actions-layout-dashboard">
-              <div className="notification-wrapper-layout-dashboard" ref={notificationsRef}>
-                <button
-                  className="notification-btn-layout-dashboard"
-                  onClick={() => setNotificationsOpen(!notificationsOpen)}
-                  disabled={isNavigating}
-                >
-                  <FaBell />
-                  {unreadCount > 0 && <span className="notification-badge-red-layout-dashboard">{unreadCount}</span>}
-                </button>
-
-                {notificationsOpen && (
-                  <div className="notification-dropdown-layout-dashboard">
-                    <div className="notification-header-layout-dashboard">
-                      <h3>Notifications</h3>
-                      {unreadCount > 0 && (
-                        <span className="mark-read-layout-dashboard" onClick={markAllAsRead}>
-                          Mark all as read
-                        </span>
-                      )}
-                    </div>
-                    <div className="notification-list-layout-dashboard">
-                      {notifications.map(notif => (
-                        <div
-                          key={notif.id}
-                          className={`notification-item-layout-dashboard ${!notif.read ? 'unread-layout-dashboard' : ''}`}
-                          onClick={() => markAsRead(notif.id)}
-                        >
-                          <p className="notification-message-layout-dashboard">{notif.message}</p>
-                          <span className="notification-time-layout-dashboard">{notif.time}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="notification-footer-layout-dashboard">
-                      <button onClick={() => handleNavigation('/app/notifications')} disabled={isNavigating}>
-                        View all notifications
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="profile-wrapper-layout-dashboard" ref={profileRef}>
-                <div className="profile-btn-layout-dashboard">
-                  <img
-                    src={userPhoto || profileImage}
-                    alt={userName}
-                    className="profile-image-layout-dashboard"
-                  />
-                  <span className="profile-name-layout-dashboard">{userName}</span>
-                </div>
+            {/* Profile with Name - Rectangular rounded border */}
+            <div className="profile-wrapper-layout-dashboard">
+              <div className="profile-btn-layout-dashboard static-profile">
+                <img
+                  src={userPhoto || profileImage}
+                  alt={userName}
+                  className="profile-image-layout-dashboard"
+                />
+                <span className="profile-name-layout-dashboard">{userName}</span>
               </div>
             </div>
           </div>
         </header>
 
+        {/* CONTENT AREA */}
         <div className="content-area-layout-dashboard">
           <Outlet />
         </div>

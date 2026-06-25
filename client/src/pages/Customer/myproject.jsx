@@ -18,7 +18,8 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaTimes,
-  FaDownload
+  FaDownload,
+  FaSun
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/myproject.css';
@@ -118,7 +119,6 @@ const MyProject = () => {
       inv.invoiceType === paymentType
     );
 
-    // ✅ If final payment is paid, show previous payments as paid
     const finalPaid = isPaymentPaid(project, 'final');
     
     if (paymentType !== 'final' && finalPaid) {
@@ -168,11 +168,8 @@ const MyProject = () => {
     const progressPaid = isPaymentPaid(project, 'progress');
     const finalPaid = isPaymentPaid(project, 'final');
 
-    // ✅ FIXED: When final payment is paid, show 90% (almost complete)
     if (finalPaid) {
-      // If installation is completed, show 100%
       if (project.status === 'completed') return 100;
-      // If final payment is made but installation not completed, show 90%
       return 90;
     }
     if (progressPaid) return 75;
@@ -193,17 +190,12 @@ const MyProject = () => {
     if (project.status === 'approved' && !initialPaid && !fullPaid) {
       return { message: 'Ready for payment', action: 'Complete initial payment to start installation' };
     }
-    
-    // For full payment plan
     if (fullPaid && project.paymentPreference === 'full') {
       return { message: 'Payment completed', action: 'Installation will begin soon' };
     }
-    
-    // ✅ FIXED: When final payment is paid but installation not complete
     if (finalPaid && project.status !== 'completed') {
       return { message: 'Final payment received', action: 'Engineer will complete the installation shortly' };
     }
-    
     if (initialPaid && !progressPaid && !finalPaid) {
       return { message: 'Installation starting soon', action: 'Engineer will be assigned shortly' };
     }
@@ -232,107 +224,41 @@ const MyProject = () => {
 
     if (isFullPayment) {
       return [
-        { key: 'quotation', title: 'Quotation', desc: 'Project quoted', completed: true, date: project.createdAt },
-        { key: 'payment', title: 'Full Payment', desc: 'Payment completed', completed: fullPaid, date: project.paymentSchedule?.find(p => p.type === 'full')?.paidAt },
-        { key: 'installation', title: 'Installation', desc: 'System installation', 
-          completed: ['full_paid', 'in_progress', 'completed'].includes(project.status), 
-          date: project.startDate },
-        { key: 'complete', title: 'Completion', desc: 'Project handover', 
-          completed: project.status === 'completed', 
-          date: project.actualCompletionDate }
+        { key: 'quotation', title: 'Quotation', completed: true, date: project.createdAt },
+        { key: 'payment', title: 'Full Payment', completed: fullPaid, date: project.paymentSchedule?.find(p => p.type === 'full')?.paidAt },
+        { key: 'installation', title: 'Installation', completed: ['full_paid', 'in_progress', 'completed'].includes(project.status), date: project.startDate },
+        { key: 'complete', title: 'Completion', completed: project.status === 'completed', date: project.actualCompletionDate }
       ];
     } else {
-      // ✅ FIXED: If final payment is paid, progress payment should be considered completed
       const isProgressCompleted = progressPaid || finalPaid;
       const isInitialCompleted = initialPaid || finalPaid;
       
       return [
-        { 
-          key: 'quotation', 
-          title: 'Quotation', 
-          desc: 'Project quoted', 
-          completed: true, 
-          date: project.createdAt 
-        },
-        { 
-          key: 'initial', 
-          title: 'Initial (30%)', 
-          desc: 'Down payment', 
-          completed: isInitialCompleted,
-          date: project.paymentSchedule?.find(p => p.type === 'initial')?.paidAt 
-        },
-        { 
-          key: 'installation', 
-          title: 'Installation', 
-          desc: 'System setup', 
-          completed: ['in_progress', 'progress_paid', 'full_paid', 'completed'].includes(project.status) || finalPaid,
-          date: project.startDate 
-        },
-        { 
-          key: 'progress', 
-          title: 'Progress (40%)', 
-          desc: 'Milestone payment', 
-          completed: isProgressCompleted,
-          date: project.paymentSchedule?.find(p => p.type === 'progress')?.paidAt 
-        },
-        { 
-          key: 'final', 
-          title: 'Final (30%)', 
-          desc: 'Completion payment', 
-          completed: finalPaid, 
-          date: project.paymentSchedule?.find(p => p.type === 'final')?.paidAt 
-        },
-        { 
-          key: 'complete', 
-          title: 'Handover', 
-          desc: 'System activated', 
-          completed: project.status === 'completed', 
-          date: project.actualCompletionDate 
-        }
+        { key: 'quotation', title: 'Quotation', completed: true, date: project.createdAt },
+        { key: 'initial', title: 'Initial (30%)', completed: isInitialCompleted, date: project.paymentSchedule?.find(p => p.type === 'initial')?.paidAt },
+        { key: 'installation', title: 'Installation', completed: ['in_progress', 'progress_paid', 'full_paid', 'completed'].includes(project.status) || finalPaid, date: project.startDate },
+        { key: 'progress', title: 'Progress (40%)', completed: isProgressCompleted, date: project.paymentSchedule?.find(p => p.type === 'progress')?.paidAt },
+        { key: 'final', title: 'Final (30%)', completed: finalPaid, date: project.paymentSchedule?.find(p => p.type === 'final')?.paidAt },
+        { key: 'complete', title: 'Handover', completed: project.status === 'completed', date: project.actualCompletionDate }
       ];
     }
   };
 
   const getEngineerName = (project) => {
-    if (project.engineerFullName) {
-      return project.engineerFullName;
-    }
-
+    if (project.engineerFullName) return project.engineerFullName;
     if (project.assignedEngineerId && typeof project.assignedEngineerId === 'object') {
       const engineer = project.assignedEngineerId;
-
-      if (engineer.fullName && engineer.fullName !== 'undefined undefined') {
-        return engineer.fullName;
-      }
-
-      if (engineer.firstName && engineer.lastName) {
-        return `${engineer.firstName} ${engineer.lastName}`.trim();
-      }
-
-      if (engineer.firstName) {
-        return engineer.firstName;
-      }
-
-      if (engineer.lastName) {
-        return engineer.lastName;
-      }
-
-      if (engineer.name) {
-        return engineer.name;
-      }
-
+      if (engineer.fullName && engineer.fullName !== 'undefined undefined') return engineer.fullName;
+      if (engineer.firstName && engineer.lastName) return `${engineer.firstName} ${engineer.lastName}`.trim();
+      if (engineer.firstName) return engineer.firstName;
+      if (engineer.lastName) return engineer.lastName;
+      if (engineer.name) return engineer.name;
       if (engineer.email) {
         const emailName = engineer.email.split('@')[0];
-        const formattedName = emailName
-          .split(/[._-]/)
-          .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-          .join(' ');
-        return formattedName;
+        return emailName.split(/[._-]/).map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()).join(' ');
       }
-
       return 'Engineer assigned';
     }
-
     return null;
   };
 
@@ -439,11 +365,13 @@ const MyProject = () => {
       </Helmet>
 
       <div className="cuspro-page">
+        {/* Header */}
         <div className="cuspro-header-card">
-          <h1>My Project</h1>
+          <h1><FaSun className="header-sun-icon" /> My Project</h1>
           <p>Track your solar installation progress</p>
         </div>
 
+        {/* Project Selector */}
         {projects.length > 1 && (
           <div className="cuspro-selector-card">
             <select
@@ -462,6 +390,7 @@ const MyProject = () => {
 
         {selectedProject && (
           <>
+            {/* Hero Card */}
             <div className="cuspro-hero-card">
               <div className="cuspro-hero-main">
                 <div>
@@ -482,8 +411,11 @@ const MyProject = () => {
               </div>
             </div>
 
+            {/* Two Column Layout */}
             <div className="cuspro-two-col">
+              {/* Left Column */}
               <div className="cuspro-left-col">
+                {/* Progress Card */}
                 <div className="cuspro-progress-card">
                   <h3>Project Progress</h3>
                   <div className="cuspro-progress-ring-wrapper">
@@ -496,7 +428,7 @@ const MyProject = () => {
                       <circle
                         className="cuspro-progress-fill"
                         cx="60" cy="60" r="52"
-                        fill="none" stroke="#2563EB" strokeWidth="6"
+                        fill="none" stroke="#F59E0B" strokeWidth="6"
                         strokeLinecap="round"
                         strokeDasharray={`${2 * Math.PI * 52}`}
                         strokeDashoffset={`${2 * Math.PI * 52 * (1 - animatedProgress / 100)}`}
@@ -517,7 +449,7 @@ const MyProject = () => {
                     </div>
                     <div className="cuspro-stat">
                       <span>Paid</span>
-                      <strong>{formatCurrency(selectedProject.amountPaid)}</strong>
+                      <strong className="solar-amount">{formatCurrency(selectedProject.amountPaid)}</strong>
                     </div>
                     <div className="cuspro-stat">
                       <span>Balance</span>
@@ -526,6 +458,7 @@ const MyProject = () => {
                   </div>
                 </div>
 
+                {/* Site Photos */}
                 {sitePhotos.length > 0 && (
                   <div className="cuspro-photos-card">
                     <h3><FaImages /> Site Photos ({sitePhotos.length})</h3>
@@ -549,6 +482,7 @@ const MyProject = () => {
                   </div>
                 )}
 
+                {/* Next Step */}
                 <div className="cuspro-next-card">
                   <h3>Next Step</h3>
                   <div className="cuspro-next-content">
@@ -569,7 +503,9 @@ const MyProject = () => {
                 </div>
               </div>
 
+              {/* Right Column */}
               <div className="cuspro-right-col">
+                {/* System Details */}
                 <div className="cuspro-details-card">
                   <h3>System Details</h3>
                   <div className="cuspro-details-grid">
@@ -580,6 +516,7 @@ const MyProject = () => {
                   </div>
                 </div>
 
+                {/* Address */}
                 <div className="cuspro-details-card">
                   <h3>Installation Address</h3>
                   <div className="cuspro-address">
@@ -590,6 +527,7 @@ const MyProject = () => {
                   </div>
                 </div>
 
+                {/* Engineer */}
                 <div className="cuspro-details-card">
                   <h3>Assigned Engineer</h3>
                   {getEngineerName(selectedProject) ? (
@@ -615,12 +553,14 @@ const MyProject = () => {
               </div>
             </div>
 
+            {/* Tabs */}
             <div className="cuspro-tab-nav">
               <button className={`cuspro-tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>Overview</button>
               <button className={`cuspro-tab ${activeTab === 'timeline' ? 'active' : ''}`} onClick={() => setActiveTab('timeline')}>Timeline</button>
               <button className={`cuspro-tab ${activeTab === 'payments' ? 'active' : ''}`} onClick={() => setActiveTab('payments')}>Payments</button>
             </div>
 
+            {/* Tab Content */}
             <div className="cuspro-tab-content">
               {activeTab === 'overview' && (
                 <div className="cuspro-overview">
@@ -628,7 +568,7 @@ const MyProject = () => {
                     <div className="cuspro-overview-card">
                       <h4>Installation Timeline</h4>
                       <div className="cuspro-timeline-mini">
-                        {getTimelineItems(selectedProject).slice(0, 4).map((item, idx) => (
+                        {getTimelineItems(selectedProject).slice(0, 4).map((item) => (
                           <div key={item.key} className={`cuspro-timeline-mini-item ${item.completed ? 'completed' : ''}`}>
                             <span className="cuspro-milestone-dot"></span>
                             <div><p>{item.title}</p><small>{item.completed ? formatDate(item.date) : 'Pending'}</small></div>
@@ -639,23 +579,16 @@ const MyProject = () => {
                     <div className="cuspro-overview-card">
                       <h4>Payment Summary</h4>
                       <div className="cuspro-payment-mini">
-                        {selectedProject.paymentSchedule?.map((payment, idx) => {
+                        {selectedProject.paymentSchedule?.map((payment) => {
                           const status = getPaymentStatus(selectedProject, payment.type);
                           return (
-                            <div key={idx} className="cuspro-payment-mini-item">
+                            <div key={payment.type} className="cuspro-payment-mini-item">
                               <div><span>{payment.type === 'initial' ? 'Initial (30%)' : payment.type === 'progress' ? 'Progress (40%)' : payment.type === 'final' ? 'Final (30%)' : 'Full (100%)'}</span><strong>{formatCurrency(payment.amount)}</strong></div>
                               <span className={`cuspro-payment-mini-status ${status.status}`}>{status.text}</span>
                             </div>
                           );
                         })}
                       </div>
-                    </div>
-                  </div>
-                  <div className="cuspro-contact-card">
-                    <h4>Need Help?</h4>
-                    <p>Contact our support team for assistance</p>
-                    <div className="cuspro-contact-actions">
-                      <a href="mailto:support@salferengineering.com"><FaEnvelope /> support@salferengineering.com</a>
                     </div>
                   </div>
                 </div>
@@ -666,7 +599,7 @@ const MyProject = () => {
                   {getTimelineItems(selectedProject).map((item, idx) => (
                     <div key={item.key} className={`cuspro-timeline-full-item ${item.completed ? 'completed' : ''}`}>
                       <div className="cuspro-timeline-marker">{item.completed ? <FaCheckCircle /> : <span>{idx + 1}</span>}</div>
-                      <div className="cuspro-timeline-info"><h4>{item.title}</h4><p>{item.desc}</p></div>
+                      <div className="cuspro-timeline-info"><h4>{item.title}</h4></div>
                       <div className="cuspro-timeline-date">{item.completed ? formatDate(item.date) : '—'}</div>
                     </div>
                   ))}
@@ -676,10 +609,10 @@ const MyProject = () => {
               {activeTab === 'payments' && (
                 <div className="cuspro-payments-full">
                   {selectedProject.paymentSchedule?.length > 0 ? (
-                    selectedProject.paymentSchedule.map((payment, idx) => {
+                    selectedProject.paymentSchedule.map((payment) => {
                       const status = getPaymentStatus(selectedProject, payment.type);
                       return (
-                        <div key={idx} className="cuspro-payment-full-item">
+                        <div key={payment.type} className="cuspro-payment-full-item">
                           <div className="cuspro-payment-full-header">
                             <div>
                               <h4>{payment.type === 'initial' ? 'Initial Deposit (30%)' : payment.type === 'progress' ? 'Progress Payment (40%)' : payment.type === 'final' ? 'Final Payment (30%)' : 'Full Payment (100%)'}</h4>
@@ -706,6 +639,7 @@ const MyProject = () => {
           </>
         )}
 
+        {/* Photo Modal */}
         {showPhotoModal && selectedPhoto && (
           <div className="cuspro-photo-modal-overlay" onClick={closePhotoModal}>
             <div className="cuspro-photo-modal-content" onClick={(e) => e.stopPropagation()}>

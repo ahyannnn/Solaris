@@ -10,17 +10,17 @@
   --bg-sidebar: #0F1A24;
   --bg-sidebar-hover: #1A2D3D;
   --bg-sidebar-active: #1A2D3D;
-  
+
   --text-primary: #0F172A;
   --text-secondary: #475569;
   --text-muted: #64748B;
   --text-inverse: #FFFFFF;
   --text-sidebar: #B8C5D6;
   --text-sidebar-hover: #FFFFFF;
-  
+
   --border-light: #E2E8F0;
   --border-medium: #CBD5E1;
-  
+
   /* Solar Theme Colors */
   --solar-orange: #F59E0B;
   --solar-orange-light: #FBBF24;
@@ -29,31 +29,31 @@
   --solar-green: #10B981;
   --solar-green-dark: #059669;
   --solar-gold: #F59E0B;
-  
+
   --primary: #F59E0B;
   --primary-hover: #D97706;
   --primary-light: #FEF3C7;
   --primary-glow: rgba(245, 158, 11, 0.15);
-  
+
   --success: #10B981;
   --success-light: #D1FAE5;
-  
+
   --warning: #F59E0B;
   --warning-light: #FEF3C7;
-  
+
   --danger: #EF4444;
   --danger-light: #FEE2E2;
-  
+
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 18px;
   --radius-full: 50%;
-  
+
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 10px 25px rgba(245, 158, 11, 0.08);
-  
+
   --transition-base: 200ms ease;
   --transition-slow: 300ms ease;
   --transition-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -70,8 +70,9 @@
 
 .dashboard-layout-dashboard {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   background: var(--bg-base);
+  overflow: hidden;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   animation: dashboardFadeIn 0.6s ease-out forwards;
@@ -82,6 +83,7 @@
     opacity: 0;
     transform: scale(0.98);
   }
+
   100% {
     opacity: 1;
     transform: scale(1);
@@ -113,8 +115,15 @@
 }
 
 @keyframes hamburgerPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
-  50% { box-shadow: 0 0 20px 5px rgba(245, 158, 11, 0.15); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 20px 5px rgba(245, 158, 11, 0.15);
+  }
 }
 
 .mobile-hamburger-btn:hover {
@@ -140,8 +149,13 @@
 }
 
 @keyframes overlayFadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 768px) {
@@ -151,7 +165,7 @@
 }
 
 /* ============================================
-   SIDEBAR - SOLAR THEME WITH ANIMATION
+   SIDEBAR - FIXED/STICKY VERSION
    ============================================ */
 .sidebar-layout-dashboard {
   width: 280px;
@@ -165,24 +179,34 @@
   z-index: 1000;
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   transform: translateX(0);
-  animation: sidebarSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  /* REMOVE THIS: overflow-y: auto; */
+  overflow: hidden;
+  /* ADD THIS - prevents sidebar from scrolling */
+  animation: sidebarFadeIn 0.5s ease-out forwards;
 }
 
-@keyframes sidebarSlideIn {
+@keyframes sidebarFadeIn {
   0% {
     opacity: 0;
-    transform: translateX(-30px);
   }
+
   100% {
     opacity: 1;
+  }
+}
+
+/* On mobile: hide sidebar by default */
+@media (max-width: 768px) {
+  .sidebar-layout-dashboard {
+    transform: translateX(-100%);
+  }
+
+  .sidebar-layout-dashboard.open-layout-dashboard {
     transform: translateX(0);
   }
 }
 
-.sidebar-layout-dashboard:not(.open-layout-dashboard) {
-  transform: translateX(-100%);
-}
-
+/* On desktop: always show */
 @media (min-width: 769px) {
   .sidebar-layout-dashboard {
     transform: translateX(0) !important;
@@ -247,8 +271,15 @@
 }
 
 @keyframes logoBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 .sidebar-logo-img-layout-dashboard {
@@ -276,16 +307,24 @@
 }
 
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes sunGlow {
-  0%, 100% { 
+
+  0%,
+  100% {
     filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.3));
     transform: scale(1);
   }
-  50% { 
+
+  50% {
     filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.6));
     transform: scale(1.1);
   }
@@ -297,7 +336,8 @@
 .sidebar-nav-layout-dashboard {
   flex: 1;
   padding: 1.5rem 0.75rem 1rem 0.75rem;
-  overflow-y: auto;
+  overflow-y: hidden;
+  /* MOVE the scroll here */
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -320,28 +360,62 @@
   text-align: left;
   position: relative;
   flex-shrink: 0;
+  /* Keep this to prevent shrinking */
   opacity: 0;
   animation: navItemSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 /* Staggered delays for nav items */
-.nav-item-layout-dashboard:nth-child(1) { animation-delay: 0.05s; }
-.nav-item-layout-dashboard:nth-child(2) { animation-delay: 0.1s; }
-.nav-item-layout-dashboard:nth-child(3) { animation-delay: 0.15s; }
-.nav-item-layout-dashboard:nth-child(4) { animation-delay: 0.2s; }
-.nav-item-layout-dashboard:nth-child(5) { animation-delay: 0.25s; }
-.nav-item-layout-dashboard:nth-child(6) { animation-delay: 0.3s; }
-.nav-item-layout-dashboard:nth-child(7) { animation-delay: 0.35s; }
-.nav-item-layout-dashboard:nth-child(8) { animation-delay: 0.4s; }
-.nav-item-layout-dashboard:nth-child(9) { animation-delay: 0.45s; }
-.nav-item-layout-dashboard:nth-child(10) { animation-delay: 0.5s; }
-.nav-item-layout-dashboard:nth-child(11) { animation-delay: 0.55s; }
+.nav-item-layout-dashboard:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.nav-item-layout-dashboard:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.nav-item-layout-dashboard:nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.nav-item-layout-dashboard:nth-child(4) {
+  animation-delay: 0.2s;
+}
+
+.nav-item-layout-dashboard:nth-child(5) {
+  animation-delay: 0.25s;
+}
+
+.nav-item-layout-dashboard:nth-child(6) {
+  animation-delay: 0.3s;
+}
+
+.nav-item-layout-dashboard:nth-child(7) {
+  animation-delay: 0.35s;
+}
+
+.nav-item-layout-dashboard:nth-child(8) {
+  animation-delay: 0.4s;
+}
+
+.nav-item-layout-dashboard:nth-child(9) {
+  animation-delay: 0.45s;
+}
+
+.nav-item-layout-dashboard:nth-child(10) {
+  animation-delay: 0.5s;
+}
+
+.nav-item-layout-dashboard:nth-child(11) {
+  animation-delay: 0.55s;
+}
 
 @keyframes navItemSlideIn {
   0% {
     opacity: 0;
     transform: translateX(-15px) scale(0.95);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0) scale(1);
@@ -391,8 +465,15 @@
 }
 
 @keyframes notificationBounce {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
 }
 
 /* ============================================
@@ -443,6 +524,7 @@
     opacity: 0;
     transform: translateY(-10px) scale(0.95);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -475,12 +557,12 @@
 .main-content-layout-dashboard {
   flex: 1;
   margin-left: 280px;
-  transition: margin-left 0.3s ease;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg-base);
-  animation: contentFadeIn 0.6s ease-out 0.2s both;
+  overflow: hidden;
+  height: 100vh;
+  overflow: hidden;
 }
 
 @keyframes contentFadeIn {
@@ -488,6 +570,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -521,6 +604,7 @@
     opacity: 0;
     transform: translateY(-20px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -581,8 +665,15 @@
 }
 
 @keyframes badgePulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.85; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.85;
+  }
 }
 
 .role-badge-admin {
@@ -634,6 +725,7 @@
     opacity: 0;
     transform: scale(0.9) translateX(20px);
   }
+
   100% {
     opacity: 1;
     transform: scale(1) translateX(0);
@@ -668,6 +760,7 @@
   .header-search-input {
     width: 100%;
   }
+
   .header-search-input:focus {
     width: 100%;
   }
@@ -691,11 +784,14 @@
 }
 
 @keyframes searchBtnPulse {
-  0%, 100% { 
+
+  0%,
+  100% {
     background: var(--solar-orange);
     box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
   }
-  50% { 
+
+  50% {
     background: var(--solar-orange-dark);
     box-shadow: 0 0 20px 5px rgba(245, 158, 11, 0.15);
   }
@@ -727,6 +823,7 @@
     opacity: 0;
     transform: translateX(20px) scale(0.95);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0) scale(1);
@@ -764,6 +861,7 @@
     opacity: 0;
     transform: scale(0.9) translateX(20px);
   }
+
   100% {
     opacity: 1;
     transform: scale(1) translateX(0);
@@ -797,10 +895,13 @@
 }
 
 @keyframes profileImagePulse {
-  0%, 100% { 
+
+  0%,
+  100% {
     border-color: var(--border-light);
   }
-  50% { 
+
+  50% {
     border-color: var(--solar-orange);
     box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
   }
@@ -817,11 +918,11 @@
   .profile-btn-layout-dashboard {
     padding: 0.3rem 0.6rem 0.3rem 0.3rem;
   }
-  
+
   .profile-name-layout-dashboard {
     display: none;
   }
-  
+
   .profile-image-layout-dashboard {
     width: 30px;
     height: 30px;
@@ -844,6 +945,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -877,6 +979,7 @@
     opacity: 0;
     transform: scale(0.8);
   }
+
   100% {
     opacity: 1;
     transform: scale(1);
@@ -893,8 +996,15 @@
 }
 
 @keyframes pulse-warning {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
 }
 
 /* ============================================
@@ -915,19 +1025,19 @@
   .header-left-layout-dashboard {
     gap: 0.5rem;
   }
-  
+
   .header-right-layout-dashboard {
     gap: 0.5rem;
   }
-  
+
   .header-search-wrapper {
     flex: 1;
   }
-  
+
   .header-search-input {
     width: 100%;
   }
-  
+
   .header-search-input:focus {
     width: 100%;
   }
@@ -942,7 +1052,7 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  
+
   .logo-sun-icon {
     animation: none !important;
   }

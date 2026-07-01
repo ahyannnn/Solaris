@@ -1,327 +1,338 @@
-/* styles/Customer/dashboard.css */
+/* styles/Customer/dashboard.css - Complete Updated */
 
 /* ============================================
-   DASHBOARD - SOLAR THEME with Animations
+   CUSTOMER DASHBOARD - Modern Clean Design
    ============================================ */
 
-:root {
-  /* Solar Theme Colors */
-  --solar-orange: #F59E0B;
-  --solar-orange-hover: #D97706;
-  --solar-orange-light: #FEF3C7;
-  --solar-orange-glow: rgba(245, 158, 11, 0.15);
-  --solar-gold: #FBBF24;
-  --solar-yellow: #FCD34D;
-  --solar-green: #10B981;
-  --solar-green-light: #D1FAE5;
-  
-  --success: #10B981;
-  --success-light: #D1FAE5;
-  --warning: #F59E0B;
-  --danger: #EF4444;
-  
-  --bg-base: #FFFFFF;
-  --bg-card: #FFFFFF;
-  --bg-surface: #F8FAFC;
-  
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #64748B;
-  
-  --border-light: #E2E8F0;
-  --border-medium: #CBD5E1;
-  
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.04);
-  --shadow-lg: 0 10px 25px rgba(245, 158, 11, 0.08);
-  --shadow-glow: 0 0 30px rgba(245, 158, 11, 0.1);
-  
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
-  --radius-2xl: 24px;
-  
-  --transition-base: 200ms ease;
-  --transition-slow: 300ms ease;
-  --transition-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* ============================================
-   BASE CONTAINER
-   ============================================ */
 .dashboard-container-cusdash {
+  padding-inline: 24px;
   margin: 0 auto;
-  padding: 24px;
-  animation: containerFadeIn 0.6s ease-out forwards;
-}
-
-@keyframes containerFadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* ============================================
-   WELCOME SECTION - SOLAR THEME
+   WELCOME SECTION
    ============================================ */
 .welcome-section-cusdash {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
+  justify-content: space-between;
+  padding: 1.5rem 0 1.5rem 0;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 1.5rem;
   flex-wrap: wrap;
-  gap: 20px;
-  animation: welcomeSlideIn 0.5s var(--transition-bounce) both;
-}
-
-@keyframes welcomeSlideIn {
-  0% {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  gap: 1rem;
 }
 
 .welcome-content-cusdash {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .page-title-cusdash {
-  font-size: 28px;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 4px 0;
-  letter-spacing: -0.02em;
-  background: linear-gradient(135deg, var(--text-primary) 0%, var(--solar-orange) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  margin: 0;
+  letter-spacing: -0.3px;
 }
 
 .welcome-greeting-cusdash {
-  font-size: 15px;
+  font-size: 1rem;
   color: var(--text-secondary);
   margin: 0;
 }
 
-.welcome-greeting-cusdash strong {
-  color: var(--solar-orange);
-}
-
 .welcome-actions-cusdash {
   display: flex;
-  gap: 12px;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-/* ============================================
-   BUTTONS - SOLAR THEME
-   ============================================ */
 .btn-primary-cusdash {
-  padding: 10px 24px;
-  background: linear-gradient(135deg, var(--solar-orange) 0%, var(--solar-orange-hover) 100%);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all var(--transition-base);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: var(--sidebar-accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .btn-primary-cusdash:hover {
+  background: var(--sidebar-accent-hover);
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+  color: #fff;
 }
 
 .btn-secondary-cusdash {
-  padding: 10px 24px;
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all var(--transition-base);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: transparent;
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .btn-secondary-cusdash:hover {
-  border-color: var(--solar-orange);
+  background: var(--bg-surface);
+  border-color: var(--text-secondary);
   transform: translateY(-2px);
+}
+
+/* ============================================
+   PENDING PAYMENTS ALERT
+   ============================================ */
+.pending-payments-alert-cusdash {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: var(--radius-lg);
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.alert-icon-cusdash {
+  color: #DC2626;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.alert-content-cusdash {
+  flex: 1;
+}
+
+.alert-content-cusdash strong {
+  display: block;
+  font-size: 0.95rem;
+  color: #991B1B;
+  margin-bottom: 0.1rem;
+}
+
+.alert-content-cusdash p {
+  font-size: 0.85rem;
+  color: #7F1D1D;
+  margin: 0;
+}
+
+.alert-action-cusdash {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  background: #DC2626;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+}
+
+.alert-action-cusdash:hover {
+  background: #B91C1C;
+  transform: translateY(-2px);
+  color: #fff;
+}
+
+/* ============================================
+   QUICK ACTIONS
+   ============================================ */
+.quick-actions-cusdash {
+  margin-bottom: 1.5rem;
+}
+
+.quick-actions-title-cusdash {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 0.75rem 0;
+}
+
+.action-grid-cusdash {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.quick-action-item-cusdash {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.quick-action-item-cusdash:hover {
+  transform: translateY(-4px);
   box-shadow: var(--shadow-md);
+  border-color: var(--sidebar-accent);
+}
+
+.quick-action-icon-cusdash {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.quick-action-label-cusdash {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.quick-action-arrow-cusdash {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  transition: transform var(--transition-base);
+}
+
+.quick-action-item-cusdash:hover .quick-action-arrow-cusdash {
+  transform: translateX(4px);
+  color: var(--sidebar-accent);
 }
 
 /* ============================================
    PROJECT SELECTOR
    ============================================ */
 .project-selector-container-cusdash {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  padding: 20px 24px;
-  margin-bottom: 28px;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-light);
-  animation: selectorSlideIn 0.5s var(--transition-bounce) 0.1s both;
-}
-
-@keyframes selectorSlideIn {
-  0% {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .selector-label-cusdash {
-  display: block;
-  font-size: 12px;
+  font-size: 0.85rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
-  margin-bottom: 8px;
+  color: var(--text-secondary);
+  letter-spacing: 0.3px;
 }
 
 .custom-select-cusdash {
   position: relative;
-  max-width: 320px;
+  flex: 1;
+  max-width: 400px;
+  min-width: 200px;
 }
 
 .project-select-cusdash {
   width: 100%;
-  padding: 12px 40px 12px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
+  padding: 0.6rem 2.5rem 0.6rem 1rem;
+  background: var(--bg-elevated);
+  border: 1.5px solid var(--border-light);
   border-radius: var(--radius-md);
-  font-size: 14px;
+  font-size: 0.9rem;
   color: var(--text-primary);
-  cursor: pointer;
   appearance: none;
+  cursor: pointer;
   transition: all var(--transition-base);
+  font-weight: 500;
+}
+
+.project-select-cusdash:hover {
+  border-color: var(--border-medium);
 }
 
 .project-select-cusdash:focus {
   outline: none;
-  border-color: var(--solar-orange);
-  box-shadow: 0 0 0 3px var(--solar-orange-glow);
+  border-color: var(--sidebar-accent);
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 
 .select-icon-cusdash {
   position: absolute;
-  right: 16px;
+  right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  pointer-events: none;
   color: var(--text-muted);
+  pointer-events: none;
 }
 
 /* ============================================
-   STATS GRID - SOLAR THEME
+   STATS GRID
    ============================================ */
 .stats-grid-cusdash {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 32px;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .stat-card-cusdash {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  padding: 20px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--border-light);
   transition: all var(--transition-base);
   box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-light);
-  animation: statCardFadeIn 0.5s ease-out both;
-  position: relative;
-  overflow: hidden;
-}
-
-.stat-card-cusdash::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--solar-orange), var(--solar-gold));
-  opacity: 0;
-  transition: opacity var(--transition-base);
-}
-
-.stat-card-cusdash:hover::before {
-  opacity: 1;
-}
-
-.stat-card-cusdash:nth-child(1) { animation-delay: 0.05s; }
-.stat-card-cusdash:nth-child(2) { animation-delay: 0.1s; }
-.stat-card-cusdash:nth-child(3) { animation-delay: 0.15s; }
-.stat-card-cusdash:nth-child(4) { animation-delay: 0.2s; }
-
-@keyframes statCardFadeIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.95) translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
 }
 
 .stat-card-cusdash:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--solar-orange-light);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--sidebar-accent);
 }
 
 .stat-content-cusdash {
   display: flex;
   flex-direction: column;
+  gap: 0.25rem;
 }
 
 .stat-label-cusdash {
-  font-size: 13px;
+  font-size: 0.8rem;
   font-weight: 500;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .stat-value-cusdash {
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 8px;
   line-height: 1.2;
 }
 
-.stat-value-cusdash.solar-value {
-  color: var(--solar-orange);
-}
-
 .stat-trend-cusdash {
-  font-size: 12px;
-  color: var(--text-muted);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 
 /* ============================================
@@ -330,53 +341,47 @@
 .row-layout-cusdash {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 32px;
+  gap: 1.5rem;
+  align-items: start;
 }
 
 /* ============================================
-   SECTION HEADER
+   PROJECT SECTION
    ============================================ */
+.project-section-cusdash {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .section-header-cusdash {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  justify-content: space-between;
+  padding: 0 0.25rem;
 }
 
 .section-title-cusdash {
-  font-size: 18px;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
-  position: relative;
-}
-
-.section-title-cusdash::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 30px;
-  height: 2px;
-  background: var(--solar-orange);
-  border-radius: 2px;
 }
 
 .view-all-link-cusdash {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--solar-orange);
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--sidebar-accent);
   text-decoration: none;
+  font-weight: 500;
   transition: all var(--transition-base);
 }
 
 .view-all-link-cusdash:hover {
-  gap: 10px;
-  color: var(--solar-orange-hover);
+  color: var(--sidebar-accent-hover);
+  gap: 0.6rem;
 }
 
 .arrow-icon-cusdash {
@@ -384,75 +389,118 @@
 }
 
 .view-all-link-cusdash:hover .arrow-icon-cusdash {
-  transform: translateX(3px);
+  transform: translateX(4px);
 }
 
-/* ============================================
-   PROJECT CARD - SOLAR THEME
-   ============================================ */
+/* Project Card */
 .project-card-enhanced-cusdash {
-  background: var(--bg-card);
-  border-radius: var(--radius-2xl);
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
   border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
   transition: all var(--transition-base);
-  animation: projectCardFadeIn 0.5s ease-out 0.15s both;
-}
-
-@keyframes projectCardFadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .project-card-enhanced-cusdash:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-  border-color: var(--solar-orange-light);
+  box-shadow: var(--shadow-md);
 }
 
 .project-header-cusdash {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  gap: 1rem;
 }
 
 .project-info-cusdash {
   flex: 1;
+  min-width: 0;
 }
 
 .project-name-cusdash {
-  font-size: 18px;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 4px 0;
+  margin: 0 0 0.25rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .project-system-cusdash {
-  font-size: 13px;
+  font-size: 0.85rem;
   color: var(--text-secondary);
   margin: 0;
 }
 
-.project-content-layout-cusdash {
-  display: flex;
-  gap: 24px;
-  align-items: center;
-  flex-wrap: wrap;
+/* Status Badges */
+.status-badge-cusdash {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-/* ============================================
-   PROGRESS RING - SOLAR THEME
-   ============================================ */
+.status-pending-cusdash {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.status-paid-cusdash {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.status-verification-cusdash {
+  background: #E0E7FF;
+  color: #3730A3;
+}
+
+.status-processing-cusdash {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.status-quoted-cusdash {
+  background: #DBEAFE;
+  color: #1E40AF;
+}
+
+.status-approved-cusdash {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.status-progress-cusdash {
+  background: #E0E7FF;
+  color: #3730A3;
+}
+
+.status-completed-cusdash {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.status-scheduled-cusdash {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+/* Project Content */
+.project-content-layout-cusdash {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+/* Progress Ring */
 .progress-ring-wrapper-cusdash {
   position: relative;
   width: 120px;
@@ -461,18 +509,18 @@
 }
 
 .progress-ring-cusdash {
-  width: 100%;
-  height: 100%;
+  width: 120px;
+  height: 120px;
   transform: rotate(-90deg);
 }
 
 .progress-ring-bg-cusdash {
-  stroke: var(--border-light);
+  stroke: var(--bg-surface);
 }
 
 .progress-ring-fill-cusdash {
-  stroke: url(#solarGradient);
-  transition: stroke-dashoffset 0.8s ease;
+  stroke: var(--sidebar-accent);
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .progress-ring-content-cusdash {
@@ -485,69 +533,69 @@
 
 .progress-ring-value-cusdash {
   display: block;
-  font-size: 20px;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--solar-orange);
+  color: var(--text-primary);
+  line-height: 1.2;
 }
 
 .progress-ring-label-cusdash {
   display: block;
-  font-size: 10px;
+  font-size: 0.7rem;
   color: var(--text-muted);
-  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
-/* ============================================
-   PROJECT DETAILS
-   ============================================ */
+/* Project Details */
 .project-details-cusdash {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .project-metric-cusdash {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  padding: 8px 0;
+  align-items: center;
+  padding: 0.25rem 0;
   border-bottom: 1px solid var(--border-light);
 }
 
+.project-metric-cusdash:last-of-type {
+  border-bottom: none;
+}
+
 .metric-label-cusdash {
-  font-size: 13px;
+  font-size: 0.85rem;
   color: var(--text-secondary);
 }
 
 .metric-value-cusdash {
-  font-size: 16px;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.metric-value-cusdash.solar-value {
-  color: var(--solar-orange);
-}
-
 .project-actions-cusdash {
-  margin-top: 8px;
+  margin-top: 0.25rem;
 }
 
 .action-link-cusdash {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--solar-orange);
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--sidebar-accent);
   text-decoration: none;
+  font-weight: 500;
   transition: all var(--transition-base);
 }
 
 .action-link-cusdash:hover {
-  gap: 10px;
-  color: var(--solar-orange-hover);
+  color: var(--sidebar-accent-hover);
+  gap: 0.7rem;
 }
 
 .action-arrow-cusdash {
@@ -555,83 +603,147 @@
 }
 
 .action-link-cusdash:hover .action-arrow-cusdash {
-  transform: translateX(3px);
+  transform: translateX(4px);
 }
 
 /* ============================================
-   ACTIVITIES CARD
+   MILESTONES
    ============================================ */
-.activities-card-cusdash {
-  background: var(--bg-card);
-  border-radius: var(--radius-2xl);
-  padding: 20px;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-light);
-  height: 100%;
-  animation: activityCardFadeIn 0.5s ease-out 0.2s both;
+.milestones-section-cusdash {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-light);
 }
 
-@keyframes activityCardFadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.milestones-title-cusdash {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.milestones-list-cusdash {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+}
+
+.milestone-item-cusdash {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  position: relative;
+}
+
+.milestone-item-cusdash .milestone-icon-cusdash {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  transition: all var(--transition-base);
+}
+
+.milestone-item-cusdash.completed-cusdash .milestone-icon-cusdash {
+  color: #10B981;
+}
+
+.milestone-item-cusdash.active-cusdash .milestone-icon-cusdash {
+  color: var(--sidebar-accent);
+}
+
+.milestone-info-cusdash {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.milestone-label-cusdash {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.milestone-item-cusdash.completed-cusdash .milestone-label-cusdash {
+  color: #10B981;
+}
+
+.milestone-item-cusdash.active-cusdash .milestone-label-cusdash {
+  color: var(--sidebar-accent);
+  font-weight: 600;
+}
+
+.milestone-status-cusdash {
+  font-size: 0.6rem;
+  color: var(--sidebar-accent);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.milestone-line-cusdash {
+  position: absolute;
+  top: 0.6rem;
+  left: calc(50% + 0.6rem);
+  width: calc(100% - 1.2rem);
+  height: 2px;
+  background: var(--border-light);
+  pointer-events: none;
+}
+
+.milestone-item-cusdash.completed-cusdash .milestone-line-cusdash {
+  background: #10B981;
+}
+
+/* ============================================
+   ACTIVITIES SECTION
+   ============================================ */
+.activities-section-cusdash {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.activities-card-cusdash {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  min-height: 200px;
 }
 
 .activities-list-cusdash {
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
 }
 
 .activity-item-cusdash {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 0;
-  position: relative;
-  animation: activityItemFadeIn 0.4s ease-out both;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
 }
 
-.activity-item-cusdash:nth-child(1) { animation-delay: 0.1s; }
-.activity-item-cusdash:nth-child(2) { animation-delay: 0.2s; }
-.activity-item-cusdash:nth-child(3) { animation-delay: 0.3s; }
-
-@keyframes activityItemFadeIn {
-  0% {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.activity-item-cusdash:hover {
+  background: var(--bg-surface);
 }
 
-.activity-marker-cusdash {
-  width: 8px;
-  height: 8px;
-  background: var(--solar-orange);
-  border-radius: 50%;
-  margin-top: 6px;
+.activity-icon-wrapper-cusdash {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
   flex-shrink: 0;
-  animation: markerPulse 2s ease-in-out infinite;
-}
-
-@keyframes markerPulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
-  }
-  50% {
-    transform: scale(1.5);
-    opacity: 0.6;
-    box-shadow: 0 0 20px 5px rgba(245, 158, 11, 0.15);
-  }
 }
 
 .activity-content-cusdash {
@@ -641,27 +753,28 @@
 
 .activity-header-cusdash {
   display: flex;
+  align-items: center;
+  gap: 0.5rem;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 4px;
 }
 
 .activity-title-cusdash {
-  font-size: 14px;
+  font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-primary);
 }
 
 .activity-reference-cusdash {
-  font-size: 12px;
-  font-family: monospace;
+  font-size: 0.75rem;
   color: var(--text-muted);
+  font-weight: 400;
 }
 
 .activity-date-cusdash {
-  display: block;
-  font-size: 11px;
+  font-size: 0.75rem;
   color: var(--text-muted);
+  display: block;
+  margin-top: 0.1rem;
 }
 
 .activity-status-cusdash {
@@ -671,214 +784,378 @@
 .activity-divider-cusdash {
   height: 1px;
   background: var(--border-light);
-  margin: 0 0 0 20px;
+  margin: 0.25rem 0.75rem;
 }
 
 /* ============================================
-   STATUS BADGES - SOLAR THEME
+   APPOINTMENTS SECTION
    ============================================ */
-.status-badge-cusdash {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 11px;
+.appointments-section-cusdash {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.appointments-title-cusdash {
+  font-size: 0.95rem;
   font-weight: 600;
-  white-space: nowrap;
+  color: var(--text-primary);
+  margin: 0 0 0.75rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.status-pending-cusdash {
-  background: #F1F5F9;
-  color: #64748B;
+.appointments-icon-cusdash {
+  color: var(--sidebar-accent);
 }
 
-.status-paid-cusdash {
-  background: var(--solar-green-light);
-  color: var(--solar-green);
+.appointments-list-cusdash {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.status-verification-cusdash {
-  background: var(--solar-orange-light);
-  color: var(--solar-orange);
+.appointment-item-cusdash {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  transition: all var(--transition-base);
 }
 
-.status-processing-cusdash {
-  background: var(--solar-orange-light);
-  color: var(--solar-orange);
+.appointment-item-cusdash:hover {
+  background: var(--bg-highlight);
 }
 
-.status-quoted-cusdash {
-  background: var(--solar-orange-light);
-  color: var(--solar-orange);
+.appointment-date-cusdash {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  min-width: 48px;
 }
 
-.status-approved-cusdash {
-  background: var(--solar-green-light);
-  color: var(--solar-green);
+.appointment-day-cusdash {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
 }
 
-.status-progress-cusdash {
-  background: var(--solar-orange-light);
-  color: var(--solar-orange);
+.appointment-month-cusdash {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
 }
 
-.status-completed-cusdash {
-  background: var(--solar-green-light);
-  color: var(--solar-green);
+.appointment-info-cusdash {
+  flex: 1;
+  min-width: 0;
+}
+
+.appointment-type-cusdash {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.appointment-address-cusdash {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+
+.appointment-location-icon-cusdash {
+  font-size: 0.7rem;
+}
+
+.appointment-status-cusdash {
+  flex-shrink: 0;
 }
 
 /* ============================================
    EMPTY STATES
    ============================================ */
 .empty-state-cusdash {
-  background: var(--bg-card);
-  border-radius: var(--radius-2xl);
-  padding: 48px 24px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 2rem;
   text-align: center;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-light);
+  border: 2px dashed var(--border-light);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .empty-state-content-cusdash {
-  max-width: 300px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .empty-state-title-cusdash {
-  font-size: 18px;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 8px 0;
+  margin: 0;
 }
 
 .empty-state-description-cusdash {
-  font-size: 14px;
+  font-size: 0.9rem;
   color: var(--text-secondary);
-  margin: 0 0 20px 0;
+  margin: 0;
 }
 
 .empty-small-cusdash {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
   text-align: center;
-  padding: 32px 16px;
+  gap: 0.75rem;
 }
 
 .empty-text-cusdash {
-  font-size: 14px;
+  font-size: 0.9rem;
   color: var(--text-secondary);
-  margin: 0 0 12px 0;
+  margin: 0;
 }
 
 .link-cusdash {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--solar-orange);
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--sidebar-accent);
   text-decoration: none;
+  font-weight: 500;
   transition: all var(--transition-base);
 }
 
 .link-cusdash:hover {
-  gap: 10px;
-  color: var(--solar-orange-hover);
+  color: var(--sidebar-accent-hover);
+  gap: 0.7rem;
 }
 
 /* ============================================
-   SKELETON LOADER
+   SKELETON LOADING
    ============================================ */
 .skeleton-line-cusdash {
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  animation: shimmer 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-highlight) 50%, var(--bg-surface) 75%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 6px;
-}
-
-.skeleton-title-cusdash { height: 32px; width: 200px; margin-bottom: 8px; }
-.skeleton-text-cusdash { height: 16px; width: 250px; }
-.skeleton-button-cusdash { height: 40px; width: 120px; border-radius: var(--radius-md); }
-.skeleton-label-cusdash { height: 14px; width: 80px; margin-bottom: 8px; }
-.skeleton-value-cusdash { height: 36px; width: 60px; margin-bottom: 8px; }
-.skeleton-trend-cusdash { height: 12px; width: 100px; }
-.skeleton-project-name-cusdash { height: 22px; width: 180px; margin-bottom: 6px; }
-.skeleton-project-system-cusdash { height: 14px; width: 150px; }
-.skeleton-progress-ring-cusdash { width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
-.skeleton-activity-title-cusdash { height: 16px; width: 120px; margin-bottom: 4px; }
-.skeleton-activity-ref-cusdash { height: 12px; width: 100px; margin-bottom: 4px; }
-.skeleton-activity-date-cusdash { height: 11px; width: 80px; }
-
-.skeleton-card-cusdash {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  padding: 20px;
-  box-shadow: var(--shadow-sm);
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-title-cusdash {
+  width: 60%;
+  height: 28px;
+}
+
+.skeleton-text-cusdash {
+  width: 40%;
+  height: 18px;
+}
+
+.skeleton-button-cusdash {
+  width: 120px;
+  height: 40px;
+  border-radius: var(--radius-md);
+}
+
+.skeleton-card-cusdash {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  padding: 1.25rem;
+}
+
+.skeleton-label-cusdash {
+  width: 40%;
+  height: 14px;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-value-cusdash {
+  width: 60%;
+  height: 32px;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-trend-cusdash {
+  width: 50%;
+  height: 14px;
+}
+
+.skeleton-project-name-cusdash {
+  width: 70%;
+  height: 24px;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-project-system-cusdash {
+  width: 50%;
+  height: 18px;
+}
+
+.skeleton-progress-ring-cusdash {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin: 0 auto;
+}
+
+.skeleton-activity-title-cusdash {
+  width: 60%;
+  height: 18px;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-activity-ref-cusdash {
+  width: 40%;
+  height: 14px;
+  margin-bottom: 0.25rem;
+}
+
+.skeleton-activity-date-cusdash {
+  width: 30%;
+  height: 14px;
 }
 
 /* ============================================
-   RESPONSIVE
+   RESPONSIVE DESIGN
    ============================================ */
 @media (max-width: 1024px) {
+  .row-layout-cusdash {
+    grid-template-columns: 1fr;
+  }
+  
   .stats-grid-cusdash {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .action-grid-cusdash {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 768px) {
-  .dashboard-container-cusdash {
-    padding: 16px;
-  }
-  
   .welcome-section-cusdash {
     flex-direction: column;
     align-items: flex-start;
+    gap: 0.75rem;
   }
   
   .welcome-actions-cusdash {
     width: 100%;
   }
   
-  .btn-primary-cusdash,
-  .btn-secondary-cusdash {
+  .welcome-actions-cusdash .btn-primary-cusdash,
+  .welcome-actions-cusdash .btn-secondary-cusdash {
     flex: 1;
-    text-align: center;
     justify-content: center;
   }
   
-  .row-layout-cusdash {
-    grid-template-columns: 1fr;
-    gap: 20px;
+  .project-selector-container-cusdash {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .custom-select-cusdash {
+    max-width: none;
   }
   
   .stats-grid-cusdash {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 0.75rem;
+  }
+  
+  .stat-card-cusdash {
+    padding: 1rem;
+  }
+  
+  .stat-value-cusdash {
+    font-size: 1.5rem;
+  }
+  
+  .action-grid-cusdash {
+    grid-template-columns: 1fr;
   }
   
   .project-content-layout-cusdash {
     flex-direction: column;
-    text-align: center;
+    align-items: center;
+    gap: 1rem;
   }
   
   .project-details-cusdash {
     width: 100%;
   }
   
-  .project-metric-cusdash {
+  .project-header-cusdash {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .activities-card-cusdash {
+    padding: 1rem;
+  }
+  
+  .activity-item-cusdash {
+    flex-wrap: wrap;
+    padding: 0.5rem;
+  }
+  
+  .activity-status-cusdash {
+    margin-left: auto;
+  }
+  
+  .appointment-item-cusdash {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  
+  .milestones-list-cusdash {
+    gap: 0.5rem;
+  }
+  
+  .milestone-label-cusdash {
+    font-size: 0.6rem;
+  }
+  
+  .pending-payments-alert-cusdash {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .alert-action-cusdash {
+    width: 100%;
     justify-content: center;
-    gap: 20px;
-  }
-  
-  .custom-select-cusdash {
-    max-width: 100%;
-  }
-  
-  .section-title-cusdash::after {
-    left: 50%;
-    transform: translateX(-50%);
   }
 }
 
@@ -887,34 +1164,198 @@
     grid-template-columns: 1fr;
   }
   
-  .stat-value-cusdash {
-    font-size: 28px;
-  }
-  
-  .activity-header-cusdash {
+  .welcome-actions-cusdash {
     flex-direction: column;
-    gap: 4px;
   }
   
-  .activity-status-cusdash {
-    align-self: flex-start;
+  .welcome-actions-cusdash .btn-primary-cusdash,
+  .welcome-actions-cusdash .btn-secondary-cusdash {
+    width: 100%;
+  }
+  
+  .progress-ring-wrapper-cusdash {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .progress-ring-cusdash {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .progress-ring-value-cusdash {
+    font-size: 1.2rem;
+  }
+  
+  .page-title-cusdash {
+    font-size: 1.2rem;
+  }
+  
+  .quick-action-item-cusdash {
+    padding: 0.6rem 0.75rem;
+  }
+  
+  .quick-action-icon-cusdash {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+  
+  .quick-action-label-cusdash {
+    font-size: 0.8rem;
   }
 }
 
 /* ============================================
-   REDUCED MOTION
+   MILESTONES - Fixed Colors
    ============================================ */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+.milestones-section-cusdash {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-light);
 }
 
-/* ============================================
-   SOLAR GRADIENT - For SVG Progress Ring
-   ============================================ */
-.solar-gradient-defs {
-  display: none;
+.milestones-title-cusdash {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.milestones-list-cusdash {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  gap: 0.5rem;
+}
+
+.milestone-item-cusdash {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  position: relative;
+}
+
+/* Default state - not completed, not active */
+.milestone-item-cusdash .milestone-icon-cusdash {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  transition: all var(--transition-base);
+}
+
+.milestone-circle-cusdash {
+  color: var(--text-muted);
+}
+
+/* Completed state - GREEN CHECK */
+.milestone-item-cusdash.completed-cusdash .milestone-icon-cusdash {
+  color: #10B981 !important;
+}
+
+.milestone-item-cusdash.completed-cusdash .milestone-check-cusdash {
+  color: #10B981 !important;
+}
+
+/* Active state - ORANGE (current) */
+.milestone-item-cusdash.active-cusdash .milestone-icon-cusdash {
+  color: var(--sidebar-accent) !important;
+}
+
+.milestone-item-cusdash.active-cusdash .milestone-circle-cusdash {
+  color: var(--sidebar-accent) !important;
+}
+
+/* Active but also completed? Should never happen, but just in case */
+.milestone-item-cusdash.completed-cusdash.active-cusdash .milestone-icon-cusdash {
+  color: #10B981 !important;
+}
+
+.milestone-item-cusdash.completed-cusdash.active-cusdash .milestone-check-cusdash {
+  color: #10B981 !important;
+}
+
+.milestone-info-cusdash {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.milestone-label-cusdash {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: center;
+  transition: color var(--transition-base);
+}
+
+/* Completed label - GREEN */
+.milestone-item-cusdash.completed-cusdash .milestone-label-cusdash {
+  color: #10B981 !important;
+  font-weight: 500;
+}
+
+/* Active label - ORANGE */
+.milestone-item-cusdash.active-cusdash .milestone-label-cusdash {
+  color: var(--sidebar-accent) !important;
+  font-weight: 600;
+}
+
+/* Active but also completed - should be green */
+.milestone-item-cusdash.completed-cusdash.active-cusdash .milestone-label-cusdash {
+  color: #10B981 !important;
+}
+
+.milestone-status-cusdash {
+  font-size: 0.6rem;
+  color: var(--sidebar-accent);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Line between milestones */
+.milestone-line-cusdash {
+  position: absolute;
+  top: 0.6rem;
+  left: calc(50% + 1.2rem);
+  width: calc(100% - 2.4rem);
+  height: 2px;
+  background: var(--border-light);
+  pointer-events: none;
+  transition: background var(--transition-base);
+}
+
+/* Completed line - GREEN */
+.milestone-line-cusdash.completed-line-cusdash {
+  background: #10B981 !important;
+}
+
+/* If a milestone is completed, its line should be green */
+.milestone-item-cusdash.completed-cusdash .milestone-line-cusdash {
+  background: #10B981 !important;
+}
+
+/* If the next milestone is active, the line before it should be green */
+.milestone-item-cusdash.completed-cusdash + .milestone-item-cusdash .milestone-line-cusdash {
+  background: #10B981 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .milestones-list-cusdash {
+    gap: 0.25rem;
+  }
+  
+  .milestone-label-cusdash {
+    font-size: 0.6rem;
+  }
+  
+  .milestone-item-cusdash .milestone-icon-cusdash {
+    font-size: 1rem;
+  }
 }

@@ -19,7 +19,7 @@ import {
   FaChevronRight,
   FaTimes,
   FaDownload,
-  FaSun
+  FaArrowRight
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/myproject.css';
@@ -367,8 +367,10 @@ const MyProject = () => {
       <div className="cuspro-page">
         {/* Header */}
         <div className="cuspro-header-card">
-          <h1><FaSun className="header-sun-icon" /> My Project</h1>
-          <p>Track your solar installation progress</p>
+          <div>
+            <h1>My Project</h1>
+            <p>Track your solar installation progress</p>
+          </div>
         </div>
 
         {/* Project Selector */}
@@ -423,23 +425,46 @@ const MyProject = () => {
                       <circle
                         className="cuspro-progress-bg"
                         cx="60" cy="60" r="52"
-                        fill="none" stroke="#E2E8F0" strokeWidth="6"
+                        fill="none"
+                        stroke="#E2E8F0"
+                        strokeWidth="6"
                       />
                       <circle
                         className="cuspro-progress-fill"
                         cx="60" cy="60" r="52"
-                        fill="none" stroke="#F59E0B" strokeWidth="6"
+                        fill="none"
+                        stroke="#F59E0B"
+                        strokeWidth="6"
                         strokeLinecap="round"
                         strokeDasharray={`${2 * Math.PI * 52}`}
                         strokeDashoffset={`${2 * Math.PI * 52 * (1 - animatedProgress / 100)}`}
                         transform="rotate(-90 60 60)"
                       />
-                      <text x="60" y="52" textAnchor="middle" fill="#0F172A" fontSize="26" fontWeight="700">
-                        {getProjectProgress(selectedProject)}%
-                      </text>
-                      <text x="60" y="72" textAnchor="middle" fill="#64748B" fontSize="11" fontWeight="500">
-                        Complete
-                      </text>
+                      {/* Text group with reverse rotation to keep text horizontal */}
+                      <g transform="rotate(90 60 60)">
+                        <text 
+                          x="60" 
+                          y="52" 
+                          textAnchor="middle" 
+                          dominantBaseline="middle"
+                          fill="#0F172A" 
+                          fontSize="26" 
+                          fontWeight="700"
+                        >
+                          {getProjectProgress(selectedProject)}%
+                        </text>
+                        <text 
+                          x="60" 
+                          y="72" 
+                          textAnchor="middle" 
+                          dominantBaseline="middle"
+                          fill="#64748B" 
+                          fontSize="11" 
+                          fontWeight="500"
+                        >
+                          Complete
+                        </text>
+                      </g>
                     </svg>
                   </div>
                   <div className="cuspro-progress-stats">
@@ -571,7 +596,10 @@ const MyProject = () => {
                         {getTimelineItems(selectedProject).slice(0, 4).map((item) => (
                           <div key={item.key} className={`cuspro-timeline-mini-item ${item.completed ? 'completed' : ''}`}>
                             <span className="cuspro-milestone-dot"></span>
-                            <div><p>{item.title}</p><small>{item.completed ? formatDate(item.date) : 'Pending'}</small></div>
+                            <div>
+                              <p>{item.title}</p>
+                              <small>{item.completed ? formatDate(item.date) : 'Pending'}</small>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -583,7 +611,10 @@ const MyProject = () => {
                           const status = getPaymentStatus(selectedProject, payment.type);
                           return (
                             <div key={payment.type} className="cuspro-payment-mini-item">
-                              <div><span>{payment.type === 'initial' ? 'Initial (30%)' : payment.type === 'progress' ? 'Progress (40%)' : payment.type === 'final' ? 'Final (30%)' : 'Full (100%)'}</span><strong>{formatCurrency(payment.amount)}</strong></div>
+                              <div>
+                                <span>{payment.type === 'initial' ? 'Initial (30%)' : payment.type === 'progress' ? 'Progress (40%)' : payment.type === 'final' ? 'Final (30%)' : 'Full (100%)'}</span>
+                                <strong>{formatCurrency(payment.amount)}</strong>
+                              </div>
                               <span className={`cuspro-payment-mini-status ${status.status}`}>{status.text}</span>
                             </div>
                           );
@@ -625,7 +656,9 @@ const MyProject = () => {
                             {status.status === 'paid' && payment.paidAt && <span>Paid on {formatDate(payment.paidAt)}</span>}
                           </div>
                           {status.status !== 'paid' && status.status !== 'for_verification' && selectedProject.status !== 'quoted' && (
-                            <button className="cuspro-btn-pay" onClick={() => navigate('/app/customer/billing')}>Pay Now</button>
+                            <button className="cuspro-btn-pay" onClick={() => navigate('/app/customer/billing')}>
+                              Pay Now <FaArrowRight />
+                            </button>
                           )}
                         </div>
                       );
@@ -655,7 +688,9 @@ const MyProject = () => {
               </div>
               <div className="cuspro-photo-modal-footer">
                 <div className="cuspro-photo-counter">{currentPhotoIndex + 1} / {selectedPhoto.length}</div>
-                <button className="cuspro-photo-download" onClick={() => downloadPhoto(selectedPhoto[currentPhotoIndex], currentPhotoIndex)}><FaDownload /> Download</button>
+                <button className="cuspro-photo-download" onClick={() => downloadPhoto(selectedPhoto[currentPhotoIndex], currentPhotoIndex)}>
+                  <FaDownload /> Download
+                </button>
               </div>
             </div>
           </div>

@@ -1,3 +1,4 @@
+// pages/Customer/ScheduleAssessment.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -42,6 +43,14 @@ const ScheduleAssessment = () => {
   const [showRequestsModal, setShowRequestsModal] = useState(false);
   const [requestFilter, setRequestFilter] = useState('all');
   const [hasPendingFreeQuote, setHasPendingFreeQuote] = useState(false);
+
+  // Quotation states
+  const [showQuotationModal, setShowQuotationModal] = useState(false);
+  const [selectedQuotation, setSelectedQuotation] = useState(null);
+  const [acceptingQuotation, setAcceptingQuotation] = useState(null);
+  const [showAcceptQuoteModal, setShowAcceptQuoteModal] = useState(false);
+  const [selectedPaymentPreference, setSelectedPaymentPreference] = useState('installment');
+  const [acceptingLoading, setAcceptingLoading] = useState(false);
 
   // Photo Gallery States
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -121,6 +130,7 @@ const ScheduleAssessment = () => {
 
   const [freeQuotes, setFreeQuotes] = useState([]);
   const [preAssessments, setPreAssessments] = useState([]);
+  const [projects, setProjects] = useState([]);
 
   // Calculate consumption based on appliances and electric bill
   const calculateConsumption = () => {
@@ -298,6 +308,7 @@ const ScheduleAssessment = () => {
     fetchClientData();
     fetchClientAddresses();
     fetchMyRequests();
+    fetchProjects();
   }, []);
 
   const fetchClientData = async () => {
@@ -348,6 +359,18 @@ const ScheduleAssessment = () => {
       }
     } catch (err) {
       console.error('Error fetching addresses:', err);
+    }
+  };
+
+  const fetchProjects = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/my-projects`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setProjects(response.data.projects || []);
+    } catch (err) {
+      console.error('Error fetching projects:', err);
     }
   };
 
@@ -415,60 +438,76 @@ const ScheduleAssessment = () => {
     }
   };
 
-  const handleAddressClick = () => navigate('/app/customer/settings?tab=addresses');
-  const handleProfileClick = () => navigate('/app/customer/settings?tab=profile');
+  // ============ QUOTATION HANDLERS ============
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    if (currentStep === 'free-quote-form') {
-      setFreeQuoteData(prev => ({ ...prev, [name]: value }));
-      if (freeQuoteValidationErrors[name]) {
-        setFreeQuoteValidationErrors(prev => ({ ...prev, [name]: '' }));
-      }
-    } else if (currentStep === 'service-selection') {
-      setFreeQuoteData(prev => ({ ...prev, [name]: value }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-      if (validationErrors[name]) setValidationErrors(prev => ({ ...prev, [name]: '' }));
+  const handleViewQuotation = (assessment) => {
+    const url = assessment.finalQuotation || assessment.quotation?.quotationUrl;
+    if (!url) {
+      showToast('No quotation PDF available', 'warning');
+      return;
+    }
+    window.open(url, '_blank');
+  };
+
+  const handleDownloadQuotation = async (assessment) => {
+    const url = assessment.finalQuotation || assessment.quotation?.quotationUrl;
+    if (!url) {
+      showToast('No quotation PDF available', 'warning');
+      return;
+    }
+    try {
+      const response = await axios.get(url, { responseType: 'blob' });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `Quotation_${assessment.bookingReference || 'assessment'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      showToast('Quotation downloaded successfully!', 'success');
+    } catch (err) {
+      console.error('Error downloading quotation:', err);
+      showToast('Failed to download quotation', 'error');
     }
   };
 
-  const getFullName = () => [formData.firstName, formData.middleName, formData.lastName].filter(p => p).join(' ');
-
-  const getFullAddress = () => {
-    if (selectedAddress) {
-      return `${selectedAddress.houseOrBuilding} ${selectedAddress.street}, ${selectedAddress.barangay}, ${selectedAddress.cityMunicipality}, ${selectedAddress.province} ${selectedAddress.zipCode}`;
-    }
-    return '';
+  const handleAcceptQuotationClick = (assessment) => {
+    setAcceptingQuotation(assessment);
+    setSelectedPaymentPreference('installment');
+    setShowAcceptQuoteModal(true);
   };
 
-  const getAddressDisplay = () => {
-    if (!selectedAddress) return null;
-    return {
-      fullAddress: getFullAddress(),
-      houseOrBuilding: selectedAddress.houseOrBuilding,
-      street: selectedAddress.street,
-      barangay: selectedAddress.barangay,
-      cityMunicipality: selectedAddress.cityMunicipality,
-      province: selectedAddress.province,
-      zipCode: selectedAddress.zipCode
-    };
-  };
-
-  const getRequestAddress = (request) => {
-    let address = null;
-    if (request.address && typeof request.address === 'object') address = request.address;
-    else if (request.addressId && typeof request.addressId === 'object') address = request.addressId;
-    else if (request.address && typeof request.address === 'string') return request.address;
-    if (address) {
-      const parts = [address.houseOrBuilding, address.street, address.barangay, address.cityMunicipality, address.province, address.zipCode].filter(part => part && part.trim());
-      return parts.length > 0 ? parts.join(', ') : 'Address not available';
+  const confirmAcceptQuotation = async () => {
+    if (!acceptingQuotation) return;
+    setAcceptingLoading(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/projects/accept`,
+        {
+          sourceType: 'pre-assessment',
+          sourceId: acceptingQuotation._id,
+          paymentPreference: selectedPaymentPreference
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      showToast('Quotation accepted successfully! Project created.', 'success');
+      setShowAcceptQuoteModal(false);
+      setAcceptingQuotation(null);
+      fetchMyRequests();
+      fetchProjects();
+    } catch (err) {
+      console.error('Error accepting quotation:', err);
+      showToast(err.response?.data?.message || 'Failed to accept quotation', 'error');
+    } finally {
+      setAcceptingLoading(false);
     }
-    return 'Address not available';
   };
 
   // ============ FREE QUOTE FUNCTIONS ============
-  
+
   // Validate Free Quote Form
   const validateFreeQuoteForm = () => {
     const errors = {};
@@ -511,7 +550,7 @@ const ScheduleAssessment = () => {
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
-      
+
       const quotePayload = {
         clientId: user?._id,
         addressId: selectedAddress?._id || null,
@@ -538,13 +577,13 @@ const ScheduleAssessment = () => {
         nightPercentage: calculationResults.nightPercentage,
         totalDailyConsumption: calculationResults.totalDailyConsumption
       };
-      
+
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/free-quotes`,
         quotePayload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       await sendQuoteConfirmationEmail(
         response.data.quote.quotationReference,
         freeQuoteData.monthlyBill,
@@ -559,11 +598,11 @@ const ScheduleAssessment = () => {
         appliances,
         getFullAddress()
       );
-      
+
       setShowFreeQuoteConfirm(false);
       setFreeQuoteTermsAccepted(false);
-      setSubmittedData({ 
-        reference: response.data.quote.quotationReference, 
+      setSubmittedData({
+        reference: response.data.quote.quotationReference,
         type: 'free-quote',
         systemCalculations: {
           recommendedSystemSize: response.data.quote.recommendedSystemSize,
@@ -722,6 +761,58 @@ const ScheduleAssessment = () => {
     }
   };
 
+  const handleAddressClick = () => navigate('/app/customer/settings?tab=addresses');
+  const handleProfileClick = () => navigate('/app/customer/settings?tab=profile');
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    if (currentStep === 'free-quote-form') {
+      setFreeQuoteData(prev => ({ ...prev, [name]: value }));
+      if (freeQuoteValidationErrors[name]) {
+        setFreeQuoteValidationErrors(prev => ({ ...prev, [name]: '' }));
+      }
+    } else if (currentStep === 'service-selection') {
+      setFreeQuoteData(prev => ({ ...prev, [name]: value }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+      if (validationErrors[name]) setValidationErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const getFullName = () => [formData.firstName, formData.middleName, formData.lastName].filter(p => p).join(' ');
+
+  const getFullAddress = () => {
+    if (selectedAddress) {
+      return `${selectedAddress.houseOrBuilding} ${selectedAddress.street}, ${selectedAddress.barangay}, ${selectedAddress.cityMunicipality}, ${selectedAddress.province} ${selectedAddress.zipCode}`;
+    }
+    return '';
+  };
+
+  const getAddressDisplay = () => {
+    if (!selectedAddress) return null;
+    return {
+      fullAddress: getFullAddress(),
+      houseOrBuilding: selectedAddress.houseOrBuilding,
+      street: selectedAddress.street,
+      barangay: selectedAddress.barangay,
+      cityMunicipality: selectedAddress.cityMunicipality,
+      province: selectedAddress.province,
+      zipCode: selectedAddress.zipCode
+    };
+  };
+
+  const getRequestAddress = (request) => {
+    let address = null;
+    if (request.address && typeof request.address === 'object') address = request.address;
+    else if (request.addressId && typeof request.addressId === 'object') address = request.addressId;
+    else if (request.address && typeof request.address === 'string') return request.address;
+    if (address) {
+      const parts = [address.houseOrBuilding, address.street, address.barangay, address.cityMunicipality, address.province, address.zipCode].filter(part => part && part.trim());
+      return parts.length > 0 ? parts.join(', ') : 'Address not available';
+    }
+    return 'Address not available';
+  };
+
   const formatCurrency = (value) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value || 0);
 
   const formatDate = (date) => {
@@ -747,7 +838,8 @@ const ScheduleAssessment = () => {
       'data_analyzing': <span className="status-badge-schedule data-analyzing">Analyzing</span>,
       'report_draft': <span className="status-badge-schedule report-draft">Report Draft</span>,
       'completed': <span className="status-badge-schedule completed">Completed</span>,
-      'cancelled': <span className="status-badge-schedule cancelled">Cancelled</span>
+      'cancelled': <span className="status-badge-schedule cancelled">Cancelled</span>,
+      'quotation_accepted': <span className="status-badge-schedule quotation-accepted">Quotation Accepted</span>
     };
     return badges[status] || <span className="status-badge-schedule">{status}</span>;
   };
@@ -818,13 +910,13 @@ const ScheduleAssessment = () => {
               <p><strong>Reference Number:</strong> {submittedData.reference}</p>
               <p><strong>Status:</strong> Pending Review</p>
             </div>
-            
+
             {/* System Calculations Display */}
             {submittedData.systemCalculations && (
-              <div className="system-calculations-summary" style={{ 
-                marginTop: '20px', 
-                padding: '15px', 
-                background: '#f5f9ff', 
+              <div className="system-calculations-summary" style={{
+                marginTop: '20px',
+                padding: '15px',
+                background: '#f5f9ff',
                 borderRadius: '8px',
                 border: '1px solid #d1e0f5'
               }}>
@@ -848,7 +940,7 @@ const ScheduleAssessment = () => {
                 </small>
               </div>
             )}
-            
+
             <div className="schedule-next-steps-cusset">
               <h3>What's Next?</h3>
               <ul>
@@ -860,15 +952,15 @@ const ScheduleAssessment = () => {
           </>
         )}
         <div className="quote-actions-cusset">
-          <button 
-            onClick={() => { 
-              setSubmitted(false); 
-              setCurrentStep('service-selection'); 
+          <button
+            onClick={() => {
+              setSubmitted(false);
+              setCurrentStep('service-selection');
               setFreeQuoteData({ monthlyBill: '', propertyType: 'residential', desiredCapacity: '', systemType: '', roofType: '', roofLength: '', roofWidth: '', targetSavings: '' });
               clearAppliances();
-              setSubmittedData(null); 
+              setSubmittedData(null);
               setFreeQuoteTermsAccepted(false);
-            }} 
+            }}
             className="schedule-btn-secondary-cusset"
           >
             Request Another
@@ -942,7 +1034,7 @@ const ScheduleAssessment = () => {
                 <li>Receive a detailed quotation via email</li>
               </ul>
               <div className="card-button-container-cusset">
-                <button 
+                <button
                   className="btn-get-quote-cusset"
                   onClick={() => {
                     setCurrentStep('free-quote-form');
@@ -970,8 +1062,8 @@ const ScheduleAssessment = () => {
                 <li>Accurate system size recommendation</li>
               </ul>
               <div className="card-button-container-cusset">
-                <button 
-                  className="btn-paid-assessment-cusset" 
+                <button
+                  className="btn-paid-assessment-cusset"
                   onClick={() => setCurrentStep('pre-assessment-form')}
                 >
                   Book Pre Assessment
@@ -1029,6 +1121,17 @@ const ScheduleAssessment = () => {
                         ))}
                         {filteredPreAssessments.map(assessment => {
                           const hasPhotos = assessment.sitePhotos && assessment.sitePhotos.length > 0;
+                          const hasQuotation = assessment.finalQuotation || assessment.quotation?.quotationUrl;
+                          const alreadyProjectCreated = assessment.assessmentStatus === 'quotation_accepted' ||
+                            projects.some(p => {
+                              if (p.preAssessmentId) {
+                                const projectPreAssessmentId = typeof p.preAssessmentId === 'object' ?
+                                  p.preAssessmentId._id?.toString() : p.preAssessmentId?.toString();
+                                return projectPreAssessmentId === assessment._id?.toString();
+                              }
+                              return false;
+                            });
+
                           return (
                             <tr key={assessment._id}>
                               <td>{formatDate(assessment.bookedAt)}</td>
@@ -1038,6 +1141,36 @@ const ScheduleAssessment = () => {
                                 <div><strong>Property:</strong> {assessment.propertyType}</div>
                                 <div><strong>Date:</strong> {formatDate(assessment.preferredDate)}</div>
                                 {assessment.targetSavings && <div><strong>Target:</strong> {assessment.targetSavings}%</div>}
+
+                                {hasQuotation && (
+                                  <div className="quotation-actions">
+                                    <button
+                                      className="view-quote-btn"
+                                      onClick={() => handleViewQuotation(assessment)}
+                                    >
+                                      <FaEye /> View Quote
+                                    </button>
+                                    <button
+                                      className="download-quote-btn"
+                                      onClick={() => handleDownloadQuotation(assessment)}
+                                    >
+                                      <FaDownload /> Download
+                                    </button>
+                                    {!alreadyProjectCreated && assessment.assessmentStatus !== 'quotation_accepted' && (
+                                      <button
+                                        className="accept-quote-btn"
+                                        onClick={() => handleAcceptQuotationClick(assessment)}
+                                      >
+                                        <FaCheckCircle /> Accept
+                                      </button>
+                                    )}
+                                    {alreadyProjectCreated && (
+                                      <span className="project-created-badge">
+                                        <FaCheckCircle /> Project Created
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
                               </td>
                               <td>{getAssessmentStatusBadge(assessment.assessmentStatus || assessment.paymentStatus)}</td>
                               <td>
@@ -1280,6 +1413,114 @@ const ScheduleAssessment = () => {
                 )}
                 <div className="modal-actions-cusset">
                   <button className="close-btn-cusset" onClick={() => setShowDetailsModal(false)}>Close</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Accept Quotation Modal */}
+          {showAcceptQuoteModal && acceptingQuotation && (
+            <div className="schedule-modal-overlay-cusset" onClick={() => setShowAcceptQuoteModal(false)}>
+              <div className="schedule-modal-cusset accept-quote-modal" onClick={e => e.stopPropagation()}>
+                <div className="modal-header-cusset">
+                  <h3>Accept Quotation</h3>
+                  <button className="modal-close-cusset" onClick={() => setShowAcceptQuoteModal(false)}>×</button>
+                </div>
+                <div className="modal-body-cusset">
+                  <div className="quotation-summary">
+                    <h4>Quotation Summary</h4>
+                    <div className="summary-row">
+                      <span>System Size:</span>
+                      <strong>{acceptingQuotation.quotation?.systemDetails?.systemSize || 'TBD'} kWp</strong>
+                    </div>
+                    <div className="summary-row">
+                      <span>Total Cost:</span>
+                      <strong>{formatCurrency(acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee)}</strong>
+                    </div>
+                    <div className="summary-row">
+                      <span>System Type:</span>
+                      <strong>{acceptingQuotation.quotation?.systemDetails?.systemType || 'Not specified'}</strong>
+                    </div>
+                    <div className="summary-row">
+                      <span>Panels Needed:</span>
+                      <strong>{acceptingQuotation.quotation?.systemDetails?.panelsNeeded || 'TBD'}</strong>
+                    </div>
+                  </div>
+
+                  <div className="payment-preference-section">
+                    <h4>Payment Option</h4>
+
+                    {/* 50% - 50% Installment */}
+                    <div
+                      className={`preference-option ${selectedPaymentPreference === 'fifty_fifty' ? 'selected' : ''}`}
+                      onClick={() => setSelectedPaymentPreference('fifty_fifty')}
+                    >
+                      <input type="radio" checked={selectedPaymentPreference === 'fifty_fifty'} readOnly />
+                      <div className="preference-content">
+                        <strong>50% - 50% Installment</strong>
+                        <div className="preference-details">
+                          <span>Downpayment (50%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.5)}</span>
+                          <span>Final Payment (50%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.5)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 30% - 60% - 10% with Retention */}
+                    <div
+                      className={`preference-option ${selectedPaymentPreference === 'thirty_sixty_ten' ? 'selected' : ''}`}
+                      onClick={() => setSelectedPaymentPreference('thirty_sixty_ten')}
+                    >
+                      <input type="radio" checked={selectedPaymentPreference === 'thirty_sixty_ten'} readOnly />
+                      <div className="preference-content">
+                        <strong>Installment with Retention (30% - 60% - 10%)</strong>
+                        <div className="preference-details">
+                          <span>Downpayment (30%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.3)}</span>
+                          <span>Progress Payment (60%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.6)}</span>
+                          <span className="retention-note">Retention Fee (10%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.1)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 30% - 40% - 30% Installment */}
+                    <div
+                      className={`preference-option ${selectedPaymentPreference === 'installment' ? 'selected' : ''}`}
+                      onClick={() => setSelectedPaymentPreference('installment')}
+                    >
+                      <input type="radio" checked={selectedPaymentPreference === 'installment'} readOnly />
+                      <div className="preference-content">
+                        <strong>Installment (30% - 40% - 30%)</strong>
+                        <div className="preference-details">
+                          <span>Initial (30%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.3)}</span>
+                          <span>Progress (40%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.4)}</span>
+                          <span>Final (30%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.3)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Full Payment */}
+                    <div
+                      className={`preference-option ${selectedPaymentPreference === 'full' ? 'selected' : ''}`}
+                      onClick={() => setSelectedPaymentPreference('full')}
+                    >
+                      <input type="radio" checked={selectedPaymentPreference === 'full'} readOnly />
+                      <div className="preference-content">
+                        <strong>Full Payment</strong>
+                        <div className="preference-details full-payment">
+                          <span>Amount: {formatCurrency(acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-actions-cusset">
+                  <button className="cancel-btn-cusset" onClick={() => setShowAcceptQuoteModal(false)}>Cancel</button>
+                  <button
+                    className="confirm-btn-cusset"
+                    onClick={confirmAcceptQuotation}
+                    disabled={acceptingLoading}
+                  >
+                    {acceptingLoading ? 'Processing...' : 'Accept Quotation'}
+                  </button>
                 </div>
               </div>
             </div>

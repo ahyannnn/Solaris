@@ -20,12 +20,10 @@ const Quotation = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [successDetails, setSuccessDetails] = useState(null);
   const [showFullPaymentModal, setShowFullPaymentModal] = useState(false);
-  const [acceptingItem, setAcceptingItem] = useState(null);
   const [acceptingLoading, setAcceptingLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [detailsItem, setDetailsItem] = useState(null);
@@ -497,12 +495,6 @@ const Quotation = () => {
     }
   };
 
-  const handleAcceptQuotationClick = (assessment) => {
-    setAcceptingItem(assessment);
-    setSelectedPaymentPreference('installment');
-    setShowAcceptModal(true);
-  };
-
   const handleViewDetails = (item) => {
     setDetailsItem(item);
     setShowDetailsModal(true);
@@ -539,38 +531,6 @@ const Quotation = () => {
       showToast('Failed to download quotation', 'error');
     } finally {
       setPdfLoading(false);
-    }
-  };
-
-  const confirmAcceptQuotation = async () => {
-    if (!acceptingItem) return;
-    setAcceptingLoading(true);
-    try {
-      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/projects/accept`,
-        {
-          sourceType: 'pre-assessment',
-          sourceId: acceptingItem.assessmentId,
-          paymentPreference: selectedPaymentPreference
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setSuccessMessage('Quotation Accepted!');
-      setSuccessDetails({
-        title: 'Quotation Accepted Successfully',
-        message: `Your quotation has been accepted. ${selectedPaymentPreference === 'full' ? 'You can now proceed with full payment.' : selectedPaymentPreference === 'thirty_sixty_ten' ? 'Invoices will be generated: 30% Downpayment, 60% Progress, 10% Retention (released after warranty).' : selectedPaymentPreference === 'fifty_fifty' ? 'Invoices will be generated: 50% Downpayment, 50% Final.' : 'Invoices will be generated for each payment milestone.'}`,
-        reference: response.data.project?.projectReference
-      });
-      setShowSuccessModal(true);
-      setShowAcceptModal(false);
-      setAcceptingItem(null);
-      fetchData();
-    } catch (err) {
-      console.error('Error accepting quotation:', err);
-      showToast(err.response?.data?.message || 'Failed to accept quotation. Please try again.', 'error');
-    } finally {
-      setAcceptingLoading(false);
     }
   };
 
@@ -1074,41 +1034,11 @@ const Quotation = () => {
                       </>
                     )}
 
-                    {/* Paid badge for pre-assessment without receipt yet */}
-                    {item.status === 'paid' && isPreAssessment && hasReceipt && (
-                      <>
-                        {hasQuotation && !alreadyProjectCreated && (
-                          <>
-                            <button
-                              className="cuspro-secondary-btn"
-                              onClick={() => handleViewQuotation(item)}
-                            >
-                              <FaEye /> View Quote
-                            </button>
-                            <button
-                              className="cuspro-secondary-btn"
-                              onClick={() => handleDownloadQuotation(item)}
-                              disabled={pdfLoading}
-                            >
-                              <FaDownload /> {pdfLoading ? '...' : 'Download'}
-                            </button>
-                            <button
-                              className="cuspro-accept-btn"
-                              onClick={() => handleAcceptQuotationClick(item)}
-                            >
-                              <FaCheckCircle /> Accept Quote
-                            </button>
-                          </>
-                        )}
-                        {alreadyProjectCreated && (
-                          <button
-                            className="cuspro-view-project-btn"
-                            onClick={() => navigate('/app/customer/project')}
-                          >
-                            <FaProjectDiagram /> View Project
-                          </button>
-                        )}
-                      </>
+                    {/* Paid badge for pre-assessment with receipt */}
+                    {item.status === 'paid' && isPreAssessment && (
+                      <span className="cuspro-paid-badge">
+                        <FaCheckCircle /> Payment Completed
+                      </span>
                     )}
 
                     {/* Project paid badge */}
@@ -1137,99 +1067,6 @@ const Quotation = () => {
             })
           )}
         </div>
-
-        {/* ACCEPT QUOTATION MODAL */}
-        {showAcceptModal && acceptingItem && (
-          <div className="cuspro-modal-overlay" onClick={() => setShowAcceptModal(false)}>
-            <div className="cuspro-modal cuspro-accept-modal" onClick={e => e.stopPropagation()}>
-              <button className="cuspro-modal-close" onClick={() => setShowAcceptModal(false)}><FaTimes /></button>
-              <h3>Accept Quotation</h3>
-              <p>Please select your payment preference</p>
-              <div className="cuspro-quotation-summary">
-                <h4>Summary</h4>
-                <div className="cuspro-summary-row">
-                  <span>System Size:</span>
-                  <strong>{acceptingItem.systemSize || 'TBD'} kWp</strong>
-                </div>
-                <div className="cuspro-summary-row">
-                  <span>Total Cost:</span>
-                  <strong>{formatCurrency(acceptingItem.totalCost || acceptingItem.amount)}</strong>
-                </div>
-              </div>
-              <div className="cuspro-payment-preference-section">
-                <h4>Payment Option</h4>
-
-                {/* Option 1: 50% - 50% Installment */}
-                <div
-                  className={`cuspro-preference-option ${selectedPaymentPreference === 'fifty_fifty' ? 'selected' : ''}`}
-                  onClick={() => setSelectedPaymentPreference('fifty_fifty')}
-                >
-                  <input type="radio" checked={selectedPaymentPreference === 'fifty_fifty'} readOnly />
-                  <div className="cuspro-preference-content">
-                    <strong>50% - 50% Installment</strong>
-                    <div className="cuspre-preference-details">
-                      <span>Downpayment (50%): {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.5)}</span>
-                      <span>Final Payment (50%): {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.5)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Option 2: 30% - 60% - 10% (with 10% Retention) */}
-                <div
-                  className={`cuspro-preference-option ${selectedPaymentPreference === 'thirty_sixty_ten' ? 'selected' : ''}`}
-                  onClick={() => setSelectedPaymentPreference('thirty_sixty_ten')}
-                >
-                  <input type="radio" checked={selectedPaymentPreference === 'thirty_sixty_ten'} readOnly />
-                  <div className="cuspro-preference-content">
-                    <strong>Installment with Retention (30% - 60% - 10%)</strong>
-                    <div className="cuspre-preference-details">
-                      <span>Downpayment (30%): {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.3)}</span>
-                      <span>Progress Payment (60%): {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.6)}</span>
-                      <span className="retention-note">Retention Fee (10%): {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.1)}</span>
-                  
-                    </div>
-                  </div>
-                </div>
-
-                {/* Option 3: 30% - 40% - 30% Installment */}
-                <div
-                  className={`cuspro-preference-option ${selectedPaymentPreference === 'installment' ? 'selected' : ''}`}
-                  onClick={() => setSelectedPaymentPreference('installment')}
-                >
-                  <input type="radio" checked={selectedPaymentPreference === 'installment'} readOnly />
-                  <div className="cuspro-preference-content">
-                    <strong>Installment (30% - 40% - 30%)</strong>
-                    <div className="cuspre-preference-details">
-                      <span>Initial (30%): {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.3)}</span>
-                      <span>Progress (40%): {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.4)}</span>
-                      <span>Final (30%): {formatCurrency((acceptingItem.totalCost || acceptingItem.amount) * 0.3)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Option 4: Full Payment */}
-                <div
-                  className={`cuspro-preference-option ${selectedPaymentPreference === 'full' ? 'selected' : ''}`}
-                  onClick={() => setSelectedPaymentPreference('full')}
-                >
-                  <input type="radio" checked={selectedPaymentPreference === 'full'} readOnly />
-                  <div className="cuspro-preference-content">
-                    <strong>Full Payment</strong>
-                    <div className="cuspre-preference-details full-payment-details">
-                      <span>Amount: {formatCurrency(acceptingItem.totalCost || acceptingItem.amount)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="cuspro-modal-actions">
-                <button className="cuspro-cancel-btn" onClick={() => setShowAcceptModal(false)}>Cancel</button>
-                <button className="cuspro-confirm-btn" onClick={confirmAcceptQuotation} disabled={acceptingLoading}>
-                  {acceptingLoading ? <FaSpinner className="spinning" /> : 'Confirm'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* FULL PAYMENT MODAL */}
         {showFullPaymentModal && selectedItem && (

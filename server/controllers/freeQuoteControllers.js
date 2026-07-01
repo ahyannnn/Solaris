@@ -22,7 +22,99 @@ const SYSTEM_TYPES = [
   { value: 'off-grid', label: 'Off-Grid System' }
 ];
 
+// Helper function to round to 2 decimal places
+const roundTo2Decimals = (value) => {
+  if (value === null || value === undefined || value === '') return 0;
+  const num = parseFloat(value);
+  return isNaN(num) ? 0 : parseFloat(num.toFixed(2));
+};
 
+// ============ SYSTEM SIZE CALCULATION (EXACTLY LIKE PRE-ASSESSMENT) ============
+
+/**
+ * Calculate system size, inverter, and battery using the same formulas as pre-assessment
+ */
+function calculateSystemSize({
+  dailyEnergyNeed,
+  targetSavings = 100,
+  peakSunHours = 4.5,
+  systemType = 'grid-tie'
+}) {
+  // Battery type (default to LiFePO4) - same as pre-assessment
+  const batteryType = 'lifepo4';
+  const DEPTH_OF_DISCHARGE = batteryType === 'lifepo4' ? 0.8 : 0.5;
+  const PANEL_WATTAGE = 0.55; // 550W panels = 0.55 kW per panel
+
+  // Apply target savings for PV system size (same as pre-assessment)
+  const adjustedDailyEnergyNeed = dailyEnergyNeed * (targetSavings / 100);
+  const actualDailyConsumption = dailyEnergyNeed;
+
+  // ============ SYSTEM SIZE CALCULATIONS (EXACTLY LIKE PRE-ASSESSMENT) ============
+  let recommendedSystemSize = 0;
+  let batteryCapacityKwh = 0;
+  let inverterSize = 0;
+
+  if (systemType === 'grid-tie') {
+    // Grid-Tie: total daily consumption (kW) - SAME AS PRE-ASSESSMENT
+    recommendedSystemSize = adjustedDailyEnergyNeed;
+    inverterSize = Math.ceil(recommendedSystemSize);
+    batteryCapacityKwh = 0;
+
+  } else if (systemType === 'hybrid') {
+    // Hybrid: (total daily consumption × 1.3 safety factor) / peak sun hours - SAME AS PRE-ASSESSMENT
+    recommendedSystemSize = (adjustedDailyEnergyNeed * 1.3) / peakSunHours;
+    recommendedSystemSize = Math.round(recommendedSystemSize * 10) / 10;
+    inverterSize = Math.ceil(recommendedSystemSize);
+    // Battery: ACTUAL daily consumption / depth of discharge - SAME AS PRE-ASSESSMENT
+    batteryCapacityKwh = actualDailyConsumption / DEPTH_OF_DISCHARGE;
+    batteryCapacityKwh = Math.round(batteryCapacityKwh * 10) / 10;
+
+  } else if (systemType === 'off-grid') {
+    // Off-Grid: (total daily consumption × 1.3 safety factor) / peak sun hours - SAME AS PRE-ASSESSMENT
+    recommendedSystemSize = (adjustedDailyEnergyNeed * 1.3) / peakSunHours;
+    recommendedSystemSize = Math.round(recommendedSystemSize * 10) / 10;
+    inverterSize = Math.ceil(recommendedSystemSize);
+    // Battery: ACTUAL daily consumption / depth of discharge - SAME AS PRE-ASSESSMENT
+    batteryCapacityKwh = actualDailyConsumption / DEPTH_OF_DISCHARGE;
+    batteryCapacityKwh = Math.round(batteryCapacityKwh * 10) / 10;
+
+  } else {
+    // Default to grid-tie
+    recommendedSystemSize = adjustedDailyEnergyNeed;
+    inverterSize = Math.ceil(recommendedSystemSize);
+    batteryCapacityKwh = 0;
+  }
+
+  // Calculate panels needed (550W panels = 0.55 kW) - SAME AS PRE-ASSESSMENT
+  const panelsNeeded = Math.ceil(recommendedSystemSize / PANEL_WATTAGE);
+
+  return {
+    recommendedSystemSize: roundTo2Decimals(recommendedSystemSize),
+    inverterSize: inverterSize,
+    batteryCapacityKwh: roundTo2Decimals(batteryCapacityKwh),
+    panelsNeeded: panelsNeeded,
+    panelWattage: PANEL_WATTAGE,
+    depthOfDischarge: DEPTH_OF_DISCHARGE * 100,
+    batteryType: batteryType,
+    adjustedDailyEnergyNeed: roundTo2Decimals(adjustedDailyEnergyNeed),
+    actualDailyConsumption: roundTo2Decimals(actualDailyConsumption),
+    // Formula reference - SAME AS PRE-ASSESSMENT
+    formula: {
+      systemType: systemType,
+      pvFormula: systemType === 'grid-tie'
+        ? `System Size = ${roundTo2Decimals(adjustedDailyEnergyNeed)} kW`
+        : `System Size = (${roundTo2Decimals(adjustedDailyEnergyNeed)} × 1.3) ÷ ${roundTo2Decimals(peakSunHours)} = ${roundTo2Decimals(recommendedSystemSize)} kW`,
+      inverterFormula: `Inverter = ${roundTo2Decimals(recommendedSystemSize)} kW`,
+      batteryFormula: batteryCapacityKwh > 0
+        ? `Battery = ${roundTo2Decimals(actualDailyConsumption)} ÷ ${DEPTH_OF_DISCHARGE} = ${roundTo2Decimals(batteryCapacityKwh)} kWh`
+        : 'No battery required for grid-tie system'
+    }
+  };
+}
+
+
+
+// ============ CREATE FREE QUOTE ============
 
 // @desc    Create a new free quote request
 // @route   POST /api/free-quotes
@@ -37,8 +129,16 @@ exports.createFreeQuote = async (req, res) => {
       propertyType,
       desiredCapacity,
       systemType,
+      roofType,
       roofLength,
-      roofWidth
+      roofWidth,
+      targetSavings,
+      monthlyConsumption,
+      dayConsumption,
+      nightConsumption,
+      dayPercentage,
+      nightPercentage,
+      totalDailyConsumption
     } = req.body;
 
     // Find client 
@@ -60,6 +160,22 @@ exports.createFreeQuote = async (req, res) => {
       }
     }
 
+    // Calculate daily energy need - SAME AS PRE-ASSESSMENT
+    let dailyEnergyNeed = totalDailyConsumption || 0;
+    if (dailyEnergyNeed === 0 && monthlyBill > 0) {
+      const rate = 12; // Default rate
+      const monthlyKwh = monthlyBill / rate;
+      dailyEnergyNeed = monthlyKwh / 30;
+    }
+
+    // ============ CALCULATE SYSTEM SIZE (EXACTLY LIKE PRE-ASSESSMENT) ============
+    const systemCalculations = calculateSystemSize({
+      dailyEnergyNeed: dailyEnergyNeed,
+      targetSavings: targetSavings ? parseInt(targetSavings) : 100,
+      peakSunHours: 4.5,
+      systemType: systemType || 'grid-tie'
+    });
+
     // Generate quotation reference
     const date = new Date();
     const year = date.getFullYear().toString().slice(-2);
@@ -76,8 +192,22 @@ exports.createFreeQuote = async (req, res) => {
       propertyType: propertyType,
       desiredCapacity: desiredCapacity || '',
       systemType: systemType || null,
+      roofType: roofType || null,
       roofLength: roofLength ? parseFloat(roofLength) : null,
       roofWidth: roofWidth ? parseFloat(roofWidth) : null,
+      targetSavings: targetSavings ? parseInt(targetSavings) : null,
+      // Store consumption data
+      monthlyConsumption: monthlyConsumption ? parseFloat(monthlyConsumption) : null,
+      dayConsumption: dayConsumption ? parseFloat(dayConsumption) : null,
+      nightConsumption: nightConsumption ? parseFloat(nightConsumption) : null,
+      dayPercentage: dayPercentage ? parseFloat(dayPercentage) : null,
+      nightPercentage: nightPercentage ? parseFloat(nightPercentage) : null,
+      totalDailyConsumption: dailyEnergyNeed,
+      // Store system calculations (same as pre-assessment)
+      recommendedSystemSize: systemCalculations.recommendedSystemSize,
+      inverterSize: systemCalculations.inverterSize,
+      batteryCapacityKwh: systemCalculations.batteryCapacityKwh,
+      panelsNeeded: systemCalculations.panelsNeeded,
       status: 'pending',
       quotationReference: quotationReference
     });
@@ -101,10 +231,18 @@ exports.createFreeQuote = async (req, res) => {
         monthlyBill: freeQuote.monthlyBill,
         propertyType: freeQuote.propertyType,
         desiredCapacity: freeQuote.desiredCapacity,
+        systemType: freeQuote.systemType,
+        roofType: freeQuote.roofType,
         roofLength: freeQuote.roofLength,
         roofWidth: freeQuote.roofWidth,
+        targetSavings: freeQuote.targetSavings,
         status: freeQuote.status,
         requestedAt: freeQuote.requestedAt,
+        // System calculations (same as pre-assessment)
+        recommendedSystemSize: freeQuote.recommendedSystemSize,
+        inverterSize: freeQuote.inverterSize,
+        batteryCapacityKwh: freeQuote.batteryCapacityKwh,
+        panelsNeeded: freeQuote.panelsNeeded,
         client: {
           name: `${freeQuote.clientId.contactFirstName} ${freeQuote.clientId.contactLastName}`,
           contactNumber: freeQuote.clientId.contactNumber,

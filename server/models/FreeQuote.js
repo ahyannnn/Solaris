@@ -28,7 +28,17 @@ const freeQuoteSchema = new mongoose.Schema({
     type: String 
   },
   
-  // Roof Dimensions
+  // ============ SYSTEM PREFERENCES (same as pre-assessment) ============
+  systemType: { 
+    type: String, 
+    enum: ['grid-tie', 'hybrid', 'off-grid'],
+    default: null
+  },
+  roofType: {
+    type: String,
+    enum: ['concrete', 'metal', 'tile', 'other'],
+    default: null
+  },
   roofLength: { 
     type: Number,
     default: null
@@ -37,11 +47,58 @@ const freeQuoteSchema = new mongoose.Schema({
     type: Number,
     default: null
   },
-  systemType: { 
-    type: String, 
-    enum: ['grid-tie', 'hybrid', 'off-grid'],
-    default: null
+  targetSavings: { 
+    type: Number, 
+    enum: [100, 75, 50, 25], 
+    default: null 
   },
+  // ============================================================
+  
+  // ============ CONSUMPTION DATA (same as pre-assessment) ============
+  monthlyConsumption: { 
+    type: Number, 
+    default: null 
+  },
+  dayConsumption: { 
+    type: Number, 
+    default: null 
+  },
+  nightConsumption: { 
+    type: Number, 
+    default: null 
+  },
+  dayPercentage: { 
+    type: Number, 
+    default: null 
+  },
+  nightPercentage: { 
+    type: Number, 
+    default: null 
+  },
+  totalDailyConsumption: { 
+    type: Number, 
+    default: null 
+  },
+  // ============================================================
+  
+  // ============ SYSTEM CALCULATIONS (same as pre-assessment) ============
+  recommendedSystemSize: { 
+    type: Number, 
+    default: null 
+  }, // kW
+  inverterSize: { 
+    type: Number, 
+    default: null 
+  }, // kW
+  batteryCapacityKwh: { 
+    type: Number, 
+    default: null 
+  }, // kWh (0 for grid-tie)
+  panelsNeeded: { 
+    type: Number, 
+    default: null 
+  },
+  // ============================================================
   
   // Status - Workflow: pending → assigned → processing → completed
   status: { 
@@ -74,6 +131,19 @@ const freeQuoteSchema = new mongoose.Schema({
   },
   quotationSentAt: Date,
   adminRemarks: String,
+  
+  // Quotation Details (for storing system recommendations)
+  quotationDetails: {
+    systemSize: Number,
+    systemType: String,
+    equipmentBreakdown: mongoose.Schema.Types.Mixed,
+    installationCost: Number,
+    equipmentCost: Number,
+    totalCost: Number,
+    paymentTerms: String,
+    warrantyYears: Number,
+    remarks: String
+  },
   
   // Timestamps
   requestedAt: { 

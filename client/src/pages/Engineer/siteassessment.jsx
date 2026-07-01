@@ -29,11 +29,10 @@ const MyAssessments = () => {
   const [assessmentResults, setAssessmentResults] = useState(null);
   const [systemMetrics, setSystemMetrics] = useState(null);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
-  // Add this with your other state declarations (around line 100)
 
-  const [laborCostPercentage, setLaborCostPercentage] = useState(20); // Default 20%
-  const [overheadContingencyPercentage, setOverheadContingencyPercentage] = useState(15); // Default 15%
-  const [contractorProfitPercentage, setContractorProfitPercentage] = useState(10); // Default 10%
+  const [laborCostPercentage, setLaborCostPercentage] = useState(20);
+  const [overheadContingencyPercentage, setOverheadContingencyPercentage] = useState(15);
+  const [contractorProfitPercentage, setContractorProfitPercentage] = useState(10);
   const [isEditingLaborCost, setIsEditingLaborCost] = useState(false);
   const [manualLaborCost, setManualLaborCost] = useState(0);
 
@@ -96,9 +95,9 @@ const MyAssessments = () => {
     additionalCost: 0,
     totalEquipmentCost: 0,
     installationLaborCost: 0,
-    subtotalCost: 0, // New: Equipment + Labor
-    overheadContingencyCost: 0, // New
-    contractorProfitCost: 0, // New
+    subtotalCost: 0,
+    overheadContingencyCost: 0,
+    contractorProfitCost: 0,
     totalSystemCost: 0
   });
   const [calculatedCosts, setCalculatedCosts] = useState({
@@ -114,9 +113,9 @@ const MyAssessments = () => {
     additionalCost: 0,
     totalEquipmentCost: 0,
     installationLaborCost: 0,
-    subtotalCost: 0, // New: Equipment + Labor
-    overheadContingencyCost: 0, // New
-    contractorProfitCost: 0, // New
+    subtotalCost: 0,
+    overheadContingencyCost: 0,
+    contractorProfitCost: 0,
     totalSystemCost: 0
   });
 
@@ -197,7 +196,7 @@ const MyAssessments = () => {
     alert(message);
   };
 
-  // ============ NEW: Fetch system recommendations from backend ============
+  // Fetch system recommendations for pre-assessment
   const fetchSystemRecommendations = async (assessmentId) => {
     try {
       setLoadingMetrics(true);
@@ -404,19 +403,10 @@ const MyAssessments = () => {
     const totalEquipmentCost = panelCost + inverterCost + batteryCost + mountingCost +
       electricalCost + cableCost + junctionBoxCost + disconnectSwitchCost + meterCost + additionalCost;
 
-    // Calculate installation labor cost based on percentage
     const installationLaborCost = totalEquipmentCost * (laborCostPercentage / 100);
-
-    // ✅ Calculate subtotal (Equipment + Labor)
     const subtotalCost = totalEquipmentCost + installationLaborCost;
-
-    // ✅ Calculate Overhead & Contingency (based on subtotal)
     const overheadContingencyCost = subtotalCost * (overheadContingencyPercentage / 100);
-
-    // ✅ Calculate Contractor Profit (based on subtotal)
     const contractorProfitCost = subtotalCost * (contractorProfitPercentage / 100);
-
-    // ✅ Total System Cost = Subtotal + Overhead & Contingency + Contractor Profit
     const totalSystemCost = subtotalCost + overheadContingencyCost + contractorProfitCost;
 
     setFreeQuoteCalculatedCosts({
@@ -432,9 +422,9 @@ const MyAssessments = () => {
       additionalCost,
       totalEquipmentCost,
       installationLaborCost,
-      subtotalCost,                    // ✅ Added
-      overheadContingencyCost,         // ✅ Added
-      contractorProfitCost,            // ✅ Added
+      subtotalCost,
+      overheadContingencyCost,
+      contractorProfitCost,
       totalSystemCost
     });
 
@@ -445,7 +435,7 @@ const MyAssessments = () => {
       totalCost: totalSystemCost,
       panelsNeeded: freeQuotePanelQuantity
     }));
-  }
+  };
 
   // Pre-Assessment Equipment helper functions
   const addCable = () => {
@@ -467,7 +457,6 @@ const MyAssessments = () => {
     setSelectedCables(updated);
   };
 
-  // Calculate roof area in square meters
   const calculateRoofArea = (length, width) => {
     const l = parseFloat(length) || 0;
     const w = parseFloat(width) || 0;
@@ -633,19 +622,10 @@ const MyAssessments = () => {
     const totalEquipmentCost = panelCost + inverterCost + batteryCost + mountingCost +
       electricalCost + cableCost + junctionBoxCost + disconnectSwitchCost + meterCost + additionalCost;
 
-    // Calculate installation labor cost based on percentage
     const installationLaborCost = totalEquipmentCost * (laborCostPercentage / 100);
-
-    // ✅ Calculate subtotal (Equipment + Labor)
     const subtotalCost = totalEquipmentCost + installationLaborCost;
-
-    // ✅ Calculate Overhead & Contingency (based on subtotal)
     const overheadContingencyCost = subtotalCost * (overheadContingencyPercentage / 100);
-
-    // ✅ Calculate Contractor Profit (based on subtotal)
     const contractorProfitCost = subtotalCost * (contractorProfitPercentage / 100);
-
-    // ✅ Total System Cost = Subtotal + Overhead & Contingency + Contractor Profit
     const totalSystemCost = subtotalCost + overheadContingencyCost + contractorProfitCost;
 
     setCalculatedCosts({
@@ -661,9 +641,9 @@ const MyAssessments = () => {
       additionalCost,
       totalEquipmentCost,
       installationLaborCost,
-      subtotalCost,                    // ✅ Added
-      overheadContingencyCost,         // ✅ Added
-      contractorProfitCost,            // ✅ Added
+      subtotalCost,
+      overheadContingencyCost,
+      contractorProfitCost,
       totalSystemCost
     });
 
@@ -674,7 +654,7 @@ const MyAssessments = () => {
       totalCost: totalSystemCost,
       panelsNeeded: panelQuantity
     }));
-  }
+  };
 
   const ASSESSMENT_TYPES = {
     free_quote: {
@@ -813,7 +793,16 @@ const MyAssessments = () => {
         systemType: quote.systemType,
         monthlyBill: quote.monthlyBill,
         roofLength: quote.roofLength,
-        roofWidth: quote.roofWidth
+        roofWidth: quote.roofWidth,
+        // Stored calculations from database
+        recommendedSystemSize: quote.recommendedSystemSize || null,
+        inverterSize: quote.inverterSize || null,
+        batteryCapacityKwh: quote.batteryCapacityKwh || null,
+        panelsNeeded: quote.panelsNeeded || null,
+        totalDailyConsumption: quote.totalDailyConsumption || null,
+        dayPercentage: quote.dayPercentage || null,
+        nightPercentage: quote.nightPercentage || null,
+        targetSavings: quote.targetSavings || null
       }));
 
       const formattedPreAssessments = (preAssessmentsRes.data.assessments || []).map(assessment => ({
@@ -842,7 +831,16 @@ const MyAssessments = () => {
         deviceDeployedBy: assessment.deviceDeployedBy,
         dataCollectionStart: assessment.dataCollectionStart,
         dataCollectionEnd: assessment.dataCollectionEnd,
-        totalReadings: assessment.totalReadings
+        totalReadings: assessment.totalReadings,
+        // Stored calculations
+        recommendedSystemSize: assessment.recommendedSystemSize || null,
+        inverterSize: assessment.inverterSize || null,
+        batteryCapacityKwh: assessment.batteryCapacityKwh || null,
+        panelsNeeded: assessment.panelsNeeded || null,
+        totalDailyConsumption: assessment.totalDailyConsumption || null,
+        dayPercentage: assessment.dayPercentage || null,
+        nightPercentage: assessment.nightPercentage || null,
+        targetSavings: assessment.targetSavings || null
       }));
 
       setFreeQuotes(formattedFreeQuotes);
@@ -893,7 +891,19 @@ const MyAssessments = () => {
         address: addressData,
         systemType: quote.systemType,
         roofLength: quote.roofLength,
-        roofWidth: quote.roofWidth
+        roofWidth: quote.roofWidth,
+        // Stored calculations from database
+        recommendedSystemSize: quote.recommendedSystemSize || null,
+        inverterSize: quote.inverterSize || null,
+        batteryCapacityKwh: quote.batteryCapacityKwh || null,
+        panelsNeeded: quote.panelsNeeded || null,
+        monthlyConsumption: quote.monthlyConsumption || null,
+        dayConsumption: quote.dayConsumption || null,
+        nightConsumption: quote.nightConsumption || null,
+        dayPercentage: quote.dayPercentage || null,
+        nightPercentage: quote.nightPercentage || null,
+        totalDailyConsumption: quote.totalDailyConsumption || null,
+        targetSavings: quote.targetSavings || null
       };
 
       setSelectedItem(formattedQuote);
@@ -903,9 +913,9 @@ const MyAssessments = () => {
       setFreeQuoteForm({
         quotationNumber: formattedQuote.quotationReference || '',
         quotationExpiryDate: autoExpiryDate,
-        systemSize: '',
+        systemSize: formattedQuote.recommendedSystemSize || '',
         systemType: formattedQuote.systemType || 'grid-tie',
-        panelsNeeded: '',
+        panelsNeeded: formattedQuote.panelsNeeded || '',
         panelType: '',
         inverterType: '',
         batteryType: '',
@@ -918,6 +928,7 @@ const MyAssessments = () => {
         roofLength: formattedQuote.roofLength || '',
         roofWidth: formattedQuote.roofWidth || ''
       });
+
     } catch (err) {
       console.error('Error fetching free quote details:', err);
       showToast('Failed to load quote details', 'error');
@@ -967,12 +978,17 @@ const MyAssessments = () => {
         monthlyBill: assessment.monthlyBill || 0,
         rate: assessment.rate || 0,
         consumption: assessment.consumption || 0,
-        dayconsumption: assessment.dayConsumption || 0,
+        dayConsumption: assessment.dayConsumption || 0,
         nightConsumption: assessment.nightConsumption || 0,
         dayPercentage: assessment.dayPercentage || 0,
         nightPercentage: assessment.nightPercentage || 0,
         totalDailyConsumption: assessment.totalDailyConsumption || 0,
-        targetSavings: assessment.targetSavings || 0
+        targetSavings: assessment.targetSavings || 0,
+        // Stored calculations
+        recommendedSystemSize: assessment.recommendedSystemSize || null,
+        inverterSize: assessment.inverterSize || null,
+        batteryCapacityKwh: assessment.batteryCapacityKwh || null,
+        panelsNeeded: assessment.panelsNeeded || null
       };
 
       setSelectedItem(formattedAssessment);
@@ -1025,9 +1041,9 @@ const MyAssessments = () => {
         setQuotationForm({
           quotationNumber: autoQuotationNumber,
           quotationExpiryDate: autoExpiryDate,
-          systemSize: '',
+          systemSize: formattedAssessment.recommendedSystemSize || '',
           systemType: formattedAssessment.systemType || 'grid-tie',
-          panelsNeeded: '',
+          panelsNeeded: formattedAssessment.panelsNeeded || '',
           panelType: '',
           inverterType: '',
           batteryType: '',
@@ -1041,18 +1057,10 @@ const MyAssessments = () => {
 
       if (assessment.assessmentResults) {
         setAssessmentResults(assessment.assessmentResults);
-
-        // Fetch system recommendations from backend
-        const metrics = await fetchSystemRecommendations(assessmentId);
-
-        if (metrics && !quotationForm.systemSize) {
-          setQuotationForm(prev => ({
-            ...prev,
-            systemSize: metrics.recommendedSystemSize,
-            panelsNeeded: metrics.panelsNeeded.toString()
-          }));
-        }
       }
+
+      // Fetch system recommendations from backend
+      await fetchSystemRecommendations(assessmentId);
 
       if (assessment.sitePhotos) {
         setSiteImages(assessment.sitePhotos);
@@ -1252,9 +1260,10 @@ const MyAssessments = () => {
   };
 
   // Utility functions
-   const hasDeviceAssigned = (item) => {
+  const hasDeviceAssigned = (item) => {
     return !!(item.iotDeviceId || item.assignedDevice || item.assignedDeviceId);
   };
+  
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -1427,7 +1436,6 @@ const MyAssessments = () => {
   };
 
   const deployDevice = async () => {
-    // Add this check at the beginning
     if (!hasDeviceAssigned(selectedItem)) {
       showToast('Cannot deploy: No device assigned or device is not in assigned status', 'error');
       return;
@@ -1649,7 +1657,6 @@ const MyAssessments = () => {
             <p>Manage free quotes and site assessments assigned to you</p>
           </div>
 
-          {/* Search Bar */}
           <div className="search-bar-enad">
             <input
               type="text"
@@ -1660,7 +1667,6 @@ const MyAssessments = () => {
             />
           </div>
 
-          {/* Type Filter Tabs */}
           <div className="filter-tabs-enad">
             <button
               className={`filter-tab-enad ${activeTypeFilter === 'all' ? 'active-enad' : ''}`}
@@ -1682,7 +1688,6 @@ const MyAssessments = () => {
             </button>
           </div>
 
-          {/* Status Filter Tabs */}
           {uniqueStatuses.length > 0 && (
             <div className="filter-tabs-enad status-tabs-enad">
               <button
@@ -1734,6 +1739,7 @@ const MyAssessments = () => {
                         {item.systemType && <div className="detail-item-enad">System: {getSystemTypeLabel(item.systemType)}</div>}
                         {(item.roofLength || item.roofWidth) && <div className="detail-item-enad">Roof: {item.roofLength || '?'}m x {item.roofWidth || '?'}m</div>}
                         {item.type === 'free_quote' && item.monthlyBill && <div className="detail-item-enad">Monthly Bill: {formatCurrency(item.monthlyBill)}</div>}
+                        {item.recommendedSystemSize && <div className="detail-item-enad">System Size: {item.recommendedSystemSize} kWp</div>}
                         {item.type === 'pre_assessment' && hasDeviceAssigned(item) && <div className="detail-item-enad"><span className="badge-small-enad">Device Assigned</span></div>}
                         {item.type === 'pre_assessment' && item.dataCollectionStart && <div className="detail-item-enad">Data Collection: {formatDate(item.dataCollectionStart)} - {formatDate(item.dataCollectionEnd) || 'Ongoing'}</div>}
                       </div>
@@ -1783,14 +1789,57 @@ const MyAssessments = () => {
                 </div>
                 <div className={`status-badge-enad ${StatusConfig.color}`}>{StatusConfig.label}</div>
               </div>
+
+              {/* ============ STORED SYSTEM CALCULATIONS FROM DATABASE ============ */}
+              {selectedItem.recommendedSystemSize && (
+                <div className="system-recommendations" style={{ marginBottom: '20px' }}>
+                  <h4>System Size Calculations (from your energy profile)</h4>
+                  <div className="recommendations-grid">
+                    <div className="rec-item">
+                      <label>Recommended System Size</label>
+                      <strong>{selectedItem.recommendedSystemSize} kWp</strong>
+                    </div>
+                    {selectedItem.systemType !== 'grid-tie' && selectedItem.batteryCapacityKwh > 0 && (
+                      <div className="rec-item">
+                        <label>Battery Size</label>
+                        <strong>{selectedItem.batteryCapacityKwh} kWh</strong>
+                      </div>
+                    )}
+                    <div className="rec-item">
+                      <label>Inverter Size</label>
+                      <strong>{selectedItem.inverterSize} kW</strong>
+                    </div>
+                  
+                    <div className="rec-item">
+                      <label>Total Daily Consumption</label>
+                      <strong>{selectedItem.totalDailyConsumption?.toFixed(2) || 0} kWh/day</strong>
+                    </div>
+                    <div className="rec-item">
+                      <label>Day/Night Usage</label>
+                      <strong>{selectedItem.dayPercentage?.toFixed(0) || 0}% / {selectedItem.nightPercentage?.toFixed(0) || 0}%</strong>
+                    </div>
+                    {selectedItem.targetSavings && (
+                      <div className="rec-item">
+                        <label>Target Savings</label>
+                        <strong>{selectedItem.targetSavings}%</strong>
+                      </div>
+                    )}
+                    <div className="rec-item">
+                      <label>System Type</label>
+                      <strong>{getSystemTypeLabel(selectedItem.systemType)}</strong>
+                    </div>
+                  </div>
+                 
+                </div>
+              )}
+
               <div className="info-grid-enad">
                 <div className="info-item-enad"><span className="info-label-enad">Monthly Bill</span><span className="info-value-enad">{formatCurrency(selectedItem.monthlyBill)}</span></div>
                 <div className="info-item-enad"><span className="info-label-enad">Property Type</span><span className="info-value-enad capitalize">{selectedItem.propertyType}</span></div>
-                <div className="info-item-enad"><span className="info-label-enad">Desired Capacity</span><span className="info-value-enad">{selectedItem.desiredCapacity || 'Not specified'}</span></div>
-                {selectedItem.systemType && <div className="info-item-enad"><span className="info-label-enad">Preferred System Type</span><span className="info-value-enad">{getSystemTypeLabel(selectedItem.systemType)}</span></div>}
-                <div className="info-item-enad"><span className="info-label-enad">Requested Date</span><span className="info-value-enad">{formatDate(selectedItem.requestedAt)}</span></div>
+                
                 <div className="info-item-enad info-full-width-enad"><span className="info-label-enad">Address</span><span className="info-value-enad">{getFullAddress(selectedItem.address)}</span></div>
               </div>
+
               <div className="detail-section-enad">
                 <h3 className="detail-section-title-enad">Equipment Selection and Quotation</h3>
 
@@ -1998,8 +2047,6 @@ const MyAssessments = () => {
                 {/* Installation Labor */}
                 <div className="quotation-section">
                   <h4>Installation Labor</h4>
-
-                  {/* Labor Cost Percentage Input */}
                   <div className="labor-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
                       <div>
@@ -2016,7 +2063,7 @@ const MyAssessments = () => {
                           onChange={(e) => {
                             const value = parseInt(e.target.value) || 0;
                             setLaborCostPercentage(Math.min(100, Math.max(0, value)));
-                            setTimeout(() => calculateTotalCosts(), 0);
+                            setTimeout(() => freeQuoteCalculateTotalCosts(), 0);
                           }}
                           style={{ width: '100px' }}
                         />
@@ -2024,20 +2071,18 @@ const MyAssessments = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Labor Cost Display */}
                   <div className="labor-calculation">
                     <div className="labor-detail">
                       <span>Total Equipment Cost:</span>
-                      <span>{formatCurrency(calculatedCosts.totalEquipmentCost)}</span>
+                      <span>{formatCurrency(freeQuoteCalculatedCosts.totalEquipmentCost)}</span>
                     </div>
                     <div className="labor-detail">
                       <span>Labor Cost ({laborCostPercentage}%):</span>
-                      <span>{formatCurrency(calculatedCosts.installationLaborCost)}</span>
+                      <span>{formatCurrency(freeQuoteCalculatedCosts.installationLaborCost)}</span>
                     </div>
                     <div className="labor-total">
                       <strong>Subtotal (Equipment + Labor)</strong>
-                      <strong>{formatCurrency(calculatedCosts.subtotalCost)}</strong>
+                      <strong>{formatCurrency(freeQuoteCalculatedCosts.subtotalCost)}</strong>
                     </div>
                   </div>
                 </div>
@@ -2060,7 +2105,7 @@ const MyAssessments = () => {
                         onChange={(e) => {
                           const value = parseInt(e.target.value) || 0;
                           setOverheadContingencyPercentage(Math.min(100, Math.max(0, value)));
-                          setTimeout(() => calculateTotalCosts(), 0);
+                          setTimeout(() => freeQuoteCalculateTotalCosts(), 0);
                         }}
                         style={{ width: '100px' }}
                       />
@@ -2070,11 +2115,11 @@ const MyAssessments = () => {
                   <div className="cost-calculation">
                     <div className="cost-detail">
                       <span>Subtotal (Equipment + Labor):</span>
-                      <span>{formatCurrency(calculatedCosts.subtotalCost)}</span>
+                      <span>{formatCurrency(freeQuoteCalculatedCosts.subtotalCost)}</span>
                     </div>
                     <div className="cost-detail">
                       <span>Overhead & Contingency ({overheadContingencyPercentage}%):</span>
-                      <span>{formatCurrency(calculatedCosts.overheadContingencyCost)}</span>
+                      <span>{formatCurrency(freeQuoteCalculatedCosts.overheadContingencyCost)}</span>
                     </div>
                   </div>
                 </div>
@@ -2097,7 +2142,7 @@ const MyAssessments = () => {
                         onChange={(e) => {
                           const value = parseInt(e.target.value) || 0;
                           setContractorProfitPercentage(Math.min(100, Math.max(0, value)));
-                          setTimeout(() => calculateTotalCosts(), 0);
+                          setTimeout(() => freeQuoteCalculateTotalCosts(), 0);
                         }}
                         style={{ width: '100px' }}
                       />
@@ -2107,11 +2152,11 @@ const MyAssessments = () => {
                   <div className="cost-calculation">
                     <div className="cost-detail">
                       <span>Subtotal (Equipment + Labor):</span>
-                      <span>{formatCurrency(calculatedCosts.subtotalCost)}</span>
+                      <span>{formatCurrency(freeQuoteCalculatedCosts.subtotalCost)}</span>
                     </div>
                     <div className="cost-detail">
                       <span>Contractor Profit ({contractorProfitPercentage}%):</span>
-                      <span>{formatCurrency(calculatedCosts.contractorProfitCost)}</span>
+                      <span>{formatCurrency(freeQuoteCalculatedCosts.contractorProfitCost)}</span>
                     </div>
                   </div>
                 </div>
@@ -2119,22 +2164,22 @@ const MyAssessments = () => {
                 {/* Complete Cost Summary */}
                 <div className="cost-summary-large">
                   <h3>Complete Cost Summary</h3>
-                  <div className="summary-row"><span>Solar Panels:</span><span>{formatCurrency(calculatedCosts.panelCost)}</span></div>
-                  <div className="summary-row"><span>Inverters:</span><span>{formatCurrency(calculatedCosts.inverterCost)}</span></div>
-                  <div className="summary-row"><span>Batteries:</span><span>{formatCurrency(calculatedCosts.batteryCost)}</span></div>
-                  <div className="summary-row"><span>Mounting Structure:</span><span>{formatCurrency(calculatedCosts.mountingCost)}</span></div>
-                  <div className="summary-row"><span>Electrical Components:</span><span>{formatCurrency(calculatedCosts.electricalCost)}</span></div>
-                  <div className="summary-row"><span>Cables and Wiring:</span><span>{formatCurrency(calculatedCosts.cableCost)}</span></div>
-                  <div className="summary-row"><span>Junction Boxes:</span><span>{formatCurrency(calculatedCosts.junctionBoxCost)}</span></div>
-                  <div className="summary-row"><span>Disconnect Switches:</span><span>{formatCurrency(calculatedCosts.disconnectSwitchCost)}</span></div>
-                  <div className="summary-row"><span>Meters:</span><span>{formatCurrency(calculatedCosts.meterCost)}</span></div>
-                  <div className="summary-row"><span>Additional Equipment:</span><span>{formatCurrency(calculatedCosts.additionalCost)}</span></div>
-                  <div className="summary-row"><span>Equipment Total:</span><span>{formatCurrency(calculatedCosts.totalEquipmentCost)}</span></div>
-                  <div className="summary-row"><span>Installation Labor ({laborCostPercentage}%):</span><span>{formatCurrency(calculatedCosts.installationLaborCost)}</span></div>
-                  <div className="summary-row"><span>Subtotal (Equipment + Labor):</span><span>{formatCurrency(calculatedCosts.subtotalCost)}</span></div>
-                  <div className="summary-row"><span>Overhead & Contingency ({overheadContingencyPercentage}%):</span><span>{formatCurrency(calculatedCosts.overheadContingencyCost)}</span></div>
-                  <div className="summary-row"><span>Contractor Profit ({contractorProfitPercentage}%):</span><span>{formatCurrency(calculatedCosts.contractorProfitCost)}</span></div>
-                  <div className="summary-row total"><span>TOTAL SYSTEM COST:</span><span>{formatCurrency(calculatedCosts.totalSystemCost)}</span></div>
+                  <div className="summary-row"><span>Solar Panels:</span><span>{formatCurrency(freeQuoteCalculatedCosts.panelCost)}</span></div>
+                  <div className="summary-row"><span>Inverters:</span><span>{formatCurrency(freeQuoteCalculatedCosts.inverterCost)}</span></div>
+                  <div className="summary-row"><span>Batteries:</span><span>{formatCurrency(freeQuoteCalculatedCosts.batteryCost)}</span></div>
+                  <div className="summary-row"><span>Mounting Structure:</span><span>{formatCurrency(freeQuoteCalculatedCosts.mountingCost)}</span></div>
+                  <div className="summary-row"><span>Electrical Components:</span><span>{formatCurrency(freeQuoteCalculatedCosts.electricalCost)}</span></div>
+                  <div className="summary-row"><span>Cables and Wiring:</span><span>{formatCurrency(freeQuoteCalculatedCosts.cableCost)}</span></div>
+                  <div className="summary-row"><span>Junction Boxes:</span><span>{formatCurrency(freeQuoteCalculatedCosts.junctionBoxCost)}</span></div>
+                  <div className="summary-row"><span>Disconnect Switches:</span><span>{formatCurrency(freeQuoteCalculatedCosts.disconnectSwitchCost)}</span></div>
+                  <div className="summary-row"><span>Meters:</span><span>{formatCurrency(freeQuoteCalculatedCosts.meterCost)}</span></div>
+                  <div className="summary-row"><span>Additional Equipment:</span><span>{formatCurrency(freeQuoteCalculatedCosts.additionalCost)}</span></div>
+                  <div className="summary-row"><span>Equipment Total:</span><span>{formatCurrency(freeQuoteCalculatedCosts.totalEquipmentCost)}</span></div>
+                  <div className="summary-row"><span>Installation Labor ({laborCostPercentage}%):</span><span>{formatCurrency(freeQuoteCalculatedCosts.installationLaborCost)}</span></div>
+                  <div className="summary-row"><span>Subtotal (Equipment + Labor):</span><span>{formatCurrency(freeQuoteCalculatedCosts.subtotalCost)}</span></div>
+                  <div className="summary-row"><span>Overhead & Contingency ({overheadContingencyPercentage}%):</span><span>{formatCurrency(freeQuoteCalculatedCosts.overheadContingencyCost)}</span></div>
+                  <div className="summary-row"><span>Contractor Profit ({contractorProfitPercentage}%):</span><span>{formatCurrency(freeQuoteCalculatedCosts.contractorProfitCost)}</span></div>
+                  <div className="summary-row total"><span>TOTAL SYSTEM COST:</span><span>{formatCurrency(freeQuoteCalculatedCosts.totalSystemCost)}</span></div>
                 </div>
 
                 {/* Payment Terms & Remarks */}
@@ -2218,18 +2263,11 @@ const MyAssessments = () => {
                     </div>
                   )}
                   <div className="info-item-enad"><span className="info-label-enad">Desired Capacity</span><span className="info-value-enad">{selectedItem.desiredCapacity || 'Not specified'}</span></div>
-
                   <div className="info-item-enad"><span className="info-label-enad">Monthly Bill</span><span className="info-value-enad">{formatCurrency(selectedItem.monthlyBill || 0)}</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Monthly Consumption</span><span className="info-value-enad">{selectedItem.consumption || 0} kWh</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Rate per kWh</span><span className="info-value-enad">₱{(selectedItem.rate || 0).toFixed(2)}</span></div>
-                  <div className="info-item-enad">
-                    <span className="info-label-enad">Day Consumption</span>
-                    <span className="info-value-enad">{selectedItem.dayConsumption?.toFixed(2) || 0} kWh</span>
-                  </div>
-                  <div className="info-item-enad">
-                    <span className="info-label-enad">Night Consumption</span>
-                    <span className="info-value-enad">{selectedItem.nightConsumption?.toFixed(2) || 0} kWh</span>
-                  </div>
+                  <div className="info-item-enad"><span className="info-label-enad">Day Consumption</span><span className="info-value-enad">{selectedItem.dayConsumption?.toFixed(2) || 0} kWh</span></div>
+                  <div className="info-item-enad"><span className="info-label-enad">Night Consumption</span><span className="info-value-enad">{selectedItem.nightConsumption?.toFixed(2) || 0} kWh</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Day/Night Usage</span><span className="info-value-enad">{selectedItem.dayPercentage || 0}% / {selectedItem.nightPercentage || 0}%</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption</span><span className="info-value-enad">{selectedItem.totalDailyConsumption || 0} kWh/day</span></div>
                   {selectedItem.targetSavings && (
@@ -2238,7 +2276,30 @@ const MyAssessments = () => {
                       <span className="info-value-enad">{selectedItem.targetSavings}%</span>
                     </div>
                   )}
-
+                  {selectedItem.recommendedSystemSize && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Recommended System Size</span>
+                      <span className="info-value-enad">{selectedItem.recommendedSystemSize} kWp</span>
+                    </div>
+                  )}
+                  {selectedItem.inverterSize && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Inverter Size</span>
+                      <span className="info-value-enad">{selectedItem.inverterSize} kW</span>
+                    </div>
+                  )}
+                  {selectedItem.batteryCapacityKwh > 0 && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Battery Capacity</span>
+                      <span className="info-value-enad">{selectedItem.batteryCapacityKwh} kWh</span>
+                    </div>
+                  )}
+                  {selectedItem.panelsNeeded && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Panels Needed</span>
+                      <span className="info-value-enad">{selectedItem.panelsNeeded} panels</span>
+                    </div>
+                  )}
                   <div className="info-item-enad"><span className="info-label-enad">Booked Date</span><span className="info-value-enad">{formatDate(selectedItem.bookedAt)}</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Preferred Date</span><span className="info-value-enad">{formatDate(selectedItem.preferredDate)}</span></div>
                   {selectedItem.siteVisitDate && <div className="info-item-enad"><span className="info-label-enad">Site Visit Date</span><span className="info-value-enad">{formatDate(selectedItem.siteVisitDate)}</span></div>}
@@ -2443,15 +2504,12 @@ const MyAssessments = () => {
                           <label>Recommended System Size</label>
                           <strong>{systemMetrics.recommendedSystemSize} kWp</strong>
                         </div>
-
-                        {/* Only show Battery Size for Hybrid or Off-Grid, NOT for Grid-Tie */}
                         {systemMetrics.systemType !== 'grid-tie' && (
                           <div className="rec-item">
                             <label>Battery Size</label>
                             <strong>{systemMetrics.batteryCapacityKwh} kWh</strong>
                           </div>
                         )}
-
                         <div className="rec-item">
                           <label>Inverter Size</label>
                           <strong>{systemMetrics.inverterSize} kW</strong>
@@ -2682,9 +2740,6 @@ const MyAssessments = () => {
 
                 {/* Installation Labor */}
                 <div className="quotation-section">
-
-
-                  {/* Labor Cost Percentage Input */}
                   <div className="labor-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
                       <div>
@@ -2710,7 +2765,6 @@ const MyAssessments = () => {
                     </div>
                   </div>
 
-                  {/* Labor Cost Display */}
                   <div className="labor-calculation">
                     <div className="labor-detail">
                       <span>Total Equipment Cost:</span>
@@ -2729,7 +2783,6 @@ const MyAssessments = () => {
 
                 {/* Overhead & Contingency */}
                 <div className="quotation-section">
-
                   <div className="cost-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
                     <div>
                       <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
@@ -2749,11 +2802,9 @@ const MyAssessments = () => {
                         }}
                         style={{ width: '100px' }}
                       />
-
                     </div>
                   </div>
                   <div className="cost-calculation">
-
                     <div className="cost-detail">
                       <span>Overhead & Contingency ({overheadContingencyPercentage}%):</span>
                       <span>{formatCurrency(calculatedCosts.overheadContingencyCost)}</span>
@@ -2763,7 +2814,6 @@ const MyAssessments = () => {
 
                 {/* Contractor Profit */}
                 <div className="quotation-section">
-
                   <div className="cost-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
                     <div>
                       <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
@@ -2783,11 +2833,9 @@ const MyAssessments = () => {
                         }}
                         style={{ width: '100px' }}
                       />
-
                     </div>
                   </div>
                   <div className="cost-calculation">
-
                     <div className="cost-detail">
                       <span>Contractor Profit ({contractorProfitPercentage}%):</span>
                       <span>{formatCurrency(calculatedCosts.contractorProfitCost)}</span>
@@ -2937,7 +2985,6 @@ const MyAssessments = () => {
         </div>
       )}
 
-      {/* Submit Final Report Confirmation Modal */}
       {showReportConfirmModal && (
         <div className="modal-overlay-enad" onClick={closeReportConfirmModal}>
           <div className="modal-content-enad confirm-modal-enad" onClick={e => e.stopPropagation()}>

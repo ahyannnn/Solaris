@@ -1,41 +1,106 @@
+// routes/paymentRoutes.js
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/authMiddleware');
+const paymentsController = require('../controllers/paymentController');
 
-const paymentController = require('../controllers/paymentController');
+// =============================================
+// PRE-ASSESSMENT PAYMENT
+// =============================================
 
-// Create payment intent (for both card and GCash)
 router.post(
   '/pre-assessment/:id/create-intent',
   verifyToken,
-  paymentController.createPreAssessmentPaymentIntent
+  paymentsController.createPreAssessmentPaymentIntent
 );
 
-// ✅ ADD THIS NEW ROUTE FOR INVOICE PAYMENTS
+// =============================================
+// INVOICE PAYMENT (PROJECT BILL)
+// =============================================
+
 router.post(
   '/invoice/:invoiceId/create-intent',
   verifyToken,
-  paymentController.createInvoicePaymentIntent
+  paymentsController.createInvoicePaymentIntent
 );
-// Process card payment
+
+// =============================================
+// ✅ NEW: BANK TRANSFER (DOB/Brankas)
+// =============================================
+
+// @route   POST /api/payments/bank-transfer/:invoiceId/create-intent
+// @desc    Create bank transfer payment intent (DOB/Brankas)
+// @access  Private
+router.post(
+  '/bank-transfer/:invoiceId/create-intent',
+  verifyToken,
+  paymentsController.createBankTransferPaymentIntent
+);
+
+// =============================================
+// CARD PAYMENT
+// =============================================
+
 router.post(
   '/process-card-payment',
   verifyToken,
-  paymentController.processCardPayment
+  paymentsController.processCardPayment
 );
 
-// Verify payment (for both card and GCash)
+// =============================================
+// BANK TRANSFER (BRANKAS) - Legacy
+// =============================================
+
+router.post(
+  '/create-brankas-source',
+  verifyToken,
+  paymentsController.createBrankasPaymentSource
+);
+
+// =============================================
+// PAYMENT STATUS & VERIFICATION
+// =============================================
+
 router.get(
   '/verify/:paymentIntentId',
   verifyToken,
-  paymentController.verifyPayment
+  paymentsController.verifyPayment
 );
 
-// Get test card (development only)
+router.get(
+  '/status/:paymentIntentId',
+  verifyToken,
+  paymentsController.getPaymentStatus
+);
+
+// =============================================
+// SUPPORTED BANKS
+// =============================================
+
+router.get(
+  '/supported-banks',
+  verifyToken,
+  paymentsController.getSupportedBanks
+);
+
+// =============================================
+// WEBHOOK (PUBLIC - No Auth)
+// =============================================
+
+router.post(
+  '/webhook',
+  express.raw({ type: 'application/json' }),
+  paymentsController.handlePayMongoWebhook
+);
+
+// =============================================
+// TEST CARD (Development Only)
+// =============================================
+
 router.get(
   '/test-card',
   verifyToken,
-  paymentController.getTestCard
+  paymentsController.getTestCard
 );
 
 module.exports = router;

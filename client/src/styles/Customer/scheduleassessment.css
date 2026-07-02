@@ -343,7 +343,195 @@
   cursor: pointer;
   transition: all 0.2s;
 }
+/* Quotation Actions in Request Modal */
+.quotation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
 
+.quotation-actions button {
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.view-quote-btn {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+.view-quote-btn:hover {
+  background: #bbdefb;
+}
+
+.download-quote-btn {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+.download-quote-btn:hover {
+  background: #e1bee7;
+}
+
+.accept-quote-btn {
+  background: #4caf50;
+  color: white;
+}
+.accept-quote-btn:hover {
+  background: #388e3c;
+}
+
+.project-created-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+/* Accept Quotation Modal */
+.accept-quote-modal {
+  max-width: 600px;
+  width: 95%;
+}
+
+.quotation-summary {
+  background: #f5f9ff;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #d1e0f5;
+}
+
+.quotation-summary h4 {
+  margin-bottom: 12px;
+  color: #1a3a6b;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid #e8edf5;
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+}
+
+.payment-preference-section {
+  margin-top: 10px;
+}
+
+.payment-preference-section h4 {
+  margin-bottom: 12px;
+  color: #333;
+}
+
+.preference-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.preference-option:hover {
+  border-color: #b0b0b0;
+}
+
+.preference-option.selected {
+  border-color: #4caf50;
+  background: #f1f8f1;
+}
+
+.preference-option input[type="radio"] {
+  margin-top: 3px;
+  cursor: pointer;
+}
+
+.preference-content {
+  flex: 1;
+}
+
+.preference-content strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.preference-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: #555;
+}
+
+.preference-details .retention-note {
+  color: #e65100;
+  font-weight: 500;
+}
+
+.preference-details.full-payment {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a3a6b;
+}
+
+.confirm-btn-cusset {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.confirm-btn-cusset:hover:not(:disabled) {
+  background: #388e3c;
+}
+
+.confirm-btn-cusset:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancel-btn-cusset {
+  background: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 10px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.cancel-btn-cusset:hover {
+  background: #e0e0e0;
+}
+
+/* Status badge for quotation accepted */
+.status-badge-schedule.quotation-accepted {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
 .schedule-btn-secondary-cusset:hover {
   background: var(--border-light);
 }

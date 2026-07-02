@@ -30,10 +30,10 @@ const projectSchema = new mongoose.Schema({
   amountPaid: { type: Number, default: 0 },
   balance: { type: Number, default: 0 },
 
-  // Payment Preferences
+  // ✅ FIXED: Payment Preferences - Added all options
   paymentPreference: {
     type: String,
-    enum: ['full', 'installment'],
+    enum: ['full', 'installment', 'fifty_fifty', 'thirty_sixty_ten'],
     default: 'installment'
   },
   fullPaymentCompleted: {
@@ -41,7 +41,7 @@ const projectSchema = new mongoose.Schema({
     default: false
   },
 
-  // Payment Schedule (Updated to include 'full' type)
+  // Payment Schedule
   paymentSchedule: [{
     type: { type: String, enum: ['initial', 'progress', 'final', 'full'] },
     amount: Number,
@@ -53,8 +53,8 @@ const projectSchema = new mongoose.Schema({
     paymentProof: String,
     paymentReference: String,
     receiptUrl: { type: String },
-  receiptNumber: { type: String },
-  receiptGeneratedAt: { type: Date }
+    receiptNumber: { type: String },
+    receiptGeneratedAt: { type: Date }
   }],
 
   // Project Timeline
@@ -96,9 +96,10 @@ const projectSchema = new mongoose.Schema({
     issuedAt: Date,
     paidAt: Date
   }],
-  // Add after fullPaymentCompleted field (around line 45)
+  
   paymongoPaymentIntentId: { type: String, index: true },
   currentPaymentId: { type: String },
+
   // Project Updates/Audit Trail
   projectUpdates: [{
     title: String,
@@ -141,14 +142,11 @@ projectSchema.methods.calculateBalance = function () {
   return this.balance;
 };
 
-// models/Project.js - Update the recordPayment method
-
 // Method to record payment (for installment payments)
 projectSchema.methods.recordPayment = async function(amount, paymentType, invoiceId, paymentProof, paymentReference) {
   this.amountPaid += amount;
   this.calculateBalance();
   
-  // Update payment schedule
   const scheduleItem = this.paymentSchedule.find(p => p.type === paymentType);
   if (scheduleItem) {
     scheduleItem.paidAt = new Date();
@@ -158,17 +156,14 @@ projectSchema.methods.recordPayment = async function(amount, paymentType, invoic
     if (paymentReference) scheduleItem.paymentReference = paymentReference;
   }
   
-  // Update project status based on payments (installment logic)
   if (this.amountPaid >= this.totalCost) {
-    this.status = 'full_paid';  // Changed from 'completed' to 'full_paid'
-    // DO NOT set actualCompletionDate here
+    this.status = 'full_paid';
   } else if (this.amountPaid >= this.initialPayment && this.status === 'approved') {
     this.status = 'in_progress';
   } else if (this.amountPaid >= this.initialPayment + this.progressPayment) {
     this.status = 'progress_paid';
   }
   
-  // Add to project updates
   this.projectUpdates = this.projectUpdates || [];
   this.projectUpdates.push({
     title: `Payment Received - ${paymentType.toUpperCase()}`,
@@ -180,15 +175,12 @@ projectSchema.methods.recordPayment = async function(amount, paymentType, invoic
   return this.save();
 };
 
-// models/Project.js - Update recordFullPayment method
-
 // Method to record full payment
 projectSchema.methods.recordFullPayment = async function (amount, paymentMethod, paymentReference, paymentProof) {
   this.amountPaid = amount;
   this.balance = this.totalCost - amount;
   this.fullPaymentCompleted = true;
 
-  // Update payment schedule
   const scheduleItem = this.paymentSchedule.find(p => p.type === 'full');
   if (scheduleItem) {
     scheduleItem.paidAt = new Date();
@@ -197,12 +189,8 @@ projectSchema.methods.recordFullPayment = async function (amount, paymentMethod,
     if (paymentProof) scheduleItem.paymentProof = paymentProof;
   }
 
-  // ✅ FIXED: Set status to 'full_paid' instead of 'completed'
-  // This means payment is complete but installation hasn't started yet
   this.status = 'full_paid';
-  // DO NOT set actualCompletionDate - that's for when installation is complete
 
-  // Add to project updates
   this.projectUpdates = this.projectUpdates || [];
   this.projectUpdates.push({
     title: 'Full Payment Received',
@@ -214,14 +202,12 @@ projectSchema.methods.recordFullPayment = async function (amount, paymentMethod,
   return this.save();
 };
 
-// Pre-save middleware - FIXED: removed the 'next' parameter since we're not using async operations
+// Pre-save middleware
 projectSchema.pre('save', function () {
-  // Calculate balance if totalCost or amountPaid changed
   if (this.isModified('totalCost') || this.isModified('amountPaid')) {
     this.balance = (this.totalCost || 0) - (this.amountPaid || 0);
   }
 
-  // Set default project reference if not provided
   if (!this.projectReference) {
     const date = new Date();
     const year = date.getFullYear().toString().slice(-2);

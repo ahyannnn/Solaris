@@ -25,13 +25,64 @@ const formatCurrency = (amount) => {
     maximumFractionDigits: 0
   }).format(amount || 0);
 };
-// controllers/projectController.js
 
-// controllers/projectController.js - REPLACE the uploadProjectPhotos function with this:
+// Helper function to generate project reference
+const generateProjectReference = () => {
+  const date = new Date();
+  const year = date.getFullYear().toString().slice(-2);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  return `PROJ-${year}${month}-${random}`;
+};
+
+// Helper function to parse safe numbers
+const parseSafeNumber = (value) => {
+  if (!value) return null;
+  const parsed = parseFloat(value);
+  return isNaN(parsed) ? null : parsed;
+};
+
+// Helper function to generate invoice number
+const generateInvoiceNumber = () => {
+  const date = new Date();
+  const year = date.getFullYear().toString().slice(-2);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  return `SOL-${year}${month}${day}-${random}`;
+};
+
+// Helper function to get invoice item name with correct percentage
+const getInvoiceItemName = (invoiceType, project, paymentPreference) => {
+  const typeLabels = {
+    'initial': `Initial Deposit - ${project.projectName}`,
+    'progress': `Progress Payment - ${project.projectName}`,
+    'final': `Final Payment - ${project.projectName}`,
+    'full': `Full Payment - ${project.projectName}`,
+    'additional': `Additional Work - ${project.projectName}`
+  };
+  return typeLabels[invoiceType] || `Solar Installation Payment - ${project.projectName}`;
+};
+
+// Helper function to get invoice type label with percentage
+const getInvoiceTypeLabel = (invoiceType, paymentPreference) => {
+  const labels = {
+    'initial': 'Initial Deposit',
+    'progress': 'Progress Payment',
+    'final': 'Final Payment',
+    'full': 'Full Payment',
+    'additional': 'Additional Work'
+  };
+  return labels[invoiceType] || invoiceType;
+};
+
+// =============================================
+// UPLOAD PROJECT PHOTOS
+// =============================================
 
 // @desc    Upload project photos (Engineer) - Direct Cloudinary Upload
 // @route   POST /api/projects/:id/upload-photos
-// @access  Private (Engineager)
+// @access  Private (Engineer)
 exports.uploadProjectPhotos = async (req, res) => {
   try {
     const { id } = req.params;
@@ -61,7 +112,6 @@ exports.uploadProjectPhotos = async (req, res) => {
       try {
         console.log(`⬆️ Uploading: ${file.originalname} (${(file.size / 1024).toFixed(2)} KB)`);
 
-        // Upload directly to Cloudinary
         const result = await new Promise((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
             {
@@ -78,7 +128,6 @@ exports.uploadProjectPhotos = async (req, res) => {
             }
           );
           
-          // Convert buffer to stream
           const bufferStream = require('stream').Readable.from(file.buffer);
           bufferStream.pipe(uploadStream);
         });
@@ -86,7 +135,6 @@ exports.uploadProjectPhotos = async (req, res) => {
         console.log(`✅ Uploaded to Cloudinary: ${result.secure_url}`);
         photoUrls.push(result.secure_url);
 
-        // Create file record in database
         const fileRecord = new File({
           filename: result.public_id.split('/').pop(),
           originalName: file.originalname,
@@ -122,7 +170,6 @@ exports.uploadProjectPhotos = async (req, res) => {
       });
     }
 
-    // Add new photos to existing ones
     project.sitePhotos = [...(project.sitePhotos || []), ...photoUrls];
     await project.save();
 
@@ -145,6 +192,10 @@ exports.uploadProjectPhotos = async (req, res) => {
     });
   }
 };
+
+// =============================================
+// PAYMONGO PAYMENT FUNCTIONS
+// =============================================
 
 // @desc    Create PayMongo payment intent for project payment
 // @route   POST /api/projects/:id/create-payment-intent/:paymentId
@@ -172,7 +223,6 @@ exports.createProjectPayMongoPaymentIntent = async (req, res) => {
     let paymentAmount = 0;
     let paymentTypeName = '';
 
-    // Handle full payment
     if (paymentId === 'full') {
       if (project.fullPaymentCompleted) {
         return res.status(400).json({ message: 'Full payment already completed' });
@@ -180,7 +230,6 @@ exports.createProjectPayMongoPaymentIntent = async (req, res) => {
       paymentAmount = project.totalCost - project.amountPaid;
       paymentTypeName = 'full';
     } else {
-      // Find the specific payment in schedule
       const payment = project.paymentSchedule.find(p => p.type === paymentId);
       if (!payment) {
         return res.status(404).json({ message: 'Payment not found' });
@@ -280,7 +329,6 @@ exports.verifyProjectPayMongoPayment = async (req, res) => {
     const paymentId = metadata.paymentId;
     const paymentTypeName = metadata.paymentType;
 
-    // In verifyProjectPayMongoPayment function, update this section:
     if (paymentId === 'full') {
       await project.recordFullPayment(
         paymentIntent.amount,
@@ -304,9 +352,7 @@ exports.verifyProjectPayMongoPayment = async (req, res) => {
         } else if (paymentTypeName === 'progress' && project.status === 'in_progress') {
           project.status = 'progress_paid';
         } else if (project.amountPaid >= project.totalCost) {
-          // ✅ FIXED: Set to full_paid instead of completed
           project.status = 'full_paid';
-          // DO NOT set actualCompletionDate here
         }
 
         await project.save();
@@ -330,7 +376,10 @@ exports.verifyProjectPayMongoPayment = async (req, res) => {
     res.status(500).json({ message: 'Failed to verify payment', error: error.message });
   }
 };
-// ============ CUSTOMER FUNCTIONS ============
+
+// =============================================
+// CUSTOMER FUNCTIONS
+// =============================================
 
 // @desc    Get client's projects
 // @route   GET /api/projects/my-projects
@@ -345,20 +394,16 @@ exports.getMyProjects = async (req, res) => {
     }
 
     const projects = await Project.find({ clientId: client._id })
-      .populate('assignedEngineerId', 'firstName lastName email fullName name') // Add fullName and name
+      .populate('assignedEngineerId', 'firstName lastName email fullName name')
       .populate('preAssessmentId')
       .populate('addressId')
       .sort({ createdAt: -1 });
     
-    // Process projects to add engineerFullName
     const processedProjects = projects.map(project => {
       const projectObj = project.toObject();
       
-      // Add engineer full name if engineer exists
       if (projectObj.assignedEngineerId) {
         const engineer = projectObj.assignedEngineerId;
-        
-        // Create full name from available fields
         let engineerFullName = '';
         
         if (engineer.fullName && engineer.fullName !== 'undefined undefined') {
@@ -372,7 +417,6 @@ exports.getMyProjects = async (req, res) => {
         } else if (engineer.name) {
           engineerFullName = engineer.name;
         } else if (engineer.email) {
-          // Format email to name
           const emailName = engineer.email.split('@')[0];
           engineerFullName = emailName
             .split(/[._-]/)
@@ -401,6 +445,10 @@ exports.getMyProjects = async (req, res) => {
   }
 };
 
+// =============================================
+// ⭐ CREATE PROJECT FROM ACCEPTED QUOTATION
+// =============================================
+
 // @desc    Create project from accepted quotation (when customer accepts)
 // @route   POST /api/projects/accept
 // @access  Private (Customer)
@@ -417,18 +465,112 @@ exports.createProjectFromAcceptance = async (req, res) => {
     let sourceData;
     let projectData = {};
 
-    const generateProjectReference = () => {
-      const date = new Date();
-      const year = date.getFullYear().toString().slice(-2);
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-      return `PROJ-${year}${month}-${random}`;
-    };
-
+    // =============================================
+    // ✅ HANDLE FREE QUOTE SOURCE
+    // =============================================
     if (sourceType === 'free-quote') {
       sourceData = await FreeQuote.findById(sourceId).populate('addressId');
       if (!sourceData || sourceData.clientId.toString() !== client._id.toString()) {
         return res.status(404).json({ message: 'Free quote not found' });
+      }
+
+      const systemSize = sourceData.quotationDetails?.systemSize || 
+                         sourceData.recommendedSystemSize || 
+                         sourceData.desiredCapacity || 
+                         5;
+      
+      const totalCost = sourceData.quotationDetails?.totalCost || 
+                        (sourceData.quotationDetails?.equipmentCost || 0) + 
+                        (sourceData.quotationDetails?.installationCost || 0) ||
+                        0;
+      
+      const systemType = sourceData.quotationDetails?.systemType || 
+                         sourceData.systemType || 
+                         'grid-tie';
+      
+      const panelsNeeded = sourceData.quotationDetails?.panelsNeeded || 
+                           sourceData.panelsNeeded || 
+                           Math.ceil(systemSize / 0.55);
+      
+      const inverterType = sourceData.quotationDetails?.equipmentBreakdown?.inverter?.name || null;
+      const batteryType = sourceData.quotationDetails?.equipmentBreakdown?.battery?.name || null;
+
+      // Calculate payment schedule based on preference
+      let paymentSchedule = [];
+      let initialPayment = 0;
+      let progressPayment = 0;
+      let finalPayment = 0;
+
+      if (paymentPreference === 'full') {
+        paymentSchedule.push({
+          type: 'full',
+          amount: totalCost,
+          dueDate: new Date(),
+          status: 'pending'
+        });
+      } else if (paymentPreference === 'fifty_fifty') {
+        initialPayment = totalCost * 0.5;
+        finalPayment = totalCost * 0.5;
+        
+        paymentSchedule.push({
+          type: 'initial',
+          amount: initialPayment,
+          dueDate: new Date(),
+          status: 'pending'
+        });
+        paymentSchedule.push({
+          type: 'final',
+          amount: finalPayment,
+          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          status: 'pending'
+        });
+      } else if (paymentPreference === 'thirty_sixty_ten') {
+        initialPayment = totalCost * 0.3;
+        progressPayment = totalCost * 0.6;
+        finalPayment = totalCost * 0.1;
+        
+        paymentSchedule.push({
+          type: 'initial',
+          amount: initialPayment,
+          dueDate: new Date(),
+          status: 'pending'
+        });
+        paymentSchedule.push({
+          type: 'progress',
+          amount: progressPayment,
+          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          status: 'pending'
+        });
+        paymentSchedule.push({
+          type: 'final',
+          amount: finalPayment,
+          dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+          status: 'pending'
+        });
+      } else {
+        // Default: 30% - 40% - 30%
+        initialPayment = totalCost * 0.3;
+        progressPayment = totalCost * 0.4;
+        finalPayment = totalCost * 0.3;
+        
+        paymentSchedule.push({
+          type: 'initial',
+          amount: initialPayment,
+          dueDate: new Date(),
+          status: 'pending'
+        });
+        paymentSchedule.push({
+          type: 'progress',
+          amount: progressPayment,
+          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          status: 'pending'
+        });
+        paymentSchedule.push({
+          type: 'final',
+          amount: finalPayment,
+          dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+          status: 'pending'
+        });
       }
 
       projectData = {
@@ -436,16 +578,32 @@ exports.createProjectFromAcceptance = async (req, res) => {
         clientId: client._id,
         userId: client.userId,
         addressId: sourceData.addressId?._id,
-        systemSize: parseFloat(sourceData.desiredCapacity) || 5,
-        systemType: 'grid-tie',
-        totalCost: 0,
-        status: 'quoted',
+        systemSize: parseFloat(systemSize),
+        systemType: systemType,
+        panelsNeeded: parseInt(panelsNeeded) || 0,
+        inverterType: inverterType,
+        batteryType: batteryType,
+        totalCost: totalCost,
+        initialPayment: initialPayment,
+        progressPayment: progressPayment,
+        finalPayment: finalPayment,
+        amountPaid: 0,
+        balance: totalCost,
+        paymentSchedule: paymentSchedule,
+        quotationFile: sourceData.quotationFile || sourceData.quotationUrl,
+        status: paymentPreference === 'full' ? 'approved' : 'quoted',
         projectName: `${client.contactFirstName} ${client.contactLastName} - Solar Installation`,
         sourceType: 'free-quote',
         sourceId: sourceData._id,
         paymentPreference: paymentPreference || 'installment',
         fullPaymentCompleted: false
       };
+
+      console.log(`✅ Free quote accepted: ${sourceData.quotationReference} with payment: ${paymentPreference}`);
+
+    // =============================================
+    // ✅ HANDLE PRE-ASSESSMENT SOURCE
+    // =============================================
     } else if (sourceType === 'pre-assessment') {
       sourceData = await PreAssessment.findById(sourceId).populate('addressId');
       if (!sourceData || sourceData.clientId.toString() !== client._id.toString()) {
@@ -455,47 +613,81 @@ exports.createProjectFromAcceptance = async (req, res) => {
       const systemDetails = sourceData.quotation?.systemDetails || {};
       const totalCost = systemDetails.totalCost || sourceData.finalSystemCost || 0;
 
-      const parseSafeNumber = (value) => {
-        if (!value) return null;
-        const parsed = parseFloat(value);
-        return isNaN(parsed) ? null : parsed;
-      };
-
-      // Calculate payment schedule based on preference
       let paymentSchedule = [];
-
-      console.log('Payment preference received:', paymentPreference);
+      let initialPayment = 0;
+      let progressPayment = 0;
+      let finalPayment = 0;
 
       if (paymentPreference === 'full') {
-        // For full payment, create a single payment entry
         paymentSchedule.push({
           type: 'full',
           amount: totalCost,
           dueDate: new Date(),
           status: 'pending'
         });
+      } else if (paymentPreference === 'fifty_fifty') {
+        initialPayment = totalCost * 0.5;
+        finalPayment = totalCost * 0.5;
+        
+        paymentSchedule.push({
+          type: 'initial',
+          amount: initialPayment,
+          dueDate: new Date(),
+          status: 'pending'
+        });
+        paymentSchedule.push({
+          type: 'final',
+          amount: finalPayment,
+          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          status: 'pending'
+        });
+      } else if (paymentPreference === 'thirty_sixty_ten') {
+        initialPayment = totalCost * 0.3;
+        progressPayment = totalCost * 0.6;
+        finalPayment = totalCost * 0.1;
+        
+        paymentSchedule.push({
+          type: 'initial',
+          amount: initialPayment,
+          dueDate: new Date(),
+          status: 'pending'
+        });
+        paymentSchedule.push({
+          type: 'progress',
+          amount: progressPayment,
+          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          status: 'pending'
+        });
+        paymentSchedule.push({
+          type: 'final',
+          amount: finalPayment,
+          dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+          status: 'pending'
+        });
       } else {
-        // Installment payments (default)
-        if (totalCost > 0) {
-          paymentSchedule.push({
-            type: 'initial',
-            amount: totalCost * 0.3,
-            dueDate: new Date(),
-            status: 'pending'
-          });
-          paymentSchedule.push({
-            type: 'progress',
-            amount: totalCost * 0.4,
-            dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            status: 'pending'
-          });
-          paymentSchedule.push({
-            type: 'final',
-            amount: totalCost * 0.3,
-            dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-            status: 'pending'
-          });
-        }
+        // Default: 30% - 40% - 30%
+        initialPayment = totalCost * 0.3;
+        progressPayment = totalCost * 0.4;
+        finalPayment = totalCost * 0.3;
+        
+        paymentSchedule.push({
+          type: 'initial',
+          amount: initialPayment,
+          dueDate: new Date(),
+          status: 'pending'
+        });
+        paymentSchedule.push({
+          type: 'progress',
+          amount: progressPayment,
+          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          status: 'pending'
+        });
+        paymentSchedule.push({
+          type: 'final',
+          amount: finalPayment,
+          dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+          status: 'pending'
+        });
       }
 
       projectData = {
@@ -510,9 +702,9 @@ exports.createProjectFromAcceptance = async (req, res) => {
         inverterType: systemDetails.inverterType || null,
         batteryType: systemDetails.batteryType || null,
         totalCost: totalCost,
-        initialPayment: paymentPreference === 'installment' ? totalCost * 0.3 : 0,
-        progressPayment: paymentPreference === 'installment' ? totalCost * 0.4 : 0,
-        finalPayment: paymentPreference === 'installment' ? totalCost * 0.3 : 0,
+        initialPayment: initialPayment,
+        progressPayment: progressPayment,
+        finalPayment: finalPayment,
         amountPaid: 0,
         balance: totalCost,
         paymentSchedule: paymentSchedule,
@@ -525,9 +717,10 @@ exports.createProjectFromAcceptance = async (req, res) => {
         fullPaymentCompleted: false
       };
 
-      console.log('Created project with paymentPreference:', projectData.paymentPreference);
+      console.log(`✅ Pre-assessment accepted: ${sourceData.bookingReference} with payment: ${paymentPreference}`);
+
     } else {
-      return res.status(400).json({ message: 'Invalid source type' });
+      return res.status(400).json({ message: 'Invalid source type. Must be "free-quote" or "pre-assessment"' });
     }
 
     // Remove any undefined or NaN values
@@ -540,28 +733,47 @@ exports.createProjectFromAcceptance = async (req, res) => {
     const project = new Project(projectData);
     await project.save();
 
-    // Update the source to mark as accepted
+    // ✅ Update the source to mark as accepted
     if (sourceType === 'free-quote') {
       sourceData.status = 'accepted';
       await sourceData.save();
+      console.log(`✅ Free quote ${sourceData.quotationReference} marked as accepted`);
     } else if (sourceType === 'pre-assessment') {
       if (sourceData.assessmentStatus) {
         sourceData.assessmentStatus = 'quotation_accepted';
         await sourceData.save();
+        console.log(`✅ Pre-assessment ${sourceData.bookingReference} marked as quotation_accepted`);
       }
     }
 
     res.status(201).json({
       success: true,
       message: 'Project created successfully',
-      project
+      project: {
+        _id: project._id,
+        projectReference: project.projectReference,
+        projectName: project.projectName,
+        totalCost: project.totalCost,
+        status: project.status,
+        paymentPreference: project.paymentPreference,
+        sourceType: project.sourceType,
+        paymentSchedule: project.paymentSchedule
+      }
     });
 
   } catch (error) {
     console.error('Create project from acceptance error:', error);
-    res.status(500).json({ message: 'Failed to create project', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to create project', 
+      error: error.message 
+    });
   }
 };
+
+// =============================================
+// RECORD PAYMENT (Customer)
+// =============================================
 
 // @desc    Record payment on project (Customer)
 // @route   POST /api/projects/:id/payments
@@ -601,7 +813,9 @@ exports.recordPayment = async (req, res) => {
   }
 };
 
-// ============ ENGINEER FUNCTIONS ============
+// =============================================
+// ENGINEER FUNCTIONS
+// =============================================
 
 // @desc    Get engineer's assigned projects
 // @route   GET /api/projects/engineer/my-projects
@@ -663,16 +877,15 @@ exports.updateProjectProgress = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this project' });
     }
 
-    // ✅ CORRECTED valid transitions based on your model
     const validTransitions = {
       'quoted': ['approved'],
       'approved': ['initial_paid', 'in_progress', 'cancelled'],
       'initial_paid': ['in_progress', 'cancelled'],
-      'full_paid': ['in_progress', 'completed', 'cancelled'],  // ✅ Allow full_paid → completed
-      'in_progress': ['progress_paid', 'full_paid', 'completed', 'cancelled'],  // ✅ Allow in_progress → full_paid
+      'full_paid': ['in_progress', 'completed', 'cancelled'],
+      'in_progress': ['progress_paid', 'full_paid', 'completed', 'cancelled'],
       'progress_paid': ['completed', 'in_progress', 'cancelled'],
-      'completed': [],  // Terminal state
-      'cancelled': []   // Terminal state
+      'completed': [],
+      'cancelled': []
     };
 
     if (status && validTransitions[project.status] && !validTransitions[project.status].includes(status)) {
@@ -688,7 +901,6 @@ exports.updateProjectProgress = async (req, res) => {
       const oldStatus = project.status;
       project.status = status;
 
-      // Initialize projectUpdates array if it doesn't exist
       if (!project.projectUpdates) project.projectUpdates = [];
       
       project.projectUpdates.push({
@@ -698,12 +910,10 @@ exports.updateProjectProgress = async (req, res) => {
         updatedBy: engineerId
       });
 
-      // Set start date when project moves to in_progress
       if (status === 'in_progress' && !project.startDate) {
         project.startDate = new Date();
       }
 
-      // Set completion date when project moves to completed
       if (status === 'completed') {
         project.actualCompletionDate = new Date();
       }
@@ -723,9 +933,9 @@ exports.updateProjectProgress = async (req, res) => {
   }
 };
 
-
-
-// ============ ADMIN FUNCTIONS ============
+// =============================================
+// ADMIN FUNCTIONS
+// =============================================
 
 // @desc    Get all projects (Admin)
 // @route   GET /api/projects
@@ -769,73 +979,55 @@ exports.getAllProjects = async (req, res) => {
   }
 };
 
-// Helper function to generate invoice number
-const generateInvoiceNumber = () => {
-  const date = new Date();
-  const year = date.getFullYear().toString().slice(-2);
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  return `SOL-${year}${month}${day}-${random}`;
-};
-
-// Helper function to get invoice item name
-const getInvoiceItemName = (invoiceType, project) => {
-  const typeLabels = {
-    'initial': `Initial Deposit (30%) - ${project.projectName}`,
-    'progress': `Progress Payment (40%) - ${project.projectName}`,
-    'final': `Final Payment (30%) - ${project.projectName}`,
-    'full': `Full Payment - ${project.projectName}`,
-    'additional': `Additional Work - ${project.projectName}`
-  };
-  return typeLabels[invoiceType] || `Solar Installation Payment - ${project.projectName}`;
-};
-
-// Helper function to get invoice type label
-const getInvoiceTypeLabel = (invoiceType) => {
-  const labels = {
-    'initial': 'Initial Deposit (30%)',
-    'progress': 'Progress Payment (40%)',
-    'final': 'Final Payment (30%)',
-    'full': 'Full Payment',
-    'additional': 'Additional Work'
-  };
-  return labels[invoiceType] || invoiceType;
-};
-
-// controllers/projectController.js - Update the createSolarInvoice function
+// =============================================
+// ⭐ FIXED: INVOICE FUNCTIONS - SUPPORTS ALL PAYMENT PLANS
+// =============================================
 
 const createSolarInvoice = async (project, invoiceType, amount, adminId, customDueDate = null) => {
   try {
-    // ✅ Ensure clientId is properly referenced
     const clientId = project.clientId._id || project.clientId;
     const userId = project.userId;
 
-    // Set due date
     let dueDate = customDueDate;
     if (!dueDate) {
       if (invoiceType === 'initial') {
-        dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+        dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       } else if (invoiceType === 'progress') {
-        dueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+        dueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       } else if (invoiceType === 'final') {
-        dueDate = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000); // 60 days from now
+        dueDate = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
       } else if (invoiceType === 'full') {
-        dueDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14 days for full payment
+        dueDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
       } else {
         dueDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
       }
     }
 
-    // Calculate tax (12% VAT)
     const subtotal = amount;
     const tax = subtotal * 0.12;
     const totalAmount = subtotal + tax;
 
-    // Create invoice items
+    // Get payment preference for display
+    const paymentPref = project.paymentPreference || 'installment';
+    
+    // Build description with percentage info
+    let percentageLabel = '';
+    if (invoiceType === 'initial') {
+      if (paymentPref === 'fifty_fifty') percentageLabel = ' (50%)';
+      else if (paymentPref === 'thirty_sixty_ten') percentageLabel = ' (30%)';
+      else percentageLabel = ' (30%)';
+    } else if (invoiceType === 'progress') {
+      if (paymentPref === 'thirty_sixty_ten') percentageLabel = ' (60%)';
+      else percentageLabel = ' (40%)';
+    } else if (invoiceType === 'final') {
+      if (paymentPref === 'fifty_fifty') percentageLabel = ' (50%)';
+      else if (paymentPref === 'thirty_sixty_ten') percentageLabel = ' (10%)';
+      else percentageLabel = ' (30%)';
+    }
+
     const invoiceItems = [{
-      name: getInvoiceItemName(invoiceType, project),
-      description: `${getInvoiceTypeLabel(invoiceType)} for solar installation`,
+      name: `${getInvoiceTypeLabel(invoiceType)}${percentageLabel} - ${project.projectName}`,
+      description: `${getInvoiceTypeLabel(invoiceType)} payment${percentageLabel} for solar installation`,
       quantity: 1,
       unitPrice: amount,
       total: amount
@@ -848,7 +1040,7 @@ const createSolarInvoice = async (project, invoiceType, amount, adminId, customD
       invoiceNumber: generateInvoiceNumber(),
       quotationReference: project.projectReference,
       invoiceType: invoiceType,
-      description: `${getInvoiceTypeLabel(invoiceType)} for ${project.projectName}`,
+      description: `${getInvoiceTypeLabel(invoiceType)}${percentageLabel} for ${project.projectName}`,
       items: invoiceItems,
       subtotal: subtotal,
       tax: tax,
@@ -857,16 +1049,15 @@ const createSolarInvoice = async (project, invoiceType, amount, adminId, customD
       dueDate: dueDate,
       issueDate: new Date(),
       paymentStatus: 'pending',
-      status: 'pending', // Changed from 'draft' to 'pending'
+      status: 'pending',
       amountPaid: 0,
       balance: totalAmount,
       createdBy: adminId,
-      notes: `Auto-generated upon project approval`
+      notes: `Auto-generated upon project approval (${paymentPref})`
     });
 
     await invoice.save();
 
-    // Update project's invoices array
     project.invoices = project.invoices || [];
     project.invoices.push({
       _id: invoice._id,
@@ -875,7 +1066,7 @@ const createSolarInvoice = async (project, invoiceType, amount, adminId, customD
       issuedAt: new Date()
     });
 
-    console.log(`✅ Invoice created: ${invoice.invoiceNumber} for project ${project.projectReference}`);
+    console.log(`✅ Invoice created: ${invoice.invoiceNumber} (${invoiceType}) for project ${project.projectReference}`);
     return invoice;
 
   } catch (error) {
@@ -884,31 +1075,56 @@ const createSolarInvoice = async (project, invoiceType, amount, adminId, customD
   }
 };
 
-// controllers/projectController.js - Update the generateProjectInvoices function
-
+// ⭐ FIXED: Generate invoices based on payment preference
 const generateProjectInvoices = async (project, adminId) => {
   try {
     const invoicesCreated = [];
 
-    // ✅ Verify that clientId is populated
     if (!project.clientId || !project.clientId._id) {
       console.error('Project clientId not populated:', project._id);
       throw new Error('Client information not available. Make sure to populate clientId when fetching project.');
     }
 
-    // Generate invoice based on payment preference
-    if (project.paymentPreference === 'full') {
-      // Create single full payment invoice
+    const paymentPreference = project.paymentPreference || 'installment';
+    console.log(`📋 Generating invoices for payment plan: ${paymentPreference}`);
+
+    // =============================================
+    // FULL PAYMENT: Single invoice
+    // =============================================
+    if (paymentPreference === 'full') {
       const fullPayment = project.paymentSchedule.find(p => p.type === 'full');
       if (fullPayment && fullPayment.status !== 'paid') {
         const invoice = await createSolarInvoice(project, 'full', fullPayment.amount, adminId);
         invoicesCreated.push(invoice);
-
-        // Update payment schedule with invoice reference
         fullPayment.invoiceNumber = invoice.invoiceNumber;
+        console.log(`✅ Full payment invoice created: ${invoice.invoiceNumber}`);
       }
-    } else {
-      // Create installment invoices (initial, progress, final)
+    } 
+    // =============================================
+    // 50% - 50%: Initial + Final
+    // =============================================
+    else if (paymentPreference === 'fifty_fifty') {
+      const initialPayment = project.paymentSchedule.find(p => p.type === 'initial');
+      const finalPayment = project.paymentSchedule.find(p => p.type === 'final');
+
+      if (initialPayment && initialPayment.status !== 'paid') {
+        const invoice = await createSolarInvoice(project, 'initial', initialPayment.amount, adminId);
+        invoicesCreated.push(invoice);
+        initialPayment.invoiceNumber = invoice.invoiceNumber;
+        console.log(`✅ 50% initial invoice created: ${invoice.invoiceNumber}`);
+      }
+
+      if (finalPayment && finalPayment.status !== 'paid') {
+        const invoice = await createSolarInvoice(project, 'final', finalPayment.amount, adminId, finalPayment.dueDate);
+        invoicesCreated.push(invoice);
+        finalPayment.invoiceNumber = invoice.invoiceNumber;
+        console.log(`✅ 50% final invoice created: ${invoice.invoiceNumber}`);
+      }
+    } 
+    // =============================================
+    // 30% - 60% - 10%: Initial + Progress + Final (Retention)
+    // =============================================
+    else if (paymentPreference === 'thirty_sixty_ten') {
       const initialPayment = project.paymentSchedule.find(p => p.type === 'initial');
       const progressPayment = project.paymentSchedule.find(p => p.type === 'progress');
       const finalPayment = project.paymentSchedule.find(p => p.type === 'final');
@@ -917,23 +1133,55 @@ const generateProjectInvoices = async (project, adminId) => {
         const invoice = await createSolarInvoice(project, 'initial', initialPayment.amount, adminId);
         invoicesCreated.push(invoice);
         initialPayment.invoiceNumber = invoice.invoiceNumber;
+        console.log(`✅ 30% initial invoice created: ${invoice.invoiceNumber}`);
       }
 
       if (progressPayment && progressPayment.status !== 'paid') {
         const invoice = await createSolarInvoice(project, 'progress', progressPayment.amount, adminId, progressPayment.dueDate);
         invoicesCreated.push(invoice);
         progressPayment.invoiceNumber = invoice.invoiceNumber;
+        console.log(`✅ 60% progress invoice created: ${invoice.invoiceNumber}`);
       }
 
       if (finalPayment && finalPayment.status !== 'paid') {
         const invoice = await createSolarInvoice(project, 'final', finalPayment.amount, adminId, finalPayment.dueDate);
         invoicesCreated.push(invoice);
         finalPayment.invoiceNumber = invoice.invoiceNumber;
+        console.log(`✅ 10% final (retention) invoice created: ${invoice.invoiceNumber}`);
+      }
+    } 
+    // =============================================
+    // DEFAULT: 30% - 40% - 30% (Installment)
+    // =============================================
+    else {
+      const initialPayment = project.paymentSchedule.find(p => p.type === 'initial');
+      const progressPayment = project.paymentSchedule.find(p => p.type === 'progress');
+      const finalPayment = project.paymentSchedule.find(p => p.type === 'final');
+
+      if (initialPayment && initialPayment.status !== 'paid') {
+        const invoice = await createSolarInvoice(project, 'initial', initialPayment.amount, adminId);
+        invoicesCreated.push(invoice);
+        initialPayment.invoiceNumber = invoice.invoiceNumber;
+        console.log(`✅ 30% initial invoice created: ${invoice.invoiceNumber}`);
+      }
+
+      if (progressPayment && progressPayment.status !== 'paid') {
+        const invoice = await createSolarInvoice(project, 'progress', progressPayment.amount, adminId, progressPayment.dueDate);
+        invoicesCreated.push(invoice);
+        progressPayment.invoiceNumber = invoice.invoiceNumber;
+        console.log(`✅ 40% progress invoice created: ${invoice.invoiceNumber}`);
+      }
+
+      if (finalPayment && finalPayment.status !== 'paid') {
+        const invoice = await createSolarInvoice(project, 'final', finalPayment.amount, adminId, finalPayment.dueDate);
+        invoicesCreated.push(invoice);
+        finalPayment.invoiceNumber = invoice.invoiceNumber;
+        console.log(`✅ 30% final invoice created: ${invoice.invoiceNumber}`);
       }
     }
 
     await project.save();
-    console.log(`✅ Generated ${invoicesCreated.length} invoices for project ${project.projectReference}`);
+    console.log(`✅ Total ${invoicesCreated.length} invoices generated for project ${project.projectReference}`);
     return invoicesCreated;
 
   } catch (error) {
@@ -942,15 +1190,15 @@ const generateProjectInvoices = async (project, adminId) => {
   }
 };
 
-// controllers/projectController.js - Replace the updateProjectStatus function
-
+// @desc    Update project status (Admin)
+// @route   PUT /api/projects/:id/status
+// @access  Private (Admin)
 exports.updateProjectStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, notes } = req.body;
     const adminId = req.user.id;
 
-    // ✅ IMPORTANT: Populate clientId when fetching the project
     const project = await Project.findById(id)
       .populate('clientId', 'contactFirstName contactLastName contactNumber userId email')
       .populate('addressId');
@@ -959,13 +1207,10 @@ exports.updateProjectStatus = async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
 
-    // controllers/projectController.js - Update validTransitions
-
-    // Validate status transition
     const validTransitions = {
       'quoted': ['approved', 'cancelled'],
-      'approved': ['initial_paid', 'full_paid', 'cancelled'],  // Added full_paid
-      'full_paid': ['in_progress', 'cancelled'],  // Can go to in_progress from full_paid
+      'approved': ['initial_paid', 'full_paid', 'cancelled'],
+      'full_paid': ['in_progress', 'cancelled'],
       'initial_paid': ['in_progress', 'cancelled'],
       'in_progress': ['progress_paid', 'completed', 'cancelled'],
       'progress_paid': ['completed', 'cancelled'],
@@ -986,15 +1231,11 @@ exports.updateProjectStatus = async (req, res) => {
       project.approvedAt = new Date();
       project.approvedBy = adminId;
 
-      // ✅ AUTO-GENERATE INVOICES WHEN PROJECT IS APPROVED
       try {
-        // Pass the populated project object
         const invoicesCreated = await generateProjectInvoices(project, adminId);
         console.log(`✅ ${invoicesCreated.length} invoices auto-generated for project ${project.projectReference}`);
       } catch (invoiceError) {
         console.error('Failed to generate invoices:', invoiceError);
-        // Don't block status update if invoice generation fails
-        // But send a warning in the response
         return res.status(200).json({
           success: true,
           message: `Project status updated to ${status}, but invoice generation failed: ${invoiceError.message}`,
@@ -1094,14 +1335,12 @@ exports.recordProjectPayment = async (req, res) => {
       return res.status(400).json({ message: 'Invalid payment amount' });
     }
 
-    // Find the corresponding invoice for this payment type
     const invoice = await SolarInvoice.findOne({
       projectId: id,
       invoiceType: paymentType,
       paymentStatus: { $in: ['pending', 'partial'] }
     });
 
-    // Update payment schedule
     const scheduleItem = project.paymentSchedule.find(p => p.type === paymentType);
     if (scheduleItem) {
       scheduleItem.status = 'paid';
@@ -1109,30 +1348,24 @@ exports.recordProjectPayment = async (req, res) => {
       scheduleItem.paymentReference = paymentReference;
     }
 
-    // Update amount paid
     project.amountPaid += amount;
     project.balance = project.totalCost - project.amountPaid;
 
-    // ✅ FIXED: Update project status based on payment type
     if (paymentType === 'initial' && project.status === 'approved') {
       project.status = 'initial_paid';
     } else if (paymentType === 'progress' && project.status === 'in_progress') {
       project.status = 'progress_paid';
     } else if (paymentType === 'final') {
       if (project.amountPaid >= project.totalCost) {
-        project.status = 'full_paid';  // ✅ Changed from 'completed' to 'full_paid'
-        // DO NOT set actualCompletionDate here
+        project.status = 'full_paid';
       }
     } else if (paymentType === 'full') {
-      // Handle full payment recording by admin
       if (project.amountPaid >= project.totalCost) {
-        project.status = 'full_paid';  // ✅ Set to full_paid, not completed
+        project.status = 'full_paid';
         project.fullPaymentCompleted = true;
-        // DO NOT set actualCompletionDate
       }
     }
 
-    // ✅ Update invoice if found
     if (invoice) {
       await invoice.addPayment({
         amount: amount,
@@ -1172,6 +1405,7 @@ exports.recordProjectPayment = async (req, res) => {
     res.status(500).json({ message: 'Failed to record payment', error: error.message });
   }
 };
+
 // @desc    Get project statistics for admin dashboard
 // @route   GET /api/projects/stats
 // @access  Private (Admin)
@@ -1181,7 +1415,7 @@ exports.getProjectStats = async (req, res) => {
     const quoted = await Project.countDocuments({ status: 'quoted' });
     const approved = await Project.countDocuments({ status: 'approved' });
     const initialPaid = await Project.countDocuments({ status: 'initial_paid' });
-    const fullPaid = await Project.countDocuments({ status: 'full_paid' });  // ADD THIS
+    const fullPaid = await Project.countDocuments({ status: 'full_paid' });
     const inProgress = await Project.countDocuments({ status: 'in_progress' });
     const progressPaid = await Project.countDocuments({ status: 'progress_paid' });
     const completed = await Project.countDocuments({ status: 'completed' });
@@ -1193,12 +1427,10 @@ exports.getProjectStats = async (req, res) => {
     ]);
     const totalRevenue = revenueResult[0]?.total || 0;
 
-    // Get projects by source type
     const fromPreAssessment = await Project.countDocuments({ sourceType: 'pre-assessment' });
     const fromFreeQuote = await Project.countDocuments({ sourceType: 'free-quote' });
     const fromAdmin = await Project.countDocuments({ sourceType: 'admin' });
 
-    // Monthly stats for chart
     const monthlyStats = await Project.aggregate([
       {
         $group: {
@@ -1218,7 +1450,7 @@ exports.getProjectStats = async (req, res) => {
         quoted,
         approved,
         initialPaid,
-        fullPaid,  // ADD THIS
+        fullPaid,
         inProgress,
         progressPaid,
         completed,
@@ -1258,7 +1490,6 @@ exports.getProjectById = async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
 
-    // Check authorization
     const client = await Client.findOne({ userId });
     if (userRole !== 'admin' && userRole !== 'engineer' &&
       project.clientId._id.toString() !== client?._id.toString()) {
@@ -1298,14 +1529,6 @@ exports.createProject = async (req, res) => {
     if (!client) {
       return res.status(404).json({ message: 'Client not found' });
     }
-
-    const generateProjectReference = () => {
-      const date = new Date();
-      const year = date.getFullYear().toString().slice(-2);
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-      return `PROJ-${year}${month}-${random}`;
-    };
 
     const projectName = `${client.contactFirstName} ${client.contactLastName} - Solar Installation`;
 
@@ -1367,140 +1590,8 @@ exports.createProject = async (req, res) => {
     res.status(500).json({ message: 'Failed to create project', error: error.message });
   }
 };
-// controllers/projectController.js - Updated createProjectFromAcceptance function
 
-exports.createProjectFromAcceptance = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { sourceType, sourceId, paymentPreference } = req.body;
-
-    const client = await Client.findOne({ userId });
-    if (!client) {
-      return res.status(404).json({ message: 'Client not found' });
-    }
-
-    let sourceData;
-    let projectData = {};
-
-    const generateProjectReference = () => {
-      const date = new Date();
-      const year = date.getFullYear().toString().slice(-2);
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-      return `PROJ-${year}${month}-${random}`;
-    };
-
-    if (sourceType === 'pre-assessment') {
-      sourceData = await PreAssessment.findById(sourceId).populate('addressId');
-      if (!sourceData || sourceData.clientId.toString() !== client._id.toString()) {
-        return res.status(404).json({ message: 'Pre-assessment not found' });
-      }
-
-      const systemDetails = sourceData.quotation?.systemDetails || {};
-      const totalCost = systemDetails.totalCost || sourceData.finalSystemCost || 0;
-
-      const parseSafeNumber = (value) => {
-        if (!value) return null;
-        const parsed = parseFloat(value);
-        return isNaN(parsed) ? null : parsed;
-      };
-
-      // Calculate payment schedule based on preference
-      let paymentSchedule = [];
-
-      if (paymentPreference === 'full') {
-        // For full payment, create a single payment entry
-        paymentSchedule.push({
-          type: 'full',
-          amount: totalCost,
-          dueDate: new Date(),
-          status: 'pending'
-        });
-      } else {
-        // Installment payments
-        if (totalCost > 0) {
-          paymentSchedule.push({
-            type: 'initial',
-            amount: totalCost * 0.3,
-            dueDate: new Date(),
-            status: 'pending'
-          });
-          paymentSchedule.push({
-            type: 'progress',
-            amount: totalCost * 0.4,
-            dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            status: 'pending'
-          });
-          paymentSchedule.push({
-            type: 'final',
-            amount: totalCost * 0.3,
-            dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-            status: 'pending'
-          });
-        }
-      }
-
-      projectData = {
-        projectReference: generateProjectReference(),
-        clientId: client._id,
-        userId: client.userId,
-        addressId: sourceData.addressId?._id,
-        preAssessmentId: sourceData._id,
-        systemSize: parseSafeNumber(systemDetails.systemSize) || parseSafeNumber(sourceData.desiredCapacity) || 5,
-        systemType: systemDetails.systemType || sourceData.recommendedSystemType || sourceData.systemType || 'grid-tie',
-        panelsNeeded: parseSafeNumber(systemDetails.panelsNeeded) || sourceData.panelsNeeded || null,
-        inverterType: systemDetails.inverterType || null,
-        batteryType: systemDetails.batteryType || null,
-        totalCost: totalCost,
-        initialPayment: paymentPreference === 'installment' ? totalCost * 0.3 : 0,
-        progressPayment: paymentPreference === 'installment' ? totalCost * 0.4 : 0,
-        finalPayment: paymentPreference === 'installment' ? totalCost * 0.3 : 0,
-        amountPaid: 0,
-        balance: totalCost,
-        paymentSchedule: paymentSchedule,
-        quotationFile: sourceData.finalQuotation || sourceData.quotation?.quotationUrl,
-        status: paymentPreference === 'full' ? 'approved' : 'quoted',
-        projectName: `${client.contactFirstName} ${client.contactLastName} - Solar Installation`,
-        sourceType: 'pre-assessment',
-        sourceId: sourceData._id,
-        paymentPreference: paymentPreference || 'installment',
-        fullPaymentCompleted: false
-      };
-    } else {
-      return res.status(400).json({ message: 'Invalid source type' });
-    }
-
-    // Remove any undefined or NaN values
-    Object.keys(projectData).forEach(key => {
-      if (projectData[key] === undefined || (typeof projectData[key] === 'number' && isNaN(projectData[key]))) {
-        delete projectData[key];
-      }
-    });
-
-    const project = new Project(projectData);
-    await project.save();
-
-    // Update the source to mark as accepted
-    if (sourceData.assessmentStatus) {
-      sourceData.assessmentStatus = 'quotation_accepted';
-      await sourceData.save();
-    }
-
-    res.status(201).json({
-      success: true,
-      message: 'Project created successfully',
-      project
-    });
-
-  } catch (error) {
-    console.error('Create project from acceptance error:', error);
-    res.status(500).json({ message: 'Failed to create project', error: error.message });
-  }
-};
-
-// controllers/projectController.js - Replace your processFullPayment function with this
-
-// @desc    Process full payment for project (no discount)
+// @desc    Process full payment for project
 // @route   POST /api/projects/:id/full-payment
 // @access  Private (Customer)
 exports.processFullPayment = async (req, res) => {
@@ -1508,10 +1599,8 @@ exports.processFullPayment = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
 
-    // Parse the request body properly
     let amount, paymentMethod, paymentReference, paymentType;
 
-    // Handle both FormData and JSON requests
     if (req.body.amount) {
       amount = parseFloat(req.body.amount);
       paymentMethod = req.body.paymentMethod;
@@ -1526,7 +1615,6 @@ exports.processFullPayment = async (req, res) => {
 
     console.log('Full payment request:', { id, amount, paymentMethod, paymentReference, paymentType });
 
-    // Validate required fields
     if (!amount || isNaN(amount)) {
       return res.status(400).json({ message: 'Invalid payment amount' });
     }
@@ -1540,19 +1628,11 @@ exports.processFullPayment = async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
 
-    console.log('Project found:', {
-      id: project._id,
-      paymentPreference: project.paymentPreference,
-      totalCost: project.totalCost,
-      fullPaymentCompleted: project.fullPaymentCompleted
-    });
-
     const client = await Client.findOne({ userId });
     if (!client || project.clientId.toString() !== client._id.toString()) {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
-    // Check if full payment is applicable
     if (project.paymentPreference !== 'full') {
       return res.status(400).json({
         message: 'Full payment not selected for this project. Selected: ' + project.paymentPreference
@@ -1564,10 +1644,8 @@ exports.processFullPayment = async (req, res) => {
     }
 
     const expectedAmount = project.totalCost;
-
-    // Compare with tolerance for floating point errors
     const amountDifference = Math.abs(amount - expectedAmount);
-    if (amountDifference > 0.01) { // Allow 1 cent difference
+    if (amountDifference > 0.01) {
       return res.status(400).json({
         message: `Payment amount should be ${expectedAmount}, but received ${amount}`,
         expected: expectedAmount,
@@ -1575,13 +1653,11 @@ exports.processFullPayment = async (req, res) => {
       });
     }
 
-    // Handle file upload for GCash proof
     let paymentProofUrl = null;
     if (req.file) {
       paymentProofUrl = req.file.path;
     }
 
-    // Record the payment
     await project.recordFullPayment(expectedAmount, paymentMethod, paymentReference, paymentProofUrl);
 
     res.json({

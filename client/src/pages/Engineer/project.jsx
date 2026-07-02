@@ -28,7 +28,8 @@ import {
   FaCamera,
   FaMoneyBillWaveAlt,
   FaTrash,
-  FaImage
+  FaImage,
+  FaPercentage
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Engineer/project.css';
@@ -84,20 +85,17 @@ const EngineerProject = () => {
     try {
       const token = sessionStorage.getItem('token');
       
-      // Determine the new status based on selection
       let newStatus = progressForm.status;
       
-      // If the project is full_paid (installment) and engineer selects completed, allow it
       if (selectedProject.status === 'full_paid' && 
-          selectedProject.paymentPreference === 'installment' && 
+          selectedProject.paymentPreference !== 'full' && 
           progressForm.status === 'completed') {
         newStatus = 'completed';
       }
       
-      // If current status is in_progress and engineer selects full_paid (final payment received)
       if (selectedProject.status === 'in_progress' && 
           progressForm.status === 'full_paid' && 
-          selectedProject.paymentPreference === 'installment') {
+          selectedProject.paymentPreference !== 'full') {
         newStatus = 'full_paid';
       }
       
@@ -198,22 +196,53 @@ const EngineerProject = () => {
     });
   };
 
+  // ✅ FIXED: Get payment type label for display
+  const getPaymentTypeLabel = (paymentPreference) => {
+    const labels = {
+      'full': 'Full Payment',
+      'installment': 'Installment (30-40-30)',
+      'fifty_fifty': 'Installment (50-50)',
+      'thirty_sixty_ten': 'Installment (30-60-10)'
+    };
+    return labels[paymentPreference] || 'Installment Plan';
+  };
+
+  // ✅ FIXED: Get payment type description for the badge
+  const getPaymentTypeDescription = (paymentPreference) => {
+    const descriptions = {
+      'full': '100% One-time Payment',
+      'installment': '30% → 40% → 30%',
+      'fifty_fifty': '50% → 50%',
+      'thirty_sixty_ten': '30% → 60% → 10%'
+    };
+    return descriptions[paymentPreference] || '';
+  };
+
+  // ✅ FIXED: Check if full payment is completed
+  const isFullPaymentCompleted = (project) => {
+    return project.status === 'full_paid' || 
+           (project.paymentPreference === 'full' && project.amountPaid >= project.totalCost);
+  };
+
   const getStatusBadge = (status, paymentPreference) => {
-    if (status === 'full_paid' && paymentPreference === 'installment') {
-      return <span className="status-badge-engineerproject full-paid-installment">Final Payment Received - Complete Project</span>;
-    }
-    if (status === 'full_paid' && paymentPreference === 'full') {
-      return <span className="status-badge-engineerproject full-paid">Full Payment Completed (Ready for Installation)</span>;
+    // For full_paid status with different payment preferences
+    if (status === 'full_paid') {
+      if (paymentPreference === 'full') {
+        return <span className="status-badge-engineerproject full-paid">💳 Full Payment Completed</span>;
+      } else {
+        // For installment plans (fifty_fifty, thirty_sixty_ten, installment)
+        return <span className="status-badge-engineerproject full-paid-installment">✅ Final Payment Received</span>;
+      }
     }
     
     const badges = {
-      'quoted': <span className="status-badge-engineerproject quoted">Quoted</span>,
-      'approved': <span className="status-badge-engineerproject approved">Approved</span>,
-      'initial_paid': <span className="status-badge-engineerproject initial-paid">Initial Paid</span>,
-      'in_progress': <span className="status-badge-engineerproject in-progress">In Progress</span>,
-      'progress_paid': <span className="status-badge-engineerproject progress-paid">Progress Paid</span>,
-      'completed': <span className="status-badge-engineerproject completed">Completed</span>,
-      'cancelled': <span className="status-badge-engineerproject cancelled">Cancelled</span>
+      'quoted': <span className="status-badge-engineerproject quoted">📄 Quoted</span>,
+      'approved': <span className="status-badge-engineerproject approved">✅ Approved</span>,
+      'initial_paid': <span className="status-badge-engineerproject initial-paid">💰 Initial Paid</span>,
+      'in_progress': <span className="status-badge-engineerproject in-progress">🔧 In Progress</span>,
+      'progress_paid': <span className="status-badge-engineerproject progress-paid">📊 Progress Paid</span>,
+      'completed': <span className="status-badge-engineerproject completed">🎉 Completed</span>,
+      'cancelled': <span className="status-badge-engineerproject cancelled">❌ Cancelled</span>
     };
     return badges[status] || <span className="status-badge-engineerproject">{status}</span>;
   };
@@ -222,10 +251,8 @@ const EngineerProject = () => {
     if (paymentPreference === 'full') {
       return ['approved', 'initial_paid', 'full_paid'].includes(status);
     }
-    if (paymentPreference === 'installment') {
-      return ['approved', 'initial_paid'].includes(status);
-    }
-    return false;
+    // For all installment types
+    return ['approved', 'initial_paid'].includes(status);
   };
 
   const filteredProjects = projects.filter(project => {
@@ -323,7 +350,8 @@ const EngineerProject = () => {
               const isInProgress = project.status === 'in_progress';
               const isProgressPaid = project.status === 'progress_paid';
               const isFullPaid = project.status === 'full_paid';
-              const isInstallmentFullPaid = isFullPaid && project.paymentPreference === 'installment';
+              const isFullPayment = project.paymentPreference === 'full';
+              const isInstallmentFullPaid = isFullPaid && !isFullPayment;
 
               return (
                 <div key={project._id} className="project-card-engineerproject">
@@ -345,9 +373,9 @@ const EngineerProject = () => {
                       <div className="detail-item full-paid-badge">
                         <FaMoneyBillWaveAlt />
                         <span className="full-paid-text">
-                          {project.paymentPreference === 'installment' 
-                            ? 'Final Payment Received - Complete the project' 
-                            : 'Full Payment Completed - Ready for Installation'}
+                          {isFullPayment 
+                            ? '💳 Full Payment Completed - Ready for Installation' 
+                            : '✅ Final Payment Received - Complete the project'}
                         </span>
                       </div>
                     )}
@@ -355,12 +383,14 @@ const EngineerProject = () => {
 
                   <div className="payment-info-engineerproject">
                     <div className="payment-stats">
-                      <span className="paid-amount"></span>
                       <span className="total-amount">Total: {formatCurrency(project.totalCost)}</span>
                     </div>
                     <div className="payment-method-badge">
                       <span className={`payment-method ${project.paymentPreference}`}>
-                        {project.paymentPreference === 'installment' ? 'Installment Plan' : 'Full Payment'}
+                        {getPaymentTypeLabel(project.paymentPreference)}
+                        <span className="payment-method-detail">
+                          {getPaymentTypeDescription(project.paymentPreference)}
+                        </span>
                       </span>
                     </div>
                   </div>
@@ -370,7 +400,7 @@ const EngineerProject = () => {
                       <FaEye /> View Details
                     </button>
 
-                    {/* Start Installation button - for approved/initial_paid status */}
+                    {/* Start Installation button */}
                     {canStart && !isInstallmentFullPaid && (
                       <button
                         className="action-btn start"
@@ -385,7 +415,7 @@ const EngineerProject = () => {
                       </button>
                     )}
 
-                    {/* Update Progress button - for in_progress or progress_paid */}
+                    {/* Update Progress button */}
                     {(isInProgress || isProgressPaid) && (
                       <button
                         className="action-btn update"
@@ -405,8 +435,8 @@ const EngineerProject = () => {
                       </button>
                     )}
 
-                    {/* Complete Project button for full_paid (installment) */}
-                    {isFullPaid && project.paymentPreference === 'installment' && (
+                    {/* Complete Project button for full_paid (installment only) */}
+                    {isFullPaid && !isFullPayment && (
                       <button
                         className="action-btn complete"
                         onClick={() => {
@@ -424,8 +454,8 @@ const EngineerProject = () => {
                       </button>
                     )}
 
-                    {/* Confirm Final Payment button for in_progress with installment */}
-                    {isInProgress && project.paymentPreference === 'installment' && (
+                    {/* Confirm Final Payment button for in_progress (installment only) */}
+                    {isInProgress && !isFullPayment && (
                       <button
                         className="action-btn payment-received"
                         onClick={() => {
@@ -474,7 +504,8 @@ const EngineerProject = () => {
                 <p><strong>Reference:</strong> {selectedProject.projectReference}</p>
                 <p><strong>Status:</strong> {getStatusBadge(selectedProject.status, selectedProject.paymentPreference)}</p>
                 <p><strong>Created:</strong> {formatDate(selectedProject.createdAt)}</p>
-                <p><strong>Payment Method:</strong> {selectedProject.paymentPreference === 'installment' ? 'Installment Plan' : 'Full Payment'}</p>
+                <p><strong>Payment Method:</strong> {getPaymentTypeLabel(selectedProject.paymentPreference)}</p>
+                <p><strong>Payment Schedule:</strong> {getPaymentTypeDescription(selectedProject.paymentPreference)}</p>
               </div>
 
               <div className="detail-section">
@@ -493,6 +524,36 @@ const EngineerProject = () => {
                 <p><strong>Inverter Type:</strong> {selectedProject.inverterType || 'Standard'}</p>
                 <p><strong>Battery Type:</strong> {selectedProject.batteryType || 'N/A'}</p>
               </div>
+
+              {selectedProject.paymentSchedule && selectedProject.paymentSchedule.length > 0 && (
+                <div className="detail-section">
+                  <h4>Payment Schedule</h4>
+                  <table className="payment-schedule-table">
+                    <thead>
+                      <tr>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedProject.paymentSchedule.map((p, idx) => (
+                        <tr key={idx}>
+                          <td className="payment-type-cell">{p.type}</td>
+                          <td>{formatCurrency(p.amount)}</td>
+                          <td>{formatDate(p.dueDate)}</td>
+                          <td>
+                            <span className={`payment-status-badge ${p.status}`}>
+                              {p.status === 'paid' ? '✅ Paid' : p.status === 'pending' ? '⏳ Pending' : '📅 Overdue'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
               {selectedProject.installationNotes && (
                 <div className="detail-section">
@@ -529,6 +590,7 @@ const EngineerProject = () => {
               <button className="modal-close" onClick={() => setShowProgressModal(false)}>×</button>
               <h3>Update Project Progress</h3>
               <p><strong>Project:</strong> {selectedProject.projectName}</p>
+              <p><strong>Payment Plan:</strong> {getPaymentTypeLabel(selectedProject.paymentPreference)}</p>
 
               <div className="form-group">
                 <label>Installation Notes</label>
@@ -543,35 +605,35 @@ const EngineerProject = () => {
               <div className="form-group">
                 <label>Update Status</label>
                 <select value={progressForm.status} onChange={(e) => setProgressForm({ ...progressForm, status: e.target.value })}>
-                  {/* For in_progress projects - show normal options */}
+                  {/* For in_progress projects */}
                   {selectedProject.status === 'in_progress' && (
                     <>
-                      <option value="in_progress">In Progress</option>
-                      <option value="progress_paid">Progress Payment Received</option>
-                      {selectedProject.paymentPreference === 'installment' && (
-                        <option value="full_paid">Final Payment Received - Complete Installation</option>
+                      <option value="in_progress">🔧 In Progress</option>
+                      <option value="progress_paid">📊 Progress Payment Received</option>
+                      {selectedProject.paymentPreference !== 'full' && (
+                        <option value="full_paid">✅ Final Payment Received</option>
                       )}
-                      <option value="completed">Mark as Completed</option>
+                      <option value="completed">🎉 Mark as Completed</option>
                     </>
                   )}
                   
                   {/* For progress_paid projects */}
                   {selectedProject.status === 'progress_paid' && (
                     <>
-                      <option value="progress_paid">Progress Paid - Continue Work</option>
-                      <option value="in_progress">Back to In Progress</option>
-                      {selectedProject.paymentPreference === 'installment' && (
-                        <option value="full_paid">Final Payment Received</option>
+                      <option value="progress_paid">📊 Progress Paid - Continue Work</option>
+                      <option value="in_progress">🔧 Back to In Progress</option>
+                      {selectedProject.paymentPreference !== 'full' && (
+                        <option value="full_paid">✅ Final Payment Received</option>
                       )}
-                      <option value="completed">Mark as Completed</option>
+                      <option value="completed">🎉 Mark as Completed</option>
                     </>
                   )}
                   
-                  {/* For full_paid projects (installment) - only show completed */}
-                  {selectedProject.status === 'full_paid' && selectedProject.paymentPreference === 'installment' && (
+                  {/* For full_paid projects (installment only) */}
+                  {selectedProject.status === 'full_paid' && selectedProject.paymentPreference !== 'full' && (
                     <>
-                      <option value="full_paid">Final Payment Received</option>
-                      <option value="completed">Mark as Completed</option>
+                      <option value="full_paid">✅ Final Payment Received</option>
+                      <option value="completed">🎉 Mark as Completed</option>
                     </>
                   )}
                   
@@ -580,8 +642,8 @@ const EngineerProject = () => {
                    selectedProject.status !== 'progress_paid' && 
                    selectedProject.status !== 'full_paid' && (
                     <>
-                      <option value="in_progress">Start Installation</option>
-                      <option value="completed">Mark as Completed</option>
+                      <option value="in_progress">🔧 Start Installation</option>
+                      <option value="completed">🎉 Mark as Completed</option>
                     </>
                   )}
                 </select>

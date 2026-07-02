@@ -21,7 +21,8 @@ import {
   FaMoneyBillWave,
   FaHome,
   FaFileInvoice,
-  FaCheckCircle
+  FaCheckCircle,
+  FaSpinner
 } from 'react-icons/fa';
 import '../../styles/Customer/scheduleassessment.css';
 
@@ -473,8 +474,112 @@ const ScheduleAssessment = () => {
     }
   };
 
+  // ============ FREE QUOTE QUOTATION HANDLERS ============
+
+  const handleViewFreeQuoteQuotation = (quote) => {
+    const url = quote.quotationFile || quote.quotationUrl;
+    if (!url) {
+      showToast('No quotation PDF available', 'warning');
+      return;
+    }
+    window.open(url, '_blank');
+  };
+
+  const handleDownloadFreeQuoteQuotation = async (quote) => {
+    const url = quote.quotationFile || quote.quotationUrl;
+    if (!url) {
+      showToast('No quotation PDF available', 'warning');
+      return;
+    }
+    try {
+      const response = await axios.get(url, { responseType: 'blob' });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `Quotation_${quote.quotationReference || 'free-quote'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      showToast('Quotation downloaded successfully!', 'success');
+    } catch (err) {
+      console.error('Error downloading quotation:', err);
+      showToast('Failed to download quotation', 'error');
+    }
+  };
+
+  const handleAcceptFreeQuoteClick = (quote) => {
+    console.log('Free quote data:', quote); // Debug: Check what's available
+
+    // Get system details from the quote
+    const systemSize = quote.recommendedSystemSize ||
+      quote.desiredCapacity ||
+      quote.quotationDetails?.systemSize ||
+      5;
+
+    // ✅ Get totalCost from quotationDetails (where the engineer saved it)
+    const totalCost = quote.quotationDetails?.totalCost ||
+      quote.quotationDetails?.systemCost ||
+      quote.estimatedTotalCost ||
+      quote.quotationDetails?.equipmentCost + quote.quotationDetails?.installationCost ||
+      0;
+
+    const systemType = quote.systemType ||
+      quote.quotationDetails?.systemType ||
+      'grid-tie';
+
+    const panelsNeeded = quote.panelsNeeded ||
+      quote.quotationDetails?.panelsNeeded ||
+      Math.ceil(systemSize / 0.55);
+
+    // Get equipment details if available
+    const equipmentBreakdown = quote.quotationDetails?.equipmentBreakdown || null;
+
+    // Get inverter and battery types from equipment breakdown
+    const inverterType = equipmentBreakdown?.inverter?.name ||
+      quote.quotationDetails?.inverterType ||
+      null;
+
+    const batteryType = equipmentBreakdown?.battery?.name ||
+      quote.quotationDetails?.batteryType ||
+      null;
+
+    setAcceptingQuotation({
+      _id: quote._id,
+      sourceType: 'free-quote',
+      quotationReference: quote.quotationReference,
+      quote: quote,
+      quotation: {
+        systemDetails: {
+          systemSize: systemSize,
+          totalCost: totalCost,
+          systemType: systemType,
+          panelsNeeded: panelsNeeded,
+          inverterType: inverterType,
+          batteryType: batteryType,
+          equipmentBreakdown: equipmentBreakdown,
+          installationCost: quote.quotationDetails?.installationCost || 0,
+          equipmentCost: quote.quotationDetails?.equipmentCost || 0
+        }
+      },
+      assessmentFee: totalCost || 0
+    });
+
+    setSelectedPaymentPreference('installment');
+    setShowAcceptQuoteModal(true);
+  };
+
+  // ============ ACCEPT QUOTATION (UNIFIED) ============
+
   const handleAcceptQuotationClick = (assessment) => {
-    setAcceptingQuotation(assessment);
+    setAcceptingQuotation({
+      _id: assessment._id,
+      sourceType: 'pre-assessment',
+      quotationReference: assessment.bookingReference,
+      quotation: assessment.quotation,
+      assessmentFee: assessment.assessmentFee || 0
+    });
     setSelectedPaymentPreference('installment');
     setShowAcceptQuoteModal(true);
   };
@@ -484,15 +589,20 @@ const ScheduleAssessment = () => {
     setAcceptingLoading(true);
     try {
       const token = sessionStorage.getItem('token');
+
+      const sourceType = acceptingQuotation.sourceType || 'pre-assessment';
+      const sourceId = acceptingQuotation._id;
+
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/projects/accept`,
         {
-          sourceType: 'pre-assessment',
-          sourceId: acceptingQuotation._id,
+          sourceType: sourceType,
+          sourceId: sourceId,
           paymentPreference: selectedPaymentPreference
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       showToast('Quotation accepted successfully! Project created.', 'success');
       setShowAcceptQuoteModal(false);
       setAcceptingQuotation(null);
@@ -850,6 +960,7 @@ const ScheduleAssessment = () => {
       'assigned': <span className="status-badge-schedule assigned">Assigned</span>,
       'processing': <span className="status-badge-schedule processing">Processing</span>,
       'completed': <span className="status-badge-schedule completed">Completed</span>,
+      'accepted': <span className="status-badge-schedule quotation-accepted">Accepted</span>,
       'cancelled': <span className="status-badge-schedule cancelled">Cancelled</span>
     };
     return badges[status] || <span className="status-badge-schedule">{status}</span>;
@@ -1072,7 +1183,7 @@ const ScheduleAssessment = () => {
             </div>
           </div>
 
-          {/* My Requests Modal */}
+          {/* My Requests Modal - UPDATED with Free Quote Acceptance */}
           {showRequestsModal && (
             <div className="schedule-modal-overlay-cusset" onClick={() => setShowRequestsModal(false)}>
               <div className="requests-modal-cusset" onClick={e => e.stopPropagation()}>
@@ -1094,31 +1205,85 @@ const ScheduleAssessment = () => {
                         <tr><th>Date</th><th>Reference</th><th>Type</th><th>Details</th><th>Status</th><th>Photos</th><th></th></tr>
                       </thead>
                       <tbody>
-                        {filteredFreeQuotes.map(quote => (
-                          <tr key={quote._id}>
-                            <td>{formatDate(quote.requestedAt)}</td>
-                            <td className="reference-cell">{quote.quotationReference}</td>
-                            <td><span className="type-badge free-quote">Free Quote</span></td>
-                            <td className="details-cell">
-                              <div><strong>Monthly:</strong> {formatCurrency(quote.monthlyBill)}</div>
-                              <div><strong>Property:</strong> {quote.propertyType}</div>
-                              {quote.systemType && <div><strong>System:</strong> {quote.systemType}</div>}
-                              {quote.desiredCapacity && <div><strong>Capacity:</strong> {quote.desiredCapacity}</div>}
-                              {quote.targetSavings && <div><strong>Target:</strong> {quote.targetSavings}%</div>}
-                              {quote.recommendedSystemSize && <div><strong>System Size:</strong> {quote.recommendedSystemSize} kW</div>}
-                            </td>
-                            <td>{getFreeQuoteStatusBadge(quote.status)}</td>
-                            <td>-</td>
-                            <td>
-                              <button
-                                className="view-details-btn"
-                                onClick={() => { setSelectedRequest(quote); setShowDetailsModal(true); }}
-                              >
-                                View
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
+                        {/* ============ FREE QUOTES WITH ACCEPT BUTTON ============ */}
+                        {filteredFreeQuotes.map(quote => {
+                          const hasQuotation = quote.quotationFile || quote.quotationUrl;
+                          // ✅ FIXED: Only 'accepted' means already accepted
+                          const isAccepted = quote.status === 'accepted';
+                          const alreadyProjectCreated = projects.some(p => {
+                            if (p.sourceType === 'free-quote' && p.sourceId) {
+                              const projectSourceId = typeof p.sourceId === 'object' ?
+                                p.sourceId._id?.toString() : p.sourceId?.toString();
+                              return projectSourceId === quote._id?.toString();
+                            }
+                            return false;
+                          });
+
+                          return (
+                            <tr key={quote._id}>
+                              <td>{formatDate(quote.requestedAt)}</td>
+                              <td className="reference-cell">{quote.quotationReference}</td>
+                              <td><span className="type-badge free-quote">Free Quote</span></td>
+                              <td className="details-cell">
+                                <div><strong>Monthly:</strong> {formatCurrency(quote.monthlyBill)}</div>
+                                <div><strong>Property:</strong> {quote.propertyType}</div>
+                                {quote.systemType && <div><strong>System:</strong> {quote.systemType}</div>}
+                                {quote.desiredCapacity && <div><strong>Capacity:</strong> {quote.desiredCapacity}</div>}
+                                {quote.targetSavings && <div><strong>Target:</strong> {quote.targetSavings}%</div>}
+                                {quote.recommendedSystemSize && <div><strong>System Size:</strong> {quote.recommendedSystemSize} kW</div>}
+
+                                {hasQuotation && (
+                                  <div className="quotation-actions">
+                                    <button
+                                      className="view-quote-btn"
+                                      onClick={() => handleViewFreeQuoteQuotation(quote)}
+                                    >
+                                      <FaEye /> View Quote
+                                    </button>
+                                    <button
+                                      className="download-quote-btn"
+                                      onClick={() => handleDownloadFreeQuoteQuotation(quote)}
+                                    >
+                                      <FaDownload /> Download
+                                    </button>
+
+                                    {/* ✅ FIXED: Show Accept button when status is NOT 'accepted' */}
+                                    {!isAccepted && !alreadyProjectCreated && quote.status !== 'cancelled' && (
+                                      <button
+                                        className="accept-quote-btn"
+                                        onClick={() => handleAcceptFreeQuoteClick(quote)}
+                                      >
+                                        <FaCheckCircle /> Accept
+                                      </button>
+                                    )}
+
+                                    {/* Show "Project Created" ONLY when truly accepted */}
+                                    {(isAccepted || alreadyProjectCreated) && (
+                                      <span className="project-created-badge">
+                                        <FaCheckCircle /> Project Created
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                                {!hasQuotation && quote.status !== 'cancelled' && (
+                                  <span className="status-badge-schedule processing">Waiting for Quotation</span>
+                                )}
+                              </td>
+                              <td>{getFreeQuoteStatusBadge(quote.status)}</td>
+                              <td>-</td>
+                              <td>
+                                <button
+                                  className="view-details-btn"
+                                  onClick={() => { setSelectedRequest(quote); setShowDetailsModal(true); }}
+                                >
+                                  View
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+
+                        {/* ============ PRE-ASSESSMENTS WITH ACCEPT BUTTON ============ */}
                         {filteredPreAssessments.map(assessment => {
                           const hasPhotos = assessment.sitePhotos && assessment.sitePhotos.length > 0;
                           const hasQuotation = assessment.finalQuotation || assessment.quotation?.quotationUrl;
@@ -1211,7 +1376,8 @@ const ScheduleAssessment = () => {
               <div className="schedule-modal-cusset status-modal-cusset" onClick={e => e.stopPropagation()}>
                 <h2>Request Details</h2>
 
-                {selectedRequest.quotationReference ? (
+                {selectedRequest.quotationReference && !selectedRequest.bookingReference ? (
+                  // FREE QUOTE DETAILS
                   <>
                     <div className="status-detail-section">
                       <h3>Quote Information</h3>
@@ -1297,16 +1463,18 @@ const ScheduleAssessment = () => {
                       <h3>Address</h3>
                       <p>{getRequestAddress(selectedRequest)}</p>
                     </div>
-                    {selectedRequest.status === 'completed' && selectedRequest.quotationFile && (
-                      <button
-                        className="view-quotation-btn-cusset"
-                        onClick={() => viewQuotation(selectedRequest.quotationFile)}
-                      >
-                        View Quotation PDF
-                      </button>
-                    )}
+                    {(selectedRequest.status === 'completed' || selectedRequest.status === 'accepted') &&
+                      (selectedRequest.quotationFile || selectedRequest.quotationUrl) && (
+                        <button
+                          className="view-quotation-btn-cusset"
+                          onClick={() => viewQuotation(selectedRequest.quotationFile || selectedRequest.quotationUrl)}
+                        >
+                          View Quotation PDF
+                        </button>
+                      )}
                   </>
                 ) : (
+                  // PRE-ASSESSMENT DETAILS
                   <>
                     <div className="status-detail-section">
                       <h3>Booking Information</h3>
@@ -1418,17 +1586,31 @@ const ScheduleAssessment = () => {
             </div>
           )}
 
-          {/* Accept Quotation Modal */}
+          {/* Accept Quotation Modal - UPDATED to show source type */}
           {showAcceptQuoteModal && acceptingQuotation && (
             <div className="schedule-modal-overlay-cusset" onClick={() => setShowAcceptQuoteModal(false)}>
               <div className="schedule-modal-cusset accept-quote-modal" onClick={e => e.stopPropagation()}>
                 <div className="modal-header-cusset">
                   <h3>Accept Quotation</h3>
+                  <span className="source-badge" style={{
+                    fontSize: '12px',
+                    padding: '4px 12px',
+                    borderRadius: '20px',
+                    background: acceptingQuotation.sourceType === 'free-quote' ? '#4CAF50' : '#2196F3',
+                    color: '#fff',
+                    marginLeft: '10px'
+                  }}>
+                    {acceptingQuotation.sourceType === 'free-quote' ? 'Free Quote' : 'Pre-Assessment'}
+                  </span>
                   <button className="modal-close-cusset" onClick={() => setShowAcceptQuoteModal(false)}>×</button>
                 </div>
                 <div className="modal-body-cusset">
                   <div className="quotation-summary">
                     <h4>Quotation Summary</h4>
+                    <div className="summary-row">
+                      <span>Reference:</span>
+                      <strong>{acceptingQuotation.quotationReference || 'N/A'}</strong>
+                    </div>
                     <div className="summary-row">
                       <span>System Size:</span>
                       <strong>{acceptingQuotation.quotation?.systemDetails?.systemSize || 'TBD'} kWp</strong>
@@ -1519,7 +1701,8 @@ const ScheduleAssessment = () => {
                     onClick={confirmAcceptQuotation}
                     disabled={acceptingLoading}
                   >
-                    {acceptingLoading ? 'Processing...' : 'Accept Quotation'}
+                    {acceptingLoading ? <FaSpinner className="spinning" /> : 'Accept Quotation'}
+                    {acceptingLoading ? ' Processing...' : ''}
                   </button>
                 </div>
               </div>

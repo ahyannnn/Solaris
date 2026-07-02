@@ -9,7 +9,8 @@ import {
   FaCalendarAlt, FaProjectDiagram, FaClock, FaCheckCircle,
   FaEye, FaDownload, FaMoneyBillWave, FaCreditCard, FaSpinner,
   FaTimes, FaFileInvoice, FaFilter, FaSearch, FaHome,
-  FaBuilding, FaSyncAlt, FaWallet, FaReceipt
+  FaBuilding, FaSyncAlt, FaWallet, FaReceipt, FaUniversity,
+  FaChevronDown, FaChevronUp
 } from 'react-icons/fa';
 
 const Quotation = () => {
@@ -32,6 +33,9 @@ const Quotation = () => {
   const [paymentProof, setPaymentProof] = useState(null);
   const [paymentReference, setPaymentReference] = useState('');
   const [selectedPaymentPreference, setSelectedPaymentPreference] = useState('installment');
+  const [bankTransferLoading, setBankTransferLoading] = useState(false);
+  const [selectedBank, setSelectedBank] = useState('bpi');
+  const [showBankDropdown, setShowBankDropdown] = useState(false);
 
   // Filter states
   const [typeFilter, setTypeFilter] = useState('all');
@@ -44,11 +48,103 @@ const Quotation = () => {
   const [solarInvoices, setSolarInvoices] = useState([]);
   const [allItems, setAllItems] = useState([]);
 
+  // Available banks for DOB (Direct Online Banking)
+  const availableBanks = [
+    { id: 'bpi', name: 'BPI', provider: 'dob', description: 'Bank of the Philippine Islands' },
+    { id: 'ubp', name: 'UnionBank', provider: 'dob', description: 'UnionBank of the Philippines' },
+  ];
+
   useEffect(() => {
     fetchUserData();
     fetchData();
+    checkPendingBankTransfer();
+  }, []);
+  const checkPendingBankTransfer = async () => {
+    try {
+      const pendingData = sessionStorage.getItem('pendingBankTransferPayment');
+      if (!pendingData) return;
+
+      const paymentData = JSON.parse(pendingData);
+
+      // Check if it's been more than 5 minutes (300000 ms)
+      if (Date.now() - paymentData.timestamp > 300000) {
+        sessionStorage.removeItem('pendingBankTransferPayment');
+        return;
+      }
+
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+
+      // Check payment status
+      const statusResponse = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/payments/status/${paymentData.paymentIntentId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (statusResponse.data.status === 'succeeded' || statusResponse.data.isPaid === true) {
+        sessionStorage.removeItem('pendingBankTransferPayment');
+        setSuccessMessage('Payment Successful!');
+        setSuccessDetails({
+          title: 'Bank Transfer Payment Completed',
+          message: 'Your payment has been successfully processed.',
+          reference: paymentData.invoiceId
+        });
+        setShowSuccessModal(true);
+        fetchData();
+        showToast('Payment completed successfully!', 'success');
+      } else if (statusResponse.data.status === 'failed' || statusResponse.data.status === 'cancelled') {
+        sessionStorage.removeItem('pendingBankTransferPayment');
+        showToast('Payment was cancelled or failed. Please try again.', 'error');
+      } else if (statusResponse.data.status === 'pending') {
+        // Still pending - keep checking but don't remove from sessionStorage
+        // The user might still be on the bank page
+      }
+    } catch (error) {
+      console.error('Error checking pending bank transfer:', error);
+      // Don't remove from sessionStorage on error - retry later
+    }
+  };
+  // Check for pending bank transfer when the page loads
+  useEffect(() => {
+    const pendingData = sessionStorage.getItem('pendingBankTransferPayment');
+    if (pendingData) {
+      const paymentData = JSON.parse(pendingData);
+      // Only check if it's recent (within the last 10 minutes)
+      if (Date.now() - paymentData.timestamp < 600000) {
+        checkPaymentStatus(paymentData.paymentIntentId);
+      } else {
+        sessionStorage.removeItem('pendingBankTransferPayment');
+      }
+    }
   }, []);
 
+  const checkPaymentStatus = async (paymentIntentId) => {
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/payments/status/${paymentIntentId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.isPaid || response.data.status === 'succeeded') {
+        setSuccessMessage('Payment Successful!');
+        setSuccessDetails({
+          title: 'Bank Transfer Completed',
+          message: 'Your payment has been successfully processed.',
+          reference: paymentIntentId
+        });
+        setShowSuccessModal(true);
+        fetchData();
+        showToast('Payment successful!', 'success');
+        sessionStorage.removeItem('pendingBankTransferPayment');
+      } else if (response.data.status === 'failed' || response.data.status === 'cancelled') {
+        showToast('Payment was cancelled or failed. Please try again.', 'error');
+        sessionStorage.removeItem('pendingBankTransferPayment');
+      }
+      // If still pending, keep the sessionStorage item for next check
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+    }
+  };
   const fetchUserData = async () => {
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
@@ -170,7 +266,15 @@ const Quotation = () => {
     }
   };
 
-  // Helper function to check if downpayment is completed for a project (50-50 plan)
+  // =============================================
+  // Helper functions for payment plans
+  // =============================================
+
+  const getProjectPaymentPlan = (projectId) => {
+    const project = projects.find(p => p._id?.toString() === projectId?.toString());
+    return project?.paymentPreference || 'installment';
+  };
+
   const isDownpaymentCompleted = (projectId) => {
     const projectInvoices = allItems.filter(item =>
       item.type === 'project' &&
@@ -180,7 +284,6 @@ const Quotation = () => {
     return downpaymentInvoice && downpaymentInvoice.status === 'paid';
   };
 
-  // Helper function to check if initial payment is completed for a project (30-60-10 plan)
   const isInitialPaymentCompleted = (projectId) => {
     const projectInvoices = allItems.filter(item =>
       item.type === 'project' &&
@@ -190,7 +293,6 @@ const Quotation = () => {
     return initialInvoice && initialInvoice.status === 'paid';
   };
 
-  // Helper function to check if progress payment is completed for a project
   const isProgressPaymentCompleted = (projectId) => {
     const projectInvoices = allItems.filter(item =>
       item.type === 'project' &&
@@ -200,7 +302,6 @@ const Quotation = () => {
     return progressInvoice && progressInvoice.status === 'paid';
   };
 
-  // Helper function to check if final payment is completed (for 30-60-10, final is 30%)
   const isFinalPaymentCompleted = (projectId) => {
     const projectInvoices = allItems.filter(item =>
       item.type === 'project' &&
@@ -210,65 +311,110 @@ const Quotation = () => {
     return finalInvoice && finalInvoice.status === 'paid';
   };
 
-  // Check if Pay Now button should be disabled for an item
   const isPayNowDisabled = (item) => {
     if (item.type !== 'project') return false;
 
     const invoiceType = item.invoiceType;
     const projectId = item.projectId;
+    const paymentPlan = getProjectPaymentPlan(projectId);
 
-    // For 50-50 plan: Final payment - disable if Downpayment not paid
-    if (invoiceType === 'final') {
-      // Check if this is from 50-50 plan or 30-60-10 plan
-      const hasDownpayment = allItems.some(inv => inv.projectId === projectId && inv.invoiceType === 'downpayment');
-      if (hasDownpayment) {
-        // 50-50 plan: final payment requires downpayment
-        return !isDownpaymentCompleted(projectId);
-      } else {
-        // 30-60-10 plan: final payment (30%) requires progress payment
-        return !isProgressPaymentCompleted(projectId);
-      }
+    if (paymentPlan === 'full') {
+      return false;
     }
 
-    // For Retention payment (10%) - disable if Final not paid
+    if (paymentPlan === 'fifty_fifty') {
+      if (invoiceType === 'final') {
+        return !isInitialPaymentCompleted(projectId);
+      }
+      return false;
+    }
+
+    if (paymentPlan === 'thirty_sixty_ten') {
+      if (invoiceType === 'progress') {
+        return !isInitialPaymentCompleted(projectId);
+      }
+      if (invoiceType === 'final') {
+        return !isProgressPaymentCompleted(projectId);
+      }
+      return false;
+    }
+
+    if (invoiceType === 'progress') {
+      return !isInitialPaymentCompleted(projectId);
+    }
+    if (invoiceType === 'final') {
+      return !isProgressPaymentCompleted(projectId);
+    }
     if (invoiceType === 'retention') {
       return !isFinalPaymentCompleted(projectId);
     }
 
-    // For Progress payment - disable if Initial not paid (30-60-10 plan)
-    if (invoiceType === 'progress') {
-      return !isInitialPaymentCompleted(projectId);
-    }
-
-    // Downpayment and Initial are always enabled
     return false;
   };
 
-  // Get disabled reason for tooltip or display
   const getPayNowDisabledReason = (item) => {
     if (item.type !== 'project') return null;
 
     const invoiceType = item.invoiceType;
     const projectId = item.projectId;
+    const paymentPlan = getProjectPaymentPlan(projectId);
 
-    if (invoiceType === 'progress') {
-      return 'Initial payment (30%) must be completed first';
+    if (paymentPlan === 'fifty_fifty') {
+      if (invoiceType === 'final') {
+        return 'Downpayment (50%) must be completed first';
+      }
     }
 
-    if (invoiceType === 'final') {
-      const hasDownpayment = allItems.some(inv => inv.projectId === projectId && inv.invoiceType === 'downpayment');
-      if (hasDownpayment) {
-        return 'Downpayment (50%) must be completed first';
-      } else {
+    if (paymentPlan === 'thirty_sixty_ten') {
+      if (invoiceType === 'progress') {
+        return 'Initial payment (30%) must be completed first';
+      }
+      if (invoiceType === 'final') {
         return 'Progress payment (60%) must be completed first';
       }
     }
 
+    if (invoiceType === 'progress') {
+      return 'Initial payment (30%) must be completed first';
+    }
+    if (invoiceType === 'final') {
+      return 'Progress payment (40%) must be completed first';
+    }
     if (invoiceType === 'retention') {
       return 'Final payment (30%) must be completed first. Retention fee is released after project completion and warranty period.';
     }
 
     return null;
+  };
+
+  const getInvoiceTypeLabel = (item) => {
+    if (!item.invoiceType) return '';
+
+    const invoiceType = item.invoiceType;
+    const projectId = item.projectId;
+    const paymentPlan = getProjectPaymentPlan(projectId);
+
+    if (paymentPlan === 'full') {
+      if (invoiceType === 'full') return 'Full Payment (100%)';
+    }
+
+    if (paymentPlan === 'fifty_fifty') {
+      if (invoiceType === 'initial') return 'Downpayment (50%)';
+      if (invoiceType === 'final') return 'Final Payment (50%)';
+    }
+
+    if (paymentPlan === 'thirty_sixty_ten') {
+      if (invoiceType === 'initial') return 'Downpayment (30%)';
+      if (invoiceType === 'progress') return 'Progress Payment (60%)';
+      if (invoiceType === 'final') return 'Retention Fee (10%)';
+    }
+
+    if (invoiceType === 'initial') return 'Initial (30%)';
+    if (invoiceType === 'progress') return 'Progress (40%)';
+    if (invoiceType === 'final') return 'Final (30%)';
+    if (invoiceType === 'retention') return 'Retention Fee (10%)';
+
+    return invoiceType;
   };
 
   const handleViewReceipt = async (item) => {
@@ -344,6 +490,70 @@ const Quotation = () => {
     return parts.length > 0 ? parts.join(', ') : 'No address provided';
   };
 
+  // =============================================
+  // ✅ FIXED: BANK TRANSFER (DOB - BPI/UnionBank)
+  // =============================================
+
+  const handleBankTransferPayment = async () => {
+    if (!selectedItem || !selectedBank) {
+      showToast('Please select a bank', 'warning');
+      return;
+    }
+
+    setBankTransferLoading(true);
+    try {
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const invoiceId = selectedItem.invoiceId || selectedItem.id;
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/payments/bank-transfer/${invoiceId}/create-intent`,
+        {
+          bankCode: selectedBank,
+          provider: 'dob'
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to create bank transfer payment');
+      }
+
+      if (response.data.redirectUrl) {
+        // ✅ Store pending payment info before redirect
+        sessionStorage.setItem('pendingBankTransferPayment', JSON.stringify({
+          paymentIntentId: response.data.paymentIntentId,
+          invoiceId: invoiceId,
+          bankCode: selectedBank,
+          timestamp: Date.now()
+        }));
+
+        // ✅ Close modal first
+        closeFullPaymentModal();
+
+        // ✅ Show a brief message before redirect
+        showToast(`Redirecting to ${response.data.bankName || selectedBank}...`, 'info');
+
+        // ✅ Small delay to ensure toast shows, then redirect the full page
+        setTimeout(() => {
+          window.location.href = response.data.redirectUrl;
+        }, 500);
+
+        // ✅ Reset loading state (the page will redirect, but just in case)
+        setBankTransferLoading(false);
+      } else {
+        throw new Error('No redirect URL received from server');
+      }
+    } catch (error) {
+      console.error('Bank transfer payment error:', error);
+      showToast(error.response?.data?.message || 'Failed to process bank transfer', 'error');
+      setBankTransferLoading(false);
+    }
+  };
+
+  // =============================================
+  // Card Payment Handlers
+  // =============================================
+
   const handlePayMongoCardPayment = async () => {
     setIsSubmitting(true);
     try {
@@ -402,7 +612,6 @@ const Quotation = () => {
   };
 
   const handleProjectInvoicePayment = async (invoice) => {
-    // Check if payment is allowed before proceeding
     if (isPayNowDisabled(invoice)) {
       const reason = getPayNowDisabledReason(invoice);
       showToast(reason, 'warning');
@@ -477,7 +686,6 @@ const Quotation = () => {
   };
 
   const handlePayNowClick = (item) => {
-    // Check if payment is allowed for project items
     if (item.type === 'project' && isPayNowDisabled(item)) {
       const reason = getPayNowDisabledReason(item);
       showToast(reason, 'warning');
@@ -695,6 +903,8 @@ const Quotation = () => {
     setPaymentProof(null);
     setPaymentReference('');
     setPaymentMethod(null);
+    setBankTransferLoading(false);
+    setShowBankDropdown(false);
   };
 
   const closeSuccessModal = () => {
@@ -762,6 +972,100 @@ const Quotation = () => {
 
     return { totalItems, pendingItems, paidItems, forVerificationItems, totalAmount, pendingAmount };
   };
+
+  // =============================================
+  // Bank Transfer UI Component
+  // =============================================
+
+  const BankTransferSection = () => (
+    <div className="cuspro-bank-transfer-section">
+      <div className="cuspro-bank-transfer-info">
+        <div className="bank-transfer-icon">
+          <FaUniversity size={40} />
+        </div>
+        <h4>Online Banking Payment</h4>
+        <p>Select your bank to pay via Direct Online Banking.</p>
+
+        {/* ✅ ADD: Important notice about redirect */}
+        <div className="bank-transfer-notice">
+          <FaClock style={{ marginRight: '8px' }} />
+          <small>
+            <strong>Note:</strong> You will be redirected to your bank's portal to complete the payment.
+            After payment, you will be automatically redirected back to your dashboard.
+            <br />
+            <span style={{ color: '#ff6b6b' }}>
+              ⚠️ Do not close the browser window while the payment is processing.
+            </span>
+          </small>
+        </div>
+
+        <div className="bank-selection-group">
+          <label>Select Your Bank</label>
+          <div className="bank-dropdown-container">
+            <button
+              className="bank-dropdown-toggle"
+              onClick={() => setShowBankDropdown(!showBankDropdown)}
+              disabled={bankTransferLoading}
+            >
+              <span>
+                {selectedBank ? availableBanks.find(b => b.id === selectedBank)?.name || 'Select Bank' : 'Select Bank'}
+              </span>
+              {showBankDropdown ? <FaChevronUp /> : <FaChevronDown />}
+            </button>
+
+            {showBankDropdown && (
+              <div className="bank-dropdown-menu">
+                {availableBanks.map(bank => (
+                  <button
+                    key={bank.id}
+                    className={`bank-dropdown-item ${selectedBank === bank.id ? 'selected' : ''}`}
+                    onClick={() => {
+                      setSelectedBank(bank.id);
+                      setShowBankDropdown(false);
+                    }}
+                  >
+                    <span className="bank-name">{bank.name}</span>
+                    <span className="bank-description">{bank.description}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="bank-transfer-supported-banks">
+          <strong>Available Banks:</strong>
+          <div className="bank-list">
+            {availableBanks.map(bank => (
+              <span key={bank.id} className={`bank-tag ${selectedBank === bank.id ? 'selected' : ''}`}>
+                {bank.name}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="bank-transfer-test-info">
+          <small>💡 Test Mode: Use OTP 123456 for BPI or 111111 for UnionBank</small>
+        </div>
+
+        <button
+          className={`cuspro-bank-transfer-btn ${!selectedBank ? 'disabled' : ''}`}
+          onClick={handleBankTransferPayment}
+          disabled={bankTransferLoading || !selectedBank}
+        >
+          {bankTransferLoading ? (
+            <>
+              <FaSpinner className="spinning" /> Opening Bank Page...
+            </>
+          ) : (
+            <>
+              <FaUniversity /> Pay via {selectedBank ? availableBanks.find(b => b.id === selectedBank)?.name : 'Bank Transfer'}
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  );
 
   const SkeletonLoader = () => (
     <div className="cuspro-quotation-container">
@@ -925,9 +1229,9 @@ const Quotation = () => {
               const alreadyProjectCreated = isPreAssessment && (item.assessmentStatus === 'quotation_accepted' || projectExists);
               const hasReceipt = item.receiptUrl;
 
-              // Check if Pay Now button should be disabled
               const isPayNowButtonDisabled = isPayNowDisabled(item);
               const disabledReason = getPayNowDisabledReason(item);
+              const invoiceLabel = !isPreAssessment ? getInvoiceTypeLabel(item) : null;
 
               return (
                 <div key={index} className={`cuspro-item-card ${item.type}`}>
@@ -949,14 +1253,9 @@ const Quotation = () => {
                       {isPreAssessment && item.propertyType && (
                         <p className="cuspro-item-property">Property: {item.propertyType}</p>
                       )}
-                      {!isPreAssessment && item.invoiceType && (
+                      {!isPreAssessment && item.invoiceType && invoiceLabel && (
                         <span className={`invoice-type-label ${item.invoiceType}`}>
-                          {item.invoiceType === 'downpayment' && 'Downpayment (50%)'}
-                          {item.invoiceType === 'initial' && 'Initial (30%)'}
-                          {item.invoiceType === 'progress' && 'Progress (40% or 60%)'}
-                          {item.invoiceType === 'final' && 'Final Payment (30%)'}
-                          {item.invoiceType === 'retention' && 'Retention Fee (10%)'}
-                          {item.invoiceType === 'full' && 'Full Payment'}
+                          {invoiceLabel}
                         </span>
                       )}
                     </div>
@@ -990,7 +1289,6 @@ const Quotation = () => {
                   </div>
 
                   <div className="cuspro-item-actions">
-                    {/* Pay Now button with conditional disabling */}
                     {(item.status === 'pending' || item.status === 'partial') && (
                       <button
                         className={`cuspro-pay-btn ${isPayNowButtonDisabled ? 'disabled' : ''}`}
@@ -1002,21 +1300,18 @@ const Quotation = () => {
                       </button>
                     )}
 
-                    {/* Show prerequisite message for disabled buttons */}
                     {isPayNowButtonDisabled && (item.status === 'pending' || item.status === 'partial') && (
                       <span className="payment-prerequisite-message">
                         ⚠️ {disabledReason}
                       </span>
                     )}
 
-                    {/* Verification badge */}
                     {item.status === 'for_verification' && (
                       <span className="cuspro-verification-badge">
                         <FaClock /> Payment Under Review
                       </span>
                     )}
 
-                    {/* RECEIPT BUTTON - For paid transactions */}
                     {item.status === 'paid' && hasReceipt && (
                       <>
                         <button
@@ -1034,21 +1329,18 @@ const Quotation = () => {
                       </>
                     )}
 
-                    {/* Paid badge for pre-assessment with receipt */}
                     {item.status === 'paid' && isPreAssessment && (
                       <span className="cuspro-paid-badge">
                         <FaCheckCircle /> Payment Completed
                       </span>
                     )}
 
-                    {/* Project paid badge */}
                     {item.status === 'paid' && !isPreAssessment && hasReceipt && (
                       <span className="cuspro-paid-badge">
                         <FaCheckCircle /> Payment Completed
                       </span>
                     )}
 
-                    {/* Details button */}
                     <button
                       className="cuspro-secondary-btn"
                       onClick={() => handleViewDetails(item)}
@@ -1068,7 +1360,7 @@ const Quotation = () => {
           )}
         </div>
 
-        {/* FULL PAYMENT MODAL */}
+        {/* FULL PAYMENT MODAL - Updated with Bank Transfer */}
         {showFullPaymentModal && selectedItem && (
           <div className="cuspro-modal-overlay" onClick={closeFullPaymentModal}>
             <div className="cuspro-modal" onClick={e => e.stopPropagation()}>
@@ -1090,12 +1382,18 @@ const Quotation = () => {
                     <input type="radio" checked={paymentMethod === 'paymongo_card'} readOnly />
                     <div><strong>Credit/Debit Card</strong><small>Instant payment</small></div>
                   </div>
+                  <div className={`cuspro-method-option ${paymentMethod === 'bank_transfer' ? 'selected' : ''}`} onClick={() => setPaymentMethod('bank_transfer')}>
+                    <input type="radio" checked={paymentMethod === 'bank_transfer'} readOnly />
+                    <div><strong><FaUniversity /> Bank Transfer</strong><small>Pay via online banking</small></div>
+                  </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
                     <input type="radio" checked={paymentMethod === 'cash'} readOnly />
                     <div><strong>Cash</strong><small>Pay at office</small></div>
                   </div>
                 </div>
               </div>
+
+              {/* GCash Payment */}
               {paymentMethod === 'gcash' && (
                 <>
                   <div className="cuspro-gcash-details">
@@ -1116,6 +1414,8 @@ const Quotation = () => {
                   </button>
                 </>
               )}
+
+              {/* Card Payment */}
               {paymentMethod === 'paymongo_card' && (
                 <div className="cuspro-paymongo-section">
                   <div className="cuspro-card-form">
@@ -1139,6 +1439,11 @@ const Quotation = () => {
                   </div>
                 </div>
               )}
+
+              {/* ✅ Bank Transfer Payment */}
+              {paymentMethod === 'bank_transfer' && <BankTransferSection />}
+
+              {/* Cash Payment */}
               {paymentMethod === 'cash' && (
                 <div className="cuspro-cash-details">
                   <div className="cuspro-info-box">
@@ -1151,6 +1456,7 @@ const Quotation = () => {
                   </button>
                 </div>
               )}
+
               <div className="cuspro-modal-actions">
                 <button className="cuspro-cancel-btn" onClick={closeFullPaymentModal}>Cancel</button>
               </div>
@@ -1158,7 +1464,7 @@ const Quotation = () => {
           </div>
         )}
 
-        {/* PAYMENT MODAL */}
+        {/* PAYMENT MODAL - Updated with Bank Transfer */}
         {showPaymentModal && selectedItem && (
           <div className="cuspro-modal-overlay" onClick={closeModal}>
             <div className="cuspro-modal" onClick={e => e.stopPropagation()}>
@@ -1179,12 +1485,18 @@ const Quotation = () => {
                     <input type="radio" checked={paymentMethod === 'paymongo_card'} readOnly />
                     <div><strong>Card</strong><small>Instant</small></div>
                   </div>
+                  <div className={`cuspro-method-option ${paymentMethod === 'bank_transfer' ? 'selected' : ''}`} onClick={() => setPaymentMethod('bank_transfer')}>
+                    <input type="radio" checked={paymentMethod === 'bank_transfer'} readOnly />
+                    <div><strong><FaUniversity /> Bank Transfer</strong><small>Online banking</small></div>
+                  </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
                     <input type="radio" checked={paymentMethod === 'cash'} readOnly />
                     <div><strong>Cash</strong><small>Office</small></div>
                   </div>
                 </div>
               </div>
+
+              {/* GCash Payment */}
               {paymentMethod === 'gcash' && (
                 <>
                   <div className="cuspro-gcash-details">
@@ -1205,6 +1517,8 @@ const Quotation = () => {
                   </button>
                 </>
               )}
+
+              {/* Card Payment */}
               {paymentMethod === 'paymongo_card' && (
                 <div className="cuspro-paymongo-section">
                   <div className="cuspro-card-form">
@@ -1228,6 +1542,11 @@ const Quotation = () => {
                   </div>
                 </div>
               )}
+
+              {/* ✅ Bank Transfer Payment */}
+              {paymentMethod === 'bank_transfer' && <BankTransferSection />}
+
+              {/* Cash Payment */}
               {paymentMethod === 'cash' && (
                 <div className="cuspro-cash-details">
                   <div className="cuspro-info-box">
@@ -1239,6 +1558,7 @@ const Quotation = () => {
                   </button>
                 </div>
               )}
+
               <div className="cuspro-modal-actions">
                 <button className="cuspro-cancel-btn" onClick={closeModal}>Cancel</button>
               </div>
@@ -1301,14 +1621,7 @@ const Quotation = () => {
                         <p><strong>Receipt:</strong> <a href={detailsItem.receiptUrl} target="_blank" rel="noopener noreferrer">View Receipt</a></p>
                       )}
                       {detailsItem.invoiceType && (
-                        <p><strong>Invoice Type:</strong> {
-                          detailsItem.invoiceType === 'downpayment' ? 'Downpayment (50%)' :
-                            detailsItem.invoiceType === 'initial' ? 'Initial (30%)' :
-                              detailsItem.invoiceType === 'progress' ? 'Progress (40% or 60%)' :
-                                detailsItem.invoiceType === 'final' ? 'Final Payment (30%)' :
-                                  detailsItem.invoiceType === 'retention' ? 'Retention Fee (10%)' :
-                                    detailsItem.invoiceType === 'full' ? 'Full Payment' : detailsItem.invoiceType
-                        }</p>
+                        <p><strong>Invoice Type:</strong> {getInvoiceTypeLabel(detailsItem)}</p>
                       )}
                     </div>
                     <div className="cuspro-details-section">

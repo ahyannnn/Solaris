@@ -1,4 +1,3 @@
-// models/FreeQuote.js
 const mongoose = require('mongoose');
 
 const freeQuoteSchema = new mongoose.Schema({
@@ -28,7 +27,7 @@ const freeQuoteSchema = new mongoose.Schema({
     type: String 
   },
   
-  // ============ SYSTEM PREFERENCES (same as pre-assessment) ============
+  // ============ SYSTEM PREFERENCES ============
   systemType: { 
     type: String, 
     enum: ['grid-tie', 'hybrid', 'off-grid'],
@@ -52,9 +51,8 @@ const freeQuoteSchema = new mongoose.Schema({
     enum: [100, 75, 50, 25], 
     default: null 
   },
-  // ============================================================
   
-  // ============ CONSUMPTION DATA (same as pre-assessment) ============
+  // ============ CONSUMPTION DATA ============
   monthlyConsumption: { 
     type: Number, 
     default: null 
@@ -79,31 +77,29 @@ const freeQuoteSchema = new mongoose.Schema({
     type: Number, 
     default: null 
   },
-  // ============================================================
   
-  // ============ SYSTEM CALCULATIONS (same as pre-assessment) ============
+  // ============ SYSTEM CALCULATIONS ============
   recommendedSystemSize: { 
     type: Number, 
     default: null 
-  }, // kW
+  },
   inverterSize: { 
     type: Number, 
     default: null 
-  }, // kW
+  },
   batteryCapacityKwh: { 
     type: Number, 
     default: null 
-  }, // kWh (0 for grid-tie)
+  },
   panelsNeeded: { 
     type: Number, 
     default: null 
   },
-  // ============================================================
   
-  // Status - Workflow: pending → assigned → processing → completed
+  // ============ STATUS - UPDATED with 'accepted' ============
   status: { 
     type: String, 
-    enum: ['pending', 'assigned', 'processing', 'completed', 'cancelled'],
+    enum: ['pending', 'assigned', 'processing', 'completed', 'accepted', 'cancelled'],
     default: 'pending'
   },
   
@@ -127,6 +123,9 @@ const freeQuoteSchema = new mongoose.Schema({
     unique: true 
   },
   quotationFile: { 
+    type: String 
+  },
+  quotationUrl: { 
     type: String 
   },
   quotationSentAt: Date,

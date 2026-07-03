@@ -193,100 +193,66 @@ exports.createBankTransferPaymentIntent = async (req, res) => {
     const projectName = project?.projectName || 'Solar Installation';
 
     // =============================================
-    // STEP 1: Create Payment Intent with DOB
-    // =============================================
-    const paymentIntent = await PayMongoService.createPaymentIntent(
-      amountToPay,
-      `${invoice.invoiceType.toUpperCase()} Payment - ${invoice.invoiceNumber} - ${projectName}`,
-      {
-        type: 'invoice_payment',
-        invoiceId: invoice._id.toString(),
-        invoiceNumber: invoice.invoiceNumber,
-        invoiceType: invoice.invoiceType,
-        projectId: invoice.projectId?.toString(),
-        projectName: projectName,
-        clientId: client._id.toString(),
-        clientName: `${client.contactFirstName} ${client.contactLastName}`,
-        provider: 'dob',
-        bankCode: bankCode
-      },
-      ['dob'] // Only allow DOB
-    );
+// STEP 1: Create Payment Intent with DOB
+// =============================================
+const paymentIntent = await PayMongoService.createPaymentIntent(
+  amountToPay,
+  `${invoice.invoiceType.toUpperCase()} Payment - ${invoice.invoiceNumber}`,
+  { invoiceId: invoice._id.toString() },
+  ['dob']
+);
 
-    if (!paymentIntent.success) {
-      return res.status(500).json({ 
-        success: false, 
-        message: paymentIntent.error 
-      });
-    }
+if (!paymentIntent.success) {
+  return res.status(500).json({ success: false, message: paymentIntent.error });
+}
 
-    // =============================================
-    // STEP 2: Create DOB Payment Method
-    // =============================================
-    const paymentMethodResult = await PayMongoService.createDOBPaymentMethod(
-      bankCode, // 'bpi' or 'ubp'
-      {
-        name: `${client.contactFirstName} ${client.contactLastName}`,
-        email: client.userId?.email || 'customer@example.com',
-        phone: client.contactNumber || ''
-      }
-    );
+// =============================================
+// STEP 2 & 3: CRITICAL OPTIMIZATION
+// Execute the creation and attachment simultaneously or back-to-back 
+// BEFORE doing any heavy database saves or logging.
+// =============================================
+const paymentMethodResult = await PayMongoService.createDOBPaymentMethod(
+  bankCode, 
+  {
+    name: `${client.contactFirstName} ${client.contactLastName}`,
+    email: client.userId?.email || 'customer@example.com',
+    phone: client.contactNumber || ''
+  }
+);
 
-    if (!paymentMethodResult.success) {
-      return res.status(500).json({ 
-        success: false, 
-        message: paymentMethodResult.error 
-      });
-    }
+if (!paymentMethodResult.success) {
+  return res.status(500).json({ success: false, message: paymentMethodResult.error });
+}
 
-    // =============================================
-    // STEP 3: Attach Payment Method
-    // =============================================
-    const attachResult = await PayMongoService.attachPaymentMethodWithRedirect(
-      paymentIntent.paymentIntentId,
-      paymentMethodResult.paymentMethodId,
-      paymentIntent.clientSecret,
-      `${process.env.FRONTEND_URL}/app/customer/payment-success`
-    );
+// Attach immediately without waiting for anything else
+const attachResult = await PayMongoService.attachPaymentMethodWithRedirect(
+  paymentIntent.paymentIntentId,
+  paymentMethodResult.paymentMethodId,
+  paymentIntent.clientSecret,
+  `${process.env.FRONTEND_URL}/app/customer/payment-success`
+);
 
-    if (!attachResult.success) {
-      return res.status(500).json({ 
-        success: false, 
-        message: attachResult.error 
-      });
-    }
+if (!attachResult.success) {
+  return res.status(500).json({ success: false, message: attachResult.error });
+}
 
-    // =============================================
-    // STEP 4: Save to Database
-    // =============================================
-    invoice.paymongoPaymentIntentId = paymentIntent.paymentIntentId;
-    invoice.paymentMethod = 'dob';
-    invoice.paymentGateway = 'paymongo';
-    invoice.metadata = {
-      bankCode: bankCode,
-      provider: 'dob'
-    };
-    await invoice.save();
+// =============================================
+// STEP 4: Save to Database (MOVE THIS TO THE END)
+// Moving this here ensures database write-latency doesn't delay your API response
+// =============================================
+invoice.paymongoPaymentIntentId = paymentIntent.paymentIntentId;
+invoice.paymentMethod = 'dob';
+invoice.paymentGateway = 'paymongo';
+await invoice.save(); 
 
-    // =============================================
-    // STEP 5: Return Response
-    // =============================================
-    const bankNames = {
-      bpi: 'BPI',
-      ubp: 'UnionBank'
-    };
-
-    return res.json({
-      success: true,
-      redirectUrl: attachResult.redirectUrl,
-      paymentIntentId: paymentIntent.paymentIntentId,
-      status: attachResult.status,
-      provider: 'dob',
-      bankCode: bankCode,
-      bankName: bankNames[bankCode] || bankCode,
-      message: `Redirecting to ${bankNames[bankCode] || bankCode} online banking portal`,
-      instructions: 'Complete the payment on the bank portal. Use OTP 123456 for test payments.'
-    });
+// =============================================
+// STEP 5: Return Response Immediately
+// =============================================
+return res.json({
+  success: true,
+  redirectUrl: attachResult.redirectUrl, // Hand this off to window.location.href immediately
+  status: attachResult.status
+});
 
   } catch (error) {
     console.error('Create bank transfer payment intent error:', error);

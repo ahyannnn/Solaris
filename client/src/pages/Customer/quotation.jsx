@@ -10,7 +10,7 @@ import {
   FaEye, FaDownload, FaMoneyBillWave, FaCreditCard, FaSpinner,
   FaTimes, FaFileInvoice, FaFilter, FaSearch, FaHome,
   FaBuilding, FaSyncAlt, FaWallet, FaReceipt, FaUniversity,
-  FaChevronDown, FaChevronUp
+  FaChevronDown, FaChevronUp, FaCheck
 } from 'react-icons/fa';
 
 const Quotation = () => {
@@ -33,9 +33,20 @@ const Quotation = () => {
   const [paymentProof, setPaymentProof] = useState(null);
   const [paymentReference, setPaymentReference] = useState('');
   const [selectedPaymentPreference, setSelectedPaymentPreference] = useState('installment');
-  const [bankTransferLoading, setBankTransferLoading] = useState(false);
-  const [selectedBank, setSelectedBank] = useState('bpi');
-  const [showBankDropdown, setShowBankDropdown] = useState(false);
+
+  // Manual Bank Transfer States
+  const [selectedBankId, setSelectedBankId] = useState('');
+  const [manualTransferForm, setManualTransferForm] = useState({
+    accountName: '',
+    transactionReference: '',
+    amount: '',
+    transferDate: '',
+    transferTime: '',
+    remarks: ''
+  });
+  const [proofFile, setProofFile] = useState(null);
+  const [isSubmittingManual, setIsSubmittingManual] = useState(false);
+  const [showManualTransferForm, setShowManualTransferForm] = useState(false);
 
   // Filter states
   const [typeFilter, setTypeFilter] = useState('all');
@@ -48,103 +59,25 @@ const Quotation = () => {
   const [solarInvoices, setSolarInvoices] = useState([]);
   const [allItems, setAllItems] = useState([]);
 
-  // Available banks for DOB (Direct Online Banking)
-  const availableBanks = [
-    { id: 'bpi', name: 'BPI', provider: 'dob', description: 'Bank of the Philippine Islands' },
-    { id: 'ubp', name: 'UnionBank', provider: 'dob', description: 'UnionBank of the Philippines' },
+  // Company bank accounts for manual transfer
+  const companyBanks = [
+    { id: 'bpi', name: 'BPI', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
+    { id: 'unionbank', name: 'UnionBank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
+    { id: 'bdo', name: 'BDO', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
+    { id: 'metrobank', name: 'Metrobank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
+    { id: 'landbank', name: 'Landbank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
+    { id: 'security_bank', name: 'Security Bank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
+    { id: 'chinabank', name: 'China Bank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
+    { id: 'pnb', name: 'PNB', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
+    { id: 'eastwest', name: 'EastWest Bank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
+    { id: 'rcbc', name: 'RCBC', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' }
   ];
 
   useEffect(() => {
     fetchUserData();
     fetchData();
-    checkPendingBankTransfer();
-  }, []);
-  const checkPendingBankTransfer = async () => {
-    try {
-      const pendingData = sessionStorage.getItem('pendingBankTransferPayment');
-      if (!pendingData) return;
-
-      const paymentData = JSON.parse(pendingData);
-
-      // Check if it's been more than 5 minutes (300000 ms)
-      if (Date.now() - paymentData.timestamp > 300000) {
-        sessionStorage.removeItem('pendingBankTransferPayment');
-        return;
-      }
-
-      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-
-      // Check payment status
-      const statusResponse = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/payments/status/${paymentData.paymentIntentId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (statusResponse.data.status === 'succeeded' || statusResponse.data.isPaid === true) {
-        sessionStorage.removeItem('pendingBankTransferPayment');
-        setSuccessMessage('Payment Successful!');
-        setSuccessDetails({
-          title: 'Bank Transfer Payment Completed',
-          message: 'Your payment has been successfully processed.',
-          reference: paymentData.invoiceId
-        });
-        setShowSuccessModal(true);
-        fetchData();
-        showToast('Payment completed successfully!', 'success');
-      } else if (statusResponse.data.status === 'failed' || statusResponse.data.status === 'cancelled') {
-        sessionStorage.removeItem('pendingBankTransferPayment');
-        showToast('Payment was cancelled or failed. Please try again.', 'error');
-      } else if (statusResponse.data.status === 'pending') {
-        // Still pending - keep checking but don't remove from sessionStorage
-        // The user might still be on the bank page
-      }
-    } catch (error) {
-      console.error('Error checking pending bank transfer:', error);
-      // Don't remove from sessionStorage on error - retry later
-    }
-  };
-  // Check for pending bank transfer when the page loads
-  useEffect(() => {
-    const pendingData = sessionStorage.getItem('pendingBankTransferPayment');
-    if (pendingData) {
-      const paymentData = JSON.parse(pendingData);
-      // Only check if it's recent (within the last 10 minutes)
-      if (Date.now() - paymentData.timestamp < 600000) {
-        checkPaymentStatus(paymentData.paymentIntentId);
-      } else {
-        sessionStorage.removeItem('pendingBankTransferPayment');
-      }
-    }
   }, []);
 
-  const checkPaymentStatus = async (paymentIntentId) => {
-    try {
-      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/payments/status/${paymentIntentId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (response.data.isPaid || response.data.status === 'succeeded') {
-        setSuccessMessage('Payment Successful!');
-        setSuccessDetails({
-          title: 'Bank Transfer Completed',
-          message: 'Your payment has been successfully processed.',
-          reference: paymentIntentId
-        });
-        setShowSuccessModal(true);
-        fetchData();
-        showToast('Payment successful!', 'success');
-        sessionStorage.removeItem('pendingBankTransferPayment');
-      } else if (response.data.status === 'failed' || response.data.status === 'cancelled') {
-        showToast('Payment was cancelled or failed. Please try again.', 'error');
-        sessionStorage.removeItem('pendingBankTransferPayment');
-      }
-      // If still pending, keep the sessionStorage item for next check
-    } catch (error) {
-      console.error('Error checking payment status:', error);
-    }
-  };
   const fetchUserData = async () => {
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
@@ -491,62 +424,113 @@ const Quotation = () => {
   };
 
   // =============================================
-  // ✅ FIXED: BANK TRANSFER (DOB - BPI/UnionBank)
+  // MANUAL BANK TRANSFER HANDLERS
   // =============================================
 
-  const handleBankTransferPayment = async () => {
-    if (!selectedItem || !selectedBank) {
+  const handleManualTransferInputChange = (e) => {
+    const { name, value } = e.target;
+    setManualTransferForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleProofFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        showToast('File too large. Maximum size is 10MB.', 'error');
+        e.target.value = '';
+        return;
+      }
+      setProofFile(file);
+    }
+  };
+
+  const handleSubmitManualTransfer = async () => {
+    // Validate
+    if (!selectedBankId) {
       showToast('Please select a bank', 'warning');
       return;
     }
+    if (!manualTransferForm.transactionReference) {
+      showToast('Please enter transaction reference number', 'warning');
+      return;
+    }
+    if (!manualTransferForm.amount || parseFloat(manualTransferForm.amount) <= 0) {
+      showToast('Please enter a valid amount', 'warning');
+      return;
+    }
+    if (!manualTransferForm.transferDate) {
+      showToast('Please select transfer date', 'warning');
+      return;
+    }
+    if (!manualTransferForm.transferTime) {
+      showToast('Please select transfer time', 'warning');
+      return;
+    }
+    if (!proofFile) {
+      showToast('Please upload proof of payment', 'warning');
+      return;
+    }
 
-    setBankTransferLoading(true);
+    setIsSubmittingManual(true);
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const selectedBank = companyBanks.find(b => b.id === selectedBankId);
       const invoiceId = selectedItem.invoiceId || selectedItem.id;
 
+      const formDataToSend = new FormData();
+      formDataToSend.append('invoiceId', invoiceId);
+      formDataToSend.append('bankName', selectedBank.name);
+      formDataToSend.append('accountName', manualTransferForm.accountName || '');
+      formDataToSend.append('transactionReference', manualTransferForm.transactionReference);
+      formDataToSend.append('amount', manualTransferForm.amount);
+      formDataToSend.append('transferDate', manualTransferForm.transferDate);
+      formDataToSend.append('transferTime', manualTransferForm.transferTime);
+      formDataToSend.append('remarks', manualTransferForm.remarks || '');
+      formDataToSend.append('proofOfPayment', proofFile);
+
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/payments/bank-transfer/${invoiceId}/create-intent`,
+        `${import.meta.env.VITE_API_URL}/api/payments/bank-transfer/manual`,
+        formDataToSend,
         {
-          bankCode: selectedBank,
-          provider: 'dob'
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
       );
 
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to create bank transfer payment');
-      }
-
-      if (response.data.redirectUrl) {
-        // ✅ Store pending payment info before redirect
-        sessionStorage.setItem('pendingBankTransferPayment', JSON.stringify({
-          paymentIntentId: response.data.paymentIntentId,
-          invoiceId: invoiceId,
-          bankCode: selectedBank,
-          timestamp: Date.now()
-        }));
-
-        // ✅ Close modal first
+      if (response.data.success) {
+        setSuccessMessage('Payment Submitted!');
+        setSuccessDetails({
+          title: 'Bank Transfer Submitted for Verification',
+          message: 'Your payment has been submitted and is now pending verification by our finance team.',
+          reference: selectedItem.invoiceNumber || selectedItem.id
+        });
+        setShowSuccessModal(true);
+        
+        // Reset form
+        setSelectedBankId('');
+        setManualTransferForm({
+          accountName: '',
+          transactionReference: '',
+          amount: '',
+          transferDate: '',
+          transferTime: '',
+          remarks: ''
+        });
+        setProofFile(null);
+        setShowManualTransferForm(false);
+        setPaymentMethod(null);
+        
         closeFullPaymentModal();
-
-        // ✅ Show a brief message before redirect
-        showToast(`Redirecting to ${response.data.bankName || selectedBank}...`, 'info');
-
-        // ✅ Small delay to ensure toast shows, then redirect the full page
-        setTimeout(() => {
-          window.location.href = response.data.redirectUrl;
-        }, 500);
-
-        // ✅ Reset loading state (the page will redirect, but just in case)
-        setBankTransferLoading(false);
-      } else {
-        throw new Error('No redirect URL received from server');
+        fetchData();
+        showToast('Bank transfer submitted successfully! Waiting for verification.', 'success');
       }
     } catch (error) {
-      console.error('Bank transfer payment error:', error);
-      showToast(error.response?.data?.message || 'Failed to process bank transfer', 'error');
-      setBankTransferLoading(false);
+      console.error('Manual bank transfer error:', error);
+      showToast(error.response?.data?.message || 'Failed to submit bank transfer', 'error');
+    } finally {
+      setIsSubmittingManual(false);
     }
   };
 
@@ -895,6 +879,7 @@ const Quotation = () => {
     setPaymentProof(null);
     setPaymentReference('');
     setPaymentMethod(null);
+    setShowManualTransferForm(false);
   };
 
   const closeFullPaymentModal = () => {
@@ -903,8 +888,17 @@ const Quotation = () => {
     setPaymentProof(null);
     setPaymentReference('');
     setPaymentMethod(null);
-    setBankTransferLoading(false);
-    setShowBankDropdown(false);
+    setShowManualTransferForm(false);
+    setSelectedBankId('');
+    setProofFile(null);
+    setManualTransferForm({
+      accountName: '',
+      transactionReference: '',
+      amount: '',
+      transferDate: '',
+      transferTime: '',
+      remarks: ''
+    });
   };
 
   const closeSuccessModal = () => {
@@ -974,98 +968,197 @@ const Quotation = () => {
   };
 
   // =============================================
-  // Bank Transfer UI Component
+  // MANUAL BANK TRANSFER UI COMPONENT
   // =============================================
 
-  const BankTransferSection = () => (
-    <div className="cuspro-bank-transfer-section">
-      <div className="cuspro-bank-transfer-info">
-        <div className="bank-transfer-icon">
-          <FaUniversity size={40} />
-        </div>
-        <h4>Online Banking Payment</h4>
-        <p>Select your bank to pay via Direct Online Banking.</p>
+  const ManualBankTransferSection = () => {
+    const selectedBank = companyBanks.find(b => b.id === selectedBankId);
 
-        {/* ✅ ADD: Important notice about redirect */}
-        <div className="bank-transfer-notice">
-          <FaClock style={{ marginRight: '8px' }} />
-          <small>
-            <strong>Note:</strong> You will be redirected to your bank's portal to complete the payment.
-            After payment, you will be automatically redirected back to your dashboard.
-            <br />
-            <span style={{ color: '#ff6b6b' }}>
-              ⚠️ Do not close the browser window while the payment is processing.
-            </span>
-          </small>
-        </div>
+    return (
+      <div className="cuspro-manual-bank-transfer-section">
+        <div className="cuspro-bank-transfer-info">
+          <div className="bank-transfer-icon">
+            <FaUniversity size={40} />
+          </div>
+          <h4>Manual Bank Transfer</h4>
+          <p>Transfer the exact amount to any of our bank accounts below.</p>
 
-        <div className="bank-selection-group">
-          <label>Select Your Bank</label>
-          <div className="bank-dropdown-container">
-            <button
-              className="bank-dropdown-toggle"
-              onClick={() => setShowBankDropdown(!showBankDropdown)}
-              disabled={bankTransferLoading}
-            >
-              <span>
-                {selectedBank ? availableBanks.find(b => b.id === selectedBank)?.name || 'Select Bank' : 'Select Bank'}
-              </span>
-              {showBankDropdown ? <FaChevronUp /> : <FaChevronDown />}
-            </button>
+          {/* Important Notice */}
+          <div className="bank-transfer-notice">
+            <FaClock style={{ marginRight: '8px' }} />
+            <small>
+              <strong>Important:</strong> 
+              <ul style={{ margin: '5px 0 0 20px', paddingLeft: '0' }}>
+                <li>Transfer the <strong>exact amount</strong> shown on your invoice</li>
+                <li>Include your <strong>Invoice Number</strong> as the reference</li>
+                <li>Upload a clear screenshot or photo of your transaction</li>
+                <li>Your payment will be verified within 24-48 hours</li>
+              </ul>
+            </small>
+          </div>
 
-            {showBankDropdown && (
-              <div className="bank-dropdown-menu">
-                {availableBanks.map(bank => (
-                  <button
-                    key={bank.id}
-                    className={`bank-dropdown-item ${selectedBank === bank.id ? 'selected' : ''}`}
-                    onClick={() => {
-                      setSelectedBank(bank.id);
-                      setShowBankDropdown(false);
-                    }}
-                  >
+          {/* Invoice Summary */}
+          <div className="invoice-summary-box">
+            <div className="summary-row">
+              <span>Invoice:</span>
+              <strong>{selectedItem?.invoiceNumber || selectedItem?.id}</strong>
+            </div>
+            <div className="summary-row">
+              <span>Amount Due:</span>
+              <strong className="amount-due">
+                {formatCurrency(selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount)}
+              </strong>
+            </div>
+            <div className="summary-row">
+              <span>Reference Number:</span>
+              <strong>{selectedItem?.invoiceNumber || selectedItem?.id}</strong>
+            </div>
+          </div>
+
+          {/* Bank Selection */}
+          <div className="bank-selection-group">
+            <label>Select Bank Account</label>
+            <div className="bank-grid">
+              {companyBanks.map((bank) => (
+                <div
+                  key={bank.id}
+                  className={`bank-card ${selectedBankId === bank.id ? 'selected' : ''}`}
+                  onClick={() => setSelectedBankId(bank.id)}
+                >
+                  <div className="bank-card-header">
                     <span className="bank-name">{bank.name}</span>
-                    <span className="bank-description">{bank.description}</span>
-                  </button>
-                ))}
+                    {selectedBankId === bank.id && <FaCheck className="check-icon" />}
+                  </div>
+                  <div className="bank-card-details">
+                    <div className="detail-item">
+                      <span>Account Name:</span>
+                      <strong>{bank.accountName}</strong>
+                    </div>
+                    <div className="detail-item">
+                      <span>Account Number:</span>
+                      <strong>{bank.accountNumber}</strong>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Submission Form */}
+          {selectedBank && (
+            <div className="transfer-form">
+              <h5>Payment Details</h5>
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Account Name (Optional)</label>
+                  <input
+                    type="text"
+                    name="accountName"
+                    value={manualTransferForm.accountName}
+                    onChange={handleManualTransferInputChange}
+                    placeholder="Your full name as shown in transfer"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Reference / Transaction ID *</label>
+                  <input
+                    type="text"
+                    name="transactionReference"
+                    value={manualTransferForm.transactionReference}
+                    onChange={handleManualTransferInputChange}
+                    placeholder="Enter transaction reference number"
+                    required
+                  />
+                </div>
               </div>
-            )}
-          </div>
-        </div>
 
-        <div className="bank-transfer-supported-banks">
-          <strong>Available Banks:</strong>
-          <div className="bank-list">
-            {availableBanks.map(bank => (
-              <span key={bank.id} className={`bank-tag ${selectedBank === bank.id ? 'selected' : ''}`}>
-                {bank.name}
-              </span>
-            ))}
-          </div>
-        </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Amount Sent *</label>
+                  <input
+                    type="number"
+                    name="amount"
+                    value={manualTransferForm.amount}
+                    onChange={handleManualTransferInputChange}
+                    placeholder="Enter exact amount sent"
+                    step="0.01"
+                    required
+                  />
+                </div>
+              </div>
 
-        <div className="bank-transfer-test-info">
-          <small>💡 Test Mode: Use OTP 123456 for BPI or 111111 for UnionBank</small>
-        </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Transfer Date *</label>
+                  <input
+                    type="date"
+                    name="transferDate"
+                    value={manualTransferForm.transferDate}
+                    onChange={handleManualTransferInputChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Transfer Time *</label>
+                  <input
+                    type="time"
+                    name="transferTime"
+                    value={manualTransferForm.transferTime}
+                    onChange={handleManualTransferInputChange}
+                    required
+                  />
+                </div>
+              </div>
 
-        <button
-          className={`cuspro-bank-transfer-btn ${!selectedBank ? 'disabled' : ''}`}
-          onClick={handleBankTransferPayment}
-          disabled={bankTransferLoading || !selectedBank}
-        >
-          {bankTransferLoading ? (
-            <>
-              <FaSpinner className="spinning" /> Opening Bank Page...
-            </>
-          ) : (
-            <>
-              <FaUniversity /> Pay via {selectedBank ? availableBanks.find(b => b.id === selectedBank)?.name : 'Bank Transfer'}
-            </>
+              <div className="form-group">
+                <label>Upload Proof of Payment *</label>
+                <div className="file-upload-area">
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={handleProofFileChange}
+                    required
+                  />
+                  {proofFile && (
+                    <span className="file-name">
+                      📎 {proofFile.name} ({(proofFile.size / 1024).toFixed(1)} KB)
+                    </span>
+                  )}
+                  <small>Accepted: JPG, PNG, GIF, PDF (Max 10MB)</small>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Remarks (Optional)</label>
+                <textarea
+                  name="remarks"
+                  value={manualTransferForm.remarks}
+                  onChange={handleManualTransferInputChange}
+                  placeholder="Additional notes for the admin"
+                  rows="2"
+                />
+              </div>
+
+              <button
+                className="cuspro-submit-transfer-btn"
+                onClick={handleSubmitManualTransfer}
+                disabled={isSubmittingManual}
+              >
+                {isSubmittingManual ? (
+                  <>
+                    <FaSpinner className="spinning" /> Submitting...
+                  </>
+                ) : (
+                  'Submit for Verification'
+                )}
+              </button>
+            </div>
           )}
-        </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const SkeletonLoader = () => (
     <div className="cuspro-quotation-container">
@@ -1360,7 +1453,7 @@ const Quotation = () => {
           )}
         </div>
 
-        {/* FULL PAYMENT MODAL - Updated with Bank Transfer */}
+        {/* FULL PAYMENT MODAL - Updated with Manual Bank Transfer */}
         {showFullPaymentModal && selectedItem && (
           <div className="cuspro-modal-overlay" onClick={closeFullPaymentModal}>
             <div className="cuspro-modal" onClick={e => e.stopPropagation()}>
@@ -1382,9 +1475,9 @@ const Quotation = () => {
                     <input type="radio" checked={paymentMethod === 'paymongo_card'} readOnly />
                     <div><strong>Credit/Debit Card</strong><small>Instant payment</small></div>
                   </div>
-                  <div className={`cuspro-method-option ${paymentMethod === 'bank_transfer' ? 'selected' : ''}`} onClick={() => setPaymentMethod('bank_transfer')}>
-                    <input type="radio" checked={paymentMethod === 'bank_transfer'} readOnly />
-                    <div><strong><FaUniversity /> Bank Transfer</strong><small>Pay via online banking</small></div>
+                  <div className={`cuspro-method-option ${paymentMethod === 'manual_bank_transfer' ? 'selected' : ''}`} onClick={() => setPaymentMethod('manual_bank_transfer')}>
+                    <input type="radio" checked={paymentMethod === 'manual_bank_transfer'} readOnly />
+                    <div><strong><FaUniversity /> Bank Transfer</strong><small>Manual transfer with proof</small></div>
                   </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
                     <input type="radio" checked={paymentMethod === 'cash'} readOnly />
@@ -1440,8 +1533,8 @@ const Quotation = () => {
                 </div>
               )}
 
-              {/* ✅ Bank Transfer Payment */}
-              {paymentMethod === 'bank_transfer' && <BankTransferSection />}
+              {/* Manual Bank Transfer Payment */}
+              {paymentMethod === 'manual_bank_transfer' && <ManualBankTransferSection />}
 
               {/* Cash Payment */}
               {paymentMethod === 'cash' && (
@@ -1464,7 +1557,7 @@ const Quotation = () => {
           </div>
         )}
 
-        {/* PAYMENT MODAL - Updated with Bank Transfer */}
+        {/* PAYMENT MODAL - Updated with Manual Bank Transfer */}
         {showPaymentModal && selectedItem && (
           <div className="cuspro-modal-overlay" onClick={closeModal}>
             <div className="cuspro-modal" onClick={e => e.stopPropagation()}>
@@ -1485,9 +1578,9 @@ const Quotation = () => {
                     <input type="radio" checked={paymentMethod === 'paymongo_card'} readOnly />
                     <div><strong>Card</strong><small>Instant</small></div>
                   </div>
-                  <div className={`cuspro-method-option ${paymentMethod === 'bank_transfer' ? 'selected' : ''}`} onClick={() => setPaymentMethod('bank_transfer')}>
-                    <input type="radio" checked={paymentMethod === 'bank_transfer'} readOnly />
-                    <div><strong><FaUniversity /> Bank Transfer</strong><small>Online banking</small></div>
+                  <div className={`cuspro-method-option ${paymentMethod === 'manual_bank_transfer' ? 'selected' : ''}`} onClick={() => setPaymentMethod('manual_bank_transfer')}>
+                    <input type="radio" checked={paymentMethod === 'manual_bank_transfer'} readOnly />
+                    <div><strong><FaUniversity /> Bank Transfer</strong><small>Manual with proof</small></div>
                   </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
                     <input type="radio" checked={paymentMethod === 'cash'} readOnly />
@@ -1543,8 +1636,8 @@ const Quotation = () => {
                 </div>
               )}
 
-              {/* ✅ Bank Transfer Payment */}
-              {paymentMethod === 'bank_transfer' && <BankTransferSection />}
+              {/* Manual Bank Transfer Payment */}
+              {paymentMethod === 'manual_bank_transfer' && <ManualBankTransferSection />}
 
               {/* Cash Payment */}
               {paymentMethod === 'cash' && (

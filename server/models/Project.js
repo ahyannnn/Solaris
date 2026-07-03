@@ -49,7 +49,7 @@ const projectSchema = new mongoose.Schema({
     paidAt: Date,
     status: { type: String, enum: ['pending', 'paid', 'overdue'], default: 'pending' },
     invoiceNumber: String,
-    paymentGateway: { type: String, enum: ['paymongo', 'manual'], default: 'manual' },
+    paymentGateway: { type: String, enum: ['paymongo', 'manual', 'manual_bank_transfer'], default: 'manual' },
     paymentProof: String,
     paymentReference: String,
     receiptUrl: { type: String },

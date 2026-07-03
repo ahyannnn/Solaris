@@ -46,9 +46,11 @@ const projectRoutes = require('./routes/projectRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const maintenanceMiddleware = require('./middleware/maintenanceMiddleware');
 const maintenanceRoutes = require('./routes/maintenanceRoutes');
+
 // Admin Routes
 const adminRoutes = require('./routes/adminRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const bankTransferRoutes = require('./routes/bankTransferRoutes');
 // New Routes
 const freeQuoteRoutes = require('./routes/freeQuoteRoutes');
 const preAssessmentRoutes = require('./routes/preAssessmentRoutes');
@@ -73,6 +75,7 @@ app.use('/api/pre-assessments', preAssessmentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/solar-invoices', solarInvoiceRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/payments/bank-transfer', bankTransferRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/uploads', express.static('uploads'));
 

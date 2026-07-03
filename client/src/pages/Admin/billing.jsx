@@ -18,7 +18,14 @@ import {
   FaSave,
   FaTimes,
   FaChevronDown,
-  FaReceipt
+  FaReceipt,
+  FaUniversity,
+  FaClock,
+  FaUser,
+  FaFileInvoice,
+  FaBuilding,
+  FaExclamationTriangle,
+ 
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/billing.css';
@@ -64,6 +71,19 @@ const AdminBilling = () => {
     notes: ''
   });
 
+  // Bank Transfer state
+  const [bankTransfers, setBankTransfers] = useState([]);
+  const [selectedBankTransfer, setSelectedBankTransfer] = useState(null);
+  const [showBankTransferDetailModal, setShowBankTransferDetailModal] = useState(false);
+  const [showBankRejectModal, setShowBankRejectModal] = useState(false);
+  const [bankRejectionReason, setBankRejectionReason] = useState('');
+  const [bankTransferFilter, setBankTransferFilter] = useState('waiting_verification');
+  const [bankTransferSearch, setBankTransferSearch] = useState('');
+  const [bankTransferPage, setBankTransferPage] = useState(1);
+  const [bankTransferTotalPages, setBankTransferTotalPages] = useState(1);
+  const [bankTransferTotalItems, setBankTransferTotalItems] = useState(0);
+  const [bankTransferStats, setBankTransferStats] = useState(null);
+
   // Transaction history state
   const [transactions, setTransactions] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -97,6 +117,7 @@ const AdminBilling = () => {
 
   // Debounced search term
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [debouncedBankSearch, setDebouncedBankSearch] = useState('');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -106,14 +127,28 @@ const AdminBilling = () => {
   }, [searchTerm]);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedBankSearch(bankTransferSearch);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [bankTransferSearch]);
+
+  useEffect(() => {
     setCurrentPage(1);
   }, [filter, debouncedSearchTerm, activeTab]);
+
+  useEffect(() => {
+    setBankTransferPage(1);
+  }, [bankTransferFilter, debouncedBankSearch]);
 
   useEffect(() => {
     if (activeTab === 'pre-assessments') {
       fetchPreAssessments();
     } else if (activeTab === 'solar-invoices') {
       fetchSolarInvoices();
+    } else if (activeTab === 'bank-transfers') {
+      fetchBankTransfers();
+      fetchBankTransferStats();
     } else {
       fetchTransactions();
     }
@@ -136,7 +171,7 @@ const AdminBilling = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('scroll', handleScroll, true);
     };
-  }, [activeTab, filter, currentPage, debouncedSearchTerm]);
+  }, [activeTab, filter, currentPage, debouncedSearchTerm, bankTransferFilter, bankTransferPage, debouncedBankSearch]);
 
   const handleDropdownClick = (event, itemId) => {
     event.stopPropagation();
@@ -159,6 +194,128 @@ const AdminBilling = () => {
       console.error('Error fetching projects:', error);
     }
   }, []);
+
+  // ============================================
+  // BANK TRANSFER FUNCTIONS
+  // ============================================
+
+  const fetchBankTransfers = async () => {
+    try {
+      setLoading(true);
+      const token = sessionStorage.getItem('token');
+
+      const params = {
+        status: bankTransferFilter,
+        page: bankTransferPage,
+        limit: 10
+      };
+
+      if (debouncedBankSearch) {
+        params.search = debouncedBankSearch;
+      }
+
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/payments/bank-transfer/pending`,
+        { headers: { Authorization: `Bearer ${token}` }, params }
+      );
+
+      setBankTransfers(response.data.data || []);
+      setBankTransferTotalPages(response.data.pagination?.totalPages || 1);
+      setBankTransferTotalItems(response.data.pagination?.total || 0);
+    } catch (error) {
+      console.error('Error fetching bank transfers:', error);
+      showToast('Failed to fetch bank transfers', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchBankTransferStats = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/payments/bank-transfer/stats`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setBankTransferStats(response.data.stats);
+    } catch (error) {
+      console.error('Error fetching bank transfer stats:', error);
+    }
+  };
+
+  const handleApproveBankTransfer = async (paymentId) => {
+    if (!window.confirm('Are you sure you want to approve this bank transfer payment?')) return;
+
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/payments/bank-transfer/${paymentId}/approve`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        showToast('Bank transfer payment approved successfully!', 'success');
+        fetchBankTransfers();
+        fetchBankTransferStats();
+        fetchStats();
+        setShowBankTransferDetailModal(false);
+      }
+    } catch (error) {
+      console.error('Error approving bank transfer:', error);
+      showToast(error.response?.data?.message || 'Failed to approve payment', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRejectBankTransfer = async () => {
+    if (!bankRejectionReason.trim()) {
+      showToast('Please provide a rejection reason', 'warning');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/payments/bank-transfer/${selectedBankTransfer._id}/reject`,
+        { rejectionReason: bankRejectionReason },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        showToast('Bank transfer payment rejected', 'warning');
+        fetchBankTransfers();
+        fetchBankTransferStats();
+        setShowBankRejectModal(false);
+        setShowBankTransferDetailModal(false);
+        setBankRejectionReason('');
+        setSelectedBankTransfer(null);
+      }
+    } catch (error) {
+      console.error('Error rejecting bank transfer:', error);
+      showToast(error.response?.data?.message || 'Failed to reject payment', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleViewBankTransferDetail = (payment) => {
+    setSelectedBankTransfer(payment);
+    setShowBankTransferDetailModal(true);
+  };
+
+  const handleViewBankProof = (url) => {
+    if (url) {
+      window.open(url, '_blank');
+    }
+  };
+
+  // ============================================
+  // PRE-ASSESSMENT FUNCTIONS
+  // ============================================
 
   const fetchPreAssessments = async () => {
     try {
@@ -365,6 +522,8 @@ const AdminBilling = () => {
         receiptUrl = item.receiptUrl;
       } else if (type === 'transaction') {
         receiptUrl = item.receiptUrl;
+      } else if (type === 'bank-transfer') {
+        receiptUrl = item.receiptUrl;
       }
 
       if (!receiptUrl) {
@@ -392,6 +551,9 @@ const AdminBilling = () => {
         receiptUrl = item.receiptUrl;
         receiptNumber = item.receiptNumber;
       } else if (type === 'transaction') {
+        receiptUrl = item.receiptUrl;
+        receiptNumber = item.receiptNumber;
+      } else if (type === 'bank-transfer') {
         receiptUrl = item.receiptUrl;
         receiptNumber = item.receiptNumber;
       }
@@ -422,6 +584,7 @@ const AdminBilling = () => {
     }
   };
 
+  // ============ VERIFICATION HANDLERS ============
   const handleVerifyPayment = async (verified) => {
     if (!selectedAssessment) return;
     setIsSubmitting(true);
@@ -540,6 +703,7 @@ const AdminBilling = () => {
     }
   };
 
+  // ============ INVOICE HANDLERS ============
   const handleCreateSolarInvoice = async () => {
     if (!invoiceFormData.projectId || !invoiceFormData.totalAmount || !invoiceFormData.dueDate) {
       showToast('Please fill in all required fields', 'warning');
@@ -682,6 +846,7 @@ const AdminBilling = () => {
     calculateTotals();
   };
 
+  // ============ FORMATTING FUNCTIONS ============
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-PH', {
       style: 'currency',
@@ -700,6 +865,18 @@ const AdminBilling = () => {
     });
   };
 
+  const formatDateTime = (date) => {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleString('en-PH', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // ============ BADGE FUNCTIONS ============
   const getPaymentStatusBadge = (status) => {
     const badges = {
       'pending': <span className="status-badge-admbil pending-admbil">Pending</span>,
@@ -707,7 +884,19 @@ const AdminBilling = () => {
       'paid': <span className="status-badge-admbil paid-admbil">Paid</span>,
       'partial': <span className="status-badge-admbil partial-admbil">Partial</span>,
       'failed': <span className="status-badge-admbil failed-admbil">Failed</span>,
-      'overdue': <span className="status-badge-admbil overdue-admbil">Overdue</span>
+      'overdue': <span className="status-badge-admbil overdue-admbil">Overdue</span>,
+      'waiting_verification': <span className="status-badge-admbil waiting-admbil">Waiting for Verification</span>,
+      'verified': <span className="status-badge-admbil verified-admbil">Verified</span>,
+      'rejected': <span className="status-badge-admbil rejected-admbil">Rejected</span>
+    };
+    return badges[status] || <span className="status-badge-admbil">{status}</span>;
+  };
+
+  const getBankTransferStatusBadge = (status) => {
+    const badges = {
+      'waiting_verification': <span className="status-badge-admbil waiting-admbil">⏳ Waiting</span>,
+      'verified': <span className="status-badge-admbil verified-admbil">✅ Verified</span>,
+      'rejected': <span className="status-badge-admbil rejected-admbil">❌ Rejected</span>
     };
     return badges[status] || <span className="status-badge-admbil">{status}</span>;
   };
@@ -744,6 +933,7 @@ const AdminBilling = () => {
     return <span className="gateway-badge-admbil manual-admbil">Manual</span>;
   };
 
+  // ============ ACTION FUNCTIONS ============
   const getPreAssessmentActions = (assessment) => {
     const actions = [
       {
@@ -834,6 +1024,57 @@ const AdminBilling = () => {
     return actions;
   };
 
+  const getBankTransferActions = (payment) => {
+    const actions = [
+      {
+        label: 'View Details',
+        action: () => { handleViewBankTransferDetail(payment); setOpenDropdownId(null); }
+      }
+    ];
+
+    if (payment.proofOfPayment) {
+      actions.push(
+        {
+          label: 'View Proof',
+          action: () => { handleViewBankProof(payment.proofOfPayment); setOpenDropdownId(null); }
+        }
+      );
+    }
+
+    if (payment.status === 'waiting_verification') {
+      actions.push(
+        {
+          label: 'Approve Payment',
+          action: () => { handleApproveBankTransfer(payment._id); setOpenDropdownId(null); },
+          color: 'success'
+        },
+        {
+          label: 'Reject Payment',
+          action: () => { setSelectedBankTransfer(payment); setShowBankRejectModal(true); setOpenDropdownId(null); },
+          color: 'danger'
+        }
+      );
+    }
+
+    if (payment.status === 'verified' && payment.receiptUrl) {
+      actions.push(
+        {
+          label: 'View Receipt',
+          action: () => handleViewReceipt(payment, 'bank-transfer'),
+          color: 'info'
+        },
+        {
+          label: 'Download Receipt',
+          action: () => handleDownloadReceipt(payment, 'bank-transfer'),
+          color: 'success'
+        }
+      );
+    }
+
+    return actions;
+  };
+
+  // ============ SKELETON LOADER ============
   const SkeletonLoader = () => (
     <div className="admin-billing-admbil">
       <div className="billing-header-admbil">
@@ -849,7 +1090,7 @@ const AdminBilling = () => {
         ))}
       </div>
       <div className="billing-tabs-admbil">
-        {[1, 2, 3].map(i => <div key={i} className="skeleton-tab-admbil"></div>)}
+        {[1, 2, 3, 4].map(i => <div key={i} className="skeleton-tab-admbil"></div>)}
       </div>
       <div className="filters-section-admbil">
         <div className="skeleton-select-admbil"></div>
@@ -861,7 +1102,7 @@ const AdminBilling = () => {
     </div>
   );
 
-  if (loading && assessments.length === 0 && solarInvoices.length === 0 && activeTab !== 'transactions') {
+  if (loading && assessments.length === 0 && solarInvoices.length === 0 && bankTransfers.length === 0 && activeTab !== 'transactions') {
     return <SkeletonLoader />;
   }
 
@@ -921,10 +1162,38 @@ const AdminBilling = () => {
           </div>
         </div>
 
+        {/* Bank Transfer Stats - Only show when on bank transfers tab */}
+        {activeTab === 'bank-transfers' && bankTransferStats && (
+          <div className="bank-transfer-stats-admbil">
+            <div className="bank-stat-card waiting">
+              <span className="bank-stat-value">{bankTransferStats.waiting_verification}</span>
+              <span className="bank-stat-label">⏳ Waiting for Verification</span>
+            </div>
+            <div className="bank-stat-card verified">
+              <span className="bank-stat-value">{bankTransferStats.verified}</span>
+              <span className="bank-stat-label">✅ Verified</span>
+            </div>
+            <div className="bank-stat-card rejected">
+              <span className="bank-stat-value">{bankTransferStats.rejected}</span>
+              <span className="bank-stat-label">❌ Rejected</span>
+            </div>
+            <div className="bank-stat-card total">
+              <span className="bank-stat-value">{formatCurrency(bankTransferStats.totalAmount)}</span>
+              <span className="bank-stat-label">💰 Total Amount</span>
+            </div>
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="billing-tabs-admbil">
           <button className={`tab-btn-admbil ${activeTab === 'pre-assessments' ? 'active-admbil' : ''}`} onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); }}>Pre-Assessments</button>
           <button className={`tab-btn-admbil ${activeTab === 'solar-invoices' ? 'active-admbil' : ''}`} onClick={() => { setActiveTab('solar-invoices'); setFilter('all'); setCurrentPage(1); }}>Solar Invoices</button>
+          <button className={`tab-btn-admbil ${activeTab === 'bank-transfers' ? 'active-admbil' : ''}`} onClick={() => { setActiveTab('bank-transfers'); setBankTransferFilter('waiting_verification'); setBankTransferPage(1); }}>
+            <FaUniversity /> Bank Transfers
+            {bankTransferStats?.waiting_verification > 0 && (
+              <span className="tab-badge-admbil">{bankTransferStats.waiting_verification}</span>
+            )}
+          </button>
           <button className={`tab-btn-admbil ${activeTab === 'transactions' ? 'active-admbil' : ''}`} onClick={() => { setActiveTab('transactions'); setCurrentPage(1); }}>Transactions</button>
         </div>
 
@@ -946,6 +1215,12 @@ const AdminBilling = () => {
                   <option value="paid">Paid</option>
                   <option value="overdue">Overdue</option>
                 </>
+              ) : activeTab === 'bank-transfers' ? (
+                <>
+                  <option value="waiting_verification">Waiting for Verification</option>
+                  <option value="verified">Verified</option>
+                  <option value="rejected">Rejected</option>
+                </>
               ) : (
                 <>
                   <option value="pending">Pending</option>
@@ -957,7 +1232,12 @@ const AdminBilling = () => {
           </div>
           <div className="search-group-admbil">
             <FaSearch className="search-icon-admbil" />
-            <input type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <input 
+              type="text" 
+              placeholder="Search..." 
+              value={activeTab === 'bank-transfers' ? bankTransferSearch : searchTerm} 
+              onChange={(e) => activeTab === 'bank-transfers' ? setBankTransferSearch(e.target.value) : setSearchTerm(e.target.value)} 
+            />
           </div>
         </div>
 
@@ -1163,6 +1443,97 @@ const AdminBilling = () => {
           </>
         )}
 
+        {/* BANK TRANSFERS TABLE */}
+        {activeTab === 'bank-transfers' && (
+          <>
+            <div className="payments-table-container-admbil">
+              <table className="payments-table-admbil">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Invoice #</th>
+                    <th>Bank</th>
+                    <th>Amount</th>
+                    <th>Reference</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bankTransfers.length === 0 ? (
+                    <tr><td colSpan="8" className="empty-state-admbil">
+                      <FaExclamationTriangle /> No bank transfer submissions found
+                    </td></tr>
+                  ) : (
+                    bankTransfers.map(payment => {
+                      const actions = getBankTransferActions(payment);
+                      const isOpen = openDropdownId === payment._id;
+
+                      return (
+                        <tr key={payment._id} className={payment.status === 'rejected' ? 'rejected-row-admbil' : ''}>
+                          <td>{formatDate(payment.createdAt)}</td>
+                          <td className="customer-cell-admbil">
+                            <div>
+                              <strong>{payment.clientId?.contactFirstName} {payment.clientId?.contactLastName}</strong>
+                              <small>{payment.clientEmail}</small>
+                            </div>
+                          </td>
+                          <td className="invoice-cell-admbil">
+                            <strong>{payment.invoiceId?.invoiceNumber}</strong>
+                            <small>{payment.invoiceId?.invoiceType}</small>
+                          </td>
+                          <td><span className="bank-name-admbil">{payment.bankName}</span></td>
+                          <td className="amount-admbil">{formatCurrency(payment.amount)}</td>
+                          <td className="ref-cell-admbil">{payment.transactionReference}</td>
+                          <td>{getBankTransferStatusBadge(payment.status)}</td>
+                          <td style={{ textAlign: 'center', position: 'relative' }}>
+                            <div className="action-dropdown-container-admbil">
+                              <button 
+                                className="action-dropdown-toggle-admbil" 
+                                ref={el => buttonRefs.current[payment._id] = el}
+                                onClick={(e) => handleDropdownClick(e, payment._id)}
+                              >
+                                Action <FaChevronDown className={`dropdown-arrow-admbil ${isOpen ? 'open-admbil' : ''}`} />
+                              </button>
+                              {isOpen && (
+                                <div 
+                                  className="action-dropdown-menu-admbil"
+                                  ref={dropdownRef}
+                                  style={{
+                                    position: 'fixed',
+                                    top: dropdownPosition.top,
+                                    right: dropdownPosition.right,
+                                    zIndex: 9999,
+                                  }}
+                                >
+                                  {actions.map((action, idx) => (
+                                    <button key={idx} className={`dropdown-item-admbil ${action.color || ''}`} onClick={action.action}>
+                                      <span>{action.label}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {bankTransferTotalPages > 1 && (
+              <div className="pagination-admbil">
+                <button className="page-btn-admbil" onClick={() => setBankTransferPage(p => Math.max(1, p - 1))} disabled={bankTransferPage === 1}><FaChevronLeft /> Previous</button>
+                <span className="page-info-admbil">Page {bankTransferPage} of {bankTransferTotalPages}</span>
+                <button className="page-btn-admbil" onClick={() => setBankTransferPage(p => Math.min(bankTransferTotalPages, p + 1))} disabled={bankTransferPage === bankTransferTotalPages}>Next <FaChevronRight /></button>
+              </div>
+            )}
+          </>
+        )}
+
         {/* TRANSACTIONS TABLE */}
         {activeTab === 'transactions' && (
           <div className="payments-table-container-admbil">
@@ -1211,7 +1582,10 @@ const AdminBilling = () => {
           </div>
         )}
 
-        {/* Rest of modals remain the same */}
+        {/* ============================================ */}
+        {/* MODALS */}
+        {/* ============================================ */}
+
         {/* Verify Payment Modal */}
         {showVerifyModal && selectedAssessment && (
           <div className="modal-overlay-admbil" onClick={() => setShowVerifyModal(false)}>
@@ -1415,6 +1789,239 @@ const AdminBilling = () => {
               </div>
               <div className="modal-actions-admbil">
                 <button className="cancel-btn-admbil" onClick={() => setShowDetailModal(false)}>Close</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bank Transfer Detail Modal */}
+        {showBankTransferDetailModal && selectedBankTransfer && (
+          <div className="modal-overlay-admbil" onClick={() => setShowBankTransferDetailModal(false)}>
+            <div className="modal-content-admbil detail-modal-admbil" onClick={e => e.stopPropagation()}>
+              <button className="modal-close-admbil" onClick={() => setShowBankTransferDetailModal(false)}><FaTimes /></button>
+              
+              <div className="modal-header-admbil">
+                <div className="modal-title-admbil">
+                  <h3>Bank Transfer Details</h3>
+                  {getBankTransferStatusBadge(selectedBankTransfer.status)}
+                </div>
+                <div className="modal-subtitle-admbil">
+                  <span>Submitted: {formatDateTime(selectedBankTransfer.createdAt)}</span>
+                </div>
+              </div>
+
+              <div className="modal-body-admbil">
+                {/* Customer Info */}
+                <div className="detail-section-admbil">
+                  <h4><FaUser /> Customer Information</h4>
+                  <div className="detail-grid-admbil two-col">
+                    <div>
+                      <label>Name</label>
+                      <p>{selectedBankTransfer.clientId?.contactFirstName} {selectedBankTransfer.clientId?.contactLastName}</p>
+                    </div>
+                    <div>
+                      <label>Email</label>
+                      <p>{selectedBankTransfer.clientEmail || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label>Contact</label>
+                      <p>{selectedBankTransfer.clientId?.contactNumber || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Invoice Info */}
+                <div className="detail-section-admbil">
+                  <h4><FaFileInvoice /> Invoice Information</h4>
+                  <div className="detail-grid-admbil two-col">
+                    <div>
+                      <label>Invoice Number</label>
+                      <p><strong>{selectedBankTransfer.invoiceId?.invoiceNumber}</strong></p>
+                    </div>
+                    <div>
+                      <label>Invoice Type</label>
+                      <p>{selectedBankTransfer.invoiceId?.invoiceType || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label>Expected Amount</label>
+                      <p className="amount-admbil">{formatCurrency(selectedBankTransfer.invoiceId?.totalAmount)}</p>
+                    </div>
+                    <div>
+                      <label>Balance</label>
+                      <p className="amount-admbil">{formatCurrency(selectedBankTransfer.invoiceId?.balance)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Project Info */}
+                <div className="detail-section-admbil">
+                  <h4><FaBuilding /> Project Information</h4>
+                  <div className="detail-grid-admbil two-col">
+                    <div>
+                      <label>Project Name</label>
+                      <p>{selectedBankTransfer.projectId?.projectName || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label>Project Reference</label>
+                      <p>{selectedBankTransfer.projectId?.projectReference || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Payment Info */}
+                <div className="detail-section-admbil">
+                  <h4><FaMoneyBillWave /> Payment Information</h4>
+                  <div className="detail-grid-admbil two-col">
+                    <div>
+                      <label>Bank Used</label>
+                      <p><strong>{selectedBankTransfer.bankName}</strong></p>
+                    </div>
+                    <div>
+                      <label>Account Name</label>
+                      <p>{selectedBankTransfer.accountName || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label>Transaction Reference</label>
+                      <p><strong>{selectedBankTransfer.transactionReference}</strong></p>
+                    </div>
+                    <div>
+                      <label>Amount Submitted</label>
+                      <p className="amount-admbil">{formatCurrency(selectedBankTransfer.amount)}</p>
+                    </div>
+                    <div>
+                      <label>Transfer Date</label>
+                      <p>{formatDate(selectedBankTransfer.transferDate)}</p>
+                    </div>
+                    <div>
+                      <label>Transfer Time</label>
+                      <p>{selectedBankTransfer.transferTime}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Proof of Payment */}
+                <div className="detail-section-admbil">
+                  <h4>📎 Proof of Payment</h4>
+                  <div className="proof-container-admbil">
+                    {selectedBankTransfer.proofOfPayment ? (
+                      <div className="proof-actions-admbil">
+                        <button className="proof-btn-admbil" onClick={() => handleViewBankProof(selectedBankTransfer.proofOfPayment)}>
+                          <FaEye /> View Proof
+                        </button>
+                        <a href={selectedBankTransfer.proofOfPayment} download className="proof-btn-admbil download">
+                          <FaDownload /> Download
+                        </a>
+                      </div>
+                    ) : (
+                      <p className="no-proof-admbil">No proof uploaded</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Remarks */}
+                {selectedBankTransfer.remarks && (
+                  <div className="detail-section-admbil">
+                    <h4>Remarks</h4>
+                    <p className="remarks-text-admbil">{selectedBankTransfer.remarks}</p>
+                  </div>
+                )}
+
+                {/* Rejection Reason */}
+                {selectedBankTransfer.status === 'rejected' && selectedBankTransfer.rejectionReason && (
+                  <div className="detail-section-admbil rejected">
+                    <h4><FaTimesCircle /> Rejection Reason</h4>
+                    <p className="rejection-text-admbil">{selectedBankTransfer.rejectionReason}</p>
+                  </div>
+                )}
+
+                {/* Receipt */}
+                {selectedBankTransfer.status === 'verified' && selectedBankTransfer.receiptUrl && (
+                  <div className="detail-section-admbil">
+                    <h4><FaReceipt /> Receipt</h4>
+                    <div className="receipt-actions-admbil">
+                      <button className="receipt-btn-admbil" onClick={() => handleViewReceipt(selectedBankTransfer, 'bank-transfer')}>
+                        <FaReceipt /> View Receipt
+                      </button>
+                      <span className="receipt-number-admbil">#{selectedBankTransfer.receiptNumber}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Verification Info */}
+                {selectedBankTransfer.status !== 'waiting_verification' && selectedBankTransfer.verifiedAt && (
+                  <div className="detail-section-admbil">
+                    <h4>Verification Info</h4>
+                    <div className="detail-grid-admbil two-col">
+                      <div>
+                        <label>Verified By</label>
+                        <p>{selectedBankTransfer.verifiedBy?.firstName} {selectedBankTransfer.verifiedBy?.lastName}</p>
+                      </div>
+                      <div>
+                        <label>Verified At</label>
+                        <p>{formatDateTime(selectedBankTransfer.verifiedAt)}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-footer-admbil">
+                {selectedBankTransfer.status === 'waiting_verification' && (
+                  <>
+                    <button className="btn-reject-admbil" onClick={() => setShowBankRejectModal(true)} disabled={isSubmitting}>
+                      Reject
+                    </button>
+                    <button className="btn-approve-admbil" onClick={() => handleApproveBankTransfer(selectedBankTransfer._id)} disabled={isSubmitting}>
+                      {isSubmitting ? <FaSpinner className="spinning-admbil" /> : <FaCheckCircle />}
+                      Approve Payment
+                    </button>
+                  </>
+                )}
+                <button className="btn-close-admbil" onClick={() => setShowBankTransferDetailModal(false)}>Close</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bank Transfer Reject Modal */}
+        {showBankRejectModal && selectedBankTransfer && (
+          <div className="modal-overlay-admbil" onClick={() => setShowBankRejectModal(false)}>
+            <div className="modal-content-admbil reject-modal-admbil" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-admbil">
+                <h3>Reject Bank Transfer Payment</h3>
+                <button className="modal-close-admbil" onClick={() => setShowBankRejectModal(false)}><FaTimes /></button>
+              </div>
+
+              <div className="modal-body-admbil">
+                <div className="reject-info-admbil">
+                  <FaExclamationTriangle className="warning-icon-admbil" />
+                  <p>You are about to reject this bank transfer payment.</p>
+                  <div className="payment-summary-admbil">
+                    <div><strong>Customer:</strong> {selectedBankTransfer.clientId?.contactFirstName} {selectedBankTransfer.clientId?.contactLastName}</div>
+                    <div><strong>Invoice:</strong> {selectedBankTransfer.invoiceId?.invoiceNumber}</div>
+                    <div><strong>Amount:</strong> {formatCurrency(selectedBankTransfer.amount)}</div>
+                    <div><strong>Bank:</strong> {selectedBankTransfer.bankName}</div>
+                  </div>
+                </div>
+
+                <div className="form-group-admbil">
+                  <label>Rejection Reason *</label>
+                  <textarea
+                    value={bankRejectionReason}
+                    onChange={(e) => setBankRejectionReason(e.target.value)}
+                    placeholder="Please explain why this payment is being rejected..."
+                    rows="4"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="modal-footer-admbil">
+                <button className="btn-cancel-admbil" onClick={() => setShowBankRejectModal(false)}>Cancel</button>
+                <button className="btn-reject-confirm-admbil" onClick={handleRejectBankTransfer} disabled={isSubmitting || !bankRejectionReason.trim()}>
+                  {isSubmitting ? <FaSpinner className="spinning-admbil" /> : <FaTimes />}
+                  Confirm Rejection
+                </button>
               </div>
             </div>
           </div>

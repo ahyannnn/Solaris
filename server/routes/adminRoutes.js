@@ -10,6 +10,7 @@ const userControllers = require('../controllers/userManagementControllers');
 const deviceControllers = require('../controllers/deviceControllers');
 const revenueControllers = require('../controllers/revenueControllers');
 const reportController = require('../controllers/reportController');
+const bankTransferRoutes = require('./bankTransferRoutes');
 
 const { verifyToken } = authMiddleware;
 
@@ -36,6 +37,7 @@ router.put('/devices/:id', deviceControllers.updateDevice);
 router.delete('/devices/:id', deviceControllers.deleteDevice);
 router.post('/devices/:deviceId/assign', deviceControllers.assignDeviceToEngineer);
 
+router.use('/payments/bank-transfer', bankTransferRoutes);
 // ============ REVENUE ============
 router.get('/revenue', revenueControllers.getRevenueStats);
 router.get('/revenue/monthly', revenueControllers.getMonthlyRevenue);

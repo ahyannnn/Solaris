@@ -98,7 +98,12 @@ const createApplication = async (req, res) => {
     }
 
     // Clean version - remove spaces and special characters
-    const cleanVersion = version.replace(/\s+/g, '').replace(/[^a-zA-Z0-9.-]/g, '');
+    const cleanVersion = version
+      .trim()
+      .replace(/^v/i, '')      // Remove leading v or V
+      .replace(/\s+/g, '')
+      .replace(/[^a-zA-Z0-9.-]/g, '');
+
     const tagName = `v${cleanVersion}`;
     const releaseName = `Version ${cleanVersion}`;
     const isDraft = status !== 'published';
@@ -358,52 +363,96 @@ const deleteApplication = async (req, res) => {
   }
 };
 
-// Publish an application
 const publishApplication = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const app = await Application.findById(id);
-    if (!app) {
-      return res.status(404).json({
-        success: false,
-        message: 'Application not found'
-      });
-    }
-
-    // Unpublish all other published apps
-    await Application.updateMany(
-      { status: 'published', _id: { $ne: id } },
-      { status: 'draft' }
-    );
-
-    // Publish the release on GitHub
     try {
-      const release = await githubService.getReleaseByTag(`v${app.version}`);
-      if (release && release.draft) {
-        await githubService.publishRelease(release.id);
-      }
+        const { id } = req.params;
+
+        console.log("\n==================================================");
+        console.log("📢 PUBLISH APPLICATION");
+        console.log("==================================================");
+
+        const app = await Application.findById(id);
+
+        if (!app) {
+            return res.status(404).json({
+                success: false,
+                message: "Application not found"
+            });
+        }
+
+        console.log("Application:", app.version);
+        console.log("GitHub Release ID:", app.githubReleaseId);
+
+        // Unpublish all other applications
+        await Application.updateMany(
+            {
+                status: "published",
+                _id: { $ne: id }
+            },
+            {
+                status: "draft"
+            }
+        );
+
+        // Fetch release directly by ID
+        let release = await githubService.getReleaseById(app.githubReleaseId);
+
+        if (!release) {
+            return res.status(404).json({
+                success: false,
+                message: "GitHub release not found"
+            });
+        }
+
+        console.log("Release Found:");
+        console.log({
+            id: release.id,
+            tag: release.tag_name,
+            draft: release.draft,
+            url: release.html_url
+        });
+
+        // Publish draft release
+        if (release.draft) {
+            console.log("Publishing draft release...");
+            release = await githubService.publishRelease(release.id);
+            console.log("Release published.");
+        }
+
+        // Get assets
+        const assets = await githubService.getReleaseAssets(release.id);
+
+        const asset =
+            assets.find(a => a.id === app.githubAssetId) ||
+            assets.find(a => a.name === app.fileName);
+
+        if (asset) {
+            app.apkUrl = asset.browser_download_url;
+            app.githubAssetId = asset.id;
+        }
+
+        app.status = "published";
+        app.releaseDate = new Date();
+
+        await app.save();
+
+        console.log("Application published successfully.");
+
+        return res.status(200).json({
+            success: true,
+            message: "Application published successfully",
+            app
+        });
+
     } catch (error) {
-      console.warn('⚠️ GitHub publish error:', error.message);
-      // Continue even if GitHub publish fails
+        console.error("Publish Error:");
+        console.error(error.response?.data || error);
+
+        return res.status(500).json({
+            success: false,
+            message: error.response?.data?.message || error.message
+        });
     }
-
-    app.status = 'published';
-    app.releaseDate = new Date();
-    await app.save();
-
-    res.status(200).json({
-      success: true,
-      message: 'Application published successfully',
-      app
-    });
-  } catch (error) {
-    console.error('Error publishing application:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to publish application'
-    });
-  }
 };
 
 module.exports = {

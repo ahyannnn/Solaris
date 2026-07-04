@@ -18,6 +18,7 @@ import {
 } from 'react-icons/fa';
 import axios from 'axios';
 import { useToast } from '../../assets/toastnotification';
+import '../../styles/Admin/appManagement.css';
 
 const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
   const { toast, showToast } = useToast();

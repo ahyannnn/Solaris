@@ -47,33 +47,38 @@ const SiteAssessment = () => {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage] = useState(5);
+  const [totalItems, setTotalItems] = useState(0);
   const [engineers, setEngineers] = useState([]);
   const [devices, setDevices] = useState([]);
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 20 });
   const buttonRefs = useRef({});
   const dropdownRef = useRef(null);
+  const [stats, setStats] = useState({
+    freeQuotes: { total: 0, pending: 0, assigned: 0, processing: 0, completed: 0 },
+    preAssessments: { total: 0, pendingReview: 0, pendingPayment: 0, forVerification: 0, paid: 0, scheduled: 0, completed: 0, autoVerified: 0 }
+  });
 
   useEffect(() => {
     fetchData();
     fetchEngineers();
     fetchDevices();
     fetchStats();
-    
+
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setOpenDropdownId(null);
       }
     };
-    
+
     const handleScroll = () => {
       setOpenDropdownId(null);
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     window.addEventListener('scroll', handleScroll, true);
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('scroll', handleScroll, true);
@@ -88,17 +93,17 @@ const SiteAssessment = () => {
       if (activeTab === 'free-quotes') {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes`, {
           headers: { Authorization: `Bearer ${token}` },
-          params: { status: filter === 'all' ? undefined : filter, page: currentPage, limit: 10 }
+          params: { status: filter === 'all' ? undefined : filter, page: currentPage, limit: itemsPerPage }
         });
         setFreeQuotes(response.data.quotes || []);
-        setTotalPages(response.data.totalPages || 1);
+        setTotalItems(response.data.total || 0);
       } else {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
           headers: { Authorization: `Bearer ${token}` },
-          params: { status: filter === 'all' ? undefined : filter, page: currentPage, limit: 10 }
+          params: { status: filter === 'all' ? undefined : filter, page: currentPage, limit: itemsPerPage }
         });
         setPreAssessments(response.data.assessments || []);
-        setTotalPages(response.data.totalPages || 1);
+        setTotalItems(response.data.total || 0);
       }
       setLoading(false);
     } catch (error) {
@@ -407,8 +412,8 @@ const SiteAssessment = () => {
       if (engineer._id) {
         const foundEngineer = engineers.find(eng => eng._id === engineer._id);
         if (foundEngineer) {
-          return foundEngineer.fullName || foundEngineer.name || 
-            `${foundEngineer.firstName || ''} ${foundEngineer.lastName || ''}`.trim() || 
+          return foundEngineer.fullName || foundEngineer.name ||
+            `${foundEngineer.firstName || ''} ${foundEngineer.lastName || ''}`.trim() ||
             foundEngineer.email || 'Engineer assigned';
         }
       }
@@ -423,8 +428,8 @@ const SiteAssessment = () => {
     if (typeof engineer === 'string') {
       const foundEngineer = engineers.find(eng => eng._id === engineer || eng.id === engineer);
       if (foundEngineer) {
-        return foundEngineer.fullName || foundEngineer.name || 
-          `${foundEngineer.firstName || ''} ${foundEngineer.lastName || ''}`.trim() || 
+        return foundEngineer.fullName || foundEngineer.name ||
+          `${foundEngineer.firstName || ''} ${foundEngineer.lastName || ''}`.trim() ||
           foundEngineer.email || 'Engineer assigned';
       }
       return 'Not assigned';
@@ -444,10 +449,10 @@ const SiteAssessment = () => {
 
   const getAvailableActions = (item) => {
     const actions = [
-      { 
-        label: 'View Details', 
-        icon: <FaEye />, 
-        action: () => { setSelectedItem(item); setShowDetailModal(true); setOpenDropdownId(null); } 
+      {
+        label: 'View Details',
+        icon: <FaEye />,
+        action: () => { setSelectedItem(item); setShowDetailModal(true); setOpenDropdownId(null); }
       }
     ];
 
@@ -508,19 +513,32 @@ const SiteAssessment = () => {
   const SkeletonLoader = () => (
     <div className="site-assessment">
       <div className="assessment-header"><div className="skeleton-title"></div><div className="skeleton-subtitle"></div></div>
-      <div className="assessment-stats">
-        <div className="stat-card skeleton"><div className="skeleton-line large"></div><div className="skeleton-line small"></div></div>
-        <div className="stat-card skeleton"><div className="skeleton-line large"></div><div className="skeleton-line small"></div></div>
-      </div>
       <div className="assessment-tabs"><div className="skeleton-tab"></div><div className="skeleton-tab"></div></div>
       <div className="skeleton-table"></div>
     </div>
   );
 
-  const [stats, setStats] = useState({
-    freeQuotes: { total: 0, pending: 0, assigned: 0, processing: 0, completed: 0 },
-    preAssessments: { total: 0, pendingReview: 0, pendingPayment: 0, forVerification: 0, paid: 0, scheduled: 0, completed: 0, autoVerified: 0 }
-  });
+  // Calculate pagination
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  // Generate page numbers
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+    if (endPage - startPage + 1 < maxVisible) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
 
   if (loading && (activeTab === 'free-quotes' ? freeQuotes.length === 0 : preAssessments.length === 0)) {
     return <SkeletonLoader />;
@@ -536,35 +554,21 @@ const SiteAssessment = () => {
           <p>Manage free quote requests and pre-assessment bookings</p>
         </div>
 
-        <div className="assessment-stats">
-          <div className="stat-card free-quote">
-            <div className="stat-info">
-              <span className="stat-value">{stats.freeQuotes.total}</span>
-              <span className="stat-label">Free Quotes</span>
-              <div className="stat-detail">
-                <span>Pending: {stats.freeQuotes.pending}</span>
-                <span>Assigned: {stats.freeQuotes.assigned}</span>
-                <span>Processing: {stats.freeQuotes.processing}</span>
-                <span>Completed: {stats.freeQuotes.completed}</span>
-              </div>
-            </div>
-          </div>
-          <div className="stat-card pre-assessment">
-            <div className="stat-info">
-              <span className="stat-value">{stats.preAssessments.total}</span>
-              <span className="stat-label">Pre-Assessments</span>
-              <div className="stat-detail">
-                <span>Pending Review: {stats.preAssessments.pendingReview}</span>
-                <span>Auto-Verified: {stats.preAssessments.autoVerified}</span>
-                <span>Completed: {stats.preAssessments.completed}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div className="assessment-tabs">
-          <button className={`tab-btn ${activeTab === 'free-quotes' ? 'active' : ''}`} onClick={() => { setActiveTab('free-quotes'); setFilter('all'); setCurrentPage(1); }}>Free Quotes</button>
-          <button className={`tab-btn ${activeTab === 'pre-assessments' ? 'active' : ''}`} onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); }}>Pre-Assessments</button>
+          <button
+            className={`tab-btn ${activeTab === 'free-quotes' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('free-quotes'); setFilter('all'); setCurrentPage(1); }}
+          >
+            Free Quotes
+            <span className="tab-badge">{stats.freeQuotes.total}</span>
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'pre-assessments' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); }}
+          >
+            Pre-Assessments
+            <span className="tab-badge">{stats.preAssessments.total}</span>
+          </button>
         </div>
 
         <div className="assessment-filters">
@@ -618,7 +622,7 @@ const SiteAssessment = () => {
                 filteredItems.map(item => {
                   const actions = getAvailableActions(item);
                   const isOpen = openDropdownId === item._id;
-                  
+
                   return (
                     <tr key={item._id}>
                       <td className="ref-cell">{activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference}</td>
@@ -639,16 +643,16 @@ const SiteAssessment = () => {
                       <td>{getStatusBadge(getDisplayStatus(item), activeTab === 'free-quotes' ? 'free-quote' : 'pre-assessment')}</td>
                       <td style={{ textAlign: 'center', position: 'relative' }}>
                         <div className="action-dropdown-container">
-                          <button 
+                          <button
                             className="action-dropdown-toggle"
                             ref={el => buttonRefs.current[item._id] = el}
                             onClick={(e) => handleDropdownClick(e, item._id)}
                           >
                             Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
                           </button>
-                          
+
                           {isOpen && (
-                            <div 
+                            <div
                               className="action-dropdown-menu"
                               ref={dropdownRef}
                               style={{
@@ -664,8 +668,8 @@ const SiteAssessment = () => {
                                     {action.icon} <span>{action.label}</span>
                                   </div>
                                 ) : (
-                                  <button 
-                                    key={idx} 
+                                  <button
+                                    key={idx}
                                     className={`dropdown-item ${action.color || ''}`}
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -690,9 +694,36 @@ const SiteAssessment = () => {
 
         {totalPages > 1 && (
           <div className="pagination">
-            <button className="page-btn" onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}><FaChevronLeft /> Previous</button>
-            <span className="page-info">Page {currentPage} of {totalPages}</span>
-            <button className="page-btn" onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages}>Next <FaChevronRight /></button>
+            <div className="pagination-info">
+              Showing {startItem} to {endItem} of {totalItems} entries
+            </div>
+            <div className="pagination-controls">
+              <button
+                className="page-btn"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                <FaChevronLeft /> Previous
+              </button>
+
+              {getPageNumbers().map(page => (
+                <button
+                  key={page}
+                  className={`page-number ${currentPage === page ? 'active' : ''}`}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                className="page-btn"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next <FaChevronRight />
+              </button>
+            </div>
           </div>
         )}
 

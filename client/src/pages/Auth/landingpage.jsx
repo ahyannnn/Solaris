@@ -1,10 +1,10 @@
 // pages/Auth/landingpage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FaUsers, 
-  FaClipboardList, 
-  FaStar, 
+import {
+  FaUsers,
+  FaClipboardList,
+  FaStar,
   FaMoneyBillWave,
   FaTools,
   FaSolarPanel,
@@ -17,6 +17,7 @@ import {
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
 import "../../styles/Auth/landingpage.css";
+import AppDownload from '../../components/AppDownload';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ const LandingPage = () => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
 
-      const sections = ['hero', 'about', 'mission-vision', 'free-vs-paid', 'solar-estimator', 'how-it-works', 'services', 'why-us'];
+      const sections = ['hero', 'about', 'mission-vision', 'free-vs-paid', 'solar-estimator', 'how-it-works', 'services', 'why-us', 'download-app'];
       const current = sections.find(section => {
         const element = document.getElementById(section);
         if (element) {
@@ -228,6 +229,9 @@ const LandingPage = () => {
               <button className={`nav-link-land ${activeSection === 'how-it-works' ? 'active-land' : ''}`} onClick={() => scrollToSection('how-it-works')}>How It Works</button>
               <button className={`nav-link-land ${activeSection === 'solar-estimator' ? 'active-land' : ''}`} onClick={() => scrollToSection('solar-estimator')}>Estimator</button>
               <button className={`nav-link-land ${activeSection === 'why-us' ? 'active-land' : ''}`} onClick={() => scrollToSection('why-us')}>Why Us</button>
+              <button className={`nav-link-land ${activeSection === 'download-app' ? 'active-land' : ''}`} onClick={() => scrollToSection('download-app')}>
+                <FaDownload /> Download
+              </button>
             </nav>
 
             <div className="header-actions-land">
@@ -409,6 +413,41 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* Download App Section */}
+      <section id="download-app" className="download-section-land">
+        <div className="container-land">
+          <div className="download-content-land">
+            <div className="download-text-land">
+              <h2 className="section-title-land">Download Our Mobile App</h2>
+              <p className="section-subtitle-land">
+                Get the best solar experience on your Android device
+              </p>
+              <div className="download-features-land">
+                <div className="download-feature-land">
+                  <FaCheckCircle className="download-feature-icon-land" />
+                  <span>Track your solar savings anytime</span>
+                </div>
+                <div className="download-feature-land">
+                  <FaCheckCircle className="download-feature-icon-land" />
+                  <span>Monitor system performance in real-time</span>
+                </div>
+                <div className="download-feature-land">
+                  <FaCheckCircle className="download-feature-icon-land" />
+                  <span>Get instant notifications and alerts</span>
+                </div>
+                <div className="download-feature-land">
+                  <FaCheckCircle className="download-feature-icon-land" />
+                  <span>Access your assessment results on the go</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="download-app-info-land">
+              <AppDownload />
+            </div>
+          </div>
+        </div>
+      </section>
       {/* Simple Estimate Modal */}
       {showEstimateModal && (
         <div className="modal-overlay-land" onClick={closeModal}>
@@ -449,7 +488,9 @@ const LandingPage = () => {
               <button onClick={() => scrollToSection('solar-estimator')}>Estimator</button>
               <button onClick={() => scrollToSection('why-us')}>Why Us</button>
               <button onClick={() => scrollToSection('how-it-works')}>How It Works</button>
-              
+              <button onClick={() => scrollToSection('download-app')}>
+                <FaDownload /> Download App
+              </button>
             </div>
             <div className="footer-links-land">
               <h4>Legal</h4>

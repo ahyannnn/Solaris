@@ -44,7 +44,238 @@
   padding: 0;
   box-sizing: border-box;
 }
+/* Download App Section */
+.download-section-land {
+  padding: 80px 0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
 
+.download-content-land {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.download-text-land {
+  flex: 1;
+}
+
+.download-text-land .section-title-land {
+  text-align: left;
+  margin-bottom: 12px;
+}
+
+.download-text-land .section-subtitle-land {
+  text-align: left;
+  font-size: 18px;
+  color: #6c757d;
+  margin-bottom: 30px;
+}
+
+.download-features-land {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.download-feature-land {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  color: #333;
+}
+
+.download-feature-icon-land {
+  color: #2e7d32;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.download-app-info-land {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+/* App Download Component Styling */
+.app-download-section {
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
+  width: 100%;
+  max-width: 400px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.app-download-section:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+}
+
+.app-download-section.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 180px;
+}
+
+.app-download-section .spinner {
+  animation: spin 1s linear infinite;
+  font-size: 24px;
+  color: #2e7d32;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.app-download-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.app-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #4CAF50, #2e7d32);
+  border-radius: 16px;
+  color: white;
+  font-size: 40px;
+  margin-bottom: 20px;
+}
+
+.app-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: #333;
+  font-weight: 600;
+}
+
+.app-version {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.version-badge {
+  display: inline-block;
+  padding: 4px 16px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.release-notes {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+  max-width: 300px;
+}
+
+.btn-download-app {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #4CAF50, #2e7d32);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-download-app:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(76, 175, 80, 0.35);
+}
+
+.btn-download-app:active {
+  transform: translateY(0);
+}
+
+.btn-download-app svg {
+  font-size: 20px;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .download-content-land {
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .download-text-land {
+    text-align: center;
+  }
+
+  .download-text-land .section-title-land,
+  .download-text-land .section-subtitle-land {
+    text-align: center;
+  }
+
+  .download-features-land {
+    align-items: center;
+  }
+
+  .download-app-info-land {
+    width: 100%;
+  }
+
+  .app-download-section {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .download-section-land {
+    padding: 60px 20px;
+  }
+
+  .app-download-section {
+    padding: 24px;
+  }
+
+  .app-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 30px;
+  }
+
+  .app-info h3 {
+    font-size: 18px;
+  }
+
+  .btn-download-app {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+}
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Helvetica Neue', sans-serif;
   color: var(--text-primary);

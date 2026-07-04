@@ -57,6 +57,7 @@ const preAssessmentRoutes = require('./routes/preAssessmentRoutes');
 const iotDataRoutes = require('./routes/iotDataRoutes');
 const scheduleRoutes = require('./routes/scheduleRoutes');
 const jobPortalRoutes = require('./routes/jobPortalRoutes');
+const applicationRoutes = require('./routes/applicationRoutes');
 // Use new routes
 app.use('/api/schedules', scheduleRoutes);
 app.use(maintenanceMiddleware);
@@ -75,9 +76,11 @@ app.use('/api/pre-assessments', preAssessmentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/solar-invoices', solarInvoiceRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/applications', applicationRoutes);
 app.use('/api/payments/bank-transfer', bankTransferRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/uploads', express.static('uploads'));
+
 
 app.get('/maintenance', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'maintenance.html'));

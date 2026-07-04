@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
-import { 
-  FaTools, 
-  FaSave, 
+import {
+  FaTools,
+  FaSave,
   FaHistory,
   FaPlus,
   FaTrash,
@@ -17,6 +17,7 @@ import {
   FaSolarPanel,
   FaBolt,
   FaBatteryFull,
+  FaAndroid,
   FaWrench,
   FaChartLine,
   FaDollarSign,
@@ -26,12 +27,13 @@ import {
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/maintenance.css';
+import AppManagement from '../../components/Admin/AppManagement';
 
 const MaintenancePanel = () => {
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [activeMainTab, setActiveMainTab] = useState('maintenance');
-  
+
   // Maintenance Mode State
   const [isEnabled, setIsEnabled] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
@@ -58,7 +60,7 @@ const MaintenancePanel = () => {
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // System Config State
   const [config, setConfig] = useState(null);
   const [savingConfig, setSavingConfig] = useState(false);
@@ -66,11 +68,11 @@ const MaintenancePanel = () => {
   const [reason, setReason] = useState('');
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [pendingUpdates, setPendingUpdates] = useState(null);
-  
+
   // Reset confirmation modal states
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetReason, setResetReason] = useState('');
-  
+
   // Equipment modal states
   const [showEquipmentModal, setShowEquipmentModal] = useState(false);
   const [equipmentType, setEquipmentType] = useState('');
@@ -83,7 +85,7 @@ const MaintenancePanel = () => {
     unit: 'piece',
     notes: ''
   });
-  
+
   // Remove equipment confirmation modal states
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [itemToRemove, setItemToRemove] = useState(null);
@@ -139,12 +141,12 @@ const MaintenancePanel = () => {
     setIsToggling(true);
     try {
       const token = sessionStorage.getItem('token');
-      
+
       if (!isEnabled) {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/maintenance/enable`, 
-          { 
-            title: settings.title, 
-            message: settings.message, 
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/maintenance/enable`,
+          {
+            title: settings.title,
+            message: settings.message,
             estimatedDuration: settings.estimatedDuration,
             showCountdown: settings.showCountdown,
             showProgressBar: settings.showProgressBar
@@ -158,11 +160,11 @@ const MaintenancePanel = () => {
         );
         showToast('Maintenance mode disabled', 'success');
       }
-      
+
       setIsEnabled(!isEnabled);
       await fetchMaintenanceData();
       await fetchHistory();
-      
+
     } catch (error) {
       console.error('Error toggling maintenance:', error);
       showToast(error.response?.data?.message || 'Failed to toggle maintenance mode', 'error');
@@ -192,10 +194,10 @@ const MaintenancePanel = () => {
 
   const handleAddIP = async () => {
     if (!newIP) return;
-    
+
     try {
       const token = sessionStorage.getItem('token');
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/maintenance/add-ip`, 
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/maintenance/add-ip`,
         { ip: newIP },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -252,7 +254,7 @@ const MaintenancePanel = () => {
     setSavingConfig(true);
     try {
       const token = sessionStorage.getItem('token');
-      await axios.put(`${import.meta.env.VITE_API_URL}/api/maintenance/config?reason=${encodeURIComponent(reason)}`, 
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/maintenance/config?reason=${encodeURIComponent(reason)}`,
         pendingUpdates,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -278,11 +280,11 @@ const MaintenancePanel = () => {
       showToast('Please enter a reason for resetting', 'warning');
       return;
     }
-    
+
     setSavingConfig(true);
     try {
       const token = sessionStorage.getItem('token');
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/maintenance/config/reset`, 
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/maintenance/config/reset`,
         { reason: resetReason },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -352,18 +354,18 @@ const MaintenancePanel = () => {
       showToast('Please enter a reason for removal', 'warning');
       return;
     }
-    
+
     setSavingConfig(true);
     try {
       const token = sessionStorage.getItem('token');
       const response = await axios.delete(
         `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/${itemToRemove.type}/${itemToRemove.item._id}`,
-        { 
+        {
           headers: { Authorization: `Bearer ${token}` },
           data: { reason: removeReason }
         }
       );
-      
+
       showToast(response.data.message, 'success');
       setShowRemoveModal(false);
       setItemToRemove(null);
@@ -388,14 +390,14 @@ const MaintenancePanel = () => {
       const token = sessionStorage.getItem('token');
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment`,
-        { 
-          type: equipmentType, 
+        {
+          type: equipmentType,
           ...equipmentForm,
           reason: `Added new ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}`
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       showToast(response.data.message, 'success');
       setShowEquipmentModal(false);
       fetchSystemConfig();
@@ -421,7 +423,7 @@ const MaintenancePanel = () => {
         { ...equipmentForm, reason: `Updated ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}` },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       showToast(response.data.message, 'success');
       setShowEquipmentModal(false);
       fetchSystemConfig();
@@ -456,7 +458,7 @@ const MaintenancePanel = () => {
 
   const EquipmentSection = ({ title, type, items }) => {
     const activeItems = items?.filter(item => item.isActive !== false) || [];
-    
+
     return (
       <div className="equipment-section-integrated">
         <div className="section-header-integrated">
@@ -516,13 +518,13 @@ const MaintenancePanel = () => {
 
         {/* Main Tabs */}
         <div className="main-tabs-admain">
-          <button 
+          <button
             className={`main-tab-btn-admain ${activeMainTab === 'maintenance' ? 'active-admain' : ''}`}
             onClick={() => setActiveMainTab('maintenance')}
           >
             <FaPowerOff /> Maintenance Mode
           </button>
-          <button 
+          <button
             className={`main-tab-btn-admain ${activeMainTab === 'systemconfig' ? 'active-admain' : ''}`}
             onClick={() => setActiveMainTab('systemconfig')}
           >
@@ -548,7 +550,7 @@ const MaintenancePanel = () => {
                   </div>
                 )}
               </div>
-              <button 
+              <button
                 className={`toggle-btn-admain ${isEnabled ? 'active-admain' : 'inactive-admain'}`}
                 onClick={handleToggleMaintenance}
                 disabled={isToggling}
@@ -560,76 +562,76 @@ const MaintenancePanel = () => {
 
             <div className="settings-card-admain">
               <h3>Maintenance Page Settings</h3>
-              
+
               <div className="form-group-admain">
                 <label>Page Title</label>
-                <input 
-                  type="text" 
-                  value={settings.title} 
+                <input
+                  type="text"
+                  value={settings.title}
                   onChange={(e) => setSettings({ ...settings, title: e.target.value })}
                 />
               </div>
-              
+
               <div className="form-group-admain">
                 <label>Message</label>
-                <textarea 
-                  rows="3" 
-                  value={settings.message} 
+                <textarea
+                  rows="3"
+                  value={settings.message}
                   onChange={(e) => setSettings({ ...settings, message: e.target.value })}
                 />
               </div>
-              
+
               <div className="form-row-admain">
                 <div className="form-group-admain">
                   <label>Estimated Duration</label>
-                  <input 
-                    type="text" 
-                    value={settings.estimatedDuration} 
+                  <input
+                    type="text"
+                    value={settings.estimatedDuration}
                     onChange={(e) => setSettings({ ...settings, estimatedDuration: e.target.value })}
                   />
                 </div>
               </div>
-              
+
               <div className="form-row-admain">
                 <div className="form-group-admain">
                   <label>Contact Email</label>
-                  <input 
-                    type="email" 
-                    value={settings.contactEmail} 
+                  <input
+                    type="email"
+                    value={settings.contactEmail}
                     onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
                   />
                 </div>
                 <div className="form-group-admain">
                   <label>Contact Phone</label>
-                  <input 
-                    type="text" 
-                    value={settings.contactPhone} 
+                  <input
+                    type="text"
+                    value={settings.contactPhone}
                     onChange={(e) => setSettings({ ...settings, contactPhone: e.target.value })}
                   />
                 </div>
               </div>
-              
+
               <div className="checkbox-group-admain">
                 <label className="checkbox-label-admain">
-                  <input 
-                    type="checkbox" 
-                    checked={settings.showCountdown} 
+                  <input
+                    type="checkbox"
+                    checked={settings.showCountdown}
                     onChange={(e) => setSettings({ ...settings, showCountdown: e.target.checked })}
                   />
                   Show Countdown Timer
                 </label>
                 <label className="checkbox-label-admain">
-                  <input 
-                    type="checkbox" 
-                    checked={settings.showProgressBar} 
+                  <input
+                    type="checkbox"
+                    checked={settings.showProgressBar}
                     onChange={(e) => setSettings({ ...settings, showProgressBar: e.target.checked })}
                   />
                   Show Progress Bar
                 </label>
               </div>
-              
-              <button 
-                className="save-btn-admain" 
+
+              <button
+                className="save-btn-admain"
                 onClick={handleSaveSettings}
                 disabled={isSubmitting}
               >
@@ -640,9 +642,9 @@ const MaintenancePanel = () => {
             <div className="ips-card-admain">
               <h3>Allowed IP Addresses</h3>
               <div className="add-ip-admain">
-                <input 
-                  type="text" 
-                  value={newIP} 
+                <input
+                  type="text"
+                  value={newIP}
                   onChange={(e) => setNewIP(e.target.value)}
                   placeholder="Enter IP address"
                 />
@@ -662,13 +664,13 @@ const MaintenancePanel = () => {
             </div>
 
             <div className="history-card-admain">
-              <button 
-                className="history-toggle-admain" 
+              <button
+                className="history-toggle-admain"
                 onClick={() => setShowHistory(!showHistory)}
               >
                 <FaHistory /> {showHistory ? 'Hide' : 'Show'} Maintenance History
               </button>
-              
+
               {showHistory && (
                 <div className="history-list-admain">
                   {history.length === 0 ? (
@@ -678,8 +680,8 @@ const MaintenancePanel = () => {
                       <div key={index} className="history-item-admain">
                         <div>Started: {new Date(entry.startDate).toLocaleString()}</div>
                         {entry.endDate && <div>Ended: {new Date(entry.endDate).toLocaleString()}</div>}
-                        <div>Duration: {entry.endDate ? 
-                          `${Math.round((new Date(entry.endDate) - new Date(entry.startDate)) / 1000 / 60)} minutes` : 
+                        <div>Duration: {entry.endDate ?
+                          `${Math.round((new Date(entry.endDate) - new Date(entry.startDate)) / 1000 / 60)} minutes` :
                           'Ongoing'}</div>
                       </div>
                     ))
@@ -712,8 +714,10 @@ const MaintenancePanel = () => {
               <button className={`subtab-btn ${activeConfigTab === 'taxes' ? 'active' : ''}`} onClick={() => setActiveConfigTab('taxes')}>
                 Taxes
               </button>
+              <button className={`subtab-btn ${activeConfigTab === 'apps' ? 'active' : ''}`} onClick={() => setActiveConfigTab('apps')}>
+                <FaAndroid /> App Management
+              </button>
             </div>
-
             {activeConfigTab === 'equipment' && (
               <div className="equipment-catalog-integrated">
                 <div className="form-group-integrated">
@@ -755,10 +759,10 @@ const MaintenancePanel = () => {
                   </div>
                 </div>
 
-                <button className="save-config-btn" onClick={() => handleConfigSave({ 
-                  assessmentFee: config.assessmentFee, 
-                  equipmentPrices: config.equipmentPrices, 
-                  laborRates: config.laborRates 
+                <button className="save-config-btn" onClick={() => handleConfigSave({
+                  assessmentFee: config.assessmentFee,
+                  equipmentPrices: config.equipmentPrices,
+                  laborRates: config.laborRates
                 })} disabled={savingConfig}>
                   <FaSave /> Save Equipment Catalog
                 </button>
@@ -829,6 +833,15 @@ const MaintenancePanel = () => {
                 <button className="save-config-btn" onClick={() => handleConfigSave({ taxesAndFees: config.taxesAndFees })} disabled={savingConfig}>
                   <FaSave /> Save Taxes & Fees
                 </button>
+              </div>
+            )}
+            {activeConfigTab === 'apps' && (
+              <div className="config-section-integrated">
+                <AppManagement
+                  config={config}
+                  onConfigUpdate={fetchSystemConfig}
+                  savingConfig={savingConfig}
+                />
               </div>
             )}
           </div>

@@ -1,0 +1,415 @@
+/* styles/Admin/appManagement.css */
+
+.app-management-integrated {
+  padding: 20px 0;
+}
+
+.app-management-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--bg-card, #fff);
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.app-management-header .header-info h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  color: var(--text-primary, #333);
+}
+
+.app-management-header .header-info p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary, #666);
+}
+
+.btn-add-app {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-add-app:hover:not(:disabled) {
+  background: #45a049;
+  transform: translateY(-1px);
+}
+
+.btn-add-app:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Empty State */
+.empty-apps {
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--bg-card, #fff);
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.empty-apps svg {
+  font-size: 48px;
+  color: var(--text-secondary, #999);
+  margin-bottom: 16px;
+}
+
+.empty-apps p {
+  margin: 8px 0;
+  color: var(--text-primary, #333);
+  font-size: 16px;
+}
+
+.empty-apps .empty-sub {
+  color: var(--text-secondary, #666);
+  font-size: 14px;
+}
+
+/* Table Styles */
+.apps-table-wrapper {
+  background: var(--bg-card, #fff);
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  overflow: hidden;
+}
+
+.apps-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.apps-table thead {
+  background: var(--bg-secondary, #f5f5f5);
+}
+
+.apps-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary, #666);
+  border-bottom: 2px solid var(--border-color, #e0e0e0);
+}
+
+.apps-table td {
+  padding: 12px 16px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border-color, #f0f0f0);
+  vertical-align: middle;
+}
+
+.apps-table tbody tr:hover {
+  background: var(--bg-hover, #f8f9fa);
+}
+
+.apps-table tbody tr.published-row {
+  background: #f0f7ff;
+}
+
+.apps-table tbody tr.published-row:hover {
+  background: #e8f0fa;
+}
+
+/* Version Cell */
+.version-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: var(--text-primary, #333);
+}
+
+.version-cell svg {
+  color: #4CAF50;
+  font-size: 14px;
+}
+
+/* Release Notes Cell */
+.release-notes-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary, #333);
+}
+
+/* Date Cell */
+.date-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary, #666);
+}
+
+.date-cell svg {
+  font-size: 12px;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.published {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge.draft {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.status-badge svg {
+  font-size: 12px;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.action-btn.edit {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.action-btn.edit:hover {
+  background: #bbdefb;
+}
+
+.action-btn.delete {
+  background: #fce4ec;
+  color: #c62828;
+}
+
+.action-btn.delete:hover {
+  background: #f8bbd0;
+}
+
+.action-btn.publish {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.action-btn.publish:hover {
+  background: #c8e6c9;
+}
+
+/* App Modal */
+.app-modal .modal-body {
+  padding: 20px 0;
+}
+
+.app-modal .form-group {
+  margin-bottom: 16px;
+}
+
+.app-modal .form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: var(--text-primary, #333);
+  font-size: 14px;
+}
+
+.app-modal .form-group input,
+.app-modal .form-group textarea,
+.app-modal .form-group select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color, #d0d0d0);
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.app-modal .form-group input:focus,
+.app-modal .form-group textarea:focus,
+.app-modal .form-group select:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.app-modal .form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+/* File Upload */
+.file-upload-wrapper {
+  position: relative;
+  margin-top: 4px;
+}
+
+.file-input {
+  position: absolute;
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.file-upload-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg-secondary, #f5f5f5);
+  border: 2px dashed var(--border-color, #d0d0d0);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  color: var(--text-secondary, #666);
+  font-size: 14px;
+}
+
+.file-upload-label:hover {
+  background: #e8f0fe;
+  border-color: #4CAF50;
+}
+
+.file-upload-label svg {
+  font-size: 18px;
+}
+
+.file-size {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+}
+
+.file-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+}
+
+/* Current APK Info */
+.current-apk-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-secondary, #f5f5f5);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.current-apk-info svg {
+  color: #4CAF50;
+}
+
+.current-apk-info .download-link {
+  color: #1976d2;
+  text-decoration: none;
+  font-weight: 500;
+  margin-left: auto;
+}
+
+.current-apk-info .download-link:hover {
+  text-decoration: underline;
+}
+
+/* Loading State */
+.app-management-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: var(--text-secondary, #666);
+}
+
+.app-management-loading .spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app-management-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btn-add-app {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .apps-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .apps-table {
+    min-width: 600px;
+  }
+
+  .release-notes-cell {
+    max-width: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .action-buttons {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .action-btn {
+    width: 100%;
+  }
+}

@@ -22,7 +22,15 @@ import {
   FaHome,
   FaFileInvoice,
   FaCheckCircle,
-  FaSpinner
+  FaSpinner,
+  FaArrowLeft,
+  FaCalendarAlt,
+  FaUserCircle,
+  FaMapMarkerAlt,
+  FaClock,
+  FaFilter,
+  FaSearch,
+  FaSolarPanel
 } from 'react-icons/fa';
 import '../../styles/Customer/scheduleassessment.css';
 
@@ -41,7 +49,6 @@ const ScheduleAssessment = () => {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
-  const [showRequestsModal, setShowRequestsModal] = useState(false);
   const [requestFilter, setRequestFilter] = useState('all');
   const [hasPendingFreeQuote, setHasPendingFreeQuote] = useState(false);
 
@@ -49,7 +56,6 @@ const ScheduleAssessment = () => {
   const [showQuotationModal, setShowQuotationModal] = useState(false);
   const [selectedQuotation, setSelectedQuotation] = useState(null);
   const [acceptingQuotation, setAcceptingQuotation] = useState(null);
-  const [showAcceptQuoteModal, setShowAcceptQuoteModal] = useState(false);
   const [selectedPaymentPreference, setSelectedPaymentPreference] = useState('installment');
   const [acceptingLoading, setAcceptingLoading] = useState(false);
 
@@ -510,15 +516,11 @@ const ScheduleAssessment = () => {
   };
 
   const handleAcceptFreeQuoteClick = (quote) => {
-    console.log('Free quote data:', quote); // Debug: Check what's available
-
-    // Get system details from the quote
     const systemSize = quote.recommendedSystemSize ||
       quote.desiredCapacity ||
       quote.quotationDetails?.systemSize ||
       5;
 
-    // ✅ Get totalCost from quotationDetails (where the engineer saved it)
     const totalCost = quote.quotationDetails?.totalCost ||
       quote.quotationDetails?.systemCost ||
       quote.estimatedTotalCost ||
@@ -533,10 +535,8 @@ const ScheduleAssessment = () => {
       quote.quotationDetails?.panelsNeeded ||
       Math.ceil(systemSize / 0.55);
 
-    // Get equipment details if available
     const equipmentBreakdown = quote.quotationDetails?.equipmentBreakdown || null;
 
-    // Get inverter and battery types from equipment breakdown
     const inverterType = equipmentBreakdown?.inverter?.name ||
       quote.quotationDetails?.inverterType ||
       null;
@@ -567,7 +567,7 @@ const ScheduleAssessment = () => {
     });
 
     setSelectedPaymentPreference('installment');
-    setShowAcceptQuoteModal(true);
+    setCurrentStep('accept-quotation');
   };
 
   // ============ ACCEPT QUOTATION (UNIFIED) ============
@@ -581,7 +581,7 @@ const ScheduleAssessment = () => {
       assessmentFee: assessment.assessmentFee || 0
     });
     setSelectedPaymentPreference('installment');
-    setShowAcceptQuoteModal(true);
+    setCurrentStep('accept-quotation');
   };
 
   const confirmAcceptQuotation = async () => {
@@ -604,7 +604,7 @@ const ScheduleAssessment = () => {
       );
 
       showToast('Quotation accepted successfully! Project created.', 'success');
-      setShowAcceptQuoteModal(false);
+      setCurrentStep('my-requests');
       setAcceptingQuotation(null);
       fetchMyRequests();
       fetchProjects();
@@ -996,6 +996,475 @@ const ScheduleAssessment = () => {
     </div>
   );
 
+  // ============ RENDER MY REQUESTS PAGE ============
+  if (currentStep === 'my-requests') {
+    return (
+      <>
+        <Helmet><title>My Requests | Salfer Engineering</title></Helmet>
+        <div className="schedule-container-cusset">
+          <div className="back-button-container-cusset">
+            <button onClick={() => setCurrentStep('service-selection')} className="back-to-services-cusset">
+              <FaArrowLeft /> Back to Services
+            </button>
+          </div>
+
+          <div className="requests-page-header-cusset">
+            <div className="requests-page-title-cusset">
+              <h1>My Requests</h1>
+              <p>View all your free quotation and pre-assessment requests</p>
+            </div>
+            <div className="requests-page-stats-cusset">
+              <span className="stat-badge-cusset">
+                <FaFileInvoice /> {freeQuotes.length} Free Quotes
+              </span>
+              <span className="stat-badge-cusset">
+                <FaCalendarAlt /> {preAssessments.length} Pre-Assessments
+              </span>
+            </div>
+          </div>
+
+          {/* Filter Tabs */}
+          <div className="request-filter-tabs-page-cusset">
+            <button 
+              className={`filter-tab-page-cusset ${requestFilter === 'all' ? 'active' : ''}`} 
+              onClick={() => setRequestFilter('all')}
+            >
+              All ({totalRequests})
+            </button>
+            <button 
+              className={`filter-tab-page-cusset ${requestFilter === 'free-quotes' ? 'active' : ''}`} 
+              onClick={() => setRequestFilter('free-quotes')}
+            >
+              Free Quotes ({freeQuotes.length})
+            </button>
+            <button 
+              className={`filter-tab-page-cusset ${requestFilter === 'pre-assessments' ? 'active' : ''}`} 
+              onClick={() => setRequestFilter('pre-assessments')}
+            >
+              Pre Assessments ({preAssessments.length})
+            </button>
+          </div>
+
+          {/* Requests List */}
+          <div className="requests-list-page-cusset">
+            {!hasRequests ? (
+              <div className="empty-requests-page-cusset">
+                <FaFileInvoice className="empty-icon-cusset" />
+                <h3>No requests yet</h3>
+                <p>Start your solar journey by requesting a free quotation or booking a pre-assessment.</p>
+                <button 
+                  className="schedule-btn-primary-cusset" 
+                  onClick={() => setCurrentStep('service-selection')}
+                >
+                  Get Started
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Free Quotes */}
+                {filteredFreeQuotes.map(quote => {
+                  const hasQuotation = quote.quotationFile || quote.quotationUrl;
+                  const isAccepted = quote.status === 'accepted';
+                  const alreadyProjectCreated = projects.some(p => {
+                    if (p.sourceType === 'free-quote' && p.sourceId) {
+                      const projectSourceId = typeof p.sourceId === 'object' ?
+                        p.sourceId._id?.toString() : p.sourceId?.toString();
+                      return projectSourceId === quote._id?.toString();
+                    }
+                    return false;
+                  });
+
+                  return (
+                    <div key={quote._id} className="request-card-page-cusset">
+                      <div className="request-card-header-cusset">
+                        <div className="request-card-title-cusset">
+                          <span className="type-badge-page free-quote">Free Quote</span>
+                          <span className="request-reference-cusset">{quote.quotationReference}</span>
+                        </div>
+                        <div className="request-card-status-cusset">
+                          {getFreeQuoteStatusBadge(quote.status)}
+                        </div>
+                      </div>
+
+                      <div className="request-card-body-cusset">
+                        <div className="request-details-grid-cusset">
+                          <div><span>Monthly Bill:</span> <strong>{formatCurrency(quote.monthlyBill)}</strong></div>
+                          <div><span>Property Type:</span> <strong>{quote.propertyType}</strong></div>
+                          {quote.systemType && <div><span>System Type:</span> <strong>{getSystemTypeLabel(quote.systemType)}</strong></div>}
+                          {quote.desiredCapacity && <div><span>Desired Capacity:</span> <strong>{quote.desiredCapacity}</strong></div>}
+                          {quote.targetSavings && <div><span>Target Savings:</span> <strong>{quote.targetSavings}%</strong></div>}
+                          {quote.recommendedSystemSize && <div><span>System Size:</span> <strong>{quote.recommendedSystemSize} kW</strong></div>}
+                          <div><span>Date:</span> <strong>{formatDate(quote.requestedAt)}</strong></div>
+                          <div className="full-width"><span>Address:</span> <strong>{getRequestAddress(quote)}</strong></div>
+                        </div>
+
+                        {hasQuotation && (
+                          <div className="request-card-actions-cusset">
+                            <button
+                              className="btn-action-page view-quote"
+                              onClick={() => handleViewFreeQuoteQuotation(quote)}
+                            >
+                              <FaEye /> View Quote
+                            </button>
+                            <button
+                              className="btn-action-page download-quote"
+                              onClick={() => handleDownloadFreeQuoteQuotation(quote)}
+                            >
+                              <FaDownload /> Download
+                            </button>
+                            {!isAccepted && !alreadyProjectCreated && quote.status !== 'cancelled' && (
+                              <button
+                                className="btn-action-page accept-quote"
+                                onClick={() => handleAcceptFreeQuoteClick(quote)}
+                              >
+                                <FaCheckCircle /> Accept
+                              </button>
+                            )}
+                            {(isAccepted || alreadyProjectCreated) && (
+                              <span className="project-created-badge-page">
+                                <FaCheckCircle /> Project Created
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {!hasQuotation && quote.status !== 'cancelled' && (
+                          <div className="request-card-actions-cusset">
+                            <span className="status-badge-schedule processing">Waiting for Quotation</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Pre Assessments */}
+                {filteredPreAssessments.map(assessment => {
+                  const hasPhotos = assessment.sitePhotos && assessment.sitePhotos.length > 0;
+                  const hasQuotation = assessment.finalQuotation || assessment.quotation?.quotationUrl;
+                  const alreadyProjectCreated = assessment.assessmentStatus === 'quotation_accepted' ||
+                    projects.some(p => {
+                      if (p.preAssessmentId) {
+                        const projectPreAssessmentId = typeof p.preAssessmentId === 'object' ?
+                          p.preAssessmentId._id?.toString() : p.preAssessmentId?.toString();
+                        return projectPreAssessmentId === assessment._id?.toString();
+                      }
+                      return false;
+                    });
+
+                  return (
+                    <div key={assessment._id} className="request-card-page-cusset">
+                      <div className="request-card-header-cusset">
+                        <div className="request-card-title-cusset">
+                          <span className="type-badge-page pre-assessment">Pre Assessment</span>
+                          <span className="request-reference-cusset">{assessment.bookingReference}</span>
+                        </div>
+                        <div className="request-card-status-cusset">
+                          {getAssessmentStatusBadge(assessment.assessmentStatus || assessment.paymentStatus)}
+                        </div>
+                      </div>
+
+                      <div className="request-card-body-cusset">
+                        <div className="request-details-grid-cusset">
+                          <div><span>Property Type:</span> <strong>{assessment.propertyType}</strong></div>
+                          <div><span>Preferred Date:</span> <strong>{formatDate(assessment.preferredDate)}</strong></div>
+                          <div><span>Fee:</span> <strong>{formatCurrency(assessment.assessmentFee)}</strong></div>
+                          {assessment.targetSavings && <div><span>Target Savings:</span> <strong>{assessment.targetSavings}%</strong></div>}
+                          <div><span>Engineer:</span> <strong>{assessment.engineerName || 'Not assigned yet'}</strong></div>
+                          <div className="full-width"><span>Address:</span> <strong>{getRequestAddress(assessment)}</strong></div>
+                        </div>
+
+                        {/* Site Photos */}
+                        {hasPhotos && (
+                          <div className="request-card-photos-cusset">
+                            <div className="photos-preview-cusset">
+                              {assessment.sitePhotos.slice(0, 4).map((photo, idx) => (
+                                <div
+                                  key={idx}
+                                  className="photo-preview-item-cusset"
+                                  onClick={() => openPhotoModal(assessment.sitePhotos, idx)}
+                                >
+                                  <img src={photo} alt={`Site photo ${idx + 1}`} />
+                                  <div className="photo-preview-overlay-cusset"><FaEye /></div>
+                                </div>
+                              ))}
+                              {assessment.sitePhotos.length > 4 && (
+                                <div
+                                  className="photo-preview-item-cusset more"
+                                  onClick={() => openPhotoModal(assessment.sitePhotos, 0)}
+                                >
+                                  <FaImages />
+                                  <span>+{assessment.sitePhotos.length - 4}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {hasQuotation && (
+                          <div className="request-card-actions-cusset">
+                            <button
+                              className="btn-action-page view-quote"
+                              onClick={() => handleViewQuotation(assessment)}
+                            >
+                              <FaEye /> View Quote
+                            </button>
+                            <button
+                              className="btn-action-page download-quote"
+                              onClick={() => handleDownloadQuotation(assessment)}
+                            >
+                              <FaDownload /> Download
+                            </button>
+                            {!alreadyProjectCreated && assessment.assessmentStatus !== 'quotation_accepted' && (
+                              <button
+                                className="btn-action-page accept-quote"
+                                onClick={() => handleAcceptQuotationClick(assessment)}
+                              >
+                                <FaCheckCircle /> Accept
+                              </button>
+                            )}
+                            {alreadyProjectCreated && (
+                              <span className="project-created-badge-page">
+                                <FaCheckCircle /> Project Created
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Photo Modal */}
+        {showPhotoModal && selectedPhotos.length > 0 && (
+          <div className="photo-modal-overlay-cusset" onClick={closePhotoModal}>
+            <div className="photo-modal-content-cusset" onClick={(e) => e.stopPropagation()}>
+              <button className="photo-modal-close-cusset" onClick={closePhotoModal}><FaTimes /></button>
+              <div className="photo-modal-main-cusset">
+                <img src={selectedPhotos[currentPhotoIndex]} alt={`Site photo ${currentPhotoIndex + 1}`} />
+                {selectedPhotos.length > 1 && (
+                  <>
+                    <button className="photo-nav-cusset prev" onClick={prevPhoto} disabled={currentPhotoIndex === 0}><FaChevronLeft /></button>
+                    <button className="photo-nav-cusset next" onClick={nextPhoto} disabled={currentPhotoIndex === selectedPhotos.length - 1}><FaChevronRight /></button>
+                  </>
+                )}
+              </div>
+              <div className="photo-modal-footer-cusset">
+                <div className="photo-counter-cusset">{currentPhotoIndex + 1} / {selectedPhotos.length}</div>
+                <button className="photo-download-btn-cusset" onClick={() => downloadPhoto(selectedPhotos[currentPhotoIndex], currentPhotoIndex)}>
+                  <FaDownload /> Download
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} />
+      </>
+    );
+  }
+
+  // ============ RENDER ACCEPT QUOTATION PAGE ============
+  if (currentStep === 'accept-quotation' && acceptingQuotation) {
+    return (
+      <>
+        <Helmet><title>Accept Quotation | Salfer Engineering</title></Helmet>
+        <div className="schedule-container-cusset">
+          <div className="back-button-container-cusset">
+            <button 
+              onClick={() => {
+                setCurrentStep('my-requests');
+                setAcceptingQuotation(null);
+              }} 
+              className="back-to-services-cusset"
+            >
+              <FaArrowLeft /> Back to My Requests
+            </button>
+          </div>
+
+          <div className="accept-quotation-page-cusset">
+            <div className="accept-quotation-header-cusset">
+              <h1>Accept Quotation</h1>
+              <p>Review the quotation details and choose your payment preference</p>
+              <span className="source-badge-page" style={{ 
+                background: acceptingQuotation.sourceType === 'free-quote' ? '#4CAF50' : '#2196F3',
+                color: '#fff',
+                padding: '4px 16px',
+                borderRadius: '20px',
+                fontSize: '13px',
+                display: 'inline-block',
+                marginTop: '8px'
+              }}>
+                {acceptingQuotation.sourceType === 'free-quote' ? 'Free Quote' : 'Pre-Assessment'}
+              </span>
+            </div>
+
+            <div className="accept-quotation-content-cusset">
+              {/* Quotation Summary */}
+              <div className="quotation-summary-page-cusset">
+                <h3>Quotation Summary</h3>
+                <div className="summary-grid-cusset">
+                  <div className="summary-item-cusset">
+                    <span>Reference:</span>
+                    <strong>{acceptingQuotation.quotationReference || 'N/A'}</strong>
+                  </div>
+                  <div className="summary-item-cusset">
+                    <span>System Size:</span>
+                    <strong>{acceptingQuotation.quotation?.systemDetails?.systemSize || 'TBD'} kWp</strong>
+                  </div>
+                  <div className="summary-item-cusset">
+                    <span>Total Cost:</span>
+                    <strong className="total-cost-cusset">{formatCurrency(acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee)}</strong>
+                  </div>
+                  <div className="summary-item-cusset">
+                    <span>System Type:</span>
+                    <strong>{acceptingQuotation.quotation?.systemDetails?.systemType || 'Not specified'}</strong>
+                  </div>
+                  <div className="summary-item-cusset">
+                    <span>Panels Needed:</span>
+                    <strong>{acceptingQuotation.quotation?.systemDetails?.panelsNeeded || 'TBD'}</strong>
+                  </div>
+                  {acceptingQuotation.quotation?.systemDetails?.inverterType && (
+                    <div className="summary-item-cusset">
+                      <span>Inverter Type:</span>
+                      <strong>{acceptingQuotation.quotation.systemDetails.inverterType}</strong>
+                    </div>
+                  )}
+                  {acceptingQuotation.quotation?.systemDetails?.batteryType && (
+                    <div className="summary-item-cusset">
+                      <span>Battery Type:</span>
+                      <strong>{acceptingQuotation.quotation.systemDetails.batteryType}</strong>
+                    </div>
+                  )}
+                </div>
+
+                {/* Equipment Breakdown */}
+                {acceptingQuotation.quotation?.systemDetails?.equipmentBreakdown && (
+                  <div className="equipment-breakdown-cusset">
+                    <h4>Equipment Breakdown</h4>
+                    <div className="equipment-grid-cusset">
+                      {acceptingQuotation.quotation.systemDetails.equipmentBreakdown.panels && (
+                        <div className="equipment-item-cusset">
+                          <span>Panels:</span>
+                          <strong>{acceptingQuotation.quotation.systemDetails.equipmentBreakdown.panels.quantity} × {acceptingQuotation.quotation.systemDetails.equipmentBreakdown.panels.wattage}W</strong>
+                        </div>
+                      )}
+                      {acceptingQuotation.quotation.systemDetails.equipmentBreakdown.inverter && (
+                        <div className="equipment-item-cusset">
+                          <span>Inverter:</span>
+                          <strong>{acceptingQuotation.quotation.systemDetails.equipmentBreakdown.inverter.name}</strong>
+                        </div>
+                      )}
+                      {acceptingQuotation.quotation.systemDetails.equipmentBreakdown.battery && (
+                        <div className="equipment-item-cusset">
+                          <span>Battery:</span>
+                          <strong>{acceptingQuotation.quotation.systemDetails.equipmentBreakdown.battery.name}</strong>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Payment Preference */}
+              <div className="payment-preference-page-cusset">
+                <h3>Choose Payment Option</h3>
+                <div className="preference-options-page-cusset">
+                  {/* 50% - 50% Installment */}
+                  <div
+                    className={`preference-option-page ${selectedPaymentPreference === 'fifty_fifty' ? 'selected' : ''}`}
+                    onClick={() => setSelectedPaymentPreference('fifty_fifty')}
+                  >
+                    <input type="radio" checked={selectedPaymentPreference === 'fifty_fifty'} readOnly />
+                    <div className="preference-content-page">
+                      <strong>50% - 50% Installment</strong>
+                      <div className="preference-details-page">
+                        <span>Downpayment (50%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.5)}</span>
+                        <span>Final Payment (50%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.5)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 30% - 60% - 10% with Retention */}
+                  <div
+                    className={`preference-option-page ${selectedPaymentPreference === 'thirty_sixty_ten' ? 'selected' : ''}`}
+                    onClick={() => setSelectedPaymentPreference('thirty_sixty_ten')}
+                  >
+                    <input type="radio" checked={selectedPaymentPreference === 'thirty_sixty_ten'} readOnly />
+                    <div className="preference-content-page">
+                      <strong>Installment with Retention (30% - 60% - 10%)</strong>
+                      <div className="preference-details-page">
+                        <span>Downpayment (30%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.3)}</span>
+                        <span>Progress Payment (60%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.6)}</span>
+                        <span className="retention-note-page">Retention Fee (10%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.1)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 30% - 40% - 30% Installment */}
+                  <div
+                    className={`preference-option-page ${selectedPaymentPreference === 'installment' ? 'selected' : ''}`}
+                    onClick={() => setSelectedPaymentPreference('installment')}
+                  >
+                    <input type="radio" checked={selectedPaymentPreference === 'installment'} readOnly />
+                    <div className="preference-content-page">
+                      <strong>Installment (30% - 40% - 30%)</strong>
+                      <div className="preference-details-page">
+                        <span>Initial (30%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.3)}</span>
+                        <span>Progress (40%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.4)}</span>
+                        <span>Final (30%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.3)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Full Payment */}
+                  <div
+                    className={`preference-option-page ${selectedPaymentPreference === 'full' ? 'selected' : ''}`}
+                    onClick={() => setSelectedPaymentPreference('full')}
+                  >
+                    <input type="radio" checked={selectedPaymentPreference === 'full'} readOnly />
+                    <div className="preference-content-page">
+                      <strong>Full Payment</strong>
+                      <div className="preference-details-page full-payment-page">
+                        <span>Amount: {formatCurrency(acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="accept-quotation-actions-cusset">
+                <button 
+                  className="cancel-btn-page-cusset" 
+                  onClick={() => {
+                    setCurrentStep('my-requests');
+                    setAcceptingQuotation(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="confirm-btn-page-cusset"
+                  onClick={confirmAcceptQuotation}
+                  disabled={acceptingLoading}
+                >
+                  {acceptingLoading ? <FaSpinner className="spinning" /> : 'Accept Quotation'}
+                  {acceptingLoading ? ' Processing...' : ''}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} />
+      </>
+    );
+  }
+
   if (loading) return <><Helmet><title>Get Solar Service | Salfer Engineering</title></Helmet><SkeletonLoader /></>;
 
   if (error) return (
@@ -1022,7 +1491,6 @@ const ScheduleAssessment = () => {
               <p><strong>Status:</strong> Pending Review</p>
             </div>
 
-            {/* System Calculations Display */}
             {submittedData.systemCalculations && (
               <div className="system-calculations-summary" style={{
                 marginTop: '20px',
@@ -1123,7 +1591,7 @@ const ScheduleAssessment = () => {
               <p className="schedule-subtitle-cusset">Choose how you want to proceed with your solar journey</p>
             </div>
             <div className="schedule-header-action-cusset">
-              <button className="view-requests-btn-cusset" onClick={() => setShowRequestsModal(true)}>
+              <button className="view-requests-btn-cusset" onClick={() => setCurrentStep('my-requests')}>
                 View My Requests {totalRequests > 0 && <span className="request-count">{totalRequests}</span>}
               </button>
             </div>
@@ -1167,7 +1635,7 @@ const ScheduleAssessment = () => {
               <p className="service-description-cusset">Professional on-site assessment with detailed energy consumption analysis and accurate system sizing.</p>
               <ul className="service-features-cusset">
                 <li>Enter monthly consumption (kWh)</li>
-                <li>List your appliances with day & night usage hours</li>
+                <li>List your appliances with day and night usage hours</li>
                 <li>Automatic day/night calculation from appliances</li>
                 <li>7-day environmental data collection</li>
                 <li>Accurate system size recommendation</li>
@@ -1182,587 +1650,9 @@ const ScheduleAssessment = () => {
               </div>
             </div>
           </div>
-
-          {/* My Requests Modal - UPDATED with Free Quote Acceptance */}
-          {showRequestsModal && (
-            <div className="schedule-modal-overlay-cusset" onClick={() => setShowRequestsModal(false)}>
-              <div className="requests-modal-cusset" onClick={e => e.stopPropagation()}>
-                <div className="requests-modal-header-cusset">
-                  <h2>My Requests</h2>
-                  <button className="modal-close-cusset" onClick={() => setShowRequestsModal(false)}>×</button>
-                </div>
-                <div className="request-filter-tabs-cusset">
-                  <button className={`filter-tab-cusset ${requestFilter === 'all' ? 'active' : ''}`} onClick={() => setRequestFilter('all')}>All</button>
-                  <button className={`filter-tab-cusset ${requestFilter === 'free-quotes' ? 'active' : ''}`} onClick={() => setRequestFilter('free-quotes')}>Free Quotes</button>
-                  <button className={`filter-tab-cusset ${requestFilter === 'pre-assessments' ? 'active' : ''}`} onClick={() => setRequestFilter('pre-assessments')}>Pre Assessments</button>
-                </div>
-                <div className="requests-modal-body-cusset">
-                  {!hasRequests ? (
-                    <div className="empty-requests-cusset"><p>No requests yet. Select a service above to get started.</p></div>
-                  ) : (
-                    <table className="requests-table-cusset">
-                      <thead>
-                        <tr><th>Date</th><th>Reference</th><th>Type</th><th>Details</th><th>Status</th><th>Photos</th><th></th></tr>
-                      </thead>
-                      <tbody>
-                        {/* ============ FREE QUOTES WITH ACCEPT BUTTON ============ */}
-                        {filteredFreeQuotes.map(quote => {
-                          const hasQuotation = quote.quotationFile || quote.quotationUrl;
-                          // ✅ FIXED: Only 'accepted' means already accepted
-                          const isAccepted = quote.status === 'accepted';
-                          const alreadyProjectCreated = projects.some(p => {
-                            if (p.sourceType === 'free-quote' && p.sourceId) {
-                              const projectSourceId = typeof p.sourceId === 'object' ?
-                                p.sourceId._id?.toString() : p.sourceId?.toString();
-                              return projectSourceId === quote._id?.toString();
-                            }
-                            return false;
-                          });
-
-                          return (
-                            <tr key={quote._id}>
-                              <td>{formatDate(quote.requestedAt)}</td>
-                              <td className="reference-cell">{quote.quotationReference}</td>
-                              <td><span className="type-badge free-quote">Free Quote</span></td>
-                              <td className="details-cell">
-                                <div><strong>Monthly:</strong> {formatCurrency(quote.monthlyBill)}</div>
-                                <div><strong>Property:</strong> {quote.propertyType}</div>
-                                {quote.systemType && <div><strong>System:</strong> {quote.systemType}</div>}
-                                {quote.desiredCapacity && <div><strong>Capacity:</strong> {quote.desiredCapacity}</div>}
-                                {quote.targetSavings && <div><strong>Target:</strong> {quote.targetSavings}%</div>}
-                                {quote.recommendedSystemSize && <div><strong>System Size:</strong> {quote.recommendedSystemSize} kW</div>}
-
-                                {hasQuotation && (
-                                  <div className="quotation-actions">
-                                    <button
-                                      className="view-quote-btn"
-                                      onClick={() => handleViewFreeQuoteQuotation(quote)}
-                                    >
-                                      <FaEye /> View Quote
-                                    </button>
-                                    <button
-                                      className="download-quote-btn"
-                                      onClick={() => handleDownloadFreeQuoteQuotation(quote)}
-                                    >
-                                      <FaDownload /> Download
-                                    </button>
-
-                                    {/* ✅ FIXED: Show Accept button when status is NOT 'accepted' */}
-                                    {!isAccepted && !alreadyProjectCreated && quote.status !== 'cancelled' && (
-                                      <button
-                                        className="accept-quote-btn"
-                                        onClick={() => handleAcceptFreeQuoteClick(quote)}
-                                      >
-                                        <FaCheckCircle /> Accept
-                                      </button>
-                                    )}
-
-                                    {/* Show "Project Created" ONLY when truly accepted */}
-                                    {(isAccepted || alreadyProjectCreated) && (
-                                      <span className="project-created-badge">
-                                        <FaCheckCircle /> Project Created
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
-                                {!hasQuotation && quote.status !== 'cancelled' && (
-                                  <span className="status-badge-schedule processing">Waiting for Quotation</span>
-                                )}
-                              </td>
-                              <td>{getFreeQuoteStatusBadge(quote.status)}</td>
-                              <td>-</td>
-                              <td>
-                                <button
-                                  className="view-details-btn"
-                                  onClick={() => { setSelectedRequest(quote); setShowDetailsModal(true); }}
-                                >
-                                  View
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-
-                        {/* ============ PRE-ASSESSMENTS WITH ACCEPT BUTTON ============ */}
-                        {filteredPreAssessments.map(assessment => {
-                          const hasPhotos = assessment.sitePhotos && assessment.sitePhotos.length > 0;
-                          const hasQuotation = assessment.finalQuotation || assessment.quotation?.quotationUrl;
-                          const alreadyProjectCreated = assessment.assessmentStatus === 'quotation_accepted' ||
-                            projects.some(p => {
-                              if (p.preAssessmentId) {
-                                const projectPreAssessmentId = typeof p.preAssessmentId === 'object' ?
-                                  p.preAssessmentId._id?.toString() : p.preAssessmentId?.toString();
-                                return projectPreAssessmentId === assessment._id?.toString();
-                              }
-                              return false;
-                            });
-
-                          return (
-                            <tr key={assessment._id}>
-                              <td>{formatDate(assessment.bookedAt)}</td>
-                              <td className="reference-cell">{assessment.bookingReference}</td>
-                              <td><span className="type-badge pre-assessment">Pre Assessment</span></td>
-                              <td className="details-cell">
-                                <div><strong>Property:</strong> {assessment.propertyType}</div>
-                                <div><strong>Date:</strong> {formatDate(assessment.preferredDate)}</div>
-                                {assessment.targetSavings && <div><strong>Target:</strong> {assessment.targetSavings}%</div>}
-
-                                {hasQuotation && (
-                                  <div className="quotation-actions">
-                                    <button
-                                      className="view-quote-btn"
-                                      onClick={() => handleViewQuotation(assessment)}
-                                    >
-                                      <FaEye /> View Quote
-                                    </button>
-                                    <button
-                                      className="download-quote-btn"
-                                      onClick={() => handleDownloadQuotation(assessment)}
-                                    >
-                                      <FaDownload /> Download
-                                    </button>
-                                    {!alreadyProjectCreated && assessment.assessmentStatus !== 'quotation_accepted' && (
-                                      <button
-                                        className="accept-quote-btn"
-                                        onClick={() => handleAcceptQuotationClick(assessment)}
-                                      >
-                                        <FaCheckCircle /> Accept
-                                      </button>
-                                    )}
-                                    {alreadyProjectCreated && (
-                                      <span className="project-created-badge">
-                                        <FaCheckCircle /> Project Created
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
-                              </td>
-                              <td>{getAssessmentStatusBadge(assessment.assessmentStatus || assessment.paymentStatus)}</td>
-                              <td>
-                                {hasPhotos && (
-                                  <button
-                                    className="view-photos-btn"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      openPhotoModal(assessment.sitePhotos, 0);
-                                    }}
-                                  >
-                                    <FaImages /> {assessment.sitePhotos.length}
-                                  </button>
-                                )}
-                              </td>
-                              <td>
-                                <button
-                                  className="view-details-btn"
-                                  onClick={() => { setSelectedRequest(assessment); setShowDetailsModal(true); }}
-                                >
-                                  View
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Details Modal */}
-          {showDetailsModal && selectedRequest && (
-            <div className="schedule-modal-overlay-cusset" onClick={() => setShowDetailsModal(false)}>
-              <div className="schedule-modal-cusset status-modal-cusset" onClick={e => e.stopPropagation()}>
-                <h2>Request Details</h2>
-
-                {selectedRequest.quotationReference && !selectedRequest.bookingReference ? (
-                  // FREE QUOTE DETAILS
-                  <>
-                    <div className="status-detail-section">
-                      <h3>Quote Information</h3>
-                      <div className="detail-row">
-                        <span>Reference:</span>
-                        <strong>{selectedRequest.quotationReference}</strong>
-                      </div>
-                      <div className="detail-row">
-                        <span>Date:</span>
-                        <strong>{formatDate(selectedRequest.requestedAt)}</strong>
-                      </div>
-                      <div className="detail-row">
-                        <span>Status:</span>
-                        {getFreeQuoteStatusBadge(selectedRequest.status)}
-                      </div>
-                    </div>
-                    <div className="status-detail-section">
-                      <h3>Details</h3>
-                      <div className="detail-row">
-                        <span>Monthly Bill:</span>
-                        <strong>{formatCurrency(selectedRequest.monthlyBill)}</strong>
-                      </div>
-                      <div className="detail-row">
-                        <span>Property:</span>
-                        <strong>{selectedRequest.propertyType}</strong>
-                      </div>
-                      {selectedRequest.systemType && (
-                        <div className="detail-row">
-                          <span>System Type:</span>
-                          <strong>{getSystemTypeLabel(selectedRequest.systemType)}</strong>
-                        </div>
-                      )}
-                      {selectedRequest.roofType && (
-                        <div className="detail-row">
-                          <span>Roof Type:</span>
-                          <strong>{selectedRequest.roofType}</strong>
-                        </div>
-                      )}
-                      {selectedRequest.desiredCapacity && (
-                        <div className="detail-row">
-                          <span>Desired Capacity:</span>
-                          <strong>{selectedRequest.desiredCapacity}</strong>
-                        </div>
-                      )}
-                      {selectedRequest.targetSavings && (
-                        <div className="detail-row">
-                          <span>Target Savings:</span>
-                          <strong>{selectedRequest.targetSavings}%</strong>
-                        </div>
-                      )}
-                      {selectedRequest.roofLength && selectedRequest.roofWidth && (
-                        <div className="detail-row">
-                          <span>Roof Dimensions:</span>
-                          <strong>{selectedRequest.roofLength}m × {selectedRequest.roofWidth}m</strong>
-                        </div>
-                      )}
-                      {selectedRequest.recommendedSystemSize && (
-                        <div className="detail-row">
-                          <span>System Size:</span>
-                          <strong>{selectedRequest.recommendedSystemSize} kW</strong>
-                        </div>
-                      )}
-                      {selectedRequest.inverterSize && (
-                        <div className="detail-row">
-                          <span>Inverter Size:</span>
-                          <strong>{selectedRequest.inverterSize} kW</strong>
-                        </div>
-                      )}
-                      {selectedRequest.batteryCapacityKwh > 0 && (
-                        <div className="detail-row">
-                          <span>Battery Capacity:</span>
-                          <strong>{selectedRequest.batteryCapacityKwh} kWh</strong>
-                        </div>
-                      )}
-                      {selectedRequest.panelsNeeded && (
-                        <div className="detail-row">
-                          <span>Panels Needed:</span>
-                          <strong>{selectedRequest.panelsNeeded} panels</strong>
-                        </div>
-                      )}
-                    </div>
-                    <div className="status-detail-section">
-                      <h3>Address</h3>
-                      <p>{getRequestAddress(selectedRequest)}</p>
-                    </div>
-                    {(selectedRequest.status === 'completed' || selectedRequest.status === 'accepted') &&
-                      (selectedRequest.quotationFile || selectedRequest.quotationUrl) && (
-                        <button
-                          className="view-quotation-btn-cusset"
-                          onClick={() => viewQuotation(selectedRequest.quotationFile || selectedRequest.quotationUrl)}
-                        >
-                          View Quotation PDF
-                        </button>
-                      )}
-                  </>
-                ) : (
-                  // PRE-ASSESSMENT DETAILS
-                  <>
-                    <div className="status-detail-section">
-                      <h3>Booking Information</h3>
-                      <div className="detail-row">
-                        <span>Reference:</span>
-                        <strong>{selectedRequest.bookingReference}</strong>
-                      </div>
-                      <div className="detail-row">
-                        <span>Booked:</span>
-                        <strong>{formatDate(selectedRequest.bookedAt)}</strong>
-                      </div>
-                      <div className="detail-row">
-                        <span>Payment:</span>
-                        {getAssessmentStatusBadge(selectedRequest.paymentStatus)}
-                      </div>
-                      <div className="detail-row">
-                        <span>Assessment:</span>
-                        {getAssessmentStatusBadge(selectedRequest.assessmentStatus)}
-                      </div>
-                      <div className="detail-row">
-                        <span>Assigned Engineer:</span>
-                        <strong>{selectedRequest.engineerName || 'Not assigned yet'}</strong>
-                      </div>
-                    </div>
-                    <div className="status-detail-section">
-                      <h3>Details</h3>
-                      <div className="detail-row">
-                        <span>Property:</span>
-                        <strong>{selectedRequest.propertyType}</strong>
-                      </div>
-                      <div className="detail-row">
-                        <span>Preferred Date:</span>
-                        <strong>{formatDate(selectedRequest.preferredDate)}</strong>
-                      </div>
-                      <div className="detail-row">
-                        <span>Fee:</span>
-                        <strong>{formatCurrency(selectedRequest.assessmentFee)}</strong>
-                      </div>
-                      {selectedRequest.targetSavings && (
-                        <div className="detail-row">
-                          <span>Target Savings:</span>
-                          <strong>{selectedRequest.targetSavings}%</strong>
-                        </div>
-                      )}
-                    </div>
-                    <div className="status-detail-section">
-                      <h3>Address</h3>
-                      <p>{getRequestAddress(selectedRequest)}</p>
-                    </div>
-
-                    {selectedRequest.sitePhotos && selectedRequest.sitePhotos.length > 0 && (
-                      <div className="status-detail-section">
-                        <h3>Site Photos ({selectedRequest.sitePhotos.length})</h3>
-                        <div className="customer-photo-grid">
-                          {selectedRequest.sitePhotos.slice(0, 6).map((photo, idx) => (
-                            <div
-                              key={idx}
-                              className="customer-photo-item"
-                              onClick={() => openPhotoModal(selectedRequest.sitePhotos, idx)}
-                            >
-                              <img
-                                src={photo}
-                                alt={`Site photo ${idx + 1}`}
-                                onError={(e) => {
-                                  console.error('Failed to load image:', photo);
-                                  e.target.src = 'https://via.placeholder.com/150?text=No+Image';
-                                }}
-                              />
-                              <div className="customer-photo-overlay">
-                                <FaEye />
-                              </div>
-                            </div>
-                          ))}
-                          {selectedRequest.sitePhotos.length > 6 && (
-                            <div
-                              className="customer-photo-item more-photos"
-                              onClick={() => openPhotoModal(selectedRequest.sitePhotos, 0)}
-                            >
-                              <div className="more-photos-content">
-                                <FaImages />
-                                <span>+{selectedRequest.sitePhotos.length - 6} more</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <button
-                          className="view-all-photos-btn"
-                          onClick={() => openPhotoModal(selectedRequest.sitePhotos, 0)}
-                        >
-                          <FaImages /> View All Photos ({selectedRequest.sitePhotos.length})
-                        </button>
-                      </div>
-                    )}
-
-                    {selectedRequest.assessmentStatus === 'completed' && selectedRequest.finalQuotation && (
-                      <button
-                        className="view-quotation-btn-cusset"
-                        onClick={() => viewQuotation(selectedRequest.finalQuotation)}
-                      >
-                        View Assessment Report
-                      </button>
-                    )}
-                  </>
-                )}
-                <div className="modal-actions-cusset">
-                  <button className="close-btn-cusset" onClick={() => setShowDetailsModal(false)}>Close</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Accept Quotation Modal - UPDATED to show source type */}
-          {showAcceptQuoteModal && acceptingQuotation && (
-            <div className="schedule-modal-overlay-cusset" onClick={() => setShowAcceptQuoteModal(false)}>
-              <div className="schedule-modal-cusset accept-quote-modal" onClick={e => e.stopPropagation()}>
-                <div className="modal-header-cusset">
-                  <h3>Accept Quotation</h3>
-                  <span className="source-badge" style={{
-                    fontSize: '12px',
-                    padding: '4px 12px',
-                    borderRadius: '20px',
-                    background: acceptingQuotation.sourceType === 'free-quote' ? '#4CAF50' : '#2196F3',
-                    color: '#fff',
-                    marginLeft: '10px'
-                  }}>
-                    {acceptingQuotation.sourceType === 'free-quote' ? 'Free Quote' : 'Pre-Assessment'}
-                  </span>
-                  <button className="modal-close-cusset" onClick={() => setShowAcceptQuoteModal(false)}>×</button>
-                </div>
-                <div className="modal-body-cusset">
-                  <div className="quotation-summary">
-                    <h4>Quotation Summary</h4>
-                    <div className="summary-row">
-                      <span>Reference:</span>
-                      <strong>{acceptingQuotation.quotationReference || 'N/A'}</strong>
-                    </div>
-                    <div className="summary-row">
-                      <span>System Size:</span>
-                      <strong>{acceptingQuotation.quotation?.systemDetails?.systemSize || 'TBD'} kWp</strong>
-                    </div>
-                    <div className="summary-row">
-                      <span>Total Cost:</span>
-                      <strong>{formatCurrency(acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee)}</strong>
-                    </div>
-                    <div className="summary-row">
-                      <span>System Type:</span>
-                      <strong>{acceptingQuotation.quotation?.systemDetails?.systemType || 'Not specified'}</strong>
-                    </div>
-                    <div className="summary-row">
-                      <span>Panels Needed:</span>
-                      <strong>{acceptingQuotation.quotation?.systemDetails?.panelsNeeded || 'TBD'}</strong>
-                    </div>
-                  </div>
-
-                  <div className="payment-preference-section">
-                    <h4>Payment Option</h4>
-
-                    {/* 50% - 50% Installment */}
-                    <div
-                      className={`preference-option ${selectedPaymentPreference === 'fifty_fifty' ? 'selected' : ''}`}
-                      onClick={() => setSelectedPaymentPreference('fifty_fifty')}
-                    >
-                      <input type="radio" checked={selectedPaymentPreference === 'fifty_fifty'} readOnly />
-                      <div className="preference-content">
-                        <strong>50% - 50% Installment</strong>
-                        <div className="preference-details">
-                          <span>Downpayment (50%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.5)}</span>
-                          <span>Final Payment (50%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.5)}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 30% - 60% - 10% with Retention */}
-                    <div
-                      className={`preference-option ${selectedPaymentPreference === 'thirty_sixty_ten' ? 'selected' : ''}`}
-                      onClick={() => setSelectedPaymentPreference('thirty_sixty_ten')}
-                    >
-                      <input type="radio" checked={selectedPaymentPreference === 'thirty_sixty_ten'} readOnly />
-                      <div className="preference-content">
-                        <strong>Installment with Retention (30% - 60% - 10%)</strong>
-                        <div className="preference-details">
-                          <span>Downpayment (30%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.3)}</span>
-                          <span>Progress Payment (60%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.6)}</span>
-                          <span className="retention-note">Retention Fee (10%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.1)}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 30% - 40% - 30% Installment */}
-                    <div
-                      className={`preference-option ${selectedPaymentPreference === 'installment' ? 'selected' : ''}`}
-                      onClick={() => setSelectedPaymentPreference('installment')}
-                    >
-                      <input type="radio" checked={selectedPaymentPreference === 'installment'} readOnly />
-                      <div className="preference-content">
-                        <strong>Installment (30% - 40% - 30%)</strong>
-                        <div className="preference-details">
-                          <span>Initial (30%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.3)}</span>
-                          <span>Progress (40%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.4)}</span>
-                          <span>Final (30%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.3)}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Full Payment */}
-                    <div
-                      className={`preference-option ${selectedPaymentPreference === 'full' ? 'selected' : ''}`}
-                      onClick={() => setSelectedPaymentPreference('full')}
-                    >
-                      <input type="radio" checked={selectedPaymentPreference === 'full'} readOnly />
-                      <div className="preference-content">
-                        <strong>Full Payment</strong>
-                        <div className="preference-details full-payment">
-                          <span>Amount: {formatCurrency(acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="modal-actions-cusset">
-                  <button className="cancel-btn-cusset" onClick={() => setShowAcceptQuoteModal(false)}>Cancel</button>
-                  <button
-                    className="confirm-btn-cusset"
-                    onClick={confirmAcceptQuotation}
-                    disabled={acceptingLoading}
-                  >
-                    {acceptingLoading ? <FaSpinner className="spinning" /> : 'Accept Quotation'}
-                    {acceptingLoading ? ' Processing...' : ''}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Photo Modal */}
-          {showPhotoModal && selectedPhotos.length > 0 && (
-            <div className="photo-modal-overlay-cusset" onClick={closePhotoModal}>
-              <div className="photo-modal-content-cusset" onClick={(e) => e.stopPropagation()}>
-                <button className="photo-modal-close-cusset" onClick={closePhotoModal}>
-                  <FaTimes />
-                </button>
-
-                <div className="photo-modal-main-cusset">
-                  <img
-                    src={selectedPhotos[currentPhotoIndex]}
-                    alt={`Site photo ${currentPhotoIndex + 1}`}
-                    onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/800x600?text=Image+Not+Available';
-                    }}
-                  />
-
-                  {selectedPhotos.length > 1 && (
-                    <>
-                      <button
-                        className="photo-nav-cusset prev"
-                        onClick={prevPhoto}
-                        disabled={currentPhotoIndex === 0}
-                      >
-                        <FaChevronLeft />
-                      </button>
-                      <button
-                        className="photo-nav-cusset next"
-                        onClick={nextPhoto}
-                        disabled={currentPhotoIndex === selectedPhotos.length - 1}
-                      >
-                        <FaChevronRight />
-                      </button>
-                    </>
-                  )}
-                </div>
-
-                <div className="photo-modal-footer-cusset">
-                  <div className="photo-counter-cusset">
-                    {currentPhotoIndex + 1} / {selectedPhotos.length}
-                  </div>
-                  <button
-                    className="photo-download-btn-cusset"
-                    onClick={() => downloadPhoto(selectedPhotos[currentPhotoIndex], currentPhotoIndex)}
-                  >
-                    <FaDownload /> Download
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} />
         </div>
+
+        <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} />
       </>
     );
   }
@@ -1778,13 +1668,18 @@ const ScheduleAssessment = () => {
               setCurrentStep('service-selection');
               setFreeQuoteValidationErrors({});
               setFreeQuoteTermsAccepted(false);
-            }} className="back-to-services-cusset">← Back to Services</button>
+            }} className="back-to-services-cusset">
+              ← Back to Services
+            </button>
           </div>
-          <h1 className="schedule-title-cusset">Free Quotation</h1>
-          <p className="schedule-subtitle-cusset">Complete the form below to request your free solar quotation</p>
+
+          <div className="form-page-header-cusset">
+            <h1 className="form-page-title-cusset">Free Quotation</h1>
+            <p className="form-page-subtitle-cusset">Complete the form below to request your free solar quotation</p>
+          </div>
 
           {hasPendingFreeQuote && (
-            <div className="pending-warning-cusset" style={{ marginBottom: '20px' }}>
+            <div className="pending-warning-cusset">
               <svg style={{ marginRight: '8px', width: '14px', height: '14px' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
@@ -1793,213 +1688,252 @@ const ScheduleAssessment = () => {
             </div>
           )}
 
-          <div className="pre-assessment-form-wrapper-cusset">
-            {/* Contact & Address Section */}
-            <div className="schedule-info-section-cusset">
-              <h3 className="schedule-section-title-cusset">Contact & Address Information</h3>
-              <div className="combined-info-card-cusset" onClick={() => setShowInfoModal(true)}>
-                <div className="combined-info-header-cusset">
-                  <div className="combined-info-content-cusset">
-                    <div className="combined-info-name-cusset">{getFullName() || 'Not provided'}</div>
-                    <div className="combined-info-contact-cusset">{formData.contactNumber || 'Not provided'}</div>
-                    <div className="combined-info-address-cusset">{getFullAddress() || 'No address selected'}</div>
-                  </div>
+          <div className="form-main-card-cusset">
+            {/* Contact and Address Section */}
+            <div className="form-section-cusset">
+              <div className="form-section-header-cusset">
+                <div className="form-section-icon-cusset">
+                  <FaUserCircle />
                 </div>
-                <div className="combined-info-hint-cusset">Click to view full details and manage settings</div>
+                <div className="form-section-title-group-cusset">
+                  <h3>Contact and Address Information</h3>
+                  <p>Your personal and location details</p>
+                </div>
               </div>
-              {freeQuoteValidationErrors.address && (
-                <div className="error-message-cusset" style={{ marginTop: '10px' }}>{freeQuoteValidationErrors.address}</div>
-              )}
+              <div className="form-section-body-cusset">
+                <div className="combined-info-card-cusset" onClick={() => setShowInfoModal(true)}>
+                  <div className="combined-info-header-cusset">
+                    <div className="combined-info-content-cusset">
+                      <div className="combined-info-name-cusset">{getFullName() || 'Not provided'}</div>
+                      <div className="combined-info-contact-cusset">{formData.contactNumber || 'Not provided'}</div>
+                      <div className="combined-info-address-cusset">{getFullAddress() || 'No address selected'}</div>
+                    </div>
+                  </div>
+                  <div className="combined-info-hint-cusset">Click to view full details and manage settings</div>
+                </div>
+                {freeQuoteValidationErrors.address && (
+                  <div className="error-message-cusset" style={{ marginTop: '10px' }}>{freeQuoteValidationErrors.address}</div>
+                )}
+              </div>
             </div>
 
-            {/* Electric Bill Section */}
-            <div className="schedule-assessment-details-section-cusset">
-              <h3 className="schedule-section-title-cusset">
-                <FaMoneyBillWave /> Electricity Bill Information
-              </h3>
-              <p className="section-description-cusset">Enter your current electricity details</p>
-
-              <div className="electric-bill-section-cusset">
-                <div className="schedule-form-grid-cusset">
-                  <div className="schedule-form-group-cusset">
-                    <label>Monthly Electricity Bill (₱) *</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      name="monthlyBill"
-                      value={freeQuoteData.monthlyBill}
-                      onChange={handleInputChange}
-                      placeholder="e.g., 5000"
-                      className={`schedule-form-input-cusset ${freeQuoteValidationErrors.monthlyBill ? 'error' : ''}`}
-                    />
-                    <small>Your average monthly electricity bill amount</small>
-                    {freeQuoteValidationErrors.monthlyBill && (
-                      <div className="error-message-cusset">{freeQuoteValidationErrors.monthlyBill}</div>
-                    )}
-                  </div>
-                  <div className="schedule-form-group-cusset">
-                    <label>Monthly Consumption (kWh) *</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      name="monthlyKwh"
-                      value={electricBillInput.monthlyKwh}
-                      onChange={handleElectricBillChange}
-                      placeholder="e.g., 500"
-                      className={`schedule-form-input-cusset ${freeQuoteValidationErrors.monthlyConsumption ? 'error' : ''}`}
-                    />
-                    <small>Your average monthly electricity consumption in kWh</small>
-                    {freeQuoteValidationErrors.monthlyConsumption && (
-                      <div className="error-message-cusset">{freeQuoteValidationErrors.monthlyConsumption}</div>
-                    )}
-                  </div>
-                  <div className="schedule-form-group-cusset">
-                    <label>Rate per kWh (₱)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      name="ratePerKwh"
-                      value={electricBillInput.ratePerKwh}
-                      onChange={handleElectricBillChange}
-                      placeholder="e.g., 11.50"
-                      className="schedule-form-input-cusset"
-                    />
-                    <small>Check your electric bill for the rate (optional)</small>
-                  </div>
+            {/* Electricity Bill Section */}
+            <div className="form-section-cusset">
+              <div className="form-section-header-cusset">
+                <div className="form-section-icon-cusset">
+                  <FaMoneyBillWave />
+                </div>
+                <div className="form-section-title-group-cusset">
+                  <h3>Electricity Bill Information</h3>
+                  <p>Enter your current electricity details</p>
                 </div>
               </div>
+              <div className="form-section-body-cusset">
+                <div className="electric-bill-section-cusset">
+                  <div className="schedule-form-grid-cusset">
+                    <div className="schedule-form-group-cusset">
+                      <label>Monthly Electricity Bill (₱) *</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        name="monthlyBill"
+                        value={freeQuoteData.monthlyBill}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 5000"
+                        className={`schedule-form-input-cusset ${freeQuoteValidationErrors.monthlyBill ? 'error' : ''}`}
+                      />
+                      <small>Your average monthly electricity bill amount</small>
+                      {freeQuoteValidationErrors.monthlyBill && (
+                        <div className="error-message-cusset">{freeQuoteValidationErrors.monthlyBill}</div>
+                      )}
+                    </div>
+                    <div className="schedule-form-group-cusset">
+                      <label>Monthly Consumption (kWh) *</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        name="monthlyKwh"
+                        value={electricBillInput.monthlyKwh}
+                        onChange={handleElectricBillChange}
+                        placeholder="e.g., 500"
+                        className={`schedule-form-input-cusset ${freeQuoteValidationErrors.monthlyConsumption ? 'error' : ''}`}
+                      />
+                      <small>Your average monthly electricity consumption in kWh</small>
+                      {freeQuoteValidationErrors.monthlyConsumption && (
+                        <div className="error-message-cusset">{freeQuoteValidationErrors.monthlyConsumption}</div>
+                      )}
+                    </div>
+                    <div className="schedule-form-group-cusset">
+                      <label>Rate per kWh (₱)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        name="ratePerKwh"
+                        value={electricBillInput.ratePerKwh}
+                        onChange={handleElectricBillChange}
+                        placeholder="e.g., 11.50"
+                        className="schedule-form-input-cusset"
+                      />
+                      <small>Check your electric bill for the rate (optional)</small>
+                    </div>
+                  </div>
+                </div>
 
-              {/* Property Type */}
-              <div className="schedule-form-group-cusset" style={{ marginTop: '20px' }}>
-                <label>Property Type *</label>
-                <select
-                  name="propertyType"
-                  value={freeQuoteData.propertyType}
-                  onChange={handleInputChange}
-                  className={`schedule-form-select-cusset ${freeQuoteValidationErrors.propertyType ? 'error' : ''}`}
-                >
-                  <option value="residential">Residential</option>
-                  <option value="commercial">Commercial</option>
-                  <option value="industrial">Industrial</option>
-                </select>
-                {freeQuoteValidationErrors.propertyType && (
-                  <div className="error-message-cusset">{freeQuoteValidationErrors.propertyType}</div>
-                )}
-              </div>
-
-              {/* Appliances Section */}
-              <div className="appliances-section-cusset">
-                <div className="appliances-header-cusset">
-                  <h4><FaPlug /> Your Appliances *</h4>
-                  <button
-                    type="button"
-                    className="add-appliance-btn-cusset"
-                    onClick={() => {
-                      setEditingAppliance(null);
-                      setApplianceForm({ name: '', powerWatts: '', quantity: '', dayHours: '', nightHours: '' });
-                      setShowApplianceModal(true);
-                    }}
+                <div className="schedule-form-group-cusset">
+                  <label>Property Type *</label>
+                  <select
+                    name="propertyType"
+                    value={freeQuoteData.propertyType}
+                    onChange={handleInputChange}
+                    className={`schedule-form-select-cusset ${freeQuoteValidationErrors.propertyType ? 'error' : ''}`}
                   >
-                    <FaPlus /> Add Appliance
-                  </button>
+                    <option value="residential">Residential</option>
+                    <option value="commercial">Commercial</option>
+                    <option value="industrial">Industrial</option>
+                  </select>
+                  {freeQuoteValidationErrors.propertyType && (
+                    <div className="error-message-cusset">{freeQuoteValidationErrors.propertyType}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Appliances Section */}
+            <div className="form-section-cusset">
+              <div className="form-section-header-cusset">
+                <div className="form-section-icon-cusset">
+                  <FaPlug />
+                </div>
+                <div className="form-section-title-group-cusset">
+                  <h3>Your Appliances *</h3>
+                  <p>List all your electrical devices with their usage hours</p>
+                </div>
+              </div>
+              <div className="form-section-body-cusset">
+                <div className="appliances-section-cusset">
+                  <div className="appliances-header-cusset">
+                    <span className="appliances-count-cusset">{appliances.length} appliances added</span>
+                    <button
+                      type="button"
+                      className="add-appliance-btn-cusset"
+                      onClick={() => {
+                        setEditingAppliance(null);
+                        setApplianceForm({ name: '', powerWatts: '', quantity: '', dayHours: '', nightHours: '' });
+                        setShowApplianceModal(true);
+                      }}
+                    >
+                      <FaPlus /> Add Appliance
+                    </button>
+                  </div>
+
+                  {freeQuoteValidationErrors.appliances && (
+                    <div className="error-message-cusset">{freeQuoteValidationErrors.appliances}</div>
+                  )}
+
+                  {appliances.length === 0 ? (
+                    <div className="empty-appliances-cusset">
+                      <FaLightbulb />
+                      <p>No appliances added yet.</p>
+                      <small>Click "Add Appliance" to list your electrical devices like air conditioning, refrigerator, lighting, etc.</small>
+                    </div>
+                  ) : (
+                    <div className="appliances-table-container-cusset">
+                      <table className="appliances-table-cusset">
+                        <thead>
+                          <tr>
+                            <th>Appliance</th>
+                            <th>Power (W)</th>
+                            <th>Qty</th>
+                            <th>Day Hours</th>
+                            <th>Night Hours</th>
+                            <th>Day Energy (kWh)</th>
+                            <th>Night Energy (kWh)</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {appliances.map(appliance => {
+                            const dayEnergy = (appliance.powerWatts * appliance.quantity * appliance.dayHours) / 1000;
+                            const nightEnergy = (appliance.powerWatts * appliance.quantity * appliance.nightHours) / 1000;
+                            return (
+                              <tr key={appliance.id}>
+                                <td><strong>{appliance.name}</strong></td>
+                                <td>{appliance.powerWatts} W</td>
+                                <td>{appliance.quantity}</td>
+                                <td>{appliance.dayHours} hrs</td>
+                                <td>{appliance.nightHours} hrs</td>
+                                <td>{dayEnergy.toFixed(2)} kWh</td>
+                                <td>{nightEnergy.toFixed(2)} kWh</td>
+                                <td>
+                                  <button className="edit-appliance-btn" onClick={() => editAppliance(appliance)}>
+                                    <FaEye /> Edit
+                                  </button>
+                                  <button className="delete-appliance-btn" onClick={() => deleteAppliance(appliance.id)}>
+                                    <FaTrash /> Delete
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
 
-                {freeQuoteValidationErrors.appliances && (
-                  <div className="error-message-cusset">{freeQuoteValidationErrors.appliances}</div>
+                {/* Consumption Results */}
+                {appliances.length > 0 && electricBillInput.monthlyKwh && (
+                  <div className="consumption-results-cusset">
+                    <h4>Your Energy Profile</h4>
+                    <div className="results-grid-cusset">
+                      <div className="result-card-cusset day-result">
+                        <FaSun className="result-icon" />
+                        <div className="result-info">
+                          <span className="result-label">Day Consumption</span>
+                          <span className="result-value">{calculationResults.dayConsumption?.toFixed(2) || 0} kWh</span>
+                          <span className="result-percentage">({calculationResults.dayPercentage?.toFixed(1) || 0}%)</span>
+                        </div>
+                      </div>
+                      <div className="result-card-cusset night-result">
+                        <FaMoon className="result-icon" />
+                        <div className="result-info">
+                          <span className="result-label">Night Consumption</span>
+                          <span className="result-value">{calculationResults.nightConsumption?.toFixed(2) || 0} kWh</span>
+                          <span className="result-percentage">({calculationResults.nightPercentage?.toFixed(1) || 0}%)</span>
+                        </div>
+                      </div>
+                      <div className="result-card-cusset total-result">
+                        <FaLightbulb className="result-icon" />
+                        <div className="result-info">
+                          <span className="result-label">Total Daily</span>
+                          <span className="result-value">{calculationResults.totalDailyConsumption?.toFixed(2) || 0} kWh/day</span>
+                          <small>Based on monthly consumption ÷ 30 days</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
 
-                {appliances.length === 0 ? (
-                  <div className="empty-appliances-cusset">
-                    <FaLightbulb />
-                    <p>No appliances added yet. Click "Add Appliance" to list your electrical devices.</p>
-                    <small>Include major appliances like air conditioning, refrigerator, lighting, etc.</small>
-                  </div>
-                ) : (
-                  <div className="appliances-table-container-cusset">
-                    <table className="appliances-table-cusset">
-                      <thead>
-                        <tr>
-                          <th>Appliance</th>
-                          <th>Power (W)</th>
-                          <th>Qty</th>
-                          <th>Day Hours</th>
-                          <th>Night Hours</th>
-                          <th>Day Energy (kWh)</th>
-                          <th>Night Energy (kWh)</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {appliances.map(appliance => {
-                          const dayEnergy = (appliance.powerWatts * appliance.quantity * appliance.dayHours) / 1000;
-                          const nightEnergy = (appliance.powerWatts * appliance.quantity * appliance.nightHours) / 1000;
-                          return (
-                            <tr key={appliance.id}>
-                              <td><strong>{appliance.name}</strong></td>
-                              <td>{appliance.powerWatts} W</td>
-                              <td>{appliance.quantity}</td>
-                              <td>{appliance.dayHours} hrs</td>
-                              <td>{appliance.nightHours} hrs</td>
-                              <td>{dayEnergy.toFixed(2)} kWh</td>
-                              <td>{nightEnergy.toFixed(2)} kWh</td>
-                              <td>
-                                <button className="edit-appliance-btn" onClick={() => editAppliance(appliance)}>
-                                  <FaEye /> Edit
-                                </button>
-                                <button className="delete-appliance-btn" onClick={() => deleteAppliance(appliance.id)}>
-                                  <FaTrash /> Delete
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                {(!electricBillInput.monthlyKwh || appliances.length === 0) && (
+                  <div className="info-message-cusset">
+                    <p>Please enter your monthly consumption and add at least one appliance to see your energy profile.</p>
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Consumption Results */}
-              {appliances.length > 0 && electricBillInput.monthlyKwh && (
-                <div className="consumption-results-cusset">
-                  <h4>Your Energy Profile</h4>
-                  <div className="results-grid-cusset">
-                    <div className="result-card-cusset day-result">
-                      <FaSun className="result-icon" />
-                      <div className="result-info">
-                        <span className="result-label">Day Consumption</span>
-                        <span className="result-value">{calculationResults.dayConsumption?.toFixed(2) || 0} kWh</span>
-                        <span className="result-percentage">({calculationResults.dayPercentage?.toFixed(1) || 0}%)</span>
-                      </div>
-                    </div>
-                    <div className="result-card-cusset night-result">
-                      <FaMoon className="result-icon" />
-                      <div className="result-info">
-                        <span className="result-label">Night Consumption</span>
-                        <span className="result-value">{calculationResults.nightConsumption?.toFixed(2) || 0} kWh</span>
-                        <span className="result-percentage">({calculationResults.nightPercentage?.toFixed(1) || 0}%)</span>
-                      </div>
-                    </div>
-                    <div className="result-card-cusset total-result">
-                      <FaLightbulb className="result-icon" />
-                      <div className="result-info">
-                        <span className="result-label">Total Daily</span>
-                        <span className="result-value">{calculationResults.totalDailyConsumption?.toFixed(2) || 0} kWh/day</span>
-                        <small>Based on monthly consumption ÷ 30 days</small>
-                      </div>
-                    </div>
-                  </div>
+            {/* System Preferences Section */}
+            <div className="form-section-cusset">
+              <div className="form-section-header-cusset">
+                <div className="form-section-icon-cusset">
+                  <FaSolarPanel />
                 </div>
-              )}
-
-              {(!electricBillInput.monthlyKwh || appliances.length === 0) && (
-                <div className="info-message-cusset">
-                  <p>Please enter your monthly consumption and add at least one appliance to see your energy profile.</p>
+                <div className="form-section-title-group-cusset">
+                  <h3>System Preferences</h3>
+                  <p>Tell us about your solar system preferences</p>
                 </div>
-              )}
-
-              <h3 className="schedule-section-title-cusset">System Preferences</h3>
-              <div className="schedule-assessment-form-cusset">
+              </div>
+              <div className="form-section-body-cusset">
                 <div className="schedule-form-grid-cusset">
                   <div className="schedule-form-group-cusset">
                     <label>Preferred System Type</label>
@@ -2056,7 +1990,7 @@ const ScheduleAssessment = () => {
                       <option value="other">Other</option>
                     </select>
                   </div>
-                  <div className="schedule-form-group-cusset">
+                  <div className="schedule-form-group-cusset" style={{ gridColumn: '1 / -1' }}>
                     <label>Roof Dimensions</label>
                     <div className="dimension-row-cusset">
                       <input
@@ -2081,10 +2015,15 @@ const ScheduleAssessment = () => {
                   </div>
                 </div>
 
-                <div className="schedule-fee-card-cusset" style={{ background: '#e8f5e9', borderColor: '#4caf50' }}>
-                  <strong><FaFileInvoice /> Free Quotation</strong>
-                  <p>This is a complimentary service. Our team will review your information and provide a detailed quotation via email.</p>
-                  <small>Includes: Energy consumption analysis, system size recommendation, and cost estimate.</small>
+                <div className="schedule-fee-card-cusset">
+                  <div className="fee-card-icon-cusset">
+                    <FaFileInvoice />
+                  </div>
+                  <div className="fee-card-content-cusset">
+                    <strong>Free Quotation</strong>
+                    <p>This is a complimentary service. Our team will review your information and provide a detailed quotation via email.</p>
+                    <small>Includes: Energy consumption analysis, system size recommendation, and cost estimate.</small>
+                  </div>
                 </div>
 
                 <div className="form-actions-cusset">
@@ -2093,7 +2032,7 @@ const ScheduleAssessment = () => {
                     className="schedule-btn-submit-cusset"
                     disabled={hasPendingFreeQuote}
                   >
-                    {hasPendingFreeQuote ? 'Request in Progress' : 'Review & Submit Quote Request'}
+                    {hasPendingFreeQuote ? 'Request in Progress' : 'Review and Submit Quote Request'}
                   </button>
                 </div>
               </div>
@@ -2144,7 +2083,7 @@ const ScheduleAssessment = () => {
                     />
                   </div>
                   <div className="schedule-form-group-cusset">
-                    <label><FaSun /> Day Usage Hours *</label>
+                    <label>Day Usage Hours *</label>
                     <input
                       type="number"
                       step="0.5"
@@ -2157,7 +2096,7 @@ const ScheduleAssessment = () => {
                     <small>Hours used during daytime (6 AM - 6 PM)</small>
                   </div>
                   <div className="schedule-form-group-cusset">
-                    <label><FaMoon /> Night Usage Hours *</label>
+                    <label>Night Usage Hours *</label>
                     <input
                       type="number"
                       step="0.5"
@@ -2184,7 +2123,7 @@ const ScheduleAssessment = () => {
           {showInfoModal && (
             <div className="schedule-modal-overlay-cusset" onClick={() => setShowInfoModal(false)}>
               <div className="schedule-modal-cusset info-modal-cusset" onClick={e => e.stopPropagation()}>
-                <div className="info-modal-header-cusset"><h3>Contact & Address Details</h3></div>
+                <div className="info-modal-header-cusset"><h3>Contact and Address Details</h3></div>
                 <div className="info-modal-body-cusset">
                   <div className="info-section-cusset">
                     <h4>Personal Information</h4>
@@ -2304,189 +2243,232 @@ const ScheduleAssessment = () => {
           <div className="back-button-container-cusset">
             <button onClick={() => setCurrentStep('service-selection')} className="back-to-services-cusset">← Back to Services</button>
           </div>
-          <h1 className="schedule-title-cusset">Book Pre Assessment</h1>
-          <p className="schedule-subtitle-cusset">Complete the form below to schedule your professional pre-assessment (₱1,500)</p>
 
-          <div className="pre-assessment-form-wrapper-cusset">
-            {/* Contact & Address Section */}
-            <div className="schedule-info-section-cusset">
-              <h3 className="schedule-section-title-cusset">Contact & Address Information</h3>
-              <div className="combined-info-card-cusset" onClick={() => setShowInfoModal(true)}>
-                <div className="combined-info-header-cusset">
-                  <div className="combined-info-content-cusset">
-                    <div className="combined-info-name-cusset">{getFullName() || 'Not provided'}</div>
-                    <div className="combined-info-contact-cusset">{formData.contactNumber || 'Not provided'}</div>
-                    <div className="combined-info-address-cusset">{getFullAddress() || 'No address selected'}</div>
-                  </div>
+          <div className="form-page-header-cusset">
+            <h1 className="form-page-title-cusset">Book Pre Assessment</h1>
+            <p className="form-page-subtitle-cusset">Complete the form below to schedule your professional pre-assessment (₱1,500)</p>
+          </div>
+
+          <div className="form-main-card-cusset">
+            {/* Contact and Address Section */}
+            <div className="form-section-cusset">
+              <div className="form-section-header-cusset">
+                <div className="form-section-icon-cusset">
+                  <FaUserCircle />
                 </div>
-                <div className="combined-info-hint-cusset">Click to view full details and manage settings</div>
+                <div className="form-section-title-group-cusset">
+                  <h3>Contact and Address Information</h3>
+                  <p>Your personal and location details</p>
+                </div>
+              </div>
+              <div className="form-section-body-cusset">
+                <div className="combined-info-card-cusset" onClick={() => setShowInfoModal(true)}>
+                  <div className="combined-info-header-cusset">
+                    <div className="combined-info-content-cusset">
+                      <div className="combined-info-name-cusset">{getFullName() || 'Not provided'}</div>
+                      <div className="combined-info-contact-cusset">{formData.contactNumber || 'Not provided'}</div>
+                      <div className="combined-info-address-cusset">{getFullAddress() || 'No address selected'}</div>
+                    </div>
+                  </div>
+                  <div className="combined-info-hint-cusset">Click to view full details and manage settings</div>
+                </div>
               </div>
             </div>
 
-            {/* Electric Bill Section */}
-            <div className="schedule-assessment-details-section-cusset">
-              <h3 className="schedule-section-title-cusset">
-                <FaMoneyBillWave /> Electricity Bill Information
-              </h3>
-              <p className="section-description-cusset">Enter your current electricity details</p>
-
-              <div className="electric-bill-section-cusset">
-                <div className="schedule-form-grid-cusset">
-                  <div className="schedule-form-group-cusset">
-                    <label>Monthly Consumption (kWh) *</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      name="monthlyKwh"
-                      value={electricBillInput.monthlyKwh}
-                      onChange={handleElectricBillChange}
-                      placeholder="e.g., 500"
-                      className={`schedule-form-input-cusset ${validationErrors.monthlyKwh ? 'error' : ''}`}
-                    />
-                    <small>Your average monthly electricity consumption in kWh</small>
-                    {validationErrors.monthlyKwh && <div className="error-message-cusset">{validationErrors.monthlyKwh}</div>}
-                  </div>
-                  <div className="schedule-form-group-cusset">
-                    <label>Monthly Electric Bill (₱)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      name="monthlyBill"
-                      value={electricBillInput.monthlyBill}
-                      onChange={handleElectricBillChange}
-                      placeholder="e.g., 5000"
-                      className="schedule-form-input-cusset"
-                    />
-                    <small>Your average monthly electricity bill amount (optional)</small>
-                  </div>
-                  <div className="schedule-form-group-cusset">
-                    <label>Rate per kWh (₱)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      name="ratePerKwh"
-                      value={electricBillInput.ratePerKwh}
-                      onChange={handleElectricBillChange}
-                      placeholder="e.g., 11.50"
-                      className="schedule-form-input-cusset"
-                    />
-                    <small>Check your electric bill for the rate (optional)</small>
+            {/* Electricity Bill Section */}
+            <div className="form-section-cusset">
+              <div className="form-section-header-cusset">
+                <div className="form-section-icon-cusset">
+                  <FaMoneyBillWave />
+                </div>
+                <div className="form-section-title-group-cusset">
+                  <h3>Electricity Bill Information</h3>
+                  <p>Enter your current electricity details</p>
+                </div>
+              </div>
+              <div className="form-section-body-cusset">
+                <div className="electric-bill-section-cusset">
+                  <div className="schedule-form-grid-cusset">
+                    <div className="schedule-form-group-cusset">
+                      <label>Monthly Consumption (kWh) *</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        name="monthlyKwh"
+                        value={electricBillInput.monthlyKwh}
+                        onChange={handleElectricBillChange}
+                        placeholder="e.g., 500"
+                        className={`schedule-form-input-cusset ${validationErrors.monthlyKwh ? 'error' : ''}`}
+                      />
+                      <small>Your average monthly electricity consumption in kWh</small>
+                      {validationErrors.monthlyKwh && <div className="error-message-cusset">{validationErrors.monthlyKwh}</div>}
+                    </div>
+                    <div className="schedule-form-group-cusset">
+                      <label>Monthly Electric Bill (₱)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        name="monthlyBill"
+                        value={electricBillInput.monthlyBill}
+                        onChange={handleElectricBillChange}
+                        placeholder="e.g., 5000"
+                        className="schedule-form-input-cusset"
+                      />
+                      <small>Your average monthly electricity bill amount (optional)</small>
+                    </div>
+                    <div className="schedule-form-group-cusset">
+                      <label>Rate per kWh (₱)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        name="ratePerKwh"
+                        value={electricBillInput.ratePerKwh}
+                        onChange={handleElectricBillChange}
+                        placeholder="e.g., 11.50"
+                        className="schedule-form-input-cusset"
+                      />
+                      <small>Check your electric bill for the rate (optional)</small>
+                    </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Appliances Section */}
-              <div className="appliances-section-cusset">
-                <div className="appliances-header-cusset">
-                  <h4><FaPlug /> Your Appliances *</h4>
-                  <button
-                    type="button"
-                    className="add-appliance-btn-cusset"
-                    onClick={() => {
-                      setEditingAppliance(null);
-                      setApplianceForm({ name: '', powerWatts: '', quantity: '', dayHours: '', nightHours: '' });
-                      setShowApplianceModal(true);
-                    }}
-                  >
-                    <FaPlus /> Add Appliance
-                  </button>
+            {/* Appliances Section */}
+            <div className="form-section-cusset">
+              <div className="form-section-header-cusset">
+                <div className="form-section-icon-cusset">
+                  <FaPlug />
+                </div>
+                <div className="form-section-title-group-cusset">
+                  <h3>Your Appliances *</h3>
+                  <p>List all your electrical devices with their usage hours</p>
+                </div>
+              </div>
+              <div className="form-section-body-cusset">
+                <div className="appliances-section-cusset">
+                  <div className="appliances-header-cusset">
+                    <span className="appliances-count-cusset">{appliances.length} appliances added</span>
+                    <button
+                      type="button"
+                      className="add-appliance-btn-cusset"
+                      onClick={() => {
+                        setEditingAppliance(null);
+                        setApplianceForm({ name: '', powerWatts: '', quantity: '', dayHours: '', nightHours: '' });
+                        setShowApplianceModal(true);
+                      }}
+                    >
+                      <FaPlus /> Add Appliance
+                    </button>
+                  </div>
+
+                  {validationErrors.appliances && (
+                    <div className="error-message-cusset">{validationErrors.appliances}</div>
+                  )}
+
+                  {appliances.length === 0 ? (
+                    <div className="empty-appliances-cusset">
+                      <FaLightbulb />
+                      <p>No appliances added yet.</p>
+                      <small>Click "Add Appliance" to list your electrical devices like air conditioning, refrigerator, lighting, etc.</small>
+                    </div>
+                  ) : (
+                    <div className="appliances-table-container-cusset">
+                      <table className="appliances-table-cusset">
+                        <thead>
+                          <tr>
+                            <th>Appliance</th>
+                            <th>Power (W)</th>
+                            <th>Qty</th>
+                            <th>Day Hours</th>
+                            <th>Night Hours</th>
+                            <th>Day Energy (kWh)</th>
+                            <th>Night Energy (kWh)</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {appliances.map(appliance => {
+                            const dayEnergy = (appliance.powerWatts * appliance.quantity * appliance.dayHours) / 1000;
+                            const nightEnergy = (appliance.powerWatts * appliance.quantity * appliance.nightHours) / 1000;
+                            return (
+                              <tr key={appliance.id}>
+                                <td><strong>{appliance.name}</strong></td>
+                                <td>{appliance.powerWatts} W</td>
+                                <td>{appliance.quantity}</td>
+                                <td>{appliance.dayHours} hrs</td>
+                                <td>{appliance.nightHours} hrs</td>
+                                <td>{dayEnergy.toFixed(2)} kWh</td>
+                                <td>{nightEnergy.toFixed(2)} kWh</td>
+                                <td>
+                                  <button className="edit-appliance-btn" onClick={() => editAppliance(appliance)}>
+                                    <FaEye /> Edit
+                                  </button>
+                                  <button className="delete-appliance-btn" onClick={() => deleteAppliance(appliance.id)}>
+                                    <FaTrash /> Delete
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
 
-                {validationErrors.appliances && (
-                  <div className="error-message-cusset">{validationErrors.appliances}</div>
+                {appliances.length > 0 && electricBillInput.monthlyKwh && (
+                  <div className="consumption-results-cusset">
+                    <h4>Your Energy Profile</h4>
+                    <div className="results-grid-cusset">
+                      <div className="result-card-cusset day-result">
+                        <FaSun className="result-icon" />
+                        <div className="result-info">
+                          <span className="result-label">Day Consumption</span>
+                          <span className="result-value">{calculationResults.dayConsumption?.toFixed(2) || 0} kWh</span>
+                          <span className="result-percentage">({calculationResults.dayPercentage?.toFixed(1) || 0}%)</span>
+                        </div>
+                      </div>
+                      <div className="result-card-cusset night-result">
+                        <FaMoon className="result-icon" />
+                        <div className="result-info">
+                          <span className="result-label">Night Consumption</span>
+                          <span className="result-value">{calculationResults.nightConsumption?.toFixed(2) || 0} kWh</span>
+                          <span className="result-percentage">({calculationResults.nightPercentage?.toFixed(1) || 0}%)</span>
+                        </div>
+                      </div>
+                      <div className="result-card-cusset total-result">
+                        <FaLightbulb className="result-icon" />
+                        <div className="result-info">
+                          <span className="result-label">Total Daily</span>
+                          <span className="result-value">{calculationResults.totalDailyConsumption?.toFixed(2) || 0} kWh/day</span>
+                          <small>Based on monthly consumption ÷ 30 days</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
 
-                {appliances.length === 0 ? (
-                  <div className="empty-appliances-cusset">
-                    <FaLightbulb />
-                    <p>No appliances added yet. Click "Add Appliance" to list your electrical devices.</p>
-                    <small>Include major appliances like air conditioning, refrigerator, lighting, etc.</small>
-                  </div>
-                ) : (
-                  <div className="appliances-table-container-cusset">
-                    <table className="appliances-table-cusset">
-                      <thead>
-                        <tr>
-                          <th>Appliance</th>
-                          <th>Power (W)</th>
-                          <th>Qty</th>
-                          <th>Day Hours</th>
-                          <th>Night Hours</th>
-                          <th>Day Energy (kWh)</th>
-                          <th>Night Energy (kWh)</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {appliances.map(appliance => {
-                          const dayEnergy = (appliance.powerWatts * appliance.quantity * appliance.dayHours) / 1000;
-                          const nightEnergy = (appliance.powerWatts * appliance.quantity * appliance.nightHours) / 1000;
-                          return (
-                            <tr key={appliance.id}>
-                              <td><strong>{appliance.name}</strong></td>
-                              <td>{appliance.powerWatts} W</td>
-                              <td>{appliance.quantity}</td>
-                              <td>{appliance.dayHours} hrs</td>
-                              <td>{appliance.nightHours} hrs</td>
-                              <td>{dayEnergy.toFixed(2)} kWh</td>
-                              <td>{nightEnergy.toFixed(2)} kWh</td>
-                              <td>
-                                <button className="edit-appliance-btn" onClick={() => editAppliance(appliance)}>
-                                  <FaEye /> Edit
-                                </button>
-                                <button className="delete-appliance-btn" onClick={() => deleteAppliance(appliance.id)}>
-                                  <FaTrash /> Delete
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                {(!electricBillInput.monthlyKwh || appliances.length === 0) && (
+                  <div className="info-message-cusset">
+                    <p>Please enter your monthly consumption and add at least one appliance to see your energy profile.</p>
                   </div>
                 )}
               </div>
+            </div>
 
-              {appliances.length > 0 && electricBillInput.monthlyKwh && (
-                <div className="consumption-results-cusset">
-                  <h4>Your Energy Profile</h4>
-                  <div className="results-grid-cusset">
-                    <div className="result-card-cusset day-result">
-                      <FaSun className="result-icon" />
-                      <div className="result-info">
-                        <span className="result-label">Day Consumption</span>
-                        <span className="result-value">{calculationResults.dayConsumption?.toFixed(2) || 0} kWh</span>
-                        <span className="result-percentage">({calculationResults.dayPercentage?.toFixed(1) || 0}%)</span>
-                      </div>
-                    </div>
-                    <div className="result-card-cusset night-result">
-                      <FaMoon className="result-icon" />
-                      <div className="result-info">
-                        <span className="result-label">Night Consumption</span>
-                        <span className="result-value">{calculationResults.nightConsumption?.toFixed(2) || 0} kWh</span>
-                        <span className="result-percentage">({calculationResults.nightPercentage?.toFixed(1) || 0}%)</span>
-                      </div>
-                    </div>
-                    <div className="result-card-cusset total-result">
-                      <FaLightbulb className="result-icon" />
-                      <div className="result-info">
-                        <span className="result-label">Total Daily</span>
-                        <span className="result-value">{calculationResults.totalDailyConsumption?.toFixed(2) || 0} kWh/day</span>
-                        <small>Based on monthly consumption ÷ 30 days</small>
-                      </div>
-                    </div>
-                  </div>
+            {/* Assessment Details Section */}
+            <div className="form-section-cusset">
+              <div className="form-section-header-cusset">
+                <div className="form-section-icon-cusset">
+                  <FaCalendarAlt />
                 </div>
-              )}
-
-              {(!electricBillInput.monthlyKwh || appliances.length === 0) && (
-                <div className="info-message-cusset">
-                  <p>Please enter your monthly consumption and add at least one appliance to see your energy profile.</p>
+                <div className="form-section-title-group-cusset">
+                  <h3>Assessment Details</h3>
+                  <p>Tell us about your property and preferred schedule</p>
                 </div>
-              )}
-
-              <h3 className="schedule-section-title-cusset">Assessment Details</h3>
-              <div className="schedule-assessment-form-cusset">
+              </div>
+              <div className="form-section-body-cusset">
                 <div className="schedule-form-grid-cusset">
                   <div className="schedule-form-group-cusset">
                     <label>Property Type *</label>
@@ -2541,14 +2523,14 @@ const ScheduleAssessment = () => {
                       <option value="other">Other</option>
                     </select>
                   </div>
-                  <div className="schedule-form-group-cusset">
+                  <div className="schedule-form-group-cusset" style={{ gridColumn: '1 / -1' }}>
                     <label>Roof Dimensions</label>
                     <div className="dimension-row-cusset">
                       <input type="number" step="0.1" name="roofLength" value={formData.roofLength} onChange={handleInputChange} placeholder="Length (m)" className="schedule-form-input-cusset" />
                       <input type="number" step="0.1" name="roofWidth" value={formData.roofWidth} onChange={handleInputChange} placeholder="Width (m)" className="schedule-form-input-cusset" />
                     </div>
                   </div>
-                  <div className="schedule-form-group-cusset">
+                  <div className="schedule-form-group-cusset" style={{ gridColumn: '1 / -1' }}>
                     <label>Preferred Start Date *</label>
                     <input type="date" name="preferredDate" value={formData.preferredDate} onChange={handleInputChange} className="schedule-form-input-cusset" min={new Date().toISOString().split('T')[0]} />
                     {validationErrors.preferredDate && <div className="error-message-cusset">{validationErrors.preferredDate}</div>}
@@ -2556,9 +2538,14 @@ const ScheduleAssessment = () => {
                 </div>
 
                 <div className="schedule-fee-card-cusset">
-                  <strong>Pre Assessment Fee: ₱1,500.00</strong>
-                  <p>Your booking will be confirmed by our admin. You will receive payment instructions after confirmation.</p>
-                  <small>Includes: On-site visit, 7-day monitoring, detailed analysis, and system recommendation.</small>
+                  <div className="fee-card-icon-cusset">
+                    <FaFileInvoice />
+                  </div>
+                  <div className="fee-card-content-cusset">
+                    <strong>Pre Assessment Fee: ₱1,500.00</strong>
+                    <p>Your booking will be confirmed by our admin. You will receive payment instructions after confirmation.</p>
+                    <small>Includes: On-site visit, 7-day monitoring, detailed analysis, and system recommendation.</small>
+                  </div>
                 </div>
 
                 <div className="form-actions-cusset">
@@ -2618,7 +2605,7 @@ const ScheduleAssessment = () => {
                     />
                   </div>
                   <div className="schedule-form-group-cusset">
-                    <label><FaSun /> Day Usage Hours *</label>
+                    <label>Day Usage Hours *</label>
                     <input
                       type="number"
                       step="0.5"
@@ -2631,7 +2618,7 @@ const ScheduleAssessment = () => {
                     <small>Hours used during daytime (6 AM - 6 PM)</small>
                   </div>
                   <div className="schedule-form-group-cusset">
-                    <label><FaMoon /> Night Usage Hours *</label>
+                    <label>Night Usage Hours *</label>
                     <input
                       type="number"
                       step="0.5"
@@ -2658,7 +2645,7 @@ const ScheduleAssessment = () => {
           {showInfoModal && (
             <div className="schedule-modal-overlay-cusset" onClick={() => setShowInfoModal(false)}>
               <div className="schedule-modal-cusset info-modal-cusset" onClick={e => e.stopPropagation()}>
-                <div className="info-modal-header-cusset"><h3>Contact & Address Details</h3></div>
+                <div className="info-modal-header-cusset"><h3>Contact and Address Details</h3></div>
                 <div className="info-modal-body-cusset">
                   <div className="info-section-cusset">
                     <h4>Personal Information</h4>

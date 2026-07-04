@@ -1,45 +1,62 @@
-/* billing.css - Complete Rewrite with -admbil suffix */
+/* styles/Admin/billing.css - Complete */
+
+/* ============================================
+   ADMIN BILLING - Clean Modern Design
+   ============================================ */
 
 :root {
-  --primary-admbil: #2563EB;
-  --primary-hover-admbil: #1D4ED8;
-  --success-admbil: #22C55E;
-  --warning-admbil: #F59E0B;
-  --danger-admbil: #EF4444;
-  --bg-base-admbil: #F8FAFC;
-  --bg-card-admbil: #FFFFFF;
-  --text-primary-admbil: #0F172A;
-  --text-secondary-admbil: #475569;
-  --text-muted-admbil: #64748B;
-  --border-light-admbil: #E2E8F0;
-  --border-medium-admbil: #CBD5E1;
-  --shadow-sm-admbil: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-md-admbil: 0 4px 6px rgba(0, 0, 0, 0.04);
-  --shadow-lg-admbil: 0 10px 15px rgba(0, 0, 0, 0.05);
-  --radius-md-admbil: 10px;
-  --radius-lg-admbil: 14px;
-  --radius-xl-admbil: 18px;
-  --radius-2xl-admbil: 24px;
+  --primary: #1a56db;
+  --primary-hover: #1e40af;
+  --primary-light: #dbeafe;
+  --primary-subtle: #eff6ff;
+  --success: #059669;
+  --success-light: #d1fae5;
+  --success-subtle: #ecfdf5;
+  --warning: #d97706;
+  --warning-light: #fef3c7;
+  --warning-subtle: #fffbeb;
+  --danger: #dc2626;
+  --danger-light: #fee2e2;
+  --danger-subtle: #fef2f2;
+  --bg-base: #f3f4f6;
+  --bg-card: #ffffff;
+  --bg-surface: #f9fafb;
+  --bg-hover: #f3f4f6;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+  --text-light: #9ca3af;
+  --border-light: #e5e7eb;
+  --border-medium: #d1d5db;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.06);
+  --shadow-xl: 0 20px 25px rgba(0,0,0,0.08);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
 }
 
-/* ============================================ */
-/* BASE CONTAINER */
-/* ============================================ */
+/* ============================================
+   CONTAINER
+   ============================================ */
 .admin-billing-admbil {
   margin: 0 auto;
   padding: 24px;
-  background: var(--bg-base-admbil);
-  min-height: calc(100vh - 70px);
 }
 
-/* ============================================ */
-/* HEADER */
-/* ============================================ */
+/* ============================================
+   HEADER
+   ============================================ */
 .billing-header-admbil {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
+  padding: 20px 0 16px 0;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 16px;
 }
@@ -47,13 +64,14 @@
 .billing-header-admbil h1 {
   font-size: 28px;
   font-weight: 700;
+  color: var(--text-primary);
   margin: 0 0 4px 0;
-  color: var(--text-primary-admbil);
+  letter-spacing: -0.02em;
 }
 
 .billing-header-admbil p {
-  font-size: 14px;
-  color: var(--text-muted-admbil);
+  font-size: 15px;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -61,195 +79,271 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 20px;
-  background: var(--primary-admbil);
-  color: #FFFFFF;
+  padding: 10px 20px;
+  background: var(--primary);
   border: none;
-  border-radius: var(--radius-md-admbil);
+  border-radius: var(--radius-md);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
+  color: white;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
 .create-invoice-btn-admbil:hover {
-  background: var(--primary-hover-admbil);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md-admbil);
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(26, 86, 219, 0.25);
 }
 
-/* ============================================ */
-/* STATS CARDS */
-/* ============================================ */
+/* ============================================
+   STATS CARDS
+   ============================================ */
 .stats-cards-admbil {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 28px;
-}
-
-@media (max-width: 1024px) {
-  .stats-cards-admbil {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 640px) {
-  .stats-cards-admbil {
-    grid-template-columns: 1fr;
-  }
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .stat-card-admbil {
-  background: var(--bg-card-admbil);
-  border: 1px solid var(--border-light-admbil);
-  border-radius: var(--radius-xl-admbil);
-  padding: 20px;
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow-sm-admbil);
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: 20px 24px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
 }
 
 .stat-card-admbil:hover {
+  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md-admbil);
 }
 
 .stat-info-admbil {
   display: flex;
   flex-direction: column;
-  text-align: center;
+  gap: 2px;
 }
 
 .stat-value-admbil {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
-  color: var(--text-primary-admbil);
+  color: var(--text-primary);
 }
 
 .stat-label-admbil {
-  font-size: 13px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: var(--text-muted-admbil);
-  margin-top: 4px;
+  font-size: 14px;
+  color: var(--text-secondary);
 }
 
 .stat-detail-admbil {
   display: flex;
-  justify-content: center;
   gap: 12px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-light-admbil);
+  margin-top: 4px;
   font-size: 12px;
-  color: var(--text-secondary-admbil);
+  color: var(--text-muted);
 }
 
-/* ============================================ */
-/* TABS */
-/* ============================================ */
+.stat-detail-admbil span {
+  background: var(--bg-surface);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+/* Stat Colors */
+.stat-card-admbil.revenue-admbil .stat-value-admbil {
+  color: var(--success);
+}
+
+.stat-card-admbil.pending-amount-admbil .stat-value-admbil {
+  color: var(--warning);
+}
+
+.stat-card-admbil.pre-assessment-admbil .stat-value-admbil {
+  color: var(--primary);
+}
+
+.stat-card-admbil.solar-invoice-admbil .stat-value-admbil {
+  color: #6366f1;
+}
+
+/* ============================================
+   BANK TRANSFER STATS
+   ============================================ */
+.bank-transfer-stats-admbil {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.bank-stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.bank-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  display: block;
+}
+
+.bank-stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.bank-stat-card.waiting .bank-stat-value {
+  color: var(--warning);
+}
+
+.bank-stat-card.verified .bank-stat-value {
+  color: var(--success);
+}
+
+.bank-stat-card.rejected .bank-stat-value {
+  color: var(--danger);
+}
+
+.bank-stat-card.total .bank-stat-value {
+  color: var(--primary);
+}
+
+/* ============================================
+   TABS
+   ============================================ */
 .billing-tabs-admbil {
   display: flex;
   gap: 4px;
-  background: var(--bg-card-admbil);
-  border-radius: var(--radius-lg-admbil);
-  padding: 6px;
-  margin-bottom: 24px;
-  border: 1px solid var(--border-light-admbil);
-  width: fit-content;
-}
-
-.tab-btn-admbil {
-  padding: 10px 20px;
-  background: none;
-  border: none;
-  border-radius: var(--radius-md-admbil);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-secondary-admbil);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.tab-btn-admbil:hover {
-  background: var(--bg-base-admbil);
-  color: var(--text-primary-admbil);
-}
-
-.tab-btn-admbil.active-admbil {
-  background: var(--text-primary-admbil);
-  color: #FFFFFF;
-}
-
-/* ============================================ */
-/* FILTERS */
-/* ============================================ */
-.filters-section-admbil {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: 4px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
-.filter-group-admbil select {
-  padding: 12px 16px;
-  border: 1px solid var(--border-light-admbil);
-  border-radius: var(--radius-md-admbil);
+.tab-btn-admbil {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
   font-size: 14px;
-  background: var(--bg-card-admbil);
+  font-weight: 500;
+  color: var(--text-secondary);
   cursor: pointer;
-  color: var(--text-primary-admbil);
-  min-width: 180px;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.tab-btn-admbil:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.tab-btn-admbil.active-admbil {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(26, 86, 219, 0.25);
+}
+
+.tab-badge-admbil {
+  background: var(--danger);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 12px;
+  margin-left: 4px;
+}
+
+/* ============================================
+   FILTERS
+   ============================================ */
+.filters-section-admbil {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-group-admbil {
+  flex: 1;
+  min-width: 160px;
+}
+
+.filter-group-admbil select {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
 }
 
 .filter-group-admbil select:focus {
   outline: none;
-  border-color: var(--primary-admbil);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.08);
 }
 
 .search-group-admbil {
+  flex: 2;
+  min-width: 200px;
   position: relative;
-  width: 320px;
 }
 
 .search-icon-admbil {
   position: absolute;
-  left: 14px;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-muted-admbil);
+  color: var(--text-muted);
   font-size: 14px;
 }
 
 .search-group-admbil input {
   width: 100%;
-  padding: 12px 16px 12px 42px;
-  border: 1px solid var(--border-light-admbil);
-  border-radius: var(--radius-md-admbil);
+  padding: 10px 12px 10px 36px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
   font-size: 14px;
-  background: var(--bg-card-admbil);
-  color: var(--text-primary-admbil);
+  color: var(--text-primary);
+  transition: all 0.2s;
 }
 
 .search-group-admbil input:focus {
   outline: none;
-  border-color: var(--primary-admbil);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.08);
 }
 
-/* ============================================ */
-/* TABLE */
-/* ============================================ */
+/* ============================================
+   TABLE
+   ============================================ */
 .payments-table-container-admbil {
-  background: var(--bg-card-admbil);
-  border: 1px solid var(--border-light-admbil);
-  border-radius: var(--radius-xl-admbil);
-  overflow-x: auto;
-  margin-bottom: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .payments-table-admbil {
@@ -258,142 +352,198 @@
   font-size: 14px;
 }
 
-.payments-table-admbil th,
-.payments-table-admbil td {
-  padding: 16px;
-  text-align: left;
-  border-bottom: 1px solid var(--border-light-admbil);
+.payments-table-admbil thead {
+  background: var(--bg-surface);
 }
 
 .payments-table-admbil th {
+  padding: 14px 16px;
+  text-align: left;
   font-weight: 600;
-  color: var(--text-muted-admbil);
-  font-size: 12px;
-  text-transform: uppercase;
-  background: var(--bg-base-admbil);
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-light);
+  white-space: nowrap;
 }
 
-.payments-table-admbil tr:hover {
-  background: var(--bg-base-admbil);
+.payments-table-admbil td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.payments-table-admbil tbody tr:hover {
+  background: var(--bg-surface);
+}
+
+.payments-table-admbil tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .ref-cell-admbil {
-  font-weight: 600;
-  color: var(--text-primary-admbil);
   font-family: monospace;
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
 .amount-admbil {
   font-weight: 600;
-  color: var(--text-primary-admbil);
+  color: var(--text-primary);
 }
 
 .balance-admbil {
-  color: var(--danger-admbil);
+  color: var(--warning);
 }
 
-/* Status Badges */
+.empty-state-admbil {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+
+/* ============================================
+   STATUS BADGES
+   ============================================ */
 .status-badge-admbil {
   display: inline-block;
   padding: 4px 12px;
   border-radius: 30px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
 .status-badge-admbil.pending-admbil {
-  background: var(--bg-base-admbil);
-  color: var(--text-secondary-admbil);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
 }
 
 .status-badge-admbil.for-verification-admbil {
-  background: #FEF3C7;
-  color: #D97706;
+  background: var(--warning-subtle);
+  color: var(--warning);
 }
 
 .status-badge-admbil.paid-admbil {
-  background: #DCFCE7;
-  color: #16A34A;
+  background: var(--success-subtle);
+  color: var(--success);
 }
 
 .status-badge-admbil.partial-admbil {
-  background: #DBEAFE;
-  color: var(--primary-admbil);
+  background: #fef3c7;
+  color: #d97706;
 }
 
-.status-badge-admbil.failed-admbil,
+.status-badge-admbil.failed-admbil {
+  background: var(--danger-subtle);
+  color: var(--danger);
+}
+
 .status-badge-admbil.overdue-admbil {
-  background: #FEE2E2;
-  color: var(--danger-admbil);
+  background: var(--danger-subtle);
+  color: var(--danger);
+}
+
+.status-badge-admbil.waiting-admbil {
+  background: var(--warning-subtle);
+  color: var(--warning);
+}
+
+.status-badge-admbil.verified-admbil {
+  background: var(--success-subtle);
+  color: var(--success);
+}
+
+.status-badge-admbil.rejected-admbil {
+  background: var(--danger-subtle);
+  color: var(--danger);
+}
+
+/* Assessment Status Badges */
+.status-badge-admbil.scheduled-admbil {
+  background: var(--primary-subtle);
+  color: var(--primary);
+}
+
+.status-badge-admbil.deployed-admbil {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+
+.status-badge-admbil.collecting-admbil {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-badge-admbil.completed-admbil {
+  background: var(--success-subtle);
+  color: var(--success);
+}
+
+/* Invoice Type Badges */
+.invoice-type-badge-admbil {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.invoice-type-badge-admbil.initial-admbil {
+  background: var(--primary-subtle);
+  color: var(--primary);
+}
+
+.invoice-type-badge-admbil.progress-admbil {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.invoice-type-badge-admbil.final-admbil {
+  background: var(--success-subtle);
+  color: var(--success);
+}
+
+.invoice-type-badge-admbil.full-admbil {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+
+.invoice-type-badge-admbil.additional-admbil {
+  background: #f3e8ff;
+  color: #7c3aed;
 }
 
 /* Gateway Badges */
 .gateway-badge-admbil {
   display: inline-block;
-  padding: 4px 10px;
-  border-radius: 20px;
+  padding: 2px 10px;
+  border-radius: 12px;
   font-size: 11px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .gateway-badge-admbil.paymongo-admbil {
-  background: #E0E7FF;
-  color: #4F46E5;
+  background: var(--success-subtle);
+  color: var(--success);
 }
 
 .gateway-badge-admbil.cash-admbil {
-  background: var(--bg-base-admbil);
-  color: var(--text-secondary-admbil);
+  background: var(--primary-subtle);
+  color: var(--primary);
 }
 
 .gateway-badge-admbil.manual-admbil {
-  background: #FFF7ED;
-  color: #EA580C;
+  background: var(--bg-surface);
+  color: var(--text-muted);
 }
 
-/* Invoice Type Badge */
-.invoice-type-badge-admbil {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.invoice-type-badge-admbil.initial-admbil {
-  background: #DBEAFE;
-  color: var(--primary-admbil);
-}
-
-.invoice-type-badge-admbil.progress-admbil {
-  background: #FEF3C7;
-  color: #D97706;
-}
-
-.invoice-type-badge-admbil.final-admbil {
-  background: #DCFCE7;
-  color: #16A34A;
-}
-
-/* Verified Badge */
-.verified-badge-admbil {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  background: #DCFCE7;
-  color: #16A34A;
-  border-radius: 30px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.verified-badge-admbil.auto-verified-admbil {
-  background: #E0E7FF;
-  color: #4F46E5;
-}
-
-/* Receipt Cell */
+/* ============================================
+   RECEIPT
+   ============================================ */
 .receipt-cell-admbil {
   text-align: center;
 }
@@ -401,28 +551,52 @@
 .receipt-link-admbil {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  color: var(--primary-admbil);
+  gap: 4px;
+  color: var(--primary);
   text-decoration: none;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
-  padding: 4px 8px;
-  border-radius: var(--radius-md-admbil);
-  background: var(--bg-base-admbil);
-  transition: all 0.2s ease;
 }
 
 .receipt-link-admbil:hover {
-  background: var(--primary-admbil);
-  color: white;
+  text-decoration: underline;
 }
 
 .no-receipt-admbil {
-  color: var(--text-muted-admbil);
-  font-size: 12px;
+  color: var(--text-light);
 }
 
-/* Action Dropdown */
+/* ============================================
+   VERIFIED BADGE
+   ============================================ */
+.verified-badge-admbil {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--success-subtle);
+  color: var(--success);
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.verified-badge-admbil.auto-verified-admbil {
+  background: #dbeafe;
+  color: var(--primary);
+}
+
+.failed-badge-admbil {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--danger-subtle);
+  color: var(--danger);
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ============================================
+   ACTION DROPDOWN
+   ============================================ */
 .action-dropdown-container-admbil {
   position: relative;
   display: inline-block;
@@ -431,25 +605,26 @@
 .action-dropdown-toggle-admbil {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: var(--bg-base-admbil);
-  border: 1px solid var(--border-light-admbil);
-  border-radius: var(--radius-md-admbil);
-  font-size: 12px;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 13px;
   font-weight: 500;
+  color: var(--text-secondary);
   cursor: pointer;
-  color: var(--text-secondary-admbil);
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
 .action-dropdown-toggle-admbil:hover {
-  background: var(--border-light-admbil);
+  background: var(--bg-hover);
+  border-color: var(--border-medium);
 }
 
 .dropdown-arrow-admbil {
-  font-size: 10px;
-  transition: transform 0.2s ease;
+  font-size: 11px;
+  transition: transform 0.2s;
 }
 
 .dropdown-arrow-admbil.open-admbil {
@@ -457,78 +632,129 @@
 }
 
 .action-dropdown-menu-admbil {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 8px;
-  background: var(--bg-card-admbil);
-  border: 1px solid var(--border-light-admbil);
-  border-radius: var(--radius-md-admbil);
-  box-shadow: var(--shadow-lg-admbil);
-  min-width: 160px;
-  z-index: 100;
-  overflow: hidden;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  min-width: 180px;
+  padding: 4px 0;
+  z-index: 1000;
 }
 
 .dropdown-item-admbil {
-  display: flex;
-  align-items: center;
+  display: block;
   width: 100%;
-  padding: 10px 16px;
+  padding: 8px 16px;
   background: none;
   border: none;
-  text-align: left;
   font-size: 13px;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
-  color: var(--text-primary-admbil);
+  transition: all 0.2s;
+  text-align: left;
 }
 
 .dropdown-item-admbil:hover {
-  background: var(--bg-base-admbil);
+  background: var(--bg-surface);
 }
 
 .dropdown-item-admbil.success {
-  color: var(--success-admbil);
+  color: var(--success);
 }
 
 .dropdown-item-admbil.danger {
-  color: var(--danger-admbil);
+  color: var(--danger);
 }
 
 .dropdown-item-admbil.warning {
-  color: var(--warning-admbil);
+  color: var(--warning);
 }
 
-/* ============================================ */
-/* PAGINATION */
-/* ============================================ */
+.dropdown-item-admbil.info {
+  color: var(--primary);
+}
+
+/* ============================================
+   TRANSACTION TYPE
+   ============================================ */
+.transaction-type-admbil {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.transaction-type-admbil.pre-admbil {
+  background: var(--primary-subtle);
+  color: var(--primary);
+}
+
+.transaction-type-admbil.project-admbil {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+
+/* ============================================
+   BANK TRANSFER TABLE
+   ============================================ */
+.customer-cell-admbil small {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.invoice-cell-admbil small {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.bank-name-admbil {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.rejected-row-admbil {
+  background: var(--danger-subtle);
+}
+
+.rejected-row-admbil:hover {
+  background: var(--danger-light);
+}
+
+/* ============================================
+   PAGINATION
+   ============================================ */
 .pagination-admbil {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 16px;
-  margin-top: 24px;
-  padding: 16px 0;
+  padding: 20px 0;
+  border-top: 1px solid var(--border-light);
+  margin-top: 16px;
 }
 
 .page-btn-admbil {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 18px;
-  background: var(--bg-card-admbil);
-  border: 1px solid var(--border-light-admbil);
-  border-radius: var(--radius-md-admbil);
+  padding: 8px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
   font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
-  color: var(--text-secondary-admbil);
+  transition: all 0.2s;
 }
 
 .page-btn-admbil:hover:not(:disabled) {
-  background: var(--bg-base-admbil);
-  color: var(--text-primary-admbil);
+  background: var(--bg-hover);
+  border-color: var(--border-medium);
 }
 
 .page-btn-admbil:disabled {
@@ -538,80 +764,199 @@
 
 .page-info-admbil {
   font-size: 14px;
-  color: var(--text-secondary-admbil);
+  color: var(--text-secondary);
 }
 
-/* ============================================ */
-/* MODALS - COMPLETELY REWRITTEN */
-/* ============================================ */
+/* ============================================
+   MODALS
+   ============================================ */
 .modal-overlay-admbil {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 20px;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal-content-admbil {
-  background: var(--bg-card-admbil);
-  border-radius: var(--radius-2xl-admbil);
-  width: 100%;
-  max-width: 550px;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  overflow: hidden;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-2xl);
+  width: 90%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-xl);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 28px;
 }
 
-/* Modal Header */
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 .modal-content-admbil h3 {
   font-size: 20px;
   font-weight: 700;
-  margin: 0;
-  padding: 24px 28px;
-  color: var(--text-primary-admbil);
-  border-bottom: 1px solid var(--border-light-admbil);
-  background: var(--bg-card-admbil);
-  flex-shrink: 0;
+  color: var(--text-primary);
+  margin: 0 0 16px 0;
 }
 
-/* Modal Body - THIS IS THE KEY FIX */
+.modal-content-admbil.detail-modal-admbil,
+.modal-content-admbil.invoice-modal-admbil,
+.modal-content-admbil.reject-modal-admbil {
+  max-width: 600px;
+}
+
 .modal-body-admbil {
-  padding: 28px !important;
-  overflow-y: auto;
-  flex: 1;
+  margin-bottom: 20px;
 }
 
-/* Modal Footer */
+.modal-close-admbil {
+  float: right;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.modal-close-admbil:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+/* Modal Actions */
 .modal-actions-admbil {
   display: flex;
-  justify-content: flex-end;
   gap: 12px;
-  padding: 20px 28px;
-  border-top: 1px solid var(--border-light-admbil);
-  background: var(--bg-card-admbil);
-  flex-shrink: 0;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
 }
 
-/* Payment Details inside Modal */
-.payment-details-admbil {
-  margin-bottom: 24px;
+.btn-cancel-admbil {
+  padding: 10px 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
+.btn-cancel-admbil:hover {
+  background: var(--bg-hover);
+}
+
+.btn-verify-admbil {
+  padding: 10px 20px;
+  background: var(--success);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-verify-admbil:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+}
+
+.btn-reject-admbil {
+  padding: 10px 20px;
+  background: var(--danger);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-reject-admbil:hover:not(:disabled) {
+  background: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}
+
+.btn-save-admbil {
+  padding: 10px 20px;
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-save-admbil:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(26, 86, 219, 0.25);
+}
+
+.btn-save-admbil:disabled,
+.btn-verify-admbil:disabled,
+.btn-reject-admbil:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.record-btn-admbil {
+  padding: 10px 20px;
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.record-btn-admbil:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(26, 86, 219, 0.25);
+}
+
+.record-btn-admbil:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Detail Row */
 .detail-row-admbil {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-light-admbil);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .detail-row-admbil:last-child {
@@ -619,400 +964,515 @@
 }
 
 .detail-row-admbil span {
-  color: var(--text-muted-admbil);
-  font-weight: 500;
-  font-size: 14px;
+  color: var(--text-secondary);
 }
 
 .detail-row-admbil strong {
-  color: var(--text-primary-admbil);
-  font-weight: 600;
-  font-size: 15px;
+  color: var(--text-primary);
 }
 
-/* Payment Info Box */
-.payment-info-admbil {
-  background: var(--bg-base-admbil);
-  padding: 16px 20px;
-  border-radius: var(--radius-lg-admbil);
-  margin-bottom: 24px;
-  border: 1px solid var(--border-light-admbil);
+/* Payment Details */
+.payment-details-admbil {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 16px;
 }
 
-.payment-info-admbil p {
-  margin: 8px 0;
-  font-size: 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.payment-info-admbil p strong {
-  color: var(--text-primary-admbil);
-}
-
-/* Payment Proof */
 .payment-proof-admbil {
-  margin-bottom: 24px;
-}
-
-.payment-proof-admbil label {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: var(--text-primary-admbil);
+  margin: 16px 0;
 }
 
 .view-proof-btn-admbil {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  background: var(--bg-base-admbil);
-  border: 1px solid var(--border-light-admbil);
-  border-radius: var(--radius-md-admbil);
-  font-size: 13px;
-  font-weight: 500;
+  padding: 8px 16px;
+  background: var(--primary-subtle);
+  border: 1px solid var(--primary-light);
+  border-radius: var(--radius-md);
+  color: var(--primary);
   cursor: pointer;
-  color: var(--text-secondary-admbil);
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
 .view-proof-btn-admbil:hover {
-  background: var(--border-light-admbil);
-  color: var(--text-primary-admbil);
-}
-
-/* Verification Notes */
-.verification-notes-admbil {
-  margin-bottom: 24px;
+  background: var(--primary-light);
 }
 
 .verification-notes-admbil label {
   display: block;
   font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: var(--text-primary-admbil);
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
 }
 
 .verification-notes-admbil textarea {
   width: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--border-light-admbil);
-  border-radius: var(--radius-md-admbil);
+  padding: 10px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
   font-size: 14px;
-  font-family: inherit;
+  color: var(--text-primary);
   resize: vertical;
-  background: var(--bg-card-admbil);
-  color: var(--text-primary-admbil);
+  font-family: inherit;
 }
 
 .verification-notes-admbil textarea:focus {
   outline: none;
-  border-color: var(--primary-admbil);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.08);
 }
 
-/* Form Groups */
+/* Form in Modal */
 .form-group-admbil {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .form-group-admbil label {
   display: block;
   font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--text-primary-admbil);
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
 }
 
 .form-group-admbil input,
 .form-group-admbil select,
 .form-group-admbil textarea {
   width: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--border-light-admbil);
-  border-radius: var(--radius-md-admbil);
+  padding: 10px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
   font-size: 14px;
-  background: var(--bg-card-admbil);
-  color: var(--text-primary-admbil);
+  color: var(--text-primary);
+  transition: all 0.2s;
+  font-family: inherit;
 }
 
 .form-group-admbil input:focus,
-.form-group-admbil select:focus {
+.form-group-admbil select:focus,
+.form-group-admbil textarea:focus {
   outline: none;
-  border-color: var(--primary-admbil);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.08);
 }
 
 .form-row-admbil {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  margin-bottom: 20px;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
-/* Invoice Totals */
+/* Invoice Modal */
+.invoice-form-admbil {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .invoice-totals-admbil {
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border-light-admbil);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  padding: 16px;
 }
 
 .total-row-admbil {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  font-size: 14px;
-  color: var(--text-secondary-admbil);
-}
-
-.total-row-admbil:last-child {
   font-size: 16px;
-  font-weight: 700;
-  color: var(--text-primary-admbil);
-  border-top: 1px solid var(--border-medium-admbil);
-  margin-top: 8px;
-  padding-top: 12px;
 }
 
-/* Invoice View */
-.invoice-view-admbil {
-  padding: 0;
+.total-row-admbil strong {
+  color: var(--primary);
+  font-size: 18px;
 }
 
-.detail-section-admbil {
-  margin-bottom: 24px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border-light-admbil);
+.invoice-view-admbil .detail-section-admbil p {
+  margin: 8px 0;
 }
 
-.detail-section-admbil:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+/* ============================================
+   DETAIL MODAL - Bank Transfer
+   ============================================ */
+.modal-header-admbil {
+  margin-bottom: 20px;
 }
 
-.detail-section-admbil p {
-  font-size: 14px;
-  margin: 10px 0;
-  color: var(--text-primary-admbil);
+.modal-title-admbil {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.detail-section-admbil p strong {
+.modal-title-admbil h3 {
+  margin: 0;
+}
+
+.modal-subtitle-admbil {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.detail-section-admbil {
+  margin-bottom: 20px;
+}
+
+.detail-section-admbil h4 {
+  font-size: 14px;
   font-weight: 600;
-  color: var(--text-secondary-admbil);
-}
-
-/* Invoice Modal - Larger */
-.invoice-modal-admbil {
-  max-width: 700px;
-}
-
-.invoice-form-admbil {
-  padding: 0;
-}
-
-/* Button Styles */
-.cancel-btn-admbil,
-.btn-cancel-admbil {
-  padding: 10px 20px;
-  background: var(--bg-base-admbil);
-  border: 1px solid var(--border-light-admbil);
-  border-radius: var(--radius-md-admbil);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  color: var(--text-primary-admbil);
-  transition: all 0.2s ease;
-}
-
-.cancel-btn-admbil:hover,
-.btn-cancel-admbil:hover {
-  background: var(--border-light-admbil);
-}
-
-.create-btn-admbil,
-.record-btn-admbil,
-.btn-verify-admbil,
-.btn-save-admbil {
-  padding: 10px 24px;
-  background: var(--primary-admbil);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md-admbil);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
+  color: var(--text-primary);
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.create-btn-admbil:hover,
-.record-btn-admbil:hover,
-.btn-verify-admbil:hover,
-.btn-save-admbil:hover {
-  background: var(--primary-hover-admbil);
+.detail-grid-admbil {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
 }
 
-.btn-reject-admbil {
-  padding: 10px 20px;
-  background: white;
-  border: 1px solid #FECACA;
-  border-radius: var(--radius-md-admbil);
-  font-size: 14px;
+.detail-grid-admbil.two-col {
+  grid-template-columns: 1fr 1fr;
+}
+
+.detail-grid-admbil label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
   font-weight: 500;
+}
+
+.detail-grid-admbil p {
+  font-size: 14px;
+  color: var(--text-primary);
+  margin: 2px 0 0 0;
+}
+
+.detail-grid-admbil .amount-admbil {
+  font-weight: 600;
+}
+
+.proof-container-admbil {
+  margin-top: 8px;
+}
+
+.proof-actions-admbil {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.proof-btn-admbil {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--primary-subtle);
+  border: 1px solid var(--primary-light);
+  border-radius: var(--radius-md);
+  color: var(--primary);
   cursor: pointer;
-  color: var(--danger-admbil);
-  transition: all 0.2s ease;
+  transition: all 0.2s;
+  text-decoration: none;
 }
 
-.btn-reject-admbil:hover {
-  background: #FEE2E2;
+.proof-btn-admbil:hover {
+  background: var(--primary-light);
 }
 
-button:disabled {
-  opacity: 0.6;
+.proof-btn-admbil.download {
+  background: var(--bg-surface);
+  border-color: var(--border-light);
+}
+
+.proof-btn-admbil.download:hover {
+  background: var(--bg-hover);
+}
+
+.no-proof-admbil {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.remarks-text-admbil {
+  background: var(--bg-surface);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+}
+
+.detail-section-admbil.rejected {
+  border-left: 3px solid var(--danger);
+  padding-left: 16px;
+}
+
+.rejection-text-admbil {
+  color: var(--danger);
+  background: var(--danger-subtle);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+}
+
+.receipt-actions-admbil {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.receipt-btn-admbil {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--primary-subtle);
+  border: 1px solid var(--primary-light);
+  border-radius: var(--radius-md);
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.receipt-btn-admbil:hover {
+  background: var(--primary-light);
+}
+
+.receipt-number-admbil {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+/* Modal Footer */
+.modal-footer-admbil {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
+}
+
+.btn-approve-admbil {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--success);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-approve-admbil:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+}
+
+.btn-approve-admbil:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Spinning Animation */
-.spinning-admbil {
-  animation: spin-admbil 1s linear infinite;
+.btn-close-admbil {
+  padding: 10px 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-@keyframes spin-admbil {
+.btn-close-admbil:hover {
+  background: var(--bg-hover);
+}
+
+.btn-reject-confirm-admbil {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--danger);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-reject-confirm-admbil:hover:not(:disabled) {
+  background: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}
+
+.btn-reject-confirm-admbil:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Reject Modal */
+.reject-info-admbil {
+  margin-bottom: 20px;
+}
+
+.warning-icon-admbil {
+  font-size: 24px;
+  color: var(--danger);
+  margin-bottom: 8px;
+}
+
+.reject-info-admbil p {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.payment-summary-admbil {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-top: 12px;
+}
+
+.payment-summary-admbil div {
+  padding: 4px 0;
+  font-size: 14px;
+}
+
+.payment-summary-admbil div strong {
+  color: var(--text-primary);
+}
+
+/* ============================================
+   PAYMENT INFO
+   ============================================ */
+.payment-info-admbil {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.payment-info-admbil p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+/* ============================================
+   SPINNING
+   ============================================ */
+.spinning-admbil {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
-/* Empty State */
-.empty-state-admbil {
-  text-align: center;
-  padding: 48px;
-  color: var(--text-muted-admbil);
-}
-
-/* Transaction Type */
-.transaction-type-admbil {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.transaction-type-admbil.pre-admbil {
-  background: #DBEAFE;
-  color: var(--primary-admbil);
-}
-
-.transaction-type-admbil.project-admbil {
-  background: #DCFCE7;
-  color: #16A34A;
-}
-
-/* Project ID */
-.project-id-admbil {
-  font-family: monospace;
-  font-size: 12px;
-  color: var(--text-muted-admbil);
-}
-
-/* Failed Badge */
-.failed-badge-admbil {
-  display: inline-block;
-  padding: 4px 12px;
-  background: #FEE2E2;
-  color: var(--danger-admbil);
-  border-radius: 30px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-/* Skeleton Loader */
+/* ============================================
+   SKELETON
+   ============================================ */
 .skeleton-line-admbil {
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
   background-size: 200% 100%;
-  animation: shimmer-admbil 1.5s infinite;
-  border-radius: 6px;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
 }
 
 .skeleton-line-admbil.large-admbil {
-  height: 32px;
-  width: 250px;
+  height: 28px;
+  width: 60%;
+  margin-bottom: 8px;
 }
 
 .skeleton-line-admbil.small-admbil {
   height: 16px;
-  width: 120px;
+  width: 40%;
 }
 
 .skeleton-button-admbil {
-  height: 44px;
+  height: 40px;
   width: 160px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
   background-size: 200% 100%;
-  animation: shimmer-admbil 1.5s infinite;
-  border-radius: var(--radius-md-admbil);
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
 }
 
 .skeleton-card-admbil {
-  background: var(--bg-card-admbil);
-  border: 1px solid var(--border-light-admbil);
-  border-radius: var(--radius-xl-admbil);
-  padding: 20px;
+  height: 100px;
 }
 
 .skeleton-tab-admbil {
   height: 40px;
-  width: 100px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  width: 120px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
   background-size: 200% 100%;
-  animation: shimmer-admbil 1.5s infinite;
-  border-radius: var(--radius-md-admbil);
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
 }
 
 .skeleton-select-admbil {
-  height: 44px;
-  width: 180px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  height: 40px;
+  width: 200px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
   background-size: 200% 100%;
-  animation: shimmer-admbil 1.5s infinite;
-  border-radius: var(--radius-md-admbil);
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
 }
 
 .skeleton-search-admbil {
-  height: 44px;
-  width: 320px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  height: 40px;
+  width: 300px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
   background-size: 200% 100%;
-  animation: shimmer-admbil 1.5s infinite;
-  border-radius: var(--radius-md-admbil);
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
 }
 
 .skeleton-table-admbil {
-  background: var(--bg-card-admbil);
-  border: 1px solid var(--border-light-admbil);
-  border-radius: var(--radius-xl-admbil);
-  padding: 16px;
+  height: 400px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
 }
 
-@keyframes shimmer-admbil {
+@keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
-/* ============================================ */
-/* RESPONSIVE */
-/* ============================================ */
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1024px) {
+  .stats-cards-admbil {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .bank-transfer-stats-admbil {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .admin-billing-admbil {
     padding: 16px;
@@ -1023,141 +1483,117 @@ button:disabled {
     align-items: flex-start;
   }
   
-  .create-invoice-btn-admbil {
-    width: 100%;
-    justify-content: center;
+  .stats-cards-admbil {
+    grid-template-columns: 1fr;
+  }
+  
+  .bank-transfer-stats-admbil {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .billing-tabs-admbil {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+  
+  .tab-btn-admbil {
+    padding: 8px 14px;
+    font-size: 13px;
+    white-space: nowrap;
   }
   
   .filters-section-admbil {
     flex-direction: column;
   }
   
+  .filter-group-admbil {
+    min-width: 100%;
+  }
+  
   .search-group-admbil {
-    width: 100%;
+    min-width: 100%;
   }
   
-  .filter-group-admbil select {
-    width: 100%;
+  .payments-table-container-admbil {
+    overflow-x: auto;
   }
   
-  .billing-tabs-admbil {
-    flex-wrap: wrap;
-    width: 100%;
-  }
-  
-  .tab-btn-admbil {
-    flex: 1;
-    text-align: center;
+  .payments-table-admbil {
+    min-width: 800px;
+    font-size: 13px;
   }
   
   .modal-content-admbil {
-    max-width: 95%;
-  }
-  
-  .modal-content-admbil h3 {
+    width: 95%;
+    margin: 12px;
     padding: 20px;
-    font-size: 18px;
-  }
-  
-  .modal-body-admbil {
-    padding: 20px !important;
-  }
-  
-  .modal-actions-admbil {
-    padding: 16px 20px;
-    flex-wrap: wrap;
-  }
-  
-  .cancel-btn-admbil,
-  .create-btn-admbil,
-  .record-btn-admbil,
-  .btn-verify-admbil,
-  .btn-reject-admbil,
-  .btn-cancel-admbil,
-  .btn-save-admbil {
-    flex: 1;
-    text-align: center;
-    justify-content: center;
-  }
-  
-  .detail-row-admbil {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-  
-  .payment-info-admbil p {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-  
-  .detail-section-admbil p {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
   }
   
   .form-row-admbil {
     grid-template-columns: 1fr;
-    gap: 16px;
+  }
+  
+  .detail-grid-admbil {
+    grid-template-columns: 1fr;
+  }
+  
+  .detail-grid-admbil.two-col {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-actions-admbil {
+    flex-wrap: wrap;
+  }
+  
+  .modal-actions-admbil button {
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .modal-footer-admbil {
+    flex-wrap: wrap;
+  }
+  
+  .modal-footer-admbil button {
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .action-dropdown-menu-admbil {
+    min-width: 160px;
   }
 }
 
 @media (max-width: 480px) {
-  .stats-cards-admbil {
-    gap: 12px;
-  }
-  
-  .stat-card-admbil {
-    padding: 16px;
+  .billing-header-admbil h1 {
+    font-size: 22px;
   }
   
   .stat-value-admbil {
-    font-size: 24px;
+    font-size: 22px;
   }
   
-  .payments-table-admbil th,
-  .payments-table-admbil td {
-    padding: 12px 8px;
+  .bank-transfer-stats-admbil {
+    grid-template-columns: 1fr;
+  }
+  
+  .tab-btn-admbil {
+    padding: 6px 12px;
     font-size: 12px;
   }
   
-  .modal-content-admbil h3 {
-    padding: 16px;
-    font-size: 16px;
+  .tab-badge-admbil {
+    font-size: 10px;
+    padding: 0 6px;
   }
   
-  .modal-body-admbil {
-    padding: 16px !important;
+  .action-dropdown-menu-admbil {
+    min-width: 140px;
+    right: 0 !important;
   }
   
-  .modal-actions-admbil {
-    padding: 12px 16px;
+  .dropdown-item-admbil {
+    font-size: 12px;
+    padding: 6px 14px;
   }
-  
-  .action-dropdown-toggle-admbil {
-    padding: 4px 8px;
-    font-size: 11px;
-  }
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--border-light-admbil);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border-medium-admbil);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted-admbil);
 }

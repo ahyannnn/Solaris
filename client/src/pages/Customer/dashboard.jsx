@@ -455,7 +455,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Project Milestones */}
-                
+
 
                 {/* Project Milestones */}
                 <div className="milestones-section-cusdash">
@@ -573,10 +573,20 @@ const Dashboard = () => {
                         </span>
                       </div>
                       <div className="appointment-info-cusdash">
-                        <span className="appointment-type-cusdash">{appointment.assessmentType || 'Site Assessment'}</span>
                         <span className="appointment-address-cusdash">
                           <FaMapMarkerAlt className="appointment-location-icon-cusdash" />
-                          {appointment.address || 'Location to be confirmed'}
+                          {appointment.address
+                            ? [
+                              appointment.address.houseOrBuilding,
+                              appointment.address.street,
+                              appointment.address.barangay,
+                              appointment.address.cityMunicipality,
+                              appointment.address.province,
+                              appointment.address.zipCode,
+                            ]
+                              .filter(Boolean)
+                              .join(', ')
+                            : 'Location to be confirmed'}
                         </span>
                       </div>
                       <div className="appointment-status-cusdash">

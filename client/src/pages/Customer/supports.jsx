@@ -1,4 +1,4 @@
-// pages/Customer/supports.jsx
+// pages/Customer/supports.jsx - Redesigned
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -17,7 +17,10 @@ import {
   FaDownload,
   FaPlus,
   FaEye,
-  FaTimes
+  FaTimes,
+  FaHeadset,
+  FaInfoCircle,
+  FaArrowRight
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/supports.css';
@@ -27,7 +30,6 @@ const Supports = () => {
   const location = useLocation();
   const { toast, showToast, hideToast } = useToast();
   
-  // Get tab from URL query parameter
   const getInitialTab = () => {
     const params = new URLSearchParams(location.search);
     const tab = params.get('tab');
@@ -40,7 +42,6 @@ const Supports = () => {
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
   
-  // Form state
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -48,28 +49,24 @@ const Supports = () => {
     message: ''
   });
 
-  // New ticket state
   const [newTicket, setNewTicket] = useState({
     subject: '',
     description: ''
   });
 
-  // Tickets state
   const [tickets, setTickets] = useState([
     { id: 'TKT-001', subject: 'Assessment scheduling', description: 'Need to reschedule my site assessment', date: '2024-03-15', status: 'resolved' },
     { id: 'TKT-002', subject: 'Payment confirmation', description: 'Payment was made but not reflected', date: '2024-03-10', status: 'in-progress' },
     { id: 'TKT-003', subject: 'Technical question', description: 'How to monitor system performance?', date: '2024-03-05', status: 'open' },
   ]);
 
-  // Guides state
   const guides = [
-    { id: 1, title: 'Solar System Installation Guide', type: 'PDF', size: '2.5 MB', url: '#' },
-    { id: 2, title: 'Monitoring Dashboard Tutorial', type: 'PDF', size: '1.8 MB', url: '#' },
-    { id: 3, title: 'Maintenance Tips', type: 'PDF', size: '1.2 MB', url: '#' },
-    { id: 4, title: 'Understanding Your Solar Bill', type: 'PDF', size: '0.9 MB', url: '#' },
+    { id: 1, title: 'Solar System Installation Guide', type: 'PDF', size: '2.5 MB' },
+    { id: 2, title: 'Monitoring Dashboard Tutorial', type: 'PDF', size: '1.8 MB' },
+    { id: 3, title: 'Maintenance Tips', type: 'PDF', size: '1.2 MB' },
+    { id: 4, title: 'Understanding Your Solar Bill', type: 'PDF', size: '0.9 MB' },
   ];
 
-  // FAQ data
   const faqs = [
     {
       id: 1,
@@ -103,7 +100,6 @@ const Supports = () => {
     }
   ];
 
-  // Listen for URL tab changes
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tabFromUrl = params.get('tab');
@@ -134,7 +130,6 @@ const Supports = () => {
     
     setSubmitting(true);
     
-    // Simulate API call
     setTimeout(() => {
       setSubmitting(false);
       showToast('Message sent successfully! We\'ll get back to you soon.', 'success');
@@ -178,25 +173,27 @@ const Supports = () => {
     }
   };
 
-  // Render content based on active tab
   const renderTabContent = () => {
     switch (activeTab) {
       case 'faq':
         return (
-          <div className="faq-section-support">
-            <h2><FaQuestionCircle /> Frequently Asked Questions</h2>
-            <div className="faq-list-support">
+          <div className="cusup-section">
+            <div className="cusup-section-header">
+              <FaQuestionCircle />
+              <h2>Frequently Asked Questions</h2>
+            </div>
+            <div className="cusup-faq-list">
               {faqs.map(faq => (
-                <div key={faq.id} className="faq-item-support">
+                <div key={faq.id} className="cusup-faq-item">
                   <button 
-                    className={`faq-question-support ${openFaq === faq.id ? 'open' : ''}`}
+                    className={`cusup-faq-question ${openFaq === faq.id ? 'open' : ''}`}
                     onClick={() => toggleFaq(faq.id)}
                   >
                     <span>{faq.question}</span>
                     {openFaq === faq.id ? <FaChevronUp /> : <FaChevronDown />}
                   </button>
                   {openFaq === faq.id && (
-                    <div className="faq-answer-support">
+                    <div className="cusup-faq-answer">
                       <p>{faq.answer}</p>
                     </div>
                   )}
@@ -208,59 +205,64 @@ const Supports = () => {
 
       case 'contact':
         return (
-          <div className="contact-section-support">
-            <h2><FaEnvelope /> Send us a message</h2>
+          <div className="cusup-section">
+            <div className="cusup-section-header">
+              <FaEnvelope />
+              <h2>Send us a message</h2>
+            </div>
             
-            <form onSubmit={handleSubmit}>
-              <div className="form-row-support">
-                <div className="form-group-support">
+            <form onSubmit={handleSubmit} className="cusup-contact-form">
+              <div className="cusup-form-row">
+                <div className="cusup-form-group">
                   <label>Full Name *</label>
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
+                    placeholder="Enter your full name"
                     required
                   />
                 </div>
-                <div className="form-group-support">
+                <div className="cusup-form-group">
                   <label>Email Address *</label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
+                    placeholder="Enter your email"
                     required
                   />
                 </div>
               </div>
 
-              <div className="form-row-support">
-                <div className="form-group-support">
-                  <label>Subject *</label>
-                  <input
-                    type="text"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
+              <div className="cusup-form-group">
+                <label>Subject *</label>
+                <input
+                  type="text"
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleInputChange}
+                  placeholder="What is this about?"
+                  required
+                />
               </div>
 
-              <div className="form-group-support">
+              <div className="cusup-form-group">
                 <label>Message *</label>
                 <textarea
                   name="message"
                   rows="5"
                   value={formData.message}
                   onChange={handleInputChange}
+                  placeholder="Describe your concern in detail..."
                   required
                 ></textarea>
               </div>
 
-              <button type="submit" disabled={submitting} className="submit-btn-support">
-                {submitting ? <><FaSpinner className="spinner-support" /> Sending...</> : 'Send Message'}
+              <button type="submit" disabled={submitting} className="cusup-submit-btn">
+                {submitting ? <><FaSpinner className="spinning" /> Sending...</> : 'Send Message'}
               </button>
             </form>
           </div>
@@ -268,34 +270,45 @@ const Supports = () => {
 
       case 'info':
         return (
-          <div className="info-section-support">
-            <h2><FaPhone /> Contact Information</h2>
+          <div className="cusup-section">
+            <div className="cusup-section-header">
+              <FaPhone />
+              <h2>Contact Information</h2>
+            </div>
             
-            <div className="info-grid-support">
-              <div className="info-card-support">
-                <FaEnvelope className="info-icon-support" />
+            <div className="cusup-info-grid">
+              <div className="cusup-info-card">
+                <div className="cusup-info-icon">
+                  <FaEnvelope />
+                </div>
                 <h3>Email</h3>
                 <p>salfer.engineering@gmail.com</p>
                 <small>Response within 24 hours</small>
               </div>
-              <div className="info-card-support">
-                <FaPhone className="info-icon-support" />
+              <div className="cusup-info-card">
+                <div className="cusup-info-icon">
+                  <FaPhone />
+                </div>
                 <h3>Phone</h3>
                 <p>0951-907-9171</p>
                 <small>Mon-Fri, 9AM-6PM</small>
               </div>
-              <div className="info-card-support">
-                <FaMapMarkerAlt className="info-icon-support" />
+              <div className="cusup-info-card">
+                <div className="cusup-info-icon">
+                  <FaMapMarkerAlt />
+                </div>
                 <h3>Office Address</h3>
                 <p>Purok 2, Masaya, San Jose, Camarines Sur</p>
                 <small>By appointment only</small>
               </div>
-              <div className="info-card-support">
-                <FaClock className="info-icon-support" />
+              <div className="cusup-info-card">
+                <div className="cusup-info-icon">
+                  <FaClock />
+                </div>
                 <h3>Office Hours</h3>
-                <p>Monday - Friday: 9:00 AM - 6:00 PM</p>
-                <p>Saturday: 9:00 AM - 12:00 PM</p>
-                <p>Sunday: Closed</p>
+                <p>Mon-Fri: 9:00 AM - 6:00 PM</p>
+                <p>Sat: 9:00 AM - 12:00 PM</p>
+                <p>Sun: Closed</p>
               </div>
             </div>
           </div>
@@ -303,48 +316,51 @@ const Supports = () => {
 
       case 'tickets':
         return (
-          <div className="tickets-section-support">
-            <div className="tickets-header-support">
-              <h2><FaTicketAlt /> Support Tickets</h2>
-              <button className="create-ticket-btn-support" onClick={() => setShowTicketModal(true)}>
+          <div className="cusup-section">
+            <div className="cusup-tickets-header">
+              <div className="cusup-section-header">
+                <FaTicketAlt />
+                <h2>Support Tickets</h2>
+              </div>
+              <button className="cusup-create-ticket-btn" onClick={() => setShowTicketModal(true)}>
                 <FaPlus /> Create Ticket
               </button>
             </div>
 
-            <div className="tickets-list-support">
+            <div className="cusup-tickets-list">
               {tickets.length === 0 ? (
-                <div className="empty-state-support">
-                  <FaTicketAlt className="empty-icon-support" />
+                <div className="cusup-empty-state">
+                  <FaTicketAlt className="empty-icon" />
                   <h3>No tickets yet</h3>
                   <p>Create your first support ticket</p>
                 </div>
               ) : (
                 tickets.map(ticket => (
-                  <div key={ticket.id} className="ticket-card-support">
-                    <div className="ticket-header-support">
-                      <div className="ticket-id-support">{ticket.id}</div>
+                  <div key={ticket.id} className="cusup-ticket-card">
+                    <div className="cusup-ticket-header">
+                      <div className="cusup-ticket-id">{ticket.id}</div>
                       {getStatusBadge(ticket.status)}
                     </div>
-                    <div className="ticket-subject-support">{ticket.subject}</div>
-                    <div className="ticket-description-support">{ticket.description}</div>
-                    <div className="ticket-footer-support">
-                      <span className="ticket-date-support">{ticket.date}</span>
+                    <div className="cusup-ticket-subject">{ticket.subject}</div>
+                    <div className="cusup-ticket-description">{ticket.description}</div>
+                    <div className="cusup-ticket-footer">
+                      <span className="cusup-ticket-date">{ticket.date}</span>
                       <button 
-                        className="view-ticket-btn-support"
+                        className="cusup-view-ticket-btn"
                         onClick={() => setSelectedTicket(selectedTicket === ticket.id ? null : ticket.id)}
                       >
                         <FaEye /> {selectedTicket === ticket.id ? 'Hide Details' : 'View Details'}
                       </button>
                     </div>
                     {selectedTicket === ticket.id && (
-                      <div className="ticket-details-support">
-                        <div className="ticket-messages-support">
-                          <div className="message-support customer">
+                      <div className="cusup-ticket-details">
+                        <div className="cusup-ticket-messages">
+                          <div className="cusup-message customer">
                             <strong>You:</strong>
                             <p>{ticket.description}</p>
                             <small>{ticket.date}</small>
                           </div>
-                          <div className="message-support support">
+                          <div className="cusup-message support">
                             <strong>Support Team:</strong>
                             <p>We have received your ticket and will respond within 24 hours.</p>
                             <small>{ticket.date}</small>
@@ -361,17 +377,20 @@ const Supports = () => {
 
       case 'guides':
         return (
-          <div className="guides-section-support">
-            <h2><FaFileAlt /> User Guides & Resources</h2>
-            <div className="guides-list-support">
+          <div className="cusup-section">
+            <div className="cusup-section-header">
+              <FaFileAlt />
+              <h2>User Guides & Resources</h2>
+            </div>
+            <div className="cusup-guides-list">
               {guides.map(guide => (
-                <div key={guide.id} className="guide-card-support">
-                  <FaFileAlt className="guide-icon-support" />
-                  <div className="guide-info-support">
+                <div key={guide.id} className="cusup-guide-card">
+                  <FaFileAlt className="cusup-guide-icon" />
+                  <div className="cusup-guide-info">
                     <h3>{guide.title}</h3>
                     <p>{guide.type} • {guide.size}</p>
                   </div>
-                  <button className="download-btn-support" onClick={() => showToast('Download started!', 'success')}>
+                  <button className="cusup-download-btn" onClick={() => showToast('Download started!', 'success')}>
                     <FaDownload /> Download
                   </button>
                 </div>
@@ -389,30 +408,36 @@ const Supports = () => {
     <>
       <Helmet>
         <title>Support Center | Salfer Engineering</title>
-        <meta name="description" content="Get help and support for your solar panel system. Find answers to common questions, contact our support team, and access helpful resources." />
       </Helmet>
 
-      <div className="support-container">
-        <h1 className="support-title">Support Center</h1>
-        <p className="support-subtitle">How can we help you today?</p>
+      <div className="cusup-container">
+        <div className="cusup-header">
+          <div className="cusup-header-content">
+            <h1>Support Center</h1>
+            <p>How can we help you today?</p>
+          </div>
+          <div className="cusup-header-icon">
+            <FaHeadset />
+          </div>
+        </div>
         
-        <div className="support-content">
+        <div className="cusup-content">
           {renderTabContent()}
         </div>
 
         {/* Create Ticket Modal */}
         {showTicketModal && (
-          <div className="modal-overlay-support" onClick={() => setShowTicketModal(false)}>
-            <div className="modal-content-support" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-support">
+          <div className="cusup-modal-overlay" onClick={() => setShowTicketModal(false)}>
+            <div className="cusup-modal" onClick={e => e.stopPropagation()}>
+              <div className="cusup-modal-header">
                 <h3>Create New Ticket</h3>
-                <button className="modal-close-support" onClick={() => setShowTicketModal(false)}>
+                <button className="cusup-modal-close" onClick={() => setShowTicketModal(false)}>
                   <FaTimes />
                 </button>
               </div>
               
-              <div className="modal-body-support">
-                <div className="form-group-support">
+              <div className="cusup-modal-body">
+                <div className="cusup-form-group">
                   <label>Subject *</label>
                   <input
                     type="text"
@@ -423,7 +448,7 @@ const Supports = () => {
                   />
                 </div>
                 
-                <div className="form-group-support">
+                <div className="cusup-form-group">
                   <label>Description *</label>
                   <textarea
                     name="description"
@@ -435,12 +460,12 @@ const Supports = () => {
                 </div>
               </div>
               
-              <div className="modal-footer-support">
-                <button className="cancel-btn-support" onClick={() => setShowTicketModal(false)}>
+              <div className="cusup-modal-footer">
+                <button className="cusup-cancel-btn" onClick={() => setShowTicketModal(false)}>
                   Cancel
                 </button>
                 <button 
-                  className="submit-btn-support" 
+                  className="cusup-submit-ticket-btn" 
                   onClick={handleCreateTicket}
                   disabled={!newTicket.subject || !newTicket.description}
                 >
@@ -451,7 +476,6 @@ const Supports = () => {
           </div>
         )}
 
-        {/* Toast Notification */}
         <ToastNotification
           show={toast.show}
           message={toast.message}

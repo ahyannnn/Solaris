@@ -1,4 +1,4 @@
-// src/pages/Admin/AdminDashboard.cuspro.jsx
+// pages/Admin/AdminDashboard.cuspro.jsx - Redesigned like Customer Dashboard
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
@@ -10,10 +10,14 @@ import {
   FaMicrochip,
   FaCheckCircle,
   FaExclamationTriangle,
-  FaDownload,
-  FaCalendarAlt,
+  FaArrowRight,
+  FaClock,
+  FaUsers,
+  FaProjectDiagram,
   FaMoneyBillWave,
-  FaArrowRight
+  FaCalendarAlt,
+  FaEye,
+  FaPlus
 } from 'react-icons/fa';
 import '../../styles/Admin/dashboard.css';
 
@@ -48,8 +52,7 @@ const AdminDashboard = () => {
         freeQuotesRes,
         preAssessmentsRes,
         devicesRes,
-        projectsRes,
-        clientsRes
+        projectsRes
       ] = await Promise.all([
         axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -62,10 +65,7 @@ const AdminDashboard = () => {
         }).catch(() => ({ data: { total: 0, active: 0, deployed: 0 } })),
         axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, {
           headers: { Authorization: `Bearer ${token}` }
-        }).catch(() => ({ data: { projects: [] } })),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/admin/clients`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }).catch(() => ({ data: { clients: [] } }))
+        }).catch(() => ({ data: { projects: [] } }))
       ]);
 
       const freeQuotes = freeQuotesRes.data.quotes || [];
@@ -79,49 +79,28 @@ const AdminDashboard = () => {
 
       const projects = projectsRes.data.projects || [];
 
-      // Build transactions from assessments
+      // Build transactions for revenue
       const preTransactions = assessments
         .filter(a => a.invoiceNumber)
         .map(a => ({
-          id: a._id,
-          type: 'Pre-Assessment Booking',
-          reference: a.bookingReference,
-          invoiceNumber: a.invoiceNumber,
           amount: a.assessmentFee || 0,
-          method: a.paymentGateway === 'paymongo' ? 'PayMongo' : (a.paymentMethod || 'cash'),
-          status: a.paymentStatus === 'paid' ? 'Paid' : a.paymentStatus === 'for_verification' ? 'For Verification' : 'Pending',
-          date: a.confirmedAt || a.bookedAt || a.createdAt,
-          client: `${a.clientId?.contactFirstName || ''} ${a.clientId?.contactLastName || ''}`.trim(),
-          clientId: a.clientId?._id,
-          clientEmail: a.clientId?.userId?.email,
-          clientPhone: a.clientId?.contactNumber,
-          clientType: a.clientId?.client_type || 'Residential'
+          status: a.paymentStatus === 'paid' ? 'Paid' : 'Pending',
+          date: a.confirmedAt || a.bookedAt || a.createdAt
         }));
 
-      // Build project payments
       const projectTransactions = projects
         .filter(p => p.amountPaid > 0)
         .map(p => ({
-          id: p._id,
-          type: 'Project Payment',
-          reference: p.projectReference,
-          projectName: p.projectName,
           amount: p.amountPaid || 0,
-          method: 'Manual',
-          status: p.status === 'completed' ? 'Completed' : p.status === 'full_paid' ? 'Full Payment Received' : 'In Progress',
-          date: p.startDate || p.createdAt,
-          client: `${p.clientId?.contactFirstName || ''} ${p.clientId?.contactLastName || ''}`.trim(),
-          clientId: p.clientId?._id,
-          clientPhone: p.clientId?.contactNumber,
-          clientType: p.clientId?.client_type || 'Residential'
+          status: p.status === 'completed' ? 'Paid' : 'Pending',
+          date: p.startDate || p.createdAt
         }));
 
       const allTransactions = [...preTransactions, ...projectTransactions];
       
-      // Calculate revenue totals
       const totalRevenue = allTransactions.reduce((sum, p) => sum + (p.amount || 0), 0);
       const thisMonthRevenue = allTransactions
-        .filter(p => (p.status === 'Paid' || p.status === 'Completed' || p.status === 'Full Payment Received') && new Date(p.date).getMonth() === new Date().getMonth())
+        .filter(p => p.status === 'Paid' && new Date(p.date).getMonth() === new Date().getMonth())
         .reduce((sum, p) => sum + (p.amount || 0), 0);
 
       setStats({
@@ -140,15 +119,14 @@ const AdminDashboard = () => {
           total: totalRevenue, 
           thisMonth: thisMonthRevenue 
         },
-        devices: devicesRes.data
+        devices: devicesRes.data || { total: 0, active: 0, deployed: 0 }
       });
 
-      // Process monthly data from actual API data
+      // Process monthly data
       const monthlyFreeQuotes = new Array(12).fill(0);
       const monthlyAssessments = new Array(12).fill(0);
       const monthlyRevenue = new Array(12).fill(0);
       
-      // Group free quotes by month
       freeQuotes.forEach(quote => {
         if (quote.requestedAt) {
           const month = new Date(quote.requestedAt).getMonth();
@@ -156,7 +134,6 @@ const AdminDashboard = () => {
         }
       });
       
-      // Group assessments by month
       assessments.forEach(assessment => {
         if (assessment.bookedAt) {
           const month = new Date(assessment.bookedAt).getMonth();
@@ -164,11 +141,7 @@ const AdminDashboard = () => {
         }
       });
       
-      // Group completed payments by month for revenue
-      const completedPayments = allTransactions.filter(p => 
-        p.status === 'Paid' || p.status === 'Completed' || p.status === 'Full Payment Received'
-      );
-      
+      const completedPayments = allTransactions.filter(p => p.status === 'Paid');
       completedPayments.forEach(payment => {
         if (payment.date) {
           const month = new Date(payment.date).getMonth();
@@ -183,8 +156,8 @@ const AdminDashboard = () => {
         revenue: monthlyRevenue
       });
 
-      const activities = generateRecentActivities(freeQuotes, assessments);
-      setRecentActivities(activities.slice(0, 3));
+      const activities = generateRecentActivities(freeQuotes, assessments, projects);
+      setRecentActivities(activities.slice(0, 5));
 
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
@@ -194,7 +167,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const generateRecentActivities = (freeQuotes, assessments) => {
+  const generateRecentActivities = (freeQuotes, assessments, projects) => {
     const activities = [];
 
     freeQuotes.slice(0, 2).forEach(quote => {
@@ -204,7 +177,7 @@ const AdminDashboard = () => {
         message: `New quote request: ${quote.quotationReference}`,
         time: new Date(quote.requestedAt).toLocaleString(),
         status: quote.status,
-        action: `/app/admin/siteassessment`
+        action: '/app/admin/siteassessment'
       });
     });
 
@@ -227,7 +200,7 @@ const AdminDashboard = () => {
         message,
         time: new Date(assessment.bookedAt).toLocaleString(),
         status: assessment.assessmentStatus || assessment.paymentStatus,
-        action: `/app/admin/siteassessment`
+        action: '/app/admin/siteassessment'
       });
     });
 
@@ -242,6 +215,38 @@ const AdminDashboard = () => {
       maximumFractionDigits: 0
     }).format(amount || 0);
   };
+
+  // Quick Actions
+  const quickActions = [
+    { 
+      icon: <FaClipboardList />, 
+      label: 'Manage Assessments', 
+      description: 'Review and assign assessments',
+      color: 'blue',
+      link: '/app/admin/siteassessment'
+    },
+    { 
+      icon: <FaProjectDiagram />, 
+      label: 'View Projects', 
+      description: 'Track all projects status',
+      color: 'green',
+      link: '/app/admin/project'
+    },
+    { 
+      icon: <FaMoneyBillWave />, 
+      label: 'Billing Overview', 
+      description: 'Review payments and invoices',
+      color: 'purple',
+      link: '/app/admin/billing'
+    },
+    { 
+      icon: <FaUsers />, 
+      label: 'User Management', 
+      description: 'Manage user accounts',
+      color: 'orange',
+      link: '/app/admin/usermanagement'
+    }
+  ];
 
   const StatsCards = () => {
     const cards = [
@@ -323,8 +328,7 @@ const AdminDashboard = () => {
         {/* Free Quotes vs Pre-Assessments Chart */}
         <div className="adsih-chart-card">
           <div className="adsih-chart-header">
-            <h3>Free Quotes vs Pre-Assessments</h3>
-            
+            <h3>Free Quotes vs Assessments</h3>
           </div>
           <div className="adsih-chart-body">
             <div className="adsih-comparison-chart">
@@ -334,7 +338,7 @@ const AdminDashboard = () => {
                     <div className="adsih-bars-container">
                       <div 
                         className="adsih-bar adsih-quote-bar" 
-                        style={{ height: `${(monthlyData.freeQuotes[index] / maxComparison) * 160}px` }}
+                        style={{ height: `${(monthlyData.freeQuotes[index] / maxComparison) * 140}px` }}
                       >
                         {monthlyData.freeQuotes[index] > 0 && (
                           <span className="adsih-bar-value">{monthlyData.freeQuotes[index]}</span>
@@ -342,7 +346,7 @@ const AdminDashboard = () => {
                       </div>
                       <div 
                         className="adsih-bar adsih-assessment-bar" 
-                        style={{ height: `${(monthlyData.assessments[index] / maxComparison) * 160}px` }}
+                        style={{ height: `${(monthlyData.assessments[index] / maxComparison) * 140}px` }}
                       >
                         {monthlyData.assessments[index] > 0 && (
                           <span className="adsih-bar-value">{monthlyData.assessments[index]}</span>
@@ -371,7 +375,6 @@ const AdminDashboard = () => {
         <div className="adsih-chart-card">
           <div className="adsih-chart-header">
             <h3>Revenue Overview</h3>
-            
           </div>
           <div className="adsih-chart-body">
             {monthlyData.revenue.every(v => v === 0) ? (
@@ -385,7 +388,7 @@ const AdminDashboard = () => {
                   <div key={index} className="adsih-bar-item">
                     <div 
                       className="adsih-bar adsih-revenue-bar" 
-                      style={{ height: `${(value / maxRevenue) * 160}px` }}
+                      style={{ height: `${(value / maxRevenue) * 140}px` }}
                     >
                       {value > 0 && <span className="adsih-bar-value">{formatCurrency(value)}</span>}
                     </div>
@@ -400,6 +403,7 @@ const AdminDashboard = () => {
     );
   };
 
+  // Recent Activity - Like Customer Dashboard
   const RecentActivity = () => {
     const getStatusClass = (status) => {
       switch(status) {
@@ -432,7 +436,7 @@ const AdminDashboard = () => {
     return (
       <div className="adsih-recent-activity">
         <div className="adsih-activity-header">
-          <h3>Recent Activity</h3>
+          <h3><FaClock /> Recent Activity</h3>
           <button className="adsih-view-all" onClick={() => navigate('/app/admin/siteassessment')}>
             View All <FaArrowRight />
           </button>
@@ -470,7 +474,7 @@ const AdminDashboard = () => {
 
   const SkeletonLoader = () => (
     <div className="adsih-admin-dashboard">
-      <div className="adsih-dashboard-header">
+      <div className="adsih-welcome-section">
         <div className="skeleton-title"></div>
         <div className="skeleton-subtitle"></div>
       </div>
@@ -480,6 +484,11 @@ const AdminDashboard = () => {
             <div className="skeleton-stat-main"></div>
             <div className="skeleton-details"></div>
           </div>
+        ))}
+      </div>
+      <div className="adsih-quick-actions-grid">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="skeleton-quick-action"></div>
         ))}
       </div>
       <div className="adsih-charts-row">
@@ -522,13 +531,50 @@ const AdminDashboard = () => {
       </Helmet>
 
       <div className="adsih-admin-dashboard">
-        <div className="adsih-dashboard-header">
-          <h1>Dashboard</h1>
-          <p>Overview of your solar business performance</p>
+        {/* Welcome Section - Like Customer Dashboard */}
+        <div className="adsih-welcome-section">
+          <div className="adsih-welcome-content">
+            <h1>Dashboard</h1>
+            <p>Welcome back, Admin! Here's an overview of your solar business performance</p>
+          </div>
+          <div className="adsih-welcome-actions">
+            <button className="btn-primary" onClick={() => navigate('/app/admin/siteassessment')}>
+              <FaPlus /> New Assessment
+            </button>
+            <button className="btn-secondary" onClick={() => navigate('/app/admin/project')}>
+              <FaEye /> View Projects
+            </button>
+          </div>
         </div>
 
+        {/* Stats Cards - 4 cards */}
         <StatsCards />
+
+        {/* Quick Actions - Like Customer Dashboard */}
+        <div className="adsih-quick-actions">
+          <h3 className="adsih-quick-actions-title">Quick Actions</h3>
+          <div className="adsih-quick-actions-grid">
+            {quickActions.map((action, index) => (
+              <div 
+                key={index} 
+                className={`adsih-quick-action-item ${action.color}`}
+                onClick={() => navigate(action.link)}
+              >
+                <div className="adsih-quick-action-icon">{action.icon}</div>
+                <div className="adsih-quick-action-content">
+                  <span className="adsih-quick-action-label">{action.label}</span>
+                  <span className="adsih-quick-action-description">{action.description}</span>
+                </div>
+                <FaArrowRight className="adsih-quick-action-arrow" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Charts Row */}
         <Charts />
+
+        {/* Recent Activity */}
         <RecentActivity />
       </div>
     </>

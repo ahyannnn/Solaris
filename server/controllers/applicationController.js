@@ -252,7 +252,7 @@ const updateApplication = async (req, res) => {
 
       // Upload new file if provided
       if (req.file) {
-        const fileName = `app-${version}.apk`;
+        const fileName = `Solaris.apk`;
         const asset = await githubService.uploadAsset(
           newRelease.id,
           req.file.buffer,

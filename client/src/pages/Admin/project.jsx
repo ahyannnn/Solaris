@@ -30,7 +30,8 @@ const ProjectManagement = () => {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage] = useState(5);
+  const [totalItems, setTotalItems] = useState(0);
   const [engineers, setEngineers] = useState([]);
   const [projectInvoices, setProjectInvoices] = useState([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
@@ -76,10 +77,10 @@ const ProjectManagement = () => {
       const token = sessionStorage.getItem('token');
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: { status: filter === 'all' ? undefined : filter, page: currentPage, limit: 10 }
+        params: { status: filter === 'all' ? undefined : filter, page: currentPage, limit: itemsPerPage }
       });
       setProjects(response.data.projects || []);
-      setTotalPages(response.data.totalPages || 1);
+      setTotalItems(response.data.total || 0);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -222,16 +223,16 @@ const ProjectManagement = () => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      'quoted': <span className="status-badge-adminproject quoted">Quoted</span>,
-      'approved': <span className="status-badge-adminproject approved">Approved</span>,
-      'initial_paid': <span className="status-badge-adminproject initial-paid">Initial Paid</span>,
-      'full_paid': <span className="status-badge-adminproject full-paid">Full Paid</span>,
-      'in_progress': <span className="status-badge-adminproject in-progress">In Progress</span>,
-      'progress_paid': <span className="status-badge-adminproject progress-paid">Progress Paid</span>,
-      'completed': <span className="status-badge-adminproject completed">Completed</span>,
-      'cancelled': <span className="status-badge-adminproject cancelled">Cancelled</span>
+      'quoted': <span className="status-badge-project quoted">Quoted</span>,
+      'approved': <span className="status-badge-project approved">Approved</span>,
+      'initial_paid': <span className="status-badge-project initial-paid">Initial Paid</span>,
+      'full_paid': <span className="status-badge-project full-paid">Full Paid</span>,
+      'in_progress': <span className="status-badge-project in-progress">In Progress</span>,
+      'progress_paid': <span className="status-badge-project progress-paid">Progress Paid</span>,
+      'completed': <span className="status-badge-project completed">Completed</span>,
+      'cancelled': <span className="status-badge-project cancelled">Cancelled</span>
     };
-    return badges[status] || <span className="status-badge-adminproject">{status}</span>;
+    return badges[status] || <span className="status-badge-project">{status}</span>;
   };
 
   const filteredProjects = projects.filter(project => {
@@ -286,20 +287,42 @@ const ProjectManagement = () => {
     return actions;
   };
 
+  // Calculate pagination
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  // Generate page numbers
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    
+    if (endPage - startPage + 1 < maxVisible) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
   const SkeletonLoader = () => (
-    <div className="project-management-adminproject">
-      <div className="project-header-adminproject">
+    <div className="project-management">
+      <div className="project-header">
         <div className="skeleton-title"></div>
         <div className="skeleton-subtitle"></div>
       </div>
-      <div className="project-stats-adminproject">
-        {[1, 2, 3, 4, 5].map(i => <div key={i} className="stat-card-adminproject skeleton"></div>)}
+      <div className="project-tabs">
+        <div className="skeleton-tab"></div>
       </div>
-      <div className="project-filters-adminproject">
+      <div className="project-filters">
         <div className="skeleton-select"></div>
         <div className="skeleton-search"></div>
       </div>
-      <div className="project-table-container-adminproject">
+      <div className="project-table-container">
         <div className="skeleton-table"></div>
       </div>
     </div>
@@ -311,23 +334,60 @@ const ProjectManagement = () => {
     <>
       <Helmet><title>Project Management | Admin | Salfer Engineering</title></Helmet>
 
-      <div className="project-management-adminproject">
-        <div className="project-header-adminproject">
+      <div className="project-management">
+        <div className="project-header">
           <h1>Project Management</h1>
           <p>Manage solar installation projects from quotation to completion</p>
         </div>
 
-        <div className="project-stats-adminproject">
-          <div className="stat-card-adminproject total"><span className="stat-value">{stats.total}</span><span className="stat-label">Total Projects</span></div>
-          <div className="stat-card-adminproject quoted"><span className="stat-value">{stats.quoted}</span><span className="stat-label">Quoted</span></div>
-          <div className="stat-card-adminproject in-progress"><span className="stat-value">{stats.inProgress}</span><span className="stat-label">In Progress</span></div>
-          <div className="stat-card-adminproject completed"><span className="stat-value">{stats.completed}</span><span className="stat-label">Completed</span></div>
-          <div className="stat-card-adminproject revenue"><span className="stat-value">{formatCurrency(stats.totalRevenue)}</span><span className="stat-label">Revenue</span></div>
+        <div className="project-tabs">
+          <button 
+            className={`tab-btn ${filter === 'all' ? 'active' : ''}`} 
+            onClick={() => { setFilter('all'); setCurrentPage(1); }}
+          >
+            All Projects
+            <span className="tab-badge">{stats.total}</span>
+          </button>
+          <button 
+            className={`tab-btn ${filter === 'quoted' ? 'active' : ''}`} 
+            onClick={() => { setFilter('quoted'); setCurrentPage(1); }}
+          >
+            Quoted
+            <span className="tab-badge">{stats.quoted}</span>
+          </button>
+          <button 
+            className={`tab-btn ${filter === 'approved' ? 'active' : ''}`} 
+            onClick={() => { setFilter('approved'); setCurrentPage(1); }}
+          >
+            Approved
+            <span className="tab-badge">{stats.approved}</span>
+          </button>
+          <button 
+            className={`tab-btn ${filter === 'in_progress' ? 'active' : ''}`} 
+            onClick={() => { setFilter('in_progress'); setCurrentPage(1); }}
+          >
+            In Progress
+            <span className="tab-badge">{stats.inProgress}</span>
+          </button>
+          <button 
+            className={`tab-btn ${filter === 'completed' ? 'active' : ''}`} 
+            onClick={() => { setFilter('completed'); setCurrentPage(1); }}
+          >
+            Completed
+            <span className="tab-badge">{stats.completed}</span>
+          </button>
+          <button 
+            className={`tab-btn ${filter === 'cancelled' ? 'active' : ''}`} 
+            onClick={() => { setFilter('cancelled'); setCurrentPage(1); }}
+          >
+            Cancelled
+            <span className="tab-badge">{stats.cancelled}</span>
+          </button>
         </div>
 
-        <div className="project-filters-adminproject">
-          <div className="filter-group-adminproject">
-            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+        <div className="project-filters">
+          <div className="filter-group">
+            <select value={filter} onChange={(e) => { setFilter(e.target.value); setCurrentPage(1); }}>
               <option value="all">All Status</option>
               <option value="quoted">Quoted</option>
               <option value="approved">Approved</option>
@@ -338,101 +398,130 @@ const ProjectManagement = () => {
               <option value="cancelled">Cancelled</option>
             </select>
           </div>
-          <div className="search-group-adminproject">
+          <div className="search-group">
             <FaSearch className="search-icon" />
             <input type="text" placeholder="Search projects..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
         </div>
 
-        <div className="project-table-container-adminproject">
-          <table className="project-table-adminproject">
-            <thead>
-              <tr>
-                <th>Project</th>
-                <th>Client</th>
-                <th>Size</th>
-                <th>Total</th>
-                <th>Paid</th>
-                <th>Status</th>
-                <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProjects.length === 0 ? (
-                <tr><td colSpan="7" className="empty-state-adminproject">No projects found</td></tr>
-              ) : (
-                filteredProjects.map(project => {
-                  const actions = getAvailableActions(project);
-                  const isOpen = openDropdownId === project._id;
-                  
-                  return (
-                    <tr key={project._id}>
-                      <td className="project-cell-adminproject">
-                        <div className="project-name">{project.projectName}</div>
-                        <div className="project-ref">{project.projectReference}</div>
-                      </td>
-                      <td><div><strong>{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</strong></div><div><small>{project.clientId?.contactNumber}</small></div></td>
-                      <td>{project.systemSize} kW</td>
-                      <td className="amount">{formatCurrency(project.totalCost)}</td>
-                      <td className="amount">{formatCurrency(project.amountPaid)}</td>
-                      <td>{getStatusBadge(project.status)}</td>
-                      <td style={{ textAlign: 'center', position: 'relative' }}>
-                        <div className="action-dropdown-container">
-                          <button 
-                            className="action-dropdown-toggle"
-                            ref={el => buttonRefs.current[project._id] = el}
-                            onClick={(e) => handleDropdownClick(e, project._id)}
-                          >
-                            Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
-                          </button>
-                          
-                          {isOpen && (
-                            <div 
-                              className="action-dropdown-menu"
-                              ref={dropdownRef}
-                              style={{
-                                position: 'fixed',
-                                top: dropdownPosition.top,
-                                right: dropdownPosition.right,
-                                zIndex: 9999,
-                              }}
+        <div className="project-table-container">
+          <div className="table-wrapper">
+            <table className="project-table">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Client</th>
+                  <th>Size</th>
+                  <th>Total</th>
+                  <th>Paid</th>
+                  <th>Status</th>
+                  <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredProjects.length === 0 ? (
+                  <tr><td colSpan="7" className="empty-state">No projects found</td></tr>
+                ) : (
+                  filteredProjects.map(project => {
+                    const actions = getAvailableActions(project);
+                    const isOpen = openDropdownId === project._id;
+                    
+                    return (
+                      <tr key={project._id}>
+                        <td className="project-cell">
+                          <div className="project-name">{project.projectName}</div>
+                          <div className="project-ref">{project.projectReference}</div>
+                        </td>
+                        <td><div><strong>{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</strong></div><div><small>{project.clientId?.contactNumber}</small></div></td>
+                        <td>{project.systemSize} kW</td>
+                        <td className="amount">{formatCurrency(project.totalCost)}</td>
+                        <td className="amount">{formatCurrency(project.amountPaid)}</td>
+                        <td>{getStatusBadge(project.status)}</td>
+                        <td style={{ textAlign: 'center', position: 'relative' }}>
+                          <div className="action-dropdown-container">
+                            <button 
+                              className="action-dropdown-toggle"
+                              ref={el => buttonRefs.current[project._id] = el}
+                              onClick={(e) => handleDropdownClick(e, project._id)}
                             >
-                              {actions.map((action, idx) => (
-                                <button 
-                                  key={idx} 
-                                  className={`dropdown-item ${action.color || ''}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    action.action();
-                                  }}
-                                >
-                                  {action.icon} <span>{action.label}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                              Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
+                            </button>
+                            
+                            {isOpen && (
+                              <div 
+                                className="action-dropdown-menu"
+                                ref={dropdownRef}
+                                style={{
+                                  position: 'fixed',
+                                  top: dropdownPosition.top,
+                                  right: dropdownPosition.right,
+                                  zIndex: 9999,
+                                }}
+                              >
+                                {actions.map((action, idx) => (
+                                  <button 
+                                    key={idx} 
+                                    className={`dropdown-item ${action.color || ''}`}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      action.action();
+                                    }}
+                                  >
+                                    {action.icon} <span>{action.label}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {totalPages > 1 && (
-          <div className="pagination-adminproject">
-            <button className="page-btn" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}><FaChevronLeft /> Previous</button>
-            <span className="page-info">Page {currentPage} of {totalPages}</span>
-            <button className="page-btn" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next <FaChevronRight /></button>
+          <div className="pagination">
+            <div className="pagination-info">
+              Showing {startItem} to {endItem} of {totalItems} entries
+            </div>
+            <div className="pagination-controls">
+              <button 
+                className="page-btn" 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} 
+                disabled={currentPage === 1}
+              >
+                <FaChevronLeft /> Previous
+              </button>
+              
+              {getPageNumbers().map(page => (
+                <button
+                  key={page}
+                  className={`page-number ${currentPage === page ? 'active' : ''}`}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+              
+              <button 
+                className="page-btn" 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} 
+                disabled={currentPage === totalPages}
+              >
+                Next <FaChevronRight />
+              </button>
+            </div>
           </div>
         )}
 
         {/* Detail Modal */}
         {showDetailModal && selectedProject && (
-          <div className="modal-overlay-adminproject" onClick={() => setShowDetailModal(false)}>
-            <div className="modal-content-adminproject detail-modal" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
+            <div className="modal detail-modal" onClick={e => e.stopPropagation()}>
               <div className="modal-header"><h3>Project Details</h3><button className="modal-close" onClick={() => setShowDetailModal(false)}>×</button></div>
               <div className="modal-body">
                 <div className="detail-section"><h4>Project</h4><p><strong>Name:</strong> {selectedProject.projectName}</p><p><strong>Ref:</strong> {selectedProject.projectReference}</p><p><strong>Status:</strong> {getStatusBadge(selectedProject.status)}</p></div>
@@ -456,30 +545,30 @@ const ProjectManagement = () => {
                   }
                 </div>
               </div>
-              <div className="modal-actions"><button className="close-btn" onClick={() => setShowDetailModal(false)}>Close</button></div>
+              <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowDetailModal(false)}>Close</button></div>
             </div>
           </div>
         )}
 
         {/* Assign Engineer Modal */}
         {showAssignModal && selectedProject && (
-          <div className="modal-overlay-adminproject" onClick={() => setShowAssignModal(false)}>
-            <div className="modal-content-adminproject" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay" onClick={() => setShowAssignModal(false)}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
               <div className="modal-header"><h3>Assign Engineer</h3><button className="modal-close" onClick={() => setShowAssignModal(false)}>×</button></div>
               <div className="modal-body">
                 <p><strong>Project:</strong> {selectedProject.projectName}</p>
                 <div className="form-group"><label>Engineer</label><select value={formData.engineerId} onChange={(e) => setFormData({ ...formData, engineerId: e.target.value })}><option value="">Select...</option>{engineers.map(e => <option key={e._id} value={e._id}>{e.fullName || `${e.firstName} ${e.lastName}`}</option>)}</select></div>
                 <div className="form-group"><label>Notes</label><textarea rows="3" value={formData.assignNotes} onChange={(e) => setFormData({ ...formData, assignNotes: e.target.value })} /></div>
               </div>
-              <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowAssignModal(false)}>Cancel</button><button className="submit-btn" onClick={assignEngineer} disabled={!formData.engineerId || isSubmitting}>{isSubmitting ? 'Assigning...' : 'Assign'}</button></div>
+              <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowAssignModal(false)}>Cancel</button><button className="assign-btn" onClick={assignEngineer} disabled={!formData.engineerId || isSubmitting}>{isSubmitting ? 'Assigning...' : 'Assign'}</button></div>
             </div>
           </div>
         )}
 
         {/* Status Modal */}
         {showStatusModal && selectedProject && (
-          <div className="modal-overlay-adminproject" onClick={() => setShowStatusModal(false)}>
-            <div className="modal-content-adminproject" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay" onClick={() => setShowStatusModal(false)}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
               <div className="modal-header"><h3>Update Status</h3><button className="modal-close" onClick={() => setShowStatusModal(false)}>×</button></div>
               <div className="modal-body">
                 <p><strong>Project:</strong> {selectedProject.projectName}</p>
@@ -487,15 +576,15 @@ const ProjectManagement = () => {
                 <div className="form-group"><label>New Status</label><select value={formData.newStatus} onChange={(e) => setFormData({ ...formData, newStatus: e.target.value })}><option value="">Select...</option>{selectedProject.status === 'quoted' && <option value="approved">Approve</option>}{selectedProject.status === 'in_progress' && <option value="completed">Complete</option>}<option value="cancelled">Cancel</option></select></div>
                 <div className="form-group"><label>Notes</label><textarea rows="3" value={formData.statusNotes} onChange={(e) => setFormData({ ...formData, statusNotes: e.target.value })} /></div>
               </div>
-              <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowStatusModal(false)}>Cancel</button><button className="submit-btn" onClick={updateProjectStatus} disabled={!formData.newStatus || isSubmitting}>{isSubmitting ? 'Updating...' : 'Update'}</button></div>
+              <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowStatusModal(false)}>Cancel</button><button className="approve-btn" onClick={updateProjectStatus} disabled={!formData.newStatus || isSubmitting}>{isSubmitting ? 'Updating...' : 'Update'}</button></div>
             </div>
           </div>
         )}
 
         {/* Payment Modal */}
         {showPaymentModal && selectedProject && (
-          <div className="modal-overlay-adminproject" onClick={() => setShowPaymentModal(false)}>
-            <div className="modal-content-adminproject" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay" onClick={() => setShowPaymentModal(false)}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
               <div className="modal-header"><h3>Record Payment</h3><button className="modal-close" onClick={() => setShowPaymentModal(false)}>×</button></div>
               <div className="modal-body">
                 <p><strong>Project:</strong> {selectedProject.projectName}</p>
@@ -504,7 +593,7 @@ const ProjectManagement = () => {
                 <div className="form-group"><label>Type</label><select value={formData.paymentMethod} onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}><option value="initial">Initial (30%)</option><option value="progress">Progress (40%)</option><option value="final">Final (30%)</option></select></div>
                 <div className="form-group"><label>Reference</label><input type="text" value={formData.paymentReference} onChange={(e) => setFormData({ ...formData, paymentReference: e.target.value })} /></div>
               </div>
-              <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowPaymentModal(false)}>Cancel</button><button className="submit-btn" onClick={recordPayment} disabled={!formData.paymentAmount || isSubmitting}>{isSubmitting ? 'Recording...' : 'Record'}</button></div>
+              <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowPaymentModal(false)}>Cancel</button><button className="approve-btn" onClick={recordPayment} disabled={!formData.paymentAmount || isSubmitting}>{isSubmitting ? 'Recording...' : 'Record'}</button></div>
             </div>
           </div>
         )}

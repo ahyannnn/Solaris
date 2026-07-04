@@ -45,14 +45,19 @@ const Dashboard = () => {
   const [userName, setUserName] = useState('Customer User');
   const [userPhoto, setUserPhoto] = useState(null);
 
+  // Support submenu
+  const supportSubmenu = [
+    { label: 'FAQs', path: '/app/customer/support?tab=faq' },
+    { label: 'Contact Form', path: '/app/customer/support?tab=contact' },
+    { label: 'Contact Info', path: '/app/customer/support?tab=info' },
+    { label: 'Tickets', path: '/app/customer/support?tab=tickets' },
+    { label: 'Guides', path: '/app/customer/support?tab=guides' },
+  ];
+
+  // Settings submenu
   const settingsSubmenu = [
     { label: 'Profile', path: '/app/customer/settings?tab=profile' },
     { label: 'Addresses', path: '/app/customer/settings?tab=addresses' },
-  ];
-
-  const supportSubmenu = [
-    { label: 'Contact Form', path: '/app/customer/support?tab=contact' },
-    { label: 'Contact Info', path: '/app/customer/support?tab=info' },
   ];
 
   // Page titles and descriptions based on role and path
@@ -93,9 +98,25 @@ const Dashboard = () => {
         };
       }
       if (currentPath === '/app/customer/support' || currentPath.startsWith('/app/customer/support?')) {
+        const params = new URLSearchParams(location.search);
+        const tab = params.get('tab');
+        const titles = {
+          'faq': 'FAQs',
+          'contact': 'Contact Form',
+          'info': 'Contact Information',
+          'tickets': 'Support Tickets',
+          'guides': 'User Guides'
+        };
+        const descriptions = {
+          'faq': 'Find answers to commonly asked questions about our services.',
+          'contact': 'Send us a message and we\'ll get back to you as soon as possible.',
+          'info': 'Get in touch with us through our contact details.',
+          'tickets': 'View and manage your support tickets.',
+          'guides': 'Access helpful guides and resources.'
+        };
         return {
-          title: 'Support',
-          description: 'Get help, contact our support team, or browse frequently asked questions.'
+          title: titles[tab] || 'Support',
+          description: descriptions[tab] || 'Get help and support.'
         };
       }
     }
@@ -375,14 +396,11 @@ const Dashboard = () => {
 
   const currentMenu = menuItems[userRole] || menuItems.admin;
 
-  // FIXED: isActive function - Dashboard won't be highlighted on other pages
   const isActive = (itemPath) => {
     const currentPath = location.pathname;
     
-    // Exact match
     if (currentPath === itemPath) return true;
     
-    // For sub-pages, only if it's NOT a dashboard path
     const isDashboardPath = itemPath === '/app/admin' || 
                             itemPath === '/app/engineer' || 
                             itemPath === '/app/customer';
@@ -444,10 +462,7 @@ const Dashboard = () => {
     setTimeout(() => setIsNavigating(false), 500);
   };
 
-  // Notification button does nothing - just a placeholder
-  const handleNotificationClick = () => {
-    // Wala talagang mangyayari - empty function
-  };
+  const handleNotificationClick = () => {};
 
   return (
     <div className="dashboard-layout-dashboard">

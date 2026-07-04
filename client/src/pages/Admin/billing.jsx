@@ -1,4 +1,4 @@
-// pages/Admin/Billing.jsx
+// pages/Admin/Billing.jsx - Redesigned without emojis
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -24,8 +24,7 @@ import {
   FaUser,
   FaFileInvoice,
   FaBuilding,
-  FaExclamationTriangle,
- 
+  FaExclamationTriangle
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/billing.css';
@@ -47,7 +46,7 @@ const AdminBilling = () => {
   const [verificationNote, setVerificationNote] = useState('');
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  // Solar Invoice state (Project bills)
+  // Solar Invoice state
   const [solarInvoices, setSolarInvoices] = useState([]);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
@@ -894,9 +893,9 @@ const AdminBilling = () => {
 
   const getBankTransferStatusBadge = (status) => {
     const badges = {
-      'waiting_verification': <span className="status-badge-admbil waiting-admbil">⏳ Waiting</span>,
-      'verified': <span className="status-badge-admbil verified-admbil">✅ Verified</span>,
-      'rejected': <span className="status-badge-admbil rejected-admbil">❌ Rejected</span>
+      'waiting_verification': <span className="status-badge-admbil waiting-admbil">Waiting for Verification</span>,
+      'verified': <span className="status-badge-admbil verified-admbil">Verified</span>,
+      'rejected': <span className="status-badge-admbil rejected-admbil">Rejected</span>
     };
     return badges[status] || <span className="status-badge-admbil">{status}</span>;
   };
@@ -1167,19 +1166,19 @@ const AdminBilling = () => {
           <div className="bank-transfer-stats-admbil">
             <div className="bank-stat-card waiting">
               <span className="bank-stat-value">{bankTransferStats.waiting_verification}</span>
-              <span className="bank-stat-label">⏳ Waiting for Verification</span>
+              <span className="bank-stat-label">Waiting for Verification</span>
             </div>
             <div className="bank-stat-card verified">
               <span className="bank-stat-value">{bankTransferStats.verified}</span>
-              <span className="bank-stat-label">✅ Verified</span>
+              <span className="bank-stat-label">Verified</span>
             </div>
             <div className="bank-stat-card rejected">
               <span className="bank-stat-value">{bankTransferStats.rejected}</span>
-              <span className="bank-stat-label">❌ Rejected</span>
+              <span className="bank-stat-label">Rejected</span>
             </div>
             <div className="bank-stat-card total">
               <span className="bank-stat-value">{formatCurrency(bankTransferStats.totalAmount)}</span>
-              <span className="bank-stat-label">💰 Total Amount</span>
+              <span className="bank-stat-label">Total Amount</span>
             </div>
           </div>
         )}
@@ -1901,7 +1900,7 @@ const AdminBilling = () => {
 
                 {/* Proof of Payment */}
                 <div className="detail-section-admbil">
-                  <h4>📎 Proof of Payment</h4>
+                  <h4>Proof of Payment</h4>
                   <div className="proof-container-admbil">
                     {selectedBankTransfer.proofOfPayment ? (
                       <div className="proof-actions-admbil">

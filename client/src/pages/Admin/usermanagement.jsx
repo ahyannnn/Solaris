@@ -40,7 +40,8 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsPerPage] = useState(5);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -107,11 +108,11 @@ const UserManagement = () => {
         params: {
           role: filterRole === 'all' ? undefined : filterRole,
           page: currentPage,
-          limit: 10
+          limit: itemsPerPage
         }
       });
       setUsers(response.data.users || []);
-      setTotalPages(response.data.totalPages || 1);
+      setTotalItems(response.data.total || 0);
     } catch (error) {
       console.error('Error fetching users:', error);
       showToast('Failed to load users', 'error');
@@ -390,18 +391,18 @@ const UserManagement = () => {
 
   const getRoleBadge = (role) => {
     const badges = {
-      admin: <span className="role-badge-usermgmtad admin-usermgmtad-finalday">Admin</span>,
-      engineer: <span className="role-badge-usermgmtad engineer-usermgmtad-finalday">Engineer</span>,
-      user: <span className="role-badge-usermgmtad user-usermgmtad-finalday">Customer</span>
+      admin: <span className="role-badge admin">Admin</span>,
+      engineer: <span className="role-badge engineer">Engineer</span>,
+      user: <span className="role-badge user">Customer</span>
     };
-    return badges[role] || <span className="role-badge-usermgmtad-finalday">{role}</span>;
+    return badges[role] || <span className="role-badge">{role}</span>;
   };
 
   const getStatusBadge = (isActive) => {
     if (isActive) {
-      return <span className="status-badge-usermgmtad active-usermgmtad-finalday"><FaCheckCircle /> Active</span>;
+      return <span className="status-badge active"><FaCheckCircle /> Active</span>;
     }
-    return <span className="status-badge-usermgmtad inactive-usermgmtad-finalday"><FaTimesCircle /> Inactive</span>;
+    return <span className="status-badge inactive"><FaTimesCircle /> Inactive</span>;
   };
 
   const formatDate = (date) => {
@@ -424,26 +425,44 @@ const UserManagement = () => {
     return actions;
   };
 
+  // Calculate pagination
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    
+    if (endPage - startPage + 1 < maxVisible) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
   const SkeletonLoader = () => (
-    <div className="user-management-usermgmtad-finalday">
-      <div className="user-management-header-usermgmtad-finalday">
-        <div className="skeleton-line-usermgmtad-finalday large-usermgmtad-finalday"></div>
-        <div className="skeleton-button-usermgmtad-finalday"></div>
+    <div className="user-management">
+      <div className="user-management-header">
+        <div className="skeleton-line large"></div>
+        <div className="skeleton-button"></div>
       </div>
-      <div className="user-stats-cards-usermgmtad-finalday">
-        {[1, 2, 3, 4].map(i => (
-          <div key={i} className="stat-card-usermgmtad-finalday skeleton-card-usermgmtad-finalday">
-            <div className="skeleton-line-usermgmtad-finalday small-usermgmtad-finalday"></div>
-            <div className="skeleton-line-usermgmtad-finalday large-usermgmtad-finalday"></div>
-          </div>
-        ))}
+      <div className="user-tabs">
+        <div className="skeleton-tab"></div>
+        <div className="skeleton-tab"></div>
+        <div className="skeleton-tab"></div>
+        <div className="skeleton-tab"></div>
       </div>
-      <div className="user-filters-section-usermgmtad-finalday">
-        <div className="skeleton-tabs-usermgmtad-finalday"></div>
-        <div className="skeleton-search-usermgmtad-finalday"></div>
+      <div className="user-filters-section">
+        <div className="skeleton-search"></div>
       </div>
-      <div className="users-table-container-usermgmtad-finalday">
-        <div className="skeleton-table-usermgmtad-finalday"></div>
+      <div className="users-table-container">
+        <div className="skeleton-table"></div>
       </div>
     </div>
   );
@@ -458,76 +477,81 @@ const UserManagement = () => {
         <title>User Management | Admin | Salfer Engineering</title>
       </Helmet>
 
-      <div className="user-management-usermgmtad-finalday">
-        <div className="user-management-header-usermgmtad-finalday">
+      <div className="user-management">
+        <div className="user-management-header">
           <div>
             <h1>User Management</h1>
             <p>Manage system users, roles, and permissions</p>
           </div>
           
-          <button className="create-user-btn-usermgmtad-finalday" onClick={handleOpenCreateModal}>
+          <button className="create-user-btn" onClick={handleOpenCreateModal}>
             <FaUserPlus /> Add User
           </button>
         </div>
 
-        <div className="user-stats-cards-usermgmtad-finalday">
-          <div className="stat-card-usermgmtad-finalday total-usermgmtad-finalday">
-            <div className="stat-info-usermgmtad-finalday">
-              <span className="stat-value-usermgmtad-finalday">{stats.total}</span>
-              <span className="stat-label-usermgmtad-finalday">Total Users</span>
-            </div>
-          </div>
-          <div className="stat-card-usermgmtad-finalday active-usermgmtad-finalday">
-            <div className="stat-info-usermgmtad-finalday">
-              <span className="stat-value-usermgmtad-finalday">{stats.activeUsers}</span>
-              <span className="stat-label-usermgmtad-finalday">Active Users</span>
-            </div>
-          </div>
-          <div className="stat-card-usermgmtad-finalday inactive-usermgmtad-finalday">
-            <div className="stat-info-usermgmtad-finalday">
-              <span className="stat-value-usermgmtad-finalday">{stats.inactiveUsers}</span>
-              <span className="stat-label-usermgmtad-finalday">Inactive Users</span>
-            </div>
-          </div>
-          <div className="stat-card-usermgmtad-finalday new-usermgmtad-finalday">
-            <div className="stat-info-usermgmtad-finalday">
-              <span className="stat-value-usermgmtad-finalday">{stats.newThisMonth}</span>
-              <span className="stat-label-usermgmtad-finalday">New This Month</span>
-            </div>
+        {/* Tabs */}
+        <div className="user-tabs">
+          <button 
+            className={`tab-btn ${filterRole === 'all' ? 'active' : ''}`} 
+            onClick={() => { setFilterRole('all'); setCurrentPage(1); }}
+          >
+            All Users
+            <span className="tab-badge">{stats.total}</span>
+          </button>
+          <button 
+            className={`tab-btn ${filterRole === 'admin' ? 'active' : ''}`} 
+            onClick={() => { setFilterRole('admin'); setCurrentPage(1); }}
+          >
+            Admins
+            <span className="tab-badge">{stats.byRole?.admin || 0}</span>
+          </button>
+          <button 
+            className={`tab-btn ${filterRole === 'engineer' ? 'active' : ''}`} 
+            onClick={() => { setFilterRole('engineer'); setCurrentPage(1); }}
+          >
+            Engineers
+            <span className="tab-badge">{stats.byRole?.engineer || 0}</span>
+          </button>
+          <button 
+            className={`tab-btn ${filterRole === 'user' ? 'active' : ''}`} 
+            onClick={() => { setFilterRole('user'); setCurrentPage(1); }}
+          >
+            Customers
+            <span className="tab-badge">{stats.byRole?.user || 0}</span>
+          </button>
+        </div>
+
+        {/* Filters */}
+        <div className="user-filters-section">
+          <div className="search-box">
+            <FaSearch className="search-icon" />
+            <input 
+              type="text" 
+              placeholder="Search by name, email, or contact number..." 
+              value={searchTerm} 
+              onChange={handleSearch} 
+            />
           </div>
         </div>
 
-        <div className="user-filters-section-usermgmtad-finalday">
-          <div className="filter-tabs-usermgmtad-finalday">
-            <button className={`filter-tab-usermgmtad-finalday ${filterRole === 'all' ? 'active-usermgmtad-finalday' : ''}`} onClick={() => setFilterRole('all')}>All Users</button>
-            <button className={`filter-tab-usermgmtad-finalday ${filterRole === 'admin' ? 'active-usermgmtad-finalday' : ''}`} onClick={() => setFilterRole('admin')}>Admins</button>
-            <button className={`filter-tab-usermgmtad-finalday ${filterRole === 'engineer' ? 'active-usermgmtad-finalday' : ''}`} onClick={() => setFilterRole('engineer')}>Engineers</button>
-            <button className={`filter-tab-usermgmtad-finalday ${filterRole === 'user' ? 'active-usermgmtad-finalday' : ''}`} onClick={() => setFilterRole('user')}>Customers</button>
-          </div>
-
-          <div className="search-box-usermgmtad-finalday">
-            <FaSearch className="search-icon-usermgmtad-finalday" />
-            <input type="text" placeholder="Search by name, email, or contact number..." value={searchTerm} onChange={handleSearch} />
-          </div>
-        </div>
-
-        <div className="users-table-container-usermgmtad-finalday">
-          <table className="users-table-usermgmtad-finalday">
+        {/* Table */}
+        <div className="users-table-container">
+          <table className="users-table">
             <thead>
               <tr>
-                <th>User</th>
-                <th>Email</th>
-                <th>Contact</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
+                <th style={{ width: '25%' }}>User</th>
+                <th style={{ width: '25%' }}>Email</th>
+                <th style={{ width: '12%' }}>Contact</th>
+                <th style={{ width: '10%' }}>Role</th>
+                <th style={{ width: '10%' }}>Status</th>
+                <th style={{ width: '10%' }}>Created</th>
+                <th style={{ width: '8%', textAlign: 'center' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="empty-state-usermgmtad-finalday">
+                  <td colSpan="7" className="empty-state">
                     <p>No users found</p>
                   </td>
                 </tr>
@@ -538,40 +562,40 @@ const UserManagement = () => {
 
                   return (
                     <tr key={user._id}>
-                      <td className="user-cell-usermgmtad-finalday">
-                        <div className="user-avatar-usermgmtad-finalday">
-                          {user.clientInfo?.firstName ? (
-                            <div className="avatar-initials-usermgmtad-finalday">{user.clientInfo.firstName[0]}{user.clientInfo.lastName?.[0]}</div>
-                          ) : (
-                            <FaUserCircle className="avatar-icon-usermgmtad-finalday" />
-                          )}
-                        </div>
-                        <div className="user-info-usermgmtad-finalday">
-                          <div className="user-name-usermgmtad-finalday">{user.fullName || '—'}</div>
+                      <td>
+                        <div className="user-cell-content">
+                          <div className="user-avatar">
+                            {user.clientInfo?.firstName ? (
+                              <div className="avatar-initials">{user.clientInfo.firstName[0]}{user.clientInfo.lastName?.[0]}</div>
+                            ) : (
+                              <FaUserCircle className="avatar-icon" />
+                            )}
+                          </div>
+                          <div className="user-name">{user.fullName || '—'}</div>
                         </div>
                       </td>
-                      <td className="email-cell-usermgmtad-finalday">
-                        <FaEnvelope className="email-icon-usermgmtad-finalday" />
-                        {user.email}
+                      <td className="email-cell">
+                        <FaEnvelope className="email-icon" />
+                        <span className="email-text">{user.email}</span>
                       </td>
-                      <td className="contact-cell-usermgmtad-finalday">
+                      <td className="contact-cell">
                         {user.clientInfo?.contactNumber || '—'}
                       </td>
                       <td>{getRoleBadge(user.role)}</td>
                       <td>{getStatusBadge(user.isActive)}</td>
                       <td>{formatDate(user.createdAt)}</td>
                       <td style={{ textAlign: 'center', position: 'relative' }}>
-                        <div className="action-dropdown-container-usermgmtad-finalday">
+                        <div className="action-dropdown-container">
                           <button 
-                            className="action-dropdown-toggle-usermgmtad-finalday"
+                            className="action-dropdown-toggle"
                             ref={el => buttonRefs.current[user._id] = el}
                             onClick={(e) => handleDropdownClick(e, user._id)}
                           >
-                            Action <FaChevronDown className={`dropdown-arrow-usermgmtad-finalday ${isOpen ? 'open-usermgmtad-finalday' : ''}`} />
+                            Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
                           </button>
                           {isOpen && (
                             <div 
-                              className="action-dropdown-menu-usermgmtad-finalday"
+                              className="action-dropdown-menu"
                               ref={dropdownRef}
                               style={{
                                 position: 'fixed',
@@ -583,7 +607,7 @@ const UserManagement = () => {
                               {actions.map((action, idx) => (
                                 <button 
                                   key={idx} 
-                                  className={`dropdown-item-usermgmtad-finalday ${action.color || ''}`}
+                                  className={`dropdown-item ${action.color || ''}`}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     action.action();
@@ -604,82 +628,110 @@ const UserManagement = () => {
           </table>
         </div>
 
+        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="pagination-usermgmtad-finalday">
-            <button className="page-btn-usermgmtad-finalday" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}><FaChevronLeft /> Previous</button>
-            <span className="page-info-usermgmtad-finalday">Page {currentPage} of {totalPages}</span>
-            <button className="page-btn-usermgmtad-finalday" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next <FaChevronRight /></button>
+          <div className="pagination">
+            <div className="pagination-info">
+              Showing {startItem} to {endItem} of {totalItems} entries
+            </div>
+            <div className="pagination-controls">
+              <button 
+                className="page-btn" 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} 
+                disabled={currentPage === 1}
+              >
+                <FaChevronLeft /> Previous
+              </button>
+              
+              {getPageNumbers().map(page => (
+                <button
+                  key={page}
+                  className={`page-number ${currentPage === page ? 'active' : ''}`}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+              
+              <button 
+                className="page-btn" 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} 
+                disabled={currentPage === totalPages}
+              >
+                Next <FaChevronRight />
+              </button>
+            </div>
           </div>
         )}
 
         {/* User Modal (Create/Edit/View) */}
         {showUserModal && (
-          <div className="modal-overlay-usermgmtad-finalday" onClick={() => setShowUserModal(false)}>
-            <div className={`modal-content-usermgmtad-finalday user-modal-usermgmtad-finalday ${modalMode}`} onClick={e => e.stopPropagation()}>
-              <div className="modal-header-usermgmtad-finalday">
+          <div className="modal-overlay" onClick={() => setShowUserModal(false)}>
+            <div className={`modal-content user-modal ${modalMode}`} onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
                 <h3>{modalMode === 'view' ? 'User Details' : modalMode === 'edit' ? 'Edit User' : 'Create New User'}</h3>
-                <button className="modal-close-usermgmtad-finalday" onClick={() => setShowUserModal(false)}>×</button>
+                <button className="modal-close" onClick={() => setShowUserModal(false)}>×</button>
               </div>
-              <div className="modal-body-usermgmtad-finalday">
+              <div className="modal-body">
                 {modalMode === 'view' && selectedUser && (
-                  <div className="user-details-view-usermgmtad-finalday">
-                    <div className="detail-section-usermgmtad-finalday">
+                  <div className="user-details-view">
+                    <div className="detail-section">
                       <h4>Account Information</h4>
-                      <div className="detail-row-usermgmtad-finalday"><span>Full Name:</span><strong>{selectedUser.fullName || '—'}</strong></div>
-                      <div className="detail-row-usermgmtad-finalday"><span>Email:</span><strong>{selectedUser.email}</strong></div>
-                      <div className="detail-row-usermgmtad-finalday"><span>Role:</span><strong>{getRoleBadge(selectedUser.role)}</strong></div>
-                      <div className="detail-row-usermgmtad-finalday"><span>Status:</span><strong>{getStatusBadge(selectedUser.isActive)}</strong></div>
-                      <div className="detail-row-usermgmtad-finalday"><span>Created:</span><strong>{formatDate(selectedUser.createdAt)}</strong></div>
-                      <div className="detail-row-usermgmtad-finalday"><span>Last Login:</span><strong>{formatDate(selectedUser.lastLogin)}</strong></div>
+                      <div className="detail-row"><span>Full Name:</span><strong>{selectedUser.fullName || '—'}</strong></div>
+                      <div className="detail-row"><span>Email:</span><strong>{selectedUser.email}</strong></div>
+                      <div className="detail-row"><span>Role:</span><strong>{getRoleBadge(selectedUser.role)}</strong></div>
+                      <div className="detail-row"><span>Status:</span><strong>{getStatusBadge(selectedUser.isActive)}</strong></div>
+                      <div className="detail-row"><span>Created:</span><strong>{formatDate(selectedUser.createdAt)}</strong></div>
+                      <div className="detail-row"><span>Last Login:</span><strong>{formatDate(selectedUser.lastLogin)}</strong></div>
                     </div>
                     {selectedUser.clientInfo && (
-                      <div className="detail-section-usermgmtad-finalday">
+                      <div className="detail-section">
                         <h4>Client Information</h4>
-                        <div className="detail-row-usermgmtad-finalday"><span>First Name:</span><strong>{selectedUser.clientInfo.firstName || '—'}</strong></div>
-                        <div className="detail-row-usermgmtad-finalday"><span>Last Name:</span><strong>{selectedUser.clientInfo.lastName || '—'}</strong></div>
-                        <div className="detail-row-usermgmtad-finalday"><span>Contact Number:</span><strong>{selectedUser.clientInfo.contactNumber || '—'}</strong></div>
+                        <div className="detail-row"><span>First Name:</span><strong>{selectedUser.clientInfo.firstName || '—'}</strong></div>
+                        <div className="detail-row"><span>Last Name:</span><strong>{selectedUser.clientInfo.lastName || '—'}</strong></div>
+                        <div className="detail-row"><span>Contact Number:</span><strong>{selectedUser.clientInfo.contactNumber || '—'}</strong></div>
                       </div>
                     )}
                   </div>
                 )}
                 {(modalMode === 'edit' || modalMode === 'create') && (
-                  <form className="user-form-usermgmtad-finalday">
-                    <div className="form-row-usermgmtad-finalday">
-                      <div className="form-group-usermgmtad-finalday">
+                  <form className="user-form">
+                    <div className="form-row">
+                      <div className="form-group">
                         <label>First Name *</label>
                         <input
                           type="text"
                           value={formData.firstName}
                           onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                          className={formErrors.firstName ? 'error-usermgmtad-finalday' : ''}
+                          className={formErrors.firstName ? 'error' : ''}
                         />
-                        {formErrors.firstName && <span className="error-text-usermgmtad-finalday">{formErrors.firstName}</span>}
+                        {formErrors.firstName && <span className="error-text">{formErrors.firstName}</span>}
                       </div>
-                      <div className="form-group-usermgmtad-finalday">
+                      <div className="form-group">
                         <label>Last Name *</label>
                         <input
                           type="text"
                           value={formData.lastName}
                           onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                          className={formErrors.lastName ? 'error-usermgmtad-finalday' : ''}
+                          className={formErrors.lastName ? 'error' : ''}
                         />
-                        {formErrors.lastName && <span className="error-text-usermgmtad-finalday">{formErrors.lastName}</span>}
+                        {formErrors.lastName && <span className="error-text">{formErrors.lastName}</span>}
                       </div>
                     </div>
-                    <div className="form-row-usermgmtad-finalday">
-                      <div className="form-group-usermgmtad-finalday">
+                    <div className="form-row">
+                      <div className="form-group">
                         <label>Email Address *</label>
                         <input
                           type="email"
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           disabled={modalMode === 'edit'}
-                          className={formErrors.email ? 'error-usermgmtad-finalday' : ''}
+                          className={formErrors.email ? 'error' : ''}
                         />
-                        {formErrors.email && <span className="error-text-usermgmtad-finalday">{formErrors.email}</span>}
+                        {formErrors.email && <span className="error-text">{formErrors.email}</span>}
                         {modalMode === 'edit' && <small>Email cannot be changed</small>}
                       </div>
-                      <div className="form-group-usermgmtad-finalday">
+                      <div className="form-group">
                         <label>Contact Number</label>
                         <input
                           type="tel"
@@ -689,37 +741,39 @@ const UserManagement = () => {
                       </div>
                     </div>
                     {modalMode === 'create' && (
-                      <div className="form-row-usermgmtad-finalday">
-                        <div className="form-group-usermgmtad-finalday">
+                      <div className="form-row">
+                        <div className="form-group">
                           <label>Password *</label>
                           <input
                             type="password"
                             value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            className={formErrors.password ? 'error-usermgmtad-finalday' : ''}
+                            className={formErrors.password ? 'error' : ''}
                           />
-                          {formErrors.password && <span className="error-text-usermgmtad-finalday">{formErrors.password}</span>}
+                          {formErrors.password && <span className="error-text">{formErrors.password}</span>}
                           <small>Password must be at least 6 characters</small>
                         </div>
-                        <div className="form-group-usermgmtad-finalday">
+                        <div className="form-group">
                           <label>Confirm Password *</label>
                           <input
                             type="password"
                             value={formData.confirmPassword}
                             onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                            className={formErrors.confirmPassword ? 'error-usermgmtad-finalday' : ''}
+                            className={formErrors.confirmPassword ? 'error' : ''}
                           />
-                          {formErrors.confirmPassword && <span className="error-text-usermgmtad-finalday">{formErrors.confirmPassword}</span>}
+                          {formErrors.confirmPassword && <span className="error-text">{formErrors.confirmPassword}</span>}
                         </div>
                       </div>
                     )}
                   </form>
                 )}
               </div>
-              <div className="modal-actions-usermgmtad-finalday">
-                <button className="cancel-btn-usermgmtad-finalday" onClick={() => setShowUserModal(false)}>Cancel</button>
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={() => setShowUserModal(false)}>Cancel</button>
                 {(modalMode === 'edit' || modalMode === 'create') && (
-                  <button className="save-btn-usermgmtad-finalday" onClick={handleSaveUser} disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Save User'}</button>
+                  <button className="save-btn" onClick={handleSaveUser} disabled={isSubmitting}>
+                    {isSubmitting ? 'Saving...' : 'Save User'}
+                  </button>
                 )}
               </div>
             </div>
@@ -728,21 +782,48 @@ const UserManagement = () => {
 
         {/* Password Reset Modal */}
         {showPasswordModal && selectedUser && (
-          <div className="modal-overlay-usermgmtad-finalday" onClick={() => setShowPasswordModal(false)}>
-            <div className="modal-content-usermgmtad-finalday password-modal-usermgmtad-finalday" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-usermgmtad-finalday"><h3>Reset Password</h3><button className="modal-close-usermgmtad-finalday" onClick={() => setShowPasswordModal(false)}>×</button></div>
-              <div className="modal-body-usermgmtad-finalday">
-                <div className="user-info-summary-usermgmtad-finalday"><p><strong>User:</strong> {selectedUser.fullName || selectedUser.email}</p><p><strong>Role:</strong> {getRoleBadge(selectedUser.role)}</p></div>
-                <div className="form-row-usermgmtad-finalday">
-                  <div className="form-group-usermgmtad-finalday"><label>New Password *</label><input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className={passwordErrors.password ? 'error-usermgmtad-finalday' : ''} />{passwordErrors.password && <span className="error-text-usermgmtad-finalday">{passwordErrors.password}</span>}<small>Password must be at least 6 characters</small></div>
+          <div className="modal-overlay" onClick={() => setShowPasswordModal(false)}>
+            <div className="modal-content password-modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Reset Password</h3>
+                <button className="modal-close" onClick={() => setShowPasswordModal(false)}>×</button>
+              </div>
+              <div className="modal-body">
+                <div className="user-info-summary">
+                  <p><strong>User:</strong> {selectedUser.fullName || selectedUser.email}</p>
+                  <p><strong>Role:</strong> {getRoleBadge(selectedUser.role)}</p>
                 </div>
-                <div className="form-row-usermgmtad-finalday">
-                  <div className="form-group-usermgmtad-finalday"><label>Confirm Password *</label><input type="password" value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} className={passwordErrors.confirmPassword ? 'error-usermgmtad-finalday' : ''} />{passwordErrors.confirmPassword && <span className="error-text-usermgmtad-finalday">{passwordErrors.confirmPassword}</span>}</div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>New Password *</label>
+                    <input 
+                      type="password" 
+                      value={formData.password} 
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
+                      className={passwordErrors.password ? 'error' : ''} 
+                    />
+                    {passwordErrors.password && <span className="error-text">{passwordErrors.password}</span>}
+                    <small>Password must be at least 6 characters</small>
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Confirm Password *</label>
+                    <input 
+                      type="password" 
+                      value={formData.confirmPassword} 
+                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} 
+                      className={passwordErrors.confirmPassword ? 'error' : ''} 
+                    />
+                    {passwordErrors.confirmPassword && <span className="error-text">{passwordErrors.confirmPassword}</span>}
+                  </div>
                 </div>
               </div>
-              <div className="modal-actions-usermgmtad-finalday">
-                <button className="cancel-btn-usermgmtad-finalday" onClick={() => setShowPasswordModal(false)}>Cancel</button>
-                <button className="save-btn-usermgmtad-finalday" onClick={handleResetPassword} disabled={isSubmitting}>{isSubmitting ? 'Resetting...' : 'Reset Password'}</button>
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={() => setShowPasswordModal(false)}>Cancel</button>
+                <button className="save-btn" onClick={handleResetPassword} disabled={isSubmitting}>
+                  {isSubmitting ? 'Resetting...' : 'Reset Password'}
+                </button>
               </div>
             </div>
           </div>
@@ -750,15 +831,17 @@ const UserManagement = () => {
 
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && selectedUser && (
-          <div className="modal-overlay-usermgmtad-finalday" onClick={() => setShowDeleteConfirm(false)}>
-            <div className="modal-content-usermgmtad-finalday confirm-modal-usermgmtad-finalday" onClick={e => e.stopPropagation()}>
-              <div className="confirm-icon-usermgmtad-finalday"><FaExclamationTriangle /></div>
+          <div className="modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
+            <div className="modal-content confirm-modal" onClick={e => e.stopPropagation()}>
+              <div className="confirm-icon"><FaExclamationTriangle /></div>
               <h3>Delete User</h3>
               <p>Are you sure you want to delete <strong>{selectedUser.fullName || selectedUser.email}</strong>?</p>
-              <p className="warning-text-usermgmtad-finalday">This action cannot be undone.</p>
-              <div className="modal-actions-usermgmtad-finalday">
-                <button className="cancel-btn-usermgmtad-finalday" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
-                <button className="delete-btn-usermgmtad-finalday" onClick={handleDeleteUser} disabled={isSubmitting}>{isSubmitting ? 'Deleting...' : 'Delete User'}</button>
+              <p className="warning-text">This action cannot be undone.</p>
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+                <button className="delete-btn" onClick={handleDeleteUser} disabled={isSubmitting}>
+                  {isSubmitting ? 'Deleting...' : 'Delete User'}
+                </button>
               </div>
             </div>
           </div>
@@ -766,14 +849,16 @@ const UserManagement = () => {
 
         {/* Status Toggle Modal */}
         {showStatusConfirm && selectedUser && (
-          <div className="modal-overlay-usermgmtad-finalday" onClick={() => setShowStatusConfirm(false)}>
-            <div className="modal-content-usermgmtad-finalday confirm-modal-usermgmtad-finalday" onClick={e => e.stopPropagation()}>
-              <div className="confirm-icon-usermgmtad-finalday">{statusAction === 'deactivate' ? <FaBan /> : <FaCheck />}</div>
+          <div className="modal-overlay" onClick={() => setShowStatusConfirm(false)}>
+            <div className="modal-content confirm-modal" onClick={e => e.stopPropagation()}>
+              <div className="confirm-icon">{statusAction === 'deactivate' ? <FaBan /> : <FaCheck />}</div>
               <h3>{statusAction === 'deactivate' ? 'Deactivate User' : 'Activate User'}</h3>
               <p>Are you sure you want to <strong>{statusAction}</strong> <strong>{selectedUser.fullName || selectedUser.email}</strong>?</p>
-              <div className="modal-actions-usermgmtad-finalday">
-                <button className="cancel-btn-usermgmtad-finalday" onClick={() => setShowStatusConfirm(false)}>Cancel</button>
-                <button className="delete-btn-usermgmtad-finalday" onClick={handleToggleStatus} disabled={isSubmitting}>{isSubmitting ? 'Processing...' : statusAction}</button>
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={() => setShowStatusConfirm(false)}>Cancel</button>
+                <button className="delete-btn" onClick={handleToggleStatus} disabled={isSubmitting}>
+                  {isSubmitting ? 'Processing...' : statusAction}
+                </button>
               </div>
             </div>
           </div>

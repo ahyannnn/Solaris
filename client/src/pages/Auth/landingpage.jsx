@@ -1,5 +1,4 @@
-// pages/Auth/landingpage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FaUsers,
@@ -38,10 +37,78 @@ const LandingPage = () => {
   const [advancedEstimationResult, setAdvancedEstimationResult] = useState(null);
   const [calculating, setCalculating] = useState(false);
 
+  // Refs for animated counting
+  const statsRef = useRef(null);
+  const [hasAnimatedStats, setHasAnimatedStats] = useState(false);
+
   const images = {
     hero: "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
     about: "https://cjnsolar.com.au/wp-content/uploads/2024/02/Solar-panel-installation-process-1.jpg",
     services: "https://www.naturalgen.co.uk/template/images/Client/NG-SolarPanelInstall-3.jpg"
+  };
+
+  // Scroll animation observer
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+        }
+      });
+    }, observerOptions);
+
+    const animatedElements = document.querySelectorAll('.animate-on-scroll');
+    animatedElements.forEach(el => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [advancedEstimationResult]);
+
+  // Stats counter animation
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.5
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !hasAnimatedStats) {
+          setHasAnimatedStats(true);
+          animateValue('stat-2017', 2000, 2017, 1000);
+          animateValue('stat-500', 0, 500, 1500);
+          animateValue('stat-100', 0, 100, 1000);
+        }
+      });
+    }, observerOptions);
+
+    if (statsRef.current) {
+      observer.observe(statsRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasAnimatedStats]);
+
+  const animateValue = (id, start, end, duration) => {
+    const element = document.getElementById(id);
+    if (!element) return;
+    
+    const range = end - start;
+    const increment = range / (duration / 16);
+    let current = start;
+    
+    const timer = setInterval(() => {
+      current += increment;
+      if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+        element.textContent = end;
+        clearInterval(timer);
+      } else {
+        element.textContent = Math.floor(current);
+      }
+    }, 16);
   };
 
   useEffect(() => {
@@ -75,7 +142,6 @@ const LandingPage = () => {
   const handleLogin = () => navigate('/login');
   const handleSignup = () => navigate('/register');
 
-  // Open Terms in new tab
   const handleOpenTerms = () => {
     window.open('/terms', '_blank');
   };
@@ -247,6 +313,7 @@ const LandingPage = () => {
         backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${images.hero})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
       }}>
         <div className="container-land">
           <div className="hero-content-land">
@@ -261,17 +328,17 @@ const LandingPage = () => {
       </section>
 
       {/* About Us Section */}
-      <section id="about" className="about-section-land">
+      <section id="about" className="about-section-land animate-on-scroll">
         <div className="container-land">
           <div className="about-grid-land">
             <div className="about-content-land">
               <h2 className="section-title-land">About the Company</h2>
               <p>Salfer Engineering & Solar Technology Enterprise is a solar service provider established in 2017. The company offers solar system design, installation, and technical services for residential and commercial clients.</p>
               <p>With years of experience in engineering and project management, the company focuses on delivering reliable and cost-effective solar solutions tailored to each client's needs.</p>
-              <div className="stats-mini-land">
-                <div className="stat-mini-land"><span className="stat-number-land">2017</span><span className="stat-label-land">Established</span></div>
-                <div className="stat-mini-land"><span className="stat-number-land">500+</span><span className="stat-label-land">Projects</span></div>
-                <div className="stat-mini-land"><span className="stat-number-land">100%</span><span className="stat-label-land">Satisfaction</span></div>
+              <div className="stats-mini-land" ref={statsRef}>
+                <div className="stat-mini-land"><span className="stat-number-land" id="stat-2017">2017</span><span className="stat-label-land">Established</span></div>
+                <div className="stat-mini-land"><span className="stat-number-land"><span id="stat-500">500</span>+</span><span className="stat-label-land">Projects</span></div>
+                <div className="stat-mini-land"><span className="stat-number-land"><span id="stat-100">100</span>%</span><span className="stat-label-land">Satisfaction</span></div>
               </div>
             </div>
             <div className="about-image-land"><img src={images.about} alt="Solar panels on residential roof" /></div>
@@ -280,7 +347,7 @@ const LandingPage = () => {
       </section>
 
       {/* Mission & Vision Section */}
-      <section id="mission-vision" className="mission-vision-section-land">
+      <section id="mission-vision" className="mission-vision-section-land animate-on-scroll">
         <div className="container-land">
           <div className="mission-vision-grid-land">
             <div className="mission-card-land"><h3>Our Mission</h3><p>To provide reliable, efficient, and cost-effective solar energy solutions that help clients reduce electricity costs while promoting sustainable energy use.</p></div>
@@ -290,7 +357,7 @@ const LandingPage = () => {
       </section>
 
       {/* Free vs Paid Section */}
-      <section id="free-vs-paid" className="comparison-section-land">
+      <section id="free-vs-paid" className="comparison-section-land animate-on-scroll">
         <div className="container-land">
           <h2 className="section-title-land">Start Free, Upgrade Anytime</h2>
           <p className="section-subtitle-land">Choose what works best for you</p>
@@ -314,7 +381,7 @@ const LandingPage = () => {
       </section>
 
       {/* Solar Savings Estimator Section */}
-      <section id="solar-estimator" className="estimator-section-land">
+      <section id="solar-estimator" className="estimator-section-land animate-on-scroll">
         <div className="container-land">
           <h2 className="section-title-land">Solar Savings Estimator</h2>
           <p className="section-subtitle-land">Get a personalized estimate of your potential savings</p>
@@ -328,7 +395,7 @@ const LandingPage = () => {
               <button onClick={calculateAdvancedSavings} disabled={!advancedEstimatorData.monthlyBill || calculating} className="btn-calculate-land">{calculating ? 'Calculating...' : 'Calculate Savings'}</button>
             </div>
             {advancedEstimationResult && (
-              <div className="estimator-results-land">
+              <div className="estimator-results-land animate-on-scroll">
                 <h3>Your Personalized Solar Estimate</h3>
                 <div className="results-grid-land">
                   <div className="result-item-land"><span className="result-label-land">Recommended System</span><strong>{advancedEstimationResult.recommendedSize} kW</strong><small>{advancedEstimationResult.systemDescription}</small></div>
@@ -347,7 +414,7 @@ const LandingPage = () => {
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="howitworks-section-land">
+      <section id="how-it-works" className="howitworks-section-land animate-on-scroll">
         <div className="container-land">
           <h2 className="section-title-land">How It Works</h2>
           <div className="howitworks-steps-land">
@@ -360,8 +427,8 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Services Section - Image on left, bullet list on right with equal height */}
-      <section id="services" className="services-section-land">
+      {/* Services Section */}
+      <section id="services" className="services-section-land animate-on-scroll">
         <div className="container-land">
           <div className="services-grid-land">
             <div className="services-image-land">
@@ -384,8 +451,8 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Why Choose Us Section - 4 Cards Only */}
-      <section id="why-us" className="whyus-section-land">
+      {/* Why Choose Us Section */}
+      <section id="why-us" className="whyus-section-land animate-on-scroll">
         <div className="container-land">
           <h2 className="section-title-land">Why Choose Us</h2>
           <div className="whyus-grid-land">
@@ -414,7 +481,7 @@ const LandingPage = () => {
       </section>
 
       {/* Download App Section */}
-      <section id="download-app" className="download-section-land">
+      <section id="download-app" className="download-section-land animate-on-scroll">
         <div className="container-land">
           <div className="download-content-land">
             <div className="download-text-land">
@@ -448,6 +515,7 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
+
       {/* Simple Estimate Modal */}
       {showEstimateModal && (
         <div className="modal-overlay-land" onClick={closeModal}>
@@ -495,7 +563,6 @@ const LandingPage = () => {
             <div className="footer-links-land">
               <h4>Legal</h4>
               <button onClick={handleOpenTerms}>Terms & Conditions</button>
-              {/* <button onClick={() => alert('Privacy Policy - Coming Soon')}>Privacy Policy</button> */}
             </div>
             <div className="footer-cta-land">
               <h4>Ready to save?</h4>

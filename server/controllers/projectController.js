@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const PayMongoService = require('../services/paymongoService');
 const SolarInvoice = require('../models/SolarInvoice');
 const cloudinary = require('cloudinary').v2;
+const { sendNotification } = require('../utils/notificationHelper');
 
 // Configure Cloudinary (should already be configured in your app)
 cloudinary.config({
@@ -127,7 +128,7 @@ exports.uploadProjectPhotos = async (req, res) => {
               else resolve(result);
             }
           );
-          
+
           const bufferStream = require('stream').Readable.from(file.buffer);
           bufferStream.pipe(uploadStream);
         });
@@ -155,7 +156,7 @@ exports.uploadProjectPhotos = async (req, res) => {
             uploadedAt: new Date().toISOString()
           }
         });
-        
+
         await fileRecord.save();
 
       } catch (uploadError) {
@@ -164,9 +165,9 @@ exports.uploadProjectPhotos = async (req, res) => {
     }
 
     if (photoUrls.length === 0) {
-      return res.status(500).json({ 
+      return res.status(500).json({
         success: false,
-        message: 'Failed to upload any photos to Cloudinary. Please check your Cloudinary credentials.' 
+        message: 'Failed to upload any photos to Cloudinary. Please check your Cloudinary credentials.'
       });
     }
 
@@ -185,10 +186,10 @@ exports.uploadProjectPhotos = async (req, res) => {
 
   } catch (error) {
     console.error('❌ Upload photos error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Failed to upload photos', 
-      error: error.message 
+      message: 'Failed to upload photos',
+      error: error.message
     });
   }
 };
@@ -398,14 +399,14 @@ exports.getMyProjects = async (req, res) => {
       .populate('preAssessmentId')
       .populate('addressId')
       .sort({ createdAt: -1 });
-    
+
     const processedProjects = projects.map(project => {
       const projectObj = project.toObject();
-      
+
       if (projectObj.assignedEngineerId) {
         const engineer = projectObj.assignedEngineerId;
         let engineerFullName = '';
-        
+
         if (engineer.fullName && engineer.fullName !== 'undefined undefined') {
           engineerFullName = engineer.fullName;
         } else if (engineer.firstName && engineer.lastName) {
@@ -425,12 +426,12 @@ exports.getMyProjects = async (req, res) => {
         } else {
           engineerFullName = 'Engineer assigned';
         }
-        
+
         projectObj.engineerFullName = engineerFullName;
       } else {
         projectObj.engineerFullName = null;
       }
-      
+
       return projectObj;
     });
 
@@ -474,24 +475,24 @@ exports.createProjectFromAcceptance = async (req, res) => {
         return res.status(404).json({ message: 'Free quote not found' });
       }
 
-      const systemSize = sourceData.quotationDetails?.systemSize || 
-                         sourceData.recommendedSystemSize || 
-                         sourceData.desiredCapacity || 
-                         5;
-      
-      const totalCost = sourceData.quotationDetails?.totalCost || 
-                        (sourceData.quotationDetails?.equipmentCost || 0) + 
-                        (sourceData.quotationDetails?.installationCost || 0) ||
-                        0;
-      
-      const systemType = sourceData.quotationDetails?.systemType || 
-                         sourceData.systemType || 
-                         'grid-tie';
-      
-      const panelsNeeded = sourceData.quotationDetails?.panelsNeeded || 
-                           sourceData.panelsNeeded || 
-                           Math.ceil(systemSize / 0.55);
-      
+      const systemSize = sourceData.quotationDetails?.systemSize ||
+        sourceData.recommendedSystemSize ||
+        sourceData.desiredCapacity ||
+        5;
+
+      const totalCost = sourceData.quotationDetails?.totalCost ||
+        (sourceData.quotationDetails?.equipmentCost || 0) +
+        (sourceData.quotationDetails?.installationCost || 0) ||
+        0;
+
+      const systemType = sourceData.quotationDetails?.systemType ||
+        sourceData.systemType ||
+        'grid-tie';
+
+      const panelsNeeded = sourceData.quotationDetails?.panelsNeeded ||
+        sourceData.panelsNeeded ||
+        Math.ceil(systemSize / 0.55);
+
       const inverterType = sourceData.quotationDetails?.equipmentBreakdown?.inverter?.name || null;
       const batteryType = sourceData.quotationDetails?.equipmentBreakdown?.battery?.name || null;
 
@@ -511,7 +512,7 @@ exports.createProjectFromAcceptance = async (req, res) => {
       } else if (paymentPreference === 'fifty_fifty') {
         initialPayment = totalCost * 0.5;
         finalPayment = totalCost * 0.5;
-        
+
         paymentSchedule.push({
           type: 'initial',
           amount: initialPayment,
@@ -528,7 +529,7 @@ exports.createProjectFromAcceptance = async (req, res) => {
         initialPayment = totalCost * 0.3;
         progressPayment = totalCost * 0.6;
         finalPayment = totalCost * 0.1;
-        
+
         paymentSchedule.push({
           type: 'initial',
           amount: initialPayment,
@@ -552,7 +553,7 @@ exports.createProjectFromAcceptance = async (req, res) => {
         initialPayment = totalCost * 0.3;
         progressPayment = totalCost * 0.4;
         finalPayment = totalCost * 0.3;
-        
+
         paymentSchedule.push({
           type: 'initial',
           amount: initialPayment,
@@ -601,9 +602,9 @@ exports.createProjectFromAcceptance = async (req, res) => {
 
       console.log(`✅ Free quote accepted: ${sourceData.quotationReference} with payment: ${paymentPreference}`);
 
-    // =============================================
-    // ✅ HANDLE PRE-ASSESSMENT SOURCE
-    // =============================================
+      // =============================================
+      // ✅ HANDLE PRE-ASSESSMENT SOURCE
+      // =============================================
     } else if (sourceType === 'pre-assessment') {
       sourceData = await PreAssessment.findById(sourceId).populate('addressId');
       if (!sourceData || sourceData.clientId.toString() !== client._id.toString()) {
@@ -628,7 +629,7 @@ exports.createProjectFromAcceptance = async (req, res) => {
       } else if (paymentPreference === 'fifty_fifty') {
         initialPayment = totalCost * 0.5;
         finalPayment = totalCost * 0.5;
-        
+
         paymentSchedule.push({
           type: 'initial',
           amount: initialPayment,
@@ -645,7 +646,7 @@ exports.createProjectFromAcceptance = async (req, res) => {
         initialPayment = totalCost * 0.3;
         progressPayment = totalCost * 0.6;
         finalPayment = totalCost * 0.1;
-        
+
         paymentSchedule.push({
           type: 'initial',
           amount: initialPayment,
@@ -669,7 +670,7 @@ exports.createProjectFromAcceptance = async (req, res) => {
         initialPayment = totalCost * 0.3;
         progressPayment = totalCost * 0.4;
         finalPayment = totalCost * 0.3;
-        
+
         paymentSchedule.push({
           type: 'initial',
           amount: initialPayment,
@@ -732,7 +733,22 @@ exports.createProjectFromAcceptance = async (req, res) => {
 
     const project = new Project(projectData);
     await project.save();
-
+    // Add after await project.save();
+    await sendNotification(
+      userId,
+      'Project Created',
+      'Your project ' + project.projectReference + ' has been created from your accepted ' + sourceType + '. Total cost: PHP ' + project.totalCost.toFixed(2),
+      'success',
+      '/projects/' + project._id,
+      {
+        metadata: {
+          projectReference: project.projectReference,
+          totalCost: project.totalCost,
+          sourceType: sourceType,
+          status: project.status
+        }
+      }
+    );
     // ✅ Update the source to mark as accepted
     if (sourceType === 'free-quote') {
       sourceData.status = 'accepted';
@@ -763,10 +779,10 @@ exports.createProjectFromAcceptance = async (req, res) => {
 
   } catch (error) {
     console.error('Create project from acceptance error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Failed to create project', 
-      error: error.message 
+      message: 'Failed to create project',
+      error: error.message
     });
   }
 };
@@ -862,13 +878,24 @@ exports.getEngineerProjects = async (req, res) => {
 // @desc    Update project progress (Engineer)
 // @route   PUT /api/projects/:id/progress
 // @access  Private (Engineer)
+// @desc    Update project progress (Engineer)
+// @route   PUT /api/projects/:id/progress
+// @access  Private (Engineer)
 exports.updateProjectProgress = async (req, res) => {
   try {
     const { id } = req.params;
     const { installationNotes, status, sitePhotos } = req.body;
     const engineerId = req.user.id;
 
-    const project = await Project.findById(id);
+    // FIX: Populate clientId and userId
+    const project = await Project.findById(id).populate({
+      path: 'clientId',
+      populate: {
+        path: 'userId',
+        select: 'email _id'
+      }
+    });
+    
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
@@ -896,13 +923,13 @@ exports.updateProjectProgress = async (req, res) => {
 
     if (installationNotes) project.installationNotes = installationNotes;
     if (sitePhotos) project.sitePhotos = [...(project.sitePhotos || []), ...sitePhotos];
-    
+
     if (status) {
       const oldStatus = project.status;
       project.status = status;
 
       if (!project.projectUpdates) project.projectUpdates = [];
-      
+
       project.projectUpdates.push({
         title: `Progress Updated: ${oldStatus} → ${status}`,
         description: installationNotes || `Project status changed to ${status}`,
@@ -916,6 +943,41 @@ exports.updateProjectProgress = async (req, res) => {
 
       if (status === 'completed') {
         project.actualCompletionDate = new Date();
+      }
+
+      // FIX: Check if userId exists before sending notifications
+      const userId = project.clientId?.userId?._id;
+      
+      if (status === 'in_progress' && userId) {
+        await sendNotification(
+          userId,
+          'Project In Progress',
+          'Your project ' + project.projectReference + ' is now in progress.',
+          'info',
+          '/projects/' + project._id,
+          {
+            metadata: {
+              projectReference: project.projectReference,
+              status: status
+            }
+          }
+        );
+      }
+
+      if (status === 'completed' && userId) {
+        await sendNotification(
+          userId,
+          'Project Completed',
+          'Your project ' + project.projectReference + ' has been completed by the engineer.',
+          'success',
+          '/projects/' + project._id,
+          {
+            metadata: {
+              projectReference: project.projectReference,
+              completionDate: new Date()
+            }
+          }
+        );
       }
     }
 
@@ -957,7 +1019,7 @@ exports.getAllProjects = async (req, res) => {
         }
       })
       .populate('addressId')
-      .populate('assignedEngineerId', 'firstName lastName email') 
+      .populate('assignedEngineerId', 'firstName lastName email')
       .populate('preAssessmentId')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
@@ -1009,7 +1071,7 @@ const createSolarInvoice = async (project, invoiceType, amount, adminId, customD
 
     // Get payment preference for display
     const paymentPref = project.paymentPreference || 'installment';
-    
+
     // Build description with percentage info
     let percentageLabel = '';
     if (invoiceType === 'initial') {
@@ -1099,7 +1161,7 @@ const generateProjectInvoices = async (project, adminId) => {
         fullPayment.invoiceNumber = invoice.invoiceNumber;
         console.log(`✅ Full payment invoice created: ${invoice.invoiceNumber}`);
       }
-    } 
+    }
     // =============================================
     // 50% - 50%: Initial + Final
     // =============================================
@@ -1120,7 +1182,7 @@ const generateProjectInvoices = async (project, adminId) => {
         finalPayment.invoiceNumber = invoice.invoiceNumber;
         console.log(`✅ 50% final invoice created: ${invoice.invoiceNumber}`);
       }
-    } 
+    }
     // =============================================
     // 30% - 60% - 10%: Initial + Progress + Final (Retention)
     // =============================================
@@ -1149,7 +1211,7 @@ const generateProjectInvoices = async (project, adminId) => {
         finalPayment.invoiceNumber = invoice.invoiceNumber;
         console.log(`✅ 10% final (retention) invoice created: ${invoice.invoiceNumber}`);
       }
-    } 
+    }
     // =============================================
     // DEFAULT: 30% - 40% - 30% (Installment)
     // =============================================
@@ -1193,14 +1255,24 @@ const generateProjectInvoices = async (project, adminId) => {
 // @desc    Update project status (Admin)
 // @route   PUT /api/projects/:id/status
 // @access  Private (Admin)
+// @desc    Update project status (Admin)
+// @route   PUT /api/projects/:id/status
+// @access  Private (Admin)
 exports.updateProjectStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, notes } = req.body;
     const adminId = req.user.id;
 
+    // FIX: Populate clientId and userId
     const project = await Project.findById(id)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber userId email')
+      .populate({
+        path: 'clientId',
+        populate: {
+          path: 'userId',
+          select: 'email _id'
+        }
+      })
       .populate('addressId');
 
     if (!project) {
@@ -1234,6 +1306,25 @@ exports.updateProjectStatus = async (req, res) => {
       try {
         const invoicesCreated = await generateProjectInvoices(project, adminId);
         console.log(`✅ ${invoicesCreated.length} invoices auto-generated for project ${project.projectReference}`);
+        
+        // FIX: Check if userId exists before sending notification
+        const userId = project.clientId?.userId?._id;
+        if (userId) {
+          await sendNotification(
+            userId,
+            'Project Approved',
+            'Your project ' + project.projectReference + ' has been approved. Invoices have been generated. Total cost: PHP ' + project.totalCost.toFixed(2),
+            'success',
+            '/projects/' + project._id,
+            {
+              metadata: {
+                projectReference: project.projectReference,
+                totalCost: project.totalCost,
+                invoiceCount: invoicesCreated.length
+              }
+            }
+          );
+        }
       } catch (invoiceError) {
         console.error('Failed to generate invoices:', invoiceError);
         return res.status(200).json({
@@ -1248,6 +1339,24 @@ exports.updateProjectStatus = async (req, res) => {
 
     if (status === 'completed') {
       project.actualCompletionDate = new Date();
+      
+      // FIX: Check if userId exists before sending notification
+      const userId = project.clientId?.userId?._id;
+      if (userId) {
+        await sendNotification(
+          userId,
+          'Project Completed',
+          'Your project ' + project.projectReference + ' has been completed successfully.',
+          'success',
+          '/projects/' + project._id,
+          {
+            metadata: {
+              projectReference: project.projectReference,
+              completionDate: new Date()
+            }
+          }
+        );
+      }
     }
 
     project.projectUpdates = project.projectUpdates || [];
@@ -1282,7 +1391,15 @@ exports.assignEngineerToProject = async (req, res) => {
     const { engineerId, notes } = req.body;
     const adminId = req.user.id;
 
-    const project = await Project.findById(id);
+    // FIX: Populate clientId and userId
+    const project = await Project.findById(id).populate({
+      path: 'clientId',
+      populate: {
+        path: 'userId',
+        select: 'email _id'
+      }
+    });
+    
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
@@ -1305,6 +1422,38 @@ exports.assignEngineerToProject = async (req, res) => {
 
     await project.save();
 
+    // FIX: Check if userId exists before sending notification
+    if (project.clientId && project.clientId.userId && project.clientId.userId._id) {
+      await sendNotification(
+        project.clientId.userId._id,
+        'Engineer Assigned',
+        'An engineer has been assigned to your project ' + project.projectReference + '.',
+        'info',
+        '/projects/' + project._id,
+        {
+          metadata: {
+            projectReference: project.projectReference,
+            engineerName: engineer.firstName + ' ' + engineer.lastName
+          }
+        }
+      );
+    }
+
+    // Notify engineer
+    await sendNotification(
+      engineerId,
+      'New Project Assigned',
+      'You have been assigned to project ' + project.projectReference + '.',
+      'info',
+      '/engineer/projects/' + project._id,
+      {
+        metadata: {
+          projectReference: project.projectReference,
+          clientName: project.clientId ? (project.clientId.contactFirstName + ' ' + project.clientId.contactLastName) : 'Client'
+        }
+      }
+    );
+
     res.json({
       success: true,
       message: 'Engineer assigned successfully',
@@ -1316,7 +1465,6 @@ exports.assignEngineerToProject = async (req, res) => {
     res.status(500).json({ message: 'Failed to assign engineer', error: error.message });
   }
 };
-
 // @desc    Record payment for project (Admin)
 // @route   POST /api/projects/:id/payments
 // @access  Private (Admin)

@@ -58,6 +58,7 @@ const iotDataRoutes = require('./routes/iotDataRoutes');
 const scheduleRoutes = require('./routes/scheduleRoutes');
 const jobPortalRoutes = require('./routes/jobPortalRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 // Use new routes
 app.use('/api/schedules', scheduleRoutes);
 app.use(maintenanceMiddleware);
@@ -78,6 +79,7 @@ app.use('/api/solar-invoices', solarInvoiceRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/payments/bank-transfer', bankTransferRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/uploads', express.static('uploads'));
 

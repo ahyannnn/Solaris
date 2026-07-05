@@ -5,6 +5,7 @@ const Project = require('../models/Project');
 const Client = require('../models/Clients');
 const SolarInvoice = require('../models/SolarInvoice');
 const receiptService = require('../services/receiptService');
+const { sendNotification } = require('../utils/notificationHelper');
 
 // =============================================
 // PRE-ASSESSMENT PAYMENT INTENT
@@ -28,9 +29,9 @@ exports.createPreAssessmentPaymentIntent = async (req, res) => {
 
     let assessment = await PreAssessment.findById(id);
     if (!assessment) {
-      assessment = await PreAssessment.findOne({ 
+      assessment = await PreAssessment.findOne({
         bookingReference: id,
-        clientId: client._id 
+        clientId: client._id
       });
     }
 
@@ -39,14 +40,14 @@ exports.createPreAssessmentPaymentIntent = async (req, res) => {
     }
 
     if (assessment.paymentStatus !== 'pending') {
-      return res.status(400).json({ 
-        message: `Payment already processed. Status: ${assessment.paymentStatus}` 
+      return res.status(400).json({
+        message: `Payment already processed. Status: ${assessment.paymentStatus}`
       });
     }
 
     // Determine which payment methods to allow
     const paymentMethods = paymentMethod === 'gcash' ? ['gcash'] : ['card'];
-    
+
     // Create payment intent
     const paymentIntent = await PayMongoService.createPaymentIntent(
       assessment.assessmentFee,
@@ -75,17 +76,17 @@ exports.createPreAssessmentPaymentIntent = async (req, res) => {
     if (paymentMethod === 'gcash') {
       const successUrl = `${process.env.FRONTEND_URL}/app/customer/payment-success?payment_intent_id=${paymentIntent.paymentIntentId}`;
       const cancelUrl = `${process.env.FRONTEND_URL}/app/customer/payment-cancel?payment_intent_id=${paymentIntent.paymentIntentId}`;
-      
+
       const gcashPayment = await PayMongoService.createGCashPaymentSource(
         paymentIntent.paymentIntentId,
         successUrl,
         cancelUrl
       );
-      
+
       if (!gcashPayment.success) {
         return res.status(500).json({ message: gcashPayment.error });
       }
-      
+
       return res.json({
         success: true,
         redirectUrl: gcashPayment.redirectUrl,
@@ -105,9 +106,9 @@ exports.createPreAssessmentPaymentIntent = async (req, res) => {
 
   } catch (error) {
     console.error('Create payment intent error:', error);
-    res.status(500).json({ 
-      message: 'Failed to create payment intent', 
-      error: error.message 
+    res.status(500).json({
+      message: 'Failed to create payment intent',
+      error: error.message
     });
   }
 };
@@ -183,7 +184,7 @@ exports.createBankTransferPaymentIntent = async (req, res) => {
     }
 
     const amountToPay = invoice.balance || invoice.totalAmount;
-    
+
     if (amountToPay <= 0) {
       return res.status(400).json({ message: 'No outstanding balance' });
     }
@@ -193,73 +194,73 @@ exports.createBankTransferPaymentIntent = async (req, res) => {
     const projectName = project?.projectName || 'Solar Installation';
 
     // =============================================
-// STEP 1: Create Payment Intent with DOB
-// =============================================
-const paymentIntent = await PayMongoService.createPaymentIntent(
-  amountToPay,
-  `${invoice.invoiceType.toUpperCase()} Payment - ${invoice.invoiceNumber}`,
-  { invoiceId: invoice._id.toString() },
-  ['dob']
-);
+    // STEP 1: Create Payment Intent with DOB
+    // =============================================
+    const paymentIntent = await PayMongoService.createPaymentIntent(
+      amountToPay,
+      `${invoice.invoiceType.toUpperCase()} Payment - ${invoice.invoiceNumber}`,
+      { invoiceId: invoice._id.toString() },
+      ['dob']
+    );
 
-if (!paymentIntent.success) {
-  return res.status(500).json({ success: false, message: paymentIntent.error });
-}
+    if (!paymentIntent.success) {
+      return res.status(500).json({ success: false, message: paymentIntent.error });
+    }
 
-// =============================================
-// STEP 2 & 3: CRITICAL OPTIMIZATION
-// Execute the creation and attachment simultaneously or back-to-back 
-// BEFORE doing any heavy database saves or logging.
-// =============================================
-const paymentMethodResult = await PayMongoService.createDOBPaymentMethod(
-  bankCode, 
-  {
-    name: `${client.contactFirstName} ${client.contactLastName}`,
-    email: client.userId?.email || 'customer@example.com',
-    phone: client.contactNumber || ''
-  }
-);
+    // =============================================
+    // STEP 2 & 3: CRITICAL OPTIMIZATION
+    // Execute the creation and attachment simultaneously or back-to-back 
+    // BEFORE doing any heavy database saves or logging.
+    // =============================================
+    const paymentMethodResult = await PayMongoService.createDOBPaymentMethod(
+      bankCode,
+      {
+        name: `${client.contactFirstName} ${client.contactLastName}`,
+        email: client.userId?.email || 'customer@example.com',
+        phone: client.contactNumber || ''
+      }
+    );
 
-if (!paymentMethodResult.success) {
-  return res.status(500).json({ success: false, message: paymentMethodResult.error });
-}
+    if (!paymentMethodResult.success) {
+      return res.status(500).json({ success: false, message: paymentMethodResult.error });
+    }
 
-// Attach immediately without waiting for anything else
-const attachResult = await PayMongoService.attachPaymentMethodWithRedirect(
-  paymentIntent.paymentIntentId,
-  paymentMethodResult.paymentMethodId,
-  paymentIntent.clientSecret,
-  `${process.env.FRONTEND_URL}/app/customer/payment-success`
-);
+    // Attach immediately without waiting for anything else
+    const attachResult = await PayMongoService.attachPaymentMethodWithRedirect(
+      paymentIntent.paymentIntentId,
+      paymentMethodResult.paymentMethodId,
+      paymentIntent.clientSecret,
+      `${process.env.FRONTEND_URL}/app/customer/payment-success`
+    );
 
-if (!attachResult.success) {
-  return res.status(500).json({ success: false, message: attachResult.error });
-}
+    if (!attachResult.success) {
+      return res.status(500).json({ success: false, message: attachResult.error });
+    }
 
-// =============================================
-// STEP 4: Save to Database (MOVE THIS TO THE END)
-// Moving this here ensures database write-latency doesn't delay your API response
-// =============================================
-invoice.paymongoPaymentIntentId = paymentIntent.paymentIntentId;
-invoice.paymentMethod = 'dob';
-invoice.paymentGateway = 'paymongo';
-await invoice.save(); 
+    // =============================================
+    // STEP 4: Save to Database (MOVE THIS TO THE END)
+    // Moving this here ensures database write-latency doesn't delay your API response
+    // =============================================
+    invoice.paymongoPaymentIntentId = paymentIntent.paymentIntentId;
+    invoice.paymentMethod = 'dob';
+    invoice.paymentGateway = 'paymongo';
+    await invoice.save();
 
-// =============================================
-// STEP 5: Return Response Immediately
-// =============================================
-return res.json({
-  success: true,
-  redirectUrl: attachResult.redirectUrl, // Hand this off to window.location.href immediately
-  status: attachResult.status
-});
+    // =============================================
+    // STEP 5: Return Response Immediately
+    // =============================================
+    return res.json({
+      success: true,
+      redirectUrl: attachResult.redirectUrl, // Hand this off to window.location.href immediately
+      status: attachResult.status
+    });
 
   } catch (error) {
     console.error('Create bank transfer payment intent error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Failed to create bank transfer payment', 
-      error: error.message 
+      message: 'Failed to create bank transfer payment',
+      error: error.message
     });
   }
 };
@@ -311,7 +312,7 @@ exports.createInvoicePaymentIntent = async (req, res) => {
     }
 
     const amountToPay = invoice.balance || invoice.totalAmount;
-    
+
     if (amountToPay <= 0) {
       return res.status(400).json({ message: 'No outstanding balance' });
     }
@@ -350,17 +351,17 @@ exports.createInvoicePaymentIntent = async (req, res) => {
 
       const successUrl = `${process.env.FRONTEND_URL}/app/customer/payment-success?payment_intent_id=${paymentIntent.paymentIntentId}`;
       const cancelUrl = `${process.env.FRONTEND_URL}/app/customer/payment-cancel?payment_intent_id=${paymentIntent.paymentIntentId}`;
-      
+
       const gcashPayment = await PayMongoService.createGCashPaymentSource(
         paymentIntent.paymentIntentId,
         successUrl,
         cancelUrl
       );
-      
+
       if (!gcashPayment.success) {
         return res.status(500).json({ message: gcashPayment.error });
       }
-      
+
       return res.json({
         success: true,
         redirectUrl: gcashPayment.redirectUrl,
@@ -375,7 +376,7 @@ exports.createInvoicePaymentIntent = async (req, res) => {
     // =============================================
     if (paymentMethod === 'dob') {
       const bankCode = req.body.bankCode || 'bpi'; // Default to BPI
-      
+
       // Step 1: Create Payment Intent with DOB allowed
       const paymentIntent = await PayMongoService.createPaymentIntent(
         amountToPay,
@@ -501,9 +502,9 @@ exports.createInvoicePaymentIntent = async (req, res) => {
 
   } catch (error) {
     console.error('Create invoice payment intent error:', error);
-    res.status(500).json({ 
-      message: 'Failed to create payment intent', 
-      error: error.message 
+    res.status(500).json({
+      message: 'Failed to create payment intent',
+      error: error.message
     });
   }
 };
@@ -550,10 +551,10 @@ exports.createBrankasPaymentSource = async (req, res) => {
     const amountToPay = amount || assessment?.assessmentFee || invoice?.balance || invoice?.totalAmount;
 
     // Get description
-    const desc = description || 
-                 assessment?.bookingReference || 
-                 invoice?.invoiceNumber || 
-                 'Solar Installation Payment';
+    const desc = description ||
+      assessment?.bookingReference ||
+      invoice?.invoiceNumber ||
+      'Solar Installation Payment';
 
     // Create Brankas payment source (Direct Online Banking)
     const brankasResult = await PayMongoService.createBrankasPaymentSource(
@@ -569,9 +570,9 @@ exports.createBrankasPaymentSource = async (req, res) => {
 
     if (!brankasResult.success) {
       console.error('Brankas payment source creation failed:', brankasResult.error);
-      return res.status(500).json({ 
-        success: false, 
-        message: brankasResult.error || 'Failed to create bank transfer payment' 
+      return res.status(500).json({
+        success: false,
+        message: brankasResult.error || 'Failed to create bank transfer payment'
       });
     }
 
@@ -599,10 +600,10 @@ exports.createBrankasPaymentSource = async (req, res) => {
 
   } catch (error) {
     console.error('Create Brankas payment source error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to create bank transfer payment', 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create bank transfer payment',
+      error: error.message
     });
   }
 };
@@ -627,7 +628,7 @@ exports.processCardPayment = async (req, res) => {
     }
 
     // First, try to find which payment type this belongs to
-    let assessment = await PreAssessment.findOne({ 
+    let assessment = await PreAssessment.findOne({
       paymongoPaymentIntentId: paymentIntentId,
       clientId: client._id
     }).populate('clientId', 'contactFirstName contactLastName contactNumber userId')
@@ -642,7 +643,7 @@ exports.processCardPayment = async (req, res) => {
         paymongoPaymentIntentId: paymentIntentId,
         clientId: client._id
       });
-      
+
       if (invoice) {
         project = await Project.findById(invoice.projectId);
       }
@@ -678,7 +679,7 @@ exports.processCardPayment = async (req, res) => {
 
     // Check if payment succeeded
     if (attachResult.status === 'succeeded') {
-      
+
       // ============ HANDLE PRE-ASSESSMENT PAYMENT ============
       if (assessment) {
         assessment.paymentStatus = 'paid';
@@ -688,18 +689,18 @@ exports.processCardPayment = async (req, res) => {
         assessment.autoVerified = true;
         assessment.paymentCompletedAt = new Date();
         assessment.confirmedAt = new Date();
-        
+
         // Generate receipt for pre-assessment
         let receipt = null;
         try {
           const customerName = `${assessment.clientId.contactFirstName || ''} ${assessment.clientId.contactLastName || ''}`.trim();
-          
+
           let addressString = '';
           if (assessment.addressId) {
             const addr = assessment.addressId;
             addressString = `${addr.houseOrBuilding || ''} ${addr.street || ''}, ${addr.barangay || ''}, ${addr.cityMunicipality || ''}`.trim();
           }
-          
+
           receipt = await receiptService.generateReceipt({
             paymentType: 'pre_assessment',
             amount: assessment.assessmentFee,
@@ -727,9 +728,23 @@ exports.processCardPayment = async (req, res) => {
         } catch (receiptError) {
           console.error('Receipt generation error (non-blocking):', receiptError.message);
         }
-        
-        await assessment.save();
 
+        await assessment.save();
+        // Add after await assessment.save();
+        await sendNotification(
+          userId,
+          'Payment Successful',
+          'Your payment for pre-assessment ' + assessment.bookingReference + ' has been confirmed. Amount: PHP ' + assessment.assessmentFee.toFixed(2),
+          'success',
+          '/pre-assessment/' + assessment._id,
+          {
+            metadata: {
+              bookingReference: assessment.bookingReference,
+              invoiceNumber: assessment.invoiceNumber,
+              amount: assessment.assessmentFee
+            }
+          }
+        );
         return res.json({
           success: true,
           message: 'Payment successful',
@@ -746,11 +761,11 @@ exports.processCardPayment = async (req, res) => {
           }
         });
       }
-      
+
       // ============ HANDLE INVOICE PAYMENT (PROJECT BILL) ============
       if (invoice) {
         const paymentAmount = attachResult.amount || invoice.balance;
-        
+
         // Add payment to invoice
         await invoice.addPayment({
           amount: paymentAmount,
@@ -769,12 +784,12 @@ exports.processCardPayment = async (req, res) => {
           case 'full': receiptPaymentType = 'full'; break;
           default: receiptPaymentType = 'additional';
         }
-        
+
         // Generate receipt for invoice payment
         let receipt = null;
         try {
           const customerName = `${client.contactFirstName || ''} ${client.contactLastName || ''}`.trim();
-          
+
           receipt = await receiptService.generateReceipt({
             paymentType: receiptPaymentType,
             amount: paymentAmount,
@@ -803,7 +818,7 @@ exports.processCardPayment = async (req, res) => {
         } catch (receiptError) {
           console.error('Receipt generation error (non-blocking):', receiptError.message);
         }
-        
+
         // Update project if linked
         if (project) {
           const scheduleItem = project.paymentSchedule?.find(p => p.type === invoice.invoiceType);
@@ -812,10 +827,10 @@ exports.processCardPayment = async (req, res) => {
             scheduleItem.paidAt = new Date();
             scheduleItem.paymentReference = paymentIntentId;
             scheduleItem.paymentGateway = 'paymongo';
-            
+
             project.amountPaid = (project.amountPaid || 0) + paymentAmount;
             project.balance = project.totalCost - project.amountPaid;
-            
+
             if (invoice.invoiceType === 'initial' && project.status === 'approved') {
               project.status = 'initial_paid';
             } else if (invoice.invoiceType === 'progress' && project.status === 'in_progress') {
@@ -827,8 +842,23 @@ exports.processCardPayment = async (req, res) => {
               project.status = 'full_paid';
               project.fullPaymentCompleted = true;
             }
-            
+
             await project.save();
+            // Add after await project.save();
+            await sendNotification(
+              userId,
+              'Invoice Payment Successful',
+              'Your payment for invoice ' + invoice.invoiceNumber + ' has been confirmed. Amount: PHP ' + paymentAmount.toFixed(2),
+              'success',
+              '/invoices/' + invoice._id,
+              {
+                metadata: {
+                  invoiceNumber: invoice.invoiceNumber,
+                  invoiceType: invoice.invoiceType,
+                  amount: paymentAmount
+                }
+              }
+            );
             console.log(`✅ Project ${project.projectReference} updated: status=${project.status}, amountPaid=${project.amountPaid}`);
           }
         }
@@ -888,7 +918,7 @@ exports.verifyPayment = async (req, res) => {
     }
 
     // Check pre-assessment first
-    let assessment = await PreAssessment.findOne({ 
+    let assessment = await PreAssessment.findOne({
       paymongoPaymentIntentId: paymentIntentId,
       clientId: client._id
     });
@@ -935,7 +965,7 @@ exports.verifyPayment = async (req, res) => {
 
     // Check if payment is successful
     if (paymentIntent.status === 'succeeded' || paymentIntent.isPaid === true) {
-      
+
       if (assessment) {
         assessment.paymentStatus = 'paid';
         assessment.assessmentStatus = 'scheduled';
@@ -944,14 +974,28 @@ exports.verifyPayment = async (req, res) => {
         assessment.paymentGateway = 'paymongo';
         assessment.paymentCompletedAt = new Date();
         assessment.confirmedAt = new Date();
-        
+
         if (paymentIntent.paymentDetails) {
           assessment.paymentReference = paymentIntent.paymentDetails.id;
         }
-        
+
         await assessment.save();
+        // Add after await assessment.save() or await project.save()
+        await sendNotification(
+          userId,
+          'Payment Verified',
+          'Your payment has been verified successfully.',
+          'success',
+          assessment ? '/pre-assessment/' + assessment._id : '/invoices/' + invoice._id,
+          {
+            metadata: {
+              reference: assessment?.bookingReference || invoice?.invoiceNumber,
+              type: assessment ? 'pre_assessment' : 'invoice'
+            }
+          }
+        );
       }
-      
+
       if (invoice) {
         await invoice.addPayment({
           amount: paymentIntent.amount / 100,
@@ -960,7 +1004,7 @@ exports.verifyPayment = async (req, res) => {
           date: new Date(),
           notes: 'Payment verified via PayMongo'
         });
-        
+
         // Update project if linked
         if (invoice.projectId) {
           const project = await Project.findById(invoice.projectId);
@@ -971,10 +1015,10 @@ exports.verifyPayment = async (req, res) => {
               scheduleItem.paidAt = new Date();
               scheduleItem.paymentReference = paymentIntentId;
               scheduleItem.paymentGateway = 'paymongo';
-              
+
               project.amountPaid = (project.amountPaid || 0) + (paymentIntent.amount / 100);
               project.balance = project.totalCost - project.amountPaid;
-              
+
               if (invoice.invoiceType === 'initial' && project.status === 'approved') {
                 project.status = 'initial_paid';
               } else if (invoice.invoiceType === 'progress' && project.status === 'in_progress') {
@@ -986,8 +1030,22 @@ exports.verifyPayment = async (req, res) => {
                 project.status = 'full_paid';
                 project.fullPaymentCompleted = true;
               }
-              
+
               await project.save();
+              // Add after await assessment.save() or await project.save()
+              await sendNotification(
+                userId,
+                'Payment Verified',
+                'Your payment has been verified successfully.',
+                'success',
+                assessment ? '/pre-assessment/' + assessment._id : '/invoices/' + invoice._id,
+                {
+                  metadata: {
+                    reference: assessment?.bookingReference || invoice?.invoiceNumber,
+                    type: assessment ? 'pre_assessment' : 'invoice'
+                  }
+                }
+              );
             }
           }
         }
@@ -1020,9 +1078,9 @@ exports.verifyPayment = async (req, res) => {
 
   } catch (error) {
     console.error('Verify payment error:', error);
-    res.status(500).json({ 
-      message: 'Failed to verify payment', 
-      error: error.message 
+    res.status(500).json({
+      message: 'Failed to verify payment',
+      error: error.message
     });
   }
 };
@@ -1091,15 +1149,15 @@ exports.getPaymentStatus = async (req, res) => {
     const paymentIntent = await PayMongoService.getPaymentIntent(paymentIntentId);
 
     if (!paymentIntent.success) {
-      return res.status(500).json({ 
-        success: false, 
-        message: paymentIntent.error 
+      return res.status(500).json({
+        success: false,
+        message: paymentIntent.error
       });
     }
 
     // Determine if this is a bank transfer (Brankas) payment
     const isBankTransfer = paymentIntent.paymentMethodType === 'brankas' ||
-                          paymentIntent.paymentMethodType === 'direct_debit';
+      paymentIntent.paymentMethodType === 'direct_debit';
 
     return res.json({
       success: true,
@@ -1117,10 +1175,10 @@ exports.getPaymentStatus = async (req, res) => {
 
   } catch (error) {
     console.error('Get payment status error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to get payment status', 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get payment status',
+      error: error.message
     });
   }
 };
@@ -1156,10 +1214,10 @@ exports.getSupportedBanks = async (req, res) => {
 
   } catch (error) {
     console.error('Get supported banks error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to get supported banks', 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get supported banks',
+      error: error.message
     });
   }
 };
@@ -1177,9 +1235,9 @@ exports.handlePayMongoWebhook = async (req, res) => {
     console.log('📨 Webhook received:', event.type);
 
     const eventData = event.data;
-    const paymentIntentId = eventData?.attributes?.payment_intent_id || 
-                           eventData?.attributes?.data?.id ||
-                           eventData?.id;
+    const paymentIntentId = eventData?.attributes?.payment_intent_id ||
+      eventData?.attributes?.data?.id ||
+      eventData?.id;
 
     if (!paymentIntentId) {
       console.log('⚠️ No payment intent ID in webhook');
@@ -1306,7 +1364,7 @@ async function handleSuccessfulPayment(assessment, invoice, eventData) {
           scheduleItem.paidAt = new Date();
           scheduleItem.paymentReference = invoice.paymongoPaymentIntentId;
           scheduleItem.paymentGateway = 'paymongo';
-          
+
           project.amountPaid = (project.amountPaid || 0) + amount;
           project.balance = project.totalCost - project.amountPaid;
 
@@ -1373,7 +1431,7 @@ exports.getTestCard = async (req, res) => {
   if (process.env.NODE_ENV === 'production') {
     return res.status(403).json({ message: 'Not available in production' });
   }
-  
+
   res.json({
     success: true,
     testCard: PayMongoService.getTestCard()

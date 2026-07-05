@@ -34,6 +34,7 @@ const Dashboard = () => {
   const [initialized, setInitialized] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const [maintenanceStatus, setMaintenanceStatus] = useState({ isUnderMaintenance: false, title: '' });
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const sidebarSettingsDropdownRef = useRef(null);
   const sidebarSupportDropdownRef = useRef(null);
@@ -44,6 +45,21 @@ const Dashboard = () => {
   const [userRole, setUserRole] = useState('user');
   const [userName, setUserName] = useState('Customer User');
   const [userPhoto, setUserPhoto] = useState(null);
+
+  // Fetch unread notification count
+  const fetchUnreadCount = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/notifications/unread-count`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUnreadCount(response.data.count || 0);
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  };
 
   // Support submenu
   const supportSubmenu = [
@@ -89,6 +105,12 @@ const Dashboard = () => {
         return {
           title: 'Billing',
           description: 'View your invoices, payment history, and manage your billing information.'
+        };
+      }
+      if (currentPath === '/app/customer/notifications') {
+        return {
+          title: 'Notifications',
+          description: 'Stay updated with the latest alerts and updates about your solar projects.'
         };
       }
       if (currentPath === '/app/customer/settings' || currentPath.startsWith('/app/customer/settings?')) {
@@ -153,6 +175,12 @@ const Dashboard = () => {
           description: 'View your work schedule, appointments, and site visit calendar.'
         };
       }
+      if (currentPath === '/app/engineer/notifications') {
+        return {
+          title: 'Notifications',
+          description: 'Stay updated with task assignments and project updates.'
+        };
+      }
     }
 
     // Admin Pages
@@ -211,6 +239,12 @@ const Dashboard = () => {
           description: 'Manage system maintenance tasks and monitor service status.'
         };
       }
+      if (currentPath === '/app/admin/notifications') {
+        return {
+          title: 'Notifications',
+          description: 'Monitor system alerts, user activities, and important updates.'
+        };
+      }
       if (currentPath === '/app/admin/settings') {
         return {
           title: 'Settings',
@@ -228,7 +262,7 @@ const Dashboard = () => {
 
   const pageInfo = getPageInfo();
 
-  // Categorized menu items - ONLY 2 CATEGORIES with dropdowns
+  // Categorized menu items with Notifications integrated
   const menuItems = {
     admin: {
       sections: [
@@ -240,6 +274,7 @@ const Dashboard = () => {
             { icon: <FaClipboardList />, label: 'Site Assessments', path: '/app/admin/siteassessment' },
             { icon: <FaProjectDiagram />, label: 'Projects', path: '/app/admin/project' },
             { icon: <FaMicrochip />, label: 'IoT Devices', path: '/app/admin/iotdevice' },
+            { icon: <FaBell />, label: 'Notifications', path: '/app/admin/notifications', badge: true },
           ]
         },
         {
@@ -266,6 +301,7 @@ const Dashboard = () => {
             { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/app/engineer' },
             { icon: <FaClipboardCheck />, label: 'My Assessments', path: '/app/engineer/assessment' },
             { icon: <FaProjectDiagram />, label: 'My Projects', path: '/app/engineer/project' },
+            { icon: <FaBell />, label: 'Notifications', path: '/app/engineer/notifications', badge: true },
           ]
         },
         {
@@ -288,6 +324,7 @@ const Dashboard = () => {
             { icon: <FaHome />, label: 'Dashboard', path: '/app/customer' },
             { icon: <FaProjectDiagram />, label: 'My Project', path: '/app/customer/project' },
             { icon: <FaCalendarAlt />, label: 'Book Assessment', path: '/app/customer/book-assessment' },
+            { icon: <FaBell />, label: 'Notifications', path: '/app/customer/notifications', badge: true },
           ]
         },
         {
@@ -338,7 +375,7 @@ const Dashboard = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Handle user authentication
+  // Handle user authentication and fetch unread count
   useEffect(() => {
     if (initialized || isNavigating) return;
 
@@ -357,6 +394,9 @@ const Dashboard = () => {
       return;
     }
 
+    // Fetch unread count after authentication
+    fetchUnreadCount();
+
     if (!initialized && location.pathname === '/app') {
       setInitialized(true);
       setTimeout(() => {
@@ -372,6 +412,14 @@ const Dashboard = () => {
       setInitialized(true);
     }
   }, [navigate, location.pathname, initialized, isNavigating]);
+
+  // Poll for unread count updates every 30 seconds
+  useEffect(() => {
+    if (!initialized) return;
+
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [initialized]);
 
   // Fetch maintenance status (Admin only)
   useEffect(() => {
@@ -462,8 +510,6 @@ const Dashboard = () => {
     setTimeout(() => setIsNavigating(false), 500);
   };
 
-  const handleNotificationClick = () => {};
-
   return (
     <div className="dashboard-layout-dashboard">
       {/* Mobile Hamburger Button */}
@@ -495,7 +541,7 @@ const Dashboard = () => {
         </div>
 
         <nav className="sidebar-nav-layout-dashboard">
-          {/* ONLY 2 CATEGORIES */}
+          {/* ONLY 2 CATEGORIES with Notifications integrated */}
           {currentMenu.sections.map((section, sectionIndex) => (
             <div key={sectionIndex} className="sidebar-section-layout-dashboard">
               <div className="sidebar-section-header-layout-dashboard">
@@ -515,6 +561,9 @@ const Dashboard = () => {
                   >
                     <span className="nav-icon-layout-dashboard">{item.icon}</span>
                     <span className="nav-label-layout-dashboard">{item.label}</span>
+                    {item.badge && unreadCount > 0 && (
+                      <span className="notification-badge-sidebar">{unreadCount}</span>
+                    )}
                   </button>
                 ))}
                 
@@ -578,22 +627,6 @@ const Dashboard = () => {
               </div>
             </div>
           ))}
-          
-          {/* Notification button - walang lumalabas pag pinindot */}
-          <div className="sidebar-section-layout-dashboard">
-            <div className="sidebar-section-header-layout-dashboard">
-              <span className="sidebar-section-icon-layout-dashboard"><FaBell /></span>
-              <span className="sidebar-section-title-layout-dashboard">Notifications</span>
-            </div>
-            <button
-              onClick={handleNotificationClick}
-              className="nav-item-layout-dashboard"
-              disabled={isNavigating}
-            >
-              <span className="nav-icon-layout-dashboard"><FaBell /></span>
-              <span className="nav-label-layout-dashboard">Notifications</span>
-            </button>
-          </div>
 
           {/* SPACER to push logout to bottom */}
           <div className="sidebar-spacer-layout-dashboard"></div>

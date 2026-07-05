@@ -1,4 +1,4 @@
-// App.jsx - Updated with Maintenance integration
+// App.jsx - Full updated version with notification routes
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -7,7 +7,8 @@ import SolarisLandingPage from './pages/Auth/landingpage';
 import LoginPage from './pages/Auth/loginpage';
 import RegisterPage from './pages/Auth/registerpage';
 import ForgotPage from './pages/Auth/forgotpage';
-import TermsPage from './assets/termspage'; // Import TermsPage
+import TermsPage from './assets/termspage';
+import Notifications from './pages/Auth/notification'; // <-- ADD THIS IMPORT
 
 import DashboardLayout from "./pages/Dashboard_Layout/dashboard";
 import SetupAccount from "./pages/Customer/setupacc";
@@ -182,7 +183,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/maintenance" element={<MaintenancePage />} />
-        <Route path="/terms" element={<TermsPage />} /> {/* Terms Page Route */}
+        <Route path="/terms" element={<TermsPage />} />
         
         <Route 
           path="/" 
@@ -217,7 +218,7 @@ function App() {
           } 
         />
 
-        {/* Setup Account - NOW PROTECTED */}
+        {/* Setup Account */}
         <Route 
           path="/setup" 
           element={
@@ -254,6 +255,7 @@ function App() {
           <Route path="settings" element={<Settings />} />
           <Route path="maintenance" element={<Maintenance />} />
           <Route path="system-config" element={<SystemConfig />} />
+          <Route path="notifications" element={<Notifications />} /> {/* ADDED */}
         </Route>
 
         {/* Engineer Routes */}
@@ -277,6 +279,7 @@ function App() {
           <Route path="quotation" element={<EngineerQuotation />} />
           <Route path="schedule" element={<EngineerSchedule />} />
           <Route path="profile" element={<EngineerProfile />} />
+          <Route path="notifications" element={<Notifications />} /> {/* ADDED */}
         </Route>
 
         {/* Customer Routes */}
@@ -301,6 +304,7 @@ function App() {
           <Route path="settings" element={<CustomerSettings />} />
           <Route path="payment-success" element={<PaymentSuccess />} />
           <Route path="payment-cancel" element={<PaymentCancel />} />
+          <Route path="notifications" element={<Notifications />} /> {/* ADDED */}
         </Route>
 
         {/* Catch all - redirect based on role */}

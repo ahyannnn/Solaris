@@ -10,6 +10,8 @@ const cloudinary = require('cloudinary').v2;
 const mongoose = require('mongoose');
 const PayMongoService = require('../services/paymongoService');
 const receiptService = require('../services/receiptService');
+// Add this at the top of preAssessmentControllers.js with other requires
+const { sendNotification } = require('../utils/notificationHelper');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -167,7 +169,21 @@ exports.verifyPayMongoPayment = async (req, res) => {
     assessment.paymentCompletedAt = new Date();
     assessment.confirmedAt = new Date();
     await assessment.save();
-
+    // Add this after await assessment.save();
+    await sendNotification(
+      userId,
+      'Payment Confirmed',
+      'Your payment for ' + assessment.bookingReference + ' has been confirmed. Your site assessment is now scheduled.',
+      'success',
+      '/pre-assessment/' + assessment._id,
+      {
+        metadata: {
+          bookingReference: assessment.bookingReference,
+          invoiceNumber: assessment.invoiceNumber,
+          assessmentStatus: assessment.assessmentStatus
+        }
+      }
+    );
     res.json({
       success: true,
       message: 'Payment verified successfully',
@@ -518,7 +534,26 @@ exports.generateQuotationPDF = async (req, res) => {
     assessment.assessmentStatus = 'report_draft';
 
     await assessment.save();
-
+    // After await assessment.save();
+    // FIX: Check if userId exists before sending notification
+    const userId = assessment.clientId?.userId?._id;
+    if (userId) {
+      await sendNotification(
+        userId,
+        'Quotation Ready',
+        'Your quotation for ' + assessment.bookingReference + ' is now ready. Total cost: PHP ' + calculatedTotalCost.toFixed(2),
+        'success',
+        '/pre-assessment/' + assessment._id,
+        {
+          metadata: {
+            bookingReference: assessment.bookingReference,
+            quotationNumber: quotationNumber || 'Q-' + assessment.bookingReference,
+            totalCost: calculatedTotalCost,
+            systemSize: systemSize
+          }
+        }
+      );
+    }
     res.json({
       success: true,
       message: 'Quotation PDF generated and uploaded successfully',
@@ -687,7 +722,13 @@ exports.approveBooking = async (req, res) => {
     const { id } = req.params;
     const { approved, notes } = req.body;
 
-    const assessment = await PreAssessment.findById(id);
+    const assessment = await PreAssessment.findById(id).populate({
+      path: 'clientId',
+      populate: {
+        path: 'userId',
+        select: 'email _id'
+      }
+    });
     if (!assessment) {
       return res.status(404).json({ message: 'Pre-assessment not found' });
     }
@@ -710,9 +751,44 @@ exports.approveBooking = async (req, res) => {
       assessment.paymentStatus = 'pending';
       assessment.assessmentStatus = 'pending_payment'; // After approval, goes to pending payment
       assessment.adminRemarks = notes || 'Booking approved';
+      // Add this after setting invoice number and before await assessment.save();
+      const userId = assessment.clientId?.userId?._id;
+      if (userId) {
+        await sendNotification(
+          userId,
+          'Booking Approved',
+          'Your pre-assessment booking ' + assessment.bookingReference + ' has been approved. Invoice #' + invoiceNumber + ' is ready. Please proceed to payment.',
+          'success',
+          '/payment/' + assessment.bookingReference,
+          {
+            metadata: {
+              bookingReference: assessment.bookingReference,
+              invoiceNumber: invoiceNumber,
+              assessmentFee: assessment.assessmentFee
+            }
+          }
+        );
+      }
     } else {
       assessment.assessmentStatus = 'cancelled';
       assessment.adminRemarks = notes || 'Booking rejected by admin';
+      // FIX: Check if userId exists before sending notification
+      const userId = assessment.clientId?.userId?._id;
+      if (userId) {
+        await sendNotification(
+          userId,
+          'Booking Rejected',
+          'Your pre-assessment booking ' + assessment.bookingReference + ' was rejected. Reason: ' + (notes || 'Not specified'),
+          'error',
+          '/pre-assessment',
+          {
+            metadata: {
+              bookingReference: assessment.bookingReference,
+              reason: notes || 'Not specified'
+            }
+          }
+        );
+      }
     }
 
     await assessment.save();
@@ -818,7 +894,21 @@ exports.createPreAssessment = async (req, res) => {
 
     const preAssessment = new PreAssessment(preAssessmentData);
     await preAssessment.save();
-
+    // Add this after await preAssessment.save();
+    await sendNotification(
+      userId,
+      'Booking Submitted',
+      'Your pre-assessment booking ' + bookingReference + ' has been submitted successfully. We will review it within 24 hours.',
+      'success',
+      '/pre-assessment',
+      {
+        metadata: {
+          bookingReference: bookingReference,
+          propertyType: propertyType,
+          preferredDate: preAssessment.preferredDate
+        }
+      }
+    );
     res.status(201).json({
       success: true,
       message: 'Pre-assessment booking submitted for admin approval',
@@ -1079,8 +1169,13 @@ exports.verifyPayment = async (req, res) => {
     const adminId = req.user.id;
 
     const preAssessment = await PreAssessment.findById(id)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber userId')
-      .populate('clientId.userId', 'email');
+      .populate({
+        path: 'clientId',
+        populate: {
+          path: 'userId',
+          select: 'email _id'
+        }
+      });
 
     if (!preAssessment) {
       return res.status(404).json({ message: 'Booking not found' });
@@ -1130,7 +1225,23 @@ exports.verifyPayment = async (req, res) => {
 
         preAssessment.receiptUrl = receipt.receiptUrl;
         preAssessment.receiptNumber = receipt.receiptNumber;
-
+        const userId = preAssessment.clientId?.userId?._id;
+      if (userId) {
+        await sendNotification(
+          userId,
+          'Payment Verified',
+          'Your payment for ' + preAssessment.bookingReference + ' has been verified. Your site assessment is now scheduled.',
+          'success',
+          '/pre-assessment/' + preAssessment._id,
+          {
+            metadata: {
+              bookingReference: preAssessment.bookingReference,
+              invoiceNumber: preAssessment.invoiceNumber,
+              receiptNumber: preAssessment.receiptNumber
+            }
+          }
+        );
+      }
         console.log(`✅ Receipt generated for pre-assessment ${preAssessment.bookingReference}: ${receipt.receiptNumber}`);
       } catch (receiptError) {
         console.error('Receipt generation error:', receiptError);
@@ -1138,6 +1249,23 @@ exports.verifyPayment = async (req, res) => {
       }
 
     } else {
+      // FIX: Check if userId exists before sending notification
+      const userId = preAssessment.clientId?.userId?._id;
+      if (userId) {
+        await sendNotification(
+          userId,
+          'Payment Rejected',
+          'Your payment for ' + preAssessment.bookingReference + ' was rejected. Reason: ' + (notes || 'Please contact support'),
+          'error',
+          '/payment',
+          {
+            metadata: {
+              bookingReference: preAssessment.bookingReference,
+              reason: notes || 'Please contact support'
+            }
+          }
+        );
+      }
       preAssessment.paymentStatus = 'failed';
       preAssessment.assessmentStatus = 'cancelled';
       preAssessment.adminRemarks = notes || 'Payment rejected by admin';
@@ -2188,7 +2316,26 @@ exports.deployDevice = async (req, res) => {
     assessment.dataCollectionStart = new Date();
     assessment.assessmentStatus = 'device_deployed';
     await assessment.save();
-
+    // Add this after await assessment.save();
+    // After await assessment.save();
+// FIX: Check if userId exists before sending notification
+const userId = assessment.clientId?.userId?._id;
+if (userId) {
+  await sendNotification(
+    userId,
+    'Device Deployed',
+    'A monitoring device has been deployed at your property for ' + assessment.bookingReference + '. Data collection has started.',
+    'info',
+    '/pre-assessment/' + assessment._id,
+    {
+      metadata: {
+        bookingReference: assessment.bookingReference,
+        deviceName: device.deviceName,
+        dataCollectionStart: assessment.dataCollectionStart
+      }
+    }
+  );
+}
     res.json({
       success: true,
       message: 'Device deployed successfully on site',
@@ -2413,7 +2560,13 @@ exports.assignEngineer = async (req, res) => {
     const { id } = req.params;
     const { engineerId, siteVisitDate, notes } = req.body;
 
-    const assessment = await PreAssessment.findById(id);
+    const assessment = await PreAssessment.findById(id).populate({
+      path: 'clientId',
+      populate: {
+        path: 'userId',
+        select: 'email _id'
+      }
+    });
     if (!assessment) {
       return res.status(404).json({ message: 'Pre-assessment not found' });
     }
@@ -2423,7 +2576,23 @@ exports.assignEngineer = async (req, res) => {
     if (notes) assessment.siteVisitNotes = notes;
 
     await assessment.save();
-
+    const userId = assessment.clientId?.userId?._id;
+    if (userId) {
+      await sendNotification(
+        userId,
+        'Engineer Assigned',
+        'An engineer has been assigned to your pre-assessment booking ' + assessment.bookingReference + '. Site visit scheduled for ' + (siteVisitDate ? new Date(siteVisitDate).toLocaleDateString() : 'soon'),
+        'info',
+        '/pre-assessment/' + assessment._id,
+        {
+          metadata: {
+            bookingReference: assessment.bookingReference,
+            engineerId: engineerId,
+            siteVisitDate: siteVisitDate || 'TBD'
+          }
+        }
+      );
+    }
     res.json({
       success: true,
       message: 'Engineer assigned successfully',
@@ -2866,7 +3035,27 @@ exports.retrieveDevice = async (req, res) => {
     }
 
     await assessment.save();
-
+    // Add this after await assessment.save();
+    // After await assessment.save();
+// FIX: Check if userId exists before sending notification
+const userId = assessment.clientId?.userId?._id;
+if (userId) {
+  await sendNotification(
+    userId,
+    'Data Collection Complete',
+    'Data collection for ' + assessment.bookingReference + ' is complete. ' + sensorData.length + ' readings were collected over ' + numberOfDays + ' days.',
+    'success',
+    '/pre-assessment/' + assessment._id,
+    {
+      metadata: {
+        bookingReference: assessment.bookingReference,
+        totalReadings: sensorData.length,
+        daysCollected: numberOfDays,
+        peakSunHours: peakSunHours
+      }
+    }
+  );
+}
     res.json({
       success: true,
       message: `Device retrieved successfully. Processed ${sensorData.length} readings over ${numberOfDays} days. Average Peak Sun Hours: ${peakSunHours} hours/day (${intervalsAbove1000} intervals ≥1000 W/m²)`,

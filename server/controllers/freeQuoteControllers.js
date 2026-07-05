@@ -7,6 +7,8 @@ const File = require('../models/File');
 const PDFGenerator = require('../services/pdfGenerator');
 const cloudinary = require('cloudinary').v2;
 const mongoose = require('mongoose');
+// Add this at the top after other requires
+const { sendNotification } = require('../utils/notificationHelper');
 
 // Configure Cloudinary (if not already configured elsewhere)
 cloudinary.config({
@@ -213,7 +215,21 @@ exports.createFreeQuote = async (req, res) => {
     });
 
     await freeQuote.save();
-
+    // Add this after await freeQuote.save();
+    await sendNotification(
+      userId,
+      'Free Quote Request Submitted',
+      'Your free quote request ' + quotationReference + ' has been submitted successfully. We will process it within 24-48 hours.',
+      'success',
+      '/free-quotes/' + freeQuote._id,
+      {
+        metadata: {
+          quotationReference: quotationReference,
+          systemType: systemType || 'grid-tie',
+          propertyType: propertyType || 'Not specified'
+        }
+      }
+    );
     // Populate references for response
     await freeQuote.populate('clientId', 'contactFirstName contactLastName contactNumber');
     await freeQuote.populate('addressId');
@@ -382,26 +398,34 @@ exports.getFreeQuoteById = async (req, res) => {
 // @desc    Assign engineer to free quote (Admin only)
 // @route   PUT /api/free-quotes/:id/assign-engineer
 // @access  Private (Admin)
+// @desc    Assign engineer to free quote (Admin only)
+// @route   PUT /api/free-quotes/:id/assign-engineer
+// @access  Private (Admin)
 exports.assignEngineerToFreeQuote = async (req, res) => {
   try {
     const { id } = req.params;
     const { engineerId, notes } = req.body;
     const adminId = req.user.id;
 
-    // Find the free quote
-    const quote = await FreeQuote.findById(id);
+    // FIX: Populate clientId with userId
+    const quote = await FreeQuote.findById(id).populate({
+      path: 'clientId',
+      populate: {
+        path: 'userId',
+        select: 'email _id'
+      }
+    });
+
     if (!quote) {
       return res.status(404).json({ message: 'Free quote not found' });
     }
 
-    // Check if quote is pending
     if (quote.status !== 'pending') {
       return res.status(400).json({
         message: `Cannot assign engineer. Current status: ${quote.status}. Only pending quotes can be assigned.`
       });
     }
 
-    // Find the engineer
     const engineer = await User.findById(engineerId);
     if (!engineer || engineer.role !== 'engineer') {
       return res.status(400).json({
@@ -409,7 +433,6 @@ exports.assignEngineerToFreeQuote = async (req, res) => {
       });
     }
 
-    // Update the free quote
     quote.assignedEngineerId = engineerId;
     quote.assignedAt = new Date();
     quote.assignedBy = adminId;
@@ -420,7 +443,39 @@ exports.assignEngineerToFreeQuote = async (req, res) => {
 
     await quote.save();
 
-    // Populate for response
+    // FIX: Check if userId exists before sending notification
+    const userId = quote.clientId?.userId?._id;
+    if (userId) {
+      await sendNotification(
+        userId,
+        'Quote Assigned to Engineer',
+        'Your free quote request ' + quote.quotationReference + ' has been assigned to an engineer. They will review your request and provide a quotation.',
+        'info',
+        '/free-quotes/' + quote._id,
+        {
+          metadata: {
+            quotationReference: quote.quotationReference,
+            engineerName: engineer.fullName || 'Engineer'
+          }
+        }
+      );
+    }
+
+    // Notify the engineer
+    await sendNotification(
+      engineerId,
+      'New Quote Assigned',
+      'A new free quote request ' + quote.quotationReference + ' has been assigned to you. Please review and process.',
+      'info',
+      '/engineer/free-quotes/' + quote._id,
+      {
+        metadata: {
+          quotationReference: quote.quotationReference,
+          clientName: quote.clientId ? (quote.clientId.contactFirstName + ' ' + quote.clientId.contactLastName) : 'Client'
+        }
+      }
+    );
+
     await quote.populate('assignedEngineerId', 'fullName email');
     await quote.populate('clientId', 'contactFirstName contactLastName contactNumber');
 
@@ -456,18 +511,28 @@ exports.assignEngineerToFreeQuote = async (req, res) => {
 // @desc    Update free quote status (Admin only)
 // @route   PUT /api/free-quotes/:id/status
 // @access  Private (Admin)
+// @desc    Update free quote status (Admin only)
+// @route   PUT /api/free-quotes/:id/status
+// @access  Private (Admin)
 exports.updateQuoteStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, adminRemarks, quotationFile } = req.body;
     const adminId = req.user.id;
 
-    const quote = await FreeQuote.findById(id);
+    // FIX: Populate clientId with userId
+    const quote = await FreeQuote.findById(id).populate({
+      path: 'clientId',
+      populate: {
+        path: 'userId',
+        select: 'email _id'
+      }
+    });
+
     if (!quote) {
       return res.status(404).json({ message: 'Quote not found' });
     }
 
-    // Validate status transition
     const validTransitions = {
       pending: ['assigned', 'cancelled'],
       assigned: ['processing', 'cancelled'],
@@ -492,6 +557,39 @@ exports.updateQuoteStatus = async (req, res) => {
     quote.processedAt = new Date();
 
     await quote.save();
+
+    // FIX: Check if userId exists before sending notifications
+    const userId = quote.clientId?.userId?._id;
+
+    if (status === 'completed' && userId) {
+      await sendNotification(
+        userId,
+        'Quote Status Updated',
+        'Your free quote request ' + quote.quotationReference + ' has been completed. You can view the quotation now.',
+        'success',
+        '/free-quotes/' + quote._id,
+        {
+          metadata: {
+            quotationReference: quote.quotationReference,
+            status: status
+          }
+        }
+      );
+    } else if (status === 'cancelled' && userId) {
+      await sendNotification(
+        userId,
+        'Quote Cancelled',
+        'Your free quote request ' + quote.quotationReference + ' has been cancelled. Reason: ' + (adminRemarks || 'Not specified'),
+        'error',
+        '/free-quotes',
+        {
+          metadata: {
+            quotationReference: quote.quotationReference,
+            reason: adminRemarks || 'Not specified'
+          }
+        }
+      );
+    }
 
     res.json({
       success: true,
@@ -565,7 +663,19 @@ exports.cancelFreeQuote = async (req, res) => {
 
     quote.status = 'cancelled';
     await quote.save();
-
+    // Add this after await quote.save()
+    await sendNotification(
+      userId,
+      'Free Quote Cancelled',
+      'Your free quote request ' + quote.quotationReference + ' has been cancelled successfully.',
+      'error',
+      '/free-quotes',
+      {
+        metadata: {
+          quotationReference: quote.quotationReference
+        }
+      }
+    );
     res.json({
       success: true,
       message: 'Quote cancelled successfully',
@@ -624,24 +734,32 @@ exports.getEngineerFreeQuotes = async (req, res) => {
 // @desc    Engineer updates free quote status (Engineer only)
 // @route   PUT /api/free-quotes/:id/update-status
 // @access  Private (Engineer)
+// @desc    Engineer updates free quote status (Engineer only)
+// @route   PUT /api/free-quotes/:id/update-status
+// @access  Private (Engineer)
 exports.engineerUpdateStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, notes } = req.body;
     const engineerId = req.user.id;
 
-    // Find the free quote
-    const quote = await FreeQuote.findById(id);
+    // FIX: Populate clientId with userId
+    const quote = await FreeQuote.findById(id).populate({
+      path: 'clientId',
+      populate: {
+        path: 'userId',
+        select: 'email _id'
+      }
+    });
+
     if (!quote) {
       return res.status(404).json({ message: 'Free quote not found' });
     }
 
-    // Check if engineer is assigned to this quote
     if (quote.assignedEngineerId?.toString() !== engineerId) {
       return res.status(403).json({ message: 'Not authorized to update this quote' });
     }
 
-    // Validate status transitions for engineer
     const validTransitions = {
       assigned: ['processing'],
       processing: ['completed']
@@ -653,12 +771,30 @@ exports.engineerUpdateStatus = async (req, res) => {
       });
     }
 
-    // Update status
     quote.status = status;
     if (notes) quote.adminRemarks = notes;
     quote.processedAt = new Date();
 
     await quote.save();
+
+    // FIX: Check if userId exists before sending notification
+    const userId = quote.clientId?.userId?._id;
+    if (userId) {
+      await sendNotification(
+        userId,
+        'Quote Status Update',
+        'Your free quote request ' + quote.quotationReference + ' status has been updated to: ' + status,
+        'info',
+        '/free-quotes/' + quote._id,
+        {
+          metadata: {
+            quotationReference: quote.quotationReference,
+            status: status,
+            notes: notes || 'No additional notes'
+          }
+        }
+      );
+    }
 
     res.json({
       success: true,
@@ -706,7 +842,13 @@ exports.generateFreeQuotePDF = async (req, res) => {
     } = req.body;
 
     const quote = await FreeQuote.findById(id)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber userId')
+      .populate({
+        path: 'clientId',
+        populate: {
+          path: 'userId',
+          select: 'email _id'
+        }
+      })
       .populate('addressId');
 
     if (!quote) {
@@ -883,7 +1025,7 @@ exports.generateFreeQuotePDF = async (req, res) => {
     quote.quotationSentAt = new Date();
     quote.processedBy = engineerId;
     quote.processedAt = new Date();
-    
+
     // Store equipment breakdown in quote
     quote.quotationDetails = {
       quotationNumber: quotationNumber || `Q-${quote.quotationReference}`,
@@ -899,7 +1041,24 @@ exports.generateFreeQuotePDF = async (req, res) => {
     };
 
     await quote.save();
-
+    const userId = quote.clientId?.userId?._id;
+    if (userId) {
+      await sendNotification(
+        userId,
+        'Your Quotation is Ready',
+        'Your free quotation ' + (quotationNumber || quote.quotationReference) + ' is now ready. Total cost: PHP ' + calculatedTotalCost.toFixed(2),
+        'success',
+        '/free-quotes/' + quote._id,
+        {
+          metadata: {
+            quotationReference: quote.quotationReference,
+            quotationNumber: quotationNumber || quote.quotationReference,
+            totalCost: calculatedTotalCost,
+            systemSize: systemSize
+          }
+        }
+      );
+    }
     res.json({
       success: true,
       message: 'Quotation PDF generated and uploaded successfully',

@@ -65,7 +65,33 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+/* Notification Badge Styles */
+.notification-badge-sidebar {
+  background: #ef4444;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: auto;
+  min-width: 20px;
+  text-align: center;
+  animation: pulse-badge 2s ease-in-out infinite;
+}
 
+@keyframes pulse-badge {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.nav-item-layout-dashboard.active-layout-dashboard .notification-badge-sidebar {
+  background: #ffffff;
+  color: #4a6cf7;
+}
 /* ============================================
    MOBILE HAMBURGER BUTTON
    ============================================ */

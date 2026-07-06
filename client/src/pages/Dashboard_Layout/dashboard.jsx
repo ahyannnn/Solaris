@@ -262,7 +262,7 @@ const Dashboard = () => {
 
   const pageInfo = getPageInfo();
 
-  // Categorized menu items with Notifications integrated
+  // Categorized menu items - NOTIFICATIONS NOW IN ITS OWN SECTION
   const menuItems = {
     admin: {
       sections: [
@@ -274,7 +274,6 @@ const Dashboard = () => {
             { icon: <FaClipboardList />, label: 'Site Assessments', path: '/app/admin/siteassessment' },
             { icon: <FaProjectDiagram />, label: 'Projects', path: '/app/admin/project' },
             { icon: <FaMicrochip />, label: 'IoT Devices', path: '/app/admin/iotdevice' },
-            { icon: <FaBell />, label: 'Notifications', path: '/app/admin/notifications', badge: true },
           ]
         },
         {
@@ -287,6 +286,13 @@ const Dashboard = () => {
             { icon: <FaCalendarAlt />, label: 'Schedule', path: '/app/admin/schedule' },
             { icon: <FaTools />, label: 'Maintenance', path: '/app/admin/maintenance' },
             { icon: <FaCog />, label: 'Settings', path: '/app/admin/settings' },
+          ]
+        },
+        {
+          title: 'Notifications',
+          icon: <FaBell />,
+          items: [
+            { icon: <FaBell />, label: 'Notifications', path: '/app/admin/notifications', badge: true },
           ]
         }
       ]
@@ -301,7 +307,6 @@ const Dashboard = () => {
             { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/app/engineer' },
             { icon: <FaClipboardCheck />, label: 'My Assessments', path: '/app/engineer/assessment' },
             { icon: <FaProjectDiagram />, label: 'My Projects', path: '/app/engineer/project' },
-            { icon: <FaBell />, label: 'Notifications', path: '/app/engineer/notifications', badge: true },
           ]
         },
         {
@@ -310,6 +315,13 @@ const Dashboard = () => {
           items: [
             { icon: <FaMicrochip />, label: 'Device Data', path: '/app/engineer/device' },
             { icon: <FaCalendarAlt />, label: 'Schedule', path: '/app/engineer/schedule' },
+          ]
+        },
+        {
+          title: 'Notifications',
+          icon: <FaBell />,
+          items: [
+            { icon: <FaBell />, label: 'Notifications', path: '/app/engineer/notifications', badge: true },
           ]
         }
       ]
@@ -324,7 +336,6 @@ const Dashboard = () => {
             { icon: <FaHome />, label: 'Dashboard', path: '/app/customer' },
             { icon: <FaProjectDiagram />, label: 'My Project', path: '/app/customer/project' },
             { icon: <FaCalendarAlt />, label: 'Book Assessment', path: '/app/customer/book-assessment' },
-            { icon: <FaBell />, label: 'Notifications', path: '/app/customer/notifications', badge: true },
           ]
         },
         {
@@ -332,6 +343,13 @@ const Dashboard = () => {
           icon: <FaTasks />,
           items: [
             { icon: <FaFileInvoiceDollar />, label: 'Billing', path: '/app/customer/billing' },
+          ]
+        },
+        {
+          title: 'Notifications',
+          icon: <FaBell />,
+          items: [
+            { icon: <FaBell />, label: 'Notifications', path: '/app/customer/notifications', badge: true },
           ]
         }
       ]
@@ -541,7 +559,7 @@ const Dashboard = () => {
         </div>
 
         <nav className="sidebar-nav-layout-dashboard">
-          {/* ONLY 2 CATEGORIES with Notifications integrated */}
+          {/* NOW 3 CATEGORIES with Notifications as separate section */}
           {currentMenu.sections.map((section, sectionIndex) => (
             <div key={sectionIndex} className="sidebar-section-layout-dashboard">
               <div className="sidebar-section-header-layout-dashboard">

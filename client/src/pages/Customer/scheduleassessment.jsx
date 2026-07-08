@@ -82,6 +82,7 @@ const ScheduleAssessment = () => {
     dayHours: '',
     nightHours: ''
   });
+  const [applianceErrors, setApplianceErrors] = useState({});
 
   // Calculation Results
   const [calculationResults, setCalculationResults] = useState({
@@ -89,7 +90,8 @@ const ScheduleAssessment = () => {
     dayConsumption: 0,
     nightConsumption: 0,
     dayPercentage: 0,
-    nightPercentage: 0
+    nightPercentage: 0,
+    monthlyConsumption: 0
   });
 
   const SYSTEM_TYPES = [
@@ -102,7 +104,6 @@ const ScheduleAssessment = () => {
   const [freeQuoteData, setFreeQuoteData] = useState({
     monthlyBill: '',
     propertyType: 'residential',
-    desiredCapacity: '',
     systemType: '',
     roofType: '',
     roofLength: '',
@@ -122,12 +123,10 @@ const ScheduleAssessment = () => {
     lastName: '',
     contactNumber: '',
     propertyType: 'residential',
-    desiredCapacity: '',
     systemType: '',
     roofType: '',
     roofLength: '',
     roofWidth: '',
-    preferredDate: '',
     paymentMethod: 'gcash',
     targetSavings: ''
   });
@@ -139,11 +138,8 @@ const ScheduleAssessment = () => {
   const [preAssessments, setPreAssessments] = useState([]);
   const [projects, setProjects] = useState([]);
 
-  // Calculate consumption based on appliances and electric bill
+  // Calculate consumption based on appliances only
   const calculateConsumption = () => {
-    const monthlyKwh = parseFloat(electricBillInput.monthlyKwh) || 0;
-    const totalDailyKwh = monthlyKwh / 30;
-
     let totalDayWatts = 0;
     let totalNightWatts = 0;
 
@@ -158,34 +154,42 @@ const ScheduleAssessment = () => {
     const nightKwh = totalNightWatts / 1000;
     const totalKwhFromAppliances = dayKwh + nightKwh;
 
-    let finalDayKwh = 0;
-    let finalNightKwh = 0;
     let dayPercent = 0;
     let nightPercent = 0;
 
     if (totalKwhFromAppliances > 0) {
-      finalDayKwh = dayKwh;
-      finalNightKwh = nightKwh;
-      dayPercent = (finalDayKwh / totalKwhFromAppliances) * 100;
-      nightPercent = (finalNightKwh / totalKwhFromAppliances) * 100;
-    } else if (totalDailyKwh > 0) {
-      finalDayKwh = totalDailyKwh * 0.6;
-      finalNightKwh = totalDailyKwh * 0.4;
-      dayPercent = 60;
-      nightPercent = 40;
+      dayPercent = (dayKwh / totalKwhFromAppliances) * 100;
+      nightPercent = (nightKwh / totalKwhFromAppliances) * 100;
     }
 
+    // Monthly consumption = total daily * 30 days
+    const monthlyKwh = totalKwhFromAppliances * 30;
+
     setCalculationResults({
-      totalDailyConsumption: totalDailyKwh,
-      dayConsumption: finalDayKwh,
-      nightConsumption: finalNightKwh,
+      totalDailyConsumption: totalKwhFromAppliances,
+      dayConsumption: dayKwh,
+      nightConsumption: nightKwh,
       dayPercentage: dayPercent,
-      nightPercentage: nightPercent
+      nightPercentage: nightPercent,
+      monthlyConsumption: monthlyKwh
     });
+
+    // Auto-populate the monthly Kwh field with the calculated value
+    if (totalKwhFromAppliances > 0) {
+      setElectricBillInput(prev => ({
+        ...prev,
+        monthlyKwh: monthlyKwh.toFixed(2)
+      }));
+    } else {
+      setElectricBillInput(prev => ({
+        ...prev,
+        monthlyKwh: ''
+      }));
+    }
   };
 
   useEffect(() => {
-    if (appliances.length > 0 || electricBillInput.monthlyKwh) {
+    if (appliances.length > 0) {
       calculateConsumption();
     } else {
       setCalculationResults({
@@ -193,10 +197,15 @@ const ScheduleAssessment = () => {
         dayConsumption: 0,
         nightConsumption: 0,
         dayPercentage: 0,
-        nightPercentage: 0
+        nightPercentage: 0,
+        monthlyConsumption: 0
       });
+      setElectricBillInput(prev => ({
+        ...prev,
+        monthlyKwh: ''
+      }));
     }
-  }, [appliances, electricBillInput.monthlyKwh]);
+  }, [appliances]);
 
   const handleElectricBillChange = (e) => {
     const { name, value } = e.target;
@@ -206,11 +215,41 @@ const ScheduleAssessment = () => {
   const handleApplianceFormChange = (e) => {
     const { name, value } = e.target;
     setApplianceForm(prev => ({ ...prev, [name]: value }));
+    // Clear error for this field when user types
+    if (applianceErrors[name]) {
+      setApplianceErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateApplianceForm = () => {
+    const errors = {};
+    if (!applianceForm.name) {
+      errors.name = 'Appliance name is required';
+    }
+    if (!applianceForm.powerWatts) {
+      errors.powerWatts = 'Power rating is required';
+    } else if (parseFloat(applianceForm.powerWatts) <= 0) {
+      errors.powerWatts = 'Power must be greater than 0';
+    }
+    if (!applianceForm.quantity) {
+      errors.quantity = 'Quantity is required';
+    } else if (parseInt(applianceForm.quantity) <= 0) {
+      errors.quantity = 'Quantity must be at least 1';
+    }
+    if (applianceForm.dayHours && (parseFloat(applianceForm.dayHours) < 0 || parseFloat(applianceForm.dayHours) > 12)) {
+      errors.dayHours = 'Day hours must be between 0 and 12';
+    }
+    if (applianceForm.nightHours && (parseFloat(applianceForm.nightHours) < 0 || parseFloat(applianceForm.nightHours) > 12)) {
+      errors.nightHours = 'Night hours must be between 0 and 12';
+    }
+    return errors;
   };
 
   const saveAppliance = () => {
-    if (!applianceForm.name || !applianceForm.powerWatts || !applianceForm.quantity) {
-      showToast('Please fill in all required fields', 'warning');
+    const errors = validateApplianceForm();
+    if (Object.keys(errors).length > 0) {
+      setApplianceErrors(errors);
+      showToast('Please fix the errors in the form', 'warning');
       return;
     }
 
@@ -219,8 +258,8 @@ const ScheduleAssessment = () => {
       name: applianceForm.name,
       powerWatts: parseFloat(applianceForm.powerWatts),
       quantity: parseInt(applianceForm.quantity),
-      dayHours: parseFloat(applianceForm.dayHours) || 0,
-      nightHours: parseFloat(applianceForm.nightHours) || 0
+      dayHours: Math.min(Math.max(parseFloat(applianceForm.dayHours) || 0, 0), 12),
+      nightHours: Math.min(Math.max(parseFloat(applianceForm.nightHours) || 0, 0), 12)
     };
 
     if (editingAppliance) {
@@ -234,6 +273,7 @@ const ScheduleAssessment = () => {
     setShowApplianceModal(false);
     setEditingAppliance(null);
     setApplianceForm({ name: '', powerWatts: '', quantity: '', dayHours: '', nightHours: '' });
+    setApplianceErrors({});
   };
 
   const editAppliance = (appliance) => {
@@ -245,6 +285,7 @@ const ScheduleAssessment = () => {
       dayHours: appliance.dayHours,
       nightHours: appliance.nightHours
     });
+    setApplianceErrors({});
     setShowApplianceModal(true);
   };
 
@@ -267,7 +308,8 @@ const ScheduleAssessment = () => {
       dayConsumption: 0,
       nightConsumption: 0,
       dayPercentage: 0,
-      nightPercentage: 0
+      nightPercentage: 0,
+      monthlyConsumption: 0
     });
   };
 
@@ -627,9 +669,6 @@ const ScheduleAssessment = () => {
     if (!freeQuoteData.propertyType) {
       errors.propertyType = 'Property type is required';
     }
-    if (!electricBillInput.monthlyKwh) {
-      errors.monthlyConsumption = 'Monthly consumption in kWh is required';
-    }
     if (appliances.length === 0) {
       errors.appliances = 'Please add at least one appliance';
     }
@@ -666,13 +705,12 @@ const ScheduleAssessment = () => {
         addressId: selectedAddress?._id || null,
         monthlyBill: freeQuoteData.monthlyBill,
         propertyType: freeQuoteData.propertyType,
-        desiredCapacity: freeQuoteData.desiredCapacity,
         systemType: freeQuoteData.systemType,
         roofType: freeQuoteData.roofType,
         roofLength: freeQuoteData.roofLength,
         roofWidth: freeQuoteData.roofWidth,
         targetSavings: freeQuoteData.targetSavings,
-        monthlyConsumption: electricBillInput.monthlyKwh,
+        monthlyConsumption: calculationResults.monthlyConsumption,
         rate: electricBillInput.ratePerKwh,
         appliances: appliances.map(app => ({
           name: app.name,
@@ -698,13 +736,12 @@ const ScheduleAssessment = () => {
         response.data.quote.quotationReference,
         freeQuoteData.monthlyBill,
         freeQuoteData.propertyType,
-        freeQuoteData.desiredCapacity,
         freeQuoteData.systemType,
         freeQuoteData.roofType,
         freeQuoteData.roofLength,
         freeQuoteData.roofWidth,
         freeQuoteData.targetSavings,
-        electricBillInput.monthlyKwh,
+        calculationResults.monthlyConsumption,
         appliances,
         getFullAddress()
       );
@@ -738,7 +775,6 @@ const ScheduleAssessment = () => {
     quoteReference,
     monthlyBill,
     propertyType,
-    desiredCapacity,
     systemType,
     roofType,
     roofLength,
@@ -755,7 +791,6 @@ const ScheduleAssessment = () => {
         quoteReference,
         monthlyBill,
         propertyType,
-        desiredCapacity,
         systemType,
         roofType,
         roofLength,
@@ -772,7 +807,7 @@ const ScheduleAssessment = () => {
 
   // ============ PRE ASSESSMENT FUNCTIONS ============
 
-  const sendPreAssessmentConfirmationEmail = async (invoiceNumber, amount, propertyType, desiredCapacity, roofType, preferredDate, address) => {
+  const sendPreAssessmentConfirmationEmail = async (invoiceNumber, amount, propertyType, roofType, address) => {
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/email/send-pre-assessment-confirmation`, {
         email: user.email,
@@ -780,9 +815,7 @@ const ScheduleAssessment = () => {
         invoiceNumber,
         amount,
         propertyType,
-        desiredCapacity,
         roofType,
-        preferredDate,
         address
       });
     } catch (emailError) {
@@ -793,12 +826,8 @@ const ScheduleAssessment = () => {
   const validateForm = () => {
     const errors = {};
     if (!formData.propertyType) errors.propertyType = 'Property type is required';
-    if (!formData.preferredDate) errors.preferredDate = 'Preferred date is required';
     if (!selectedAddress) errors.address = 'Please select an address';
     if (appliances.length === 0) errors.appliances = 'Please add at least one appliance';
-    if (!electricBillInput.monthlyKwh) {
-      errors.monthlyKwh = 'Please enter your monthly consumption in kWh';
-    }
     return errors;
   };
 
@@ -824,15 +853,13 @@ const ScheduleAssessment = () => {
         clientId: user?._id,
         addressId: selectedAddress?._id || null,
         propertyType: formData.propertyType,
-        desiredCapacity: formData.desiredCapacity,
         systemType: formData.systemType,
         roofType: formData.roofType,
         roofLength: formData.roofLength,
         roofWidth: formData.roofWidth,
-        preferredDate: formData.preferredDate,
         monthlyBill: electricBillInput.monthlyBill,
         rate: electricBillInput.ratePerKwh,
-        consumption: electricBillInput.monthlyKwh,
+        consumption: calculationResults.monthlyConsumption,
         dayConsumption: calculationResults.dayConsumption,
         nightConsumption: calculationResults.nightConsumption,
         dayPercentage: calculationResults.dayPercentage,
@@ -849,9 +876,7 @@ const ScheduleAssessment = () => {
         response.data.booking.invoiceNumber,
         response.data.booking.assessmentFee,
         formData.propertyType,
-        formData.desiredCapacity,
         formData.roofType,
-        formData.preferredDate,
         getFullAddress()
       );
 
@@ -1091,7 +1116,6 @@ const ScheduleAssessment = () => {
                           <div><span>Monthly Bill:</span> <strong>{formatCurrency(quote.monthlyBill)}</strong></div>
                           <div><span>Property Type:</span> <strong>{quote.propertyType}</strong></div>
                           {quote.systemType && <div><span>System Type:</span> <strong>{getSystemTypeLabel(quote.systemType)}</strong></div>}
-                          {quote.desiredCapacity && <div><span>Desired Capacity:</span> <strong>{quote.desiredCapacity}</strong></div>}
                           {quote.targetSavings && <div><span>Target Savings:</span> <strong>{quote.targetSavings}%</strong></div>}
                           {quote.recommendedSystemSize && <div><span>System Size:</span> <strong>{quote.recommendedSystemSize} kW</strong></div>}
                           <div><span>Date:</span> <strong>{formatDate(quote.requestedAt)}</strong></div>
@@ -1166,7 +1190,7 @@ const ScheduleAssessment = () => {
                       <div className="request-card-body-cusset">
                         <div className="request-details-grid-cusset">
                           <div><span>Property Type:</span> <strong>{assessment.propertyType}</strong></div>
-                          <div><span>Preferred Date:</span> <strong>{formatDate(assessment.preferredDate)}</strong></div>
+                          <div><span>Monthly Bill:</span> <strong>{formatCurrency(assessment.monthlyBill)}</strong></div>
                           <div><span>Fee:</span> <strong>{formatCurrency(assessment.assessmentFee)}</strong></div>
                           {assessment.targetSavings && <div><span>Target Savings:</span> <strong>{assessment.targetSavings}%</strong></div>}
                           <div><span>Engineer:</span> <strong>{assessment.engineerName || 'Not assigned yet'}</strong></div>
@@ -1491,34 +1515,7 @@ const ScheduleAssessment = () => {
               <p><strong>Status:</strong> Pending Review</p>
             </div>
 
-            {submittedData.systemCalculations && (
-              <div className="system-calculations-summary" style={{
-                marginTop: '20px',
-                padding: '15px',
-                background: '#f5f9ff',
-                borderRadius: '8px',
-                border: '1px solid #d1e0f5'
-              }}>
-                <h4 style={{ marginBottom: '10px', color: '#1a3a6b' }}>Recommended System Size</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <strong>System Size:</strong> {submittedData.systemCalculations.recommendedSystemSize || 'Calculating...'} kW
-                  </div>
-                  <div>
-                    <strong>Inverter Size:</strong> {submittedData.systemCalculations.inverterSize || 'Calculating...'} kW
-                  </div>
-                  <div>
-                    <strong>Battery Capacity:</strong> {submittedData.systemCalculations.batteryCapacityKwh || 0} kWh
-                  </div>
-                  <div>
-                    <strong>Panels Needed:</strong> {submittedData.systemCalculations.panelsNeeded || 'Calculating...'} panels
-                  </div>
-                </div>
-                <small style={{ color: '#666', display: 'block', marginTop: '8px' }}>
-                  * These are preliminary calculations. Final system design will be provided in your quotation.
-                </small>
-              </div>
-            )}
+           
 
             <div className="schedule-next-steps-cusset">
               <h3>What's Next?</h3>
@@ -1535,7 +1532,7 @@ const ScheduleAssessment = () => {
             onClick={() => {
               setSubmitted(false);
               setCurrentStep('service-selection');
-              setFreeQuoteData({ monthlyBill: '', propertyType: 'residential', desiredCapacity: '', systemType: '', roofType: '', roofLength: '', roofWidth: '', targetSavings: '' });
+              setFreeQuoteData({ monthlyBill: '', propertyType: 'residential', systemType: '', roofType: '', roofLength: '', roofWidth: '', targetSavings: '' });
               clearAppliances();
               setSubmittedData(null);
               setFreeQuoteTermsAccepted(false);
@@ -1571,7 +1568,7 @@ const ScheduleAssessment = () => {
           </ul>
         </div>
         <div className="quote-actions-cusset">
-          <button onClick={() => { setShowPreAssessmentSuccess(false); setCurrentStep('service-selection'); setFormData({ ...formData, preferredDate: '', desiredCapacity: '', systemType: '', roofType: '', roofLength: '', roofWidth: '', targetSavings: '' }); clearAppliances(); }} className="schedule-btn-secondary-cusset">Book Another</button>
+          <button onClick={() => { setShowPreAssessmentSuccess(false); setCurrentStep('service-selection'); setFormData({ ...formData, systemType: '', roofType: '', roofLength: '', roofWidth: '', targetSavings: '' }); clearAppliances(); }} className="schedule-btn-secondary-cusset">Book Another</button>
           <button onClick={() => navigate('/app/customer')} className="schedule-btn-primary-cusset">Go to Dashboard</button>
         </div>
       </div>
@@ -1610,7 +1607,7 @@ const ScheduleAssessment = () => {
                 <li>List your appliances with usage hours</li>
                 <li>Automatic day/night consumption calculation</li>
                 <li>Get a preliminary system size recommendation</li>
-                <li>Receive a detailed quotation via email</li>
+                <li>Receive a detailed quotation</li>
               </ul>
               <div className="card-button-container-cusset">
                 <button
@@ -1634,7 +1631,6 @@ const ScheduleAssessment = () => {
               </div>
               <p className="service-description-cusset">Professional on-site assessment with detailed energy consumption analysis and accurate system sizing.</p>
               <ul className="service-features-cusset">
-                <li>Enter monthly consumption (kWh)</li>
                 <li>List your appliances with day and night usage hours</li>
                 <li>Automatic day/night calculation from appliances</li>
                 <li>7-day environmental data collection</li>
@@ -1717,88 +1713,7 @@ const ScheduleAssessment = () => {
               </div>
             </div>
 
-            {/* Electricity Bill Section */}
-            <div className="form-section-cusset">
-              <div className="form-section-header-cusset">
-                <div className="form-section-icon-cusset">
-                  <FaMoneyBillWave />
-                </div>
-                <div className="form-section-title-group-cusset">
-                  <h3>Electricity Bill Information</h3>
-                  <p>Enter your current electricity details</p>
-                </div>
-              </div>
-              <div className="form-section-body-cusset">
-                <div className="electric-bill-section-cusset">
-                  <div className="schedule-form-grid-cusset">
-                    <div className="schedule-form-group-cusset">
-                      <label>Monthly Electricity Bill (₱) *</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        name="monthlyBill"
-                        value={freeQuoteData.monthlyBill}
-                        onChange={handleInputChange}
-                        placeholder="e.g., 5000"
-                        className={`schedule-form-input-cusset ${freeQuoteValidationErrors.monthlyBill ? 'error' : ''}`}
-                      />
-                      <small>Your average monthly electricity bill amount</small>
-                      {freeQuoteValidationErrors.monthlyBill && (
-                        <div className="error-message-cusset">{freeQuoteValidationErrors.monthlyBill}</div>
-                      )}
-                    </div>
-                    <div className="schedule-form-group-cusset">
-                      <label>Monthly Consumption (kWh) *</label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        name="monthlyKwh"
-                        value={electricBillInput.monthlyKwh}
-                        onChange={handleElectricBillChange}
-                        placeholder="e.g., 500"
-                        className={`schedule-form-input-cusset ${freeQuoteValidationErrors.monthlyConsumption ? 'error' : ''}`}
-                      />
-                      <small>Your average monthly electricity consumption in kWh</small>
-                      {freeQuoteValidationErrors.monthlyConsumption && (
-                        <div className="error-message-cusset">{freeQuoteValidationErrors.monthlyConsumption}</div>
-                      )}
-                    </div>
-                    <div className="schedule-form-group-cusset">
-                      <label>Rate per kWh (₱)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        name="ratePerKwh"
-                        value={electricBillInput.ratePerKwh}
-                        onChange={handleElectricBillChange}
-                        placeholder="e.g., 11.50"
-                        className="schedule-form-input-cusset"
-                      />
-                      <small>Check your electric bill for the rate (optional)</small>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="schedule-form-group-cusset">
-                  <label>Property Type *</label>
-                  <select
-                    name="propertyType"
-                    value={freeQuoteData.propertyType}
-                    onChange={handleInputChange}
-                    className={`schedule-form-select-cusset ${freeQuoteValidationErrors.propertyType ? 'error' : ''}`}
-                  >
-                    <option value="residential">Residential</option>
-                    <option value="commercial">Commercial</option>
-                    <option value="industrial">Industrial</option>
-                  </select>
-                  {freeQuoteValidationErrors.propertyType && (
-                    <div className="error-message-cusset">{freeQuoteValidationErrors.propertyType}</div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Appliances Section */}
+            {/* ============ APPLIANCES SECTION ============ */}
             <div className="form-section-cusset">
               <div className="form-section-header-cusset">
                 <div className="form-section-icon-cusset">
@@ -1806,7 +1721,7 @@ const ScheduleAssessment = () => {
                 </div>
                 <div className="form-section-title-group-cusset">
                   <h3>Your Appliances *</h3>
-                  <p>List all your electrical devices with their usage hours</p>
+                  <p>List all your electrical devices with their usage hours (0-12 hours each)</p>
                 </div>
               </div>
               <div className="form-section-body-cusset">
@@ -1819,6 +1734,7 @@ const ScheduleAssessment = () => {
                       onClick={() => {
                         setEditingAppliance(null);
                         setApplianceForm({ name: '', powerWatts: '', quantity: '', dayHours: '', nightHours: '' });
+                        setApplianceErrors({});
                         setShowApplianceModal(true);
                       }}
                     >
@@ -1882,7 +1798,7 @@ const ScheduleAssessment = () => {
                 </div>
 
                 {/* Consumption Results */}
-                {appliances.length > 0 && electricBillInput.monthlyKwh && (
+                {appliances.length > 0 && (
                   <div className="consumption-results-cusset">
                     <h4>Your Energy Profile</h4>
                     <div className="results-grid-cusset">
@@ -1907,34 +1823,92 @@ const ScheduleAssessment = () => {
                         <div className="result-info">
                           <span className="result-label">Total Daily</span>
                           <span className="result-value">{calculationResults.totalDailyConsumption?.toFixed(2) || 0} kWh/day</span>
-                          <small>Based on monthly consumption ÷ 30 days</small>
+                          <small>Based on appliance usage only</small>
+                        </div>
+                      </div>
+                      <div className="result-card-cusset monthly-result" style={{ background: '#e8f5e9', borderColor: '#4caf50' }}>
+                        <FaFileInvoice className="result-icon" />
+                        <div className="result-info">
+                          <span className="result-label">Monthly Consumption</span>
+                          <span className="result-value">{calculationResults.monthlyConsumption?.toFixed(2) || 0} kWh</span>
+                          <small>Total Daily × 30 days</small>
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {(!electricBillInput.monthlyKwh || appliances.length === 0) && (
+                {appliances.length === 0 && (
                   <div className="info-message-cusset">
-                    <p>Please enter your monthly consumption and add at least one appliance to see your energy profile.</p>
+                    <p>Please add at least one appliance to calculate your energy consumption.</p>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* System Preferences Section */}
+            {/* ============ ASSESSMENT DETAILS ============ */}
             <div className="form-section-cusset">
               <div className="form-section-header-cusset">
                 <div className="form-section-icon-cusset">
-                  <FaSolarPanel />
+                  <FaHome />
                 </div>
                 <div className="form-section-title-group-cusset">
-                  <h3>System Preferences</h3>
-                  <p>Tell us about your solar system preferences</p>
+                  <h3>Assessment Details</h3>
+                  <p>Tell us about your property and system preferences</p>
                 </div>
               </div>
               <div className="form-section-body-cusset">
                 <div className="schedule-form-grid-cusset">
+                  <div className="schedule-form-group-cusset">
+                    <label>Monthly Electricity Bill (₱) *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="monthlyBill"
+                      value={freeQuoteData.monthlyBill}
+                      onChange={handleInputChange}
+                      placeholder="e.g., 5000"
+                      className={`schedule-form-input-cusset ${freeQuoteValidationErrors.monthlyBill ? 'error' : ''}`}
+                    />
+                    {freeQuoteValidationErrors.monthlyBill && (
+                      <div className="error-message-cusset">{freeQuoteValidationErrors.monthlyBill}</div>
+                    )}
+                    <small>Your average monthly electricity bill amount</small>
+                  </div>
+
+                  <div className="schedule-form-group-cusset">
+                    <label>Property Type *</label>
+                    <select
+                      name="propertyType"
+                      value={freeQuoteData.propertyType}
+                      onChange={handleInputChange}
+                      className={`schedule-form-select-cusset ${freeQuoteValidationErrors.propertyType ? 'error' : ''}`}
+                    >
+                      <option value="residential">Residential</option>
+                      <option value="commercial">Commercial</option>
+                      <option value="industrial">Industrial</option>
+                    </select>
+                    {freeQuoteValidationErrors.propertyType && (
+                      <div className="error-message-cusset">{freeQuoteValidationErrors.propertyType}</div>
+                    )}
+                  </div>
+
+                  <div className="schedule-form-group-cusset">
+                    <label>Rate per kWh (₱)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="ratePerKwh"
+                      value={electricBillInput.ratePerKwh}
+                      onChange={handleElectricBillChange}
+                      placeholder="e.g., 11.50"
+                      className="schedule-form-input-cusset"
+                    />
+                    <small>Check your electric bill for the rate (optional)</small>
+                  </div>
+                </div>
+
+                <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset">
                     <label>Preferred System Type</label>
                     <select
@@ -1947,18 +1921,7 @@ const ScheduleAssessment = () => {
                       {SYSTEM_TYPES.map(type => <option key={type.value} value={type.value}>{type.label}</option>)}
                     </select>
                   </div>
-                  <div className="schedule-form-group-cusset">
-                    <label>Desired Capacity (kW)</label>
-                    <input
-                      type="text"
-                      name="desiredCapacity"
-                      value={freeQuoteData.desiredCapacity}
-                      onChange={handleInputChange}
-                      placeholder="e.g., 5kW (optional)"
-                      className="schedule-form-input-cusset"
-                    />
-                    <small>Optional: Specify your desired system capacity</small>
-                  </div>
+
                   <div className="schedule-form-group-cusset">
                     <label>Target Savings (%)</label>
                     <select
@@ -1975,6 +1938,7 @@ const ScheduleAssessment = () => {
                     </select>
                     <small>Help us size your system based on your savings goal</small>
                   </div>
+
                   <div className="schedule-form-group-cusset">
                     <label>Roof Type</label>
                     <select
@@ -1990,6 +1954,7 @@ const ScheduleAssessment = () => {
                       <option value="other">Other</option>
                     </select>
                   </div>
+
                   <div className="schedule-form-group-cusset" style={{ gridColumn: '1 / -1' }}>
                     <label>Roof Dimensions</label>
                     <div className="dimension-row-cusset">
@@ -2030,7 +1995,7 @@ const ScheduleAssessment = () => {
                   <button
                     onClick={handleFreeQuoteSubmit}
                     className="schedule-btn-submit-cusset"
-                    disabled={hasPendingFreeQuote}
+                    disabled={hasPendingFreeQuote || appliances.length === 0}
                   >
                     {hasPendingFreeQuote ? 'Request in Progress' : 'Review and Submit Quote Request'}
                   </button>
@@ -2056,8 +2021,11 @@ const ScheduleAssessment = () => {
                       value={applianceForm.name}
                       onChange={handleApplianceFormChange}
                       placeholder="e.g., Air Conditioner, Refrigerator, TV"
-                      className="schedule-form-input-cusset"
+                      className={`schedule-form-input-cusset ${applianceErrors.name ? 'error' : ''}`}
                     />
+                    {applianceErrors.name && (
+                      <div className="error-message-cusset">{applianceErrors.name}</div>
+                    )}
                   </div>
                   <div className="schedule-form-group-cusset">
                     <label>Power Rating (Watts) *</label>
@@ -2067,8 +2035,11 @@ const ScheduleAssessment = () => {
                       value={applianceForm.powerWatts}
                       onChange={handleApplianceFormChange}
                       placeholder="e.g., 1500"
-                      className="schedule-form-input-cusset"
+                      className={`schedule-form-input-cusset ${applianceErrors.powerWatts ? 'error' : ''}`}
                     />
+                    {applianceErrors.powerWatts && (
+                      <div className="error-message-cusset">{applianceErrors.powerWatts}</div>
+                    )}
                     <small>Check the label on your appliance for watts (W)</small>
                   </div>
                   <div className="schedule-form-group-cusset">
@@ -2079,11 +2050,14 @@ const ScheduleAssessment = () => {
                       value={applianceForm.quantity}
                       onChange={handleApplianceFormChange}
                       placeholder="e.g., 2"
-                      className="schedule-form-input-cusset"
+                      className={`schedule-form-input-cusset ${applianceErrors.quantity ? 'error' : ''}`}
                     />
+                    {applianceErrors.quantity && (
+                      <div className="error-message-cusset">{applianceErrors.quantity}</div>
+                    )}
                   </div>
                   <div className="schedule-form-group-cusset">
-                    <label>Day Usage Hours *</label>
+                    <label>Day Usage Hours (0-12) *</label>
                     <input
                       type="number"
                       step="0.5"
@@ -2091,12 +2065,17 @@ const ScheduleAssessment = () => {
                       value={applianceForm.dayHours}
                       onChange={handleApplianceFormChange}
                       placeholder="e.g., 8"
-                      className="schedule-form-input-cusset"
+                      className={`schedule-form-input-cusset ${applianceErrors.dayHours ? 'error' : ''}`}
+                      min="0"
+                      max="12"
                     />
-                    <small>Hours used during daytime (6 AM - 6 PM)</small>
+                    {applianceErrors.dayHours && (
+                      <div className="error-message-cusset">{applianceErrors.dayHours}</div>
+                    )}
+                    <small>Hours used during daytime (0-12 hours, 6 AM - 6 PM)</small>
                   </div>
                   <div className="schedule-form-group-cusset">
-                    <label>Night Usage Hours *</label>
+                    <label>Night Usage Hours (0-12) *</label>
                     <input
                       type="number"
                       step="0.5"
@@ -2104,9 +2083,14 @@ const ScheduleAssessment = () => {
                       value={applianceForm.nightHours}
                       onChange={handleApplianceFormChange}
                       placeholder="e.g., 4"
-                      className="schedule-form-input-cusset"
+                      className={`schedule-form-input-cusset ${applianceErrors.nightHours ? 'error' : ''}`}
+                      min="0"
+                      max="12"
                     />
-                    <small>Hours used during nighttime (6 PM - 6 AM)</small>
+                    {applianceErrors.nightHours && (
+                      <div className="error-message-cusset">{applianceErrors.nightHours}</div>
+                    )}
+                    <small>Hours used during nighttime (0-12 hours, 6 PM - 6 AM)</small>
                   </div>
                 </div>
                 <div className="modal-actions-cusset">
@@ -2171,7 +2155,7 @@ const ScheduleAssessment = () => {
                   <div className="schedule-summary-section-cusset">
                     <h4>Energy Profile</h4>
                     <p><strong>Monthly Bill:</strong> {formatCurrency(freeQuoteData.monthlyBill)}</p>
-                    <p><strong>Monthly Consumption:</strong> {electricBillInput.monthlyKwh} kWh</p>
+                    <p><strong>Monthly Consumption:</strong> {calculationResults.monthlyConsumption?.toFixed(2) || electricBillInput.monthlyKwh} kWh</p>
                     <p><strong>Total Daily:</strong> {calculationResults.totalDailyConsumption.toFixed(2)} kWh</p>
                     <p><strong>Day/Night:</strong> {calculationResults.dayPercentage.toFixed(0)}% / {calculationResults.nightPercentage.toFixed(0)}%</p>
                     <p><strong>Appliances:</strong> {appliances.length} items</p>
@@ -2181,9 +2165,6 @@ const ScheduleAssessment = () => {
                     <p><strong>Property:</strong> {freeQuoteData.propertyType}</p>
                     {freeQuoteData.systemType && (
                       <p><strong>System Type:</strong> {SYSTEM_TYPES.find(t => t.value === freeQuoteData.systemType)?.label}</p>
-                    )}
-                    {freeQuoteData.desiredCapacity && (
-                      <p><strong>Desired Capacity:</strong> {freeQuoteData.desiredCapacity}</p>
                     )}
                     {freeQuoteData.targetSavings && (
                       <p><strong>Target Savings:</strong> {freeQuoteData.targetSavings}%</p>
@@ -2272,69 +2253,13 @@ const ScheduleAssessment = () => {
                   </div>
                   <div className="combined-info-hint-cusset">Click to view full details and manage settings</div>
                 </div>
+                {validationErrors.address && (
+                  <div className="error-message-cusset" style={{ marginTop: '10px' }}>{validationErrors.address}</div>
+                )}
               </div>
             </div>
 
-            {/* Electricity Bill Section */}
-            <div className="form-section-cusset">
-              <div className="form-section-header-cusset">
-                <div className="form-section-icon-cusset">
-                  <FaMoneyBillWave />
-                </div>
-                <div className="form-section-title-group-cusset">
-                  <h3>Electricity Bill Information</h3>
-                  <p>Enter your current electricity details</p>
-                </div>
-              </div>
-              <div className="form-section-body-cusset">
-                <div className="electric-bill-section-cusset">
-                  <div className="schedule-form-grid-cusset">
-                    <div className="schedule-form-group-cusset">
-                      <label>Monthly Consumption (kWh) *</label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        name="monthlyKwh"
-                        value={electricBillInput.monthlyKwh}
-                        onChange={handleElectricBillChange}
-                        placeholder="e.g., 500"
-                        className={`schedule-form-input-cusset ${validationErrors.monthlyKwh ? 'error' : ''}`}
-                      />
-                      <small>Your average monthly electricity consumption in kWh</small>
-                      {validationErrors.monthlyKwh && <div className="error-message-cusset">{validationErrors.monthlyKwh}</div>}
-                    </div>
-                    <div className="schedule-form-group-cusset">
-                      <label>Monthly Electric Bill (₱)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        name="monthlyBill"
-                        value={electricBillInput.monthlyBill}
-                        onChange={handleElectricBillChange}
-                        placeholder="e.g., 5000"
-                        className="schedule-form-input-cusset"
-                      />
-                      <small>Your average monthly electricity bill amount (optional)</small>
-                    </div>
-                    <div className="schedule-form-group-cusset">
-                      <label>Rate per kWh (₱)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        name="ratePerKwh"
-                        value={electricBillInput.ratePerKwh}
-                        onChange={handleElectricBillChange}
-                        placeholder="e.g., 11.50"
-                        className="schedule-form-input-cusset"
-                      />
-                      <small>Check your electric bill for the rate (optional)</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Appliances Section */}
+            {/* ============ APPLIANCES SECTION ============ */}
             <div className="form-section-cusset">
               <div className="form-section-header-cusset">
                 <div className="form-section-icon-cusset">
@@ -2342,7 +2267,7 @@ const ScheduleAssessment = () => {
                 </div>
                 <div className="form-section-title-group-cusset">
                   <h3>Your Appliances *</h3>
-                  <p>List all your electrical devices with their usage hours</p>
+                  <p>List all your electrical devices with their usage hours (0-12 hours each)</p>
                 </div>
               </div>
               <div className="form-section-body-cusset">
@@ -2355,6 +2280,7 @@ const ScheduleAssessment = () => {
                       onClick={() => {
                         setEditingAppliance(null);
                         setApplianceForm({ name: '', powerWatts: '', quantity: '', dayHours: '', nightHours: '' });
+                        setApplianceErrors({});
                         setShowApplianceModal(true);
                       }}
                     >
@@ -2417,7 +2343,8 @@ const ScheduleAssessment = () => {
                   )}
                 </div>
 
-                {appliances.length > 0 && electricBillInput.monthlyKwh && (
+                {/* Consumption Results */}
+                {appliances.length > 0 && (
                   <div className="consumption-results-cusset">
                     <h4>Your Energy Profile</h4>
                     <div className="results-grid-cusset">
@@ -2442,42 +2369,89 @@ const ScheduleAssessment = () => {
                         <div className="result-info">
                           <span className="result-label">Total Daily</span>
                           <span className="result-value">{calculationResults.totalDailyConsumption?.toFixed(2) || 0} kWh/day</span>
-                          <small>Based on monthly consumption ÷ 30 days</small>
+                          <small>Based on appliance usage only</small>
+                        </div>
+                      </div>
+                      <div className="result-card-cusset monthly-result" style={{ background: '#e8f5e9', borderColor: '#4caf50' }}>
+                        <FaFileInvoice className="result-icon" />
+                        <div className="result-info">
+                          <span className="result-label">Monthly Consumption</span>
+                          <span className="result-value">{calculationResults.monthlyConsumption?.toFixed(2) || 0} kWh</span>
+                          <small>Total Daily × 30 days</small>
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {(!electricBillInput.monthlyKwh || appliances.length === 0) && (
+                {appliances.length === 0 && (
                   <div className="info-message-cusset">
-                    <p>Please enter your monthly consumption and add at least one appliance to see your energy profile.</p>
+                    <p>Please add at least one appliance to calculate your energy consumption.</p>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Assessment Details Section */}
+            {/* ============ ASSESSMENT DETAILS ============ */}
             <div className="form-section-cusset">
               <div className="form-section-header-cusset">
                 <div className="form-section-icon-cusset">
-                  <FaCalendarAlt />
+                  <FaHome />
                 </div>
                 <div className="form-section-title-group-cusset">
                   <h3>Assessment Details</h3>
-                  <p>Tell us about your property and preferred schedule</p>
+                  <p>Tell us about your property and system preferences</p>
                 </div>
               </div>
               <div className="form-section-body-cusset">
                 <div className="schedule-form-grid-cusset">
                   <div className="schedule-form-group-cusset">
+                    <label>Monthly Electricity Bill (₱)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="monthlyBill"
+                      value={electricBillInput.monthlyBill}
+                      onChange={handleElectricBillChange}
+                      placeholder="e.g., 5000"
+                      className="schedule-form-input-cusset"
+                    />
+                    <small>Your average monthly electricity bill amount (optional)</small>
+                  </div>
+
+                  <div className="schedule-form-group-cusset">
                     <label>Property Type *</label>
-                    <select name="propertyType" value={formData.propertyType} onChange={handleInputChange} className="schedule-form-select-cusset">
+                    <select 
+                      name="propertyType" 
+                      value={formData.propertyType} 
+                      onChange={handleInputChange} 
+                      className={`schedule-form-select-cusset ${validationErrors.propertyType ? 'error' : ''}`}
+                    >
                       <option value="residential">Residential</option>
                       <option value="commercial">Commercial</option>
                       <option value="industrial">Industrial</option>
                     </select>
+                    {validationErrors.propertyType && (
+                      <div className="error-message-cusset">{validationErrors.propertyType}</div>
+                    )}
                   </div>
+
+                  <div className="schedule-form-group-cusset">
+                    <label>Rate per kWh (₱)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="ratePerKwh"
+                      value={electricBillInput.ratePerKwh}
+                      onChange={handleElectricBillChange}
+                      placeholder="e.g., 11.50"
+                      className="schedule-form-input-cusset"
+                    />
+                    <small>Check your electric bill for the rate (optional)</small>
+                  </div>
+                </div>
+
+                <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset">
                     <label>Preferred System Type</label>
                     <select name="systemType" value={formData.systemType} onChange={handleInputChange} className="schedule-form-select-cusset">
@@ -2485,18 +2459,7 @@ const ScheduleAssessment = () => {
                       {SYSTEM_TYPES.map(type => <option key={type.value} value={type.value}>{type.label}</option>)}
                     </select>
                   </div>
-                  <div className="schedule-form-group-cusset">
-                    <label>Desired Capacity (kW)</label>
-                    <input
-                      type="text"
-                      name="desiredCapacity"
-                      value={formData.desiredCapacity}
-                      onChange={handleInputChange}
-                      placeholder="e.g., 5kW (optional)"
-                      className="schedule-form-input-cusset"
-                    />
-                    <small>Optional: Specify your desired system capacity</small>
-                  </div>
+
                   <div className="schedule-form-group-cusset">
                     <label>Target Savings (%)</label>
                     <select
@@ -2513,6 +2476,7 @@ const ScheduleAssessment = () => {
                     </select>
                     <small>Help us size your system based on your savings goal</small>
                   </div>
+
                   <div className="schedule-form-group-cusset">
                     <label>Roof Type</label>
                     <select name="roofType" value={formData.roofType} onChange={handleInputChange} className="schedule-form-select-cusset">
@@ -2523,17 +2487,13 @@ const ScheduleAssessment = () => {
                       <option value="other">Other</option>
                     </select>
                   </div>
+
                   <div className="schedule-form-group-cusset" style={{ gridColumn: '1 / -1' }}>
                     <label>Roof Dimensions</label>
                     <div className="dimension-row-cusset">
                       <input type="number" step="0.1" name="roofLength" value={formData.roofLength} onChange={handleInputChange} placeholder="Length (m)" className="schedule-form-input-cusset" />
                       <input type="number" step="0.1" name="roofWidth" value={formData.roofWidth} onChange={handleInputChange} placeholder="Width (m)" className="schedule-form-input-cusset" />
                     </div>
-                  </div>
-                  <div className="schedule-form-group-cusset" style={{ gridColumn: '1 / -1' }}>
-                    <label>Preferred Start Date *</label>
-                    <input type="date" name="preferredDate" value={formData.preferredDate} onChange={handleInputChange} className="schedule-form-input-cusset" min={new Date().toISOString().split('T')[0]} />
-                    {validationErrors.preferredDate && <div className="error-message-cusset">{validationErrors.preferredDate}</div>}
                   </div>
                 </div>
 
@@ -2552,7 +2512,7 @@ const ScheduleAssessment = () => {
                   <button
                     onClick={handleSubmitClick}
                     className="schedule-btn-submit-cusset"
-                    disabled={appliances.length === 0 || !electricBillInput.monthlyKwh}
+                    disabled={appliances.length === 0}
                   >
                     Continue to Confirmation
                   </button>
@@ -2578,8 +2538,11 @@ const ScheduleAssessment = () => {
                       value={applianceForm.name}
                       onChange={handleApplianceFormChange}
                       placeholder="e.g., Air Conditioner, Refrigerator, TV"
-                      className="schedule-form-input-cusset"
+                      className={`schedule-form-input-cusset ${applianceErrors.name ? 'error' : ''}`}
                     />
+                    {applianceErrors.name && (
+                      <div className="error-message-cusset">{applianceErrors.name}</div>
+                    )}
                   </div>
                   <div className="schedule-form-group-cusset">
                     <label>Power Rating (Watts) *</label>
@@ -2589,8 +2552,11 @@ const ScheduleAssessment = () => {
                       value={applianceForm.powerWatts}
                       onChange={handleApplianceFormChange}
                       placeholder="e.g., 1500"
-                      className="schedule-form-input-cusset"
+                      className={`schedule-form-input-cusset ${applianceErrors.powerWatts ? 'error' : ''}`}
                     />
+                    {applianceErrors.powerWatts && (
+                      <div className="error-message-cusset">{applianceErrors.powerWatts}</div>
+                    )}
                     <small>Check the label on your appliance for watts (W)</small>
                   </div>
                   <div className="schedule-form-group-cusset">
@@ -2601,11 +2567,14 @@ const ScheduleAssessment = () => {
                       value={applianceForm.quantity}
                       onChange={handleApplianceFormChange}
                       placeholder="e.g., 2"
-                      className="schedule-form-input-cusset"
+                      className={`schedule-form-input-cusset ${applianceErrors.quantity ? 'error' : ''}`}
                     />
+                    {applianceErrors.quantity && (
+                      <div className="error-message-cusset">{applianceErrors.quantity}</div>
+                    )}
                   </div>
                   <div className="schedule-form-group-cusset">
-                    <label>Day Usage Hours *</label>
+                    <label>Day Usage Hours (0-12) *</label>
                     <input
                       type="number"
                       step="0.5"
@@ -2613,12 +2582,17 @@ const ScheduleAssessment = () => {
                       value={applianceForm.dayHours}
                       onChange={handleApplianceFormChange}
                       placeholder="e.g., 8"
-                      className="schedule-form-input-cusset"
+                      className={`schedule-form-input-cusset ${applianceErrors.dayHours ? 'error' : ''}`}
+                      min="0"
+                      max="12"
                     />
-                    <small>Hours used during daytime (6 AM - 6 PM)</small>
+                    {applianceErrors.dayHours && (
+                      <div className="error-message-cusset">{applianceErrors.dayHours}</div>
+                    )}
+                    <small>Hours used during daytime (0-12 hours, 6 AM - 6 PM)</small>
                   </div>
                   <div className="schedule-form-group-cusset">
-                    <label>Night Usage Hours *</label>
+                    <label>Night Usage Hours (0-12) *</label>
                     <input
                       type="number"
                       step="0.5"
@@ -2626,9 +2600,14 @@ const ScheduleAssessment = () => {
                       value={applianceForm.nightHours}
                       onChange={handleApplianceFormChange}
                       placeholder="e.g., 4"
-                      className="schedule-form-input-cusset"
+                      className={`schedule-form-input-cusset ${applianceErrors.nightHours ? 'error' : ''}`}
+                      min="0"
+                      max="12"
                     />
-                    <small>Hours used during nighttime (6 PM - 6 AM)</small>
+                    {applianceErrors.nightHours && (
+                      <div className="error-message-cusset">{applianceErrors.nightHours}</div>
+                    )}
+                    <small>Hours used during nighttime (0-12 hours, 6 PM - 6 AM)</small>
                   </div>
                 </div>
                 <div className="modal-actions-cusset">
@@ -2692,6 +2671,7 @@ const ScheduleAssessment = () => {
                   </div>
                   <div className="schedule-summary-section-cusset">
                     <h4>Energy Profile</h4>
+                    <p><strong>Monthly Consumption:</strong> {calculationResults.monthlyConsumption?.toFixed(2)} kWh</p>
                     <p><strong>Total Daily:</strong> {calculationResults.totalDailyConsumption.toFixed(2)} kWh</p>
                     <p><strong>Day/Night:</strong> {calculationResults.dayPercentage.toFixed(0)}% / {calculationResults.nightPercentage.toFixed(0)}%</p>
                     <p><strong>Appliances:</strong> {appliances.length} items</p>
@@ -2699,10 +2679,13 @@ const ScheduleAssessment = () => {
                   <div className="schedule-summary-section-cusset">
                     <h4>Assessment Details</h4>
                     <p><strong>Property:</strong> {formData.propertyType}</p>
-                    <p><strong>Date:</strong> {formData.preferredDate}</p>
+                    <p><strong>Monthly Bill:</strong> {formatCurrency(electricBillInput.monthlyBill) || 'Not provided'}</p>
                     <p><strong>Fee:</strong> ₱1,500.00</p>
                     {formData.targetSavings && (
                       <p><strong>Target Savings:</strong> {formData.targetSavings}%</p>
+                    )}
+                    {formData.roofType && (
+                      <p><strong>Roof Type:</strong> {formData.roofType}</p>
                     )}
                   </div>
                 </div>

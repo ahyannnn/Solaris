@@ -15,7 +15,7 @@ const preAssessmentSchema = new mongoose.Schema({
     enum: ['grid-tie', 'hybrid', 'off-grid'],
     default: null
   },
-  preferredDate: { type: Date, required: true },
+  preferredDate: { type: Date, default: null },
 
   // ============ NEW FIELDS ============
   monthlyBill: { type: Number, default: 0 },        // Monthly bill amount in PHP

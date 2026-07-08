@@ -371,7 +371,7 @@ const resetSuccessTemplate = (email) => `
 `;
 
 // =============== FREE QUOTE REQUEST ===============
-const freeQuoteTemplate = (name, quoteReference, monthlyBill, propertyType, desiredCapacity, address) => `
+const freeQuoteTemplate = (name, quoteReference, monthlyBill, propertyType, address) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -392,7 +392,7 @@ const freeQuoteTemplate = (name, quoteReference, monthlyBill, propertyType, desi
           <p><strong>Reference ID:</strong> ${quoteReference}</p>
           <p><strong>Monthly Bill:</strong> ₱${parseInt(monthlyBill).toLocaleString()}</p>
           <p><strong>Property Type:</strong> ${propertyType}</p>
-          ${desiredCapacity ? `<p><strong>Desired Capacity:</strong> ${desiredCapacity}</p>` : ''}
+         
           <p><strong>Address:</strong> ${address}</p>
         </div>
         <div class="success-box">
@@ -414,7 +414,7 @@ const freeQuoteTemplate = (name, quoteReference, monthlyBill, propertyType, desi
 `;
 
 // =============== PRE-ASSESSMENT BOOKING ===============
-const preAssessmentTemplate = (name, invoiceNumber, amount, propertyType, desiredCapacity, roofType, preferredDate, address) => `
+const preAssessmentTemplate = (name, invoiceNumber, amount, propertyType,  roofType, address) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -435,9 +435,9 @@ const preAssessmentTemplate = (name, invoiceNumber, amount, propertyType, desire
           <p><strong>Invoice Number:</strong> ${invoiceNumber}</p>
           <p><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
           <p><strong>Property Type:</strong> ${propertyType}</p>
-          ${desiredCapacity ? `<p><strong>Desired Capacity:</strong> ${desiredCapacity}</p>` : ''}
+         
           ${roofType ? `<p><strong>Roof Type:</strong> ${roofType}</p>` : ''}
-          <p><strong>Preferred Date:</strong> ${new Date(preferredDate).toLocaleDateString('en-PH')}</p>
+          
           <p><strong>Address:</strong> ${address}</p>
         </div>
         <div class="warning-box">
@@ -459,7 +459,7 @@ const preAssessmentTemplate = (name, invoiceNumber, amount, propertyType, desire
 `;
 
 // =============== PAYMENT SUBMISSION CONFIRMATION ===============
-const paymentSubmissionTemplate = (name, invoiceNumber, amount, referenceNumber, propertyType, preferredDate) => `
+const paymentSubmissionTemplate = (name, invoiceNumber, amount, referenceNumber, propertyType) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -482,7 +482,7 @@ const paymentSubmissionTemplate = (name, invoiceNumber, amount, referenceNumber,
           <p><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
           <p><strong>Reference Number:</strong> ${referenceNumber}</p>
           <p><strong>Property Type:</strong> ${propertyType}</p>
-          <p><strong>Preferred Date:</strong> ${new Date(preferredDate).toLocaleDateString('en-PH')}</p>
+         
         </div>
         <div class="warning-box">
           <p><strong>Verification in progress</strong></p>
@@ -502,7 +502,7 @@ const paymentSubmissionTemplate = (name, invoiceNumber, amount, referenceNumber,
 `;
 
 // =============== PAYMENT VERIFIED CONFIRMATION ===============
-const paymentVerifiedTemplate = (name, invoiceNumber, amount, propertyType, preferredDate) => `
+const paymentVerifiedTemplate = (name, invoiceNumber, amount, propertyType) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -527,7 +527,7 @@ const paymentVerifiedTemplate = (name, invoiceNumber, amount, propertyType, pref
         <div class="info-box">
           <p><strong>Assessment details</strong></p>
           <p><strong>Property Type:</strong> ${propertyType}</p>
-          <p><strong>Preferred Date:</strong> ${new Date(preferredDate).toLocaleDateString('en-PH')}</p>
+          
         </div>
         <div class="success-box">
           <p><strong>What's next?</strong></p>
@@ -742,7 +742,7 @@ router.post("/send-reset-success", async (req, res) => {
 
 router.post("/send-free-quote-confirmation", async (req, res) => {
   try {
-    const { email, name, quoteReference, monthlyBill, propertyType, desiredCapacity, address } = req.body;
+    const { email, name, quoteReference, monthlyBill, propertyType,  address } = req.body;
     if (!email || !name || !quoteReference) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
@@ -751,7 +751,7 @@ router.post("/send-free-quote-confirmation", async (req, res) => {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "Salfare Engineering" },
       to: [{ email }],
       subject: `Quotation request received - ${quoteReference}`,
-      htmlContent: freeQuoteTemplate(name, quoteReference, monthlyBill, propertyType, desiredCapacity, address)
+      htmlContent: freeQuoteTemplate(name, quoteReference, monthlyBill, propertyType, address)
     }, {
       headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json" }
     });
@@ -765,7 +765,7 @@ router.post("/send-free-quote-confirmation", async (req, res) => {
 
 router.post("/send-pre-assessment-confirmation", async (req, res) => {
   try {
-    const { email, name, invoiceNumber, amount, propertyType, desiredCapacity, roofType, preferredDate, address } = req.body;
+    const { email, name, invoiceNumber, amount, propertyType,  roofType,address } = req.body;
     if (!email || !name || !invoiceNumber) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
@@ -774,7 +774,7 @@ router.post("/send-pre-assessment-confirmation", async (req, res) => {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "Salfare Engineering" },
       to: [{ email }],
       subject: `Booking confirmation - ${invoiceNumber}`,
-      htmlContent: preAssessmentTemplate(name, invoiceNumber, amount, propertyType, desiredCapacity, roofType, preferredDate, address)
+      htmlContent: preAssessmentTemplate(name, invoiceNumber, amount, propertyType,roofType, address)
     }, {
       headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json" }
     });
@@ -788,7 +788,7 @@ router.post("/send-pre-assessment-confirmation", async (req, res) => {
 
 router.post("/send-payment-confirmation", async (req, res) => {
   try {
-    const { email, name, invoiceNumber, amount, referenceNumber, propertyType, preferredDate } = req.body;
+    const { email, name, invoiceNumber, amount, referenceNumber, propertyType  } = req.body;
     if (!email || !name || !invoiceNumber) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
@@ -797,7 +797,7 @@ router.post("/send-payment-confirmation", async (req, res) => {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "Salfare Engineering" },
       to: [{ email }],
       subject: `Payment received - ${invoiceNumber}`,
-      htmlContent: paymentSubmissionTemplate(name, invoiceNumber, amount, referenceNumber, propertyType, preferredDate)
+      htmlContent: paymentSubmissionTemplate(name, invoiceNumber, amount, referenceNumber, propertyType)
     }, {
       headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json" }
     });
@@ -811,7 +811,7 @@ router.post("/send-payment-confirmation", async (req, res) => {
 
 router.post("/send-payment-verified", async (req, res) => {
   try {
-    const { email, name, invoiceNumber, amount, propertyType, preferredDate } = req.body;
+    const { email, name, invoiceNumber, amount, propertyType} = req.body;
     if (!email || !name || !invoiceNumber) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
@@ -820,7 +820,7 @@ router.post("/send-payment-verified", async (req, res) => {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "Salfare Engineering" },
       to: [{ email }],
       subject: `Payment verified - ${invoiceNumber}`,
-      htmlContent: paymentVerifiedTemplate(name, invoiceNumber, amount, propertyType, preferredDate)
+      htmlContent: paymentVerifiedTemplate(name, invoiceNumber, amount, propertyType)
     }, {
       headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json" }
     });

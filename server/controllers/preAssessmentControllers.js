@@ -832,7 +832,7 @@ exports.createPreAssessment = async (req, res) => {
       roofLength,
       roofWidth,
       systemType,
-      preferredDate,
+      
       // NEW FIELDS
       monthlyBill,
       rate,
@@ -876,7 +876,7 @@ exports.createPreAssessment = async (req, res) => {
       roofType: roofType || '',
       roofLength: roofLength ? parseFloat(roofLength) : null,
       roofWidth: roofWidth ? parseFloat(roofWidth) : null,
-      preferredDate: new Date(preferredDate),
+      
       paymentStatus: 'pending',
       assessmentStatus: 'pending_review',
       bookingReference,
@@ -916,7 +916,7 @@ exports.createPreAssessment = async (req, res) => {
         _id: preAssessment._id,
         bookingReference: preAssessment.bookingReference,
         assessmentFee: preAssessment.assessmentFee,
-        preferredDate: preAssessment.preferredDate,
+        
         assessmentStatus: preAssessment.assessmentStatus,
         paymentStatus: preAssessment.paymentStatus,
         roofLength: preAssessment.roofLength,

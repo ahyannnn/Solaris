@@ -17,31 +17,40 @@ const preAssessmentSchema = new mongoose.Schema({
   },
   preferredDate: { type: Date, default: null },
 
-  // ============ NEW FIELDS ============
-  monthlyBill: { type: Number, default: 0 },        // Monthly bill amount in PHP
-  rate: { type: Number, default: 0 },               // Rate per kWh in PHP
-  consumption: { type: Number, default: 0 },        // Monthly consumption in kWh
-  dayConsumption: { type: Number, default: 0 },     // Daytime consumption in kWh
-  nightConsumption: { type: Number, default: 0 },   // Nighttime consumption in kWh
-  dayPercentage: { type: Number, default: 0 },      // Day consumption percentage
-  nightPercentage: { type: Number, default: 0 },    // Night consumption percentage
+  // ============ BILLING & CONSUMPTION FIELDS ============
+  monthlyBill: { type: Number, default: 0 },
+  rate: { type: Number, default: 0 },
+  consumption: { type: Number, default: 0 },
+  dayConsumption: { type: Number, default: 0 },
+  nightConsumption: { type: Number, default: 0 },
+  dayPercentage: { type: Number, default: 0 },
+  nightPercentage: { type: Number, default: 0 },
   totalDailyConsumption: { type: Number, default: 0 },
   targetSavings: { type: Number, enum: [100, 75, 50, 25], default: null },
-  // ====================================
 
-  // Payment
+  // ============ SYSTEM CALCULATIONS ============
+  recommendedSystemSize: { type: Number, default: null },
+  inverterSize: { type: Number, default: null },
+  batteryCapacityKwh: { type: Number, default: null },
+  panelsNeeded: { type: Number, default: null },
+
+  // ============ ESTIMATED PRODUCTION & CO2 OFFSET ============
+  estimatedAnnualProduction: { type: Number, default: null },
+  estimatedAnnualProductionMin: { type: Number, default: null },
+  estimatedAnnualProductionMax: { type: Number, default: null },
+  co2Offset: { type: Number, default: null },
+  co2OffsetMin: { type: Number, default: null },
+  co2OffsetMax: { type: Number, default: null },
+
+  // ============ PAYMENT FIELDS ============
   assessmentFee: { type: Number, default: 1500 },
-  bookingReference: { type: String, unique: true },
-  invoiceNumber: {
-    type: String,
-    unique: true,
-    sparse: true
-  },
+  bookingReference: { type: String }, // Removed unique: true
+  invoiceNumber: { type: String }, // Removed unique: true and sparse: true
   paymentMethod: { type: String, enum: ['gcash', 'card', 'cash'], default: null },
   paymentProof: { type: String },
   paymentProofFileId: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
   paymentReference: { type: String },
-  paymongoPaymentIntentId: { type: String, index: true },
+  paymongoPaymentIntentId: { type: String }, // Removed index: true
   paymentGateway: { type: String, enum: ['paymongo', 'manual'], default: 'manual' },
   autoVerified: { type: Boolean, default: false },
   paymentCompletedAt: Date,
@@ -60,7 +69,7 @@ const preAssessmentSchema = new mongoose.Schema({
     default: 'pending_review'
   },
 
-  // IoT Device Integration
+  // ============ IoT DEVICE INTEGRATION ============
   iotDeviceId: { type: mongoose.Schema.Types.ObjectId, ref: 'IoTDevice' },
   deviceDeployedAt: Date,
   deviceDeployedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -70,39 +79,49 @@ const preAssessmentSchema = new mongoose.Schema({
   dataCollectionEnd: Date,
   totalReadings: { type: Number, default: 0 },
 
-  // Site Visit
+  // ============ SITE VISIT ============
   assignedEngineerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   siteVisitDate: Date,
   siteVisitNotes: String,
   sitePhotos: [String],
 
-  // Engineer Assessment Fields
+  // ============ ENGINEER ASSESSMENT FIELDS ============
   engineerAssessment: {
     siteInspectionDate: Date,
     inspectionNotes: String,
-    roofCondition: {
-      type: String,
-      enum: ['excellent', 'good', 'fair', 'poor']
-    },
+    roofCondition: { type: String, enum: ['excellent', 'good', 'fair', 'poor'] },
     roofLength: { type: Number, default: null },
     roofWidth: { type: Number, default: null },
-    structuralIntegrity: {
-      type: String,
-      enum: ['excellent', 'good', 'fair', 'poor']
-    },
+    structuralIntegrity: { type: String, enum: ['excellent', 'good', 'fair', 'poor'] },
     shadingAnalysis: String,
     recommendedPanelPlacement: String,
     estimatedInstallationTime: Number,
-    additionalMaterials: [{
-      name: String,
-      quantity: Number,
-      estimatedCost: Number
-    }],
+    additionalMaterials: [{ name: String, quantity: Number, estimatedCost: Number }],
     safetyConsiderations: [String],
     recommendations: String
   },
 
-  // Assessment Documents
+  // ============ ENGINEER SITE VISIT DETAILS ============
+  engineerSiteVisit: {
+    arrivalTime: Date,
+    departureTime: Date,
+    weatherConditions: String,
+    accessNotes: String,
+    safetyEquipmentUsed: [String],
+    teamMembers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+  },
+
+  // ============ DEVICE DEPLOYMENT DETAILS ============
+  deviceDeployment: {
+    deploymentPhotos: [String],
+    deviceSerialAtDeployment: String,
+    installationLocation: String,
+    gpsCoordinates: { lat: Number, lng: Number },
+    signalStrength: Number,
+    calibrationNotes: String
+  },
+
+  // ============ ASSESSMENT DOCUMENTS ============
   assessmentDocuments: [{
     fileId: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
     documentType: {
@@ -113,7 +132,7 @@ const preAssessmentSchema = new mongoose.Schema({
     uploadedAt: Date
   }],
 
-  // Quotation Details
+  // ============ QUOTATION DETAILS ============
   quotation: {
     quotationFileId: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
     quotationUrl: String,
@@ -124,122 +143,53 @@ const preAssessmentSchema = new mongoose.Schema({
       systemSize: Number,
       systemType: String,
       panelsNeeded: Number,
+      panelType: String,
       inverterType: String,
       batteryType: String,
       installationCost: Number,
       equipmentCost: Number,
       totalCost: Number,
       paymentTerms: String,
-      warrantyYears: Number
+      warrantyYears: Number,
+      equipmentBreakdown: mongoose.Schema.Types.Mixed
     },
     generatedAt: Date,
     generatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
   },
 
-  // Results
+  // ============ RESULTS ============
   detailedReport: { type: String },
   finalQuotation: { type: String },
   finalSystemSize: Number,
   finalSystemCost: Number,
   recommendedSystemType: { type: String, enum: ['grid-tie', 'hybrid', 'off-grid'] },
-  panelsNeeded: Number,
-  estimatedAnnualProduction: Number,
   estimatedAnnualSavings: Number,
   paybackPeriod: Number,
-  co2Offset: Number,
 
-  // Engineer Recommendations
-  engineerRecommendations: String,
-  technicalFindings: String,
-
-  // Engineer Comments
-  engineerComments: [{
-    comment: String,
-    commentedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    commentedAt: Date,
-    isPublic: { type: Boolean, default: true }
-  }],
-
-  // Admin Remarks
-  adminRemarks: String,
-
-  // Timestamps
-  bookedAt: { type: Date, default: Date.now },
-  confirmedAt: Date,
-  completedAt: Date
-}, {
-  timestamps: true
-});
-
-// Indexes
-preAssessmentSchema.index({ assignedEngineerId: 1, assessmentStatus: 1 });
-preAssessmentSchema.index({ clientId: 1, assessmentStatus: 1 });
-
-// ============ ADDED SCHEMAS (MINIMAL CHANGES) ============
-preAssessmentSchema.add({
-  // Engineer Site Visit Details
-  engineerSiteVisit: {
-    arrivalTime: Date,
-    departureTime: Date,
-    weatherConditions: String,
-    accessNotes: String,
-    safetyEquipmentUsed: [String],
-    teamMembers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
-  },
-
-  // Device Deployment Details
-  deviceDeployment: {
-    deploymentPhotos: [String],
-    deviceSerialAtDeployment: String,
-    installationLocation: String,
-    gpsCoordinates: {
-      lat: Number,
-      lng: Number
-    },
-    signalStrength: Number,
-    calibrationNotes: String
-  },
-
-  // Assessment Results - EXPANDED to include all IoT data
+  // ============ ASSESSMENT RESULTS ============
   assessmentResults: {
-    // Basic Info
     dataCollectionStart: Date,
     dataCollectionEnd: Date,
     totalReadings: { type: Number, default: 0 },
-
-    // Irradiance Metrics
     averageIrradiance: { type: Number, default: 0 },
     maxIrradiance: { type: Number, default: 0 },
     minIrradiance: { type: Number, default: 0 },
     peakSunHours: { type: Number, default: 0 },
-
-    // Temperature Metrics
     averageTemperature: { type: Number, default: 0 },
     maxTemperature: { type: Number, default: 0 },
     minTemperature: { type: Number, default: 0 },
     temperatureDerating: { type: Number, default: 0 },
-
-    // Humidity Metrics
     averageHumidity: { type: Number, default: 0 },
     maxHumidity: { type: Number, default: 0 },
     minHumidity: { type: Number, default: 0 },
-
-    // Site Analysis
     shadingPercentage: { type: Number, default: 0 },
-    gpsCoordinates: {
-      latitude: Number,
-      longitude: Number
-    },
-
-    // Legacy fields (keep for compatibility)
+    gpsCoordinates: { latitude: Number, longitude: Number },
     totalIrradiance: { type: Number, default: 0 },
     recommendedPanelCount: { type: Number, default: 0 },
     estimatedSystemSize: { type: Number, default: 0 },
     structuralAssessment: String,
     electricalAssessment: String,
     safetyAssessment: String,
-
-    // Summary Calculations
     summary: {
       totalDays: { type: Number, default: 0 },
       dataPointsPerDay: { type: Number, default: 0 },
@@ -249,10 +199,41 @@ preAssessmentSchema.add({
       estimatedAnnualSavings: { type: Number, default: 0 }
     }
   },
+
+  // ============ ENGINEER RECOMMENDATIONS ============
+  engineerRecommendations: String,
+  technicalFindings: String,
+
+  // ============ ENGINEER COMMENTS ============
+  engineerComments: [{
+    comment: String,
+    commentedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    commentedAt: Date,
+    isPublic: { type: Boolean, default: true }
+  }],
+
+  // ============ RECEIPT ============
   receiptUrl: { type: String },
   receiptNumber: { type: String },
+
+  // ============ ADMIN ============
+  adminRemarks: String,
   verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  verifiedAt: Date
+  verifiedAt: Date,
+
+  // ============ TIMESTAMPS ============
+  bookedAt: { type: Date, default: Date.now },
+  confirmedAt: Date,
+  completedAt: Date
+}, {
+  timestamps: true
 });
+
+// ============ INDEXES ============
+preAssessmentSchema.index({ assignedEngineerId: 1, assessmentStatus: 1 });
+preAssessmentSchema.index({ clientId: 1, assessmentStatus: 1 });
+preAssessmentSchema.index({ bookingReference: 1 }, { unique: true });
+preAssessmentSchema.index({ invoiceNumber: 1 }, { unique: true, sparse: true });
+preAssessmentSchema.index({ paymongoPaymentIntentId: 1 });
 
 module.exports = mongoose.model('PreAssessment', preAssessmentSchema);

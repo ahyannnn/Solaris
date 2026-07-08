@@ -222,7 +222,14 @@ exports.generateQuotationPDF = async (req, res) => {
       warrantyYears,
       includeIoTData,
       iotData,  // IoT data from frontend
-      equipmentDetails  // Detailed equipment breakdown
+      equipmentDetails,  // Detailed equipment breakdown
+      // ✅ NEW: Fields from frontend
+      estimatedAnnualProduction,
+      estimatedAnnualProductionMin,
+      estimatedAnnualProductionMax,
+      co2Offset,
+      co2OffsetMin,
+      co2OffsetMax
     } = req.body;
 
     const assessment = await PreAssessment.findById(id)
@@ -249,7 +256,6 @@ exports.generateQuotationPDF = async (req, res) => {
           const temperatureValues = sensorData.map(d => d.temperature || 0).filter(t => t && t > 0);
           const humidityValues = sensorData.map(d => d.humidity || 0).filter(h => h && h > 0);
 
-          // Calculate min/max properly - exclude zeros
           const minIrradiance = irradianceValues.length > 0 ? Math.min(...irradianceValues) : 0;
           const maxIrradiance = irradianceValues.length > 0 ? Math.max(...irradianceValues) : 0;
           const avgIrradiance = irradianceValues.length > 0
@@ -268,7 +274,6 @@ exports.generateQuotationPDF = async (req, res) => {
             ? humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length
             : 0;
 
-          // Calculate peak sun hours correctly
           let totalPSH = 0;
           for (let i = 0; i < sensorData.length - 1; i++) {
             const timeDiff = (new Date(sensorData[i + 1].timestamp) - new Date(sensorData[i].timestamp)) / (1000 * 60 * 60);
@@ -281,20 +286,16 @@ exports.generateQuotationPDF = async (req, res) => {
 
           iotAnalysis = {
             totalReadings: sensorData.length,
-            // Irradiance metrics
             averageIrradiance: avgIrradiance,
             maxIrradiance: maxIrradiance,
-            minIrradiance: minIrradiance,  // ✅ ADDED
+            minIrradiance: minIrradiance,
             peakSunHours: peakSunHours,
-            // Temperature metrics
             averageTemperature: avgTemperature,
-            minTemperature: minTemperature,  // ✅ ADDED
+            minTemperature: minTemperature,
             maxTemperature: maxTemperature,
-            // Humidity metrics
             averageHumidity: avgHumidity,
-            minHumidity: minHumidity,  // ✅ ADDED
+            minHumidity: minHumidity,
             maxHumidity: maxHumidity,
-            // System recommendations
             recommendedSystemSize: ((avgIrradiance / 1000) * 0.8).toFixed(1),
             optimalOrientation: iotData?.optimalOrientation || 'South-facing',
             optimalTiltAngle: iotData?.optimalTiltAngle || 15,
@@ -329,7 +330,7 @@ exports.generateQuotationPDF = async (req, res) => {
       };
     }
 
-    // Prepare ENHANCED cost breakdown with ALL equipment types
+    // Prepare cost breakdown with ALL equipment types
     const costBreakdown = {
       equipment: {
         panels: {
@@ -383,7 +384,6 @@ exports.generateQuotationPDF = async (req, res) => {
       }
     };
 
-    // Use values directly from frontend (no recalculation)
     const calculatedEquipmentTotal = equipmentCost || 0;
     const calculatedInstallationTotal = installationCost || 0;
     const calculatedTotalCost = totalCost || 0;
@@ -411,7 +411,14 @@ exports.generateQuotationPDF = async (req, res) => {
       calculatedEquipmentTotal,
       calculatedInstallationTotal,
       calculatedTotalCost,
-      iotAnalysis,  // Now includes min/max fields
+      iotAnalysis,
+      // ✅ NEW: Use values passed from frontend
+      estimatedAnnualProduction: estimatedAnnualProduction || 0,
+      estimatedAnnualProductionMin: estimatedAnnualProductionMin || 0,
+      estimatedAnnualProductionMax: estimatedAnnualProductionMax || 0,
+      co2Offset: co2Offset || 0,
+      co2OffsetMin: co2OffsetMin || 0,
+      co2OffsetMax: co2OffsetMax || 0,
       siteAssessment: {
         roofCondition: assessment.engineerAssessment?.roofCondition,
         roofLength: assessment.engineerAssessment?.roofLength,
@@ -488,6 +495,13 @@ exports.generateQuotationPDF = async (req, res) => {
         totalCost: calculatedTotalCost,
         includeIoTData: !!includeIoTData,
         hasIoTData: !!iotAnalysis,
+        // ✅ NEW: Store values in metadata
+        estimatedAnnualProduction: estimatedAnnualProduction || 0,
+        estimatedAnnualProductionMin: estimatedAnnualProductionMin || 0,
+        estimatedAnnualProductionMax: estimatedAnnualProductionMax || 0,
+        co2Offset: co2Offset || 0,
+        co2OffsetMin: co2OffsetMin || 0,
+        co2OffsetMax: co2OffsetMax || 0,
         generatedAt: new Date().toISOString()
       }
     });
@@ -533,9 +547,16 @@ exports.generateQuotationPDF = async (req, res) => {
     assessment.finalQuotation = result.secure_url;
     assessment.assessmentStatus = 'report_draft';
 
+    // ✅ NEW: Save estimated production and CO2 offset from frontend
+    assessment.estimatedAnnualProduction = estimatedAnnualProduction || null;
+    assessment.estimatedAnnualProductionMin = estimatedAnnualProductionMin || null;
+    assessment.estimatedAnnualProductionMax = estimatedAnnualProductionMax || null;
+    assessment.co2Offset = co2Offset || null;
+    assessment.co2OffsetMin = co2OffsetMin || null;
+    assessment.co2OffsetMax = co2OffsetMax || null;
+
     await assessment.save();
-    // After await assessment.save();
-    // FIX: Check if userId exists before sending notification
+
     const userId = assessment.clientId?.userId?._id;
     if (userId) {
       await sendNotification(
@@ -549,11 +570,14 @@ exports.generateQuotationPDF = async (req, res) => {
             bookingReference: assessment.bookingReference,
             quotationNumber: quotationNumber || 'Q-' + assessment.bookingReference,
             totalCost: calculatedTotalCost,
-            systemSize: systemSize
+            systemSize: systemSize,
+            estimatedAnnualProduction: estimatedAnnualProduction || 0,
+            co2Offset: co2Offset || 0
           }
         }
       );
     }
+
     res.json({
       success: true,
       message: 'Quotation PDF generated and uploaded successfully',
@@ -564,7 +588,14 @@ exports.generateQuotationPDF = async (req, res) => {
         totalCost: calculatedTotalCost,
         equipmentCost: calculatedEquipmentTotal,
         installationCost: calculatedInstallationTotal,
-        size: `${(pdfBuffer.length / 1024).toFixed(1)} KB`
+        size: `${(pdfBuffer.length / 1024).toFixed(1)} KB`,
+        // ✅ NEW: Return values in response
+        estimatedAnnualProduction: assessment.estimatedAnnualProduction,
+        estimatedAnnualProductionMin: assessment.estimatedAnnualProductionMin,
+        estimatedAnnualProductionMax: assessment.estimatedAnnualProductionMax,
+        co2Offset: assessment.co2Offset,
+        co2OffsetMin: assessment.co2OffsetMin,
+        co2OffsetMax: assessment.co2OffsetMax
       }
     });
 
@@ -3113,8 +3144,8 @@ exports.getSystemRecommendations = async (req, res) => {
     const systemType = assessment.systemType || 'grid-tie';
 
     // Battery type (default to LiFePO4)
-    const batteryType = 'lifepo4'; // Could be stored in assessment or passed from frontend
-    const DEPTH_OF_DISCHARGE = batteryType === 'lifepo4' ? 0.8 : 0.5; // 80% for LiFePO4, 50% for Gel/AGM
+    const batteryType = 'lifepo4';
+    const DEPTH_OF_DISCHARGE = batteryType === 'lifepo4' ? 0.8 : 0.5;
 
     // Get roof dimensions
     const roofLength = assessment.engineerAssessment?.roofLength || assessment.roofLength || 10;
@@ -3152,37 +3183,25 @@ exports.getSystemRecommendations = async (req, res) => {
     let inverterSize = 0;
 
     if (systemType === 'grid-tie') {
-      // Grid-Tie: total daily consumption (kW)
       recommendedSystemSize = adjustedDailyEnergyNeed;
-      inverterSize = Math.ceil(recommendedSystemSize); // Same as system size
+      inverterSize = Math.ceil(recommendedSystemSize);
       batteryCapacityKwh = 0;
 
     } else if (systemType === 'hybrid') {
-      // Hybrid: (total daily consumption × 1.3 safety factor) / peak sun hours
       recommendedSystemSize = (adjustedDailyEnergyNeed * 1.3) / peakSunHours;
       recommendedSystemSize = Math.round(recommendedSystemSize * 10) / 10;
-
-      // Inverter: same as system size (1:1 ratio)
       inverterSize = Math.ceil(recommendedSystemSize);
-
-      // Battery: ACTUAL daily consumption / depth of discharge
       batteryCapacityKwh = actualDailyConsumption / DEPTH_OF_DISCHARGE;
       batteryCapacityKwh = Math.round(batteryCapacityKwh * 10) / 10;
 
     } else if (systemType === 'off-grid') {
-      // Off-Grid: (total daily consumption × 1.3 safety factor) / peak sun hours
       recommendedSystemSize = (adjustedDailyEnergyNeed * 1.3) / peakSunHours;
       recommendedSystemSize = Math.round(recommendedSystemSize * 10) / 10;
-
-      // Inverter: same as system size (1:1 ratio)
       inverterSize = Math.ceil(recommendedSystemSize);
-
-      // Battery: ACTUAL daily consumption / depth of discharge
       batteryCapacityKwh = actualDailyConsumption / DEPTH_OF_DISCHARGE;
       batteryCapacityKwh = Math.round(batteryCapacityKwh * 10) / 10;
 
     } else {
-      // Default
       recommendedSystemSize = adjustedDailyEnergyNeed;
       inverterSize = Math.ceil(recommendedSystemSize);
       batteryCapacityKwh = 0;
@@ -3222,19 +3241,31 @@ exports.getSystemRecommendations = async (req, res) => {
 
     // Calculate financial metrics
     const electricityRate = rate;
-    const annualProduction = recommendedSystemSize * peakSunHours * 365 * 0.8;
+    
+    // ✅ Annual Production = System Size × Peak Sun Hours ÷ 1.3 (safety factor)
+    const annualProduction = (recommendedSystemSize * peakSunHours * 365) / 1.3;
     const estimatedAnnualProduction = Math.round(annualProduction);
+    
+    // ✅ Annual production range (Min: 3 PSH, Max: 4.5 PSH)
+    const MIN_PSH = 3;
+    const MAX_PSH = 4.5;
+    
+    const annualProductionMin = (recommendedSystemSize * MIN_PSH * 365) / 1.3;
+    const annualProductionMax = (recommendedSystemSize * MAX_PSH * 365) / 1.3;
+    
+    const estimatedAnnualProductionMin = Math.round(annualProductionMin);
+    const estimatedAnnualProductionMax = Math.round(annualProductionMax);
+    
+    // Calculate savings based on actual PSH
     const estimatedMonthlySavings = Math.round((annualProduction * electricityRate) / 12);
     const estimatedAnnualSavings = Math.round(estimatedMonthlySavings * 12);
 
-    // Calculate payback period
-    let paybackPeriod = 0;
-    if (estimatedAnnualSavings > 0) {
-      paybackPeriod = Math.round((totalCost / estimatedAnnualSavings) * 10) / 10;
-    }
-
-    // Calculate CO2 offset
+    // ✅ Calculate CO2 offset
     const co2Offset = Math.round(annualProduction * 0.5);
+    
+    // ✅ CO2 offset range
+    const co2OffsetMin = Math.round(annualProductionMin * 0.5);
+    const co2OffsetMax = Math.round(annualProductionMax * 0.5);
 
     // Calculate site suitability score
     let siteSuitabilityScore = 100;
@@ -3309,7 +3340,7 @@ exports.getSystemRecommendations = async (req, res) => {
       availableRoofArea: roundTo2Decimals(availableRoofArea),
       estimatedInstallationTime: estimatedInstallationTime,
 
-      // Financial
+      // Financial - Actual (based on measured PSH)
       estimatedEquipmentCost: roundTo2Decimals(equipmentCost),
       estimatedBatteryCost: roundTo2Decimals(batteryCost),
       estimatedInstallationCost: roundTo2Decimals(installationCost),
@@ -3317,8 +3348,21 @@ exports.getSystemRecommendations = async (req, res) => {
       estimatedAnnualProduction: estimatedAnnualProduction,
       estimatedMonthlySavings: estimatedMonthlySavings,
       estimatedAnnualSavings: estimatedAnnualSavings,
-      paybackPeriod: roundTo2Decimals(paybackPeriod),
       co2Offset: co2Offset,
+
+      // ✅ NEW: Annual Production Range (Min 3 PSH / Max 4.5 PSH)
+      estimatedAnnualProductionRange: {
+        min: estimatedAnnualProductionMin,
+        max: estimatedAnnualProductionMax,
+        minPsh: MIN_PSH,
+        maxPsh: MAX_PSH
+      },
+
+      // ✅ NEW: CO2 Offset Range
+      co2OffsetRange: {
+        min: co2OffsetMin,
+        max: co2OffsetMax
+      },
 
       // Suitability
       siteSuitabilityScore: siteSuitabilityScore,
@@ -3336,7 +3380,10 @@ exports.getSystemRecommendations = async (req, res) => {
         inverterFormula: `Inverter = ${roundTo2Decimals(recommendedSystemSize)} kW`,
         batteryFormula: batteryCapacityKwh > 0
           ? `Battery = ${roundTo2Decimals(actualDailyConsumption)} ÷ ${DEPTH_OF_DISCHARGE} = ${roundTo2Decimals(batteryCapacityKwh)} kWh`
-          : 'No battery required for grid-tie system'
+          : 'No battery required for grid-tie system',
+        // ✅ Updated formula with range
+        annualProductionFormula: `Annual Production = (${roundTo2Decimals(recommendedSystemSize)} kW × PSH × 365) ÷ 1.3`,
+        annualProductionRangeFormula: `Range: ${estimatedAnnualProductionMin.toLocaleString()} - ${estimatedAnnualProductionMax.toLocaleString()} kWh/year (${MIN_PSH}-${MAX_PSH} PSH)`
       }
     };
 

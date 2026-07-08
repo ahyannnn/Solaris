@@ -33,62 +33,65 @@ const roundTo2Decimals = (value) => {
 
 // ============ SYSTEM SIZE CALCULATION (EXACTLY LIKE PRE-ASSESSMENT) ============
 
-/**
- * Calculate system size, inverter, and battery using the same formulas as pre-assessment
- */
 function calculateSystemSize({
   dailyEnergyNeed,
   targetSavings = 100,
-  peakSunHours = 4.5,
+  peakSunHours = 3.5,
   systemType = 'grid-tie'
 }) {
-  // Battery type (default to LiFePO4) - same as pre-assessment
   const batteryType = 'lifepo4';
   const DEPTH_OF_DISCHARGE = batteryType === 'lifepo4' ? 0.8 : 0.5;
-  const PANEL_WATTAGE = 0.55; // 550W panels = 0.55 kW per panel
+  const PANEL_WATTAGE = 0.55;
 
-  // Apply target savings for PV system size (same as pre-assessment)
   const adjustedDailyEnergyNeed = dailyEnergyNeed * (targetSavings / 100);
   const actualDailyConsumption = dailyEnergyNeed;
 
-  // ============ SYSTEM SIZE CALCULATIONS (EXACTLY LIKE PRE-ASSESSMENT) ============
   let recommendedSystemSize = 0;
   let batteryCapacityKwh = 0;
   let inverterSize = 0;
 
   if (systemType === 'grid-tie') {
-    // Grid-Tie: total daily consumption (kW) - SAME AS PRE-ASSESSMENT
-    recommendedSystemSize = adjustedDailyEnergyNeed;
+    recommendedSystemSize = (adjustedDailyEnergyNeed * 1.3) / peakSunHours;
     inverterSize = Math.ceil(recommendedSystemSize);
     batteryCapacityKwh = 0;
-
   } else if (systemType === 'hybrid') {
-    // Hybrid: (total daily consumption × 1.3 safety factor) / peak sun hours - SAME AS PRE-ASSESSMENT
     recommendedSystemSize = (adjustedDailyEnergyNeed * 1.3) / peakSunHours;
     recommendedSystemSize = Math.round(recommendedSystemSize * 10) / 10;
     inverterSize = Math.ceil(recommendedSystemSize);
-    // Battery: ACTUAL daily consumption / depth of discharge - SAME AS PRE-ASSESSMENT
     batteryCapacityKwh = actualDailyConsumption / DEPTH_OF_DISCHARGE;
     batteryCapacityKwh = Math.round(batteryCapacityKwh * 10) / 10;
-
   } else if (systemType === 'off-grid') {
-    // Off-Grid: (total daily consumption × 1.3 safety factor) / peak sun hours - SAME AS PRE-ASSESSMENT
     recommendedSystemSize = (adjustedDailyEnergyNeed * 1.3) / peakSunHours;
     recommendedSystemSize = Math.round(recommendedSystemSize * 10) / 10;
     inverterSize = Math.ceil(recommendedSystemSize);
-    // Battery: ACTUAL daily consumption / depth of discharge - SAME AS PRE-ASSESSMENT
     batteryCapacityKwh = actualDailyConsumption / DEPTH_OF_DISCHARGE;
     batteryCapacityKwh = Math.round(batteryCapacityKwh * 10) / 10;
-
   } else {
-    // Default to grid-tie
-    recommendedSystemSize = adjustedDailyEnergyNeed;
+    recommendedSystemSize = (adjustedDailyEnergyNeed * 1.3) / peakSunHours;
     inverterSize = Math.ceil(recommendedSystemSize);
     batteryCapacityKwh = 0;
   }
 
-  // Calculate panels needed (550W panels = 0.55 kW) - SAME AS PRE-ASSESSMENT
   const panelsNeeded = Math.ceil(recommendedSystemSize / PANEL_WATTAGE);
+
+  // ✅ NEW: Annual Production = System Size × Peak Sun Hours ÷ 1.3 (safety factor)
+  const annualProduction = (recommendedSystemSize * peakSunHours * 365) / 1.3;
+  const estimatedAnnualProduction = Math.round(annualProduction);
+
+  // ✅ NEW: Annual production range (Min: 3 PSH, Max: 4.5 PSH)
+  const MIN_PSH = 3;
+  const MAX_PSH = 4.5;
+
+  const annualProductionMin = (recommendedSystemSize * MIN_PSH * 365) / 1.3;
+  const annualProductionMax = (recommendedSystemSize * MAX_PSH * 365) / 1.3;
+
+  const estimatedAnnualProductionMin = Math.round(annualProductionMin);
+  const estimatedAnnualProductionMax = Math.round(annualProductionMax);
+
+  // ✅ NEW: CO2 offset (0.5 kg CO2 per kWh)
+  const co2Offset = Math.round(annualProduction * 0.5);
+  const co2OffsetMin = Math.round(annualProductionMin * 0.5);
+  const co2OffsetMax = Math.round(annualProductionMax * 0.5);
 
   return {
     recommendedSystemSize: roundTo2Decimals(recommendedSystemSize),
@@ -100,7 +103,21 @@ function calculateSystemSize({
     batteryType: batteryType,
     adjustedDailyEnergyNeed: roundTo2Decimals(adjustedDailyEnergyNeed),
     actualDailyConsumption: roundTo2Decimals(actualDailyConsumption),
-    // Formula reference - SAME AS PRE-ASSESSMENT
+    // ✅ NEW: Annual production and range
+    estimatedAnnualProduction: estimatedAnnualProduction,
+    estimatedAnnualProductionRange: {
+      min: estimatedAnnualProductionMin,
+      max: estimatedAnnualProductionMax,
+      minPsh: MIN_PSH,
+      maxPsh: MAX_PSH
+    },
+    // ✅ NEW: CO2 offset and range
+    co2Offset: co2Offset,
+    co2OffsetRange: {
+      min: co2OffsetMin,
+      max: co2OffsetMax
+    },
+    // Formula reference
     formula: {
       systemType: systemType,
       pvFormula: systemType === 'grid-tie'
@@ -109,7 +126,10 @@ function calculateSystemSize({
       inverterFormula: `Inverter = ${roundTo2Decimals(recommendedSystemSize)} kW`,
       batteryFormula: batteryCapacityKwh > 0
         ? `Battery = ${roundTo2Decimals(actualDailyConsumption)} ÷ ${DEPTH_OF_DISCHARGE} = ${roundTo2Decimals(batteryCapacityKwh)} kWh`
-        : 'No battery required for grid-tie system'
+        : 'No battery required for grid-tie system',
+      // ✅ NEW: Annual production formula with range
+      annualProductionFormula: `Annual Production = (${roundTo2Decimals(recommendedSystemSize)} kW × PSH × 365) ÷ 1.3`,
+      annualProductionRangeFormula: `Range: ${estimatedAnnualProductionMin.toLocaleString()} - ${estimatedAnnualProductionMax.toLocaleString()} kWh/year (${MIN_PSH}-${MAX_PSH} PSH)`
     }
   };
 }
@@ -174,7 +194,7 @@ exports.createFreeQuote = async (req, res) => {
     const systemCalculations = calculateSystemSize({
       dailyEnergyNeed: dailyEnergyNeed,
       targetSavings: targetSavings ? parseInt(targetSavings) : 100,
-      peakSunHours: 4.5,
+      peakSunHours: 3.5,
       systemType: systemType || 'grid-tie'
     });
 
@@ -186,33 +206,40 @@ exports.createFreeQuote = async (req, res) => {
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     const quotationReference = `Q-${year}${month}${day}-${random}`;
 
-    // Create free quote object
-    const freeQuote = new FreeQuote({
-      clientId: client._id,
-      addressId: addressId || null,
-      monthlyBill: parseFloat(monthlyBill),
-      propertyType: propertyType,
-      desiredCapacity: desiredCapacity || '',
-      systemType: systemType || null,
-      roofType: roofType || null,
-      roofLength: roofLength ? parseFloat(roofLength) : null,
-      roofWidth: roofWidth ? parseFloat(roofWidth) : null,
-      targetSavings: targetSavings ? parseInt(targetSavings) : null,
-      // Store consumption data
-      monthlyConsumption: monthlyConsumption ? parseFloat(monthlyConsumption) : null,
-      dayConsumption: dayConsumption ? parseFloat(dayConsumption) : null,
-      nightConsumption: nightConsumption ? parseFloat(nightConsumption) : null,
-      dayPercentage: dayPercentage ? parseFloat(dayPercentage) : null,
-      nightPercentage: nightPercentage ? parseFloat(nightPercentage) : null,
-      totalDailyConsumption: dailyEnergyNeed,
-      // Store system calculations (same as pre-assessment)
-      recommendedSystemSize: systemCalculations.recommendedSystemSize,
-      inverterSize: systemCalculations.inverterSize,
-      batteryCapacityKwh: systemCalculations.batteryCapacityKwh,
-      panelsNeeded: systemCalculations.panelsNeeded,
-      status: 'pending',
-      quotationReference: quotationReference
-    });
+    // In createFreeQuote function, after systemCalculations
+const freeQuote = new FreeQuote({
+  clientId: client._id,
+  addressId: addressId || null,
+  monthlyBill: parseFloat(monthlyBill),
+  propertyType: propertyType,
+  desiredCapacity: desiredCapacity || '',
+  systemType: systemType || null,
+  roofType: roofType || null,
+  roofLength: roofLength ? parseFloat(roofLength) : null,
+  roofWidth: roofWidth ? parseFloat(roofWidth) : null,
+  targetSavings: targetSavings ? parseInt(targetSavings) : null,
+  monthlyConsumption: monthlyConsumption ? parseFloat(monthlyConsumption) : null,
+  dayConsumption: dayConsumption ? parseFloat(dayConsumption) : null,
+  nightConsumption: nightConsumption ? parseFloat(nightConsumption) : null,
+  dayPercentage: dayPercentage ? parseFloat(dayPercentage) : null,
+  nightPercentage: nightPercentage ? parseFloat(nightPercentage) : null,
+  totalDailyConsumption: dailyEnergyNeed,
+  // System calculations
+  recommendedSystemSize: systemCalculations.recommendedSystemSize,
+  inverterSize: systemCalculations.inverterSize,
+  batteryCapacityKwh: systemCalculations.batteryCapacityKwh,
+  panelsNeeded: systemCalculations.panelsNeeded,
+  // ✅ NEW: Annual production and range
+  estimatedAnnualProduction: systemCalculations.estimatedAnnualProduction,
+  estimatedAnnualProductionMin: systemCalculations.estimatedAnnualProductionRange.min,
+  estimatedAnnualProductionMax: systemCalculations.estimatedAnnualProductionRange.max,
+  // ✅ NEW: CO2 offset and range
+  co2Offset: systemCalculations.co2Offset,
+  co2OffsetMin: systemCalculations.co2OffsetRange.min,
+  co2OffsetMax: systemCalculations.co2OffsetRange.max,
+  status: 'pending',
+  quotationReference: quotationReference
+});
 
     await freeQuote.save();
     // Add this after await freeQuote.save();
@@ -239,36 +266,44 @@ exports.createFreeQuote = async (req, res) => {
     });
 
     res.status(201).json({
-      success: true,
-      message: 'Free quote request submitted successfully',
-      quote: {
-        _id: freeQuote._id,
-        quotationReference: freeQuote.quotationReference,
-        monthlyBill: freeQuote.monthlyBill,
-        propertyType: freeQuote.propertyType,
-        desiredCapacity: freeQuote.desiredCapacity,
-        systemType: freeQuote.systemType,
-        roofType: freeQuote.roofType,
-        roofLength: freeQuote.roofLength,
-        roofWidth: freeQuote.roofWidth,
-        targetSavings: freeQuote.targetSavings,
-        status: freeQuote.status,
-        requestedAt: freeQuote.requestedAt,
-        // System calculations (same as pre-assessment)
-        recommendedSystemSize: freeQuote.recommendedSystemSize,
-        inverterSize: freeQuote.inverterSize,
-        batteryCapacityKwh: freeQuote.batteryCapacityKwh,
-        panelsNeeded: freeQuote.panelsNeeded,
-        client: {
-          name: `${freeQuote.clientId.contactFirstName} ${freeQuote.clientId.contactLastName}`,
-          contactNumber: freeQuote.clientId.contactNumber,
-          email: freeQuote.clientId.userId?.email
-        },
-        address: freeQuote.addressId ? {
-          fullAddress: freeQuote.addressId.getFullAddress ? freeQuote.addressId.getFullAddress() : 'Address'
-        } : null
-      }
-    });
+  success: true,
+  message: 'Free quote request submitted successfully',
+  quote: {
+    _id: freeQuote._id,
+    quotationReference: freeQuote.quotationReference,
+    monthlyBill: freeQuote.monthlyBill,
+    propertyType: freeQuote.propertyType,
+    desiredCapacity: freeQuote.desiredCapacity,
+    systemType: freeQuote.systemType,
+    roofType: freeQuote.roofType,
+    roofLength: freeQuote.roofLength,
+    roofWidth: freeQuote.roofWidth,
+    targetSavings: freeQuote.targetSavings,
+    status: freeQuote.status,
+    requestedAt: freeQuote.requestedAt,
+    // System calculations
+    recommendedSystemSize: freeQuote.recommendedSystemSize,
+    inverterSize: freeQuote.inverterSize,
+    batteryCapacityKwh: freeQuote.batteryCapacityKwh,
+    panelsNeeded: freeQuote.panelsNeeded,
+    // ✅ NEW: Annual production and range
+    estimatedAnnualProduction: freeQuote.estimatedAnnualProduction,
+    estimatedAnnualProductionMin: freeQuote.estimatedAnnualProductionMin,
+    estimatedAnnualProductionMax: freeQuote.estimatedAnnualProductionMax,
+    // ✅ NEW: CO2 offset and range
+    co2Offset: freeQuote.co2Offset,
+    co2OffsetMin: freeQuote.co2OffsetMin,
+    co2OffsetMax: freeQuote.co2OffsetMax,
+    client: {
+      name: `${freeQuote.clientId.contactFirstName} ${freeQuote.clientId.contactLastName}`,
+      contactNumber: freeQuote.clientId.contactNumber,
+      email: freeQuote.clientId.userId?.email
+    },
+    address: freeQuote.addressId ? {
+      fullAddress: freeQuote.addressId.getFullAddress ? freeQuote.addressId.getFullAddress() : 'Address'
+    } : null
+  }
+});
 
   } catch (error) {
     console.error('Create free quote error:', error);
@@ -304,9 +339,20 @@ exports.getAllFreeQuotes = async (req, res) => {
 
     const total = await FreeQuote.countDocuments(query);
 
+    // ✅ NEW: Format quotes with calculated fields
+    const formattedQuotes = quotes.map(quote => ({
+      ...quote.toObject(),
+      estimatedAnnualProduction: quote.estimatedAnnualProduction,
+      estimatedAnnualProductionMin: quote.estimatedAnnualProductionMin,
+      estimatedAnnualProductionMax: quote.estimatedAnnualProductionMax,
+      co2Offset: quote.co2Offset,
+      co2OffsetMin: quote.co2OffsetMin,
+      co2OffsetMax: quote.co2OffsetMax
+    }));
+
     res.json({
       success: true,
-      quotes,
+      quotes: formattedQuotes,
       total,
       page: parseInt(page),
       totalPages: Math.ceil(total / limit)
@@ -334,9 +380,20 @@ exports.getMyFreeQuotes = async (req, res) => {
       .populate('addressId')
       .sort({ requestedAt: -1 });
 
+    // ✅ NEW: Format quotes with calculated fields
+    const formattedQuotes = quotes.map(quote => ({
+      ...quote.toObject(),
+      estimatedAnnualProduction: quote.estimatedAnnualProduction,
+      estimatedAnnualProductionMin: quote.estimatedAnnualProductionMin,
+      estimatedAnnualProductionMax: quote.estimatedAnnualProductionMax,
+      co2Offset: quote.co2Offset,
+      co2OffsetMin: quote.co2OffsetMin,
+      co2OffsetMax: quote.co2OffsetMax
+    }));
+
     res.json({
       success: true,
-      quotes
+      quotes: formattedQuotes
     });
 
   } catch (error) {
@@ -373,17 +430,51 @@ exports.getFreeQuoteById = async (req, res) => {
 
     // Admin can access any quote
     if (userRole === 'admin') {
-      return res.json({ success: true, quote });
+      return res.json({ 
+        success: true, 
+        quote: {
+          ...quote.toObject(),
+          // ✅ NEW: Include calculated fields
+          estimatedAnnualProduction: quote.estimatedAnnualProduction,
+          estimatedAnnualProductionMin: quote.estimatedAnnualProductionMin,
+          estimatedAnnualProductionMax: quote.estimatedAnnualProductionMax,
+          co2Offset: quote.co2Offset,
+          co2OffsetMin: quote.co2OffsetMin,
+          co2OffsetMax: quote.co2OffsetMax
+        }
+      });
     }
 
     // Customer can access their own quotes
     if (client && quote.clientId._id.toString() === client._id.toString()) {
-      return res.json({ success: true, quote });
+      return res.json({ 
+        success: true, 
+        quote: {
+          ...quote.toObject(),
+          estimatedAnnualProduction: quote.estimatedAnnualProduction,
+          estimatedAnnualProductionMin: quote.estimatedAnnualProductionMin,
+          estimatedAnnualProductionMax: quote.estimatedAnnualProductionMax,
+          co2Offset: quote.co2Offset,
+          co2OffsetMin: quote.co2OffsetMin,
+          co2OffsetMax: quote.co2OffsetMax
+        }
+      });
     }
 
     // Engineer can access quotes assigned to them
     if (userRole === 'engineer' && quote.assignedEngineerId && quote.assignedEngineerId._id.toString() === userId) {
-      return res.json({ success: true, quote });
+      return res.json({ 
+        success: true, 
+        quote: {
+          ...quote.toObject(),
+          estimatedAnnualProduction: quote.estimatedAnnualProduction,
+          estimatedAnnualProductionMin: quote.estimatedAnnualProductionMin,
+          estimatedAnnualProductionMax: quote.estimatedAnnualProductionMax,
+          co2Offset: quote.co2Offset,
+          co2OffsetMin: quote.co2OffsetMin,
+          co2OffsetMax: quote.co2OffsetMax
+        }
+      });
     }
 
     // Otherwise, unauthorized
@@ -717,9 +808,20 @@ exports.getEngineerFreeQuotes = async (req, res) => {
 
     const total = await FreeQuote.countDocuments(query);
 
+    // ✅ NEW: Format quotes with calculated fields
+    const formattedQuotes = quotes.map(quote => ({
+      ...quote.toObject(),
+      estimatedAnnualProduction: quote.estimatedAnnualProduction,
+      estimatedAnnualProductionMin: quote.estimatedAnnualProductionMin,
+      estimatedAnnualProductionMax: quote.estimatedAnnualProductionMax,
+      co2Offset: quote.co2Offset,
+      co2OffsetMin: quote.co2OffsetMin,
+      co2OffsetMax: quote.co2OffsetMax
+    }));
+
     res.json({
       success: true,
-      quotes,
+      quotes: formattedQuotes,
       total,
       page: parseInt(page),
       totalPages: Math.ceil(total / limit)

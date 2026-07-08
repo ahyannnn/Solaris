@@ -802,7 +802,14 @@ const MyAssessments = () => {
         totalDailyConsumption: quote.totalDailyConsumption || null,
         dayPercentage: quote.dayPercentage || null,
         nightPercentage: quote.nightPercentage || null,
-        targetSavings: quote.targetSavings || null
+        targetSavings: quote.targetSavings || null,
+        // ✅ NEW: Annual production and CO2 offset
+        estimatedAnnualProduction: quote.estimatedAnnualProduction || null,
+        estimatedAnnualProductionMin: quote.estimatedAnnualProductionMin || null,
+        estimatedAnnualProductionMax: quote.estimatedAnnualProductionMax || null,
+        co2Offset: quote.co2Offset || null,
+        co2OffsetMin: quote.co2OffsetMin || null,
+        co2OffsetMax: quote.co2OffsetMax || null
       }));
 
       const formattedPreAssessments = (preAssessmentsRes.data.assessments || []).map(assessment => ({
@@ -903,7 +910,14 @@ const MyAssessments = () => {
         dayPercentage: quote.dayPercentage || null,
         nightPercentage: quote.nightPercentage || null,
         totalDailyConsumption: quote.totalDailyConsumption || null,
-        targetSavings: quote.targetSavings || null
+        targetSavings: quote.targetSavings || null,
+        // ✅ NEW: Annual production and CO2 offset
+        estimatedAnnualProduction: quote.estimatedAnnualProduction || null,
+        estimatedAnnualProductionMin: quote.estimatedAnnualProductionMin || null,
+        estimatedAnnualProductionMax: quote.estimatedAnnualProductionMax || null,
+        co2Offset: quote.co2Offset || null,
+        co2OffsetMin: quote.co2OffsetMin || null,
+        co2OffsetMax: quote.co2OffsetMax || null
       };
 
       setSelectedItem(formattedQuote);
@@ -1809,7 +1823,6 @@ const MyAssessments = () => {
                       <label>Inverter Size</label>
                       <strong>{selectedItem.inverterSize} kW</strong>
                     </div>
-                  
                     <div className="rec-item">
                       <label>Total Daily Consumption</label>
                       <strong>{selectedItem.totalDailyConsumption?.toFixed(2) || 0} kWh/day</strong>
@@ -1828,8 +1841,45 @@ const MyAssessments = () => {
                       <label>System Type</label>
                       <strong>{getSystemTypeLabel(selectedItem.systemType)}</strong>
                     </div>
+
+                    {/* ✅ NEW: Annual Production Estimates */}
+                    {selectedItem.estimatedAnnualProduction && (
+                      <>
+                        <div className="rec-item" style={{ background: '#e8f5e9' }}>
+                          <label>Annual Production (Actual)</label>
+                          <strong>{selectedItem.estimatedAnnualProduction.toLocaleString()} kWh/year</strong>
+                        </div>
+                        {selectedItem.estimatedAnnualProductionMin && selectedItem.estimatedAnnualProductionMax && (
+                          <div className="rec-item" style={{ background: '#fff3e0' }}>
+                            <label>Annual Production Range</label>
+                            <strong>
+                              {selectedItem.estimatedAnnualProductionMin.toLocaleString()} - {selectedItem.estimatedAnnualProductionMax.toLocaleString()} kWh/year
+                            </strong>
+                            <small style={{ display: 'block', fontSize: '11px', color: '#e65100' }}>3-4.5 PSH range</small>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* ✅ NEW: CO2 Offset Estimates */}
+                    {selectedItem.co2Offset && (
+                      <>
+                        <div className="rec-item" style={{ background: '#e0f7fa' }}>
+                          <label>CO2 Offset (Actual)</label>
+                          <strong>{selectedItem.co2Offset.toLocaleString()} kg/year</strong>
+                        </div>
+                        {selectedItem.co2OffsetMin && selectedItem.co2OffsetMax && (
+                          <div className="rec-item" style={{ background: '#fff8e1' }}>
+                            <label>CO2 Offset Range</label>
+                            <strong>
+                              {selectedItem.co2OffsetMin.toLocaleString()} - {selectedItem.co2OffsetMax.toLocaleString()} kg/year
+                            </strong>
+                            <small style={{ display: 'block', fontSize: '11px', color: '#f57f17' }}>3-4.5 PSH range</small>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
-                 
                 </div>
               )}
 
@@ -2528,6 +2578,60 @@ const MyAssessments = () => {
                         </div>
                       </div>
                     </div>
+
+                    {/* ✅ NEW: Annual Production Estimates */}
+                    {systemMetrics.estimatedAnnualProduction && (
+                      <div className="system-recommendations" style={{ marginTop: '15px', borderTop: '1px solid #e0e0e0', paddingTop: '15px' }}>
+                        <h4>Annual Production Estimates</h4>
+                        <div className="recommendations-grid">
+                          <div className="rec-item" style={{ background: '#e8f5e9' }}>
+                            <label>Annual Production (Actual)</label>
+                            <strong>{systemMetrics.estimatedAnnualProduction.toLocaleString()} kWh/year</strong>
+                            <small style={{ display: 'block', fontSize: '11px', color: '#2e7d32' }}>
+                              Based on {systemMetrics.peakSunHours || 4.5} PSH
+                            </small>
+                          </div>
+                          {systemMetrics.estimatedAnnualProductionRange && (
+                            <div className="rec-item" style={{ background: '#fff3e0' }}>
+                              <label>Annual Production Range</label>
+                              <strong>
+                                {systemMetrics.estimatedAnnualProductionRange.min?.toLocaleString()} - {systemMetrics.estimatedAnnualProductionRange.max?.toLocaleString()} kWh/year
+                              </strong>
+                              <small style={{ display: 'block', fontSize: '11px', color: '#e65100' }}>
+                                {systemMetrics.estimatedAnnualProductionRange.minPsh}-{systemMetrics.estimatedAnnualProductionRange.maxPsh} PSH range
+                              </small>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ✅ NEW: CO2 Offset Estimates */}
+                    {systemMetrics.co2Offset && (
+                      <div className="system-recommendations" style={{ marginTop: '15px', borderTop: '1px solid #e0e0e0', paddingTop: '15px' }}>
+                        <h4>Environmental Impact</h4>
+                        <div className="recommendations-grid">
+                          <div className="rec-item" style={{ background: '#e0f7fa' }}>
+                            <label>CO2 Offset (Actual)</label>
+                            <strong>{systemMetrics.co2Offset.toLocaleString()} kg/year</strong>
+                            <small style={{ display: 'block', fontSize: '11px', color: '#00695c' }}>
+                              Based on {systemMetrics.peakSunHours || 4.5} PSH
+                            </small>
+                          </div>
+                          {systemMetrics.co2OffsetRange && (
+                            <div className="rec-item" style={{ background: '#fff8e1' }}>
+                              <label>CO2 Offset Range</label>
+                              <strong>
+                                {systemMetrics.co2OffsetRange.min?.toLocaleString()} - {systemMetrics.co2OffsetRange.max?.toLocaleString()} kg/year
+                              </strong>
+                              <small style={{ display: 'block', fontSize: '11px', color: '#f57f17' }}>
+                                {systemMetrics.estimatedAnnualProductionRange?.minPsh}-{systemMetrics.estimatedAnnualProductionRange?.maxPsh} PSH range
+                              </small>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="no-metrics">No system recommendations available yet. Please ensure IoT data has been collected and device has been retrieved.</div>

@@ -96,7 +96,35 @@ const freeQuoteSchema = new mongoose.Schema({
     default: null 
   },
   
-  // ============ STATUS - UPDATED with 'accepted' ============
+  // ============ ✅ NEW: ANNUAL PRODUCTION ============
+  estimatedAnnualProduction: { 
+    type: Number, 
+    default: null 
+  },
+  estimatedAnnualProductionMin: { 
+    type: Number, 
+    default: null 
+  },
+  estimatedAnnualProductionMax: { 
+    type: Number, 
+    default: null 
+  },
+  
+  // ============ ✅ NEW: CO2 OFFSET ============
+  co2Offset: { 
+    type: Number, 
+    default: null 
+  },
+  co2OffsetMin: { 
+    type: Number, 
+    default: null 
+  },
+  co2OffsetMax: { 
+    type: Number, 
+    default: null 
+  },
+  
+  // ============ STATUS ============
   status: { 
     type: String, 
     enum: ['pending', 'assigned', 'processing', 'completed', 'accepted', 'cancelled'],

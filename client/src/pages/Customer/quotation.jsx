@@ -59,18 +59,12 @@ const Quotation = () => {
   const [solarInvoices, setSolarInvoices] = useState([]);
   const [allItems, setAllItems] = useState([]);
 
-  // Company bank accounts for manual transfer
+  // Company bank accounts for manual transfer - ONLY BPO, BPI, Metrobank, and Security Bank
   const companyBanks = [
-    { id: 'bpi', name: 'BPI', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-    { id: 'unionbank', name: 'UnionBank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-    { id: 'bdo', name: 'BDO', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
+    { id: 'bpo', name: 'BPO - Bank of the Philippine Islands', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
+    { id: 'bpi', name: 'BPI - Bank of the Philippine Islands', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
     { id: 'metrobank', name: 'Metrobank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-    { id: 'landbank', name: 'Landbank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-    { id: 'security_bank', name: 'Security Bank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-    { id: 'chinabank', name: 'China Bank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-    { id: 'pnb', name: 'PNB', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-    { id: 'eastwest', name: 'EastWest Bank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-    { id: 'rcbc', name: 'RCBC', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' }
+    { id: 'security_bank', name: 'Security Bank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' }
   ];
 
   useEffect(() => {
@@ -420,10 +414,14 @@ const Quotation = () => {
     return parts.length > 0 ? parts.join(', ') : 'No address provided';
   };
 
-  // Manual Bank Transfer Handlers
   const handleManualTransferInputChange = (e) => {
     const { name, value } = e.target;
-    setManualTransferForm(prev => ({ ...prev, [name]: value }));
+
+    // Directly update the state without any restrictions
+    setManualTransferForm(prev => {
+      const updated = { ...prev, [name]: value };
+      return updated;
+    });
   };
 
   const handleProofFileChange = (e) => {
@@ -500,7 +498,7 @@ const Quotation = () => {
           reference: selectedItem.invoiceNumber || selectedItem.id
         });
         setShowSuccessModal(true);
-        
+
         setSelectedBankId('');
         setManualTransferForm({
           accountName: '',
@@ -513,7 +511,7 @@ const Quotation = () => {
         setProofFile(null);
         setShowManualTransferForm(false);
         setPaymentMethod(null);
-        
+
         closeFullPaymentModal();
         fetchData();
         showToast('Bank transfer submitted successfully! Waiting for verification.', 'success');
@@ -972,7 +970,7 @@ const Quotation = () => {
           <div className="bank-transfer-notice">
             <FaClock style={{ marginRight: '8px' }} />
             <small>
-              <strong>Important:</strong> 
+              <strong>Important:</strong>
               <ul style={{ margin: '5px 0 0 20px', paddingLeft: '0' }}>
                 <li>Transfer the <strong>exact amount</strong> shown on your invoice</li>
                 <li>Include your <strong>Invoice Number</strong> as the reference</li>
@@ -1030,7 +1028,7 @@ const Quotation = () => {
           {selectedBank && (
             <div className="transfer-form">
               <h5>Payment Details</h5>
-              
+
               <div className="form-row">
                 <div className="form-group">
                   <label>Account Name (Optional)</label>
@@ -1443,7 +1441,7 @@ const Quotation = () => {
 
         {/* Modals - Full Payment, Payment, Details, Success */}
         {/* Keep all modals as they are but with updated CSS */}
-        
+
         {/* FULL PAYMENT MODAL */}
         {showFullPaymentModal && selectedItem && (
           <div className="cuspro-modal-overlay" onClick={closeFullPaymentModal}>
@@ -1455,7 +1453,7 @@ const Quotation = () => {
                 <p><strong>Project:</strong> {selectedItem.projectName}</p>
                 <p><strong>Amount Due:</strong> {formatCurrency(selectedItem.balance || selectedItem.totalAmount)}</p>
               </div>
-              
+
               <div className="cuspro-payment-methods">
                 <h4>Payment Method</h4>
                 <div className="cuspro-method-options">
@@ -1488,7 +1486,12 @@ const Quotation = () => {
                   </div>
                   <div className="cuspro-form-group">
                     <label>Reference Number</label>
-                    <input type="text" value={paymentReference} onChange={(e) => setPaymentReference(e.target.value)} placeholder="Enter reference" />
+                    <input
+                      type="text"
+                      value={paymentReference}
+                      onChange={(e) => setPaymentReference(e.target.value)}
+                      placeholder="Enter reference"
+                    />
                   </div>
                   <div className="cuspro-form-group">
                     <label>Upload Screenshot</label>
@@ -1561,7 +1564,7 @@ const Quotation = () => {
                 <p><strong>Invoice:</strong> {selectedItem.invoiceNumber || selectedItem.id}</p>
                 <p><strong>Amount:</strong> {formatCurrency(selectedItem.amount)}</p>
               </div>
-              
+
               <div className="cuspro-payment-methods">
                 <h4>Payment Method</h4>
                 <div className="cuspro-method-options">
@@ -1594,7 +1597,11 @@ const Quotation = () => {
                   </div>
                   <div className="cuspro-form-group">
                     <label>Reference</label>
-                    <input type="text" value={paymentReference} onChange={(e) => setPaymentReference(e.target.value)} />
+                    <input
+                      type="text"
+                      value={paymentReference}
+                      onChange={(e) => setPaymentReference(e.target.value)}
+                    />
                   </div>
                   <div className="cuspro-form-group">
                     <label>Screenshot</label>

@@ -1,17 +1,10 @@
-// pages/Customer/Quotation.cuspro.jsx - Redesigned
+// pages/Customer/Quotation.cuspro.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/quotation.css';
-import {
-  FaCalendarAlt, FaProjectDiagram, FaClock, FaCheckCircle,
-  FaEye, FaDownload, FaMoneyBillWave, FaCreditCard, FaSpinner,
-  FaTimes, FaFileInvoice, FaFilter, FaSearch, FaHome,
-  FaBuilding, FaSyncAlt, FaWallet, FaReceipt, FaUniversity,
-  FaChevronDown, FaChevronUp, FaCheck, FaArrowLeft
-} from 'react-icons/fa';
 
 const Quotation = () => {
   const navigate = useNavigate();
@@ -25,14 +18,14 @@ const Quotation = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [successDetails, setSuccessDetails] = useState(null);
   const [showFullPaymentModal, setShowFullPaymentModal] = useState(false);
-  const [acceptingLoading, setAcceptingLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [detailsItem, setDetailsItem] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [paymentProof, setPaymentProof] = useState(null);
   const [paymentReference, setPaymentReference] = useState('');
-  const [selectedPaymentPreference, setSelectedPaymentPreference] = useState('installment');
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
 
   // Manual Bank Transfer States
   const [selectedBankId, setSelectedBankId] = useState('');
@@ -59,7 +52,7 @@ const Quotation = () => {
   const [solarInvoices, setSolarInvoices] = useState([]);
   const [allItems, setAllItems] = useState([]);
 
-  // Company bank accounts for manual transfer - ONLY BPO, BPI, Metrobank, and Security Bank
+  // Company bank accounts
   const companyBanks = [
     { id: 'bpo', name: 'BPO - Bank of the Philippine Islands', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
     { id: 'bpi', name: 'BPI - Bank of the Philippine Islands', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
@@ -150,7 +143,6 @@ const Quotation = () => {
           panelsNeeded: assessment.quotation?.systemDetails?.panelsNeeded,
           inverterType: assessment.quotation?.systemDetails?.inverterType,
           batteryType: assessment.quotation?.systemDetails?.batteryType,
-          icon: <FaHome />,
           receiptUrl: assessment.receiptUrl,
           receiptNumber: assessment.receiptNumber
         })) || [];
@@ -177,7 +169,6 @@ const Quotation = () => {
         amountPaid: invoice.amountPaid,
         balance: invoice.balance,
         payments: invoice.payments,
-        icon: <FaBuilding />,
         receiptUrl: invoice.receiptUrl,
         receiptNumber: invoice.receiptNumber
       }));
@@ -193,19 +184,10 @@ const Quotation = () => {
     }
   };
 
-  // Helper functions for payment plans (keep all existing helpers)
+  // Helper functions
   const getProjectPaymentPlan = (projectId) => {
     const project = projects.find(p => p._id?.toString() === projectId?.toString());
     return project?.paymentPreference || 'installment';
-  };
-
-  const isDownpaymentCompleted = (projectId) => {
-    const projectInvoices = allItems.filter(item =>
-      item.type === 'project' &&
-      item.projectId === projectId
-    );
-    const downpaymentInvoice = projectInvoices.find(inv => inv.invoiceType === 'downpayment');
-    return downpaymentInvoice && downpaymentInvoice.status === 'paid';
   };
 
   const isInitialPaymentCompleted = (projectId) => {
@@ -416,8 +398,6 @@ const Quotation = () => {
 
   const handleManualTransferInputChange = (e) => {
     const { name, value } = e.target;
-
-    // Directly update the state without any restrictions
     setManualTransferForm(prev => {
       const updated = { ...prev, [name]: value };
       return updated;
@@ -672,45 +652,13 @@ const Quotation = () => {
       setPaymentReference('');
       setShowPaymentModal(true);
     }
+    setActiveDropdown(null);
   };
 
   const handleViewDetails = (item) => {
     setDetailsItem(item);
     setShowDetailsModal(true);
-  };
-
-  const handleViewQuotation = async (assessment) => {
-    if (!assessment.quotationUrl) {
-      showToast('No quotation PDF available for this assessment', 'warning');
-      return;
-    }
-    window.open(assessment.quotationUrl, '_blank');
-  };
-
-  const handleDownloadQuotation = async (assessment) => {
-    if (!assessment.quotationUrl) {
-      showToast('No quotation PDF available for this assessment', 'warning');
-      return;
-    }
-    setPdfLoading(true);
-    try {
-      const response = await axios.get(assessment.quotationUrl, { responseType: 'blob' });
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Quotation_${assessment.bookingReference || assessment.id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      showToast('Quotation downloaded successfully!', 'success');
-    } catch (err) {
-      console.error('Error downloading PDF:', err);
-      showToast('Failed to download quotation', 'error');
-    } finally {
-      setPdfLoading(false);
-    }
+    setActiveDropdown(null);
   };
 
   const handlePaymentSubmit = async () => {
@@ -945,11 +893,11 @@ const Quotation = () => {
 
   const getStatistics = () => {
     const totalItems = allItems.length;
-    const pendingItems = allItems.filter(i => i.status === 'pending').length;
+    const pendingItems = allItems.filter(i => i.status === 'pending' || i.status === 'pending_payment').length;
     const paidItems = allItems.filter(i => i.status === 'paid').length;
     const forVerificationItems = allItems.filter(i => i.status === 'for_verification').length;
     const totalAmount = allItems.reduce((sum, i) => sum + (i.amount || 0), 0);
-    const pendingAmount = allItems.filter(i => i.status === 'pending').reduce((sum, i) => sum + (i.amount || 0), 0);
+    const pendingAmount = allItems.filter(i => i.status === 'pending' || i.status === 'pending_payment').reduce((sum, i) => sum + (i.amount || 0), 0);
 
     return { totalItems, pendingItems, paidItems, forVerificationItems, totalAmount, pendingAmount };
   };
@@ -961,17 +909,15 @@ const Quotation = () => {
     return (
       <div className="cuspro-manual-bank-transfer-section">
         <div className="cuspro-bank-transfer-info">
-          <div className="bank-transfer-icon">
-            <FaUniversity size={40} />
-          </div>
+          <div className="bank-transfer-icon"></div>
           <h4>Manual Bank Transfer</h4>
           <p>Transfer the exact amount to any of our bank accounts below.</p>
 
           <div className="bank-transfer-notice">
-            <FaClock style={{ marginRight: '8px' }} />
+            <span className="clock-icon"></span>
             <small>
               <strong>Important:</strong>
-              <ul style={{ margin: '5px 0 0 20px', paddingLeft: '0' }}>
+              <ul>
                 <li>Transfer the <strong>exact amount</strong> shown on your invoice</li>
                 <li>Include your <strong>Invoice Number</strong> as the reference</li>
                 <li>Upload a clear screenshot or photo of your transaction</li>
@@ -1008,7 +954,7 @@ const Quotation = () => {
                 >
                   <div className="bank-card-header">
                     <span className="bank-name">{bank.name}</span>
-                    {selectedBankId === bank.id && <FaCheck className="check-icon" />}
+                    {selectedBankId === bank.id && <span className="check-icon">✓</span>}
                   </div>
                   <div className="bank-card-details">
                     <div className="detail-item">
@@ -1102,7 +1048,7 @@ const Quotation = () => {
                   />
                   {proofFile && (
                     <span className="file-name">
-                      📎 {proofFile.name} ({(proofFile.size / 1024).toFixed(1)} KB)
+                      {proofFile.name} ({(proofFile.size / 1024).toFixed(1)} KB)
                     </span>
                   )}
                   <small>Accepted: JPG, PNG, GIF, PDF (Max 10MB)</small>
@@ -1127,7 +1073,7 @@ const Quotation = () => {
               >
                 {isSubmittingManual ? (
                   <>
-                    <FaSpinner className="spinning" /> Submitting...
+                    <span className="spinning"></span> Submitting...
                   </>
                 ) : (
                   'Submit for Verification'
@@ -1142,27 +1088,77 @@ const Quotation = () => {
 
   const SkeletonLoader = () => (
     <div className="cuspro-quotation-container">
-      <div className="cuspro-header-card skeleton-card">
-        <div className="skeleton-line large"></div>
-        <div className="skeleton-line medium"></div>
-      </div>
-      <div className="skeleton-stats">
-        <div className="skeleton-card"></div>
-        <div className="skeleton-card"></div>
-        <div className="skeleton-card"></div>
-        <div className="skeleton-card"></div>
-      </div>
-      <div className="skeleton-filter-bar"></div>
-      <div className="skeleton-card-list">
-        <div className="skeleton-card"></div>
-        <div className="skeleton-card"></div>
-        <div className="skeleton-card"></div>
-      </div>
+      <div className="skeleton-header"></div>
+      <div className="skeleton-filter-tabs"></div>
+      <div className="skeleton-table"></div>
     </div>
   );
 
   const stats = getStatistics();
   const filteredItems = getFilteredItems();
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState('all');
+
+  const getTabItems = (tab) => {
+    if (tab === 'all') return filteredItems;
+    if (tab === 'pre-assessment') return filteredItems.filter(item => item.type === 'pre-assessment');
+    if (tab === 'project') return filteredItems.filter(item => item.type === 'project');
+    if (tab === 'pending') return filteredItems.filter(item => item.status === 'pending' || item.status === 'pending_payment');
+    if (tab === 'paid') return filteredItems.filter(item => item.status === 'paid');
+    if (tab === 'for_verification') return filteredItems.filter(item => item.status === 'for_verification');
+    return filteredItems;
+  };
+
+  const tabItems = getTabItems(activeTab);
+
+  // Dropdown menu handler
+  const toggleDropdown = (itemId, event) => {
+    if (activeDropdown === itemId) {
+      setActiveDropdown(null);
+    } else {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+      
+      let top = rect.bottom + scrollTop + 4;
+      let left = rect.right + scrollLeft - 180;
+      
+      // Make sure dropdown doesn't go off screen
+      if (left + 180 > window.innerWidth) {
+        left = rect.left + scrollLeft - 180 + 32;
+      }
+      if (left < 10) left = 10;
+      
+      // Make sure dropdown doesn't go off screen at bottom
+      if (top + 200 > window.innerHeight + scrollTop) {
+        top = rect.top + scrollTop - 200 - 4;
+      }
+      
+      setDropdownPosition({ top, left });
+      setActiveDropdown(itemId);
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (activeDropdown !== null) {
+        const dropdowns = document.querySelectorAll('.dropdown-menu-container');
+        let isOutside = true;
+        dropdowns.forEach(dropdown => {
+          if (dropdown.contains(event.target)) {
+            isOutside = false;
+          }
+        });
+        if (isOutside) {
+          setActiveDropdown(null);
+        }
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [activeDropdown]);
 
   if (loading) {
     return (
@@ -1178,275 +1174,252 @@ const Quotation = () => {
       <Helmet><title>My Solar Journey | Salfer Engineering</title></Helmet>
 
       <div className="cuspro-quotation-container">
-        {/* Header Section */}
-        <div className="cuspro-header-card">
-          <div className="cuspro-header-content">
-            <h1>My Solar Journey</h1>
-            <p>Track your projects, view quotes, and manage payments</p>
-            {user && <p className="cuspro-welcome">Welcome back, {getFullName()}!</p>}
-          </div>
+        {/* Header Section - No card */}
+        <div className="cuspro-page-header">
+          <h1>Quotation</h1>
+          <p>Track your projects, view <strong>quotations</strong>, and manage payments</p>
         </div>
 
-        {/* Statistics Cards */}
-        <div className="cuspro-stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon"><FaReceipt /></div>
-            <div className="stat-info">
-              <h3>{stats.totalItems}</h3>
-              <p>Total Transactions</p>
-            </div>
-          </div>
-          <div className="stat-card pending-stat">
-            <div className="stat-icon"><FaClock /></div>
-            <div className="stat-info">
-              <h3>{stats.pendingItems}</h3>
-              <p>Pending Payments</p>
-              <small>{formatCurrency(stats.pendingAmount)}</small>
-            </div>
-          </div>
-          <div className="stat-card paid-stat">
-            <div className="stat-icon"><FaCheckCircle /></div>
-            <div className="stat-info">
-              <h3>{stats.paidItems}</h3>
-              <p>Completed</p>
-            </div>
-          </div>
-          <div className="stat-card verification-stat">
-            <div className="stat-icon"><FaSyncAlt /></div>
-            <div className="stat-info">
-              <h3>{stats.forVerificationItems}</h3>
-              <p>Under Review</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Filter Section */}
-        <div className="cuspro-filter-section">
-          <div className="cuspro-filter-group">
-            <label><FaFilter /> Type</label>
-            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="cuspro-filter-select">
-              <option value="all">All Types</option>
-              <option value="pre-assessment">Pre-Assessments</option>
-              <option value="project">Project Bills</option>
-            </select>
+        {/* Combined Tabs & Filter Card */}
+        <div className="cuspro-controls-card">
+          <div className="cuspro-tabs-container">
+            <button
+              className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
+              onClick={() => setActiveTab('all')}
+            >
+              All <span className="tab-badge">{stats.totalItems}</span>
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'pre-assessment' ? 'active' : ''}`}
+              onClick={() => setActiveTab('pre-assessment')}
+            >
+              Pre-Assessments <span className="tab-badge">{filteredItems.filter(i => i.type === 'pre-assessment').length}</span>
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'project' ? 'active' : ''}`}
+              onClick={() => setActiveTab('project')}
+            >
+              Project Bills <span className="tab-badge">{filteredItems.filter(i => i.type === 'project').length}</span>
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
+              onClick={() => setActiveTab('pending')}
+            >
+              Pending <span className="tab-badge">{filteredItems.filter(i => i.status === 'pending' || i.status === 'pending_payment').length}</span>
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'for_verification' ? 'active' : ''}`}
+              onClick={() => setActiveTab('for_verification')}
+            >
+              For Verification <span className="tab-badge">{filteredItems.filter(i => i.status === 'for_verification').length}</span>
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'paid' ? 'active' : ''}`}
+              onClick={() => setActiveTab('paid')}
+            >
+              Paid <span className="tab-badge">{filteredItems.filter(i => i.status === 'paid').length}</span>
+            </button>
           </div>
 
-          <div className="cuspro-filter-group">
-            <label><FaWallet /> Status</label>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="cuspro-filter-select">
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="paid">Paid</option>
-              <option value="for_verification">For Verification</option>
-              <option value="partial">Partial</option>
-              <option value="overdue">Overdue</option>
-            </select>
-          </div>
+          <div className="cuspro-controls-divider"></div>
 
-          <div className="cuspro-search-group">
-            <label><FaSearch /> Search</label>
-            <div className="search-input-wrapper">
-              <FaSearch className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search by reference, invoice, or project..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="cuspro-search-input"
-              />
-              {searchTerm && (
-                <button className="clear-search" onClick={() => setSearchTerm('')}>×</button>
-              )}
+          <div className="cuspro-filters-container">
+            <div className="cuspro-filter-group">
+              <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="cuspro-filter-select">
+                <option value="all">All Types</option>
+                <option value="pre-assessment">Pre-Assessments</option>
+                <option value="project">Project Bills</option>
+              </select>
             </div>
+
+            <div className="cuspro-filter-group">
+              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="cuspro-filter-select">
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="paid">Paid</option>
+                <option value="for_verification">For Verification</option>
+                <option value="partial">Partial</option>
+                <option value="overdue">Overdue</option>
+              </select>
+            </div>
+
+            <div className="cuspro-search-group">
+              <div className="search-input-wrapper">
+                <span className="search-icon"></span>
+                <input
+                  type="text"
+                  placeholder="Search by reference, invoice, or project..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="cuspro-search-input"
+                />
+                {searchTerm && (
+                  <button className="clear-search" onClick={() => setSearchTerm('')}>×</button>
+                )}
+              </div>
+            </div>
+
+            {(typeFilter !== 'all' || statusFilter !== 'all' || searchTerm) && (
+              <button className="clear-filters-btn" onClick={() => {
+                setTypeFilter('all');
+                setStatusFilter('all');
+                setSearchTerm('');
+              }}>
+                Clear
+              </button>
+            )}
           </div>
         </div>
 
         {/* Results Count */}
         <div className="cuspro-results-count">
-          <p>Showing {filteredItems.length} of {allItems.length} transaction(s)</p>
-          {(typeFilter !== 'all' || statusFilter !== 'all' || searchTerm) && (
-            <button className="clear-filters-btn" onClick={() => {
-              setTypeFilter('all');
-              setStatusFilter('all');
-              setSearchTerm('');
-            }}>
-              Clear All Filters
-            </button>
-          )}
+          <p>Showing {tabItems.length} of {filteredItems.length} transaction(s)</p>
         </div>
 
-        {/* Items List - Redesigned Cards */}
-        <div className="cuspro-items-list">
-          {filteredItems.length === 0 ? (
-            <div className="cuspro-empty-state">
-              <FaCalendarAlt className="cuspro-empty-icon" />
-              <h3>No transactions found</h3>
-              <p>Try adjusting your filters or search criteria.</p>
-              {(typeFilter !== 'all' || statusFilter !== 'all' || searchTerm) && (
-                <button className="cuspro-primary-btn" onClick={() => {
-                  setTypeFilter('all');
-                  setStatusFilter('all');
-                  setSearchTerm('');
-                }}>
-                  Clear Filters
-                </button>
-              )}
-            </div>
-          ) : (
-            filteredItems.map((item, index) => {
-              const isPreAssessment = item.type === 'pre-assessment';
-              const hasQuotation = isPreAssessment && item.quotationUrl;
-              const projectExists = isPreAssessment && projects.some(project => {
-                if (project.preAssessmentId) {
-                  const projectPreAssessmentId = typeof project.preAssessmentId === 'object' ?
-                    project.preAssessmentId._id?.toString() : project.preAssessmentId?.toString();
-                  const assessmentId = item.assessmentId?.toString();
-                  return projectPreAssessmentId === assessmentId;
-                }
-                return false;
-              });
-              const alreadyProjectCreated = isPreAssessment && (item.assessmentStatus === 'quotation_accepted' || projectExists);
-              const hasReceipt = item.receiptUrl;
+        {/* Table Container */}
+        <div className="cuspro-table-container">
+          <div className="cuspro-table-wrapper">
+            {tabItems.length === 0 ? (
+              <div className="cuspro-empty-state">
+                <span className="cuspro-empty-icon"></span>
+                <h3>No transactions found</h3>
+                <p>Try adjusting your filters or search criteria.</p>
+              </div>
+            ) : (
+              <table className="cuspro-table">
+                <thead>
+                  <tr>
+                    <th>Transaction</th>
+                    <th>Reference</th>
+                    <th>Date</th>
+                    <th>Due Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tabItems.map((item, index) => {
+                    const isPreAssessment = item.type === 'pre-assessment';
+                    const isPayNowButtonDisabled = isPayNowDisabled(item);
+                    const disabledReason = getPayNowDisabledReason(item);
+                    const invoiceLabel = !isPreAssessment ? getInvoiceTypeLabel(item) : null;
+                    const hasReceipt = item.receiptUrl;
+                    const isDropdownOpen = activeDropdown === item.id;
 
-              const isPayNowButtonDisabled = isPayNowDisabled(item);
-              const disabledReason = getPayNowDisabledReason(item);
-              const invoiceLabel = !isPreAssessment ? getInvoiceTypeLabel(item) : null;
-
-              return (
-                <div key={index} className={`cuspro-item-card ${item.type}`}>
-                  <div className="cuspro-item-header">
-                    <div className="cuspro-item-type-badge">
-                      {item.icon}
-                      <span>{item.typeLabel}</span>
-                      {!isPreAssessment && item.invoiceType && invoiceLabel && (
-                        <span className={`invoice-type-label ${item.invoiceType}`}>
-                          {invoiceLabel}
-                        </span>
-                      )}
-                    </div>
-                    {getStatusBadge(item.status)}
-                  </div>
-
-                  <div className="cuspro-item-body">
-                    <div className="cuspro-item-info">
-                      <h3>{item.description}</h3>
-                      <p className="cuspro-item-ref">
-                        {isPreAssessment ? `Reference: ${item.bookingReference || item.id}` : `Invoice: ${item.id}`}
-                      </p>
-                      {item.projectName && <p className="cuspro-item-project">{item.projectName}</p>}
-                      {isPreAssessment && item.propertyType && (
-                        <p className="cuspro-item-property">Property: {item.propertyType}</p>
-                      )}
-                    </div>
-
-                    <div className="cuspro-item-details">
-                      <div className="cuspro-item-detail">
-                        <span>Date:</span>
-                        <strong>{item.date}</strong>
-                      </div>
-                      <div className="cuspro-item-detail">
-                        <span>Due Date:</span>
-                        <strong>{item.dueDate}</strong>
-                      </div>
-                      <div className="cuspro-item-detail amount">
-                        <span>Amount:</span>
-                        <strong>{formatCurrency(item.amount)}</strong>
-                      </div>
-                      {item.paymentStatus === 'partial' && (
-                        <>
-                          <div className="cuspro-item-detail">
-                            <span>Paid:</span>
-                            <strong>{formatCurrency(item.amountPaid)}</strong>
+                    return (
+                      <tr key={index} className={`cuspro-table-row ${item.type}`}>
+                        <td>
+                          <div className="cuspro-transaction-cell">
+                            <span className="transaction-icon-placeholder"></span>
+                            <div>
+                              <div className="transaction-name">{item.description}</div>
+                              {!isPreAssessment && item.invoiceType && (
+                                <span className={`invoice-type-label-table ${item.invoiceType}`}>
+                                  {invoiceLabel}
+                                </span>
+                              )}
+                              {isPreAssessment && item.propertyType && (
+                                <span className="property-type-label">{item.propertyType}</span>
+                              )}
+                            </div>
                           </div>
-                          <div className="cuspro-item-detail">
-                            <span>Balance:</span>
-                            <strong>{formatCurrency(item.balance)}</strong>
+                        </td>
+                        <td>
+                          <div className="cuspro-reference-cell">
+                            <span className="ref-id">{isPreAssessment ? item.bookingReference || item.id : item.id}</span>
+                            {item.projectName && <span className="ref-project">{item.projectName}</span>}
                           </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
+                        </td>
+                        <td>{item.date}</td>
+                        <td>{item.dueDate}</td>
+                        <td>
+                          <div className="cuspro-amount-cell">
+                            <span className="amount-main">{formatCurrency(item.amount)}</span>
+                            {item.paymentStatus === 'partial' && (
+                              <span className="amount-balance">Balance: {formatCurrency(item.balance)}</span>
+                            )}
+                          </div>
+                        </td>
+                        <td>{getStatusBadge(item.status)}</td>
+                        <td>
+                          <div className="cuspro-action-cell">
+                            <div className="dropdown-menu-container">
+                              <button
+                                className="dropdown-trigger-btn"
+                                onClick={(e) => toggleDropdown(item.id, e)}
+                              >
+                                Action ▾
+                              </button>
 
-                  <div className="cuspro-item-actions">
-                    {(item.status === 'pending' || item.status === 'partial') && (
-                      <button
-                        className={`cuspro-pay-btn ${isPayNowButtonDisabled ? 'disabled' : ''}`}
-                        onClick={() => handlePayNowClick(item)}
-                        disabled={isSubmitting || isPayNowButtonDisabled}
-                        title={disabledReason || ''}
-                      >
-                        <FaMoneyBillWave /> {isSubmitting ? 'Processing...' : 'Pay Now'}
-                      </button>
-                    )}
+                              {isDropdownOpen && (
+                                <div 
+                                  className="dropdown-menu"
+                                  style={{
+                                    top: dropdownPosition.top + 'px',
+                                    left: dropdownPosition.left + 'px'
+                                  }}
+                                >
+                                  <button
+                                    className="dropdown-item"
+                                    onClick={() => handleViewDetails(item)}
+                                  >
+                                    View Details
+                                  </button>
 
-                    {isPayNowButtonDisabled && (item.status === 'pending' || item.status === 'partial') && (
-                      <span className="payment-prerequisite-message">
-                        <FaClock /> {disabledReason}
-                      </span>
-                    )}
+                                  {(item.status === 'pending' || item.status === 'pending_payment' || item.status === 'partial') && (
+                                    <button
+                                      className={`dropdown-item ${isPayNowButtonDisabled ? 'disabled' : ''}`}
+                                      onClick={() => handlePayNowClick(item)}
+                                      disabled={isSubmitting || isPayNowButtonDisabled}
+                                      title={disabledReason || ''}
+                                    >
+                                      {isPayNowButtonDisabled ? 'Unavailable' : 'Pay Now'}
+                                    </button>
+                                  )}
 
-                    {item.status === 'for_verification' && (
-                      <span className="cuspro-verification-badge">
-                        <FaClock /> Payment Under Review
-                      </span>
-                    )}
+                                  {item.status === 'paid' && hasReceipt && (
+                                    <>
+                                      <button
+                                        className="dropdown-item"
+                                        onClick={() => handleViewReceipt(item)}
+                                      >
+                                        View Receipt
+                                      </button>
+                                      <button
+                                        className="dropdown-item"
+                                        onClick={() => handleDownloadReceipt(item)}
+                                      >
+                                        Download Receipt
+                                      </button>
+                                    </>
+                                  )}
 
-                    {item.status === 'paid' && hasReceipt && (
-                      <>
-                        <button
-                          className="cuspro-receipt-btn"
-                          onClick={() => handleViewReceipt(item)}
-                        >
-                          <FaReceipt /> View Receipt
-                        </button>
-                        <button
-                          className="cuspro-download-receipt-btn"
-                          onClick={() => handleDownloadReceipt(item)}
-                        >
-                          <FaDownload /> Receipt
-                        </button>
-                      </>
-                    )}
-
-                    {item.status === 'paid' && isPreAssessment && (
-                      <span className="cuspro-paid-badge">
-                        <FaCheckCircle /> Payment Completed
-                      </span>
-                    )}
-
-                    {item.status === 'paid' && !isPreAssessment && hasReceipt && (
-                      <span className="cuspro-paid-badge">
-                        <FaCheckCircle /> Payment Completed
-                      </span>
-                    )}
-
-                    <button
-                      className="cuspro-secondary-btn"
-                      onClick={() => handleViewDetails(item)}
-                    >
-                      <FaEye /> Details
-                    </button>
-                  </div>
-
-                  {isPreAssessment && item.status === 'pending' && (
-                    <div className="cuspro-walkin-note">
-                      <small>For walk-in payment, please visit our office at Purok 2, Masaya, San Jose, Camarines Sur</small>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
+                                  {item.status === 'for_verification' && (
+                                    <span className="dropdown-item verifying">
+                                      Verifying...
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
 
-        {/* Modals - Full Payment, Payment, Details, Success */}
-        {/* Keep all modals as they are but with updated CSS */}
-
+        {/* Modals - keep same as before */}
         {/* FULL PAYMENT MODAL */}
         {showFullPaymentModal && selectedItem && (
           <div className="cuspro-modal-overlay" onClick={closeFullPaymentModal}>
             <div className="cuspro-modal cuspro-payment-modal" onClick={e => e.stopPropagation()}>
-              <button className="cuspro-modal-close" onClick={closeFullPaymentModal}><FaTimes /></button>
+              <button className="cuspro-modal-close" onClick={closeFullPaymentModal}>×</button>
               <h3>Pay Invoice</h3>
               <div className="cuspro-payment-summary">
                 <p><strong>Invoice:</strong> {selectedItem.invoiceNumber}</p>
@@ -1467,7 +1440,7 @@ const Quotation = () => {
                   </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'manual_bank_transfer' ? 'selected' : ''}`} onClick={() => setPaymentMethod('manual_bank_transfer')}>
                     <input type="radio" checked={paymentMethod === 'manual_bank_transfer'} readOnly />
-                    <div><strong><FaUniversity /> Bank Transfer</strong><small>Manual transfer with proof</small></div>
+                    <div><strong>Bank Transfer</strong><small>Manual transfer with proof</small></div>
                   </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
                     <input type="radio" checked={paymentMethod === 'cash'} readOnly />
@@ -1476,7 +1449,6 @@ const Quotation = () => {
                 </div>
               </div>
 
-              {/* GCash Payment */}
               {paymentMethod === 'gcash' && (
                 <div className="cuspro-payment-form">
                   <div className="cuspro-gcash-details">
@@ -1503,7 +1475,6 @@ const Quotation = () => {
                 </div>
               )}
 
-              {/* Card Payment */}
               {paymentMethod === 'paymongo_card' && (
                 <div className="cuspro-payment-form">
                   <div className="cuspro-card-form">
@@ -1528,10 +1499,8 @@ const Quotation = () => {
                 </div>
               )}
 
-              {/* Manual Bank Transfer */}
               {paymentMethod === 'manual_bank_transfer' && <ManualBankTransferSection />}
 
-              {/* Cash Payment */}
               {paymentMethod === 'cash' && (
                 <div className="cuspro-payment-form">
                   <div className="cuspro-cash-details">
@@ -1558,7 +1527,7 @@ const Quotation = () => {
         {showPaymentModal && selectedItem && (
           <div className="cuspro-modal-overlay" onClick={closeModal}>
             <div className="cuspro-modal cuspro-payment-modal" onClick={e => e.stopPropagation()}>
-              <button className="cuspro-modal-close" onClick={closeModal}><FaTimes /></button>
+              <button className="cuspro-modal-close" onClick={closeModal}>×</button>
               <h3>Make Payment</h3>
               <div className="cuspro-payment-summary">
                 <p><strong>Invoice:</strong> {selectedItem.invoiceNumber || selectedItem.id}</p>
@@ -1578,7 +1547,7 @@ const Quotation = () => {
                   </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'manual_bank_transfer' ? 'selected' : ''}`} onClick={() => setPaymentMethod('manual_bank_transfer')}>
                     <input type="radio" checked={paymentMethod === 'manual_bank_transfer'} readOnly />
-                    <div><strong><FaUniversity /> Bank Transfer</strong><small>Manual with proof</small></div>
+                    <div><strong>Bank Transfer</strong><small>Manual with proof</small></div>
                   </div>
                   <div className={`cuspro-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
                     <input type="radio" checked={paymentMethod === 'cash'} readOnly />
@@ -1587,7 +1556,6 @@ const Quotation = () => {
                 </div>
               </div>
 
-              {/* GCash Payment */}
               {paymentMethod === 'gcash' && (
                 <div className="cuspro-payment-form">
                   <div className="cuspro-gcash-details">
@@ -1613,7 +1581,6 @@ const Quotation = () => {
                 </div>
               )}
 
-              {/* Card Payment */}
               {paymentMethod === 'paymongo_card' && (
                 <div className="cuspro-payment-form">
                   <div className="cuspro-card-form">
@@ -1638,10 +1605,8 @@ const Quotation = () => {
                 </div>
               )}
 
-              {/* Manual Bank Transfer */}
               {paymentMethod === 'manual_bank_transfer' && <ManualBankTransferSection />}
 
-              {/* Cash Payment */}
               {paymentMethod === 'cash' && (
                 <div className="cuspro-payment-form">
                   <div className="cuspro-cash-details">
@@ -1667,7 +1632,7 @@ const Quotation = () => {
         {showDetailsModal && detailsItem && (
           <div className="cuspro-modal-overlay" onClick={() => setShowDetailsModal(false)}>
             <div className="cuspro-modal cuspro-details-modal" onClick={e => e.stopPropagation()}>
-              <button className="cuspro-modal-close" onClick={() => setShowDetailsModal(false)}><FaTimes /></button>
+              <button className="cuspro-modal-close" onClick={() => setShowDetailsModal(false)}>×</button>
               <h3>Transaction Details</h3>
               <div className="cuspro-details-content">
                 {detailsItem.bookingReference ? (
@@ -1730,7 +1695,7 @@ const Quotation = () => {
         {showSuccessModal && (
           <div className="cuspro-modal-overlay" onClick={closeSuccessModal}>
             <div className="cuspro-modal cuspro-success-modal" onClick={e => e.stopPropagation()}>
-              <div className="cuspro-success-icon"><FaCheckCircle /></div>
+              <div className="cuspro-success-icon"></div>
               <h3>{successMessage}</h3>
               <div className="cuspro-success-content">
                 <p><strong>{successDetails?.title}</strong></p>

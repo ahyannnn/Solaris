@@ -2,6 +2,7 @@ const User = require("../models/Users.js");
 const Client = require("../models/Clients.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const AuditLog = require("../models/AuditLog");
 
 /*
 =========================
@@ -77,7 +78,7 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Search by email only (username removed)
+    // Search by email only
     const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) {
@@ -93,6 +94,14 @@ exports.login = async (req, res) => {
         message: "Invalid email or password"
       });
     }
+
+    // Save audit trail
+    await AuditLog.create({
+      user: user._id,
+      role: user.role,
+      module: "Authentication",
+      action: "User logged in"
+    });
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -253,7 +262,13 @@ exports.googleLogin = async (req, res) => {
       });
       await client.save();
     }
-
+    // Audit Trail
+    await AuditLog.create({
+      user: user._id,
+      role: user.role,
+      module: "Authentication",
+      action: "User logged in via Google"
+    });
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
@@ -325,24 +340,24 @@ CHECK EMAIL
 exports.checkEmail = async (req, res) => {
   try {
     const { email } = req.body;
-    
+
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
     }
-    
+
     // Check if user exists in database
     const existingUser = await User.findOne({ email: email.toLowerCase() });
-    
+
     if (existingUser) {
-      return res.json({ 
-        exists: true, 
-        message: 'Email already registered' 
+      return res.json({
+        exists: true,
+        message: 'Email already registered'
       });
     }
-    
-    return res.json({ 
-      exists: false, 
-      message: 'Email available' 
+
+    return res.json({
+      exists: false,
+      message: 'Email available'
     });
   } catch (error) {
     console.error('Email check error:', error);

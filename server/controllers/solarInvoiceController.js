@@ -7,6 +7,7 @@ const PayMongoService = require('../services/paymongoService');
 const File = require('../models/File');
 const { processUpload, getFileUrl, deleteFile } = require('../middleware/uploadMiddleware');
 const receiptService = require('../services/receiptService');
+const AuditLog = require('../models/AuditLog');
 
 // Helper function to format currency (for project updates)
 const formatCurrencyHelper = (amount) => {
@@ -404,9 +405,9 @@ exports.verifySolarInvoicePayment = async (req, res) => {
         const gcashPaymentRef = invoice.payments.find(p => p.method === 'gcash')?.reference;
         
         receipt = await receiptService.generateReceipt({
-          paymentType: invoice.invoiceType, // 'initial', 'progress', 'final', 'full'
+          paymentType: invoice.invoiceType,
           amount: paymentAmount,
-          paymentMethod: 'gcash', // Since this is for GCash manual verification
+          paymentMethod: 'gcash',
           referenceNumber: gcashPaymentRef || invoice.payments[0]?.reference,
           invoiceNumber: invoice.invoiceNumber,
           projectName: invoice.projectId?.projectName,
@@ -429,14 +430,12 @@ exports.verifySolarInvoicePayment = async (req, res) => {
         console.log(`✅ Receipt generated for invoice ${invoice.invoiceNumber}: ${receipt.receiptNumber}`);
       } catch (receiptError) {
         console.error('Receipt generation error:', receiptError);
-        // Don't block verification if receipt fails
       }
 
       // ✅ CRITICAL: Update the project's payment schedule and status
       if (invoice.projectId) {
         const project = await Project.findById(invoice.projectId);
         if (project) {
-          // Find the payment schedule item
           let scheduleItem = project.paymentSchedule.find(p => p.type === invoice.invoiceType);
           
           if (!scheduleItem && invoice.invoiceNumber) {
@@ -450,19 +449,15 @@ exports.verifySolarInvoicePayment = async (req, res) => {
               invoice.payments[0]?.reference ||
               `INV-${invoice.invoiceNumber}`;
             
-            // ✅ Store receipt info in payment schedule
             scheduleItem.receiptUrl = receipt?.receiptUrl;
             scheduleItem.receiptNumber = receipt?.receiptNumber;
             
             console.log(`✅ Updated payment schedule for ${invoice.invoiceType} payment`);
           }
 
-          // Update project's amount paid and balance
-          const paymentAmount = invoice.totalAmount;
-          project.amountPaid = (project.amountPaid || 0) + paymentAmount;
+          project.amountPaid = (project.amountPaid || 0) + invoice.totalAmount;
           project.balance = project.totalCost - project.amountPaid;
 
-          // ✅ FIXED: Update project status based on payment type
           if (invoice.invoiceType === 'initial') {
             if (project.status === 'approved') {
               project.status = 'initial_paid';
@@ -474,23 +469,19 @@ exports.verifySolarInvoicePayment = async (req, res) => {
           } else if (invoice.invoiceType === 'full') {
             project.fullPaymentCompleted = true;
             project.status = 'full_paid';
-            console.log(`✅ Project ${project.projectReference} status updated to full_paid`);
           }
 
-          // For installment projects when all payments are complete
           const allPaymentsPaid = project.paymentSchedule.every(p => p.status === 'paid');
           if (allPaymentsPaid && project.paymentPreference === 'installment') {
             if (project.status !== 'completed' && project.status !== 'full_paid') {
               project.status = 'full_paid';
-              console.log(`✅ Project ${project.projectReference} status updated to full_paid (all installments paid)`);
             }
           }
 
-          // Add to project updates
           project.projectUpdates = project.projectUpdates || [];
           project.projectUpdates.push({
             title: `Payment Verified - ${invoice.invoiceType.toUpperCase()}`,
-            description: `Payment of ${formatCurrencyHelper(paymentAmount)} for ${invoice.invoiceType} payment has been verified. Receipt: ${receipt?.receiptNumber || 'N/A'}`,
+            description: `Payment of ${formatCurrencyHelper(invoice.totalAmount)} for ${invoice.invoiceType} payment has been verified. Receipt: ${receipt?.receiptNumber || 'N/A'}`,
             status: project.status,
             updatedBy: adminId
           });
@@ -499,8 +490,16 @@ exports.verifySolarInvoicePayment = async (req, res) => {
         }
       }
 
+      // Save audit trail
+      await AuditLog.create({
+        user: adminId,
+        role: req.user.role,
+        module: "Billing",
+        action: `Verified payment for invoice ${invoice.invoiceNumber}`
+      });
+
     } else {
-      // Payment rejected - reset to pending
+      // Payment rejected
       invoice.paymentStatus = 'pending';
       invoice.status = 'pending';
       invoice.adminRemarks = notes || 'Payment rejected - please resubmit';
@@ -527,6 +526,14 @@ exports.verifySolarInvoicePayment = async (req, res) => {
           }
         }
       }
+
+      // Save audit trail
+      await AuditLog.create({
+        user: adminId,
+        role: req.user.role,
+        module: "Billing",
+        action: `Rejected payment for invoice ${invoice.invoiceNumber}`
+      });
     }
 
     await invoice.save();
@@ -583,12 +590,20 @@ exports.rejectSolarInvoicePayment = async (req, res) => {
       if (project) {
         const scheduleItem = project.paymentSchedule.find(p => p.type === invoice.invoiceType);
         if (scheduleItem && scheduleItem.status !== 'paid') {
-          scheduleItem.status = 'pending'; // Reset to pending, customer needs to pay again
+          scheduleItem.status = 'pending';
           scheduleItem.paymentReference = null;
         }
         await project.save();
       }
     }
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Billing",
+      action: `Rejected payment for invoice ${invoice.invoiceNumber}`
+    });
 
     res.json({
       success: true,
@@ -809,6 +824,7 @@ exports.getSolarInvoiceById = async (req, res) => {
 exports.sendSolarInvoice = async (req, res) => {
   try {
     const { id } = req.params;
+    const adminId = req.user.id;
 
     const invoice = await SolarInvoice.findById(id)
       .populate('clientId', 'contactFirstName contactLastName email')
@@ -827,8 +843,13 @@ exports.sendSolarInvoice = async (req, res) => {
 
     await invoice.save();
 
-    // TODO: Send email notification with PDF attachment
-    // await sendInvoiceEmail(invoice);
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Billing",
+      action: `Sent invoice ${invoice.invoiceNumber} to client`
+    });
 
     res.json({
       success: true,
@@ -918,6 +939,14 @@ exports.recordSolarPayment = async (req, res) => {
       }
     }
 
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Billing",
+      action: `Recorded ${method} payment of ${amount} for invoice ${invoice.invoiceNumber}`
+    });
+
     res.json({
       success: true,
       message: 'Payment recorded successfully',
@@ -997,6 +1026,14 @@ exports.cancelSolarInvoice = async (req, res) => {
 
     await invoice.save();
 
+    // Save audit trail
+    await AuditLog.create({
+      user: req.user.id,
+      role: req.user.role,
+      module: "Billing",
+      action: `Cancelled invoice ${invoice.invoiceNumber}`
+    });
+
     res.json({
       success: true,
       message: 'Invoice cancelled successfully',
@@ -1016,6 +1053,7 @@ exports.updateSolarInvoice = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+    const adminId = req.user.id;
 
     const invoice = await SolarInvoice.findById(id);
     if (!invoice) {
@@ -1031,6 +1069,14 @@ exports.updateSolarInvoice = async (req, res) => {
       updateData,
       { new: true, runValidators: true }
     );
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Billing",
+      action: `Updated invoice ${invoice.invoiceNumber}`
+    });
 
     res.json({
       success: true,

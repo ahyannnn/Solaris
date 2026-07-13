@@ -1,6 +1,7 @@
 // controllers/userManagementControllers.js
 const User = require('../models/Users');
 const Client = require('../models/Clients');
+const AuditLog = require('../models/AuditLog');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
@@ -97,6 +98,7 @@ exports.getUserById = async (req, res) => {
 exports.createUser = async (req, res) => {
   try {
     const { email, password, role, fullName, firstName, lastName, contactNumber } = req.body;
+    const adminId = req.user.id;
 
     // Check if user exists
     const existingUser = await User.findOne({ email });
@@ -132,6 +134,14 @@ exports.createUser = async (req, res) => {
       await client.save();
     }
 
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "User Management",
+      action: `Created user ${user.email} with role ${user.role}`
+    });
+
     res.status(201).json({
       success: true,
       message: 'User created successfully',
@@ -162,6 +172,7 @@ exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const { fullName, firstName, lastName, contactNumber } = req.body;
+    const adminId = req.user.id;
 
     const user = await User.findById(id);
     if (!user) {
@@ -207,6 +218,14 @@ exports.updateUser = async (req, res) => {
       }
     }
 
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "User Management",
+      action: `Updated user ${user.email}`
+    });
+
     // Fetch updated user with client info
     const updatedUser = await User.findById(id).select('-passwordHash');
     const updatedClient = await Client.findOne({ userId: user._id });
@@ -248,25 +267,38 @@ exports.updateUserRole = async (req, res) => {
   try {
     const { id } = req.params;
     const { role } = req.body;
+    const adminId = req.user.id;
 
     if (!['admin', 'engineer', 'user'].includes(role)) {
       return res.status(400).json({ message: 'Invalid role' });
     }
 
-    const user = await User.findByIdAndUpdate(
-      id,
-      { role },
-      { new: true }
-    ).select('-passwordHash');
-
+    const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    const oldRole = user.role;
+    user.role = role;
+    await user.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "User Management",
+      action: `Changed user ${user.email} role from ${oldRole} to ${role}`
+    });
+
     res.json({
       success: true,
       message: 'User role updated successfully',
-      user
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role
+      }
     });
 
   } catch (error) {
@@ -281,6 +313,7 @@ exports.updateUserRole = async (req, res) => {
 exports.toggleUserStatus = async (req, res) => {
   try {
     const { id } = req.params;
+    const adminId = req.user.id;
 
     const user = await User.findById(id);
     if (!user) {
@@ -289,6 +322,14 @@ exports.toggleUserStatus = async (req, res) => {
 
     user.isActive = !user.isActive;
     await user.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "User Management",
+      action: `${user.isActive ? 'Activated' : 'Deactivated'} user ${user.email}`
+    });
 
     res.json({
       success: true,
@@ -309,6 +350,7 @@ exports.resetUserPassword = async (req, res) => {
   try {
     const { id } = req.params;
     const { password } = req.body;
+    const adminId = req.user.id;
 
     // Validate password
     if (!password || password.length < 6) {
@@ -335,6 +377,14 @@ exports.resetUserPassword = async (req, res) => {
     user.passwordHash = passwordHash;
     await user.save();
 
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "User Management",
+      action: `Reset password for user ${user.email}`
+    });
+
     res.json({
       success: true,
       message: 'Password reset successfully'
@@ -356,14 +406,25 @@ exports.resetUserPassword = async (req, res) => {
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
+    const adminId = req.user.id;
 
-    const user = await User.findByIdAndDelete(id);
+    const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Delete associated client record
+    const userEmail = user.email;
+
+    await User.findByIdAndDelete(id);
     await Client.findOneAndDelete({ userId: id });
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "User Management",
+      action: `Deleted user ${userEmail}`
+    });
 
     res.json({
       success: true,

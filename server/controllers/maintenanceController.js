@@ -2,6 +2,7 @@
 const Maintenance = require('../models/Maintenance');
 const SystemConfig = require('../models/SystemConfig');
 const MaintenanceTask = require('../models/MaintenanceTask');
+const AuditLog = require('../models/AuditLog');
 
 // Helper function to generate task ID
 const generateTaskId = () => {
@@ -52,6 +53,7 @@ exports.getMaintenanceStatus = async (req, res) => {
 exports.enableMaintenance = async (req, res) => {
   try {
     const { title, message, estimatedDuration, showCountdown, showProgressBar, contactEmail, contactPhone, socialLinks } = req.body;
+    const adminId = req.user.id;
     
     let maintenance = await Maintenance.findOne();
     
@@ -101,6 +103,14 @@ exports.enableMaintenance = async (req, res) => {
       createdBy: req.user.id
     });
     await task.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Maintenance",
+      action: `Enabled maintenance mode${title ? `: ${title}` : ''}`
+    });
     
     res.json({
       success: true,
@@ -124,6 +134,7 @@ exports.enableMaintenance = async (req, res) => {
 // @access  Private (Admin)
 exports.disableMaintenance = async (req, res) => {
   try {
+    const adminId = req.user.id;
     let maintenance = await Maintenance.findOne();
     
     if (!maintenance) {
@@ -157,6 +168,14 @@ exports.disableMaintenance = async (req, res) => {
       createdBy: req.user.id
     });
     await task.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Maintenance",
+      action: "Disabled maintenance mode"
+    });
     
     res.json({
       success: true,
@@ -178,6 +197,7 @@ exports.disableMaintenance = async (req, res) => {
 // @access  Private (Admin)
 exports.updateMaintenanceSettings = async (req, res) => {
   try {
+    const adminId = req.user.id;
     const { 
       title, 
       message, 
@@ -214,6 +234,14 @@ exports.updateMaintenanceSettings = async (req, res) => {
     maintenance.updatedAt = new Date();
     
     await maintenance.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Maintenance",
+      action: "Updated maintenance settings"
+    });
     
     res.json({
       success: true,
@@ -257,6 +285,7 @@ exports.getMaintenanceHistory = async (req, res) => {
 exports.addAllowedIP = async (req, res) => {
   try {
     const { ip } = req.body;
+    const adminId = req.user.id;
     
     if (!ip) {
       return res.status(400).json({ message: 'IP address is required' });
@@ -272,6 +301,14 @@ exports.addAllowedIP = async (req, res) => {
       maintenance.allowedIPs.push(ip);
       await maintenance.save();
     }
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Maintenance",
+      action: `Added IP ${ip} to whitelist`
+    });
     
     res.json({
       success: true,
@@ -291,6 +328,7 @@ exports.addAllowedIP = async (req, res) => {
 exports.removeAllowedIP = async (req, res) => {
   try {
     const { ip } = req.params;
+    const adminId = req.user.id;
     
     let maintenance = await Maintenance.findOne();
     
@@ -300,6 +338,14 @@ exports.removeAllowedIP = async (req, res) => {
     
     maintenance.allowedIPs = maintenance.allowedIPs.filter(allowedIp => allowedIp !== ip);
     await maintenance.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Maintenance",
+      action: `Removed IP ${ip} from whitelist`
+    });
     
     res.json({
       success: true,
@@ -345,6 +391,7 @@ exports.updateSystemConfig = async (req, res) => {
   try {
     const updates = req.body;
     const { reason } = req.query;
+    const adminId = req.user.id;
     
     let config = await SystemConfig.findOne();
     
@@ -372,6 +419,14 @@ exports.updateSystemConfig = async (req, res) => {
     });
     
     await task.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Maintenance",
+      action: `Updated system configuration: ${result.updated} settings changed`
+    });
     
     res.json({
       success: true,
@@ -391,7 +446,7 @@ exports.updateSystemConfig = async (req, res) => {
 // @access  Private (Admin)
 exports.resetSystemConfig = async (req, res) => {
   try {
-    const { reason } = req.body;
+    const adminId = req.user.id;
     
     // Create new default config
     const newConfig = new SystemConfig();
@@ -400,7 +455,7 @@ exports.resetSystemConfig = async (req, res) => {
     
     if (config) {
       const oldConfig = config.toObject();
-      await config.updateConfig(newConfig.toObject(), req.user.id, reason || 'Reset to defaults');
+      await config.updateConfig(newConfig.toObject(), req.user.id, 'Reset to defaults');
     } else {
       config = newConfig;
       await config.save();
@@ -421,6 +476,14 @@ exports.resetSystemConfig = async (req, res) => {
     });
     
     await task.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Maintenance",
+      action: "Reset system configuration to defaults"
+    });
     
     res.json({
       success: true,
@@ -466,6 +529,7 @@ exports.addEquipmentItem = async (req, res) => {
   try {
     const { type, name, price, brand, warranty, unit, notes } = req.body;
     const { reason } = req.query;
+    const adminId = req.user.id;
     
     // Validate equipment type
     const validTypes = [
@@ -533,6 +597,14 @@ exports.addEquipmentItem = async (req, res) => {
     });
     
     await task.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Maintenance",
+      action: `Added ${type.slice(0, -1)}: ${name}`
+    });
     
     res.json({
       success: true,
@@ -558,6 +630,7 @@ exports.updateEquipmentItem = async (req, res) => {
     const { type, itemId } = req.params;
     const { name, price, brand, warranty, unit, notes, isActive } = req.body;
     const { reason } = req.query;
+    const adminId = req.user.id;
     
     const validTypes = [
       'solarPanels', 'inverters', 'batteries', 'mountingStructures',
@@ -614,6 +687,14 @@ exports.updateEquipmentItem = async (req, res) => {
     });
     
     await task.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Maintenance",
+      action: `Updated ${type.slice(0, -1)}: ${updatedItem.name}`
+    });
     
     res.json({
       success: true,
@@ -639,6 +720,7 @@ exports.removeEquipmentItem = async (req, res) => {
     const { type, itemId } = req.params;
     const { reason } = req.body;
     const { hardDelete } = req.query;
+    const adminId = req.user.id;
     
     const validTypes = [
       'solarPanels', 'inverters', 'batteries', 'mountingStructures',
@@ -695,6 +777,14 @@ exports.removeEquipmentItem = async (req, res) => {
     });
     
     await task.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Maintenance",
+      action: `${hardDelete === 'true' ? 'Permanently deleted' : 'Removed'} ${type.slice(0, -1)}: ${removedItem.name}`
+    });
     
     res.json({
       success: true,
@@ -770,6 +860,7 @@ exports.bulkUpdateEquipment = async (req, res) => {
   try {
     const { type, items, action } = req.body;
     const { reason } = req.query;
+    const adminId = req.user.id;
     
     const validTypes = [
       'solarPanels', 'inverters', 'batteries', 'mountingStructures',
@@ -851,6 +942,14 @@ exports.bulkUpdateEquipment = async (req, res) => {
     });
     
     await task.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Maintenance",
+      action: `Bulk ${action} ${results.length} ${type.slice(0, -1)}s`
+    });
     
     res.json({
       success: true,

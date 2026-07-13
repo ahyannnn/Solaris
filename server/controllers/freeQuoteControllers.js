@@ -7,6 +7,7 @@ const File = require('../models/File');
 const PDFGenerator = require('../services/pdfGenerator');
 const cloudinary = require('cloudinary').v2;
 const mongoose = require('mongoose');
+const AuditLog = require('../models/AuditLog');
 // Add this at the top after other requires
 const { sendNotification } = require('../utils/notificationHelper');
 
@@ -486,9 +487,107 @@ exports.getFreeQuoteById = async (req, res) => {
   }
 };
 
-// @desc    Assign engineer to free quote (Admin only)
-// @route   PUT /api/free-quotes/:id/assign-engineer
-// @access  Private (Admin)
+exports.updateQuoteStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, adminRemarks, quotationFile } = req.body;
+    const adminId = req.user.id;
+
+    // FIX: Populate clientId with userId
+    const quote = await FreeQuote.findById(id).populate({
+      path: 'clientId',
+      populate: {
+        path: 'userId',
+        select: 'email _id'
+      }
+    });
+
+    if (!quote) {
+      return res.status(404).json({ message: 'Quote not found' });
+    }
+
+    const validTransitions = {
+      pending: ['assigned', 'cancelled'],
+      assigned: ['processing', 'cancelled'],
+      processing: ['completed', 'cancelled'],
+      completed: [],
+      cancelled: []
+    };
+
+    if (validTransitions[quote.status] && !validTransitions[quote.status].includes(status)) {
+      return res.status(400).json({
+        message: `Cannot transition from ${quote.status} to ${status}`
+      });
+    }
+
+    // Store old status for audit log
+    const oldStatus = quote.status;
+
+    quote.status = status;
+    if (adminRemarks) quote.adminRemarks = adminRemarks;
+    if (quotationFile) quote.quotationFile = quotationFile;
+    if (status === 'completed') {
+      quote.quotationSentAt = new Date();
+    }
+    quote.processedBy = adminId;
+    quote.processedAt = new Date();
+
+    await quote.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Site Assessment",
+      action: `Quote ${quote.quotationReference} status updated from ${oldStatus} to ${status}`
+    });
+
+    // FIX: Check if userId exists before sending notifications
+    const userId = quote.clientId?.userId?._id;
+
+    if (status === 'completed' && userId) {
+      await sendNotification(
+        userId,
+        'Quote Status Updated',
+        'Your free quote request ' + quote.quotationReference + ' has been completed. You can view the quotation now.',
+        'success',
+        '/free-quotes/' + quote._id,
+        {
+          metadata: {
+            quotationReference: quote.quotationReference,
+            status: status
+          }
+        }
+      );
+    } else if (status === 'cancelled' && userId) {
+      await sendNotification(
+        userId,
+        'Quote Cancelled',
+        'Your free quote request ' + quote.quotationReference + ' has been cancelled. Reason: ' + (adminRemarks || 'Not specified'),
+        'error',
+        '/free-quotes',
+        {
+          metadata: {
+            quotationReference: quote.quotationReference,
+            reason: adminRemarks || 'Not specified'
+          }
+        }
+      );
+    }
+
+    res.json({
+      success: true,
+      message: 'Quote status updated successfully',
+      quote
+    });
+
+  } catch (error) {
+    console.error('Update quote status error:', error);
+    res.status(500).json({ message: 'Failed to update quote', error: error.message });
+  }
+};
+
+
 // @desc    Assign engineer to free quote (Admin only)
 // @route   PUT /api/free-quotes/:id/assign-engineer
 // @access  Private (Admin)
@@ -533,6 +632,14 @@ exports.assignEngineerToFreeQuote = async (req, res) => {
     quote.processedAt = new Date();
 
     await quote.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Site Assessment",
+      action: `Assigned engineer ${engineer.fullName} to quote ${quote.quotationReference}`
+    });
 
     // FIX: Check if userId exists before sending notification
     const userId = quote.clientId?.userId?._id;
@@ -596,101 +703,6 @@ exports.assignEngineerToFreeQuote = async (req, res) => {
       message: 'Failed to assign engineer',
       error: error.message
     });
-  }
-};
-
-// @desc    Update free quote status (Admin only)
-// @route   PUT /api/free-quotes/:id/status
-// @access  Private (Admin)
-// @desc    Update free quote status (Admin only)
-// @route   PUT /api/free-quotes/:id/status
-// @access  Private (Admin)
-exports.updateQuoteStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status, adminRemarks, quotationFile } = req.body;
-    const adminId = req.user.id;
-
-    // FIX: Populate clientId with userId
-    const quote = await FreeQuote.findById(id).populate({
-      path: 'clientId',
-      populate: {
-        path: 'userId',
-        select: 'email _id'
-      }
-    });
-
-    if (!quote) {
-      return res.status(404).json({ message: 'Quote not found' });
-    }
-
-    const validTransitions = {
-      pending: ['assigned', 'cancelled'],
-      assigned: ['processing', 'cancelled'],
-      processing: ['completed', 'cancelled'],
-      completed: [],
-      cancelled: []
-    };
-
-    if (validTransitions[quote.status] && !validTransitions[quote.status].includes(status)) {
-      return res.status(400).json({
-        message: `Cannot transition from ${quote.status} to ${status}`
-      });
-    }
-
-    quote.status = status;
-    if (adminRemarks) quote.adminRemarks = adminRemarks;
-    if (quotationFile) quote.quotationFile = quotationFile;
-    if (status === 'completed') {
-      quote.quotationSentAt = new Date();
-    }
-    quote.processedBy = adminId;
-    quote.processedAt = new Date();
-
-    await quote.save();
-
-    // FIX: Check if userId exists before sending notifications
-    const userId = quote.clientId?.userId?._id;
-
-    if (status === 'completed' && userId) {
-      await sendNotification(
-        userId,
-        'Quote Status Updated',
-        'Your free quote request ' + quote.quotationReference + ' has been completed. You can view the quotation now.',
-        'success',
-        '/free-quotes/' + quote._id,
-        {
-          metadata: {
-            quotationReference: quote.quotationReference,
-            status: status
-          }
-        }
-      );
-    } else if (status === 'cancelled' && userId) {
-      await sendNotification(
-        userId,
-        'Quote Cancelled',
-        'Your free quote request ' + quote.quotationReference + ' has been cancelled. Reason: ' + (adminRemarks || 'Not specified'),
-        'error',
-        '/free-quotes',
-        {
-          metadata: {
-            quotationReference: quote.quotationReference,
-            reason: adminRemarks || 'Not specified'
-          }
-        }
-      );
-    }
-
-    res.json({
-      success: true,
-      message: 'Quote status updated successfully',
-      quote
-    });
-
-  } catch (error) {
-    console.error('Update quote status error:', error);
-    res.status(500).json({ message: 'Failed to update quote', error: error.message });
   }
 };
 

@@ -9,6 +9,7 @@ const PayMongoService = require('../services/paymongoService');
 const SolarInvoice = require('../models/SolarInvoice');
 const cloudinary = require('cloudinary').v2;
 const { sendNotification } = require('../utils/notificationHelper');
+const AuditLog = require('../models/AuditLog');
 
 // Configure Cloudinary (should already be configured in your app)
 cloudinary.config({
@@ -1255,9 +1256,6 @@ const generateProjectInvoices = async (project, adminId) => {
 // @desc    Update project status (Admin)
 // @route   PUT /api/projects/:id/status
 // @access  Private (Admin)
-// @desc    Update project status (Admin)
-// @route   PUT /api/projects/:id/status
-// @access  Private (Admin)
 exports.updateProjectStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -1369,6 +1367,14 @@ exports.updateProjectStatus = async (req, res) => {
 
     await project.save();
 
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Project",
+      action: `Updated project ${project.projectReference} status from ${oldStatus} to ${status}`
+    });
+
     res.json({
       success: true,
       message: `Project status updated to ${status}`,
@@ -1421,6 +1427,14 @@ exports.assignEngineerToProject = async (req, res) => {
     });
 
     await project.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Project",
+      action: `Assigned engineer ${engineer.fullName} to project ${project.projectReference}`
+    });
 
     // FIX: Check if userId exists before sending notification
     if (project.clientId && project.clientId.userId && project.clientId.userId._id) {
@@ -1535,6 +1549,14 @@ exports.recordProjectPayment = async (req, res) => {
     });
 
     await project.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Project",
+      action: `Recorded ${paymentType} payment of ${amount} for project ${project.projectReference}`
+    });
 
     res.json({
       success: true,
@@ -1673,6 +1695,8 @@ exports.createProject = async (req, res) => {
       notes
     } = req.body;
 
+    const adminId = req.user.id;
+
     const client = await Client.findById(clientId);
     if (!client) {
       return res.status(404).json({ message: 'Client not found' });
@@ -1726,6 +1750,14 @@ exports.createProject = async (req, res) => {
     });
 
     await project.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Project",
+      action: `Created project ${project.projectReference} for ${client.contactFirstName} ${client.contactLastName}`
+    });
 
     res.status(201).json({
       success: true,

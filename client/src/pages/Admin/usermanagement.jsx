@@ -20,7 +20,12 @@ import {
   FaCheck,
   FaExclamationTriangle,
   FaKey,
-  FaChevronDown
+  FaChevronDown,
+  FaHistory,
+  FaClipboardList,
+  FaUser,
+  FaCog,
+  FaCalendarAlt
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/usermanagement.css';
@@ -29,6 +34,9 @@ const UserManagement = () => {
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('users'); // 'users' or 'audit'
   const [stats, setStats] = useState({
     total: 0,
     activeUsers: 0,
@@ -67,27 +75,31 @@ const UserManagement = () => {
   const [passwordErrors, setPasswordErrors] = useState({});
 
   useEffect(() => {
-    fetchUsers();
-    fetchStats();
+    if (activeTab === 'users') {
+      fetchUsers();
+      fetchStats();
+    } else if (activeTab === 'audit') {
+      fetchAuditLogs();
+    }
 
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setOpenDropdownId(null);
       }
     };
-    
+
     const handleScroll = () => {
       setOpenDropdownId(null);
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     window.addEventListener('scroll', handleScroll, true);
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('scroll', handleScroll, true);
     };
-  }, [filterRole, currentPage]);
+  }, [filterRole, currentPage, activeTab]);
 
   const handleDropdownClick = (event, userId) => {
     event.stopPropagation();
@@ -133,6 +145,22 @@ const UserManagement = () => {
     }
   };
 
+  const fetchAuditLogs = async () => {
+    try {
+      setAuditLoading(true);
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/audit`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAuditLogs(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+      showToast('Failed to load audit logs', 'error');
+    } finally {
+      setAuditLoading(false);
+    }
+  };
+
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
@@ -144,6 +172,19 @@ const UserManagement = () => {
     return user.fullName?.toLowerCase().includes(searchLower) ||
       user.email?.toLowerCase().includes(searchLower) ||
       user.clientInfo?.contactNumber?.includes(searchTerm);
+  });
+
+  // Filter audit logs by search term
+  const filteredAuditLogs = auditLogs.filter(log => {
+    if (!searchTerm) return true;
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      log.user?.fullName?.toLowerCase().includes(searchLower) ||
+      log.user?.email?.toLowerCase().includes(searchLower) ||
+      log.module?.toLowerCase().includes(searchLower) ||
+      log.action?.toLowerCase().includes(searchLower) ||
+      log.role?.toLowerCase().includes(searchLower)
+    );
   });
 
   const combineFullName = (firstName, lastName) => {
@@ -171,10 +212,10 @@ const UserManagement = () => {
   const handleOpenEditModal = (user) => {
     setModalMode('edit');
     setSelectedUser(user);
-    
+
     let firstName = '';
     let lastName = '';
-    
+
     if (user.clientInfo?.firstName && user.clientInfo?.lastName) {
       firstName = user.clientInfo.firstName;
       lastName = user.clientInfo.lastName;
@@ -272,6 +313,8 @@ const UserManagement = () => {
         showToast('Password reset successfully!', 'success');
         setShowPasswordModal(false);
         setFormData({ ...formData, password: '', confirmPassword: '' });
+        // Refresh audit logs if on audit tab
+        if (activeTab === 'audit') fetchAuditLogs();
       }
     } catch (error) {
       console.error('Error resetting password:', error);
@@ -293,7 +336,7 @@ const UserManagement = () => {
       const token = sessionStorage.getItem('token');
       const fullName = combineFullName(formData.firstName, formData.lastName);
       const normalizedEmail = formData.email.toLowerCase();
-      
+
       let response;
 
       if (modalMode === 'create') {
@@ -324,6 +367,7 @@ const UserManagement = () => {
       if (response.data.success) {
         fetchUsers();
         fetchStats();
+        if (activeTab === 'audit') fetchAuditLogs();
         setShowUserModal(false);
         showToast(modalMode === 'create' ? 'User created successfully!' : 'User updated successfully!', 'success');
       }
@@ -350,6 +394,7 @@ const UserManagement = () => {
       if (response.data.success) {
         fetchUsers();
         fetchStats();
+        if (activeTab === 'audit') fetchAuditLogs();
         setShowStatusConfirm(false);
         setSelectedUser(null);
         setStatusAction(null);
@@ -377,6 +422,7 @@ const UserManagement = () => {
       if (response.data.success) {
         fetchUsers();
         fetchStats();
+        if (activeTab === 'audit') fetchAuditLogs();
         setShowDeleteConfirm(false);
         setSelectedUser(null);
         showToast('User deleted successfully!', 'success');
@@ -414,6 +460,40 @@ const UserManagement = () => {
     });
   };
 
+  const formatDateTime = (date) => {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleString('en-PH', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
+  const getModuleIcon = (module) => {
+    const icons = {
+      'User': <FaUser />,
+      'Admin': <FaCog />,
+      'System': <FaClipboardList />
+    };
+    return icons[module] || <FaClipboardList />;
+  };
+
+  const getActionBadge = (action) => {
+    const badges = {
+      'Create': <span className="action-badge create">Create</span>,
+      'Update': <span className="action-badge update">Update</span>,
+      'Delete': <span className="action-badge delete">Delete</span>,
+      'Login': <span className="action-badge login">Login</span>,
+      'Logout': <span className="action-badge logout">Logout</span>,
+      'Status Change': <span className="action-badge status">Status Change</span>,
+      'Password Reset': <span className="action-badge password">Password Reset</span>
+    };
+    return badges[action] || <span className="action-badge default">{action}</span>;
+  };
+
   const getAvailableActions = (user) => {
     const actions = [
       { label: 'View Details', icon: <FaEye />, action: () => handleOpenViewModal(user), color: 'primary' },
@@ -435,11 +515,11 @@ const UserManagement = () => {
     const maxVisible = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
     let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-    
+
     if (endPage - startPage + 1 < maxVisible) {
       startPage = Math.max(1, endPage - maxVisible + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
@@ -467,7 +547,11 @@ const UserManagement = () => {
     </div>
   );
 
-  if (loading && users.length === 0) {
+  if (loading && users.length === 0 && activeTab === 'users') {
+    return <SkeletonLoader />;
+  }
+
+  if (auditLoading && activeTab === 'audit') {
     return <SkeletonLoader />;
   }
 
@@ -483,41 +567,34 @@ const UserManagement = () => {
             <h1>User Management</h1>
             <p>Manage system users, roles, and permissions</p>
           </div>
-          
-          <button className="create-user-btn" onClick={handleOpenCreateModal}>
-            <FaUserPlus /> Add User
-          </button>
+
+          {activeTab === 'users' && (
+            <button className="create-user-btn" onClick={handleOpenCreateModal}>
+              <FaUserPlus /> Add User
+            </button>
+          )}
+          {activeTab === 'audit' && (
+            <button className="refresh-btn" onClick={fetchAuditLogs}>
+              <FaHistory /> Refresh Logs
+            </button>
+          )}
         </div>
 
         {/* Tabs */}
         <div className="user-tabs">
-          <button 
-            className={`tab-btn ${filterRole === 'all' ? 'active' : ''}`} 
-            onClick={() => { setFilterRole('all'); setCurrentPage(1); }}
+          <button
+            className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('users'); setSearchTerm(''); setCurrentPage(1); }}
           >
-            All Users
+            <FaUsers /> Users
             <span className="tab-badge">{stats.total}</span>
           </button>
-          <button 
-            className={`tab-btn ${filterRole === 'admin' ? 'active' : ''}`} 
-            onClick={() => { setFilterRole('admin'); setCurrentPage(1); }}
+          <button
+            className={`tab-btn ${activeTab === 'audit' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('audit'); setSearchTerm(''); setCurrentPage(1); }}
           >
-            Admins
-            <span className="tab-badge">{stats.byRole?.admin || 0}</span>
-          </button>
-          <button 
-            className={`tab-btn ${filterRole === 'engineer' ? 'active' : ''}`} 
-            onClick={() => { setFilterRole('engineer'); setCurrentPage(1); }}
-          >
-            Engineers
-            <span className="tab-badge">{stats.byRole?.engineer || 0}</span>
-          </button>
-          <button 
-            className={`tab-btn ${filterRole === 'user' ? 'active' : ''}`} 
-            onClick={() => { setFilterRole('user'); setCurrentPage(1); }}
-          >
-            Customers
-            <span className="tab-badge">{stats.byRole?.user || 0}</span>
+            <FaHistory /> Audit Logs
+            <span className="tab-badge">{auditLogs.length}</span>
           </button>
         </div>
 
@@ -525,124 +602,212 @@ const UserManagement = () => {
         <div className="user-filters-section">
           <div className="search-box">
             <FaSearch className="search-icon" />
-            <input 
-              type="text" 
-              placeholder="Search by name, email, or contact number..." 
-              value={searchTerm} 
-              onChange={handleSearch} 
+            <input
+              type="text"
+              placeholder={activeTab === 'users' ? "Search by name, email, or contact number..." : "Search logs by user, module, action, or role..."}
+              value={searchTerm}
+              onChange={handleSearch}
             />
           </div>
+          {activeTab === 'users' && (
+            <div className="filter-role">
+              <select value={filterRole} onChange={(e) => { setFilterRole(e.target.value); setCurrentPage(1); }}>
+                <option value="all">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="engineer">Engineer</option>
+                <option value="user">Customer</option>
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Table */}
-        <div className="users-table-container">
-          <table className="users-table">
-            <thead>
-              <tr>
-                <th style={{ width: '25%' }}>User</th>
-                <th style={{ width: '25%' }}>Email</th>
-                <th style={{ width: '12%' }}>Contact</th>
-                <th style={{ width: '10%' }}>Role</th>
-                <th style={{ width: '10%' }}>Status</th>
-                <th style={{ width: '10%' }}>Created</th>
-                <th style={{ width: '8%', textAlign: 'center' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.length === 0 ? (
+        {activeTab === 'users' && (
+          <div className="users-table-container">
+            <table className="users-table">
+              <thead>
                 <tr>
-                  <td colSpan="7" className="empty-state">
-                    <p>No users found</p>
-                  </td>
+                  <th style={{ width: '25%' }}>User</th>
+                  <th style={{ width: '25%' }}>Email</th>
+                  <th style={{ width: '12%' }}>Contact</th>
+                  <th style={{ width: '10%' }}>Role</th>
+                  <th style={{ width: '10%' }}>Status</th>
+                  <th style={{ width: '10%' }}>Created</th>
+                  <th style={{ width: '8%', textAlign: 'center' }}>Actions</th>
                 </tr>
-              ) : (
-                filteredUsers.map(user => {
-                  const actions = getAvailableActions(user);
-                  const isOpen = openDropdownId === user._id;
+              </thead>
+              <tbody>
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="empty-state">
+                      <p>No users found</p>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map(user => {
+                    const actions = getAvailableActions(user);
+                    const isOpen = openDropdownId === user._id;
 
-                  return (
-                    <tr key={user._id}>
-                      <td>
-                        <div className="user-cell-content">
-                          <div className="user-avatar">
-                            {user.clientInfo?.firstName ? (
-                              <div className="avatar-initials">{user.clientInfo.firstName[0]}{user.clientInfo.lastName?.[0]}</div>
-                            ) : (
-                              <FaUserCircle className="avatar-icon" />
+                    return (
+                      <tr key={user._id}>
+                        <td>
+                          <div className="user-cell-content">
+                            <div className="user-avatar">
+                              {user.clientInfo?.firstName ? (
+                                <div className="avatar-initials">{user.clientInfo.firstName[0]}{user.clientInfo.lastName?.[0]}</div>
+                              ) : (
+                                <FaUserCircle className="avatar-icon" />
+                              )}
+                            </div>
+                            <div className="user-name">{user.fullName || '—'}</div>
+                          </div>
+                        </td>
+                        <td className="email-cell">
+                          <FaEnvelope className="email-icon" />
+                          <span className="email-text">{user.email}</span>
+                        </td>
+                        <td className="contact-cell">
+                          {user.clientInfo?.contactNumber || '—'}
+                        </td>
+                        <td>{getRoleBadge(user.role)}</td>
+                        <td>{getStatusBadge(user.isActive)}</td>
+                        <td>{formatDate(user.createdAt)}</td>
+                        <td style={{ textAlign: 'center', position: 'relative' }}>
+                          <div className="action-dropdown-container">
+                            <button
+                              className="action-dropdown-toggle"
+                              ref={el => buttonRefs.current[user._id] = el}
+                              onClick={(e) => handleDropdownClick(e, user._id)}
+                            >
+                              Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
+                            </button>
+                            {isOpen && (
+                              <div
+                                className="action-dropdown-menu"
+                                ref={dropdownRef}
+                                style={{
+                                  position: 'fixed',
+                                  top: dropdownPosition.top,
+                                  right: dropdownPosition.right,
+                                  zIndex: 9999,
+                                }}
+                              >
+                                {actions.map((action, idx) => (
+                                  <button
+                                    key={idx}
+                                    className={`dropdown-item ${action.color || ''}`}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      action.action();
+                                    }}
+                                  >
+                                    {action.icon} <span>{action.label}</span>
+                                  </button>
+                                ))}
+                              </div>
                             )}
                           </div>
-                          <div className="user-name">{user.fullName || '—'}</div>
-                        </div>
-                      </td>
-                      <td className="email-cell">
-                        <FaEnvelope className="email-icon" />
-                        <span className="email-text">{user.email}</span>
-                      </td>
-                      <td className="contact-cell">
-                        {user.clientInfo?.contactNumber || '—'}
-                      </td>
-                      <td>{getRoleBadge(user.role)}</td>
-                      <td>{getStatusBadge(user.isActive)}</td>
-                      <td>{formatDate(user.createdAt)}</td>
-                      <td style={{ textAlign: 'center', position: 'relative' }}>
-                        <div className="action-dropdown-container">
-                          <button 
-                            className="action-dropdown-toggle"
-                            ref={el => buttonRefs.current[user._id] = el}
-                            onClick={(e) => handleDropdownClick(e, user._id)}
-                          >
-                            Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
-                          </button>
-                          {isOpen && (
-                            <div 
-                              className="action-dropdown-menu"
-                              ref={dropdownRef}
-                              style={{
-                                position: 'fixed',
-                                top: dropdownPosition.top,
-                                right: dropdownPosition.right,
-                                zIndex: 9999,
-                              }}
-                            >
-                              {actions.map((action, idx) => (
-                                <button 
-                                  key={idx} 
-                                  className={`dropdown-item ${action.color || ''}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    action.action();
-                                  }}
-                                >
-                                  {action.icon} <span>{action.label}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
+        {/* Audit Logs Table */}
+        {activeTab === 'audit' && (
+          <div className="users-table-container audit-logs-table">
+            <table className="users-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '18%' }}>User</th>
+                  <th style={{ width: '12%' }}>Role</th>
+                  <th style={{ width: '15%' }}>Module</th>
+                  <th style={{ width: '18%' }}>Action</th>
+                  <th style={{ width: '22%' }}>Timestamp</th>
+                 
+                </tr>
+              </thead>
+              <tbody>
+                {filteredAuditLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="empty-state">
+                      <p>No audit logs found</p>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredAuditLogs.map(log => {
+                    // Get user display name
+                    let userDisplayName = 'Unknown User';
+                    let userInitials = '?';
+
+                    if (log.user) {
+                      if (log.user.fullName) {
+                        userDisplayName = log.user.fullName;
+                        // Get initials from fullName
+                        const nameParts = log.user.fullName.trim().split(' ');
+                        if (nameParts.length >= 2) {
+                          userInitials = nameParts[0][0] + nameParts[nameParts.length - 1][0];
+                        } else if (nameParts.length === 1) {
+                          userInitials = nameParts[0][0];
+                        }
+                      } else if (log.user.email) {
+                        userDisplayName = log.user.email;
+                        userInitials = log.user.email[0].toUpperCase();
+                      }
+                    }
+
+                    return (
+                      <tr key={log._id}>
+                        <td>
+                          <div className="user-cell-content">
+                            <div className="user-avatar small-avatar">
+                              <div className="avatar-initials">{userInitials}</div>
+                            </div>
+                            <div className="user-name">{userDisplayName}</div>
+                          </div>
+                        </td>
+                        <td>{getRoleBadge(log.role)}</td>
+                        <td>
+                          <span className="module-badge">
+                            {getModuleIcon(log.module)} {log.module}
+                          </span>
+                        </td>
+                        <td>{getActionBadge(log.action)}</td>
+                        <td>
+                          <div className="timestamp-cell">
+                            <FaCalendarAlt className="timestamp-icon" />
+                            <span>{formatDateTime(log.createdAt)}</span>
+                          </div>
+                        </td>
+                        
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Pagination - Only show for users tab */}
+        {activeTab === 'users' && totalPages > 1 && (
           <div className="pagination">
             <div className="pagination-info">
               Showing {startItem} to {endItem} of {totalItems} entries
             </div>
             <div className="pagination-controls">
-              <button 
-                className="page-btn" 
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} 
+              <button
+                className="page-btn"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
               >
                 <FaChevronLeft /> Previous
               </button>
-              
+
               {getPageNumbers().map(page => (
                 <button
                   key={page}
@@ -652,10 +817,10 @@ const UserManagement = () => {
                   {page}
                 </button>
               ))}
-              
-              <button 
-                className="page-btn" 
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} 
+
+              <button
+                className="page-btn"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
               >
                 Next <FaChevronRight />
@@ -796,11 +961,11 @@ const UserManagement = () => {
                 <div className="form-row">
                   <div className="form-group">
                     <label>New Password *</label>
-                    <input 
-                      type="password" 
-                      value={formData.password} 
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
-                      className={passwordErrors.password ? 'error' : ''} 
+                    <input
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      className={passwordErrors.password ? 'error' : ''}
                     />
                     {passwordErrors.password && <span className="error-text">{passwordErrors.password}</span>}
                     <small>Password must be at least 6 characters</small>
@@ -809,11 +974,11 @@ const UserManagement = () => {
                 <div className="form-row">
                   <div className="form-group">
                     <label>Confirm Password *</label>
-                    <input 
-                      type="password" 
-                      value={formData.confirmPassword} 
-                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} 
-                      className={passwordErrors.confirmPassword ? 'error' : ''} 
+                    <input
+                      type="password"
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                      className={passwordErrors.confirmPassword ? 'error' : ''}
                     />
                     {passwordErrors.confirmPassword && <span className="error-text">{passwordErrors.confirmPassword}</span>}
                   </div>

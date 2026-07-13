@@ -10,6 +10,7 @@ const cloudinary = require('cloudinary').v2;
 const mongoose = require('mongoose');
 const PayMongoService = require('../services/paymongoService');
 const receiptService = require('../services/receiptService');
+const AuditLog = require('../models/AuditLog');
 // Add this at the top of preAssessmentControllers.js with other requires
 const { sendNotification } = require('../utils/notificationHelper');
 
@@ -752,12 +753,13 @@ exports.approveBooking = async (req, res) => {
   try {
     const { id } = req.params;
     const { approved, notes } = req.body;
+    const adminId = req.user.id;
 
     const assessment = await PreAssessment.findById(id).populate({
       path: 'clientId',
       populate: {
         path: 'userId',
-        select: 'email _id'
+        select: 'email _id fullName'
       }
     });
     if (!assessment) {
@@ -782,7 +784,7 @@ exports.approveBooking = async (req, res) => {
       assessment.paymentStatus = 'pending';
       assessment.assessmentStatus = 'pending_payment'; // After approval, goes to pending payment
       assessment.adminRemarks = notes || 'Booking approved';
-      // Add this after setting invoice number and before await assessment.save();
+      
       const userId = assessment.clientId?.userId?._id;
       if (userId) {
         await sendNotification(
@@ -800,10 +802,19 @@ exports.approveBooking = async (req, res) => {
           }
         );
       }
+
+      // Save audit trail
+      await AuditLog.create({
+        user: adminId,
+        role: req.user.role,
+        module: "Site Assessment",
+        action: `Approved booking ${assessment.bookingReference}`
+      });
+
     } else {
       assessment.assessmentStatus = 'cancelled';
       assessment.adminRemarks = notes || 'Booking rejected by admin';
-      // FIX: Check if userId exists before sending notification
+      
       const userId = assessment.clientId?.userId?._id;
       if (userId) {
         await sendNotification(
@@ -820,6 +831,14 @@ exports.approveBooking = async (req, res) => {
           }
         );
       }
+
+      // Save audit trail
+      await AuditLog.create({
+        user: adminId,
+        role: req.user.role,
+        module: "Site Assessment",
+        action: `Rejected booking ${assessment.bookingReference}`
+      });
     }
 
     await assessment.save();
@@ -841,6 +860,7 @@ exports.approveBooking = async (req, res) => {
     res.status(500).json({ message: 'Failed to process booking' });
   }
 };
+
 // Helper function to round to 2 decimal places
 const roundTo2Decimals = (value) => {
   if (value === null || value === undefined || value === '') return 0;
@@ -1204,7 +1224,7 @@ exports.verifyPayment = async (req, res) => {
         path: 'clientId',
         populate: {
           path: 'userId',
-          select: 'email _id'
+          select: 'email _id fullName'
         }
       });
 
@@ -1279,6 +1299,14 @@ exports.verifyPayment = async (req, res) => {
         // Don't block verification if receipt fails, just log it
       }
 
+      // Save audit trail
+      await AuditLog.create({
+        user: adminId,
+        role: req.user.role,
+        module: "Site Assessment",
+        action: `Verified payment for booking ${preAssessment.bookingReference}`
+      });
+
     } else {
       // FIX: Check if userId exists before sending notification
       const userId = preAssessment.clientId?.userId?._id;
@@ -1300,6 +1328,14 @@ exports.verifyPayment = async (req, res) => {
       preAssessment.paymentStatus = 'failed';
       preAssessment.assessmentStatus = 'cancelled';
       preAssessment.adminRemarks = notes || 'Payment rejected by admin';
+
+      // Save audit trail
+      await AuditLog.create({
+        user: adminId,
+        role: req.user.role,
+        module: "Site Assessment",
+        action: `Rejected payment for booking ${preAssessment.bookingReference}`
+      });
     }
 
     await preAssessment.save();
@@ -2207,6 +2243,14 @@ exports.updatePaymentStatus = async (req, res) => {
 
     await assessment.save();
 
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Site Assessment",
+      action: `Updated payment status for ${assessment.bookingReference} from ${oldStatus} to ${paymentStatus}`
+    });
+
     res.json({
       success: true,
       message: 'Payment status updated successfully',
@@ -2590,16 +2634,24 @@ exports.assignEngineer = async (req, res) => {
   try {
     const { id } = req.params;
     const { engineerId, siteVisitDate, notes } = req.body;
+    const adminId = req.user.id;
 
     const assessment = await PreAssessment.findById(id).populate({
       path: 'clientId',
       populate: {
         path: 'userId',
-        select: 'email _id'
+        select: 'email _id fullName'
       }
     });
     if (!assessment) {
       return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    const engineer = await User.findById(engineerId);
+    if (!engineer || engineer.role !== 'engineer') {
+      return res.status(400).json({
+        message: 'Invalid engineer selected. User must have engineer role.'
+      });
     }
 
     assessment.assignedEngineerId = engineerId;
@@ -2607,6 +2659,15 @@ exports.assignEngineer = async (req, res) => {
     if (notes) assessment.siteVisitNotes = notes;
 
     await assessment.save();
+
+    // Save audit trail
+    await AuditLog.create({
+      user: adminId,
+      role: req.user.role,
+      module: "Site Assessment",
+      action: `Assigned engineer ${engineer.fullName} to pre-assessment ${assessment.bookingReference}`
+    });
+
     const userId = assessment.clientId?.userId?._id;
     if (userId) {
       await sendNotification(

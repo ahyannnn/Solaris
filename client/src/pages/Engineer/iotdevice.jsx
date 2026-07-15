@@ -19,7 +19,9 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaArrowCircleUp,
-  FaBoxOpen
+  FaBoxOpen,
+  FaFilter,
+  FaEye
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from 'recharts';
@@ -40,6 +42,7 @@ const IoTDevice = () => {
   const [gpsData, setGpsData] = useState(null);
   const [retrieving, setRetrieving] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('all');
 
   const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_URL || '';
@@ -123,7 +126,7 @@ const IoTDevice = () => {
     return null;
   };
 
-  // ==================== DATA FETCHING (NO CALCULATIONS) ====================
+  // ==================== DATA FETCHING ====================
   useEffect(() => {
     fetchMyDevices();
   }, [currentPage]);
@@ -178,7 +181,6 @@ const IoTDevice = () => {
     }
   };
 
-  // Fetch sensor data - BACKEND PROVIDES CALCULATED STATS
   const fetchSensorData = async (assessmentId) => {
     if (!assessmentId) return;
 
@@ -196,30 +198,21 @@ const IoTDevice = () => {
         }
       );
 
-      // ✅ BACKEND PROVIDES: readings + pre-calculated stats
       const readings = response.data.readings || [];
       const stats = response.data.stats || {};
 
-      // ✅ JUST DISPLAY - NO CALCULATIONS
       setSensorData(readings);
       setSensorStats({
-        // Irradiance Metrics
         averageIrradiance: stats.averageIrradiance || 0,
         maxIrradiance: stats.maxIrradiance || 0,
         minIrradiance: stats.minIrradiance || 0,
         peakSunHours: stats.peakSunHours || 0,
-
-        // Temperature Metrics
         averageTemperature: stats.averageTemperature || 0,
         minTemperature: stats.minTemperature || 0,
         maxTemperature: stats.maxTemperature || 0,
-
-        // Humidity Metrics
         averageHumidity: stats.averageHumidity || 0,
         minHumidity: stats.minHumidity || 0,
         maxHumidity: stats.maxHumidity || 0,
-
-        // Metadata
         totalReadings: stats.totalReadings || readings.length
       });
       setGpsData(stats.gps || null);
@@ -249,7 +242,6 @@ const IoTDevice = () => {
     setShowConfirmModal(true);
   };
 
-  // ✅ SEND REQUEST - NO CALCULATIONS
   const handleRetrieveDevice = async () => {
     if (!selectedDevice) return;
 
@@ -318,15 +310,6 @@ const IoTDevice = () => {
     window.URL.revokeObjectURL(url);
   };
 
-  const getDeviceStatusColor = (lastHeartbeat) => {
-    if (!lastHeartbeat) return 'offline';
-    const adjustedHeartbeat = subtract8Hours(lastHeartbeat);
-    const hoursSince = (new Date() - adjustedHeartbeat) / (1000 * 60 * 60);
-    if (hoursSince < 1) return 'online';
-    if (hoursSince < 24) return 'recent';
-    return 'offline';
-  };
-
   const filteredDevices = devices.filter(device => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
@@ -358,15 +341,13 @@ const IoTDevice = () => {
       <div className="iot-filters-iotdevicead">
         <div className="skeleton-search-iotdevicead"></div>
       </div>
-      <div className="devices-grid-iotdevicead">
-        {[1, 2, 3, 4, 5, 6].map(i => (
-          <div key={i} className="device-card-iotdevicead skeleton-card-iotdevicead">
-            <div className="skeleton-line-iotdevicead small-iotdevicead"></div>
-            <div className="skeleton-line-iotdevicead medium-iotdevicead"></div>
-            <div className="skeleton-line-iotdevicead small-iotdevicead"></div>
-            <div className="skeleton-button-iotdevicead"></div>
-          </div>
-        ))}
+      <div className="table-container-iotdevicead">
+        <div className="skeleton-table-iotdevicead">
+          <div className="skeleton-table-header-iotdevicead"></div>
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="skeleton-table-row-iotdevicead"></div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -386,16 +367,6 @@ const IoTDevice = () => {
           <div>
             <h1>My IoT Devices</h1>
             <p>Monitor environmental data from your deployed devices</p>
-          </div>
-          <div className="stats-summary-iotdevicead">
-            <div className="stat-item-iotdevicead">
-              <span className="stat-value-iotdevicead">{devices.length}</span>
-              <span className="stat-label-iotdevicead">Active Devices</span>
-            </div>
-            <div className="stat-item-iotdevicead">
-              <span className="stat-value-iotdevicead">{devices.filter(d => getDeviceStatusColor(d.lastHeartbeat) === 'online').length}</span>
-              <span className="stat-label-iotdevicead">Online</span>
-            </div>
           </div>
         </div>
 
@@ -419,39 +390,53 @@ const IoTDevice = () => {
           </div>
         ) : (
           <>
-            <div className="devices-grid-iotdevicead">
-              {paginatedDevices.map(device => (
-                <div key={device._id} className="device-card-iotdevicead">
-                  <div className="device-card-header-iotdevicead">
-                    <div className="device-icon-iotdevicead">
-                      <FaMicrochip />
-                    </div>
-                  </div>
-
-                  <div className="device-info-iotdevicead">
-                    <h3>{device.deviceName}</h3>
-                    <p className="device-id-iotdevicead">{device.deviceId}</p>
-                    <p className="client-name-iotdevicead">{device.clientName}</p>
-                    <p className="booking-ref-iotdevicead">{device.bookingReference}</p>
-                  </div>
-
-                  <div className="device-stats-iotdevicead">
-                    <div className="stat-iotdevicead">
-                      <FaClock />
-                      <span>{device.lastHeartbeat ? formatPhilippineDateShort(device.lastHeartbeat) : 'N/A'}</span>
-                    </div>
-                  </div>
-
-                  <div className="device-actions-iotdevicead">
-                    <button
-                      className="view-data-btn-iotdevicead"
-                      onClick={() => handleViewDeviceData(device)}
-                    >
-                      <FaChartLine /> View Data
-                    </button>
-                  </div>
-                </div>
-              ))}
+            <div className="table-container-iotdevicead">
+              <table className="devices-table-iotdevicead">
+                <thead>
+                  <tr>
+                    <th>Device</th>
+                    <th>Client</th>
+                    <th>Reference</th>
+                    <th>Last Heartbeat</th>
+                    <th style={{ textAlign: 'center' }}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedDevices.map(device => {
+                    return (
+                      <tr key={device._id}>
+                        <td>
+                          <div className="device-cell-iotdevicead">
+                            <div className="device-name-iotdevicead">{device.deviceName}</div>
+                            <div className="device-id-iotdevicead">{device.deviceId}</div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="client-cell-iotdevicead">
+                            <div className="client-name-iotdevicead">{device.clientName}</div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="ref-cell-iotdevicead">{device.bookingReference}</div>
+                        </td>
+                        <td>
+                          <div className="heartbeat-cell-iotdevicead">
+                            {device.lastHeartbeat ? formatPhilippineDateShort(device.lastHeartbeat) : 'N/A'}
+                          </div>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <button
+                            className="view-btn-iotdevicead"
+                            onClick={() => handleViewDeviceData(device)}
+                          >
+                            <FaEye /> View Data
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
 
             {totalPages > 1 && (
@@ -476,7 +461,7 @@ const IoTDevice = () => {
           </>
         )}
 
-        {/* Device Data Modal */}
+        {/* Device Data Modal - Keep existing modal */}
         {showDataModal && selectedDevice && (
           <div className="modal-overlay-iotdevicead" onClick={() => setShowDataModal(false)}>
             <div className="modal-content-iotdevicead data-modal-iotdevicead" onClick={e => e.stopPropagation()}>
@@ -511,12 +496,9 @@ const IoTDevice = () => {
                   </div>
                 </div>
 
-
-
-                {/* Stats Cards - Display only */}
+                {/* Stats Cards */}
                 {sensorStats && hasValidSensorData && (
                   <div className="stats-cards-iotdevicead">
-
                     <div className="stat-card-iotdevicead irradiance-iotdevicead">
                       <FaSun />
                       <div>
@@ -592,14 +574,14 @@ const IoTDevice = () => {
                             <XAxis dataKey="timestamp" tickFormatter={formatAxisDate} domain={['auto', 'auto']} tick={{ fontSize: 11 }} />
                             <YAxis
                               yAxisId="left"
-                              domain={[0, 50]}  // ✅ Temperature range: 0 to 50°C
+                              domain={[0, 50]}
                               label={{ value: 'Temperature (°C)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }}
                               tick={{ fontSize: 11 }}
                             />
                             <YAxis
                               yAxisId="right"
                               orientation="right"
-                              domain={[0, 100]}  // ✅ Humidity range: 0 to 100%
+                              domain={[0, 100]}
                               label={{ value: 'Humidity (%)', angle: 90, position: 'insideRight', style: { fontSize: '11px', fill: '#64748b' } }}
                               tick={{ fontSize: 11 }}
                             />

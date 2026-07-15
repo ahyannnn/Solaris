@@ -277,23 +277,23 @@ const Settings = () => {
 
   // Skeleton Loader
   const SkeletonLoader = () => (
-    <div className="admin-settings-adminsettings">
-      <div className="settings-header-adminsettings">
-        <div className="skeleton-line-adminsettings large-adminsettings"></div>
-        <div className="skeleton-line-adminsettings medium-adminsettings"></div>
+    <div className="admin-settings">
+      <div className="settings-header">
+        <div className="skeleton-line large"></div>
+        <div className="skeleton-line medium"></div>
       </div>
-      <div className="settings-tabs-adminsettings">
+      <div className="settings-tabs">
         {[1, 2, 3, 4, 5, 6, 7].map(i => (
-          <div key={i} className="skeleton-tab-adminsettings"></div>
+          <div key={i} className="skeleton-tab"></div>
         ))}
       </div>
-      <div className="settings-content-adminsettings">
-        <div className="skeleton-form-adminsettings">
-          <div className="skeleton-line-adminsettings medium-adminsettings"></div>
-          <div className="skeleton-input-adminsettings"></div>
-          <div className="skeleton-line-adminsettings medium-adminsettings"></div>
-          <div className="skeleton-input-adminsettings"></div>
-          <div className="skeleton-button-adminsettings"></div>
+      <div className="settings-content">
+        <div className="skeleton-form">
+          <div className="skeleton-line medium"></div>
+          <div className="skeleton-input"></div>
+          <div className="skeleton-line medium"></div>
+          <div className="skeleton-input"></div>
+          <div className="skeleton-button"></div>
         </div>
       </div>
     </div>
@@ -306,71 +306,71 @@ const Settings = () => {
   return (
     <>
       <Helmet>
-        <title>System Settings | Admin | SOLARIS</title>
+        <title>System Settings | Admin | Salfer Engineering</title>
       </Helmet>
 
-      <div className="admin-settings-adminsettings">
+      <div className="admin-settings">
         {/* Header */}
-        <div className="settings-header-adminsettings">
+        <div className="settings-header">
           <h1>System Settings</h1>
           <p>Manage company information, assessment fees, and system configuration</p>
         </div>
 
         {/* Messages */}
         {success && (
-          <div className="settings-success-adminsettings">
+          <div className="settings-success">
             <FaCheckCircle />
             <span>{success}</span>
           </div>
         )}
         
         {error && (
-          <div className="settings-error-adminsettings">
+          <div className="settings-error">
             <FaExclamationTriangle />
             <span>{error}</span>
           </div>
         )}
 
         {/* Tabs */}
-        <div className="settings-tabs-adminsettings">
+        <div className="settings-tabs">
           <button 
-            className={`tab-btn-adminsettings ${activeTab === 'profile' ? 'active-adminsettings' : ''}`}
+            className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
             onClick={() => setActiveTab('profile')}
           >
             Profile
           </button>
           <button 
-            className={`tab-btn-adminsettings ${activeTab === 'security' ? 'active-adminsettings' : ''}`}
+            className={`tab-btn ${activeTab === 'security' ? 'active' : ''}`}
             onClick={() => setActiveTab('security')}
           >
             Security
           </button>
           <button 
-            className={`tab-btn-adminsettings ${activeTab === 'company' ? 'active-adminsettings' : ''}`}
+            className={`tab-btn ${activeTab === 'company' ? 'active' : ''}`}
             onClick={() => setActiveTab('company')}
           >
             Company
           </button>
           <button 
-            className={`tab-btn-adminsettings ${activeTab === 'fees' ? 'active-adminsettings' : ''}`}
+            className={`tab-btn ${activeTab === 'fees' ? 'active' : ''}`}
             onClick={() => setActiveTab('fees')}
           >
             Assessment Fees
           </button>
           <button 
-            className={`tab-btn-adminsettings ${activeTab === 'device' ? 'active-adminsettings' : ''}`}
+            className={`tab-btn ${activeTab === 'device' ? 'active' : ''}`}
             onClick={() => setActiveTab('device')}
           >
             IoT Device
           </button>
           <button 
-            className={`tab-btn-adminsettings ${activeTab === 'system' ? 'active-adminsettings' : ''}`}
+            className={`tab-btn ${activeTab === 'system' ? 'active' : ''}`}
             onClick={() => setActiveTab('system')}
           >
             System
           </button>
           <button 
-            className={`tab-btn-adminsettings ${activeTab === 'notifications' ? 'active-adminsettings' : ''}`}
+            className={`tab-btn ${activeTab === 'notifications' ? 'active' : ''}`}
             onClick={() => setActiveTab('notifications')}
           >
             Notifications
@@ -379,12 +379,12 @@ const Settings = () => {
 
         {/* Profile Tab */}
         {activeTab === 'profile' && (
-          <div className="settings-content-adminsettings">
-            <div className="settings-card-adminsettings">
+          <div className="settings-content">
+            <div className="settings-card">
               <h2>Admin Profile</h2>
               
-              <div className="form-row-adminsettings">
-                <div className="form-group-adminsettings">
+              <div className="form-row">
+                <div className="form-group">
                   <label>Full Name</label>
                   <input
                     type="text"
@@ -393,7 +393,7 @@ const Settings = () => {
                     onChange={handleProfileChange}
                   />
                 </div>
-                <div className="form-group-adminsettings">
+                <div className="form-group">
                   <label>Position</label>
                   <input
                     type="text"
@@ -404,8 +404,8 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className="form-row-adminsettings">
-                <div className="form-group-adminsettings">
+              <div className="form-row">
+                <div className="form-group">
                   <label>Email Address</label>
                   <input
                     type="email"
@@ -414,7 +414,7 @@ const Settings = () => {
                     onChange={handleProfileChange}
                   />
                 </div>
-                <div className="form-group-adminsettings">
+                <div className="form-group">
                   <label>Phone Number</label>
                   <input
                     type="tel"
@@ -425,13 +425,13 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className="form-actions-adminsettings">
+              <div className="form-actions">
                 <button 
-                  className="save-btn-adminsettings" 
+                  className="save-btn" 
                   onClick={handleSaveProfile}
                   disabled={saving}
                 >
-                  {saving ? <><FaSpinner className="spinner-adminsettings" /> Saving...</> : <><FaSave /> Save Profile</>}
+                  {saving ? <><FaSpinner className="spinner" /> Saving...</> : <><FaSave /> Save Profile</>}
                 </button>
               </div>
             </div>
@@ -440,110 +440,110 @@ const Settings = () => {
 
         {/* Security Tab */}
         {activeTab === 'security' && (
-          <div className="settings-content-adminsettings">
-            <div className="settings-card-adminsettings">
+          <div className="settings-content">
+            <div className="settings-card">
               <h2>Password</h2>
               
               {!showPasswordForm ? (
-                <div className="password-section-adminsettings">
+                <div className="password-section">
                   <p>Change your password to keep your account secure.</p>
                   <button 
-                    className="change-password-btn-adminsettings"
+                    className="change-password-btn"
                     onClick={() => setShowPasswordForm(true)}
                   >
                     <FaKey /> Change Password
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handlePasswordChange} className="password-form-adminsettings">
-                  <div className="form-group-adminsettings">
+                <form onSubmit={handlePasswordChange} className="password-form">
+                  <div className="form-group">
                     <label>Current Password</label>
-                    <div className="password-input-wrapper-adminsettings">
+                    <div className="password-input-wrapper">
                       <input
                         type={showCurrentPassword ? 'text' : 'password'}
                         value={passwordData.currentPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                        className={passwordErrors.currentPassword ? 'error-adminsettings' : ''}
+                        className={passwordErrors.currentPassword ? 'error' : ''}
                         placeholder="Enter current password"
                       />
                       <button
                         type="button"
-                        className="password-toggle-btn-adminsettings"
+                        className="password-toggle-btn"
                         onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                       >
                         {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
                       </button>
                     </div>
                     {passwordErrors.currentPassword && (
-                      <small className="error-text-adminsettings">{passwordErrors.currentPassword}</small>
+                      <small className="error-text">{passwordErrors.currentPassword}</small>
                     )}
                   </div>
 
-                  <div className="form-group-adminsettings">
+                  <div className="form-group">
                     <label>New Password</label>
-                    <div className="password-input-wrapper-adminsettings">
+                    <div className="password-input-wrapper">
                       <input
                         type={showNewPassword ? 'text' : 'password'}
                         value={passwordData.newPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                        className={passwordErrors.newPassword ? 'error-adminsettings' : ''}
+                        className={passwordErrors.newPassword ? 'error' : ''}
                         placeholder="Enter new password"
                       />
                       <button
                         type="button"
-                        className="password-toggle-btn-adminsettings"
+                        className="password-toggle-btn"
                         onClick={() => setShowNewPassword(!showNewPassword)}
                       >
                         {showNewPassword ? <FaEyeSlash /> : <FaEye />}
                       </button>
                     </div>
                     {passwordErrors.newPassword && (
-                      <small className="error-text-adminsettings">{passwordErrors.newPassword}</small>
+                      <small className="error-text">{passwordErrors.newPassword}</small>
                     )}
                     <small>Password must be at least 8 characters</small>
                   </div>
 
-                  <div className="form-group-adminsettings">
+                  <div className="form-group">
                     <label>Confirm New Password</label>
-                    <div className="password-input-wrapper-adminsettings">
+                    <div className="password-input-wrapper">
                       <input
                         type={showConfirmPassword ? 'text' : 'password'}
                         value={passwordData.confirmPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                        className={passwordErrors.confirmPassword ? 'error-adminsettings' : ''}
+                        className={passwordErrors.confirmPassword ? 'error' : ''}
                         placeholder="Confirm new password"
                       />
                       <button
                         type="button"
-                        className="password-toggle-btn-adminsettings"
+                        className="password-toggle-btn"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       >
                         {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                       </button>
                     </div>
                     {passwordErrors.confirmPassword && (
-                      <small className="error-text-adminsettings">{passwordErrors.confirmPassword}</small>
+                      <small className="error-text">{passwordErrors.confirmPassword}</small>
                     )}
                   </div>
 
                   {passwordData.newPassword && (
-                    <div className="password-strength-adminsettings">
-                      <div className="strength-meter-adminsettings">
+                    <div className="password-strength">
+                      <div className="strength-meter">
                         <div 
-                          className={`strength-bar-adminsettings ${getPasswordStrength(passwordData.newPassword)}-adminsettings`} 
+                          className={`strength-bar ${getPasswordStrength(passwordData.newPassword)}`} 
                           style={{ width: `${getPasswordStrengthPercent(passwordData.newPassword)}%` }}
                         ></div>
                       </div>
-                      <small className="strength-text-adminsettings">
+                      <small className="strength-text">
                         Strength: {getPasswordStrengthLabel(passwordData.newPassword)}
                       </small>
                     </div>
                   )}
 
-                  <div className="form-actions-adminsettings">
+                  <div className="form-actions">
                     <button
                       type="button"
-                      className="cancel-btn-adminsettings"
+                      className="cancel-btn"
                       onClick={() => {
                         setShowPasswordForm(false);
                         setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -554,19 +554,19 @@ const Settings = () => {
                     </button>
                     <button
                       type="submit"
-                      className="save-btn-adminsettings"
+                      className="save-btn"
                       disabled={saving}
                     >
-                      {saving ? <><FaSpinner className="spinner-adminsettings" /> Updating...</> : 'Update Password'}
+                      {saving ? <><FaSpinner className="spinner" /> Updating...</> : 'Update Password'}
                     </button>
                   </div>
                 </form>
               )}
             </div>
 
-            <div className="settings-card-adminsettings">
-              <h2><FaShieldAlt /> Session Security</h2>
-              <div className="info-message-adminsettings">
+            <div className="settings-card">
+              <h2>Session Security</h2>
+              <div className="info-message">
                 <p>Session timeout is set to <strong>{systemSettings.sessionTimeout} minutes</strong> of inactivity.</p>
                 <p>Two-factor authentication is recommended for admin accounts.</p>
                 <small>Session settings can be configured in System tab.</small>
@@ -577,11 +577,11 @@ const Settings = () => {
 
         {/* Company Tab */}
         {activeTab === 'company' && (
-          <div className="settings-content-adminsettings">
-            <div className="settings-card-adminsettings">
+          <div className="settings-content">
+            <div className="settings-card">
               <h2>Company Information</h2>
               
-              <div className="form-group-adminsettings">
+              <div className="form-group">
                 <label>Company Name</label>
                 <input
                   type="text"
@@ -591,8 +591,8 @@ const Settings = () => {
                 />
               </div>
 
-              <div className="form-row-adminsettings">
-                <div className="form-group-adminsettings">
+              <div className="form-row">
+                <div className="form-group">
                   <label>DTI Registration Number</label>
                   <input
                     type="text"
@@ -601,7 +601,7 @@ const Settings = () => {
                     onChange={handleCompanyChange}
                   />
                 </div>
-                <div className="form-group-adminsettings">
+                <div className="form-group">
                   <label>TIN</label>
                   <input
                     type="text"
@@ -612,7 +612,7 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className="form-group-adminsettings">
+              <div className="form-group">
                 <label>Address</label>
                 <textarea
                   name="address"
@@ -622,8 +622,8 @@ const Settings = () => {
                 />
               </div>
 
-              <div className="form-row-adminsettings">
-                <div className="form-group-adminsettings">
+              <div className="form-row">
+                <div className="form-group">
                   <label>Email</label>
                   <input
                     type="email"
@@ -632,7 +632,7 @@ const Settings = () => {
                     onChange={handleCompanyChange}
                   />
                 </div>
-                <div className="form-group-adminsettings">
+                <div className="form-group">
                   <label>Phone</label>
                   <input
                     type="tel"
@@ -643,7 +643,7 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className="form-group-adminsettings">
+              <div className="form-group">
                 <label>Website</label>
                 <input
                   type="text"
@@ -653,13 +653,13 @@ const Settings = () => {
                 />
               </div>
 
-              <div className="form-actions-adminsettings">
+              <div className="form-actions">
                 <button 
-                  className="save-btn-adminsettings" 
+                  className="save-btn" 
                   onClick={handleSaveCompany}
                   disabled={saving}
                 >
-                  {saving ? <><FaSpinner className="spinner-adminsettings" /> Saving...</> : <><FaSave /> Save Company Info</>}
+                  {saving ? <><FaSpinner className="spinner" /> Saving...</> : <><FaSave /> Save Company Info</>}
                 </button>
               </div>
             </div>
@@ -668,12 +668,12 @@ const Settings = () => {
 
         {/* Assessment Fees Tab */}
         {activeTab === 'fees' && (
-          <div className="settings-content-adminsettings">
-            <div className="settings-card-adminsettings">
+          <div className="settings-content">
+            <div className="settings-card">
               <h2>Assessment Fees</h2>
               
-              <div className="form-row-adminsettings">
-                <div className="form-group-adminsettings">
+              <div className="form-row">
+                <div className="form-group">
                   <label>Pre-Assessment Fee</label>
                   <input
                     type="number"
@@ -683,7 +683,7 @@ const Settings = () => {
                   />
                   <small>7-day IoT monitoring + assessment report</small>
                 </div>
-                <div className="form-group-adminsettings">
+                <div className="form-group">
                   <label>Site Assessment Fee</label>
                   <input
                     type="number"
@@ -694,8 +694,8 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className="form-row-adminsettings">
-                <div className="form-group-adminsettings">
+              <div className="form-row">
+                <div className="form-group">
                   <label>Rush Fee</label>
                   <input
                     type="number"
@@ -704,7 +704,7 @@ const Settings = () => {
                     onChange={handleFeeChange}
                   />
                 </div>
-                <div className="form-group-adminsettings">
+                <div className="form-group">
                   <label>Cancellation Fee</label>
                   <input
                     type="number"
@@ -716,8 +716,8 @@ const Settings = () => {
               </div>
 
               <h3>Refund Policy</h3>
-              <div className="form-row-adminsettings">
-                <div className="form-group-adminsettings">
+              <div className="form-row">
+                <div className="form-group">
                   <label>72+ hours before</label>
                   <input
                     type="number"
@@ -727,7 +727,7 @@ const Settings = () => {
                   />
                   <small>% refund</small>
                 </div>
-                <div className="form-group-adminsettings">
+                <div className="form-group">
                   <label>48-72 hours before</label>
                   <input
                     type="number"
@@ -737,7 +737,7 @@ const Settings = () => {
                   />
                   <small>% refund</small>
                 </div>
-                <div className="form-group-adminsettings">
+                <div className="form-group">
                   <label>Less than 48 hours</label>
                   <input
                     type="number"
@@ -749,13 +749,13 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className="form-actions-adminsettings">
+              <div className="form-actions">
                 <button 
-                  className="save-btn-adminsettings" 
+                  className="save-btn" 
                   onClick={handleSaveFees}
                   disabled={saving}
                 >
-                  {saving ? <><FaSpinner className="spinner-adminsettings" /> Saving...</> : <><FaSave /> Save Fees</>}
+                  {saving ? <><FaSpinner className="spinner" /> Saving...</> : <><FaSave /> Save Fees</>}
                 </button>
               </div>
             </div>
@@ -764,12 +764,12 @@ const Settings = () => {
 
         {/* IoT Device Tab */}
         {activeTab === 'device' && (
-          <div className="settings-content-adminsettings">
-            <div className="settings-card-adminsettings">
+          <div className="settings-content">
+            <div className="settings-card">
               <h2>IoT Device Configuration</h2>
               
-              <div className="form-row-adminsettings">
-                <div className="form-group-adminsettings">
+              <div className="form-row">
+                <div className="form-group">
                   <label>Data Collection Interval</label>
                   <select
                     name="collectionInterval"
@@ -784,7 +784,7 @@ const Settings = () => {
                   </select>
                   <small>How often device records data</small>
                 </div>
-                <div className="form-group-adminsettings">
+                <div className="form-group">
                   <label>Data Transmission Interval</label>
                   <select
                     name="transmissionInterval"
@@ -800,8 +800,8 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className="form-row-adminsettings">
-                <div className="form-group-adminsettings">
+              <div className="form-row">
+                <div className="form-group">
                   <label>Device Start Time</label>
                   <input
                     type="time"
@@ -810,7 +810,7 @@ const Settings = () => {
                     onChange={handleDeviceChange}
                   />
                 </div>
-                <div className="form-group-adminsettings">
+                <div className="form-group">
                   <label>Device End Time</label>
                   <input
                     type="time"
@@ -821,8 +821,8 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className="form-row-adminsettings">
-                <div className="form-group-adminsettings">
+              <div className="form-row">
+                <div className="form-group">
                   <label>Battery Low Threshold</label>
                   <input
                     type="number"
@@ -832,7 +832,7 @@ const Settings = () => {
                   />
                   <small>% - Alert when battery drops below this level</small>
                 </div>
-                <div className="form-group-adminsettings">
+                <div className="form-group">
                   <label>Data Retention (Days)</label>
                   <input
                     type="number"
@@ -843,13 +843,13 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className="form-actions-adminsettings">
+              <div className="form-actions">
                 <button 
-                  className="save-btn-adminsettings" 
+                  className="save-btn" 
                   onClick={handleSaveDevice}
                   disabled={saving}
                 >
-                  {saving ? <><FaSpinner className="spinner-adminsettings" /> Saving...</> : <><FaSave /> Save Device Settings</>}
+                  {saving ? <><FaSpinner className="spinner" /> Saving...</> : <><FaSave /> Save Device Settings</>}
                 </button>
               </div>
             </div>
@@ -858,12 +858,12 @@ const Settings = () => {
 
         {/* System Tab */}
         {activeTab === 'system' && (
-          <div className="settings-content-adminsettings">
-            <div className="settings-card-adminsettings">
+          <div className="settings-content">
+            <div className="settings-card">
               <h2>System Configuration</h2>
               
-              <div className="form-row-adminsettings">
-                <div className="form-group-adminsettings">
+              <div className="form-row">
+                <div className="form-group">
                   <label>Session Timeout (minutes)</label>
                   <input
                     type="number"
@@ -872,7 +872,7 @@ const Settings = () => {
                     onChange={handleSystemChange}
                   />
                 </div>
-                <div className="form-group-adminsettings">
+                <div className="form-group">
                   <label>Max Upload Size (MB)</label>
                   <input
                     type="number"
@@ -883,8 +883,8 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className="form-row-adminsettings">
-                <div className="form-group-adminsettings">
+              <div className="form-row">
+                <div className="form-group">
                   <label>Backup Frequency</label>
                   <select
                     name="backupFrequency"
@@ -896,7 +896,7 @@ const Settings = () => {
                     <option value="monthly">Monthly</option>
                   </select>
                 </div>
-                <div className="form-group-adminsettings">
+                <div className="form-group">
                   <label>Backup Time</label>
                   <input
                     type="time"
@@ -907,8 +907,8 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className="form-row-adminsettings">
-                <div className="form-group-adminsettings">
+              <div className="form-row">
+                <div className="form-group">
                   <label>Data Retention (Years)</label>
                   <input
                     type="number"
@@ -919,8 +919,8 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className="checkbox-group-adminsettings">
-                <label className="checkbox-label-adminsettings">
+              <div className="checkbox-group">
+                <label className="checkbox-label">
                   <input
                     type="checkbox"
                     name="allowRegistration"
@@ -929,7 +929,7 @@ const Settings = () => {
                   />
                   <span>Allow New User Registration</span>
                 </label>
-                <label className="checkbox-label-adminsettings">
+                <label className="checkbox-label">
                   <input
                     type="checkbox"
                     name="requireEmailVerification"
@@ -940,24 +940,24 @@ const Settings = () => {
                 </label>
               </div>
 
-              <div className="form-actions-adminsettings">
+              <div className="form-actions">
                 <button 
-                  className="save-btn-adminsettings" 
+                  className="save-btn" 
                   onClick={handleSaveSystem}
                   disabled={saving}
                 >
-                  {saving ? <><FaSpinner className="spinner-adminsettings" /> Saving...</> : <><FaSave /> Save System Settings</>}
+                  {saving ? <><FaSpinner className="spinner" /> Saving...</> : <><FaSave /> Save System Settings</>}
                 </button>
               </div>
             </div>
 
-            <div className="settings-card-adminsettings">
+            <div className="settings-card">
               <h2>Backup & Restore</h2>
-              <div className="backup-actions-adminsettings">
-                <button className="backup-btn-adminsettings">
+              <div className="backup-actions">
+                <button className="backup-btn">
                   <FaDownload /> Download Backup
                 </button>
-                <button className="restore-btn-adminsettings">
+                <button className="restore-btn">
                   <FaUpload /> Restore from Backup
                 </button>
               </div>
@@ -967,12 +967,12 @@ const Settings = () => {
 
         {/* Notifications Tab */}
         {activeTab === 'notifications' && (
-          <div className="settings-content-adminsettings">
-            <div className="settings-card-adminsettings">
+          <div className="settings-content">
+            <div className="settings-card">
               <h2>Admin Alert Preferences</h2>
               
-              <div className="checkbox-list-adminsettings">
-                <label className="checkbox-label-adminsettings">
+              <div className="checkbox-list">
+                <label className="checkbox-label">
                   <input
                     type="checkbox"
                     name="newBookingAlerts"
@@ -981,7 +981,7 @@ const Settings = () => {
                   />
                   <span>New Booking Alerts</span>
                 </label>
-                <label className="checkbox-label-adminsettings">
+                <label className="checkbox-label">
                   <input
                     type="checkbox"
                     name="paymentVerificationAlerts"
@@ -990,7 +990,7 @@ const Settings = () => {
                   />
                   <span>Payment Verification Alerts</span>
                 </label>
-                <label className="checkbox-label-adminsettings">
+                <label className="checkbox-label">
                   <input
                     type="checkbox"
                     name="newUserRegistrationAlerts"
@@ -999,7 +999,7 @@ const Settings = () => {
                   />
                   <span>New User Registration Alerts</span>
                 </label>
-                <label className="checkbox-label-adminsettings">
+                <label className="checkbox-label">
                   <input
                     type="checkbox"
                     name="deviceOfflineAlerts"
@@ -1008,7 +1008,7 @@ const Settings = () => {
                   />
                   <span>IoT Device Offline Alerts</span>
                 </label>
-                <label className="checkbox-label-adminsettings">
+                <label className="checkbox-label">
                   <input
                     type="checkbox"
                     name="systemErrorAlerts"
@@ -1017,7 +1017,7 @@ const Settings = () => {
                   />
                   <span>System Error Alerts</span>
                 </label>
-                <label className="checkbox-label-adminsettings">
+                <label className="checkbox-label">
                   <input
                     type="checkbox"
                     name="dailySummaryEmail"
@@ -1026,7 +1026,7 @@ const Settings = () => {
                   />
                   <span>Daily Summary Email</span>
                 </label>
-                <label className="checkbox-label-adminsettings">
+                <label className="checkbox-label">
                   <input
                     type="checkbox"
                     name="weeklyReportEmail"
@@ -1037,13 +1037,13 @@ const Settings = () => {
                 </label>
               </div>
 
-              <div className="form-actions-adminsettings">
+              <div className="form-actions">
                 <button 
-                  className="save-btn-adminsettings" 
+                  className="save-btn" 
                   onClick={handleSaveNotifications}
                   disabled={saving}
                 >
-                  {saving ? <><FaSpinner className="spinner-adminsettings" /> Saving...</> : <><FaSave /> Save Preferences</>}
+                  {saving ? <><FaSpinner className="spinner" /> Saving...</> : <><FaSave /> Save Preferences</>}
                 </button>
               </div>
             </div>

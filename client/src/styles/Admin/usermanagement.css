@@ -347,7 +347,7 @@
 }
 
 /* ============================================
-   ROLE BADGE
+   ROLE BADGE - PLAIN TEXT
    ============================================ */
 .role-badge {
   display: inline-block;
@@ -355,25 +355,27 @@
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 .role-badge.admin {
-  background: #FEE2E2;
-  color: #DC2626;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 .role-badge.engineer {
-  background: #DBEAFE;
-  color: #2563EB;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 .role-badge.user {
-  background: #DCFCE7;
-  color: #16A34A;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 /* ============================================
-   STATUS BADGE
+   STATUS BADGE - PLAIN TEXT
    ============================================ */
 .status-badge {
   display: inline-flex;
@@ -383,16 +385,18 @@
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge.active {
-  background: #DCFCE7;
-  color: #16A34A;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge.inactive {
-  background: #FEE2E2;
-  color: #DC2626;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 /* ============================================
@@ -548,46 +552,48 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 500;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 .action-badge.create {
-  background: #DCFCE7;
-  color: #16A34A;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 .action-badge.update {
-  background: #DBEAFE;
-  color: #2563EB;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 .action-badge.delete {
-  background: #FEE2E2;
-  color: #DC2626;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 .action-badge.login {
-  background: #E0E7FF;
-  color: #4F46E5;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 .action-badge.logout {
-  background: #F1F5F9;
-  color: #64748B;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 .action-badge.status {
-  background: #FEF3C7;
-  color: #D97706;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 .action-badge.password {
-  background: #FCE7F3;
-  color: #BE185D;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 .action-badge.default {
-  background: #F1F5F9;
-  color: #64748B;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 .timestamp-cell {

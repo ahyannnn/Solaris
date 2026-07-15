@@ -3,7 +3,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import {
-  FaSearch,
   FaEye,
   FaCheckCircle,
   FaTimesCircle,
@@ -399,7 +398,6 @@ const ProjectManagement = () => {
             </select>
           </div>
           <div className="search-group">
-            <FaSearch className="search-icon" />
             <input type="text" placeholder="Search projects..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
         </div>

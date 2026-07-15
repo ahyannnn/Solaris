@@ -27,63 +27,63 @@ const getStatusNumber = (statusString) => {
 
 // Assessment Status Constants with numbers
 const ASSESSMENT_STATUS = {
-  1: { label: 'pending_review', display: 'Pending Review', color: '#ffc107' },
-  2: { label: 'pending_payment', display: 'Pending Payment', color: '#fd7e14' },
-  3: { label: 'scheduled', display: 'Scheduled', color: '#17a2b8' },
-  4: { label: 'site_visit_ongoing', display: 'Site Visit Ongoing', color: '#6f42c1' },
-  5: { label: 'device_deployed', display: 'Device Deployed', color: '#20c997' },
-  6: { label: 'data_collecting', display: 'Data Collecting', color: '#28a745' },
-  7: { label: 'data_analyzing', display: 'Data Analyzing', color: '#17a2b8' },
-  8: { label: 'report_draft', display: 'Report Draft', color: '#6c757d' },
-  9: { label: 'quotation_generated', display: 'Quotation Generated', color: '#007bff' },
-  10: { label: 'quotation_accepted', display: 'Quotation Accepted', color: '#28a745' },
-  11: { label: 'completed', display: 'Completed', color: '#28a745' },
-  12: { label: 'cancelled', display: 'Cancelled', color: '#dc3545' }
+  1: { label: 'pending_review', display: 'Pending Review' },
+  2: { label: 'pending_payment', display: 'Pending Payment' },
+  3: { label: 'scheduled', display: 'Scheduled' },
+  4: { label: 'site_visit_ongoing', display: 'Site Visit Ongoing' },
+  5: { label: 'device_deployed', display: 'Device Deployed' },
+  6: { label: 'data_collecting', display: 'Data Collecting' },
+  7: { label: 'data_analyzing', display: 'Data Analyzing' },
+  8: { label: 'report_draft', display: 'Report Draft' },
+  9: { label: 'quotation_generated', display: 'Quotation Generated' },
+  10: { label: 'quotation_accepted', display: 'Quotation Accepted' },
+  11: { label: 'completed', display: 'Completed' },
+  12: { label: 'cancelled', display: 'Cancelled' }
 };
 
 // Assessment Results Summary Ranges
 const ASSESSMENT_RESULTS_SUMMARY = {
   IRRADIANCE: {
-    POOR: { min: 0, max: 300, label: 'Poor', color: '#dc3545' },
-    MODERATE: { min: 301, max: 500, label: 'Moderate', color: '#fd7e14' },
-    GOOD: { min: 501, max: 700, label: 'Good', color: '#28a745' },
-    EXCELLENT: { min: 701, max: 1000, label: 'Excellent', color: '#007bff' }
+    POOR: { min: 0, max: 300, label: 'Poor' },
+    MODERATE: { min: 301, max: 500, label: 'Moderate' },
+    GOOD: { min: 501, max: 700, label: 'Good' },
+    EXCELLENT: { min: 701, max: 1000, label: 'Excellent' }
   },
   TEMPERATURE: {
-    OPTIMAL: { min: 15, max: 25, label: 'Optimal', color: '#28a745' },
-    ACCEPTABLE: { min: 26, max: 35, label: 'Acceptable', color: '#ffc107' },
-    HIGH: { min: 36, max: 45, label: 'High - Efficiency Reduced', color: '#fd7e14' },
-    CRITICAL: { min: 46, max: 60, label: 'Critical - Significant Loss', color: '#dc3545' }
+    OPTIMAL: { min: 15, max: 25, label: 'Optimal' },
+    ACCEPTABLE: { min: 26, max: 35, label: 'Acceptable' },
+    HIGH: { min: 36, max: 45, label: 'High - Efficiency Reduced' },
+    CRITICAL: { min: 46, max: 60, label: 'Critical - Significant Loss' }
   },
   HUMIDITY: {
-    LOW: { min: 0, max: 30, label: 'Low', color: '#28a745' },
-    MODERATE: { min: 31, max: 60, label: 'Moderate', color: '#ffc107' },
-    HIGH: { min: 61, max: 80, label: 'High', color: '#fd7e14' },
-    VERY_HIGH: { min: 81, max: 100, label: 'Very High - Condensation Risk', color: '#dc3545' }
+    LOW: { min: 0, max: 30, label: 'Low' },
+    MODERATE: { min: 31, max: 60, label: 'Moderate' },
+    HIGH: { min: 61, max: 80, label: 'High' },
+    VERY_HIGH: { min: 81, max: 100, label: 'Very High - Condensation Risk' }
   },
   SHADING_IMPACT: {
-    NEGLIGIBLE: { min: 0, max: 10, label: 'Negligible Impact', color: '#28a745' },
-    LOW: { min: 11, max: 20, label: 'Low Impact', color: '#ffc107' },
-    MODERATE: { min: 21, max: 35, label: 'Moderate Impact', color: '#fd7e14' },
-    SEVERE: { min: 36, max: 100, label: 'Severe Impact - Not Recommended', color: '#dc3545' }
+    NEGLIGIBLE: { min: 0, max: 10, label: 'Negligible Impact' },
+    LOW: { min: 11, max: 20, label: 'Low Impact' },
+    MODERATE: { min: 21, max: 35, label: 'Moderate Impact' },
+    SEVERE: { min: 36, max: 100, label: 'Severe Impact - Not Recommended' }
   },
   SITE_SUITABILITY: {
-    POOR: { min: 0, max: 39, label: 'Poor - Not Recommended', color: '#dc3545' },
-    FAIR: { min: 40, max: 59, label: 'Fair - Consider with Caution', color: '#fd7e14' },
-    GOOD: { min: 60, max: 79, label: 'Good - Recommended', color: '#ffc107' },
-    EXCELLENT: { min: 80, max: 100, label: 'Excellent - Highly Recommended', color: '#28a745' }
+    POOR: { min: 0, max: 39, label: 'Poor - Not Recommended' },
+    FAIR: { min: 40, max: 59, label: 'Fair - Consider with Caution' },
+    GOOD: { min: 60, max: 79, label: 'Good - Recommended' },
+    EXCELLENT: { min: 80, max: 100, label: 'Excellent - Highly Recommended' }
   },
   PAYBACK_PERIOD: {
-    EXCELLENT: { min: 0, max: 3, label: 'Excellent ROI', color: '#28a745' },
-    GOOD: { min: 3.1, max: 5, label: 'Good ROI', color: '#20c997' },
-    ACCEPTABLE: { min: 5.1, max: 7, label: 'Acceptable ROI', color: '#ffc107' },
-    POOR: { min: 7.1, max: 15, label: 'Poor ROI', color: '#dc3545' }
+    EXCELLENT: { min: 0, max: 3, label: 'Excellent ROI' },
+    GOOD: { min: 3.1, max: 5, label: 'Good ROI' },
+    ACCEPTABLE: { min: 5.1, max: 7, label: 'Acceptable ROI' },
+    POOR: { min: 7.1, max: 15, label: 'Poor ROI' }
   },
   CO2_OFFSET: {
-    SMALL: { min: 0, max: 2, label: 'Small Impact', color: '#6c757d' },
-    MEDIUM: { min: 2.1, max: 5, label: 'Medium Impact', color: '#28a745' },
-    LARGE: { min: 5.1, max: 10, label: 'Large Impact', color: '#17a2b8' },
-    SIGNIFICANT: { min: 10.1, max: 100, label: 'Significant Impact', color: '#007bff' }
+    SMALL: { min: 0, max: 2, label: 'Small Impact' },
+    MEDIUM: { min: 2.1, max: 5, label: 'Medium Impact' },
+    LARGE: { min: 5.1, max: 10, label: 'Large Impact' },
+    SIGNIFICANT: { min: 10.1, max: 100, label: 'Significant Impact' }
   }
 };
 
@@ -717,7 +717,7 @@ const Reports = () => {
                       return (
                         <tr key={assessment._id}>
                           <td>
-                            <span className="status-number-badge" style={{ backgroundColor: ASSESSMENT_STATUS[statusNum]?.color }}>
+                            <span className="status-number-badge">
                               {statusNum || 'N/A'}
                             </span>
                           </td>
@@ -725,23 +725,23 @@ const Reports = () => {
                           <td className="client-cell">{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</td>
                           <td className="metric-cell">
                             {avgIrradiance ? `${avgIrradiance.toFixed(0)} W/m²` : 'N/A'}
-                            {irradianceRating && <small style={{ color: irradianceRating.color }}>({irradianceRating.label})</small>}
+                            {irradianceRating && <small>({irradianceRating.label})</small>}
                           </td>
                           <td className="metric-cell">{peakSunHours?.toFixed(1) || 'N/A'} hrs</td>
                           <td className="metric-cell">
                             {avgTemp ? `${avgTemp.toFixed(1)}°C` : 'N/A'}
-                            {tempRating && <small style={{ color: tempRating.color }}>({tempRating.label})</small>}
+                            {tempRating && <small>({tempRating.label})</small>}
                           </td>
                           <td className="metric-cell">
                             {avgHumidity ? `${avgHumidity.toFixed(0)}%` : 'N/A'}
-                            {humidityRating && <small style={{ color: humidityRating.color }}>({humidityRating.label})</small>}
+                            {humidityRating && <small>({humidityRating.label})</small>}
                           </td>
                           <td className="metric-cell">
                             {shadingPercentage !== undefined ? `${shadingPercentage.toFixed(0)}%` : 'N/A'}
-                            {shadingRating && <small style={{ color: shadingRating.color }}>({shadingRating.label})</small>}
+                            {shadingRating && <small>({shadingRating.label})</small>}
                           </td>
                           <td className="score-cell">
-                            <span className={`score-badge ${suitabilityScore >= 70 ? 'high' : suitabilityScore >= 50 ? 'medium' : 'low'}`}>
+                            <span className="score-badge">
                               {suitabilityScore || 'N/A'}
                             </span>
                           </td>
@@ -957,7 +957,7 @@ const Reports = () => {
                           </span>
                         </td>
                         <td>
-                          <span className={`status-badge ${transaction.status === 'Paid' || transaction.status === 'Completed' ? 'paid' : transaction.status === 'For Verification' ? 'for-verification' : 'pending'}`}>
+                          <span className="status-badge">
                             {transaction.status}
                           </span>
                         </td>
@@ -1090,7 +1090,7 @@ const Reports = () => {
                           </span>
                         </td>
                         <td>
-                          <span className={`status-badge ${transaction.status === 'Paid' || transaction.status === 'Completed' ? 'paid' : transaction.status === 'For Verification' ? 'for-verification' : 'pending'}`}>
+                          <span className="status-badge">
                             {transaction.status}
                           </span>
                         </td>

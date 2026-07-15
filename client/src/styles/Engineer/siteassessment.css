@@ -1,3 +1,5 @@
+/* styles/Customer/myassessments.css - Clean Professional Design */
+
 /* ============================================
    ROOT VARIABLES
    ============================================ */
@@ -9,6 +11,7 @@
   --danger: #EF4444;
   --bg-base: #F8FAFC;
   --bg-card: #FFFFFF;
+  --bg-surface: #F1F5F9;
   --text-primary: #0F172A;
   --text-secondary: #475569;
   --text-muted: #64748B;
@@ -16,6 +19,7 @@
   --border-medium: #CBD5E1;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.08);
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 18px;
@@ -123,12 +127,12 @@
 .status-filter-select-enad {
   width: 100%;
   padding: 10px 36px 10px 16px;
-  border: 2px solid #e5e7eb;
-  border-radius: 10px;
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-md);
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
-  background: white;
+  color: var(--text-primary);
+  background: var(--bg-card);
   appearance: none;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -138,24 +142,24 @@
 }
 
 .status-filter-select-enad:hover {
-  border-color: #9ca3af;
+  border-color: var(--border-medium);
 }
 
 .status-filter-select-enad:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }
 
 /* ============================================
    TABLE
    ============================================ */
 .assessments-table-container-enad {
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-light);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
   overflow-x: auto;
   margin-top: 16px;
 }
@@ -168,33 +172,33 @@
 }
 
 .assessments-table-enad thead {
-  background: #f8fafc;
-  border-bottom: 2px solid #e5e7eb;
+  background: var(--bg-base);
+  border-bottom: 2px solid var(--border-light);
 }
 
 .assessments-table-enad thead th {
   padding: 14px 16px;
   text-align: left;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-secondary);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   white-space: nowrap;
   position: sticky;
   top: 0;
-  background: #f8fafc;
+  background: var(--bg-base);
   z-index: 10;
 }
 
 .assessments-table-enad tbody tr {
-  border-bottom: 1px solid #f1f3f5;
+  border-bottom: 1px solid var(--border-light);
   transition: background-color 0.15s ease;
   cursor: pointer;
 }
 
 .assessments-table-enad tbody tr:hover {
-  background-color: #f8fafc;
+  background-color: var(--bg-base);
 }
 
 .assessments-table-enad tbody tr:last-child {
@@ -209,7 +213,7 @@
 /* Table Cells */
 .ref-cell-enad .ref-text-enad {
   font-weight: 600;
-  color: #1a1a2e;
+  color: var(--text-primary);
   font-size: 13px;
 }
 
@@ -221,18 +225,18 @@
 
 .client-cell-enad .client-name-enad {
   font-weight: 500;
-  color: #1a1a2e;
+  color: var(--text-primary);
 }
 
 .client-cell-enad .client-type-enad {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-muted);
   text-transform: capitalize;
 }
 
 .size-cell-enad {
   font-weight: 500;
-  color: #1a1a2e;
+  color: var(--text-primary);
 }
 
 .address-cell-enad .address-text-enad {
@@ -241,12 +245,12 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #4b5563;
+  color: var(--text-secondary);
   font-size: 13px;
 }
 
 .date-cell-enad {
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 13px;
   white-space: nowrap;
 }
@@ -260,10 +264,10 @@
 
 .view-btn-enad {
   padding: 6px 16px;
-  background: #4f46e5;
+  background: var(--primary);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -271,9 +275,9 @@
 }
 
 .view-btn-enad:hover {
-  background: #4338ca;
+  background: var(--primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
 }
 
 .view-btn-enad:active {
@@ -287,7 +291,7 @@
 }
 
 /* ============================================
-   BADGES - Type & Status
+   BADGES - PLAIN TEXT
    ============================================ */
 .type-badge-enad,
 .status-badge-enad {
@@ -298,57 +302,8 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-}
-
-.type-badge-enad.free-quote-enad {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.type-badge-enad.pre-assessment-enad {
-  background: #e0e7ff;
-  color: #3730a3;
-}
-
-.status-badge-enad.pending-enad {
-  background: #fef3c7;
-  color: #92400e;
-}
-.status-badge-enad.processing-enad {
-  background: #dbeafe;
-  color: #1e40af;
-}
-.status-badge-enad.completed-enad {
-  background: #d1fae5;
-  color: #065f46;
-}
-.status-badge-enad.cancelled-enad {
-  background: #fee2e2;
-  color: #991b1b;
-}
-.status-badge-enad.scheduled-enad {
-  background: #e0e7ff;
-  color: #3730a3;
-}
-.status-badge-enad.site-visit-enad {
-  background: #fef3c7;
-  color: #92400e;
-}
-.status-badge-enad.device-deployed-enad {
-  background: #d1fae5;
-  color: #065f46;
-}
-.status-badge-enad.data-collecting-enad {
-  background: #e0e7ff;
-  color: #3730a3;
-}
-.status-badge-enad.data-analyzing-enad {
-  background: #ede9fe;
-  color: #5b21b6;
-}
-.status-badge-enad.report-draft-enad {
-  background: #fce7f3;
-  color: #9d174d;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 /* ============================================
@@ -380,8 +335,8 @@
   align-items: center;
   gap: 8px;
   padding: 12px 16px;
-  background: #FEE2E2;
-  border: 1px solid #FECACA;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   color: var(--danger);
   margin-bottom: 20px;
@@ -401,10 +356,10 @@
 
 .pagination-btn-enad {
   padding: 8px 20px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  background: white;
-  color: #374151;
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -412,9 +367,9 @@
 }
 
 .pagination-btn-enad:hover:not(.disabled-enad) {
-  background: #f3f4f6;
-  border-color: #4f46e5;
-  color: #4f46e5;
+  background: var(--bg-base);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .pagination-btn-enad.disabled-enad {
@@ -430,10 +385,10 @@
 
 .pagination-number-enad {
   padding: 8px 14px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  background: white;
-  color: #374151;
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -443,21 +398,21 @@
 }
 
 .pagination-number-enad:hover:not(.active-enad) {
-  background: #f3f4f6;
-  border-color: #d1d5db;
+  background: var(--bg-base);
+  border-color: var(--border-medium);
 }
 
 .pagination-number-enad.active-enad {
-  background: #4f46e5;
+  background: var(--primary);
   color: white;
-  border-color: #4f46e5;
+  border-color: var(--primary);
 }
 
 .pagination-info-enad {
   text-align: center;
   margin-top: 12px;
   font-size: 14px;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 /* ============================================
@@ -721,10 +676,10 @@
 
 .no-metrics {
   padding: 16px;
-  background: #FEF3C7;
-  border-radius: 8px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
   text-align: center;
-  color: #92400e;
+  color: var(--text-secondary);
   margin-bottom: 16px;
 }
 
@@ -1219,8 +1174,8 @@
 
 .comment-badge-enad {
   padding: 2px 8px;
-  background: #DBEAFE;
-  color: var(--primary);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
   border-radius: 20px;
   font-size: 11px;
   font-weight: 500;
@@ -1318,22 +1273,23 @@
 }
 
 .warning-box-enad {
-  background: #FEF3C7;
+  background: var(--bg-surface);
   padding: 16px;
   border-radius: var(--radius-md);
   margin-top: 16px;
+  border: 1px solid var(--border-light);
 }
 
 .warning-box-enad p {
   margin: 0 0 8px 0;
   font-weight: 500;
-  color: #92400e;
+  color: var(--text-secondary);
 }
 
 .warning-box-enad ul {
   margin: 0;
   padding-left: 20px;
-  color: #92400e;
+  color: var(--text-secondary);
 }
 
 .confirm-message-enad p {
@@ -1376,7 +1332,7 @@
    SKELETON LOADER
    ============================================ */
 .skeleton-line-enad {
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-base) 50%, var(--bg-surface) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 6px;
@@ -1406,28 +1362,28 @@
 .skeleton-badge-enad {
   height: 24px;
   width: 80px;
-  background: #F1F5F9;
+  background: var(--bg-surface);
   border-radius: 20px;
 }
 
 .skeleton-button-enad {
   height: 36px;
   width: 100px;
-  background: #F1F5F9;
+  background: var(--bg-surface);
   border-radius: var(--radius-md);
 }
 
 .skeleton-search-enad {
   height: 44px;
   max-width: 400px;
-  background: #F1F5F9;
+  background: var(--bg-surface);
   border-radius: var(--radius-md);
 }
 
 .skeleton-tab-enad {
   height: 36px;
   width: 100px;
-  background: #F1F5F9;
+  background: var(--bg-surface);
   border-radius: 30px;
 }
 
@@ -1437,7 +1393,7 @@
 
 .skeleton-cell-enad {
   padding: 14px 16px;
-  background: #f1f3f5;
+  background: var(--bg-surface);
   border-radius: 4px;
   height: 20px;
   animation: pulse-enad 1.5s ease-in-out infinite;
@@ -1463,17 +1419,17 @@
 }
 
 .assessments-table-container-enad::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--bg-base);
   border-radius: 4px;
 }
 
 .assessments-table-container-enad::-webkit-scrollbar-thumb {
-  background: #c1c7cd;
+  background: var(--border-medium);
   border-radius: 4px;
 }
 
 .assessments-table-container-enad::-webkit-scrollbar-thumb:hover {
-  background: #a0a7ae;
+  background: var(--text-muted);
 }
 
 /* ============================================
@@ -1562,7 +1518,7 @@
   }
   
   .assessments-table-container-enad {
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     margin-top: 12px;
   }
   

@@ -1,4 +1,4 @@
-/* styles/Admin/schedule.css */
+/* styles/Admin/schedule.css - Clean Professional Design */
 
 :root {
   --primary: #2563EB;
@@ -53,7 +53,7 @@
 
 .schedule-header-adsche p {
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -74,7 +74,7 @@
 }
 
 /* ============================================
-   STATS CARDS
+   STATS CARDS - PLAIN
    ============================================ */
 .schedule-stats-adsche {
   display: grid;
@@ -104,24 +104,8 @@
 
 .stat-card-adsche .stat-label-adsche {
   font-size: 13px;
-  color: var(--text-primary);
+  color: var(--text-muted);
   margin-top: 2px;
-}
-
-.stat-card-adsche.total .stat-value-adsche {
-  color: var(--primary);
-}
-
-.stat-card-adsche.upcoming .stat-value-adsche {
-  color: #8B5CF6;
-}
-
-.stat-card-adsche.in-progress .stat-value-adsche {
-  color: var(--warning);
-}
-
-.stat-card-adsche.completed .stat-value-adsche {
-  color: var(--success);
 }
 
 /* ============================================
@@ -241,6 +225,7 @@
 .schedule-type-icon-adsche {
   font-size: 20px;
   margin-top: 2px;
+  color: var(--text-muted);
 }
 
 .schedule-title-adsche {
@@ -412,7 +397,7 @@
 }
 
 /* ============================================
-   BADGES
+   BADGES - PLAIN TEXT
    ============================================ */
 .status-badge-adsche {
   display: inline-block;
@@ -420,36 +405,38 @@
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-adsche.scheduled {
-  background: #DBEAFE;
-  color: #2563EB;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-adsche.confirmed {
-  background: #EDE9FE;
-  color: #7C3AED;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-adsche.in-progress {
-  background: #FEF3C7;
-  color: #D97706;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-adsche.completed {
-  background: #DCFCE7;
-  color: #16A34A;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-adsche.cancelled {
-  background: #FEE2E2;
-  color: #DC2626;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-adsche.rescheduled {
-  background: #FEF3C7;
-  color: #D97706;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .type-badge-adsche {
@@ -458,26 +445,28 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 500;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .type-badge-adsche.pre-assessment {
-  background: #EDE9FE;
-  color: #7C3AED;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .type-badge-adsche.site-visit {
-  background: #DBEAFE;
-  color: #2563EB;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .type-badge-adsche.installation {
-  background: #FEF3C7;
-  color: #D97706;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .type-badge-adsche.inspection {
-  background: #DCFCE7;
-  color: #16A34A;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 /* ============================================
@@ -700,7 +689,7 @@
   background: none;
   border: none;
   font-size: 24px;
-  color: var(--text-primary);
+  color: var(--text-muted);
   cursor: pointer;
   border-radius: var(--radius-md);
   display: flex;
@@ -711,6 +700,7 @@
 
 .modal-close-adsche:hover {
   background: var(--bg-base);
+  color: var(--text-primary);
 }
 
 .modal-content-adsche h3 {
@@ -740,7 +730,7 @@
 .detail-section-adsche p {
   margin: 4px 0;
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--text-secondary);
 }
 
 .detail-section-adsche strong {

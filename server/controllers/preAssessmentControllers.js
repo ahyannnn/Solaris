@@ -7,6 +7,7 @@ const File = require('../models/File');
 const { processUpload, getFileUrl, deleteFile: deleteFromStorage } = require('../middleware/uploadMiddleware');
 const PDFGenerator = require('../services/pdfGenerator');
 const cloudinary = require('cloudinary').v2;
+const User = require('../models/Users');
 const mongoose = require('mongoose');
 const PayMongoService = require('../services/paymongoService');
 const receiptService = require('../services/receiptService');

@@ -1,10 +1,9 @@
-/* styles/Admin/reports.css */
+/* styles/Admin/reports.css - Clean Professional Design */
 
 :root {
   --primary: #2563EB;
   --primary-hover: #1D4ED8;
   --success: #22C55E;
-  --success-hover: #16A34A;
   --warning: #F59E0B;
   --danger: #EF4444;
   --bg-base: #F8FAFC;
@@ -54,7 +53,7 @@
 
 .reports-header p {
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -95,13 +94,13 @@
 
 .stat-card .stat-label {
   font-size: 13px;
-  color: var(--text-primary);
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
 .stat-card .stat-change {
   font-size: 12px;
-  color: var(--text-primary);
+  color: var(--text-muted);
   margin-top: 4px;
 }
 
@@ -123,7 +122,7 @@
   border-bottom: 3px solid transparent;
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition-base);
 }
@@ -135,7 +134,7 @@
 }
 
 .report-tabs .tab-btn.active {
-  color: var(--text-primary);
+  color: var(--primary);
   border-bottom-color: var(--primary);
   font-weight: 600;
 }
@@ -191,7 +190,7 @@
 }
 
 .date-inputs span {
-  color: var(--text-primary);
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
@@ -290,12 +289,12 @@
 
 .report-section > p {
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--text-muted);
   margin: 0 0 20px 0;
 }
 
 /* ============================================
-   SUITABILITY SUMMARY
+   SUITABILITY SUMMARY - PLAIN
    ============================================ */
 .suitability-summary {
   display: grid;
@@ -304,7 +303,7 @@
 }
 
 .suitability-card {
-  background: var(--bg-base);
+  background: var(--bg-card);
   border-radius: var(--radius-md);
   padding: 16px 20px;
   border: 1px solid var(--border-light);
@@ -317,7 +316,7 @@
 
 .suitability-card .label {
   font-size: 13px;
-  color: var(--text-primary);
+  color: var(--text-muted);
 }
 
 .suitability-card strong {
@@ -328,31 +327,11 @@
 
 .suitability-card .percentage {
   font-size: 13px;
-  color: var(--text-primary);
-}
-
-.suitability-card.suitable {
-  background: #F0FDF4;
-  border-color: #BBF7D0;
-}
-
-.suitability-card.conditional {
-  background: #FFFBEB;
-  border-color: #FDE68A;
-}
-
-.suitability-card.not-suitable {
-  background: #FEF2F2;
-  border-color: #FCA5A5;
-}
-
-.suitability-card.pending {
-  background: #F1F5F9;
-  border-color: #E2E8F0;
+  color: var(--text-muted);
 }
 
 /* ============================================
-   TECHNICAL FINDINGS
+   TECHNICAL FINDINGS - PLAIN
    ============================================ */
 .technical-findings-grid {
   display: grid;
@@ -361,7 +340,7 @@
 }
 
 .finding-card {
-  background: var(--bg-base);
+  background: var(--bg-card);
   border-radius: var(--radius-md);
   padding: 16px 20px;
   border: 1px solid var(--border-light);
@@ -374,7 +353,7 @@
 
 .finding-card .finding-info span {
   font-size: 13px;
-  color: var(--text-primary);
+  color: var(--text-muted);
 }
 
 .finding-card .finding-info strong {
@@ -385,7 +364,7 @@
 
 .finding-card .finding-info small {
   font-size: 12px;
-  color: var(--text-primary);
+  color: var(--text-muted);
 }
 
 /* ============================================
@@ -415,7 +394,7 @@
   background: var(--bg-base);
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 2px solid var(--border-light);
@@ -453,7 +432,7 @@
 }
 
 /* ============================================
-   STATUS NUMBER BADGE
+   STATUS NUMBER BADGE - PLAIN
    ============================================ */
 .status-number-badge {
   display: inline-flex;
@@ -462,13 +441,14 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  color: #FFFFFF;
+  background: var(--bg-surface);
+  color: var(--text-primary);
   font-size: 13px;
   font-weight: 700;
 }
 
 /* ============================================
-   SCORE BADGE
+   SCORE BADGE - PLAIN
    ============================================ */
 .score-badge {
   display: inline-block;
@@ -476,19 +456,8 @@
   border-radius: 20px;
   font-size: 13px;
   font-weight: 600;
+  background: var(--bg-surface);
   color: var(--text-primary);
-}
-
-.score-badge.high {
-  background: #DCFCE7;
-}
-
-.score-badge.medium {
-  background: #FEF3C7;
-}
-
-.score-badge.low {
-  background: #FEE2E2;
 }
 
 /* ============================================
@@ -501,7 +470,7 @@
 }
 
 .project-stat-card {
-  background: var(--bg-base);
+  background: var(--bg-card);
   border-radius: var(--radius-md);
   padding: 14px 18px;
   display: flex;
@@ -512,7 +481,7 @@
 
 .project-stat-card .stat-label {
   font-size: 12px;
-  color: var(--text-primary);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -524,7 +493,7 @@
 }
 
 /* ============================================
-   PROJECT STATUS BADGE
+   PROJECT STATUS BADGE - PLAIN
    ============================================ */
 .project-status-badge {
   display: inline-block;
@@ -532,35 +501,8 @@
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
+  background: var(--bg-surface);
   color: var(--text-primary);
-}
-
-.project-status-badge.in_progress {
-  background: #DBEAFE;
-}
-
-.project-status-badge.completed {
-  background: #DCFCE7;
-}
-
-.project-status-badge.full_paid {
-  background: #EDE9FE;
-}
-
-.project-status-badge.initial_paid {
-  background: #FEF3C7;
-}
-
-.project-status-badge.quoted {
-  background: #F1F5F9;
-}
-
-.project-status-badge.approved {
-  background: #E0E7FF;
-}
-
-.project-status-badge.pending {
-  background: #FEE2E2;
 }
 
 /* ============================================
@@ -602,7 +544,7 @@
 }
 
 .financial-card {
-  background: var(--bg-base);
+  background: var(--bg-card);
   border-radius: var(--radius-md);
   padding: 16px 20px;
   border: 1px solid var(--border-light);
@@ -615,7 +557,7 @@
 
 .financial-card span {
   font-size: 13px;
-  color: var(--text-primary);
+  color: var(--text-muted);
 }
 
 .financial-card strong {
@@ -625,11 +567,11 @@
 }
 
 .financial-card.growth strong.positive {
-  color: var(--text-primary);
+  color: var(--success);
 }
 
 .financial-card.growth strong.negative {
-  color: var(--text-primary);
+  color: var(--danger);
 }
 
 /* ============================================
@@ -642,7 +584,7 @@
 }
 
 .payment-status-card {
-  background: var(--bg-base);
+  background: var(--bg-card);
   border-radius: var(--radius-md);
   padding: 16px 20px;
   border: 1px solid var(--border-light);
@@ -655,7 +597,7 @@
 
 .payment-status-card span {
   font-size: 13px;
-  color: var(--text-primary);
+  color: var(--text-muted);
 }
 
 .payment-status-card strong {
@@ -666,11 +608,11 @@
 
 .payment-status-card small {
   font-size: 13px;
-  color: var(--text-primary);
+  color: var(--text-muted);
 }
 
 /* ============================================
-   STATUS BADGE
+   STATUS BADGE - PLAIN
    ============================================ */
 .status-badge {
   display: inline-block;
@@ -678,23 +620,12 @@
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
+  background: var(--bg-surface);
   color: var(--text-primary);
 }
 
-.status-badge.paid {
-  background: #DCFCE7;
-}
-
-.status-badge.pending {
-  background: #FEF3C7;
-}
-
-.status-badge.for-verification {
-  background: #FEE2E2;
-}
-
 /* ============================================
-   TRANSACTION TYPE
+   TRANSACTION TYPE - PLAIN
    ============================================ */
 .transaction-type {
   display: inline-block;
@@ -702,19 +633,12 @@
   border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
+  background: var(--bg-surface);
   color: var(--text-primary);
 }
 
-.transaction-type.pre {
-  background: #DBEAFE;
-}
-
-.transaction-type.project {
-  background: #DCFCE7;
-}
-
 /* ============================================
-   PAYMENT METHOD
+   PAYMENT METHOD - PLAIN
    ============================================ */
 .payment-method {
   display: inline-block;
@@ -722,23 +646,8 @@
   border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
+  background: var(--bg-surface);
   color: var(--text-primary);
-}
-
-.payment-method.paymongo {
-  background: #EDE9FE;
-}
-
-.payment-method.gcash {
-  background: #FCE7F3;
-}
-
-.payment-method.cash {
-  background: #F1F5F9;
-}
-
-.payment-method.manual {
-  background: #F1F5F9;
 }
 
 /* ============================================
@@ -751,7 +660,7 @@
 }
 
 .client-stat-card {
-  background: var(--bg-base);
+  background: var(--bg-card);
   border-radius: var(--radius-md);
   padding: 16px 20px;
   border: 1px solid var(--border-light);
@@ -764,7 +673,7 @@
 
 .client-stat-card span {
   font-size: 13px;
-  color: var(--text-primary);
+  color: var(--text-muted);
 }
 
 .client-stat-card strong {
@@ -783,7 +692,7 @@
 }
 
 .demo-card {
-  background: var(--bg-base);
+  background: var(--bg-card);
   border-radius: var(--radius-md);
   padding: 20px;
   border: 1px solid var(--border-light);
@@ -805,7 +714,7 @@
 
 .demo-item span {
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   min-width: 100px;
 }
 
@@ -846,13 +755,19 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  border: none;
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-base);
+  background: var(--bg-card);
   color: var(--text-primary);
+}
+
+.export-btn:hover:not(:disabled) {
+  background: var(--bg-base);
+  border-color: var(--border-medium);
 }
 
 .export-btn:disabled {
@@ -861,19 +776,21 @@
 }
 
 .export-btn.pdf {
-  background: #FEE2E2;
+  background: var(--bg-card);
+  border-color: var(--border-light);
 }
 
 .export-btn.pdf:hover:not(:disabled) {
-  background: #FECACA;
+  background: var(--bg-base);
 }
 
 .export-btn.excel {
-  background: #DCFCE7;
+  background: var(--bg-card);
+  border-color: var(--border-light);
 }
 
 .export-btn.excel:hover:not(:disabled) {
-  background: #BBF7D0;
+  background: var(--bg-base);
 }
 
 /* ============================================
@@ -937,7 +854,7 @@
   background: none;
   border: none;
   font-size: 20px;
-  color: var(--text-primary);
+  color: var(--text-muted);
   cursor: pointer;
   border-radius: var(--radius-md);
   display: flex;
@@ -948,6 +865,7 @@
 
 .close-preview:hover {
   background: var(--bg-base);
+  color: var(--text-primary);
 }
 
 .preview-content {

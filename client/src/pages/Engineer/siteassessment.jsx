@@ -1,3 +1,4 @@
+// pages/Engineer/MyAssessments.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -1555,7 +1556,7 @@ const MyAssessments = () => {
       });
     }
     setFilteredAssessments(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
+    setCurrentPage(1);
   }, [allAssessments, searchTerm, activeTypeFilter, activeStatusFilter]);
 
   useEffect(() => {
@@ -1624,15 +1625,15 @@ const MyAssessments = () => {
 
   // Skeleton Loader Components
   const SkeletonCard = () => (
-    <div className="skeleton-row-enad">
-      <div className="skeleton-cell-enad"></div>
-      <div className="skeleton-cell-enad"></div>
-      <div className="skeleton-cell-enad"></div>
-      <div className="skeleton-cell-enad"></div>
-      <div className="skeleton-cell-enad"></div>
-      <div className="skeleton-cell-enad"></div>
-      <div className="skeleton-cell-enad"></div>
-    </div>
+    <tr className="skeleton-row-enad">
+      <td><div className="skeleton-cell-enad"></div></td>
+      <td><div className="skeleton-cell-enad"></div></td>
+      <td><div className="skeleton-cell-enad"></div></td>
+      <td><div className="skeleton-cell-enad"></div></td>
+      <td><div className="skeleton-cell-enad"></div></td>
+      <td><div className="skeleton-cell-enad"></div></td>
+      <td><div className="skeleton-cell-enad"></div></td>
+    </tr>
   );
 
   const SkeletonList = () => (
@@ -1883,9 +1884,9 @@ const MyAssessments = () => {
                 <div className={`status-badge-enad ${StatusConfig.color}`}>{StatusConfig.label}</div>
               </div>
 
-              {/* ============ STORED SYSTEM CALCULATIONS FROM DATABASE ============ */}
+              {/* System Calculations from Database */}
               {selectedItem.recommendedSystemSize && (
-                <div className="system-recommendations" style={{ marginBottom: '20px' }}>
+                <div className="system-recommendations">
                   <h4>System Size Calculations (from your energy profile)</h4>
                   <div className="recommendations-grid">
                     <div className="rec-item">
@@ -1921,39 +1922,39 @@ const MyAssessments = () => {
                       <strong>{getSystemTypeLabel(selectedItem.systemType)}</strong>
                     </div>
 
-                    {/* ✅ NEW: Annual Production Estimates */}
+                    {/* Annual Production Estimates */}
                     {selectedItem.estimatedAnnualProduction && (
                       <>
-                        <div className="rec-item" style={{ background: '#e8f5e9' }}>
+                        <div className="rec-item">
                           <label>Annual Production (Actual)</label>
                           <strong>{selectedItem.estimatedAnnualProduction.toLocaleString()} kWh/year</strong>
                         </div>
                         {selectedItem.estimatedAnnualProductionMin && selectedItem.estimatedAnnualProductionMax && (
-                          <div className="rec-item" style={{ background: '#fff3e0' }}>
+                          <div className="rec-item">
                             <label>Annual Production Range</label>
                             <strong>
                               {selectedItem.estimatedAnnualProductionMin.toLocaleString()} - {selectedItem.estimatedAnnualProductionMax.toLocaleString()} kWh/year
                             </strong>
-                            <small style={{ display: 'block', fontSize: '11px', color: '#e65100' }}>3-4.5 PSH range</small>
+                            <small className="form-hint-enad">3-4.5 PSH range</small>
                           </div>
                         )}
                       </>
                     )}
 
-                    {/* ✅ NEW: CO2 Offset Estimates */}
+                    {/* CO2 Offset Estimates */}
                     {selectedItem.co2Offset && (
                       <>
-                        <div className="rec-item" style={{ background: '#e0f7fa' }}>
+                        <div className="rec-item">
                           <label>CO2 Offset (Actual)</label>
                           <strong>{selectedItem.co2Offset.toLocaleString()} kg/year</strong>
                         </div>
                         {selectedItem.co2OffsetMin && selectedItem.co2OffsetMax && (
-                          <div className="rec-item" style={{ background: '#fff8e1' }}>
+                          <div className="rec-item">
                             <label>CO2 Offset Range</label>
                             <strong>
                               {selectedItem.co2OffsetMin.toLocaleString()} - {selectedItem.co2OffsetMax.toLocaleString()} kg/year
                             </strong>
-                            <small style={{ display: 'block', fontSize: '11px', color: '#f57f17' }}>3-4.5 PSH range</small>
+                            <small className="form-hint-enad">3-4.5 PSH range</small>
                           </div>
                         )}
                       </>
@@ -1965,7 +1966,6 @@ const MyAssessments = () => {
               <div className="info-grid-enad">
                 <div className="info-item-enad"><span className="info-label-enad">Monthly Bill</span><span className="info-value-enad">{formatCurrency(selectedItem.monthlyBill)}</span></div>
                 <div className="info-item-enad"><span className="info-label-enad">Property Type</span><span className="info-value-enad capitalize">{selectedItem.propertyType}</span></div>
-                
                 <div className="info-item-enad info-full-width-enad"><span className="info-label-enad">Address</span><span className="info-value-enad">{getFullAddress(selectedItem.address)}</span></div>
               </div>
 
@@ -2007,16 +2007,16 @@ const MyAssessments = () => {
                 <div className="quotation-section">
                   <h4>Solar Panels</h4>
                   <div className="equipment-selection-row">
-                    <div className="form-group-enad" style={{ flex: 2 }}>
+                    <div className="form-group-enad">
                       <select className="assessment-form-select-enad" value={freeQuoteSelectedPanel?._id || ''} onChange={(e) => { const panel = availablePanels.find(p => p._id === e.target.value); setFreeQuoteSelectedPanel(panel); if (panel && panel.unit === 'watt') setFreeQuotePanelQuantity(1); }}>
                         <option value="">-- Select Panel --</option>
                         {availablePanels.filter(p => p.isActive).map(panel => (<option key={panel._id} value={panel._id}>{panel.name} - {panel.brand} - ₱{panel.price.toLocaleString()}/{panel.unit}</option>))}
                       </select>
                     </div>
-                    <div className="form-group-enad" style={{ flex: 1 }}>
+                    <div className="form-group-enad">
                       <input type="number" min="1" className="assessment-form-input-enad" value={freeQuotePanelQuantity} onChange={(e) => setFreeQuotePanelQuantity(parseInt(e.target.value) || 0)} disabled={freeQuoteSelectedPanel?.unit === 'watt'} />
                     </div>
-                    <div className="cost-display"><span>{formatCurrency(freeQuoteCalculatedCosts.panelCost)}</span></div>
+                    <div className="cost-display"><span className="cost-value">{formatCurrency(freeQuoteCalculatedCosts.panelCost)}</span></div>
                   </div>
                   {freeQuoteSelectedPanel?.unit === 'watt' && <small className="form-hint-enad">Price is per watt. Total calculated based on system size: {freeQuoteForm.systemSize} kWp</small>}
                 </div>
@@ -2025,16 +2025,16 @@ const MyAssessments = () => {
                 <div className="quotation-section">
                   <h4>Inverters</h4>
                   <div className="equipment-selection-row">
-                    <div className="form-group-enad" style={{ flex: 2 }}>
+                    <div className="form-group-enad">
                       <select className="assessment-form-select-enad" value={freeQuoteSelectedInverter?._id || ''} onChange={(e) => { const inverter = availableInverters.find(i => i._id === e.target.value); setFreeQuoteSelectedInverter(inverter); }}>
                         <option value="">-- Select Inverter --</option>
                         {availableInverters.filter(i => i.isActive).map(inverter => (<option key={inverter._id} value={inverter._id}>{inverter.name} - {inverter.brand} - ₱{inverter.price.toLocaleString()}</option>))}
                       </select>
                     </div>
-                    <div className="form-group-enad" style={{ flex: 1 }}>
+                    <div className="form-group-enad">
                       <input type="number" min="1" className="assessment-form-input-enad" value={freeQuoteInverterQuantity} onChange={(e) => setFreeQuoteInverterQuantity(parseInt(e.target.value) || 0)} />
                     </div>
-                    <div className="cost-display"><span>{formatCurrency(freeQuoteCalculatedCosts.inverterCost)}</span></div>
+                    <div className="cost-display"><span className="cost-value">{formatCurrency(freeQuoteCalculatedCosts.inverterCost)}</span></div>
                   </div>
                 </div>
 
@@ -2042,16 +2042,16 @@ const MyAssessments = () => {
                 <div className="quotation-section">
                   <h4>Batteries (Optional)</h4>
                   <div className="equipment-selection-row">
-                    <div className="form-group-enad" style={{ flex: 2 }}>
+                    <div className="form-group-enad">
                       <select className="assessment-form-select-enad" value={freeQuoteSelectedBattery?._id || ''} onChange={(e) => { const battery = availableBatteries.find(b => b._id === e.target.value); setFreeQuoteSelectedBattery(battery); }}>
                         <option value="">-- No Battery --</option>
                         {availableBatteries.filter(b => b.isActive).map(battery => (<option key={battery._id} value={battery._id}>{battery.name} - {battery.brand} - ₱{battery.price.toLocaleString()}</option>))}
                       </select>
                     </div>
-                    <div className="form-group-enad" style={{ flex: 1 }}>
+                    <div className="form-group-enad">
                       <input type="number" min="0" className="assessment-form-input-enad" value={freeQuoteBatteryQuantity} onChange={(e) => setFreeQuoteBatteryQuantity(parseInt(e.target.value) || 0)} />
                     </div>
-                    <div className="cost-display"><span>{formatCurrency(freeQuoteCalculatedCosts.batteryCost)}</span></div>
+                    <div className="cost-display"><span className="cost-value">{formatCurrency(freeQuoteCalculatedCosts.batteryCost)}</span></div>
                   </div>
                 </div>
 
@@ -2059,16 +2059,16 @@ const MyAssessments = () => {
                 <div className="quotation-section">
                   <h4>Mounting Structure</h4>
                   <div className="equipment-selection-row">
-                    <div className="form-group-enad" style={{ flex: 2 }}>
+                    <div className="form-group-enad">
                       <select className="assessment-form-select-enad" value={freeQuoteSelectedMountingStructure?._id || ''} onChange={(e) => { const structure = availableMountingStructures.find(m => m._id === e.target.value); setFreeQuoteSelectedMountingStructure(structure); }}>
                         <option value="">-- Select Mounting Structure --</option>
                         {availableMountingStructures.filter(m => m.isActive).map(structure => (<option key={structure._id} value={structure._id}>{structure.name} - {structure.brand} - ₱{structure.price.toLocaleString()}/{structure.unit}</option>))}
                       </select>
                     </div>
-                    <div className="form-group-enad" style={{ flex: 1 }}>
+                    <div className="form-group-enad">
                       <input type="number" min="1" className="assessment-form-input-enad" value={freeQuoteMountingStructureQuantity} onChange={(e) => setFreeQuoteMountingStructureQuantity(parseInt(e.target.value) || 0)} />
                     </div>
-                    <div className="cost-display"><span>{formatCurrency(freeQuoteCalculatedCosts.mountingCost)}</span></div>
+                    <div className="cost-display"><span className="cost-value">{formatCurrency(freeQuoteCalculatedCosts.mountingCost)}</span></div>
                   </div>
                 </div>
 
@@ -2078,11 +2078,11 @@ const MyAssessments = () => {
                   <button type="button" className="btn-add-item" onClick={freeQuoteAddElectricalComponent}>+ Add Component</button>
                   {freeQuoteSelectedElectricalComponents.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateElectricalComponent(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateElectricalComponent(index, 'id', e.target.value)}>
                         <option value="">-- Select Component --</option>
                         {availableElectricalComponents.filter(c => c.isActive).map(comp => (<option key={comp._id} value={comp._id}>{comp.name} - ₱{comp.price.toLocaleString()}</option>))}
                       </select>
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateElectricalComponent(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateElectricalComponent(index, 'quantity', parseInt(e.target.value) || 0)} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
                       <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveElectricalComponent(index)}>Remove</button>
                     </div>
@@ -2095,12 +2095,12 @@ const MyAssessments = () => {
                   <button type="button" className="btn-add-item" onClick={freeQuoteAddCable}>+ Add Cable</button>
                   {freeQuoteSelectedCables.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateCable(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateCable(index, 'id', e.target.value)}>
                         <option value="">-- Select Cable Type --</option>
                         {availableCables.filter(c => c.isActive).map(cable => (<option key={cable._id} value={cable._id}>{cable.name} - ₱{cable.price.toLocaleString()}/{cable.unit}</option>))}
                       </select>
-                      <input type="number" placeholder="Length (m)" className="assessment-form-input-enad" value={item.length} onChange={(e) => freeQuoteUpdateCable(index, 'length', parseFloat(e.target.value) || 0)} style={{ width: '100px' }} />
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateCable(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Length (m)" className="assessment-form-input-enad" value={item.length} onChange={(e) => freeQuoteUpdateCable(index, 'length', parseFloat(e.target.value) || 0)} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateCable(index, 'quantity', parseInt(e.target.value) || 0)} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
                       <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveCable(index)}>Remove</button>
                     </div>
@@ -2113,11 +2113,11 @@ const MyAssessments = () => {
                   <button type="button" className="btn-add-item" onClick={freeQuoteAddJunctionBox}>+ Add Junction Box</button>
                   {freeQuoteSelectedJunctionBoxes.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateJunctionBox(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateJunctionBox(index, 'id', e.target.value)}>
                         <option value="">-- Select Junction Box --</option>
                         {availableJunctionBoxes.filter(j => j.isActive).map(box => (<option key={box._id} value={box._id}>{box.name} - ₱{box.price.toLocaleString()}</option>))}
                       </select>
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateJunctionBox(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateJunctionBox(index, 'quantity', parseInt(e.target.value) || 0)} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
                       <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveJunctionBox(index)}>Remove</button>
                     </div>
@@ -2130,11 +2130,11 @@ const MyAssessments = () => {
                   <button type="button" className="btn-add-item" onClick={freeQuoteAddDisconnectSwitch}>+ Add Switch</button>
                   {freeQuoteSelectedDisconnectSwitches.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateDisconnectSwitch(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateDisconnectSwitch(index, 'id', e.target.value)}>
                         <option value="">-- Select Switch --</option>
                         {availableDisconnectSwitches.filter(s => s.isActive).map(sw => (<option key={sw._id} value={sw._id}>{sw.name} - ₱{sw.price.toLocaleString()}</option>))}
                       </select>
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateDisconnectSwitch(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateDisconnectSwitch(index, 'quantity', parseInt(e.target.value) || 0)} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
                       <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveDisconnectSwitch(index)}>Remove</button>
                     </div>
@@ -2147,11 +2147,11 @@ const MyAssessments = () => {
                   <button type="button" className="btn-add-item" onClick={freeQuoteAddMeter}>+ Add Meter</button>
                   {freeQuoteSelectedMeters.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateMeter(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateMeter(index, 'id', e.target.value)}>
                         <option value="">-- Select Meter --</option>
                         {availableMeters.filter(m => m.isActive).map(meter => (<option key={meter._id} value={meter._id}>{meter.name} - ₱{meter.price.toLocaleString()}</option>))}
                       </select>
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateMeter(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateMeter(index, 'quantity', parseInt(e.target.value) || 0)} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
                       <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveMeter(index)}>Remove</button>
                     </div>
@@ -2164,9 +2164,9 @@ const MyAssessments = () => {
                   <button type="button" className="btn-add-item" onClick={freeQuoteAddAdditionalEquipment}>+ Add Custom Item</button>
                   {freeQuoteAdditionalEquipment.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <input type="text" placeholder="Item name" className="assessment-form-input-enad" value={item.name} onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'name', e.target.value)} style={{ flex: 2 }} />
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
-                      <input type="number" placeholder="Price" className="assessment-form-input-enad" value={item.price} onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'price', parseFloat(e.target.value) || 0)} style={{ width: '120px' }} />
+                      <input type="text" placeholder="Item name" className="assessment-form-input-enad" value={item.name} onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'name', e.target.value)} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'quantity', parseInt(e.target.value) || 0)} />
+                      <input type="number" placeholder="Price" className="assessment-form-input-enad" value={item.price} onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'price', parseFloat(e.target.value) || 0)} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
                       <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveAdditionalEquipment(index)}>Remove</button>
                     </div>
@@ -2176,25 +2176,22 @@ const MyAssessments = () => {
                 {/* Installation Labor */}
                 <div className="quotation-section">
                   <h4>Installation Labor</h4>
-                  <div className="labor-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
+                  <div className="labor-percentage-control">
+                    <div className="labor-control-group">
                       <div>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                          Labor Cost (%)
-                        </label>
+                        <label className="form-label-enad">Labor Cost (%)</label>
                         <input
                           type="number"
                           step="1"
                           min="0"
                           max="100"
-                          className="assessment-form-input-enad"
+                          className="assessment-form-input-enad labor-input"
                           value={laborCostPercentage}
                           onChange={(e) => {
                             const value = parseInt(e.target.value) || 0;
                             setLaborCostPercentage(Math.min(100, Math.max(0, value)));
                             setTimeout(() => freeQuoteCalculateTotalCosts(), 0);
                           }}
-                          style={{ width: '100px' }}
                         />
                         <small className="form-hint-enad">Default: 20% of total equipment cost</small>
                       </div>
@@ -2219,24 +2216,21 @@ const MyAssessments = () => {
                 {/* Overhead & Contingency */}
                 <div className="quotation-section">
                   <h4>Overhead & Contingency</h4>
-                  <div className="cost-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
+                  <div className="cost-percentage-control">
                     <div>
-                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                        Overhead & Contingency (% of Subtotal)
-                      </label>
+                      <label className="form-label-enad">Overhead & Contingency (% of Subtotal)</label>
                       <input
                         type="number"
                         step="1"
                         min="0"
                         max="100"
-                        className="assessment-form-input-enad"
+                        className="assessment-form-input-enad overhead-input"
                         value={overheadContingencyPercentage}
                         onChange={(e) => {
                           const value = parseInt(e.target.value) || 0;
                           setOverheadContingencyPercentage(Math.min(100, Math.max(0, value)));
                           setTimeout(() => freeQuoteCalculateTotalCosts(), 0);
                         }}
-                        style={{ width: '100px' }}
                       />
                       <small className="form-hint-enad">Default: 15% of subtotal (Equipment + Labor)</small>
                     </div>
@@ -2256,24 +2250,21 @@ const MyAssessments = () => {
                 {/* Contractor Profit */}
                 <div className="quotation-section">
                   <h4>Contractor Profit</h4>
-                  <div className="cost-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
+                  <div className="cost-percentage-control">
                     <div>
-                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                        Contractor Profit (% of Subtotal)
-                      </label>
+                      <label className="form-label-enad">Contractor Profit (% of Subtotal)</label>
                       <input
                         type="number"
                         step="1"
                         min="0"
                         max="100"
-                        className="assessment-form-input-enad"
+                        className="assessment-form-input-enad profit-input"
                         value={contractorProfitPercentage}
                         onChange={(e) => {
                           const value = parseInt(e.target.value) || 0;
                           setContractorProfitPercentage(Math.min(100, Math.max(0, value)));
                           setTimeout(() => freeQuoteCalculateTotalCosts(), 0);
                         }}
-                        style={{ width: '100px' }}
                       />
                       <small className="form-hint-enad">Default: 10% of subtotal (Equipment + Labor)</small>
                     </div>
@@ -2321,7 +2312,7 @@ const MyAssessments = () => {
                   <textarea className="assessment-form-textarea-enad" value={freeQuoteForm.remarks} onChange={(e) => handleFreeQuoteFormChange('remarks', e.target.value)} rows={2} placeholder="Additional notes or special instructions" />
                 </div>
 
-                <div className="action-buttons-enad" style={{ marginTop: '20px' }}>
+                <div className="action-buttons-enad">
                   <button onClick={generateQuotationPDF} disabled={generatingPDF || !freeQuoteForm.systemSize || freeQuoteCalculatedCosts.totalSystemCost === 0} className="btn-primary-enad">
                     {generatingPDF ? 'Generating...' : 'Generate and Upload PDF'}
                   </button>
@@ -2363,11 +2354,11 @@ const MyAssessments = () => {
             </div>
 
             <div className="tabs-enad">
-              {['overview', 'site-inspection', 'quotation', 'documents', 'comments'].map((tab) => (
-                <button key={tab} onClick={() => setActiveTab(tab)} className={`tab-btn-enad ${activeTab === tab ? 'active-enad' : ''}`}>
-                  {tab === 'overview' && 'Overview'}{tab === 'site-inspection' && 'Site Inspection'}{tab === 'quotation' && 'Quotation'}{tab === 'documents' && 'Documents'}{tab === 'comments' && 'Comments'}
-                </button>
-              ))}
+              <button onClick={() => setActiveTab('overview')} className={`tab-btn-enad ${activeTab === 'overview' ? 'active-enad' : ''}`}>Overview</button>
+              <button onClick={() => setActiveTab('site-inspection')} className={`tab-btn-enad ${activeTab === 'site-inspection' ? 'active-enad' : ''}`}>Site Inspection</button>
+              <button onClick={() => setActiveTab('quotation')} className={`tab-btn-enad ${activeTab === 'quotation' ? 'active-enad' : ''}`}>Quotation</button>
+              <button onClick={() => setActiveTab('documents')} className={`tab-btn-enad ${activeTab === 'documents' ? 'active-enad' : ''}`}>Documents</button>
+              <button onClick={() => setActiveTab('comments')} className={`tab-btn-enad ${activeTab === 'comments' ? 'active-enad' : ''}`}>Comments</button>
             </div>
 
             {/* Overview Tab */}
@@ -2384,9 +2375,7 @@ const MyAssessments = () => {
                       <span className="info-value-enad">
                         {selectedItem.roofLength ? `${selectedItem.roofLength}m` : '?'} × {selectedItem.roofWidth ? `${selectedItem.roofWidth}m` : '?'}
                         {calculateRoofArea(selectedItem.roofLength, selectedItem.roofWidth) && (
-                          <span style={{ display: 'block', fontSize: '12px', color: '#000000' }}>
-                            ({calculateRoofArea(selectedItem.roofLength, selectedItem.roofWidth)} m²)
-                          </span>
+                          <span className="roof-area-text">({calculateRoofArea(selectedItem.roofLength, selectedItem.roofWidth)} m²)</span>
                         )}
                       </span>
                     </div>
@@ -2477,7 +2466,11 @@ const MyAssessments = () => {
               <div>
                 <div className="action-buttons-enad">
                   <button onClick={saveSiteAssessment} disabled={submitting} className="btn-secondary-enad">{submitting ? 'Saving...' : 'Save Draft'}</button>
-                  {selectedItem.assessmentStatus !== 'device_deployed' && selectedItem.assessmentStatus !== 'data_collecting' && deviceAssigned && (<button onClick={openDeployConfirmModal} disabled={submitting || !deployNotes || deployNotes.trim() === ''} className="btn-success-enad" style={{ opacity: (!deployNotes || deployNotes.trim() === '') ? 0.5 : 1 }}>{submitting ? 'Deploying...' : 'Deploy Device (Start 7-day Monitoring)'}</button>)}
+                  {selectedItem.assessmentStatus !== 'device_deployed' && selectedItem.assessmentStatus !== 'data_collecting' && deviceAssigned && (
+                    <button onClick={openDeployConfirmModal} disabled={submitting || !deployNotes || deployNotes.trim() === ''} className="btn-success-enad">
+                      {submitting ? 'Deploying...' : 'Deploy Device (Start 7-day Monitoring)'}
+                    </button>
+                  )}
                 </div>
                 <div className="form-group-enad">
                   <label className="form-label-enad">Roof Condition</label>
@@ -2509,13 +2502,13 @@ const MyAssessments = () => {
                 </div>
                 <div className="form-group-enad">
                   <label className="form-label-enad">Estimated Installation Time (days)</label>
-                  <input type="number" className="assessment-form-input-enad" value={assessmentForm.estimatedInstallationTime} onChange={(e) => handleAssessmentFormChange('estimatedInstallationTime', e.target.value)} style={{ width: '150px' }} required />
+                  <input type="number" className="assessment-form-input-enad" value={assessmentForm.estimatedInstallationTime} onChange={(e) => handleAssessmentFormChange('estimatedInstallationTime', e.target.value)} required />
                 </div>
                 {deviceAssigned && (
                   <div className="form-group-enad">
                     <label className="form-label-enad">Deployment Notes *</label>
                     <textarea className="assessment-form-textarea-enad" value={deployNotes} onChange={(e) => setDeployNotes(e.target.value)} rows={3} placeholder="Enter deployment notes, device placement location, etc... (Required)" required />
-                    {!deployNotes && (<small className="form-hint-enad" style={{ color: '#C62828' }}>Deployment notes are required before deploying the device</small>)}
+                    {!deployNotes && (<small className="form-hint-enad error-hint">Deployment notes are required before deploying the device</small>)}
                   </div>
                 )}
                 <div className="form-group-enad">
@@ -2546,7 +2539,7 @@ const MyAssessments = () => {
 
                 <div className="form-group-enad">
                   <label className="form-label-enad">
-                    <input type="checkbox" checked={includeIoTData} onChange={(e) => setIncludeIoTData(e.target.checked)} style={{ marginRight: '8px' }} />
+                    <input type="checkbox" checked={includeIoTData} onChange={(e) => setIncludeIoTData(e.target.checked)} />
                     Include IoT Data Analysis in PDF
                   </label>
                   {selectedItem.dataCollectionStart && selectedItem.dataCollectionEnd && (
@@ -2621,7 +2614,7 @@ const MyAssessments = () => {
                   </div>
                 )}
 
-                {/* System Recommendations - From Backend */}
+                {/* System Recommendations */}
                 {loadingMetrics ? (
                   <div className="loading-metrics">Loading system recommendations...</div>
                 ) : systemMetrics ? (
@@ -2658,54 +2651,46 @@ const MyAssessments = () => {
                       </div>
                     </div>
 
-                    {/* ✅ NEW: Annual Production Estimates */}
+                    {/* Annual Production Estimates */}
                     {systemMetrics.estimatedAnnualProduction && (
-                      <div className="system-recommendations" style={{ marginTop: '15px', borderTop: '1px solid #e0e0e0', paddingTop: '15px' }}>
+                      <div className="system-recommendations">
                         <h4>Annual Production Estimates</h4>
                         <div className="recommendations-grid">
-                          <div className="rec-item" style={{ background: '#e8f5e9' }}>
+                          <div className="rec-item">
                             <label>Annual Production (Actual)</label>
                             <strong>{systemMetrics.estimatedAnnualProduction.toLocaleString()} kWh/year</strong>
-                            <small style={{ display: 'block', fontSize: '11px', color: '#2e7d32' }}>
-                              Based on {systemMetrics.peakSunHours || 4.5} PSH
-                            </small>
+                            <small className="form-hint-enad">Based on {systemMetrics.peakSunHours || 4.5} PSH</small>
                           </div>
                           {systemMetrics.estimatedAnnualProductionRange && (
-                            <div className="rec-item" style={{ background: '#fff3e0' }}>
+                            <div className="rec-item">
                               <label>Annual Production Range</label>
                               <strong>
                                 {systemMetrics.estimatedAnnualProductionRange.min?.toLocaleString()} - {systemMetrics.estimatedAnnualProductionRange.max?.toLocaleString()} kWh/year
                               </strong>
-                              <small style={{ display: 'block', fontSize: '11px', color: '#e65100' }}>
-                                {systemMetrics.estimatedAnnualProductionRange.minPsh}-{systemMetrics.estimatedAnnualProductionRange.maxPsh} PSH range
-                              </small>
+                              <small className="form-hint-enad">{systemMetrics.estimatedAnnualProductionRange.minPsh}-{systemMetrics.estimatedAnnualProductionRange.maxPsh} PSH range</small>
                             </div>
                           )}
                         </div>
                       </div>
                     )}
 
-                    {/* ✅ NEW: CO2 Offset Estimates */}
+                    {/* CO2 Offset Estimates */}
                     {systemMetrics.co2Offset && (
-                      <div className="system-recommendations" style={{ marginTop: '15px', borderTop: '1px solid #e0e0e0', paddingTop: '15px' }}>
+                      <div className="system-recommendations">
                         <h4>Environmental Impact</h4>
                         <div className="recommendations-grid">
-                          <div className="rec-item" style={{ background: '#e0f7fa' }}>
+                          <div className="rec-item">
                             <label>CO2 Offset (Actual)</label>
                             <strong>{systemMetrics.co2Offset.toLocaleString()} kg/year</strong>
-                            <small style={{ display: 'block', fontSize: '11px', color: '#00695c' }}>
-                              Based on {systemMetrics.peakSunHours || 4.5} PSH
-                            </small>
+                            <small className="form-hint-enad">Based on {systemMetrics.peakSunHours || 4.5} PSH</small>
                           </div>
                           {systemMetrics.co2OffsetRange && (
-                            <div className="rec-item" style={{ background: '#fff8e1' }}>
+                            <div className="rec-item">
                               <label>CO2 Offset Range</label>
                               <strong>
                                 {systemMetrics.co2OffsetRange.min?.toLocaleString()} - {systemMetrics.co2OffsetRange.max?.toLocaleString()} kg/year
                               </strong>
-                              <small style={{ display: 'block', fontSize: '11px', color: '#f57f17' }}>
-                                {systemMetrics.estimatedAnnualProductionRange?.minPsh}-{systemMetrics.estimatedAnnualProductionRange?.maxPsh} PSH range
-                              </small>
+                              <small className="form-hint-enad">{systemMetrics.estimatedAnnualProductionRange?.minPsh}-{systemMetrics.estimatedAnnualProductionRange?.maxPsh} PSH range</small>
                             </div>
                           )}
                         </div>
@@ -2745,13 +2730,13 @@ const MyAssessments = () => {
                 <div className="quotation-section">
                   <h4>Solar Panels</h4>
                   <div className="equipment-selection-row">
-                    <div className="form-group-enad" style={{ flex: 2 }}>
+                    <div className="form-group-enad">
                       <select className="assessment-form-select-enad" value={selectedPanel?._id || ''} onChange={(e) => { const panel = availablePanels.find(p => p._id === e.target.value); setSelectedPanel(panel); if (panel && panel.unit === 'watt') setPanelQuantity(1); }}>
                         <option value="">-- Select Panel --</option>
                         {availablePanels.filter(p => p.isActive).map(panel => (<option key={panel._id} value={panel._id}>{panel.name} - {panel.brand} - ₱{panel.price.toLocaleString()}/{panel.unit}</option>))}
                       </select>
                     </div>
-                    <div className="form-group-enad" style={{ flex: 1 }}>
+                    <div className="form-group-enad">
                       <input type="number" min="1" className="assessment-form-input-enad" value={panelQuantity} onChange={(e) => setPanelQuantity(parseInt(e.target.value) || 0)} disabled={selectedPanel?.unit === 'watt'} />
                     </div>
                     <div className="cost-display"><label>Panel Cost</label><div className="cost-value">{formatCurrency(calculatedCosts.panelCost)}</div></div>
@@ -2763,13 +2748,13 @@ const MyAssessments = () => {
                 <div className="quotation-section">
                   <h4>Inverters</h4>
                   <div className="equipment-selection-row">
-                    <div className="form-group-enad" style={{ flex: 2 }}>
+                    <div className="form-group-enad">
                       <select className="assessment-form-select-enad" value={selectedInverter?._id || ''} onChange={(e) => { const inverter = availableInverters.find(i => i._id === e.target.value); setSelectedInverter(inverter); }}>
                         <option value="">-- Select Inverter --</option>
                         {availableInverters.filter(i => i.isActive).map(inverter => (<option key={inverter._id} value={inverter._id}>{inverter.name} - {inverter.brand} - ₱{inverter.price.toLocaleString()}</option>))}
                       </select>
                     </div>
-                    <div className="form-group-enad" style={{ flex: 1 }}>
+                    <div className="form-group-enad">
                       <input type="number" min="1" className="assessment-form-input-enad" value={inverterQuantity} onChange={(e) => setInverterQuantity(parseInt(e.target.value) || 0)} />
                     </div>
                     <div className="cost-display"><label>Inverter Cost</label><div className="cost-value">{formatCurrency(calculatedCosts.inverterCost)}</div></div>
@@ -2780,13 +2765,13 @@ const MyAssessments = () => {
                 <div className="quotation-section">
                   <h4>Batteries (Optional)</h4>
                   <div className="equipment-selection-row">
-                    <div className="form-group-enad" style={{ flex: 2 }}>
+                    <div className="form-group-enad">
                       <select className="assessment-form-select-enad" value={selectedBattery?._id || ''} onChange={(e) => { const battery = availableBatteries.find(b => b._id === e.target.value); setSelectedBattery(battery); }}>
                         <option value="">-- No Battery --</option>
                         {availableBatteries.filter(b => b.isActive).map(battery => (<option key={battery._id} value={battery._id}>{battery.name} - {battery.brand} - ₱{battery.price.toLocaleString()}</option>))}
                       </select>
                     </div>
-                    <div className="form-group-enad" style={{ flex: 1 }}>
+                    <div className="form-group-enad">
                       <input type="number" min="0" className="assessment-form-input-enad" value={batteryQuantity} onChange={(e) => setBatteryQuantity(parseInt(e.target.value) || 0)} />
                     </div>
                     <div className="cost-display"><label>Battery Cost</label><div className="cost-value">{formatCurrency(calculatedCosts.batteryCost)}</div></div>
@@ -2797,13 +2782,13 @@ const MyAssessments = () => {
                 <div className="quotation-section">
                   <h4>Mounting Structure</h4>
                   <div className="equipment-selection-row">
-                    <div className="form-group-enad" style={{ flex: 2 }}>
+                    <div className="form-group-enad">
                       <select className="assessment-form-select-enad" value={selectedMountingStructure?._id || ''} onChange={(e) => { const structure = availableMountingStructures.find(m => m._id === e.target.value); setSelectedMountingStructure(structure); }}>
                         <option value="">-- Select Mounting Structure --</option>
                         {availableMountingStructures.filter(m => m.isActive).map(structure => (<option key={structure._id} value={structure._id}>{structure.name} - {structure.brand} - ₱{structure.price.toLocaleString()}/{structure.unit}</option>))}
                       </select>
                     </div>
-                    <div className="form-group-enad" style={{ flex: 1 }}>
+                    <div className="form-group-enad">
                       <input type="number" min="1" className="assessment-form-input-enad" value={mountingStructureQuantity} onChange={(e) => setMountingStructureQuantity(parseInt(e.target.value) || 0)} />
                     </div>
                     <div className="cost-display"><label>Mounting Cost</label><div className="cost-value">{formatCurrency(calculatedCosts.mountingCost)}</div></div>
@@ -2816,13 +2801,13 @@ const MyAssessments = () => {
                   <button type="button" className="btn-add-item" onClick={addElectricalComponent}>+ Add Component</button>
                   {selectedElectricalComponents.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateElectricalComponent(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateElectricalComponent(index, 'id', e.target.value)}>
                         <option value="">-- Select Component --</option>
                         {availableElectricalComponents.filter(c => c.isActive).map(comp => (
                           <option key={comp._id} value={comp._id}>{comp.name} - ₱{comp.price.toLocaleString()}</option>
                         ))}
                       </select>
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateElectricalComponent(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateElectricalComponent(index, 'quantity', parseInt(e.target.value) || 0)} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
                       <button type="button" className="btn-remove" onClick={() => removeElectricalComponent(index)}>Remove</button>
                     </div>
@@ -2835,14 +2820,14 @@ const MyAssessments = () => {
                   <button type="button" className="btn-add-item" onClick={addCable}>+ Add Cable</button>
                   {selectedCables.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateCable(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateCable(index, 'id', e.target.value)}>
                         <option value="">-- Select Cable Type --</option>
                         {availableCables.filter(c => c.isActive).map(cable => (
                           <option key={cable._id} value={cable._id}>{cable.name} - ₱{cable.price.toLocaleString()}/{cable.unit}</option>
                         ))}
                       </select>
-                      <input type="number" placeholder="Length (m)" className="assessment-form-input-enad" value={item.length} onChange={(e) => updateCable(index, 'length', parseFloat(e.target.value) || 0)} style={{ width: '100px' }} />
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateCable(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Length (m)" className="assessment-form-input-enad" value={item.length} onChange={(e) => updateCable(index, 'length', parseFloat(e.target.value) || 0)} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateCable(index, 'quantity', parseInt(e.target.value) || 0)} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
                       <button type="button" className="btn-remove" onClick={() => removeCable(index)}>Remove</button>
                     </div>
@@ -2855,13 +2840,13 @@ const MyAssessments = () => {
                   <button type="button" className="btn-add-item" onClick={addJunctionBox}>+ Add Junction Box</button>
                   {selectedJunctionBoxes.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateJunctionBox(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateJunctionBox(index, 'id', e.target.value)}>
                         <option value="">-- Select Junction Box --</option>
                         {availableJunctionBoxes.filter(j => j.isActive).map(box => (
                           <option key={box._id} value={box._id}>{box.name} - ₱{box.price.toLocaleString()}</option>
                         ))}
                       </select>
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateJunctionBox(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateJunctionBox(index, 'quantity', parseInt(e.target.value) || 0)} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
                       <button type="button" className="btn-remove" onClick={() => removeJunctionBox(index)}>Remove</button>
                     </div>
@@ -2874,13 +2859,13 @@ const MyAssessments = () => {
                   <button type="button" className="btn-add-item" onClick={addDisconnectSwitch}>+ Add Switch</button>
                   {selectedDisconnectSwitches.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateDisconnectSwitch(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateDisconnectSwitch(index, 'id', e.target.value)}>
                         <option value="">-- Select Switch --</option>
                         {availableDisconnectSwitches.filter(s => s.isActive).map(sw => (
                           <option key={sw._id} value={sw._id}>{sw.name} - ₱{sw.price.toLocaleString()}</option>
                         ))}
                       </select>
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateDisconnectSwitch(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateDisconnectSwitch(index, 'quantity', parseInt(e.target.value) || 0)} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
                       <button type="button" className="btn-remove" onClick={() => removeDisconnectSwitch(index)}>Remove</button>
                     </div>
@@ -2893,13 +2878,13 @@ const MyAssessments = () => {
                   <button type="button" className="btn-add-item" onClick={addMeter}>+ Add Meter</button>
                   {selectedMeters.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateMeter(index, 'id', e.target.value)} style={{ flex: 2 }}>
+                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateMeter(index, 'id', e.target.value)}>
                         <option value="">-- Select Meter --</option>
                         {availableMeters.filter(m => m.isActive).map(meter => (
                           <option key={meter._id} value={meter._id}>{meter.name} - ₱{meter.price.toLocaleString()}</option>
                         ))}
                       </select>
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateMeter(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateMeter(index, 'quantity', parseInt(e.target.value) || 0)} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
                       <button type="button" className="btn-remove" onClick={() => removeMeter(index)}>Remove</button>
                     </div>
@@ -2912,9 +2897,9 @@ const MyAssessments = () => {
                   <button type="button" className="btn-add-item" onClick={addAdditionalEquipment}>+ Add Custom Item</button>
                   {additionalEquipment.map((item, index) => (
                     <div key={index} className="additional-item-row">
-                      <input type="text" placeholder="Item name" className="assessment-form-input-enad" value={item.name} onChange={(e) => updateAdditionalEquipment(index, 'name', e.target.value)} style={{ flex: 2 }} />
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateAdditionalEquipment(index, 'quantity', parseInt(e.target.value) || 0)} style={{ width: '80px' }} />
-                      <input type="number" placeholder="Price" className="assessment-form-input-enad" value={item.price} onChange={(e) => updateAdditionalEquipment(index, 'price', parseFloat(e.target.value) || 0)} style={{ width: '120px' }} />
+                      <input type="text" placeholder="Item name" className="assessment-form-input-enad" value={item.name} onChange={(e) => updateAdditionalEquipment(index, 'name', e.target.value)} />
+                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateAdditionalEquipment(index, 'quantity', parseInt(e.target.value) || 0)} />
+                      <input type="number" placeholder="Price" className="assessment-form-input-enad" value={item.price} onChange={(e) => updateAdditionalEquipment(index, 'price', parseFloat(e.target.value) || 0)} />
                       <span className="item-total">{formatCurrency(item.total || 0)}</span>
                       <button type="button" className="btn-remove" onClick={() => removeAdditionalEquipment(index)}>Remove</button>
                     </div>
@@ -2923,25 +2908,22 @@ const MyAssessments = () => {
 
                 {/* Installation Labor */}
                 <div className="quotation-section">
-                  <div className="labor-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
+                  <div className="labor-percentage-control">
+                    <div className="labor-control-group">
                       <div>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                          Labor Cost (% of Equipment)
-                        </label>
+                        <label className="form-label-enad">Labor Cost (% of Equipment)</label>
                         <input
                           type="number"
                           step="1"
                           min="0"
                           max="100"
-                          className="assessment-form-input-enad"
+                          className="assessment-form-input-enad labor-input"
                           value={laborCostPercentage}
                           onChange={(e) => {
                             const value = parseInt(e.target.value) || 0;
                             setLaborCostPercentage(Math.min(100, Math.max(0, value)));
                             setTimeout(() => calculateTotalCosts(), 0);
                           }}
-                          style={{ width: '100px' }}
                         />
                         <small className="form-hint-enad">Default: 20% of total equipment cost</small>
                       </div>
@@ -2966,24 +2948,21 @@ const MyAssessments = () => {
 
                 {/* Overhead & Contingency */}
                 <div className="quotation-section">
-                  <div className="cost-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
+                  <div className="cost-percentage-control">
                     <div>
-                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                        Overhead & Contingency
-                      </label>
+                      <label className="form-label-enad">Overhead & Contingency</label>
                       <input
                         type="number"
                         step="1"
                         min="0"
                         max="100"
-                        className="assessment-form-input-enad"
+                        className="assessment-form-input-enad overhead-input"
                         value={overheadContingencyPercentage}
                         onChange={(e) => {
                           const value = parseInt(e.target.value) || 0;
                           setOverheadContingencyPercentage(Math.min(100, Math.max(0, value)));
                           setTimeout(() => calculateTotalCosts(), 0);
                         }}
-                        style={{ width: '100px' }}
                       />
                     </div>
                   </div>
@@ -2997,24 +2976,21 @@ const MyAssessments = () => {
 
                 {/* Contractor Profit */}
                 <div className="quotation-section">
-                  <div className="cost-percentage-control" style={{ marginBottom: '15px', padding: '10px', background: '#f8f9fa', borderRadius: '8px' }}>
+                  <div className="cost-percentage-control">
                     <div>
-                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                        Contractor Profit
-                      </label>
+                      <label className="form-label-enad">Contractor Profit</label>
                       <input
                         type="number"
                         step="1"
                         min="0"
                         max="100"
-                        className="assessment-form-input-enad"
+                        className="assessment-form-input-enad profit-input"
                         value={contractorProfitPercentage}
                         onChange={(e) => {
                           const value = parseInt(e.target.value) || 0;
                           setContractorProfitPercentage(Math.min(100, Math.max(0, value)));
                           setTimeout(() => calculateTotalCosts(), 0);
                         }}
-                        style={{ width: '100px' }}
                       />
                     </div>
                   </div>
@@ -3047,7 +3023,7 @@ const MyAssessments = () => {
                   <div className="summary-row total"><span>TOTAL SYSTEM COST:</span><span>{formatCurrency(calculatedCosts.totalSystemCost)}</span></div>
                 </div>
 
-                <div className="action-buttons-enad" style={{ marginTop: '20px' }}>
+                <div className="action-buttons-enad">
                   <button onClick={generateQuotationPDF} disabled={generatingPDF || !quotationForm.systemSize || calculatedCosts.totalSystemCost === 0} className="btn-primary-enad">
                     {generatingPDF ? 'Generating...' : 'Generate and Upload PDF'}
                   </button>
@@ -3138,7 +3114,7 @@ const MyAssessments = () => {
                 </div>
                 <div className="detail-row-enad">
                   <span className="detail-label-enad">Device Status:</span>
-                  <span className="detail-value-enad" style={{ color: '#4CAF50' }}>Assigned ✓</span>
+                  <span className="detail-value-enad">Assigned ✓</span>
                 </div>
                 <div className="detail-row-enad">
                   <span className="detail-label-enad">Location:</span>

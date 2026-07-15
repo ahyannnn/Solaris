@@ -1,13 +1,15 @@
-/* styles/Engineer/iotdevice.css */
+/* styles/Engineer/iotdevice.css - Clean Design with Original Colors */
 
 :root {
   --primary: #2563EB;
   --primary-hover: #1D4ED8;
   --success: #22C55E;
+  --success-hover: #16A34A;
   --warning: #F59E0B;
   --danger: #EF4444;
   --bg-base: #F8FAFC;
   --bg-card: #FFFFFF;
+  --bg-surface: #F1F5F9;
   --text-primary: #0F172A;
   --text-secondary: #475569;
   --text-muted: #64748B;
@@ -195,6 +197,40 @@
   color: var(--text-secondary);
 }
 
+/* Status Badges - Original Colors */
+.status-badge-iotdevicead {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge-iotdevicead.active {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.status-badge-iotdevicead.inactive {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.status-badge-iotdevicead.assigned {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.status-badge-iotdevicead.deployed {
+  background: #EDE9FE;
+  color: #7C3AED;
+}
+
+.status-badge-iotdevicead.retrieved {
+  background: #DBEAFE;
+  color: #2563EB;
+}
+
 /* ============================================
    VIEW BUTTON
    ============================================ */
@@ -289,7 +325,7 @@
 }
 
 /* ============================================
-   MODAL - INCREASED SIZE
+   MODAL - ENLARGED ONLY
    ============================================ */
 .modal-overlay-iotdevicead {
   position: fixed;
@@ -303,17 +339,17 @@
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  padding: 20px;
+  padding: 30px;
 }
 
 .modal-content-iotdevicead {
   background: var(--bg-card);
   border-radius: var(--radius-2xl);
   width: 100%;
-  max-width: 1100px;
+  max-width: 1300px;
   max-height: 92vh;
   overflow-y: auto;
-  padding: 32px 36px;
+  padding: 36px 40px;
   box-shadow: var(--shadow-lg);
   animation: modalFadeIn 0.25s ease;
 }
@@ -348,20 +384,20 @@
 }
 
 .data-modal-iotdevicead {
-  max-width: 1100px;
+  max-width: 1300px;
 }
 
 .modal-header-iotdevicead {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
   border-bottom: 1px solid var(--border-light);
 }
 
 .modal-header-iotdevicead h3 {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
@@ -392,7 +428,7 @@
   padding: 0;
 }
 
-/* Device Summary */
+/* Device Summary - Original Size */
 .device-summary-iotdevicead {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -430,7 +466,7 @@
   color: var(--text-primary);
 }
 
-/* Stats Cards */
+/* Stats Cards - Original Colors */
 .stats-cards-iotdevicead {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -523,7 +559,7 @@
   cursor: not-allowed;
 }
 
-/* Chart Container - INCREASED HEIGHT */
+/* Chart Container - Original Size */
 .chart-container-iotdevicead {
   margin-bottom: 28px;
 }
@@ -544,7 +580,7 @@
   padding: 8px;
 }
 
-/* Readings Table */
+/* Readings Table - Original Size */
 .readings-table-iotdevicead {
   margin-bottom: 24px;
 }
@@ -612,7 +648,7 @@
   color: var(--text-muted);
 }
 
-/* GPS Location */
+/* GPS Location - Original Size */
 .gps-location-iotdevicead {
   background: var(--bg-base);
   border-radius: var(--radius-md);
@@ -662,7 +698,7 @@
   background: var(--primary-hover);
 }
 
-/* Modal Actions */
+/* Modal Actions - Original Size */
 .modal-actions-iotdevicead {
   display: flex;
   gap: 12px;
@@ -712,7 +748,7 @@
   cursor: not-allowed;
 }
 
-/* Confirm Modal */
+/* Confirm Modal - Original Size */
 .confirm-modal-iotdevicead {
   max-width: 520px;
 }
@@ -974,7 +1010,7 @@
   }
 
   .modal-header-iotdevicead h3 {
-    font-size: 18px;
+    font-size: 20px;
   }
 
   .stats-cards-iotdevicead {
@@ -1061,7 +1097,7 @@
   }
 
   .modal-header-iotdevicead h3 {
-    font-size: 16px;
+    font-size: 18px;
   }
 
   .modal-close-iotdevicead {

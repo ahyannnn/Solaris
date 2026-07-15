@@ -1,4 +1,4 @@
-/* styles/Engineer/project.css */
+/* styles/Engineer/project.css - Clean Professional Design */
 
 :root {
   --primary: #2563EB;
@@ -8,6 +8,7 @@
   --danger: #EF4444;
   --bg-base: #F8FAFC;
   --bg-card: #FFFFFF;
+  --bg-surface: #F1F5F9;
   --text-primary: #0F172A;
   --text-secondary: #475569;
   --text-muted: #64748B;
@@ -50,7 +51,7 @@
 
 .project-header-engineerproject p {
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -157,7 +158,7 @@
   background: var(--bg-base);
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 2px solid var(--border-light);
@@ -261,7 +262,7 @@
 
 .paid-cell {
   font-weight: 600;
-  color: var(--success);
+  color: var(--text-primary);
 }
 
 /* ============================================
@@ -297,7 +298,7 @@
 }
 
 /* ============================================
-   STATUS BADGES
+   STATUS BADGES - PLAIN TEXT
    ============================================ */
 .status-badge-engineerproject {
   display: inline-block;
@@ -306,43 +307,81 @@
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
-  color: var(--text-primary);
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-engineerproject.quoted {
-  background: #FEF3C7;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-engineerproject.approved {
-  background: #DBEAFE;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-engineerproject.initial-paid {
-  background: #E0E7FF;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-engineerproject.full-paid {
-  background: #D1FAE5;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-engineerproject.full-paid-installment {
-  background: #DCFCE7;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-engineerproject.in-progress {
-  background: #FEF3C7;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-engineerproject.progress-paid {
-  background: #EDE9FE;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-engineerproject.completed {
-  background: #DCFCE7;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-engineerproject.cancelled {
-  background: #FEE2E2;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ============================================
+   PAYMENT STATUS BADGES - PLAIN TEXT
+   ============================================ */
+.payment-status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+.payment-status-badge.paid {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+.payment-status-badge.pending {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+.payment-status-badge.overdue {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 /* ============================================
@@ -486,7 +525,7 @@
   background: none;
   border: none;
   font-size: 24px;
-  color: var(--text-primary);
+  color: var(--text-muted);
   cursor: pointer;
   border-radius: var(--radius-md);
   display: flex;
@@ -497,6 +536,7 @@
 
 .modal-close:hover {
   background: var(--bg-base);
+  color: var(--text-primary);
 }
 
 .modal-content-engineerproject h3 {
@@ -526,7 +566,7 @@
 .detail-section p {
   margin: 4px 0;
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--text-secondary);
 }
 
 .detail-section strong {
@@ -546,7 +586,7 @@
   background: var(--bg-base);
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-muted);
   text-transform: uppercase;
   border-bottom: 1px solid var(--border-light);
 }
@@ -564,27 +604,6 @@
 
 .payment-type-cell {
   font-weight: 500;
-}
-
-.payment-status-badge {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.payment-status-badge.paid {
-  background: #DCFCE7;
-}
-
-.payment-status-badge.pending {
-  background: #FEF3C7;
-}
-
-.payment-status-badge.overdue {
-  background: #FEE2E2;
 }
 
 /* Photo Grid */
@@ -658,7 +677,7 @@
    SKELETON LOADING
    ============================================ */
 .skeleton-line {
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-base) 50%, var(--bg-surface) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 6px;
@@ -678,7 +697,7 @@
 .skeleton-select {
   height: 44px;
   width: 180px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-base) 50%, var(--bg-surface) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-md);
@@ -688,7 +707,7 @@
   height: 44px;
   flex: 1;
   min-width: 250px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-base) 50%, var(--bg-surface) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-md);
@@ -704,14 +723,14 @@
 
 .skeleton-table-header {
   height: 44px;
-  background: #E2E8F0;
+  background: var(--bg-surface);
   border-radius: var(--radius-md);
   margin-bottom: 12px;
 }
 
 .skeleton-table-row {
   height: 56px;
-  background: #F1F5F9;
+  background: var(--bg-surface);
   border-radius: var(--radius-md);
   margin-bottom: 8px;
 }

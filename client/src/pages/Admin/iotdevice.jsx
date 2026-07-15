@@ -1,9 +1,8 @@
 // pages/Admin/IoTDevice.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import {
-  FaSearch,
   FaEye,
   FaEdit,
   FaTrash,
@@ -12,7 +11,8 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaExclamationTriangle,
-  FaMicrochip
+  FaMicrochip,
+  FaChevronDown
 } from 'react-icons/fa';
 import '../../styles/Admin/iotdevice.css';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
@@ -31,6 +31,10 @@ const IoTDevice = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [itemsPerPage] = useState(5);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 20 });
+  const buttonRefs = useRef({});
+  const dropdownRef = useRef(null);
   const [formData, setFormData] = useState({
     deviceName: '',
     model: '',
@@ -49,6 +53,24 @@ const IoTDevice = () => {
   useEffect(() => {
     fetchDevices();
     fetchStats();
+
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    const handleScroll = () => {
+      setOpenDropdownId(null);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, true);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
   }, [filter, currentPage]);
 
   const fetchDevices = async () => {
@@ -198,14 +220,18 @@ const IoTDevice = () => {
     setShowDeleteModal(true);
   };
 
+  const handleDropdownClick = (event, deviceId) => {
+    event.stopPropagation();
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+    setDropdownPosition({
+      top: buttonRect.bottom + 5,
+      right: window.innerWidth - buttonRect.right - 10,
+    });
+    setOpenDropdownId(openDropdownId === deviceId ? null : deviceId);
+  };
+
   const getStatusBadge = (status) => {
-    const badges = {
-      'available': <span className="status-badge-iot available">Available</span>,
-      'assigned': <span className="status-badge-iot assigned">Assigned</span>,
-      'deployed': <span className="status-badge-iot deployed">Deployed</span>,
-      'maintenance': <span className="status-badge-iot maintenance">Maintenance</span>
-    };
-    return badges[status] || <span className="status-badge-iot">{status}</span>;
+    return <span className={`status-badge-iot ${status}`}>{status.charAt(0).toUpperCase() + status.slice(1)}</span>;
   };
 
   const formatDate = (date) => {
@@ -215,6 +241,33 @@ const IoTDevice = () => {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  // Get available actions for a device
+  const getAvailableActions = (device) => {
+    const actions = [
+      { label: 'View', icon: <FaEye />, action: () => openViewModal(device), color: 'primary' }
+    ];
+
+    if (device.status === 'available' || device.status === 'maintenance') {
+      actions.push({ 
+        label: 'Edit', 
+        icon: <FaEdit />, 
+        action: () => openEditModal(device), 
+        color: 'warning' 
+      });
+    }
+
+    if (device.status === 'available') {
+      actions.push({ 
+        label: 'Delete', 
+        icon: <FaTrash />, 
+        action: () => openDeleteModal(device), 
+        color: 'danger' 
+      });
+    }
+
+    return actions;
   };
 
   const filteredDevices = devices.filter(device => {
@@ -359,7 +412,7 @@ const IoTDevice = () => {
             </select>
           </div>
           <div className="search-group">
-            <FaSearch className="search-icon" />
+           
             <input 
               type="text" 
               placeholder="Search by ID, name, model, or serial..." 
@@ -381,48 +434,88 @@ const IoTDevice = () => {
                   <th>Firmware</th>
                   <th>Status</th>
                   <th>Created</th>
-                  <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
+                  <th style={{ width: '140px', textAlign: 'center' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredDevices.length === 0 ? (
                   <tr><td colSpan="7" className="empty-state">No devices found</td></tr>
                 ) : (
-                  filteredDevices.map(device => (
-                    <tr key={device._id}>
-                      <td>
-                        <div className="device-cell">
-                          <FaMicrochip className="device-icon-table" />
-                          <div>
-                            <div className="device-name">{device.deviceName}</div>
-                            <div className="device-id">{device.deviceId}</div>
+                  filteredDevices.map(device => {
+                    const actions = getAvailableActions(device);
+                    const isOpen = openDropdownId === device._id;
+
+                    return (
+                      <tr key={device._id}>
+                        <td>
+                          <div className="device-cell">
+                            <FaMicrochip className="device-icon-table" />
+                            <div>
+                              <div className="device-name">{device.deviceName}</div>
+                              <div className="device-id">{device.deviceId}</div>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td>{device.model}</td>
-                      <td>{device.serialNumber || '—'}</td>
-                      <td>v{device.firmwareVersion}</td>
-                      <td>{getStatusBadge(device.status)}</td>
-                      <td>{formatDate(device.createdAt)}</td>
-                      <td style={{ textAlign: 'center' }}>
-                        <div className="action-buttons">
-                          <button className="action-btn view" onClick={() => openViewModal(device)} title="View Details">
-                            <FaEye />
-                          </button>
-                          {(device.status === 'available' || device.status === 'maintenance') && (
-                            <button className="action-btn edit" onClick={() => openEditModal(device)} title="Edit">
-                              <FaEdit />
+                        </td>
+                        <td>{device.model}</td>
+                        <td>{device.serialNumber || '—'}</td>
+                        <td>v{device.firmwareVersion}</td>
+                        <td>{getStatusBadge(device.status)}</td>
+                        <td>{formatDate(device.createdAt)}</td>
+                        <td style={{ textAlign: 'center' }}>
+                          {actions.length === 1 ? (
+                            // Single action - show as button
+                            <button
+                              className={`single-action-btn ${actions[0].color}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                actions[0].action();
+                              }}
+                            >
+                              {actions[0].icon} {actions[0].label}
                             </button>
+                          ) : (
+                            // Multiple actions - show as dropdown
+                            <div className="action-dropdown-container">
+                              <button
+                                className="action-dropdown-toggle"
+                                ref={el => buttonRefs.current[device._id] = el}
+                                onClick={(e) => handleDropdownClick(e, device._id)}
+                              >
+                                Actions <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
+                              </button>
+
+                              {isOpen && (
+                                <div
+                                  className="action-dropdown-menu"
+                                  ref={dropdownRef}
+                                  style={{
+                                    position: 'fixed',
+                                    top: dropdownPosition.top,
+                                    right: dropdownPosition.right,
+                                    zIndex: 9999,
+                                  }}
+                                >
+                                  {actions.map((action, idx) => (
+                                    <button
+                                      key={idx}
+                                      className={`dropdown-item ${action.color}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        action.action();
+                                        setOpenDropdownId(null);
+                                      }}
+                                    >
+                                      {action.icon} <span>{action.label}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           )}
-                          {device.status === 'available' && (
-                            <button className="action-btn delete" onClick={() => openDeleteModal(device)} title="Delete">
-                              <FaTrash />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

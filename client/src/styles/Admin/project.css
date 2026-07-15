@@ -259,7 +259,7 @@
   font-weight: 600;
 }
 
-/* Status Badges */
+/* Status Badges - Plain Text Version */
 .status-badge-project {
   display: inline-block;
   padding: 4px 12px;
@@ -267,16 +267,43 @@
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
-.status-badge-project.quoted { background: #F1F5F9; color: #64748B; }
-.status-badge-project.approved { background: #DBEAFE; color: #2563EB; }
-.status-badge-project.initial-paid { background: #FEF3C7; color: #D97706; }
-.status-badge-project.full-paid { background: #DCFCE7; color: #16A34A; }
-.status-badge-project.in-progress { background: #E0E7FF; color: #4F46E5; }
-.status-badge-project.progress-paid { background: #DCFCE7; color: #16A34A; }
-.status-badge-project.completed { background: #DCFCE7; color: #16A34A; }
-.status-badge-project.cancelled { background: #FEE2E2; color: #DC2626; }
+/* Remove all background colors from statuses */
+.status-badge-project.quoted { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge-project.approved { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge-project.initial-paid { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge-project.full-paid { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge-project.in-progress { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge-project.progress-paid { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge-project.completed { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge-project.cancelled { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
 
 /* ============================================ */
 /* ACTION DROPDOWN - FIXED POSITIONING */

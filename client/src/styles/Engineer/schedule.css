@@ -1,4 +1,4 @@
-/* styles/Engineer/schedule.css */
+/* styles/Engineer/schedule.css - Clean Professional Design */
 
 :root {
   --primary: #2563EB;
@@ -8,6 +8,7 @@
   --danger: #EF4444;
   --bg-base: #F8FAFC;
   --bg-card: #FFFFFF;
+  --bg-surface: #F1F5F9;
   --text-primary: #0F172A;
   --text-secondary: #475569;
   --text-muted: #64748B;
@@ -50,7 +51,7 @@
 
 .schedule-header-esch p {
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -157,7 +158,7 @@
   background: var(--bg-base);
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 2px solid var(--border-light);
@@ -224,7 +225,7 @@
 }
 
 /* ============================================
-   BADGES
+   BADGES - PLAIN TEXT
    ============================================ */
 .status-badge-esch {
   display: inline-block;
@@ -232,31 +233,38 @@
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--text-primary);
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-esch.scheduled-esch {
-  background: #DBEAFE;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-esch.confirmed-esch {
-  background: #EDE9FE;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-esch.in-progress-esch {
-  background: #FEF3C7;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-esch.completed-esch {
-  background: #DCFCE7;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-esch.cancelled-esch {
-  background: #FEE2E2;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge-esch.rescheduled-esch {
-  background: #FEF3C7;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .type-badge-esch {
@@ -265,23 +273,28 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 500;
-  color: var(--text-primary);
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .type-badge-esch.pre-assessment-esch {
-  background: #EDE9FE;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .type-badge-esch.site-visit-esch {
-  background: #DBEAFE;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .type-badge-esch.installation-esch {
-  background: #FEF3C7;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .type-badge-esch.inspection-esch {
-  background: #DCFCE7;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 /* ============================================
@@ -412,7 +425,7 @@
   background: none;
   border: none;
   font-size: 24px;
-  color: var(--text-primary);
+  color: var(--text-muted);
   cursor: pointer;
   border-radius: var(--radius-md);
   display: flex;
@@ -423,6 +436,7 @@
 
 .modal-close-esch:hover {
   background: var(--bg-base);
+  color: var(--text-primary);
 }
 
 .modal-content-esch h3 {
@@ -452,7 +466,7 @@
 .detail-section-esch p {
   margin: 4px 0;
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--text-secondary);
 }
 
 .detail-section-esch strong {
@@ -488,7 +502,7 @@
    SKELETON LOADING
    ============================================ */
 .skeleton-line-esch {
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-base) 50%, var(--bg-surface) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 6px;
@@ -513,7 +527,7 @@
 .skeleton-select-esch {
   height: 44px;
   width: 180px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-base) 50%, var(--bg-surface) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-md);
@@ -523,7 +537,7 @@
   height: 44px;
   flex: 1;
   min-width: 250px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-base) 50%, var(--bg-surface) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-md);
@@ -531,26 +545,26 @@
 
 .skeleton-table-esch {
   height: 300px;
-  background: #F1F5F9;
+  background: var(--bg-surface);
   border-radius: var(--radius-xl);
 }
 
 .skeleton-table-header-esch {
   height: 44px;
-  background: #E2E8F0;
+  background: var(--bg-base);
   border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
 .skeleton-table-row-esch {
   height: 56px;
-  background: #F1F5F9;
-  border-bottom: 1px solid #E2E8F0;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .skeleton-button-esch {
   height: 44px;
   width: 120px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-base) 50%, var(--bg-surface) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-md);

@@ -86,6 +86,9 @@ const AdminBilling = () => {
   // Transaction history state
   const [transactions, setTransactions] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [transactionPage, setTransactionPage] = useState(1);
+  const [transactionTotalPages, setTransactionTotalPages] = useState(1);
+  const [transactionTotalItems, setTransactionTotalItems] = useState(0);
 
   // Filter and pagination
   const [filter, setFilter] = useState('all');
@@ -135,6 +138,7 @@ const AdminBilling = () => {
 
   useEffect(() => {
     setCurrentPage(1);
+    setTransactionPage(1);
   }, [filter, debouncedSearchTerm, activeTab]);
 
   useEffect(() => {
@@ -171,7 +175,7 @@ const AdminBilling = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('scroll', handleScroll, true);
     };
-  }, [activeTab, filter, currentPage, debouncedSearchTerm, bankTransferFilter, bankTransferPage, debouncedBankSearch]);
+  }, [activeTab, filter, currentPage, debouncedSearchTerm, bankTransferFilter, bankTransferPage, debouncedBankSearch, transactionPage]);
 
   const handleDropdownClick = (event, itemId) => {
     event.stopPropagation();
@@ -456,8 +460,8 @@ const AdminBilling = () => {
       }
 
       setTransactions(allTransactions);
-      setTotalItems(allTransactions.length);
-      setTotalPages(1);
+      setTransactionTotalItems(allTransactions.length);
+      setTransactionTotalPages(Math.ceil(allTransactions.length / itemsPerPage));
     } catch (error) {
       console.error('Error fetching transactions:', error);
       showToast('Failed to fetch transactions', 'error');
@@ -1091,6 +1095,13 @@ const AdminBilling = () => {
     return pages;
   };
 
+  // Get current page items for transactions
+  const getCurrentTransactionItems = () => {
+    const startIndex = (transactionPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return transactions.slice(startIndex, endIndex);
+  };
+
   // ============ SKELETON LOADER ============
   const SkeletonLoader = () => (
     <div className="admin-billing">
@@ -1150,12 +1161,12 @@ const AdminBilling = () => {
               <span className="tab-badge">{bankTransferStats.waiting_verification}</span>
             )}
           </button>
-          <button className={`tab-btn ${activeTab === 'transactions' ? 'active' : ''}`} onClick={() => { setActiveTab('transactions'); setCurrentPage(1); }}>
+          <button className={`tab-btn ${activeTab === 'transactions' ? 'active' : ''}`} onClick={() => { setActiveTab('transactions'); setFilter('all'); setCurrentPage(1); setTransactionPage(1); }}>
             Transactions
           </button>
         </div>
 
-        {/* Filters */}
+        {/* Filters - REMOVED SEARCH ICON */}
         <div className="filters-section">
           <div className="filter-group">
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
@@ -1189,7 +1200,6 @@ const AdminBilling = () => {
             </select>
           </div>
           <div className="search-group">
-            <FaSearch className="search-icon" />
             <input 
               type="text" 
               placeholder="Search..." 
@@ -1551,50 +1561,79 @@ const AdminBilling = () => {
 
         {/* TRANSACTIONS TABLE */}
         {activeTab === 'transactions' && (
-          <div className="payments-table-container">
-            <table className="payments-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Type</th>
-                  <th>Reference</th>
-                  <th>Invoice</th>
-                  <th>Client</th>
-                  <th>Amount</th>
-                  <th>Method</th>
-                  <th>Status</th>
-                  <th>Receipt</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.length === 0 ? (
-                  <tr><td colSpan="9" className="empty-state">No transactions found</td></tr>
-                ) : (
-                  transactions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(transaction => (
-                    <tr key={transaction.id}>
-                      <td>{formatDate(transaction.date)}</td>
-                      <td><span className={`transaction-type ${transaction.type === 'Pre-Assessment' ? 'pre' : 'project'}`}>{transaction.type}</span></td>
-                      <td>{transaction.reference}</td>
-                      <td>{transaction.invoiceNumber}</td>
-                      <td><strong>{transaction.client}</strong></td>
-                      <td className="amount">{formatCurrency(transaction.amount)}</td>
-                      <td>{transaction.method?.toUpperCase()}</td>
-                      <td>{getPaymentStatusBadge(transaction.status)}</td>
-                      <td className="receipt-cell">
-                        {transaction.receiptUrl ? (
-                          <a href={transaction.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link">
-                            <FaReceipt /> View
-                          </a>
-                        ) : (
-                          <span className="no-receipt">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+          <>
+            <div className="payments-table-container">
+              <table className="payments-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Reference</th>
+                    <th>Invoice</th>
+                    <th>Client</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                    <th>Receipt</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactions.length === 0 ? (
+                    <tr><td colSpan="9" className="empty-state">No transactions found</td></tr>
+                  ) : (
+                    getCurrentTransactionItems().map(transaction => (
+                      <tr key={transaction.id}>
+                        <td>{formatDate(transaction.date)}</td>
+                        <td><span className={`transaction-type ${transaction.type === 'Pre-Assessment' ? 'pre' : 'project'}`}>{transaction.type}</span></td>
+                        <td>{transaction.reference}</td>
+                        <td>{transaction.invoiceNumber}</td>
+                        <td><strong>{transaction.client}</strong></td>
+                        <td className="amount">{formatCurrency(transaction.amount)}</td>
+                        <td>{transaction.method?.toUpperCase()}</td>
+                        <td>{getPaymentStatusBadge(transaction.status)}</td>
+                        <td className="receipt-cell">
+                          {transaction.receiptUrl ? (
+                            <a href={transaction.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link">
+                              <FaReceipt /> View
+                            </a>
+                          ) : (
+                            <span className="no-receipt">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {transactionTotalPages > 1 && (
+              <div className="pagination">
+                <div className="pagination-info">
+                  Showing {((transactionPage - 1) * itemsPerPage) + 1} to {Math.min(transactionPage * itemsPerPage, transactionTotalItems)} of {transactionTotalItems} entries
+                </div>
+                <div className="pagination-controls">
+                  <button className="page-btn" onClick={() => setTransactionPage(p => Math.max(1, p - 1))} disabled={transactionPage === 1}>
+                    <FaChevronLeft /> Previous
+                  </button>
+                  
+                  {getPageNumbers(transactionTotalPages, transactionPage).map(page => (
+                    <button
+                      key={page}
+                      className={`page-number ${transactionPage === page ? 'active' : ''}`}
+                      onClick={() => setTransactionPage(page)}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  
+                  <button className="page-btn" onClick={() => setTransactionPage(p => Math.min(transactionTotalPages, p + 1))} disabled={transactionPage === transactionTotalPages}>
+                    Next <FaChevronRight />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {/* ============================================ */}

@@ -251,7 +251,7 @@
   color: var(--text-muted);
 }
 
-/* Status Badges */
+/* Status Badges - Plain Text */
 .status-badge {
   display: inline-block;
   padding: 4px 12px;
@@ -259,22 +259,60 @@
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
-.status-badge.pending { background: #FEF3C7; color: #D97706; }
-.status-badge.for-verification { background: #FEF3C7; color: #D97706; }
-.status-badge.paid { background: #DCFCE7; color: #16A34A; }
-.status-badge.partial { background: #FEF3C7; color: #D97706; }
-.status-badge.failed { background: #FEE2E2; color: #DC2626; }
-.status-badge.overdue { background: #FEE2E2; color: #DC2626; }
-.status-badge.waiting { background: #FEF3C7; color: #D97706; }
-.status-badge.verified { background: #DCFCE7; color: #16A34A; }
-.status-badge.rejected { background: #FEE2E2; color: #DC2626; }
-.status-badge.scheduled { background: #DBEAFE; color: #2563EB; }
-.status-badge.deployed { background: #E0E7FF; color: #4F46E5; }
-.status-badge.collecting { background: #EDE9FE; color: #7C3AED; }
+.status-badge.pending { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge.for-verification { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge.paid { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge.partial { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge.failed { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge.overdue { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge.waiting { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge.verified { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge.rejected { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge.scheduled { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge.deployed { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.status-badge.collecting { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
 
-/* Invoice Type Badges */
+/* Invoice Type Badges - Plain Text */
 .invoice-type {
   display: inline-block;
   padding: 2px 10px;
@@ -282,15 +320,32 @@
   font-size: 11px;
   font-weight: 500;
   white-space: nowrap;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
-.invoice-type.initial { background: #DBEAFE; color: #2563EB; }
-.invoice-type.progress { background: #FEF3C7; color: #D97706; }
-.invoice-type.final { background: #DCFCE7; color: #16A34A; }
-.invoice-type.full { background: #E0E7FF; color: #4F46E5; }
-.invoice-type.additional { background: #F3E8FF; color: #7C3AED; }
+.invoice-type.initial { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.invoice-type.progress { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.invoice-type.final { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.invoice-type.full { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.invoice-type.additional { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
 
-/* Gateway Badges */
+/* Gateway Badges - Plain Text */
 .gateway-badge {
   display: inline-block;
   padding: 2px 10px;
@@ -298,11 +353,22 @@
   font-size: 11px;
   font-weight: 500;
   white-space: nowrap;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
-.gateway-badge.paymongo { background: #DCFCE7; color: #16A34A; }
-.gateway-badge.cash { background: #DBEAFE; color: #2563EB; }
-.gateway-badge.manual { background: #F1F5F9; color: #64748B; }
+.gateway-badge.paymongo { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.gateway-badge.cash { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.gateway-badge.manual { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
 
 /* Receipt */
 .receipt-cell {
@@ -327,30 +393,30 @@
   color: var(--text-muted);
 }
 
-/* Verified Badges */
+/* Verified Badges - Plain Text */
 .verified-badge {
   display: inline-block;
   padding: 4px 12px;
-  background: #DCFCE7;
-  color: #16A34A;
   border-radius: 30px;
   font-size: 11px;
   font-weight: 600;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 .verified-badge.auto-verified {
-  background: #DBEAFE;
-  color: #2563EB;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 .failed-badge {
   display: inline-block;
   padding: 4px 12px;
-  background: #FEE2E2;
-  color: #DC2626;
   border-radius: 30px;
   font-size: 11px;
   font-weight: 600;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
 /* Action Dropdown - NO CLIPPING */
@@ -435,17 +501,25 @@
 .dropdown-item.warning:hover { background: var(--warning); color: white; }
 .dropdown-item.info:hover { background: var(--primary); color: white; }
 
-/* Transaction Type */
+/* Transaction Type - Plain Text */
 .transaction-type {
   display: inline-block;
   padding: 2px 10px;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
-.transaction-type.pre { background: #DBEAFE; color: #2563EB; }
-.transaction-type.project { background: #E0E7FF; color: #4F46E5; }
+.transaction-type.pre { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
+.transaction-type.project { 
+  background: none !important; 
+  color: var(--text-primary) !important; 
+}
 
 /* Bank Transfer Table */
 .customer-cell small {
@@ -1358,4 +1432,3 @@
     justify-content: center;
   }
 }
-

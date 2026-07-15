@@ -141,6 +141,7 @@
   gap: 16px;
   margin-bottom: 24px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .filter-group select {
@@ -153,6 +154,7 @@
   cursor: pointer;
   min-width: 180px;
   transition: all 0.2s;
+  height: 48px;
 }
 
 .filter-group select:focus {
@@ -161,36 +163,35 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+/* Search Group */
 .search-group {
   flex: 1;
   max-width: 400px;
   position: relative;
 }
 
-.search-group .search-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
-  pointer-events: none;
-}
-
 .search-group input {
   width: 100%;
-  padding: 12px 16px 12px 42px;
+  padding: 12px 16px;
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   font-size: 14px;
   color: var(--text-primary);
   transition: all 0.2s;
+  box-sizing: border-box;
+  height: 48px;
 }
 
 .search-group input:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-group input::placeholder {
+  color: var(--text-muted);
+  font-size: 14px;
 }
 
 /* Table */
@@ -259,7 +260,7 @@
   color: var(--text-primary);
 }
 
-/* Status Badges */
+/* Status Badges - Plain Text */
 .status-badge {
   display: inline-block;
   padding: 4px 12px;
@@ -267,20 +268,9 @@
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
-
-.status-badge.pending { background: #FEF3C7; color: #D97706; }
-.status-badge.assigned { background: #DBEAFE; color: #2563EB; }
-.status-badge.processing { background: #E0E7FF; color: #4F46E5; }
-.status-badge.completed { background: #DCFCE7; color: #16A34A; }
-.status-badge.pending-review { background: #FEF3C7; color: #D97706; }
-.status-badge.verification { background: #FEE2E2; color: #DC2626; }
-.status-badge.paid { background: #DCFCE7; color: #16A34A; }
-.status-badge.scheduled { background: #DBEAFE; color: #2563EB; }
-.status-badge.site-visit { background: #E0E7FF; color: #4F46E5; }
-.status-badge.deployed { background: #FCE7F3; color: #BE185D; }
-.status-badge.collecting { background: #EDE9FE; color: #7C3AED; }
-.status-badge.cancelled { background: #FEE2E2; color: #DC2626; }
 
 /* ============================================ */
 /* ACTION DROPDOWN - FIXED POSITIONING */
@@ -305,6 +295,7 @@
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
+  height: 36px;
 }
 
 .action-dropdown-toggle:hover {
@@ -321,7 +312,6 @@
   transform: rotate(180deg);
 }
 
-/* FIXED POSITION DROPDOWN - NO CLIPPING */
 .action-dropdown-menu {
   position: fixed;
   min-width: 220px;
@@ -437,6 +427,7 @@
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
+  height: 36px;
 }
 
 .page-btn:hover:not(:disabled) {
@@ -488,6 +479,7 @@
   align-items: center;
   justify-content: center;
   z-index: 10000;
+  padding: 20px;
 }
 
 .modal {
@@ -495,10 +487,12 @@
   border-radius: var(--radius-2xl);
   width: 90%;
   max-width: 520px;
-  max-height: 85vh;
+  max-height: 90vh;
   overflow: hidden;
   box-shadow: var(--shadow-lg);
   animation: modalFadeIn 0.2s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes modalFadeIn {
@@ -522,6 +516,7 @@
   align-items: center;
   padding: 20px 24px;
   border-bottom: 1px solid var(--border-light);
+  flex-shrink: 0;
 }
 
 .modal-header h3 {
@@ -553,8 +548,8 @@
 
 .modal-body {
   padding: 24px;
-  max-height: 60vh;
   overflow-y: auto;
+  flex: 1;
 }
 
 .modal-actions {
@@ -563,6 +558,7 @@
   justify-content: flex-end;
   padding: 20px 24px;
   border-top: 1px solid var(--border-light);
+  flex-shrink: 0;
 }
 
 .detail-row {
@@ -675,6 +671,169 @@
   color: #0C4A6E;
   font-size: 13px;
   line-height: 1.4;
+}
+
+/* ============================================ */
+/* ENGINEER CARD SELECTION - SMALLER SIZING */
+/* ============================================ */
+.assign-engineer-modal {
+  max-width: 680px !important;
+  width: 92% !important;
+  max-height: 85vh !important;
+}
+
+.assign-engineer-modal .modal-body {
+  padding: 20px 24px !important;
+  overflow-y: visible !important;
+  max-height: none !important;
+}
+
+.assign-engineer-modal .form-group {
+  margin-bottom: 16px;
+}
+
+.assign-engineer-modal .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.assign-engineer-modal .detail-row {
+  padding: 6px 0;
+}
+
+.assign-engineer-modal .detail-row strong {
+  font-size: 14px;
+}
+
+.assign-engineer-modal .modal-header {
+  padding: 18px 24px;
+  flex-shrink: 0;
+}
+
+.assign-engineer-modal .modal-header h3 {
+  font-size: 18px;
+}
+
+.assign-engineer-modal .modal-actions {
+  padding: 16px 24px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.assign-engineer-modal .modal-actions button {
+  padding: 10px 24px;
+  font-size: 14px;
+}
+
+.assign-engineer-modal .form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+}
+
+.assign-engineer-modal .form-group input,
+.assign-engineer-modal .form-group textarea {
+  padding: 10px 14px;
+  font-size: 13px;
+  border-radius: var(--radius-md);
+}
+
+.assign-engineer-modal .form-group textarea {
+  min-height: 60px;
+  resize: vertical;
+  max-height: 80px;
+}
+
+.engineer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 2px 0;
+  overflow: visible !important;
+  max-height: none !important;
+}
+
+.engineer-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-card);
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  min-height: 50px;
+}
+
+.engineer-card:hover {
+  border-color: var(--border-medium);
+  background: var(--bg-base);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.engineer-card.selected {
+  border-color: var(--primary);
+  background: #EFF6FF;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+  transform: translateY(-1px);
+}
+
+.engineer-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.engineer-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.engineer-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+  line-height: 1.3;
+}
+
+.engineer-email {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.engineer-selected-badge {
+  color: var(--success);
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+
+.no-engineers {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 24px 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* Remove scrollbar styling since it's not scrollable anymore */
+.engineer-grid::-webkit-scrollbar {
+  display: none;
 }
 
 /* Buttons */
@@ -837,7 +996,9 @@
   100% { background-position: -200% 0; }
 }
 
-/* Responsive */
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
 @media (max-width: 1200px) {
   .assessment-stats {
     grid-template-columns: repeat(4, 1fr);
@@ -908,6 +1069,64 @@
     flex-direction: column;
     gap: 2px;
   }
+
+  /* Engineer Modal Responsive */
+  .assign-engineer-modal {
+    max-width: 95% !important;
+    width: 95% !important;
+    max-height: 90vh !important;
+  }
+  
+  .assign-engineer-modal .modal-body {
+    padding: 16px 18px !important;
+  }
+  
+  .assign-engineer-modal .modal-header {
+    padding: 14px 18px !important;
+  }
+  
+  .assign-engineer-modal .modal-header h3 {
+    font-size: 17px;
+  }
+  
+  .assign-engineer-modal .modal-actions {
+    padding: 14px 18px !important;
+    flex-direction: column;
+  }
+  
+  .assign-engineer-modal .modal-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .engineer-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .engineer-card {
+    padding: 10px 12px;
+    min-height: 44px;
+  }
+  
+  .engineer-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  .engineer-name {
+    font-size: 13px;
+  }
+  
+  .engineer-email {
+    font-size: 11px;
+  }
+  
+  .assign-engineer-modal .form-group textarea {
+    min-height: 50px;
+    max-height: 70px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -941,5 +1160,47 @@
   .dropdown-item {
     padding: 10px 14px;
     font-size: 12px;
+  }
+
+  /* Engineer Modal Mobile */
+  .assign-engineer-modal .modal-body {
+    padding: 14px 14px !important;
+  }
+  
+  .assign-engineer-modal .modal-header {
+    padding: 12px 14px !important;
+  }
+  
+  .assign-engineer-modal .modal-actions {
+    padding: 12px 14px !important;
+  }
+  
+  .assign-engineer-modal .modal-actions button {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  
+  .engineer-card {
+    padding: 8px 10px;
+    min-height: 38px;
+    gap: 8px;
+  }
+  
+  .engineer-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  
+  .engineer-name {
+    font-size: 12px;
+  }
+  
+  .engineer-email {
+    font-size: 10px;
+  }
+  
+  .engineer-selected-badge {
+    font-size: 14px;
   }
 }

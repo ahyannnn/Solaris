@@ -1,4 +1,4 @@
-/* styles/Customer/dashboard.css - Complete Updated */
+/* styles/Customer/dashboard.css - Clean Professional Design */
 
 /* ============================================
    CUSTOMER DASHBOARD - Modern Clean Design
@@ -104,15 +104,15 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background: #FEF2F2;
-  border: 1px solid #FECACA;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
 
 .alert-icon-cusdash {
-  color: #DC2626;
+  color: var(--text-muted);
   font-size: 1.5rem;
   flex-shrink: 0;
 }
@@ -124,13 +124,13 @@
 .alert-content-cusdash strong {
   display: block;
   font-size: 0.95rem;
-  color: #991B1B;
+  color: var(--text-primary);
   margin-bottom: 0.1rem;
 }
 
 .alert-content-cusdash p {
   font-size: 0.85rem;
-  color: #7F1D1D;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -139,7 +139,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1.25rem;
-  background: #DC2626;
+  background: var(--primary);
   color: #fff;
   border: none;
   border-radius: var(--radius-md);
@@ -151,7 +151,7 @@
 }
 
 .alert-action-cusdash:hover {
-  background: #B91C1C;
+  background: var(--primary-hover);
   transform: translateY(-2px);
   color: #fff;
 }
@@ -194,7 +194,7 @@
 .quick-action-item-cusdash:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
-  border-color: var(--sidebar-accent);
+  border-color: var(--border-medium);
 }
 
 .quick-action-icon-cusdash {
@@ -206,6 +206,8 @@
   justify-content: center;
   font-size: 1.1rem;
   flex-shrink: 0;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
 }
 
 .quick-action-label-cusdash {
@@ -223,7 +225,7 @@
 
 .quick-action-item-cusdash:hover .quick-action-arrow-cusdash {
   transform: translateX(4px);
-  color: var(--sidebar-accent);
+  color: var(--text-secondary);
 }
 
 /* ============================================
@@ -271,8 +273,8 @@
 
 .project-select-cusdash:focus {
   outline: none;
-  border-color: var(--sidebar-accent);
-  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .select-icon-cusdash {
@@ -306,7 +308,7 @@
 .stat-card-cusdash:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
-  border-color: var(--sidebar-accent);
+  border-color: var(--border-medium);
 }
 
 .stat-content-cusdash {
@@ -373,14 +375,14 @@
   align-items: center;
   gap: 0.4rem;
   font-size: 0.85rem;
-  color: var(--sidebar-accent);
+  color: var(--primary);
   text-decoration: none;
   font-weight: 500;
   transition: all var(--transition-base);
 }
 
 .view-all-link-cusdash:hover {
-  color: var(--sidebar-accent-hover);
+  color: var(--primary-hover);
   gap: 0.6rem;
 }
 
@@ -435,7 +437,7 @@
   margin: 0;
 }
 
-/* Status Badges */
+/* Status Badges - Plain */
 .status-badge-cusdash {
   display: inline-block;
   padding: 0.25rem 0.75rem;
@@ -446,51 +448,53 @@
   letter-spacing: 0.3px;
   white-space: nowrap;
   flex-shrink: 0;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-pending-cusdash {
-  background: #FEF3C7;
-  color: #92400E;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-paid-cusdash {
-  background: #D1FAE5;
-  color: #065F46;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-verification-cusdash {
-  background: #E0E7FF;
-  color: #3730A3;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-processing-cusdash {
-  background: #FEF3C7;
-  color: #92400E;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-quoted-cusdash {
-  background: #DBEAFE;
-  color: #1E40AF;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-approved-cusdash {
-  background: #D1FAE5;
-  color: #065F46;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-progress-cusdash {
-  background: #E0E7FF;
-  color: #3730A3;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-completed-cusdash {
-  background: #D1FAE5;
-  color: #065F46;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-scheduled-cusdash {
-  background: #FEF3C7;
-  color: #92400E;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 /* Project Content */
@@ -519,7 +523,7 @@
 }
 
 .progress-ring-fill-cusdash {
-  stroke: var(--sidebar-accent);
+  stroke: var(--primary);
   transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -587,14 +591,14 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: var(--sidebar-accent);
+  color: var(--primary);
   text-decoration: none;
   font-weight: 500;
   transition: all var(--transition-base);
 }
 
 .action-link-cusdash:hover {
-  color: var(--sidebar-accent-hover);
+  color: var(--primary-hover);
   gap: 0.7rem;
 }
 
@@ -607,7 +611,7 @@
 }
 
 /* ============================================
-   MILESTONES
+   MILESTONES - Clean Colors
    ============================================ */
 .milestones-section-cusdash {
   margin-top: 1.25rem;
@@ -629,6 +633,7 @@
   justify-content: space-between;
   align-items: flex-start;
   position: relative;
+  gap: 0.5rem;
 }
 
 .milestone-item-cusdash {
@@ -647,11 +652,11 @@
 }
 
 .milestone-item-cusdash.completed-cusdash .milestone-icon-cusdash {
-  color: #10B981;
+  color: var(--success) !important;
 }
 
 .milestone-item-cusdash.active-cusdash .milestone-icon-cusdash {
-  color: var(--sidebar-accent);
+  color: var(--primary) !important;
 }
 
 .milestone-info-cusdash {
@@ -665,20 +670,22 @@
   font-size: 0.7rem;
   color: var(--text-muted);
   text-align: center;
+  transition: color var(--transition-base);
 }
 
 .milestone-item-cusdash.completed-cusdash .milestone-label-cusdash {
-  color: #10B981;
+  color: var(--success) !important;
+  font-weight: 500;
 }
 
 .milestone-item-cusdash.active-cusdash .milestone-label-cusdash {
-  color: var(--sidebar-accent);
+  color: var(--primary) !important;
   font-weight: 600;
 }
 
 .milestone-status-cusdash {
   font-size: 0.6rem;
-  color: var(--sidebar-accent);
+  color: var(--primary);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -687,15 +694,16 @@
 .milestone-line-cusdash {
   position: absolute;
   top: 0.6rem;
-  left: calc(50% + 0.6rem);
-  width: calc(100% - 1.2rem);
+  left: calc(50% + 1.2rem);
+  width: calc(100% - 2.4rem);
   height: 2px;
   background: var(--border-light);
   pointer-events: none;
+  transition: background var(--transition-base);
 }
 
 .milestone-item-cusdash.completed-cusdash .milestone-line-cusdash {
-  background: #10B981;
+  background: var(--success) !important;
 }
 
 /* ============================================
@@ -744,6 +752,8 @@
   justify-content: center;
   font-size: 1rem;
   flex-shrink: 0;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
 }
 
 .activity-content-cusdash {
@@ -809,7 +819,7 @@
 }
 
 .appointments-icon-cusdash {
-  color: var(--sidebar-accent);
+  color: var(--text-secondary);
 }
 
 .appointments-list-cusdash {
@@ -941,14 +951,14 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: var(--sidebar-accent);
+  color: var(--primary);
   text-decoration: none;
   font-weight: 500;
   transition: all var(--transition-base);
 }
 
 .link-cusdash:hover {
-  color: var(--sidebar-accent-hover);
+  color: var(--primary-hover);
   gap: 0.7rem;
 }
 
@@ -1203,159 +1213,5 @@
   
   .quick-action-label-cusdash {
     font-size: 0.8rem;
-  }
-}
-
-/* ============================================
-   MILESTONES - Fixed Colors
-   ============================================ */
-.milestones-section-cusdash {
-  margin-top: 1.25rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--border-light);
-}
-
-.milestones-title-cusdash {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin: 0 0 0.75rem 0;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.milestones-list-cusdash {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  position: relative;
-  gap: 0.5rem;
-}
-
-.milestone-item-cusdash {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  flex: 1;
-  position: relative;
-}
-
-/* Default state - not completed, not active */
-.milestone-item-cusdash .milestone-icon-cusdash {
-  font-size: 1.2rem;
-  color: var(--text-muted);
-  transition: all var(--transition-base);
-}
-
-.milestone-circle-cusdash {
-  color: var(--text-muted);
-}
-
-/* Completed state - GREEN CHECK */
-.milestone-item-cusdash.completed-cusdash .milestone-icon-cusdash {
-  color: #10B981 !important;
-}
-
-.milestone-item-cusdash.completed-cusdash .milestone-check-cusdash {
-  color: #10B981 !important;
-}
-
-/* Active state - ORANGE (current) */
-.milestone-item-cusdash.active-cusdash .milestone-icon-cusdash {
-  color: var(--sidebar-accent) !important;
-}
-
-.milestone-item-cusdash.active-cusdash .milestone-circle-cusdash {
-  color: var(--sidebar-accent) !important;
-}
-
-/* Active but also completed? Should never happen, but just in case */
-.milestone-item-cusdash.completed-cusdash.active-cusdash .milestone-icon-cusdash {
-  color: #10B981 !important;
-}
-
-.milestone-item-cusdash.completed-cusdash.active-cusdash .milestone-check-cusdash {
-  color: #10B981 !important;
-}
-
-.milestone-info-cusdash {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.1rem;
-}
-
-.milestone-label-cusdash {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  text-align: center;
-  transition: color var(--transition-base);
-}
-
-/* Completed label - GREEN */
-.milestone-item-cusdash.completed-cusdash .milestone-label-cusdash {
-  color: #10B981 !important;
-  font-weight: 500;
-}
-
-/* Active label - ORANGE */
-.milestone-item-cusdash.active-cusdash .milestone-label-cusdash {
-  color: var(--sidebar-accent) !important;
-  font-weight: 600;
-}
-
-/* Active but also completed - should be green */
-.milestone-item-cusdash.completed-cusdash.active-cusdash .milestone-label-cusdash {
-  color: #10B981 !important;
-}
-
-.milestone-status-cusdash {
-  font-size: 0.6rem;
-  color: var(--sidebar-accent);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Line between milestones */
-.milestone-line-cusdash {
-  position: absolute;
-  top: 0.6rem;
-  left: calc(50% + 1.2rem);
-  width: calc(100% - 2.4rem);
-  height: 2px;
-  background: var(--border-light);
-  pointer-events: none;
-  transition: background var(--transition-base);
-}
-
-/* Completed line - GREEN */
-.milestone-line-cusdash.completed-line-cusdash {
-  background: #10B981 !important;
-}
-
-/* If a milestone is completed, its line should be green */
-.milestone-item-cusdash.completed-cusdash .milestone-line-cusdash {
-  background: #10B981 !important;
-}
-
-/* If the next milestone is active, the line before it should be green */
-.milestone-item-cusdash.completed-cusdash + .milestone-item-cusdash .milestone-line-cusdash {
-  background: #10B981 !important;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .milestones-list-cusdash {
-    gap: 0.25rem;
-  }
-  
-  .milestone-label-cusdash {
-    font-size: 0.6rem;
-  }
-  
-  .milestone-item-cusdash .milestone-icon-cusdash {
-    font-size: 1rem;
   }
 }

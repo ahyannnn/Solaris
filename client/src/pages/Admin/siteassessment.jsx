@@ -358,27 +358,14 @@ const SiteAssessment = () => {
     return new Date(date).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
+  const formatStatusText = (status) => {
+    if (!status) return '';
+    return status.replace(/_/g, ' ').toUpperCase();
+  };
+
   const getStatusBadge = (status, type) => {
-    const badges = {
-      'free-quote': {
-        'pending': <span className="status-badge pending">Pending</span>,
-        'assigned': <span className="status-badge assigned">Assigned</span>,
-        'processing': <span className="status-badge processing">Processing</span>,
-        'completed': <span className="status-badge completed">Completed</span>
-      },
-      'pre-assessment': {
-        'pending_review': <span className="status-badge pending-review">Pending Review</span>,
-        'pending_payment': <span className="status-badge pending">Pending Payment</span>,
-        'for_verification': <span className="status-badge verification">For Verification</span>,
-        'paid': <span className="status-badge paid">Paid</span>,
-        'scheduled': <span className="status-badge scheduled">Scheduled</span>,
-        'site_visit_ongoing': <span className="status-badge site-visit">Site Visit</span>,
-        'device_deployed': <span className="status-badge deployed">Device Deployed</span>,
-        'data_collecting': <span className="status-badge collecting">Collecting</span>,
-        'completed': <span className="status-badge completed">Completed</span>
-      }
-    };
-    return badges[type]?.[status] || <span className="status-badge">{status}</span>;
+    const formattedStatus = formatStatusText(status);
+    return <span className="status-badge">{formattedStatus}</span>;
   };
 
   const getDisplayStatus = (item) => {
@@ -518,12 +505,10 @@ const SiteAssessment = () => {
     </div>
   );
 
-  // Calculate pagination
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
-  // Generate page numbers
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
@@ -596,8 +581,12 @@ const SiteAssessment = () => {
             </select>
           </div>
           <div className="search-group">
-            <FaSearch className="search-icon" />
-            <input type="text" placeholder="Search by client name or reference..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <input 
+              type="text" 
+              placeholder="Search by client name or reference..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+            />
           </div>
         </div>
 
@@ -816,21 +805,84 @@ const SiteAssessment = () => {
           </div>
         )}
 
-        {/* Assign Engineer Modal */}
+        {/* Assign Engineer Modal - With Card Selection */}
         {showAssignEngineerModal && selectedItem && (
           <div className="modal-overlay" onClick={() => setShowAssignEngineerModal(false)}>
-            <div className="modal" onClick={e => e.stopPropagation()}>
-              <div className="modal-header"><h3>Assign Engineer</h3><button className="modal-close" onClick={() => setShowAssignEngineerModal(false)}>×</button></div>
+            <div className="modal assign-engineer-modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Assign Engineer</h3>
+                <button className="modal-close" onClick={() => setShowAssignEngineerModal(false)}>×</button>
+              </div>
               <div className="modal-body">
-                <div className="detail-row"><span>Reference:</span><strong>{activeTab === 'free-quotes' ? selectedItem.quotationReference : selectedItem.bookingReference}</strong></div>
-                <div className="detail-row"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
-                <div className="form-group"><label>Select Engineer</label><select value={engineerId} onChange={(e) => setEngineerId(e.target.value)}><option value="">Select...</option>{engineers.map(eng => <option key={eng._id} value={eng._id}>{eng.fullName} ({eng.email})</option>)}</select></div>
-                {activeTab !== 'free-quotes' && <div className="form-group"><label>Site Visit Date</label><input type="date" value={siteVisitDate} onChange={(e) => setSiteVisitDate(e.target.value)} /></div>}
-                <div className="form-group"><label>Notes</label><textarea rows="3" value={siteVisitNotes} onChange={(e) => setSiteVisitNotes(e.target.value)} /></div>
+                <div className="detail-row">
+                  <span>Reference:</span>
+                  <strong>{activeTab === 'free-quotes' ? selectedItem.quotationReference : selectedItem.bookingReference}</strong>
+                </div>
+                <div className="detail-row">
+                  <span>Client:</span>
+                  <strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong>
+                </div>
+                
+                <div className="form-group">
+                  <label>Select Engineer</label>
+                  <div className="engineer-grid">
+                    {engineers.length === 0 ? (
+                      <div className="no-engineers">No engineers available</div>
+                    ) : (
+                      engineers.map(eng => (
+                        <div 
+                          key={eng._id}
+                          className={`engineer-card ${engineerId === eng._id ? 'selected' : ''}`}
+                          onClick={() => setEngineerId(eng._id)}
+                        >
+                          <div className="engineer-avatar">
+                            <span>{eng.fullName?.charAt(0) || 'E'}</span>
+                          </div>
+                          <div className="engineer-info">
+                            <div className="engineer-name">{eng.fullName || 'Engineer'}</div>
+                            <div className="engineer-email">{eng.email}</div>
+                          </div>
+                          {engineerId === eng._id && (
+                            <div className="engineer-selected-badge">
+                              <FaCheckCircle />
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {activeTab !== 'free-quotes' && (
+                  <div className="form-group">
+                    <label>Site Visit Date</label>
+                    <input 
+                      type="date" 
+                      value={siteVisitDate} 
+                      onChange={(e) => setSiteVisitDate(e.target.value)} 
+                    />
+                  </div>
+                )}
+                
+                <div className="form-group">
+                  <label>Notes</label>
+                  <textarea 
+                    rows="3" 
+                    value={siteVisitNotes} 
+                    onChange={(e) => setSiteVisitNotes(e.target.value)} 
+                    placeholder="Add any special instructions or notes..."
+                  />
+                </div>
               </div>
               <div className="modal-actions">
                 <button className="cancel-btn" onClick={() => setShowAssignEngineerModal(false)}>Cancel</button>
-                <button className="assign-btn" onClick={handleAssignEngineer} disabled={!engineerId || isSubmitting}>{isSubmitting ? 'Assigning...' : 'Assign'}</button>
+                <button 
+                  className="assign-btn" 
+                  onClick={handleAssignEngineer} 
+                  disabled={!engineerId || isSubmitting}
+                >
+                  {isSubmitting ? 'Assigning...' : 'Assign Engineer'}
+                </button>
               </div>
             </div>
           </div>

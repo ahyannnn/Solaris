@@ -1,6 +1,6 @@
 // pages/Auth/LoginPage.jsx
-import React, { useState } from 'react';
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaClock } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithPopup } from "firebase/auth";
@@ -21,6 +21,22 @@ const LoginPage = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState('');
+  
+  // New state for login attempts and lockout
+  const [attemptsRemaining, setAttemptsRemaining] = useState(null);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockMinutesRemaining, setLockMinutesRemaining] = useState(0);
+  const [lockTimer, setLockTimer] = useState(null);
+  const [emailError, setEmailError] = useState('');
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (lockTimer) {
+        clearInterval(lockTimer);
+      }
+    };
+  }, [lockTimer]);
 
   // Helper to clean token
   const cleanToken = (token) => {
@@ -28,7 +44,7 @@ const LoginPage = () => {
     return token.replace(/^["']|["']$/g, '').trim();
   };
 
-  // IMPROVED: Selective storage clearing (NO FLICKERING!)
+  // Selective storage clearing
   const clearAuthStorage = () => {
     const keysToRemove = [
       'token',
@@ -42,10 +58,9 @@ const LoginPage = () => {
       localStorage.removeItem(key);
       sessionStorage.removeItem(key);
     });
-    // DON'T clear everything - preserves Firebase state & prevents conflicts
   };
 
-  // IMPROVED: Error parsing helper
+  // Error parsing helper
   const parseError = (responseText) => {
     try {
       if (responseText) {
@@ -64,11 +79,25 @@ const LoginPage = () => {
       ...formData,
       [name]: value
     });
+    
+    // Clear errors when user types
     if (errors[name]) {
       setErrors({
         ...errors,
         [name]: ''
       });
+    }
+    
+    // Reset lock-related errors when email changes
+    if (name === 'email') {
+      setIsLocked(false);
+      setAttemptsRemaining(null);
+      setLockMinutesRemaining(0);
+      if (lockTimer) {
+        clearInterval(lockTimer);
+        setLockTimer(null);
+      }
+      setEmailError('');
     }
   };
 
@@ -87,10 +116,36 @@ const LoginPage = () => {
     return newErrors;
   };
 
+  // Start lock countdown timer
+  const startLockTimer = (minutes) => {
+    if (lockTimer) {
+      clearInterval(lockTimer);
+    }
+    
+    let remainingMinutes = minutes;
+    setLockMinutesRemaining(remainingMinutes);
+    
+    const timer = setInterval(() => {
+      remainingMinutes -= 1;
+      setLockMinutesRemaining(remainingMinutes);
+      
+      if (remainingMinutes <= 0) {
+        clearInterval(timer);
+        setLockTimer(null);
+        setIsLocked(false);
+        setAttemptsRemaining(5);
+        setErrors({});
+        // Allow user to try again
+      }
+    }, 60000); // Update every minute
+    
+    setLockTimer(timer);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (isNavigating) return;
+    if (isNavigating || isLocked) return;
 
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
@@ -101,6 +156,7 @@ const LoginPage = () => {
     setIsLoading(true);
     setErrors({});
     setIsNavigating(true);
+    setEmailError('');
 
     try {
       const apiUrl = `${import.meta.env.VITE_API_URL}/api/auth/login`;
@@ -120,12 +176,44 @@ const LoginPage = () => {
       const responseText = await response.text();
 
       if (!response.ok) {
-        throw new Error(parseError(responseText));
+        try {
+          const errorData = JSON.parse(responseText);
+          
+          // Check for lock status
+          if (errorData.isLocked) {
+            setIsLocked(true);
+            setAttemptsRemaining(0);
+            const minutes = errorData.lockMinutesRemaining || 10;
+            startLockTimer(minutes);
+            setErrors({ general: errorData.message });
+            return;
+          }
+          
+          // Handle attempts remaining
+          if (errorData.attemptsRemaining !== undefined) {
+            setAttemptsRemaining(errorData.attemptsRemaining);
+            setErrors({ general: errorData.message });
+            return;
+          }
+          
+          throw new Error(errorData.message || 'Login failed');
+        } catch (parseError) {
+          throw new Error(parseError(responseText));
+        }
       }
 
       const data = JSON.parse(responseText);
 
       if (data.token && data.user) {
+        // Reset lock state on successful login
+        setIsLocked(false);
+        setAttemptsRemaining(null);
+        setLockMinutesRemaining(0);
+        if (lockTimer) {
+          clearInterval(lockTimer);
+          setLockTimer(null);
+        }
+
         clearAuthStorage();
 
         const storage = sessionStorage;
@@ -146,7 +234,6 @@ const LoginPage = () => {
           }
         });
 
-        // Clear any stale setup flag
         storage.removeItem('hasCompletedSetup');
         localStorage.removeItem('hasCompletedSetup');
         sessionStorage.removeItem('hasCompletedSetup');
@@ -169,7 +256,7 @@ const LoginPage = () => {
     setShowPassword(!showPassword);
   };
 
-  // IMPROVED: Centralized error handling
+  // Centralized error handling
   const handleAuthError = (error) => {
     console.error("Auth error:", error);
 
@@ -184,9 +271,9 @@ const LoginPage = () => {
     }
   };
 
-  // IMPROVED: Google Login (ANTI-FLICKER)
+  // Google Login
   const handleGoogleLogin = async () => {
-    if (socialLoading === 'google' || isNavigating) return;
+    if (socialLoading === 'google' || isNavigating || isLocked) return;
 
     try {
       setSocialLoading('google');
@@ -224,7 +311,6 @@ const LoginPage = () => {
       const data = JSON.parse(responseText);
 
       if (data.token && data.user) {
-        // SELECTIVE CLEAR - NO FLICKERING!
         clearAuthStorage();
 
         const storage = sessionStorage;
@@ -281,18 +367,26 @@ const LoginPage = () => {
         <div className={`new-login-form-container ${isFormLeft ? 'form-left' : 'form-right'}`}>
           <div className="new-login-form-wrapper">
             <div className="new-login-form-header">
-              <h2 className="new-login-form-title">Login to your account</h2>
+              <h2 className="new-login-form-title">
+                {isLocked ? 'Account Locked' : 'Login to your account'}
+              </h2>
               <p className="new-login-form-subtitle">
-                Sign in to manage your solar projects
+                {isLocked 
+                  ? `Please wait ${lockMinutesRemaining} minute(s) before trying again`
+                  : 'Sign in to manage your solar projects'
+                }
               </p>
             </div>
 
             {/* Error Message */}
             {errors.general && (
-              <div className="new-login-general-error">
+              <div className={`new-login-general-error ${isLocked ? 'new-login-lock-error' : ''}`}>
+                {isLocked && <FaClock className="new-login-lock-icon" />}
                 {errors.general}
               </div>
             )}
+
+            
 
             <form onSubmit={handleSubmit} className="new-login-form">
               {/* EMAIL FIELD */}
@@ -307,7 +401,7 @@ const LoginPage = () => {
                     placeholder="Enter your email address"
                     value={formData.email}
                     onChange={handleChange}
-                    disabled={isLoading || socialLoading !== '' || isNavigating}
+                    disabled={isLoading || socialLoading !== '' || isNavigating || isLocked}
                   />
                 </div>
                 {errors.email && <span className="new-login-error-message">{errors.email}</span>}
@@ -325,13 +419,13 @@ const LoginPage = () => {
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={handleChange}
-                    disabled={isLoading || socialLoading !== '' || isNavigating}
+                    disabled={isLoading || socialLoading !== '' || isNavigating || isLocked}
                   />
                   <button
                     type="button"
                     className="new-login-password-toggle"
                     onClick={togglePasswordVisibility}
-                    disabled={isLoading || socialLoading !== '' || isNavigating}
+                    disabled={isLoading || socialLoading !== '' || isNavigating || isLocked}
                   >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
@@ -339,7 +433,7 @@ const LoginPage = () => {
                 {errors.password && <span className="new-login-error-message">{errors.password}</span>}
               </div>
 
-              {/* FORGOT PASSWORD - Only this, no remember me */}
+              {/* FORGOT PASSWORD */}
               <div className="new-login-row-actions">
                 <Link to="/forgotpassword" className="new-login-forgot-link">
                   Forgot password?
@@ -349,10 +443,15 @@ const LoginPage = () => {
               {/* LOGIN BUTTON */}
               <button
                 type="submit"
-                className={`new-login-submit-btn ${isLoading ? 'new-login-loading' : ''}`}
-                disabled={isLoading || socialLoading !== '' || isNavigating}
+                className={`new-login-submit-btn ${isLoading ? 'new-login-loading' : ''} ${isLocked ? 'new-login-btn-disabled' : ''}`}
+                disabled={isLoading || socialLoading !== '' || isNavigating || isLocked}
               >
-                {isLoading ? 'Signing in...' : 'Sign In'}
+                {isLocked 
+                  ? `Locked (${lockMinutesRemaining}m remaining)` 
+                  : isLoading 
+                    ? 'Signing in...' 
+                    : 'Sign In'
+                }
               </button>
 
               {/* SOCIAL LOGIN */}
@@ -361,9 +460,9 @@ const LoginPage = () => {
                 <div className="new-login-social-buttons">
                   <button
                     type="button"
-                    className={`new-login-social-btn new-login-google-btn ${socialLoading === 'google' ? 'new-login-loading' : ''}`}
+                    className={`new-login-social-btn new-login-google-btn ${socialLoading === 'google' ? 'new-login-loading' : ''} ${isLocked ? 'new-login-btn-disabled' : ''}`}
                     onClick={handleGoogleLogin}
-                    disabled={isLoading || socialLoading !== '' || isNavigating}
+                    disabled={isLoading || socialLoading !== '' || isNavigating || isLocked}
                   >
                     {socialLoading === 'google' ? (
                       <span className="new-login-loading-spinner"></span>

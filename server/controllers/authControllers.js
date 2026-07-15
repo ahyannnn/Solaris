@@ -87,13 +87,52 @@ exports.login = async (req, res) => {
       });
     }
 
+    // Check if account is locked
+    if (user.isLocked()) {
+      const lockTimeRemaining = Math.ceil((user.lockUntil - new Date()) / 60000); // minutes remaining
+      return res.status(403).json({
+        message: `Please try again in ${lockTimeRemaining} minute(s).`,
+        attemptsRemaining: 0,
+        isLocked: true,
+        lockMinutesRemaining: lockTimeRemaining
+      });
+    }
+
     const isMatch = await bcrypt.compare(password, user.passwordHash);
 
     if (!isMatch) {
+      // Increment login attempts
+      user.loginAttempts += 1;
+      
+      // Check if attempts reached 5
+      if (user.loginAttempts >= 5) {
+        // Lock the account for 10 minutes
+        user.lockUntil = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes in milliseconds
+        await user.save();
+        
+        return res.status(403).json({
+          message: "Account locked due to 5 failed login attempts. Please try again in 10 minutes.",
+          attemptsRemaining: 0,
+          isLocked: true,
+          lockMinutesRemaining: 10
+        });
+      }
+      
+      await user.save();
+      
+      const attemptsRemaining = 5 - user.loginAttempts;
       return res.status(400).json({
-        message: "Invalid email or password"
+        message: `Invalid email or password. ${attemptsRemaining} attempt(s) remaining.`,
+        attemptsRemaining: attemptsRemaining,
+        isLocked: false
       });
     }
+
+    // Successful login - reset attempts and lock
+    user.loginAttempts = 0;
+    user.lockUntil = null;
+    user.lastLogin = new Date();
+    await user.save();
 
     // Save audit trail
     await AuditLog.create({
@@ -112,7 +151,13 @@ exports.login = async (req, res) => {
     res.json({
       message: "Login successful",
       token,
-      user
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        photoURL: user.photoURL || null
+      }
     });
 
   } catch (error) {
@@ -124,6 +169,37 @@ exports.login = async (req, res) => {
   }
 };
 
+exports.checkLockStatus = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.isLocked()) {
+      const lockTimeRemaining = Math.ceil((user.lockUntil - new Date()) / 60000);
+      return res.json({
+        isLocked: true,
+        lockMinutesRemaining: lockTimeRemaining,
+        attemptsRemaining: 0
+      });
+    }
+
+    return res.json({
+      isLocked: false,
+      attemptsRemaining: 5 - user.loginAttempts,
+      lockMinutesRemaining: 0
+    });
+  } catch (error) {
+    console.error("Check lock status error:", error);
+    res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
 /*
 =========================
 GOOGLE REGISTER (UPDATED)

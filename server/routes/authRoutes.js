@@ -12,6 +12,7 @@ router.post("/register", authController.register);
   Route for email and password login
 */
 router.post("/login", authController.login);
+router.get('/lock-status/:email', authController.checkLockStatus);
 
 /*
   Route for Google authentication

@@ -22,7 +22,8 @@ import {
   FaHome,
   FaTools,
   FaThLarge,
-  FaTasks
+  FaTasks,
+  FaCalendarDay
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
 import profileImage from '../../assets/profile.png';
@@ -45,6 +46,7 @@ const Dashboard = () => {
   const [userRole, setUserRole] = useState('user');
   const [userName, setUserName] = useState('Customer User');
   const [userPhoto, setUserPhoto] = useState(null);
+  const [activeDropdownItem, setActiveDropdownItem] = useState(null);
 
   // Fetch unread notification count
   const fetchUnreadCount = async () => {
@@ -141,6 +143,7 @@ const Dashboard = () => {
           description: descriptions[tab] || 'Get help and support.'
         };
       }
+      // Removed chatbot and schedule routes
     }
 
     // Engineer Pages
@@ -262,7 +265,7 @@ const Dashboard = () => {
 
   const pageInfo = getPageInfo();
 
-  // Categorized menu items - NOTIFICATIONS NOW IN ITS OWN SECTION
+  // Categorized menu items - REMOVED CHATBOT AND SCHEDULE FOR CUSTOMER
   const menuItems = {
     admin: {
       sections: [
@@ -343,6 +346,7 @@ const Dashboard = () => {
           icon: <FaTasks />,
           items: [
             { icon: <FaFileInvoiceDollar />, label: 'Billing', path: '/app/customer/billing' },
+            // REMOVED: Schedule (FaCalendarDay) and Chatbot items
           ]
         },
         {
@@ -488,9 +492,21 @@ const Dashboard = () => {
     return currentPath === '/app/customer/support' || currentPath.startsWith('/app/customer/support?');
   };
 
+  const isDropdownItemActive = (path) => {
+    const currentPath = location.pathname;
+    const currentSearch = location.search;
+    const fullPath = path;
+    
+    if (fullPath.includes('?')) {
+      return currentPath + currentSearch === fullPath;
+    }
+    return currentPath === fullPath;
+  };
+
   const handleSettingsNavigation = (path) => {
     if (isNavigating) return;
     setIsNavigating(true);
+    setActiveDropdownItem(path);
     navigate(path);
     setSidebarSettingsOpen(false);
     if (isMobile()) setSidebarOpen(false);
@@ -500,6 +516,7 @@ const Dashboard = () => {
   const handleSupportNavigation = (path) => {
     if (isNavigating) return;
     setIsNavigating(true);
+    setActiveDropdownItem(path);
     navigate(path);
     setSidebarSupportOpen(false);
     if (isMobile()) setSidebarOpen(false);
@@ -519,6 +536,7 @@ const Dashboard = () => {
   const handleNavigation = (path) => {
     if (isNavigating) return;
     setIsNavigating(true);
+    setActiveDropdownItem(null);
     navigate(path);
     if (isMobile()) {
       setSidebarOpen(false);
@@ -559,7 +577,6 @@ const Dashboard = () => {
         </div>
 
         <nav className="sidebar-nav-layout-dashboard">
-          {/* NOW 3 CATEGORIES with Notifications as separate section */}
           {currentMenu.sections.map((section, sectionIndex) => (
             <div key={sectionIndex} className="sidebar-section-layout-dashboard">
               <div className="sidebar-section-header-layout-dashboard">
@@ -603,7 +620,7 @@ const Dashboard = () => {
                           <button
                             key={index}
                             onClick={() => handleSettingsNavigation(item.path)}
-                            className="sidebar-dropdown-item-layout-dashboard"
+                            className={`sidebar-dropdown-item-layout-dashboard ${isDropdownItemActive(item.path) ? 'active-dropdown-item' : ''}`}
                             disabled={isNavigating}
                           >
                             {item.label}
@@ -632,7 +649,7 @@ const Dashboard = () => {
                           <button
                             key={index}
                             onClick={() => handleSupportNavigation(item.path)}
-                            className="sidebar-dropdown-item-layout-dashboard"
+                            className={`sidebar-dropdown-item-layout-dashboard ${isDropdownItemActive(item.path) ? 'active-dropdown-item' : ''}`}
                             disabled={isNavigating}
                           >
                             {item.label}
@@ -642,6 +659,9 @@ const Dashboard = () => {
                     )}
                   </div>
                 )}
+
+                {/* REMOVED: Chatbot button for customer */}
+                {/* REMOVED: Schedule button for customer */}
               </div>
             </div>
           ))}

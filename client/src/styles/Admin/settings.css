@@ -1,4 +1,4 @@
-/* settings.css - Admin Settings Styles - Clean Modern Design */
+/* styles/Admin/settings.css */
 
 :root {
   --primary: #2563EB;
@@ -25,24 +25,23 @@
 /* ============================================
    CONTAINER
    ============================================ */
-.admin-settings-adminsettings {
+.admin-settings {
   margin: 0 auto;
   padding: 24px;
   background: var(--bg-base);
   min-height: calc(100vh - 70px);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* ============================================
    HEADER
    ============================================ */
-.settings-header-adminsettings {
+.settings-header {
   margin-bottom: 28px;
   padding-bottom: 0;
   border-bottom: none;
 }
 
-.settings-header-adminsettings h1 {
+.settings-header h1 {
   font-size: 28px;
   font-weight: 700;
   margin: 0 0 4px 0;
@@ -50,16 +49,16 @@
   letter-spacing: -0.02em;
 }
 
-.settings-header-adminsettings p {
+.settings-header p {
   font-size: 14px;
-  color: var(--text-muted);
+  color: var(--text-primary);
   margin: 0;
 }
 
 /* ============================================
    MESSAGES
    ============================================ */
-.settings-success-adminsettings {
+.settings-success {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -67,12 +66,16 @@
   background: #DCFCE7;
   border: 1px solid #BBF7D0;
   border-radius: var(--radius-md);
-  color: #16A34A;
+  color: var(--text-primary);
   font-size: 14px;
   margin-bottom: 20px;
 }
 
-.settings-error-adminsettings {
+.settings-success svg {
+  color: var(--success);
+}
+
+.settings-error {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -80,60 +83,67 @@
   background: #FEE2E2;
   border: 1px solid #FECACA;
   border-radius: var(--radius-md);
-  color: var(--danger);
+  color: var(--text-primary);
   font-size: 14px;
   margin-bottom: 20px;
 }
 
+.settings-error svg {
+  color: var(--danger);
+}
+
 /* ============================================
-   TABS
+   TABS - FIXED TO MATCH OTHER PAGES
    ============================================ */
-.settings-tabs-adminsettings {
+.settings-tabs {
   display: flex;
   gap: 4px;
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  padding: 6px;
   margin-bottom: 28px;
-  border: 1px solid var(--border-light);
-  width: fit-content;
+  border-bottom: 2px solid var(--border-light);
+  padding-bottom: 0;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  border: none;
+  border-bottom: 2px solid var(--border-light);
+  width: 100%;
   flex-wrap: wrap;
 }
 
-.tab-btn-adminsettings {
-  padding: 10px 20px;
+.tab-btn {
+  padding: 12px 20px;
   background: none;
   border: none;
-  border-radius: var(--radius-md);
+  border-bottom: 3px solid transparent;
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  position: relative;
 }
 
-.tab-btn-adminsettings:hover {
-  background: var(--bg-base);
-  color: var(--text-primary);
+.tab-btn:hover {
+  color: var(--primary);
 }
 
-.tab-btn-adminsettings.active-adminsettings {
-  background: var(--text-primary);
-  color: #FFFFFF;
+.tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
 }
 
 /* ============================================
    SETTINGS CONTENT
    ============================================ */
-.settings-content-adminsettings {
+.settings-content {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
 /* Settings Card */
-.settings-card-adminsettings {
+.settings-card {
   background: var(--bg-card);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border-light);
@@ -141,7 +151,7 @@
   box-shadow: var(--shadow-sm);
 }
 
-.settings-card-adminsettings h2 {
+.settings-card h2 {
   font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
@@ -153,7 +163,7 @@
   gap: 8px;
 }
 
-.settings-card-adminsettings h3 {
+.settings-card h3 {
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
@@ -161,7 +171,7 @@
 }
 
 /* Form Elements */
-.form-row-adminsettings {
+.form-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
@@ -169,16 +179,16 @@
 }
 
 @media (max-width: 640px) {
-  .form-row-adminsettings {
+  .form-row {
     grid-template-columns: 1fr;
   }
 }
 
-.form-group-adminsettings {
+.form-group {
   margin-bottom: 20px;
 }
 
-.form-group-adminsettings label {
+.form-group label {
   display: block;
   font-size: 13px;
   font-weight: 500;
@@ -186,9 +196,9 @@
   margin-bottom: 6px;
 }
 
-.form-group-adminsettings input,
-.form-group-adminsettings select,
-.form-group-adminsettings textarea {
+.form-group input,
+.form-group select,
+.form-group textarea {
   width: 100%;
   padding: 12px 14px;
   background: var(--bg-card);
@@ -200,43 +210,43 @@
   font-family: inherit;
 }
 
-.form-group-adminsettings input:focus,
-.form-group-adminsettings select:focus,
-.form-group-adminsettings textarea:focus {
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
   background: var(--bg-card);
 }
 
-.form-group-adminsettings input.error-adminsettings {
+.form-group input.error {
   border-color: var(--danger);
 }
 
-.form-group-adminsettings small {
+.form-group small {
   display: block;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--text-primary);
   margin-top: 6px;
 }
 
-.error-text-adminsettings {
+.error-text {
   display: block;
   font-size: 12px;
-  color: var(--danger);
+  color: var(--text-primary);
   margin-top: 6px;
 }
 
 /* Password Input Wrapper */
-.password-input-wrapper-adminsettings {
+.password-input-wrapper {
   position: relative;
 }
 
-.password-input-wrapper-adminsettings input {
+.password-input-wrapper input {
   padding-right: 45px;
 }
 
-.password-toggle-btn-adminsettings {
+.password-toggle-btn {
   position: absolute;
   right: 12px;
   top: 50%;
@@ -244,21 +254,21 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--text-muted);
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 500;
 }
 
-.password-toggle-btn-adminsettings:hover {
+.password-toggle-btn:hover {
   color: var(--primary);
 }
 
 /* Password Strength Meter */
-.password-strength-adminsettings {
+.password-strength {
   margin-top: 8px;
 }
 
-.strength-meter-adminsettings {
+.strength-meter {
   height: 4px;
   background: var(--border-light);
   border-radius: 2px;
@@ -266,46 +276,46 @@
   margin-bottom: 4px;
 }
 
-.strength-bar-adminsettings {
+.strength-bar {
   height: 100%;
   border-radius: 2px;
   transition: width 0.3s ease;
 }
 
-.strength-bar-adminsettings.weak-adminsettings {
+.strength-bar.weak {
   background: var(--danger);
 }
 
-.strength-bar-adminsettings.medium-adminsettings {
+.strength-bar.medium {
   background: var(--warning);
 }
 
-.strength-bar-adminsettings.strong-adminsettings {
+.strength-bar.strong {
   background: var(--primary);
 }
 
-.strength-bar-adminsettings.very-strong-adminsettings {
+.strength-bar.very-strong {
   background: var(--success);
 }
 
-.strength-text-adminsettings {
+.strength-text {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 /* Password Section */
-.password-section-adminsettings {
+.password-section {
   text-align: center;
   padding: 20px;
 }
 
-.password-section-adminsettings p {
+.password-section p {
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   margin-bottom: 20px;
 }
 
-.change-password-btn-adminsettings {
+.change-password-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -320,43 +330,43 @@
   transition: all 0.2s ease;
 }
 
-.change-password-btn-adminsettings:hover {
+.change-password-btn:hover {
   background: var(--primary-hover);
 }
 
 /* Info Message */
-.info-message-adminsettings {
+.info-message {
   background: var(--bg-base);
   border-radius: var(--radius-lg);
   padding: 16px;
 }
 
-.info-message-adminsettings p {
+.info-message p {
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   margin: 0 0 8px 0;
 }
 
-.info-message-adminsettings small {
+.info-message small {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 /* Checkbox Group */
-.checkbox-group-adminsettings {
+.checkbox-group {
   margin: 20px 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.checkbox-list-adminsettings {
+.checkbox-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.checkbox-label-adminsettings {
+.checkbox-label {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -365,26 +375,26 @@
   color: var(--text-primary);
 }
 
-.checkbox-label-adminsettings input {
+.checkbox-label input {
   width: 18px;
   height: 18px;
   cursor: pointer;
   accent-color: var(--primary);
 }
 
-.checkbox-label-adminsettings span {
+.checkbox-label span {
   flex: 1;
 }
 
 /* Backup Actions */
-.backup-actions-adminsettings {
+.backup-actions {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
 }
 
-.backup-btn-adminsettings,
-.restore-btn-adminsettings {
+.backup-btn,
+.restore-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -396,17 +406,16 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: var(--text-secondary);
-}
-
-.backup-btn-adminsettings:hover,
-.restore-btn-adminsettings:hover {
-  background: var(--border-light);
   color: var(--text-primary);
 }
 
+.backup-btn:hover,
+.restore-btn:hover {
+  background: var(--border-light);
+}
+
 /* Form Actions */
-.form-actions-adminsettings {
+.form-actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
@@ -415,7 +424,7 @@
   border-top: 1px solid var(--border-light);
 }
 
-.save-btn-adminsettings {
+.save-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -430,16 +439,16 @@
   transition: all 0.2s ease;
 }
 
-.save-btn-adminsettings:hover:not(:disabled) {
+.save-btn:hover:not(:disabled) {
   background: var(--primary-hover);
 }
 
-.save-btn-adminsettings:disabled {
+.save-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.cancel-btn-adminsettings {
+.cancel-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -454,16 +463,16 @@
   color: var(--text-primary);
 }
 
-.cancel-btn-adminsettings:hover {
+.cancel-btn:hover {
   background: var(--border-light);
 }
 
 /* Spinner Animation */
-.spinner-adminsettings {
-  animation: spin-adminsettings 1s linear infinite;
+.spinner {
+  animation: spin 1s linear infinite;
 }
 
-@keyframes spin-adminsettings {
+@keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
@@ -471,61 +480,61 @@
 /* ============================================
    SKELETON LOADER
    ============================================ */
-.skeleton-line-adminsettings {
+.skeleton-line {
   background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
-  animation: shimmer-settings 1.5s infinite;
+  animation: shimmer 1.5s infinite;
   border-radius: 6px;
 }
 
-.skeleton-line-adminsettings.large-adminsettings {
+.skeleton-line.large {
   width: 250px;
   height: 32px;
   margin-bottom: 8px;
 }
 
-.skeleton-line-adminsettings.medium-adminsettings {
+.skeleton-line.medium {
   width: 350px;
   height: 20px;
   margin-bottom: 8px;
 }
 
-.skeleton-tab-adminsettings {
+.skeleton-tab {
   height: 40px;
   width: 100px;
   background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
-  animation: shimmer-settings 1.5s infinite;
+  animation: shimmer 1.5s infinite;
   border-radius: var(--radius-md);
 }
 
-.skeleton-form-adminsettings {
+.skeleton-form {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-xl);
   padding: 24px;
 }
 
-.skeleton-input-adminsettings {
+.skeleton-input {
   height: 44px;
   background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
-  animation: shimmer-settings 1.5s infinite;
+  animation: shimmer 1.5s infinite;
   border-radius: var(--radius-md);
   margin-bottom: 20px;
 }
 
-.skeleton-button-adminsettings {
+.skeleton-button {
   height: 44px;
   width: 120px;
   background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
-  animation: shimmer-settings 1.5s infinite;
+  animation: shimmer 1.5s infinite;
   border-radius: var(--radius-md);
   margin-top: 24px;
 }
 
-@keyframes shimmer-settings {
+@keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
@@ -534,77 +543,77 @@
    RESPONSIVE DESIGN
    ============================================ */
 @media (max-width: 1024px) {
-  .settings-tabs-adminsettings {
+  .settings-tabs {
     flex-wrap: wrap;
     width: 100%;
   }
   
-  .tab-btn-adminsettings {
+  .tab-btn {
     flex: 1;
     text-align: center;
   }
 }
 
 @media (max-width: 768px) {
-  .admin-settings-adminsettings {
+  .admin-settings {
     padding: 16px;
   }
   
-  .settings-header-adminsettings h1 {
+  .settings-header h1 {
     font-size: 24px;
   }
   
-  .settings-card-adminsettings {
+  .settings-card {
     padding: 20px;
   }
   
-  .form-actions-adminsettings {
+  .form-actions {
     flex-direction: column;
   }
   
-  .save-btn-adminsettings,
-  .cancel-btn-adminsettings {
+  .save-btn,
+  .cancel-btn {
     width: 100%;
     justify-content: center;
   }
   
-  .backup-actions-adminsettings {
+  .backup-actions {
     flex-direction: column;
   }
   
-  .backup-btn-adminsettings,
-  .restore-btn-adminsettings {
+  .backup-btn,
+  .restore-btn {
     width: 100%;
     justify-content: center;
   }
   
-  .checkbox-list-adminsettings {
+  .checkbox-list {
     gap: 8px;
   }
 }
 
 @media (max-width: 480px) {
-  .tab-btn-adminsettings {
+  .tab-btn {
     font-size: 12px;
     padding: 8px 12px;
   }
   
-  .settings-card-adminsettings h2 {
+  .settings-card h2 {
     font-size: 16px;
   }
   
-  .form-group-adminsettings label {
+  .form-group label {
     font-size: 12px;
   }
   
-  .form-group-adminsettings input,
-  .form-group-adminsettings select,
-  .form-group-adminsettings textarea {
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
     padding: 10px 12px;
     font-size: 13px;
   }
   
-  .checkbox-label-adminsettings {
+  .checkbox-label {
     font-size: 13px;
   }
 }

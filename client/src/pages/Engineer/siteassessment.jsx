@@ -30,6 +30,10 @@ const MyAssessments = () => {
   const [systemMetrics, setSystemMetrics] = useState(null);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage] = useState(5);
+
   const [laborCostPercentage, setLaborCostPercentage] = useState(20);
   const [overheadContingencyPercentage, setOverheadContingencyPercentage] = useState(15);
   const [contractorProfitPercentage, setContractorProfitPercentage] = useState(10);
@@ -794,7 +798,6 @@ const MyAssessments = () => {
         monthlyBill: quote.monthlyBill,
         roofLength: quote.roofLength,
         roofWidth: quote.roofWidth,
-        // Stored calculations from database
         recommendedSystemSize: quote.recommendedSystemSize || null,
         inverterSize: quote.inverterSize || null,
         batteryCapacityKwh: quote.batteryCapacityKwh || null,
@@ -803,7 +806,6 @@ const MyAssessments = () => {
         dayPercentage: quote.dayPercentage || null,
         nightPercentage: quote.nightPercentage || null,
         targetSavings: quote.targetSavings || null,
-        // ✅ NEW: Annual production and CO2 offset
         estimatedAnnualProduction: quote.estimatedAnnualProduction || null,
         estimatedAnnualProductionMin: quote.estimatedAnnualProductionMin || null,
         estimatedAnnualProductionMax: quote.estimatedAnnualProductionMax || null,
@@ -839,7 +841,6 @@ const MyAssessments = () => {
         dataCollectionStart: assessment.dataCollectionStart,
         dataCollectionEnd: assessment.dataCollectionEnd,
         totalReadings: assessment.totalReadings,
-        // Stored calculations
         recommendedSystemSize: assessment.recommendedSystemSize || null,
         inverterSize: assessment.inverterSize || null,
         batteryCapacityKwh: assessment.batteryCapacityKwh || null,
@@ -899,7 +900,6 @@ const MyAssessments = () => {
         systemType: quote.systemType,
         roofLength: quote.roofLength,
         roofWidth: quote.roofWidth,
-        // Stored calculations from database
         recommendedSystemSize: quote.recommendedSystemSize || null,
         inverterSize: quote.inverterSize || null,
         batteryCapacityKwh: quote.batteryCapacityKwh || null,
@@ -911,7 +911,6 @@ const MyAssessments = () => {
         nightPercentage: quote.nightPercentage || null,
         totalDailyConsumption: quote.totalDailyConsumption || null,
         targetSavings: quote.targetSavings || null,
-        // ✅ NEW: Annual production and CO2 offset
         estimatedAnnualProduction: quote.estimatedAnnualProduction || null,
         estimatedAnnualProductionMin: quote.estimatedAnnualProductionMin || null,
         estimatedAnnualProductionMax: quote.estimatedAnnualProductionMax || null,
@@ -998,7 +997,6 @@ const MyAssessments = () => {
         nightPercentage: assessment.nightPercentage || 0,
         totalDailyConsumption: assessment.totalDailyConsumption || 0,
         targetSavings: assessment.targetSavings || 0,
-        // Stored calculations
         recommendedSystemSize: assessment.recommendedSystemSize || null,
         inverterSize: assessment.inverterSize || null,
         batteryCapacityKwh: assessment.batteryCapacityKwh || null,
@@ -1073,7 +1071,6 @@ const MyAssessments = () => {
         setAssessmentResults(assessment.assessmentResults);
       }
 
-      // Fetch system recommendations from backend
       await fetchSystemRecommendations(assessmentId);
 
       if (assessment.sitePhotos) {
@@ -1558,6 +1555,7 @@ const MyAssessments = () => {
       });
     }
     setFilteredAssessments(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
   }, [allAssessments, searchTerm, activeTypeFilter, activeStatusFilter]);
 
   useEffect(() => {
@@ -1596,25 +1594,44 @@ const MyAssessments = () => {
     freeQuoteForm.systemSize, config
   ]);
 
+  // Pagination calculations
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentRows = filteredAssessments.slice(indexOfFirstRow, indexOfLastRow);
+  const totalPages = Math.ceil(filteredAssessments.length / rowsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  // Get unique statuses for dropdown
+  const getUniqueStatuses = () => {
+    const statuses = new Set();
+    filteredAssessments.forEach(item => {
+      const status = item.type === 'free_quote' ? item.status : item.assessmentStatus;
+      if (status) statuses.add(status);
+    });
+    return Array.from(statuses);
+  };
+
   // Skeleton Loader Components
   const SkeletonCard = () => (
-    <div className="assessment-card-enad skeleton-card-enad">
-      <div className="card-content-enad">
-        <div className="card-header-enad">
-          <div className="skeleton-badge-enad"></div>
-          <div className="skeleton-badge-enad"></div>
-        </div>
-        <div className="skeleton-line-enad medium-enad"></div>
-        <div className="skeleton-line-enad small-enad"></div>
-        <div className="card-details-enad">
-          <div className="skeleton-line-enad tiny-enad"></div>
-          <div className="skeleton-line-enad tiny-enad"></div>
-          <div className="skeleton-line-enad tiny-enad"></div>
-        </div>
-        <div className="card-footer-enad">
-          <div className="skeleton-button-enad small-enad"></div>
-        </div>
-      </div>
+    <div className="skeleton-row-enad">
+      <div className="skeleton-cell-enad"></div>
+      <div className="skeleton-cell-enad"></div>
+      <div className="skeleton-cell-enad"></div>
+      <div className="skeleton-cell-enad"></div>
+      <div className="skeleton-cell-enad"></div>
+      <div className="skeleton-cell-enad"></div>
+      <div className="skeleton-cell-enad"></div>
     </div>
   );
 
@@ -1631,15 +1648,25 @@ const MyAssessments = () => {
           <div className="skeleton-tab-enad"></div>
           <div className="skeleton-tab-enad"></div>
         </div>
-        <div className="filter-tabs-enad">
-          <div className="skeleton-tab-enad"></div>
-          <div className="skeleton-tab-enad"></div>
-          <div className="skeleton-tab-enad"></div>
-          <div className="skeleton-tab-enad"></div>
-        </div>
       </div>
-      <div className="assessments-grid-enad">
-        {[1, 2, 3, 4, 5, 6].map(i => <SkeletonCard key={i} />)}
+      <div className="assessments-table-container-enad">
+        <table className="assessments-table-enad">
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Client</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>System Size</th>
+              <th>Address</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[1, 2, 3, 4, 5].map(i => <SkeletonCard key={i} />)}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -1648,17 +1675,7 @@ const MyAssessments = () => {
     return <SkeletonList />;
   }
 
-  // Get unique statuses for filter tabs
-  const getUniqueStatuses = () => {
-    const statuses = new Set();
-    filteredAssessments.forEach(item => {
-      const status = item.type === 'free_quote' ? item.status : item.assessmentStatus;
-      if (status) statuses.add(status);
-    });
-    return Array.from(statuses);
-  };
-
-  // Assessment List View
+  // Assessment List View with Table
   if (!selectedItem) {
     const uniqueStatuses = getUniqueStatuses();
 
@@ -1681,49 +1698,46 @@ const MyAssessments = () => {
             />
           </div>
 
-          <div className="filter-tabs-enad">
-            <button
-              className={`filter-tab-enad ${activeTypeFilter === 'all' ? 'active-enad' : ''}`}
-              onClick={() => setActiveTypeFilter('all')}
-            >
-              All
-            </button>
-            <button
-              className={`filter-tab-enad ${activeTypeFilter === 'free_quote' ? 'active-enad' : ''}`}
-              onClick={() => setActiveTypeFilter('free_quote')}
-            >
-              Free Quotes
-            </button>
-            <button
-              className={`filter-tab-enad ${activeTypeFilter === 'pre_assessment' ? 'active-enad' : ''}`}
-              onClick={() => setActiveTypeFilter('pre_assessment')}
-            >
-              Pre-Assessments
-            </button>
-          </div>
-
-          {uniqueStatuses.length > 0 && (
-            <div className="filter-tabs-enad status-tabs-enad">
+          <div className="filter-controls-enad">
+            <div className="filter-tabs-enad">
               <button
-                className={`filter-tab-enad ${activeStatusFilter === 'all' ? 'active-enad' : ''}`}
-                onClick={() => setActiveStatusFilter('all')}
+                className={`filter-tab-enad ${activeTypeFilter === 'all' ? 'active-enad' : ''}`}
+                onClick={() => setActiveTypeFilter('all')}
               >
-                All Status
+                All
               </button>
-              {uniqueStatuses.map(status => {
-                const statusConfig = PRE_ASSESSMENT_STATUS[status] || FREE_QUOTE_STATUS[status] || { label: status?.replace(/_/g, ' ') };
-                return (
-                  <button
-                    key={status}
-                    className={`filter-tab-enad ${activeStatusFilter === status ? 'active-enad' : ''}`}
-                    onClick={() => setActiveStatusFilter(status)}
-                  >
-                    {statusConfig.label}
-                  </button>
-                );
-              })}
+              <button
+                className={`filter-tab-enad ${activeTypeFilter === 'free_quote' ? 'active-enad' : ''}`}
+                onClick={() => setActiveTypeFilter('free_quote')}
+              >
+                Free Quotes
+              </button>
+              <button
+                className={`filter-tab-enad ${activeTypeFilter === 'pre_assessment' ? 'active-enad' : ''}`}
+                onClick={() => setActiveTypeFilter('pre_assessment')}
+              >
+                Pre-Assessments
+              </button>
             </div>
-          )}
+
+            <div className="status-filter-dropdown-enad">
+              <select
+                className="status-filter-select-enad"
+                value={activeStatusFilter}
+                onChange={(e) => setActiveStatusFilter(e.target.value)}
+              >
+                <option value="all">All Status</option>
+                {uniqueStatuses.map(status => {
+                  const statusConfig = PRE_ASSESSMENT_STATUS[status] || FREE_QUOTE_STATUS[status] || { label: status?.replace(/_/g, ' ') };
+                  return (
+                    <option key={status} value={status}>
+                      {statusConfig.label}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          </div>
 
           {error && <div className="error-container-enad"><span>{error}</span></div>}
 
@@ -1733,43 +1747,108 @@ const MyAssessments = () => {
               <p>{allAssessments.length === 0 ? "You don't have any assessments assigned yet." : "No assessments match your search criteria."}</p>
             </div>
           ) : (
-            <div className="assessments-grid-enad">
-              {filteredAssessments.map((item) => {
-                const StatusConfig = getStatusConfig(item);
-                const TypeConfig = getTypeConfig(item.type);
-                return (
-                  <div key={`${item.type}-${item.id}`} className="assessment-card-enad" onClick={() => handleSelectItem(item)}>
-                    <div className="card-content-enad">
-                      <div className="card-header-enad">
-                        <div className={`type-badge-enad ${TypeConfig.color}`}>{TypeConfig.label}</div>
-                        <div className={`status-badge-enad ${StatusConfig.color}`}>{StatusConfig.label}</div>
-                      </div>
-                      <h3 className="client-name-enad">{item.clientName} {item.clientLastName}</h3>
-                      <p className="reference-enad">Ref: {item.bookingReference || item.quotationReference}</p>
-                      <div className="card-details-enad">
-                        <div className="detail-item-enad"><span className="truncate">Address: {getFullAddress(item.address)}</span></div>
-                        <div className="detail-item-enad">Requested: {formatDate(item.preferredDate || item.requestedAt)}</div>
-                        <div className="detail-item-enad">Property: <span className="capitalize">{item.propertyType || 'N/A'}</span></div>
-                        {item.systemType && <div className="detail-item-enad">System: {getSystemTypeLabel(item.systemType)}</div>}
-                        {(item.roofLength || item.roofWidth) && <div className="detail-item-enad">Roof: {item.roofLength || '?'}m x {item.roofWidth || '?'}m</div>}
-                        {item.type === 'free_quote' && item.monthlyBill && <div className="detail-item-enad">Monthly Bill: {formatCurrency(item.monthlyBill)}</div>}
-                        {item.recommendedSystemSize && <div className="detail-item-enad">System Size: {item.recommendedSystemSize} kWp</div>}
-                        {item.type === 'pre_assessment' && hasDeviceAssigned(item) && <div className="detail-item-enad"><span className="badge-small-enad">Device Assigned</span></div>}
-                        {item.type === 'pre_assessment' && item.dataCollectionStart && <div className="detail-item-enad">Data Collection: {formatDate(item.dataCollectionStart)} - {formatDate(item.dataCollectionEnd) || 'Ongoing'}</div>}
-                      </div>
-                      <div className="card-footer-enad">
-                        <div className="card-badges-enad">
-                          {item.type === 'pre_assessment' && item.sitePhotos?.length > 0 && <span className="badge-small-enad photos-enad">{item.sitePhotos.length} Photos</span>}
-                          {item.type === 'pre_assessment' && item.totalReadings > 0 && <span className="badge-small-enad data-enad">{item.totalReadings} Readings</span>}
-                          {item.type === 'free_quote' && item.quotationFile && <span className="badge-small-enad quotation-enad">Quotation Ready</span>}
-                        </div>
-                        <button className="view-link-enad">View Details →</button>
-                      </div>
-                    </div>
+            <>
+              <div className="assessments-table-container-enad">
+                <table className="assessments-table-enad">
+                  <thead>
+                    <tr>
+                      <th>Reference</th>
+                      <th>Client</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th>System Size</th>
+                      <th>Address</th>
+                      <th>Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentRows.map((item) => {
+                      const StatusConfig = getStatusConfig(item);
+                      const TypeConfig = getTypeConfig(item.type);
+                      return (
+                        <tr key={`${item.type}-${item.id}`} className="assessment-table-row-enad" onClick={() => handleSelectItem(item)}>
+                          <td className="ref-cell-enad">
+                            <span className="ref-text-enad">{item.bookingReference || item.quotationReference}</span>
+                          </td>
+                          <td className="client-cell-enad">
+                            <div className="client-info-enad">
+                              <span className="client-name-enad">{item.clientName} {item.clientLastName}</span>
+                              <span className="client-type-enad">{item.clientType || 'Residential'}</span>
+                            </div>
+                          </td>
+                          <td className="type-cell-enad">
+                            <span className={`type-badge-enad ${TypeConfig.color}`}>{TypeConfig.label}</span>
+                          </td>
+                          <td className="status-cell-enad">
+                            <span className={`status-badge-enad ${StatusConfig.color}`}>{StatusConfig.label}</span>
+                          </td>
+                          <td className="size-cell-enad">
+                            {item.recommendedSystemSize ? `${item.recommendedSystemSize} kWp` : '—'}
+                          </td>
+                          <td className="address-cell-enad">
+                            <span className="address-text-enad" title={getFullAddress(item.address)}>
+                              {getFullAddress(item.address)}
+                            </span>
+                          </td>
+                          <td className="date-cell-enad">
+                            {formatDate(item.preferredDate || item.requestedAt)}
+                          </td>
+                          <td className="actions-cell-enad">
+                            <button className="view-btn-enad" onClick={(e) => { e.stopPropagation(); handleSelectItem(item); }}>
+                              View
+                            </button>
+                            {item.type === 'pre_assessment' && hasDeviceAssigned(item) && (
+                              <span className="device-indicator-enad" title="Device Assigned">📡</span>
+                            )}
+                            {item.type === 'free_quote' && item.quotationFile && (
+                              <span className="quotation-indicator-enad" title="Quotation Ready">📄</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="pagination-enad">
+                  <button
+                    className={`pagination-btn-enad ${currentPage === 1 ? 'disabled-enad' : ''}`}
+                    onClick={prevPage}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </button>
+                  
+                  <div className="pagination-numbers-enad">
+                    {[...Array(totalPages).keys()].map(number => (
+                      <button
+                        key={number + 1}
+                        className={`pagination-number-enad ${currentPage === number + 1 ? 'active-enad' : ''}`}
+                        onClick={() => paginate(number + 1)}
+                      >
+                        {number + 1}
+                      </button>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
+
+                  <button
+                    className={`pagination-btn-enad ${currentPage === totalPages ? 'disabled-enad' : ''}`}
+                    onClick={nextPage}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+
+              <div className="pagination-info-enad">
+                Showing {indexOfFirstRow + 1} to {Math.min(indexOfLastRow, filteredAssessments.length)} of {filteredAssessments.length} assessments
+              </div>
+            </>
           )}
         </div>
       </>

@@ -1,4 +1,4 @@
-// App.jsx - Full updated version with notification routes
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -8,7 +8,7 @@ import LoginPage from './pages/Auth/loginpage';
 import RegisterPage from './pages/Auth/registerpage';
 import ForgotPage from './pages/Auth/forgotpage';
 import TermsPage from './assets/termspage';
-import Notifications from './pages/Auth/notification'; // <-- ADD THIS IMPORT
+import Notifications from './pages/Auth/notification';
 
 import DashboardLayout from "./pages/Dashboard_Layout/dashboard";
 import SetupAccount from "./pages/Customer/setupacc";
@@ -52,6 +52,7 @@ import CustomerProfile from './pages/Customer/profile';
 import CustomerSettings from './pages/Customer/customersettings';
 import PaymentSuccess from './pages/Customer/PaymentSuccess';
 import PaymentCancel from './pages/Customer/PaymentCancel';
+
 
 // Maintenance Page (public)
 import MaintenancePage from './pages/Maintenance';
@@ -255,7 +256,7 @@ function App() {
           <Route path="settings" element={<Settings />} />
           <Route path="maintenance" element={<Maintenance />} />
           <Route path="system-config" element={<SystemConfig />} />
-          <Route path="notifications" element={<Notifications />} /> {/* ADDED */}
+          <Route path="notifications" element={<Notifications />} />
         </Route>
 
         {/* Engineer Routes */}
@@ -279,7 +280,7 @@ function App() {
           <Route path="quotation" element={<EngineerQuotation />} />
           <Route path="schedule" element={<EngineerSchedule />} />
           <Route path="profile" element={<EngineerProfile />} />
-          <Route path="notifications" element={<Notifications />} /> {/* ADDED */}
+          <Route path="notifications" element={<Notifications />} />
         </Route>
 
         {/* Customer Routes */}
@@ -304,7 +305,7 @@ function App() {
           <Route path="settings" element={<CustomerSettings />} />
           <Route path="payment-success" element={<PaymentSuccess />} />
           <Route path="payment-cancel" element={<PaymentCancel />} />
-          <Route path="notifications" element={<Notifications />} /> {/* ADDED */}
+          <Route path="notifications" element={<Notifications />} />
         </Route>
 
         {/* Catch all - redirect based on role */}

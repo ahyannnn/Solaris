@@ -1,4 +1,4 @@
-/* dashboard.engdas.css - Engineer Dashboard Clean Modern Design */
+/* styles/Engineer/dashboard.css */
 
 :root {
   --primary: #2563EB;
@@ -8,587 +8,969 @@
   --danger: #EF4444;
   --bg-base: #F8FAFC;
   --bg-card: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-surface: #F1F5F9;
+  --bg-highlight: #E2E8F0;
   --text-primary: #0F172A;
   --text-secondary: #475569;
   --text-muted: #64748B;
   --border-light: #E2E8F0;
   --border-medium: #CBD5E1;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.08);
+  --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 18px;
   --radius-2xl: 24px;
+  --transition-base: 0.2s ease;
 }
 
-/* ============================================ */
-/* CONTAINER */
-/* ============================================ */
+/* ============================================
+   ENGINEER DASHBOARD
+   ============================================ */
 .engdas-dashboard {
+  padding-inline: 24px;
   margin: 0 auto;
-  padding: 24px;
-  background: var(--bg-base);
-  min-height: calc(100vh - 70px);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ============================================ */
-/* HEADER */
-/* ============================================ */
-.engdas-header {
-  margin-bottom: 28px;
-  padding-bottom: 0;
-  border-bottom: none;
+/* ============================================
+   WELCOME SECTION
+   ============================================ */
+.engdas-welcome-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 0 1.5rem 0;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
-.engdas-header h1 {
-  font-size: 28px;
+.engdas-welcome-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.engdas-page-title {
+  font-size: 1.5rem;
   font-weight: 700;
-  margin: 0 0 4px 0;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  margin: 0;
+  letter-spacing: -0.3px;
 }
 
-.engdas-header p {
-  font-size: 14px;
-  color: var(--text-muted);
+.engdas-welcome-greeting {
+  font-size: 1rem;
+  color: var(--text-secondary);
   margin: 0;
 }
 
-/* ============================================ */
-/* STATS GRID - Black Text Only */
-/* ============================================ */
-.engdas-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 16px;
-  margin-bottom: 28px;
+.engdas-welcome-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-@media (max-width: 1200px) {
-  .engdas-stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+.btn-primary-engdas {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-decoration: none;
+  white-space: nowrap;
 }
 
-@media (max-width: 768px) {
-  .engdas-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.btn-primary-engdas:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  color: #fff;
 }
 
-@media (max-width: 480px) {
-  .engdas-stats-grid {
-    grid-template-columns: 1fr;
-  }
+.btn-secondary-engdas {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: transparent;
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-decoration: none;
+  white-space: nowrap;
 }
 
-.engdas-stat-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  padding: 20px;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
+.btn-secondary-engdas:hover {
+  background: var(--bg-surface);
+  border-color: var(--text-secondary);
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   TODAY ALERT
+   ============================================ */
+.engdas-today-alert {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: var(--radius-lg);
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
-.engdas-stat-card:hover {
+.alert-icon-engdas {
+  color: #2563EB;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.alert-content-engdas {
+  flex: 1;
+}
+
+.alert-content-engdas strong {
+  display: block;
+  font-size: 0.95rem;
+  color: #1E40AF;
+  margin-bottom: 0.1rem;
+}
+
+.alert-content-engdas p {
+  font-size: 0.85rem;
+  color: #1E40AF;
+  margin: 0;
+}
+
+.alert-action-engdas {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  background: #2563EB;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+}
+
+.alert-action-engdas:hover {
+  background: #1D4ED8;
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--border-medium);
+  color: #fff;
 }
 
-.engdas-stat-icon {
-  width: 48px;
-  height: 48px;
-  background: var(--bg-base);
+/* ============================================
+   QUICK ACTIONS
+   ============================================ */
+.engdas-quick-actions {
+  margin-bottom: 1.5rem;
+}
+
+.quick-actions-title-engdas {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 0.75rem 0;
+}
+
+.engdas-action-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.quick-action-item-engdas {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.quick-action-item-engdas:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.quick-action-icon-engdas {
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-light);
+  font-size: 1.1rem;
+  flex-shrink: 0;
 }
 
-.engdas-stat-info {
+.quick-action-label-engdas {
   flex: 1;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
-.engdas-stat-value {
-  display: block;
-  font-size: 28px;
+.quick-action-arrow-engdas {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  transition: transform var(--transition-base);
+}
+
+.quick-action-item-engdas:hover .quick-action-arrow-engdas {
+  transform: translateX(4px);
+  color: var(--primary);
+}
+
+/* ============================================
+   STATS GRID - 4 Cards
+   ============================================ */
+.engdas-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card-engdas {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--border-light);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card-engdas:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.stat-content-engdas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-label-engdas {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value-engdas {
+  font-size: 2rem;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.2;
 }
 
-.engdas-stat-label {
-  display: block;
-  font-size: 12px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  margin-top: 4px;
+.stat-trend-engdas {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 
-/* ============================================ */
-/* CONTENT GRID */
-/* ============================================ */
-.engdas-content-grid {
+/* ============================================
+   ROW LAYOUT
+   ============================================ */
+.engdas-row-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 24px;
+  gap: 1.5rem;
+  align-items: start;
 }
 
-@media (max-width: 1024px) {
-  .engdas-content-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Recent Assessments & Upcoming Schedules Sections */
-.engdas-recent-section,
-.engdas-upcoming-section {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-light);
-  padding: 20px;
-  box-shadow: var(--shadow-sm);
-}
-
-.engdas-section-header {
+/* ============================================
+   SECTION HEADER
+   ============================================ */
+.section-header-engdas {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-light);
+  justify-content: space-between;
+  padding: 0 0.25rem;
+  margin-bottom: 0.75rem;
 }
 
-.engdas-section-header h3 {
-  font-size: 16px;
+.section-title-engdas {
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
-.engdas-view-all {
-  display: flex;
+.view-all-link-engdas {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  font-size: 12px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.engdas-view-all:hover {
+  gap: 0.4rem;
+  font-size: 0.85rem;
   color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all var(--transition-base);
 }
 
-/* Assessment & Schedule Lists */
-.engdas-assessment-list,
-.engdas-schedule-list {
+.view-all-link-engdas:hover {
+  color: var(--primary-hover);
+  gap: 0.6rem;
+}
+
+.arrow-icon-engdas {
+  transition: transform var(--transition-base);
+}
+
+.view-all-link-engdas:hover .arrow-icon-engdas {
+  transform: translateX(4px);
+}
+
+/* ============================================
+   ASSESSMENT SECTION
+   ============================================ */
+.engdas-assessment-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.25rem;
 }
 
-.engdas-assessment-item,
-.engdas-schedule-item {
+.assessment-card-engdas {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+.assessment-card-engdas:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.assessment-header-engdas {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.assessment-info-engdas {
+  flex: 1;
+  min-width: 0;
+}
+
+.assessment-name-engdas {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.assessment-reference-engdas {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+  font-family: monospace;
+}
+
+.assessment-content-engdas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.assessment-details-engdas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.assessment-metric-engdas {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  background: var(--bg-base);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-light);
-  transition: all 0.2s ease;
-  flex-wrap: wrap;
-  gap: 12px;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--border-light);
 }
 
-.engdas-assessment-item:hover,
-.engdas-schedule-item:hover {
-  background: var(--bg-card);
-  border-color: var(--border-medium);
-  transform: translateX(4px);
+.assessment-metric-engdas:last-of-type {
+  border-bottom: none;
 }
 
-.engdas-assessment-info,
-.engdas-schedule-info {
-  flex: 1;
-}
-
-.engdas-assessment-client,
-.engdas-schedule-client {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-  margin-bottom: 4px;
-}
-
-.engdas-assessment-client svg,
-.engdas-schedule-client svg {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.engdas-assessment-address,
-.engdas-schedule-address {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-}
-
-.engdas-assessment-address svg,
-.engdas-schedule-address svg {
-  font-size: 11px;
-}
-
-.engdas-assessment-date {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
+.metric-label-engdas {
+  font-size: 0.85rem;
   color: var(--text-secondary);
-}
-
-.engdas-schedule-title {
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 4px;
+  gap: 0.3rem;
 }
 
-.engdas-schedule-name {
-  font-size: 13px;
+.metric-value-engdas {
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--text-primary);
 }
 
-.engdas-schedule-time {
-  display: flex;
+.assessment-footer-engdas {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.action-link-engdas {
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--warning);
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all var(--transition-base);
 }
 
-.engdas-schedule-time svg {
-  font-size: 11px;
+.action-link-engdas:hover {
+  color: var(--primary-hover);
+  gap: 0.7rem;
 }
 
-.engdas-assessment-status,
-.engdas-schedule-status {
-  flex-shrink: 0;
+.action-arrow-engdas {
+  transition: transform var(--transition-base);
 }
 
-/* ============================================ */
-/* MY DEVICES SECTION */
-/* ============================================ */
-.engdas-devices-section {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-light);
-  padding: 20px;
-  margin-bottom: 24px;
-  box-shadow: var(--shadow-sm);
-}
-
-.engdas-devices-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-}
-
-.engdas-device-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: var(--bg-base);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-light);
-  transition: all 0.2s ease;
-}
-
-.engdas-device-card:hover {
-  background: var(--bg-card);
-  border-color: var(--border-medium);
+.action-link-engdas:hover .action-arrow-engdas {
   transform: translateX(4px);
 }
 
-.engdas-device-icon {
+/* ============================================
+   ACTIVITIES SECTION
+   ============================================ */
+.engdas-activities-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.activities-card-engdas {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  min-height: 200px;
+}
+
+.activities-list-engdas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.activity-item-engdas {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+}
+
+.activity-item-engdas:hover {
+  background: var(--bg-surface);
+}
+
+.activity-icon-wrapper-engdas {
   width: 40px;
   height: 40px;
-  background: var(--bg-card);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-light);
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
-.engdas-device-info {
+.activity-content-engdas {
   flex: 1;
+  min-width: 0;
 }
 
-.engdas-device-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 4px;
-}
-
-.engdas-device-id {
-  font-size: 11px;
-  color: var(--text-muted);
-  font-family: monospace;
-}
-
-.engdas-device-status {
+.activity-header-engdas {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.activity-title-engdas {
+  font-size: 0.85rem;
   font-weight: 500;
-  padding: 4px 8px;
-  border-radius: 20px;
+  color: var(--text-primary);
 }
 
-.engdas-device-status.online-engdas {
-  background: #DCFCE7;
-  color: #16A34A;
+.activity-reference-engdas {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 400;
 }
 
-/* ============================================ */
-/* STATUS BADGES */
-/* ============================================ */
+.activity-date-engdas {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 0.1rem;
+}
+
+.activity-status-engdas {
+  flex-shrink: 0;
+}
+
+.activity-divider-engdas {
+  height: 1px;
+  background: var(--border-light);
+  margin: 0.25rem 0.75rem;
+}
+
+/* ============================================
+   TODAY SCHEDULES
+   ============================================ */
+.today-schedules-section-engdas {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.schedules-title-engdas {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.75rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.schedules-icon-engdas {
+  color: var(--primary);
+}
+
+.schedules-list-engdas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.schedule-item-engdas {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  transition: all var(--transition-base);
+}
+
+.schedule-item-engdas:hover {
+  background: var(--bg-highlight);
+}
+
+.schedule-time-engdas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  min-width: 56px;
+}
+
+.schedule-hour-engdas {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.schedule-info-engdas {
+  flex: 1;
+  min-width: 0;
+}
+
+.schedule-title-engdas {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.schedule-client-engdas {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+
+.schedule-user-icon-engdas {
+  font-size: 0.7rem;
+}
+
+.schedule-status-engdas {
+  flex-shrink: 0;
+}
+
+/* ============================================
+   STATUS BADGES - Text in Black
+   ============================================ */
 .status-badge-engdas {
   display: inline-block;
-  padding: 4px 12px;
-  border-radius: 30px;
-  font-size: 11px;
-  font-weight: 500;
-  background: var(--bg-base);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
   color: var(--text-primary);
-  border: 1px solid var(--border-light);
 }
 
 .status-badge-engdas.scheduled-engdas {
   background: #DBEAFE;
-  color: var(--primary);
-  border-color: #BFDBFE;
 }
 
-.status-badge-engdas.confirmed-engdas,
-.status-badge-engdas.completed-engdas {
-  background: #DCFCE7;
-  color: #16A34A;
-  border-color: #BBF7D0;
+.status-badge-engdas.pending-engdas {
+  background: #FEF3C7;
+}
+
+.status-badge-engdas.confirmed-engdas {
+  background: #EDE9FE;
 }
 
 .status-badge-engdas.in-progress-engdas {
   background: #FEF3C7;
-  color: #D97706;
-  border-color: #FDE68A;
 }
 
 .status-badge-engdas.deployed-engdas {
-  background: #DBEAFE;
-  color: var(--primary);
-  border-color: #BFDBFE;
+  background: #D1FAE5;
 }
 
 .status-badge-engdas.collecting-engdas {
-  background: #FEF3C7;
-  color: #D97706;
-  border-color: #FDE68A;
+  background: #DBEAFE;
 }
 
 .status-badge-engdas.analyzing-engdas {
-  background: #F3E8FF;
-  color: #9333EA;
-  border-color: #E9D5FF;
+  background: #EDE9FE;
 }
 
-/* ============================================ */
-/* QUICK ACTIONS */
-/* ============================================ */
-.engdas-quick-actions {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-light);
-  padding: 20px;
-  box-shadow: var(--shadow-sm);
+.status-badge-engdas.completed-engdas {
+  background: #DCFCE7;
 }
 
-.engdas-quick-actions h3 {
-  font-size: 16px;
+.status-badge-engdas.cancelled-engdas {
+  background: #FEE2E2;
+}
+
+.status-badge-engdas.approved-engdas {
+  background: #D1FAE5;
+}
+
+/* ============================================
+   EMPTY STATES
+   ============================================ */
+.empty-state-engdas {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 2rem;
+  text-align: center;
+  border: 2px dashed var(--border-light);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state-content-engdas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.empty-state-title-engdas {
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 16px 0;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-light);
+  margin: 0;
 }
 
-.engdas-actions-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+.empty-state-description-engdas {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0;
 }
 
-@media (max-width: 768px) {
-  .engdas-actions-grid {
+.empty-small-engdas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  text-align: center;
+  gap: 0.75rem;
+}
+
+.empty-text-engdas {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ============================================
+   SKELETON LOADING
+   ============================================ */
+.skeleton-line-engdas {
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  animation: shimmer 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-highlight) 50%, var(--bg-surface) 75%);
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-title-engdas {
+  width: 60%;
+  height: 28px;
+}
+
+.skeleton-text-engdas {
+  width: 40%;
+  height: 18px;
+}
+
+.skeleton-card-engdas {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  padding: 1.25rem;
+}
+
+.skeleton-label-engdas {
+  width: 40%;
+  height: 14px;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-value-engdas {
+  width: 60%;
+  height: 32px;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-project-name-engdas {
+  width: 70%;
+  height: 24px;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-project-system-engdas {
+  width: 50%;
+  height: 18px;
+}
+
+.skeleton-activity-title-engdas {
+  width: 60%;
+  height: 18px;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-activity-ref-engdas {
+  width: 40%;
+  height: 14px;
+  margin-bottom: 0.25rem;
+}
+
+.skeleton-activity-date-engdas {
+  width: 30%;
+  height: 14px;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 1200px) {
+  .engdas-stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 480px) {
-  .engdas-actions-grid {
+@media (max-width: 1024px) {
+  .engdas-row-layout {
     grid-template-columns: 1fr;
+  }
+  
+  .engdas-action-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-.engdas-action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  background: var(--bg-base);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.engdas-action-btn:hover {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
-}
-
-/* ============================================ */
-/* EMPTY STATE */
-/* ============================================ */
-.engdas-empty-state {
-  text-align: center;
-  padding: 32px;
-  color: var(--text-muted);
-}
-
-.engdas-empty-state p {
-  margin: 0;
-  font-size: 13px;
-}
-
-/* ============================================ */
-/* SKELETON LOADER */
-/* ============================================ */
-.engdas-skeleton-title {
-  width: 250px;
-  height: 32px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%;
-  animation: shimmer-engdas 1.5s infinite;
-  border-radius: 6px;
-  margin-bottom: 8px;
-}
-
-.engdas-skeleton-subtitle {
-  width: 350px;
-  height: 20px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%;
-  animation: shimmer-engdas 1.5s infinite;
-  border-radius: 6px;
-}
-
-.engdas-skeleton-card {
-  background: var(--bg-card);
-}
-
-.engdas-skeleton-line {
-  height: 16px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%;
-  animation: shimmer-engdas 1.5s infinite;
-  border-radius: 6px;
-  margin-bottom: 12px;
-}
-
-.engdas-skeleton-large {
-  height: 32px;
-  width: 60%;
-}
-
-@keyframes shimmer-engdas {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* ============================================ */
-/* RESPONSIVE */
-/* ============================================ */
 @media (max-width: 768px) {
-  .engdas-dashboard {
-    padding: 16px;
+  .engdas-welcome-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
   
-  .engdas-header h1 {
-    font-size: 24px;
+  .engdas-welcome-actions {
+    width: 100%;
   }
   
-  .engdas-devices-grid {
+  .engdas-welcome-actions .btn-primary-engdas,
+  .engdas-welcome-actions .btn-secondary-engdas {
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .engdas-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .stat-card-engdas {
+    padding: 1rem;
+  }
+  
+  .stat-value-engdas {
+    font-size: 1.5rem;
+  }
+  
+  .engdas-action-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .assessment-header-engdas {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .activities-card-engdas {
+    padding: 1rem;
+  }
+  
+  .activity-item-engdas {
+    flex-wrap: wrap;
+    padding: 0.5rem;
+  }
+  
+  .activity-status-engdas {
+    margin-left: auto;
+  }
+  
+  .schedule-item-engdas {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  
+  .engdas-today-alert {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .alert-action-engdas {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .engdas-stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .engdas-welcome-actions {
+    flex-direction: column;
+  }
+  
+  .engdas-welcome-actions .btn-primary-engdas,
+  .engdas-welcome-actions .btn-secondary-engdas {
+    width: 100%;
+  }
+  
+  .engdas-action-grid {
     grid-template-columns: 1fr;
   }
-}
-
-/* ============================================ */
-/* SCROLLBAR */
-/* ============================================ */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--border-light);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border-medium);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+  
+  .stat-card-engdas {
+    padding: 0.75rem;
+  }
+  
+  .stat-value-engdas {
+    font-size: 1.25rem;
+  }
+  
+  .engdas-page-title {
+    font-size: 1.2rem;
+  }
+  
+  .quick-action-item-engdas {
+    padding: 0.6rem 0.75rem;
+  }
+  
+  .quick-action-icon-engdas {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+  
+  .quick-action-label-engdas {
+    font-size: 0.8rem;
+  }
+  
+  .assessment-card-engdas {
+    padding: 1rem;
+  }
+  
+  .assessment-name-engdas {
+    font-size: 1rem;
+  }
 }

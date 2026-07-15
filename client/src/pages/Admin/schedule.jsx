@@ -1,24 +1,26 @@
-// pages/Admin/AdminSchedule.adsche.jsx
-import React, { useState, useEffect, useRef } from 'react';
+// pages/Admin/AdminSchedule.adsche.jsx - Card View with only View Details
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { 
   FaCalendarAlt, 
   FaEye, 
-  FaEdit, 
-  FaTrash, 
-  FaCheckCircle,
-  FaTimesCircle,
   FaClock,
-  FaUser,
-  FaMapMarkerAlt,
   FaSpinner,
   FaSearch,
-  FaFilter,
   FaChevronLeft,
   FaChevronRight,
-  FaPlus,
-  FaChevronDown
+  FaFilter,
+  FaMapMarkerAlt,
+  FaUser,
+  FaCamera,
+  FaPhone,
+  FaFileAlt,
+  FaClipboardList,
+  FaHome,
+  FaBuilding,
+  FaCheckCircle,
+  FaUserCog
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/schedule.css';
@@ -34,51 +36,20 @@ const AdminSchedule = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [openDropdownId, setOpenDropdownId] = useState(null);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 20 });
-  const dropdownRef = useRef(null);
-  const buttonRefs = useRef({});
   const [stats, setStats] = useState({
     total: 0,
     scheduled: 0,
     confirmed: 0,
     completed: 0,
     cancelled: 0,
-    upcoming: 0
+    upcoming: 0,
+    inProgress: 0
   });
 
   useEffect(() => {
     fetchSchedules();
     fetchStats();
-    
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdownId(null);
-      }
-    };
-    
-    const handleScroll = () => {
-      setOpenDropdownId(null);
-    };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    window.addEventListener('scroll', handleScroll, true);
-    
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('scroll', handleScroll, true);
-    };
   }, [filter, typeFilter, currentPage]);
-
-  const handleDropdownClick = (event, scheduleId) => {
-    event.stopPropagation();
-    const buttonRect = event.currentTarget.getBoundingClientRect();
-    setDropdownPosition({
-      top: buttonRect.bottom + 5,
-      right: window.innerWidth - buttonRect.right - 10,
-    });
-    setOpenDropdownId(openDropdownId === scheduleId ? null : scheduleId);
-  };
 
   const fetchSchedules = async () => {
     try {
@@ -109,45 +80,11 @@ const AdminSchedule = () => {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/schedules/stats`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setStats(response.data.stats);
+      setStats(response.data.stats || {
+        total: 0, scheduled: 0, confirmed: 0, completed: 0, cancelled: 0, upcoming: 0, inProgress: 0
+      });
     } catch (error) {
       console.error('Error fetching stats:', error);
-    }
-  };
-
-  const handleUpdateStatus = async (id, status) => {
-    try {
-      const token = sessionStorage.getItem('token');
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/schedules/${id}/status`,
-        { status },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      showToast(`Schedule marked as ${status}`, 'success');
-      setOpenDropdownId(null);
-      fetchSchedules();
-      fetchStats();
-    } catch (error) {
-      console.error('Error updating status:', error);
-      showToast('Failed to update status', 'error');
-    }
-  };
-
-  const handleDeleteSchedule = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this schedule?')) return;
-    
-    try {
-      const token = sessionStorage.getItem('token');
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/schedules/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      showToast('Schedule deleted successfully', 'success');
-      setOpenDropdownId(null);
-      fetchSchedules();
-      fetchStats();
-    } catch (error) {
-      console.error('Error deleting schedule:', error);
-      showToast('Failed to delete schedule', 'error');
     }
   };
 
@@ -161,7 +98,8 @@ const AdminSchedule = () => {
   };
 
   const formatTime = (time) => {
-    return time || 'N/A';
+    if (!time) return 'N/A';
+    return time;
   };
 
   const getStatusBadge = (status) => {
@@ -186,39 +124,31 @@ const AdminSchedule = () => {
     return badges[type] || <span className="type-badge-adsche">{type}</span>;
   };
 
-  const getAvailableActions = (schedule) => {
-    const actions = [
-      { 
-        label: 'View Details', 
-        icon: <FaEye />, 
-        action: () => { setSelectedSchedule(schedule); setShowDetailModal(true); setOpenDropdownId(null); },
-        color: 'primary'
-      }
-    ];
+  const getStatusColor = (status) => {
+    const colors = {
+      'scheduled': '#3B82F6',
+      'confirmed': '#8B5CF6',
+      'in_progress': '#F59E0B',
+      'completed': '#22C55E',
+      'cancelled': '#EF4444',
+      'rescheduled': '#F59E0B'
+    };
+    return colors[status] || '#64748B';
+  };
 
-    if (schedule.status === 'scheduled') {
-      actions.push(
-        { label: 'Confirm Schedule', icon: <FaCheckCircle />, action: () => handleUpdateStatus(schedule._id, 'confirmed'), color: 'success' }
-      );
-    }
-    
-    if (schedule.status === 'confirmed') {
-      actions.push(
-        { label: 'Start', icon: <FaClock />, action: () => handleUpdateStatus(schedule._id, 'in_progress'), color: 'warning' }
-      );
-    }
-    
-    if (schedule.status === 'in_progress') {
-      actions.push(
-        { label: 'Mark Complete', icon: <FaCheckCircle />, action: () => handleUpdateStatus(schedule._id, 'completed'), color: 'success' }
-      );
-    }
-    
-    actions.push(
-      { label: 'Delete', icon: <FaTrash />, action: () => handleDeleteSchedule(schedule._id), color: 'danger' }
-    );
+  const getTypeIcon = (type) => {
+    const icons = {
+      'pre_assessment': <FaClipboardList />,
+      'site_visit': <FaHome />,
+      'installation': <FaBuilding />,
+      'inspection': <FaCheckCircle />
+    };
+    return icons[type] || <FaCalendarAlt />;
+  };
 
-    return actions;
+  const handleViewSchedule = (schedule) => {
+    setSelectedSchedule(schedule);
+    setShowDetailModal(true);
   };
 
   const filteredSchedules = schedules.filter(schedule => {
@@ -226,7 +156,8 @@ const AdminSchedule = () => {
     const searchLower = searchTerm.toLowerCase();
     return schedule.title?.toLowerCase().includes(searchLower) ||
            schedule.clientName?.toLowerCase().includes(searchLower) ||
-           schedule._id?.toLowerCase().includes(searchLower);
+           schedule._id?.toLowerCase().includes(searchLower) ||
+           schedule.type?.toLowerCase().includes(searchLower);
   });
 
   const SkeletonLoader = () => (
@@ -248,13 +179,14 @@ const AdminSchedule = () => {
         <div className="skeleton-select-adsche"></div>
         <div className="skeleton-search-adsche"></div>
       </div>
-      <div className="schedule-table-container-adsche">
-        <div className="skeleton-table-adsche">
-          <div className="skeleton-table-header-adsche"></div>
-          {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className="skeleton-table-row-adsche"></div>
-          ))}
-        </div>
+      <div className="schedule-cards-container-adsche">
+        {[1, 2, 3, 4, 5].map(i => (
+          <div key={i} className="schedule-card-skeleton-adsche">
+            <div className="skeleton-line-adsche medium"></div>
+            <div className="skeleton-line-adsche small"></div>
+            <div className="skeleton-line-adsche small"></div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -271,8 +203,13 @@ const AdminSchedule = () => {
 
       <div className="schedule-management-adsche">
         <div className="schedule-header-adsche">
-          <h1>Schedule Management</h1>
-          <p>Manage all site visits, assessments, and installation schedules</p>
+          <div>
+            <h1>Schedule Management</h1>
+            <p>View and manage all site visits, assessments, and installations</p>
+          </div>
+          <div className="header-actions-adsche">
+            <span className="total-count-adsche">{stats.total} Total Schedules</span>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -289,16 +226,16 @@ const AdminSchedule = () => {
               <span className="stat-label-adsche">Upcoming</span>
             </div>
           </div>
+          <div className="stat-card-adsche in-progress">
+            <div className="stat-info-adsche">
+              <span className="stat-value-adsche">{stats.inProgress || 0}</span>
+              <span className="stat-label-adsche">In Progress</span>
+            </div>
+          </div>
           <div className="stat-card-adsche completed">
             <div className="stat-info-adsche">
               <span className="stat-value-adsche">{stats.completed}</span>
               <span className="stat-label-adsche">Completed</span>
-            </div>
-          </div>
-          <div className="stat-card-adsche cancelled">
-            <div className="stat-info-adsche">
-              <span className="stat-value-adsche">{stats.cancelled}</span>
-              <span className="stat-label-adsche">Cancelled</span>
             </div>
           </div>
         </div>
@@ -329,99 +266,127 @@ const AdminSchedule = () => {
             <FaSearch className="search-icon-adsche" />
             <input
               type="text"
-              placeholder="Search by title or client..."
+              placeholder="Search by title, client, or type..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
 
-        {/* Schedules Table */}
-        <div className="schedule-table-container-adsche">
-          <table className="schedule-table-adsche">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Client</th>
-                <th>Date & Time</th>
-                <th>Engineer</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredSchedules.length === 0 ? (
-                <tr className="empty-row-adsche">
-                  <td colSpan="7" className="empty-state-adsche">
-                    <p>No schedules found</p>
-                  </td>
-                </tr>
-              ) : (
-                filteredSchedules.map(schedule => {
-                  const actions = getAvailableActions(schedule);
-                  const isOpen = openDropdownId === schedule._id;
-                  
-                  return (
-                    <tr key={schedule._id}>
-                      <td className="title-cell-adsche">
-                        <div className="schedule-title-adsche">{schedule.title}</div>
-                        <div className="schedule-ref-adsche">{schedule._id}</div>
-                      </td>
-                      <td>
-                        <div className="client-name-adsche">{schedule.clientName}</div>
-                        <div className="client-phone-adsche">{schedule.clientPhone}</div>
-                      </td>
-                      <td>
-                        <div className="schedule-date-adsche">{formatDate(schedule.scheduledDate)}</div>
-                        <div className="schedule-time-adsche">{formatTime(schedule.scheduledTime)} - {schedule.endTime || ''}</div>
-                      </td>
-                      <td>{schedule.assignedEngineerId?.firstName} {schedule.assignedEngineerId?.lastName || 'Unassigned'}</td>
-                      <td>{getTypeBadge(schedule.type)}</td>
-                      <td>{getStatusBadge(schedule.status)}</td>
-                      <td style={{ textAlign: 'center', position: 'relative' }}>
-                        <div className="action-dropdown-container-adsche">
-                          <button 
-                            className="action-dropdown-toggle-adsche"
-                            ref={el => buttonRefs.current[schedule._id] = el}
-                            onClick={(e) => handleDropdownClick(e, schedule._id)}
-                          >
-                            Action <FaChevronDown className={`dropdown-arrow-adsche ${isOpen ? 'open-adsche' : ''}`} />
-                          </button>
-                          
-                          {isOpen && (
-                            <div 
-                              className="action-dropdown-menu-adsche"
-                              ref={dropdownRef}
-                              style={{
-                                position: 'fixed',
-                                top: dropdownPosition.top,
-                                right: dropdownPosition.right,
-                                zIndex: 9999,
-                              }}
-                            >
-                              {actions.map((action, idx) => (
-                                <button 
-                                  key={idx} 
-                                  className={`dropdown-item-adsche ${action.color || ''}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    action.action();
-                                  }}
-                                >
-                                  {action.icon} <span>{action.label}</span>
-                                </button>
-                              ))}
+        {/* Schedule Cards */}
+        <div className="schedule-cards-container-adsche">
+          {filteredSchedules.length === 0 ? (
+            <div className="empty-state-adsche">
+              <p>No schedules found</p>
+            </div>
+          ) : (
+            filteredSchedules.map(schedule => {
+              const hasSitePhotos = schedule.sitePhotos && schedule.sitePhotos.length > 0;
+              
+              return (
+                <div key={schedule._id} className="schedule-card-adsche">
+                  <div className="schedule-card-header-adsche">
+                    <div className="schedule-card-title-adsche">
+                      <div className="schedule-type-icon-adsche" style={{ color: getStatusColor(schedule.status) }}>
+                        {getTypeIcon(schedule.type)}
+                      </div>
+                      <div>
+                        <h3 className="schedule-title-adsche">{schedule.title}</h3>
+                        <div className="schedule-ref-adsche">ID: {schedule._id}</div>
+                      </div>
+                    </div>
+                    <div className="schedule-card-status-adsche">
+                      {getStatusBadge(schedule.status)}
+                      {getTypeBadge(schedule.type)}
+                    </div>
+                  </div>
+
+                  <div className="schedule-card-body-adsche">
+                    <div className="schedule-card-info-adsche">
+                      <div className="info-row-adsche">
+                        <span className="info-label-adsche">
+                          <FaCalendarAlt />
+                          Date & Time
+                        </span>
+                        <span className="info-value-adsche">
+                          {formatDate(schedule.scheduledDate)} at {formatTime(schedule.scheduledTime)}
+                          {schedule.endTime && ` - ${formatTime(schedule.endTime)}`}
+                        </span>
+                      </div>
+                      <div className="info-row-adsche">
+                        <span className="info-label-adsche">
+                          <FaUser />
+                          Client
+                        </span>
+                        <span className="info-value-adsche">
+                          {schedule.clientName || 'N/A'}
+                          {schedule.clientPhone && (
+                            <span className="client-phone-adsche">
+                              <FaPhone /> {schedule.clientPhone}
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                      <div className="info-row-adsche">
+                        <span className="info-label-adsche">
+                          <FaUserCog />
+                          Engineer
+                        </span>
+                        <span className="info-value-adsche">
+                          {schedule.assignedEngineerId?.firstName} {schedule.assignedEngineerId?.lastName || 'Not assigned'}
+                        </span>
+                      </div>
+                      {schedule.address && (
+                        <div className="info-row-adsche">
+                          <span className="info-label-adsche">
+                            <FaMapMarkerAlt />
+                            Address
+                          </span>
+                          <span className="info-value-adsche">
+                            {schedule.address.houseOrBuilding} {schedule.address.street}, {schedule.address.barangay}, {schedule.address.cityMunicipality}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {hasSitePhotos && (
+                      <div className="schedule-card-photos-adsche">
+                        <span className="photos-label-adsche">
+                          <FaCamera /> {schedule.sitePhotos.length} site photo(s)
+                        </span>
+                        <div className="photos-preview-adsche">
+                          {schedule.sitePhotos.slice(0, 4).map((photo, idx) => (
+                            <div key={idx} className="photo-thumb-adsche">
+                              <img src={photo} alt={`Site ${idx + 1}`} />
                             </div>
+                          ))}
+                          {schedule.sitePhotos.length > 4 && (
+                            <div className="photo-more-adsche">+{schedule.sitePhotos.length - 4}</div>
                           )}
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                      </div>
+                    )}
+
+                    {schedule.description && (
+                      <div className="schedule-card-description-adsche">
+                        <FaFileAlt className="desc-icon-adsche" />
+                        <span>{schedule.description}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="schedule-card-footer-adsche">
+                    <button 
+                      className="view-details-btn-adsche"
+                      onClick={() => handleViewSchedule(schedule)}
+                    >
+                      <FaEye /> View Details
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
         {/* Pagination */}
@@ -466,12 +431,23 @@ const AdminSchedule = () => {
                 <h4>Client Information</h4>
                 <p><strong>Name:</strong> {selectedSchedule.clientName}</p>
                 <p><strong>Phone:</strong> {selectedSchedule.clientPhone}</p>
-                <p><strong>Address:</strong> {selectedSchedule.address?.houseOrBuilding} {selectedSchedule.address?.street}, {selectedSchedule.address?.barangay}, {selectedSchedule.address?.cityMunicipality}</p>
+                {selectedSchedule.clientEmail && (
+                  <p><strong>Email:</strong> {selectedSchedule.clientEmail}</p>
+                )}
+                {selectedSchedule.address && (
+                  <p><strong>Address:</strong> {selectedSchedule.address.houseOrBuilding} {selectedSchedule.address.street}, {selectedSchedule.address.barangay}, {selectedSchedule.address.cityMunicipality}</p>
+                )}
               </div>
 
               <div className="detail-section-adsche">
                 <h4>Assigned Personnel</h4>
                 <p><strong>Engineer:</strong> {selectedSchedule.assignedEngineerId?.firstName} {selectedSchedule.assignedEngineerId?.lastName || 'Not assigned'}</p>
+                {selectedSchedule.assignedEngineerId?.email && (
+                  <p><strong>Engineer Email:</strong> {selectedSchedule.assignedEngineerId.email}</p>
+                )}
+                {selectedSchedule.assignedEngineerId?.phone && (
+                  <p><strong>Engineer Phone:</strong> {selectedSchedule.assignedEngineerId.phone}</p>
+                )}
               </div>
 
               {selectedSchedule.description && (
@@ -485,6 +461,23 @@ const AdminSchedule = () => {
                 <div className="detail-section-adsche">
                   <h4>Notes</h4>
                   <p>{selectedSchedule.notes}</p>
+                </div>
+              )}
+
+              {/* Site Photos */}
+              {selectedSchedule.sitePhotos && selectedSchedule.sitePhotos.length > 0 && (
+                <div className="detail-section-adsche">
+                  <h4><FaCamera /> Site Photos ({selectedSchedule.sitePhotos.length})</h4>
+                  <div className="site-photos-grid-adsche">
+                    {selectedSchedule.sitePhotos.map((photo, index) => (
+                      <div key={index} className="site-photo-item-adsche">
+                        <img src={photo} alt={`Site photo ${index + 1}`} />
+                        <div className="photo-overlay-adsche">
+                          <FaCamera />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 

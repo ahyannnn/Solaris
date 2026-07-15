@@ -10,19 +10,9 @@ import {
   FaTrash,
   FaSpinner,
   FaCheckCircle,
-  FaClock,
   FaPowerOff,
   FaPlay,
   FaCog,
-  FaSolarPanel,
-  FaBolt,
-  FaBatteryFull,
-  FaAndroid,
-  FaWrench,
-  FaChartLine,
-  FaDollarSign,
-  FaCalculator,
-  FaPercent,
   FaTimes
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
@@ -435,7 +425,7 @@ const MaintenancePanel = () => {
     }
   };
 
-  // Equipment Card Component - NO ICONS
+  // Equipment Card Component
   const EquipmentCard = ({ item, type }) => {
     return (
       <div className="equipment-card-integrated">
@@ -512,7 +502,7 @@ const MaintenancePanel = () => {
 
       <div className="maintenance-panel-admain">
         <div className="panel-header-admain">
-          <h1><FaTools /> Maintenance & System Configuration</h1>
+          <h1>Maintenance & System Configuration</h1>
           <p>Manage maintenance mode, system parameters, and equipment catalog</p>
         </div>
 
@@ -522,13 +512,13 @@ const MaintenancePanel = () => {
             className={`main-tab-btn-admain ${activeMainTab === 'maintenance' ? 'active-admain' : ''}`}
             onClick={() => setActiveMainTab('maintenance')}
           >
-            <FaPowerOff /> Maintenance Mode
+            Maintenance Mode
           </button>
           <button
             className={`main-tab-btn-admain ${activeMainTab === 'systemconfig' ? 'active-admain' : ''}`}
             onClick={() => setActiveMainTab('systemconfig')}
           >
-            <FaCog /> System Configuration
+            System Configuration
           </button>
         </div>
 
@@ -541,7 +531,7 @@ const MaintenancePanel = () => {
                 <p>When enabled, users will see a maintenance page instead of the website.</p>
                 {isEnabled && (
                   <div className="active-badge-admain">
-                    <FaCheckCircle /> Maintenance Mode ACTIVE
+                    Maintenance Mode ACTIVE
                     {settings.scheduledStart && (
                       <span className="start-time-admain">
                         Started: {formatDate(settings.scheduledStart)}
@@ -715,7 +705,7 @@ const MaintenancePanel = () => {
                 Taxes
               </button>
               <button className={`subtab-btn ${activeConfigTab === 'apps' ? 'active' : ''}`} onClick={() => setActiveConfigTab('apps')}>
-                <FaAndroid /> App Management
+                App Management
               </button>
             </div>
             {activeConfigTab === 'equipment' && (

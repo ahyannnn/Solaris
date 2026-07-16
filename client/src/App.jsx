@@ -1,4 +1,4 @@
-
+// App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -53,6 +53,11 @@ import CustomerSettings from './pages/Customer/customersettings';
 import PaymentSuccess from './pages/Customer/PaymentSuccess';
 import PaymentCancel from './pages/Customer/PaymentCancel';
 
+// Guides Pages
+import BookAssessmentGuide from './pages/Guides/BookAssessmentGuide';
+import PaymentGuide from './pages/Guides/PaymentGuide';
+import TrackProjectGuide from './pages/Guides/TrackProjectGuide';
+import ViewDataGuide from './pages/Guides/ViewDataGuide';
 
 // Maintenance Page (public)
 import MaintenancePage from './pages/Maintenance';
@@ -64,7 +69,7 @@ const getUserData = () => {
   const name = localStorage.getItem('userName') || sessionStorage.getItem('userName');
   const email = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail');
   const photo = localStorage.getItem('userPhotoURL') || sessionStorage.getItem('userPhotoURL');
-  
+
   return { token, role, name, email, photo };
 };
 
@@ -125,7 +130,7 @@ const MaintenanceGuard = ({ children }) => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/maintenance/status`);
         const maintenanceData = response.data;
-        
+
         if (maintenanceData.isUnderMaintenance) {
           if (userRole === 'admin') {
             setIsUnderMaintenance(false);
@@ -142,7 +147,7 @@ const MaintenanceGuard = ({ children }) => {
         setLoading(false);
       }
     };
-    
+
     checkMaintenance();
   }, [userRole]);
 
@@ -161,13 +166,13 @@ const MaintenanceGuard = ({ children }) => {
 const PublicRouteGuard = ({ children }) => {
   const token = sessionStorage.getItem('token') || localStorage.getItem('token');
   const role = sessionStorage.getItem('userRole') || localStorage.getItem('userRole');
-  
+
   if (token && role) {
     if (role === 'admin') return <Navigate to="/app/admin" replace />;
     if (role === 'engineer') return <Navigate to="/app/engineer" replace />;
     if (role === 'user') return <Navigate to="/app/customer" replace />;
   }
-  
+
   return children;
 };
 
@@ -185,48 +190,54 @@ function App() {
         {/* Public Routes */}
         <Route path="/maintenance" element={<MaintenancePage />} />
         <Route path="/terms" element={<TermsPage />} />
-        
-        <Route 
-          path="/" 
+
+        <Route
+          path="/"
           element={
             <PublicRouteGuard>
               <SolarisLandingPage />
             </PublicRouteGuard>
-          } 
+          }
         />
-        <Route 
-          path="/login" 
+        <Route
+          path="/login"
           element={
             <PublicRouteGuard>
               <LoginPage />
             </PublicRouteGuard>
-          } 
+          }
         />
-        <Route 
-          path="/register" 
+        <Route
+          path="/register"
           element={
             <PublicRouteGuard>
               <RegisterPage />
             </PublicRouteGuard>
-          } 
+          }
         />
-        <Route 
-          path="/forgotpassword" 
+        <Route
+          path="/forgotpassword"
           element={
             <PublicRouteGuard>
               <ForgotPage />
             </PublicRouteGuard>
-          } 
+          }
         />
 
+        {/* Guide Routes - Public access */}
+        <Route path="/guides/book-assessment" element={<BookAssessmentGuide />} />
+        <Route path="/guides/payment" element={<PaymentGuide />} />
+        <Route path="/guides/track-project" element={<TrackProjectGuide />} />
+        <Route path="/guides/view-data" element={<ViewDataGuide />} />
+
         {/* Setup Account */}
-        <Route 
-          path="/setup" 
+        <Route
+          path="/setup"
           element={
             <SetupGuard>
               <SetupAccount />
             </SetupGuard>
-          } 
+          }
         />
 
         {/* Admin Routes */}
@@ -309,14 +320,14 @@ function App() {
         </Route>
 
         {/* Catch all - redirect based on role */}
-        <Route 
-          path="/app" 
+        <Route
+          path="/app"
           element={
-            <Navigate 
-              to={`/app/${userRole === 'admin' ? 'admin' : userRole === 'engineer' ? 'engineer' : 'customer'}`} 
-              replace 
+            <Navigate
+              to={`/app/${userRole === 'admin' ? 'admin' : userRole === 'engineer' ? 'engineer' : 'customer'}`}
+              replace
             />
-          } 
+          }
         />
       </Routes>
     </Router>

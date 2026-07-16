@@ -37,6 +37,10 @@
   --radius-lg: 14px;
   --radius-xl: 18px;
   --radius-2xl: 24px;
+  --blue: #2563EB;
+  --blue-hover: #1D4ED8;
+  --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ============================================
@@ -499,34 +503,61 @@
 }
 
 /* ============================================
-   GUIDES
+   GUIDES SECTION - BLUE THEME
    ============================================ */
+.cusup-section-description {
+  margin-bottom: 24px;
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
 .cusup-guides-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .cusup-guide-card {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 14px 18px;
+  padding: 16px 20px;
   background: var(--bg-surface);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
-  transition: all 0.2s;
+  transition: all var(--transition-base);
 }
 
-.cusup-guide-card:hover {
-  border-color: var(--border-medium);
-  box-shadow: var(--shadow-sm);
+.cusup-guide-card.guide-clickable {
+  cursor: pointer;
 }
 
-.cusup-guide-icon {
-  font-size: 24px;
-  color: var(--primary);
+.cusup-guide-card.guide-clickable:hover {
+  transform: translateX(8px);
+  border-color: var(--blue);
+  box-shadow: var(--shadow-md);
+}
+
+.cusup-guide-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: rgba(37, 99, 235, 0.1);
+  border-radius: 12px;
   flex-shrink: 0;
+  transition: all var(--transition-spring);
+}
+
+.cusup-guide-card:hover .cusup-guide-icon-wrapper {
+  background: rgba(37, 99, 235, 0.2);
+  transform: scale(1.05) rotate(-3deg);
+}
+
+.cusup-guide-icon-wrapper svg {
+  font-size: 28px;
+  color: var(--blue);
 }
 
 .cusup-guide-info {
@@ -534,38 +565,53 @@
 }
 
 .cusup-guide-info h3 {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 2px 0;
+  margin: 0 0 4px 0;
 }
 
 .cusup-guide-info p {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.cusup-download-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 14px;
   color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
+  margin: 0 0 4px 0;
 }
 
-.cusup-download-btn:hover {
-  background: var(--bg-hover);
-  border-color: var(--border-medium);
-  color: var(--text-primary);
+.cusup-guide-type {
+  display: inline-block;
+  padding: 2px 12px;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--blue);
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cusup-guide-open-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--blue);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  flex-shrink: 0;
+}
+
+.cusup-guide-open-btn:hover {
+  background: var(--blue-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.cusup-guide-open-btn svg {
+  font-size: 14px;
+  color: #FFFFFF;
 }
 
 /* ============================================
@@ -783,11 +829,6 @@
     align-items: flex-start;
   }
   
-  .cusup-guide-card {
-    flex-direction: column;
-    text-align: center;
-  }
-  
   .cusup-modal {
     margin: 12px;
   }
@@ -798,6 +839,27 @@
   
   .cusup-modal-footer .cusup-cancel-btn,
   .cusup-modal-footer .cusup-submit-ticket-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cusup-guide-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 20px;
+  }
+
+  .cusup-guide-icon-wrapper {
+    width: 48px;
+    height: 48px;
+  }
+
+  .cusup-guide-icon-wrapper svg {
+    font-size: 22px;
+  }
+
+  .cusup-guide-open-btn {
     width: 100%;
     justify-content: center;
   }

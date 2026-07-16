@@ -1,4 +1,5 @@
-// pages/Customer/supports.jsx - Redesigned
+// pages/Customer/supports.jsx - Redesigned with Guide Links
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -20,7 +21,9 @@ import {
   FaTimes,
   FaHeadset,
   FaInfoCircle,
-  FaArrowRight
+  FaArrowRight,
+  FaBookOpen,
+  FaExternalLinkAlt
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/supports.css';
@@ -60,43 +63,142 @@ const Supports = () => {
     { id: 'TKT-003', subject: 'Technical question', description: 'How to monitor system performance?', date: '2024-03-05', status: 'open' },
   ]);
 
+  // Updated Guides - Now links to the 4 guide pages
   const guides = [
-    { id: 1, title: 'Solar System Installation Guide', type: 'PDF', size: '2.5 MB' },
-    { id: 2, title: 'Monitoring Dashboard Tutorial', type: 'PDF', size: '1.8 MB' },
-    { id: 3, title: 'Maintenance Tips', type: 'PDF', size: '1.2 MB' },
-    { id: 4, title: 'Understanding Your Solar Bill', type: 'PDF', size: '0.9 MB' },
+    { 
+      id: 1, 
+      title: 'How to Book a Pre-Assessment', 
+      type: 'Guide',
+      description: 'Step-by-step guide to schedule your solar site assessment',
+      link: '/guides/book-assessment',
+      icon: <FaBookOpen />
+    },
+    { 
+      id: 2, 
+      title: 'How to Make a Payment', 
+      type: 'Guide',
+      description: 'Complete guide on payment methods and processes',
+      link: '/guides/payment',
+      icon: <FaBookOpen />
+    },
+    { 
+      id: 3, 
+      title: 'How to Track Your Project', 
+      type: 'Guide',
+      description: 'Monitor your solar project progress and status',
+      link: '/guides/track-project',
+      icon: <FaBookOpen />
+    },
+    { 
+      id: 4, 
+      title: 'How Solar Panels Save You Money', 
+      type: 'Guide',
+      description: 'A simple explanation of how solar energy can reduce your electricity bills',
+      link: '/guides/view-data',
+      icon: <FaBookOpen />
+    },
   ];
 
   const faqs = [
     {
       id: 1,
-      question: 'How do I schedule a site assessment?',
-      answer: 'You can schedule a site assessment by clicking the "Book Assessment" button on your dashboard. Fill out the required information and proceed to payment. Once confirmed, our team will contact you to schedule the actual site visit.'
+      question: 'Is the free quotation really free?',
+      answer: 'YES! Totally free. No payment, no obligation. You will get an estimate of how much you can save and how many solar panels you might need for your property.'
     },
     {
       id: 2,
-      question: 'What is included in the paid assessment?',
-      answer: 'The paid assessment includes a 7-day IoT device monitoring at your site, collection of actual environmental data, a detailed report of findings, and personalized system recommendations.'
+      question: 'How accurate is the free quotation?',
+      answer: 'It is an estimate based on average values. If you want exact measurements for your specific property, you will need to book a pre-assessment which is paid but definitely worth it.'
     },
     {
       id: 3,
-      question: 'How long does installation take?',
-      answer: 'Typical residential installation takes 2-5 days depending on system size and roof complexity. Commercial installations may take longer. Our team will provide a timeline during the planning phase.'
+      question: 'What do I need to provide for a free quotation?',
+      answer: 'You will need to provide your monthly electric bill amount, your electricity rate (found on your bill), how many sun hours your area gets, your property type (residential or commercial), and your roof size.'
     },
     {
       id: 4,
-      question: 'Do you offer warranty?',
-      answer: 'Yes, we offer a 5-year warranty on workmanship and a 25-year performance warranty on solar panels. Inverter warranty varies by brand (typically 5-10 years).'
+      question: 'What is a pre-assessment and why do I need it?',
+      answer: 'A pre-assessment is a 7-day monitoring of your property where an engineer installs an IoT device that measures solar irradiance, temperature, humidity, and GPS location. It provides exact site-specific data for accurate system design.'
     },
     {
       id: 5,
-      question: 'How do I track my system performance?',
-      answer: 'You can monitor your system performance through the "System Performance" section in your dashboard. It shows real-time energy production, historical data, and savings.'
+      question: 'Will the monitoring device damage my roof?',
+      answer: 'NO! It is a temporary installation only. The engineer carefully installs and removes the device after the 7-day monitoring period with no damage to your roof.'
     },
     {
       id: 6,
+      question: 'What happens if it rains during the monitoring period?',
+      answer: 'The device works perfectly even on cloudy or rainy days. If 3 or more days are significantly affected by bad weather, we can extend the monitoring period for FREE.'
+    },
+    {
+      id: 7,
+      question: 'Can I cancel my pre-assessment booking?',
+      answer: 'Yes, but refund depends on when you cancel. 72+ hours before deployment = 80% refund. 48-72 hours before = 50% refund. Less than 48 hours = non-refundable. You can also reschedule once with 48 hours advance notice.'
+    },
+    {
+      id: 8,
+      question: 'How long is the quotation valid?',
+      answer: 'The quotation is valid for 30 days from the date it was issued. After 30 days, you will need to request a new quotation.'
+    },
+    {
+      id: 9,
+      question: 'Can I decline the quotation if I change my mind?',
+      answer: 'YES, absolutely! You are not obligated to proceed with the installation. The assessment fee covers the data and report you already received.'
+    },
+    {
+      id: 10,
       question: 'What payment methods do you accept?',
-      answer: 'We accept GCash, bank transfer, and cash payments at our office. For installment options, please contact our sales team for more details.'
+      answer: 'We accept GCash (upload screenshot of payment), Bank Transfer (BDO, BPI, Metrobank, Security Bank), and Cash payments at our office.'
+    },
+    {
+      id: 11,
+      question: 'Can I pay in installments?',
+      answer: 'YES! We offer flexible payment arrangements. Full payment (100%), 50/50 scheme (50% down, 50% completion), or 30/60/10 scheme (30% down, 60% progress, 10% retention).'
+    },
+    {
+      id: 12,
+      question: 'How long does payment verification take?',
+      answer: 'Payment verification usually takes 24-48 hours. The status will update from "Pending" to "Paid" once verified, and you will receive a confirmation email.'
+    },
+    {
+      id: 13,
+      question: 'How do I check my project status?',
+      answer: 'Simply go to the "My Projects" page in your dashboard. You can see real-time updates including Pending, Under Review, Scheduled, Assessment in Progress, Quotation Ready, Installation in Progress, or Completed.'
+    },
+    {
+      id: 14,
+      question: 'How long does the entire process take?',
+      answer: 'The complete process usually takes 2-4 weeks depending on engineer availability, weather conditions, site conditions, and installation schedule.'
+    },
+    {
+      id: 15,
+      question: 'What happens after the 7-day monitoring?',
+      answer: 'After monitoring, the engineer collects the data, creates a detailed report, generates your custom quotation, and you decide whether to accept and proceed with the installation.'
+    },
+    {
+      id: 16,
+      question: 'What data does the IoT device collect?',
+      answer: 'The device collects solar irradiance (sunlight intensity in W/m²), ambient temperature, relative humidity, and GPS coordinates of your property.'
+    },
+    {
+      id: 17,
+      question: 'How do I view my site data and reports?',
+      answer: 'Go to "My Projects", select your project, click the "IoT Data" or "Site Data" tab, and view the graphs and charts. Reports can be downloaded as PDF.'
+    },
+    {
+      id: 18,
+      question: 'What reports will I receive?',
+      answer: 'You will receive a Site Assessment Report (site condition, shading analysis, orientation, usable area) and a System Design Report (recommended system size, number of panels, equipment specifications).'
+    },
+    {
+      id: 19,
+      question: 'How do I contact support if I have concerns?',
+      answer: 'You can go to the "Support" page, fill out the contact form, and track your ticket in "My Tickets". You can also email support@salfer-solar.com or call [Company Number].'
+    },
+    {
+      id: 20,
+      question: 'Do I need to be home during the monitoring period?',
+      answer: 'Not necessarily. The engineer will install the device and retrieve it after 7 days. You do not need to be home the entire time, only during installation and retrieval.'
     }
   ];
 
@@ -171,6 +273,16 @@ const Supports = () => {
       default:
         return <span className="status-badge-support">{status}</span>;
     }
+  };
+
+  // Handle guide link click - open in new tab or navigate
+  const handleGuideClick = (link) => {
+    // You can use navigate if it's internal or window.open for new tab
+    // Option 1: Navigate within the app
+    // navigate(link);
+    
+    // Option 2: Open in new tab (recommended for guides)
+    window.open(link, '_blank');
   };
 
   const renderTabContent = () => {
@@ -379,19 +491,28 @@ const Supports = () => {
         return (
           <div className="cusup-section">
             <div className="cusup-section-header">
-              <FaFileAlt />
+              <FaBookOpen />
               <h2>User Guides & Resources</h2>
+            </div>
+            <div className="cusup-section-description">
+              <p>Browse our comprehensive guides to help you navigate SOLARIS with ease.</p>
             </div>
             <div className="cusup-guides-list">
               {guides.map(guide => (
-                <div key={guide.id} className="cusup-guide-card">
-                  <FaFileAlt className="cusup-guide-icon" />
+                <div key={guide.id} className="cusup-guide-card guide-clickable" onClick={() => handleGuideClick(guide.link)}>
+                  <div className="cusup-guide-icon-wrapper">
+                    {guide.icon}
+                  </div>
                   <div className="cusup-guide-info">
                     <h3>{guide.title}</h3>
-                    <p>{guide.type} • {guide.size}</p>
+                    <p>{guide.description}</p>
+                    <span className="cusup-guide-type">{guide.type}</span>
                   </div>
-                  <button className="cusup-download-btn" onClick={() => showToast('Download started!', 'success')}>
-                    <FaDownload /> Download
+                  <button className="cusup-guide-open-btn" onClick={(e) => {
+                    e.stopPropagation();
+                    handleGuideClick(guide.link);
+                  }}>
+                    <FaExternalLinkAlt /> Open Guide
                   </button>
                 </div>
               ))}

@@ -1,4 +1,4 @@
-/* styles/Customer/quotation.css */
+/* styles/Customer/quotation.css - Clean Professional Design */
 
 :root {
   --primary: #2563EB;
@@ -8,6 +8,7 @@
   --danger: #EF4444;
   --bg-base: #F8FAFC;
   --bg-card: #FFFFFF;
+  --bg-surface: #F1F5F9;
   --text-primary: #0F172A;
   --text-secondary: #475569;
   --text-muted: #64748B;
@@ -259,31 +260,33 @@
   padding: 2px 10px;
   border-radius: 12px;
   margin-top: 3px;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .invoice-type-label.initial {
-  background: #DBEAFE;
-  color: #2563EB;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .invoice-type-label.progress {
-  background: #FEF3C7;
-  color: #D97706;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .invoice-type-label.final {
-  background: #DCFCE7;
-  color: #16A34A;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .invoice-type-label.retention {
-  background: #FCE7F3;
-  color: #BE185D;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .invoice-type-label.full {
-  background: #EDE9FE;
-  color: #7C3AED;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .property-type-label {
@@ -293,8 +296,8 @@
   padding: 2px 10px;
   border-radius: 12px;
   margin-top: 3px;
-  background: #E0E7FF;
-  color: #4F46E5;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 /* Reference Cell */
@@ -333,7 +336,7 @@
   color: var(--text-muted);
 }
 
-/* Status Badges */
+/* Status Badges - Plain Text */
 .status-badge {
   display: inline-block;
   padding: 4px 12px;
@@ -341,51 +344,53 @@
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge.pending {
-  background: #FEF3C7;
-  color: #D97706;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge.paid {
-  background: #DCFCE7;
-  color: #16A34A;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge.for-verification {
-  background: #FEE2E2;
-  color: #DC2626;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge.processing {
-  background: #E0E7FF;
-  color: #4F46E5;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge.quoted {
-  background: #DBEAFE;
-  color: #2563EB;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge.completed {
-  background: #DCFCE7;
-  color: #16A34A;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge.cancelled {
-  background: #FEE2E2;
-  color: #DC2626;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge.overdue {
-  background: #FEF2F2;
-  color: #DC2626;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 .status-badge.partial {
-  background: #FEF3C7;
-  color: #D97706;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
 }
 
 /* Action Dropdown */
@@ -576,9 +581,9 @@
 }
 
 .modal .modal-close:hover {
-  background: #FEE2E2;
-  border-color: #FCA5A5;
-  color: #DC2626;
+  background: var(--bg-surface);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
 }
 
 /* Modal Headings */
@@ -724,8 +729,8 @@
 }
 
 .gcash-details {
-  background: #F0F9FF;
-  border: 1px solid #BAE6FD;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   padding: 14px 18px;
   margin-bottom: 16px;
@@ -734,19 +739,19 @@
 .gcash-details h4 {
   font-size: 14px;
   font-weight: 600;
-  color: #0C4A6E;
+  color: var(--text-primary);
   margin: 0 0 6px 0;
 }
 
 .gcash-details p {
   margin: 3px 0;
   font-size: 13px;
-  color: #0C4A6E;
+  color: var(--text-secondary);
 }
 
 .info-box {
-  background: #F0F9FF;
-  border: 1px solid #BAE6FD;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   padding: 14px 18px;
   margin-bottom: 16px;
@@ -755,14 +760,14 @@
 .info-box strong {
   display: block;
   font-size: 14px;
-  color: #0C4A6E;
+  color: var(--text-primary);
   margin-bottom: 6px;
 }
 
 .info-box p {
   margin: 3px 0;
   font-size: 13px;
-  color: #0C4A6E;
+  color: var(--text-secondary);
 }
 
 /* Buttons */
@@ -833,7 +838,7 @@
 }
 
 .cancel-btn:hover {
-  background: #F1F5F9;
+  background: var(--bg-surface);
   border-color: var(--border-medium);
 }
 
@@ -908,8 +913,8 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: #DCFCE7;
-  color: #16A34A;
+  background: var(--bg-surface);
+  color: var(--success);
   font-size: 32px;
   font-weight: 700;
   display: flex;
@@ -979,8 +984,8 @@
 }
 
 .bank-transfer-notice {
-  background: #FEF3C7;
-  border: 1px solid #FDE68A;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   padding: 14px 18px;
   margin-bottom: 18px;
@@ -993,12 +998,12 @@
 
 .bank-transfer-notice li {
   font-size: 13px;
-  color: #92400E;
+  color: var(--text-secondary);
   margin: 3px 0;
 }
 
 .bank-transfer-notice strong {
-  color: #92400E;
+  color: var(--text-primary);
 }
 
 .invoice-summary-box {
@@ -1166,7 +1171,7 @@
 .skeleton-header {
   height: 40px;
   width: 200px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-base) 50%, var(--bg-surface) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 6px;
@@ -1176,7 +1181,7 @@
 .skeleton-tabs {
   height: 44px;
   width: 100%;
-  background: #F1F5F9;
+  background: var(--bg-surface);
   border-radius: var(--radius-md);
   margin-bottom: 24px;
 }
@@ -1184,14 +1189,14 @@
 .skeleton-filters {
   height: 44px;
   width: 100%;
-  background: #F1F5F9;
+  background: var(--bg-surface);
   border-radius: var(--radius-md);
   margin-bottom: 16px;
 }
 
 .skeleton-table {
   height: 300px;
-  background: #F1F5F9;
+  background: var(--bg-surface);
   border-radius: var(--radius-xl);
 }
 

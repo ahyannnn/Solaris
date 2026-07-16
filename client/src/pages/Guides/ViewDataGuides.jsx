@@ -1,5 +1,5 @@
 // pages/Guides/ViewDataGuide.jsx
-// Updated: How Solar Panels Save You Money - Simple Explanation for Customers
+// Updated: How Solar Panels Save You Money - Simple Explanation for Customerss
 
 import React, { useState, useEffect, useRef } from 'react';
 import {

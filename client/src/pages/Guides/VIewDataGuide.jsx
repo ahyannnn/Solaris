@@ -348,6 +348,7 @@ const ViewDataGuide = () => {
                           <FaCheckCircle className="ready-check-icon" />
                         </div>
                         <h4>You Want to Save Money</h4>
+                        
                         <p>If you want to reduce your monthly expenses and invest in a sustainable future, solar is a great choice.</p>
                       </div>
                     </div>

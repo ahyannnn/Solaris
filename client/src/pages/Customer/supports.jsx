@@ -83,7 +83,7 @@ const Supports = () => {
     },
     { 
       id: 3, 
-      title: 'How to Track Your Project', 
+      title: 'How to Track Your Projects', 
       type: 'Guide',
       description: 'Monitor your solar project progress and status',
       link: '/guides/track-project',

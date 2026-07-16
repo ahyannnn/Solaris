@@ -57,7 +57,7 @@ import PaymentCancel from './pages/Customer/PaymentCancel';
 import BookAssessmentGuide from './pages/Guides/BookAssessmentGuide';
 import PaymentGuide from './pages/Guides/PaymentGuide';
 import TrackProjectGuide from './pages/Guides/TrackProjectGuide';
-import ViewDataGuide from './pages/Guides/ViewDataGuide';
+import ViewDataGuide from './pages/Guides/ViewDataGuides';
 
 // Maintenance Page (public)
 import MaintenancePage from './pages/Maintenance';

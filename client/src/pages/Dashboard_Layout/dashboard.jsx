@@ -12,7 +12,6 @@ import {
   FaSignOutAlt,
   FaBars,
   FaTimes,
-  FaChevronDown,
   FaClipboardList,
   FaProjectDiagram,
   FaFileInvoiceDollar,
@@ -23,7 +22,13 @@ import {
   FaTools,
   FaThLarge,
   FaTasks,
-  FaCalendarDay
+  FaReceipt,
+  FaQuestionCircle,
+  FaInfoCircle,
+  FaBook,
+  FaUser,
+  FaAddressCard,
+  FaExclamationTriangle
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
 import profileImage from '../../assets/profile.png';
@@ -36,17 +41,12 @@ const Dashboard = () => {
   const [isNavigating, setIsNavigating] = useState(false);
   const [maintenanceStatus, setMaintenanceStatus] = useState({ isUnderMaintenance: false, title: '' });
   const [unreadCount, setUnreadCount] = useState(0);
-
-  const sidebarSettingsDropdownRef = useRef(null);
-  const sidebarSupportDropdownRef = useRef(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarSettingsOpen, setSidebarSettingsOpen] = useState(false);
-  const [sidebarSupportOpen, setSidebarSupportOpen] = useState(false);
   const [userRole, setUserRole] = useState('user');
   const [userName, setUserName] = useState('Customer User');
   const [userPhoto, setUserPhoto] = useState(null);
-  const [activeDropdownItem, setActiveDropdownItem] = useState(null);
 
   // Fetch unread notification count
   const fetchUnreadCount = async () => {
@@ -62,21 +62,6 @@ const Dashboard = () => {
       console.error('Error fetching unread count:', error);
     }
   };
-
-  // Support submenu
-  const supportSubmenu = [
-    { label: 'FAQs', path: '/app/customer/support?tab=faq' },
-    { label: 'Contact Form', path: '/app/customer/support?tab=contact' },
-    { label: 'Contact Info', path: '/app/customer/support?tab=info' },
-    { label: 'Tickets', path: '/app/customer/support?tab=tickets' },
-    { label: 'Guides', path: '/app/customer/support?tab=guides' },
-  ];
-
-  // Settings submenu
-  const settingsSubmenu = [
-    { label: 'Profile', path: '/app/customer/settings?tab=profile' },
-    { label: 'Addresses', path: '/app/customer/settings?tab=addresses' },
-  ];
 
   // Page titles and descriptions based on role and path
   const getPageInfo = () => {
@@ -105,8 +90,8 @@ const Dashboard = () => {
       }
       if (currentPath === '/app/customer/billing') {
         return {
-          title: 'Billing',
-          description: 'View your invoices, payment history, and manage your billing information.'
+          title: 'Billing & Quotations',
+          description: 'View your invoices, quotations, payment history, and manage your billing information.'
         };
       }
       if (currentPath === '/app/customer/notifications') {
@@ -116,9 +101,19 @@ const Dashboard = () => {
         };
       }
       if (currentPath === '/app/customer/settings' || currentPath.startsWith('/app/customer/settings?')) {
+        const params = new URLSearchParams(location.search);
+        const tab = params.get('tab');
+        const titles = {
+          'profile': 'Profile',
+          'addresses': 'Addresses'
+        };
+        const descriptions = {
+          'profile': 'Manage your personal profile information.',
+          'addresses': 'Manage your saved addresses.'
+        };
         return {
-          title: 'Settings',
-          description: 'Manage your profile, addresses, and account preferences.'
+          title: titles[tab] || 'Settings',
+          description: descriptions[tab] || 'Manage your profile and preferences.'
         };
       }
       if (currentPath === '/app/customer/support' || currentPath.startsWith('/app/customer/support?')) {
@@ -126,16 +121,12 @@ const Dashboard = () => {
         const tab = params.get('tab');
         const titles = {
           'faq': 'FAQs',
-          'contact': 'Contact Form',
           'info': 'Contact Information',
-          'tickets': 'Support Tickets',
           'guides': 'User Guides'
         };
         const descriptions = {
           'faq': 'Find answers to commonly asked questions about our services.',
-          'contact': 'Send us a message and we\'ll get back to you as soon as possible.',
           'info': 'Get in touch with us through our contact details.',
-          'tickets': 'View and manage your support tickets.',
           'guides': 'Access helpful guides and resources.'
         };
         return {
@@ -143,7 +134,6 @@ const Dashboard = () => {
           description: descriptions[tab] || 'Get help and support.'
         };
       }
-      // Removed chatbot and schedule routes
     }
 
     // Engineer Pages
@@ -220,8 +210,8 @@ const Dashboard = () => {
       }
       if (currentPath === '/app/admin/billing') {
         return {
-          title: 'Billing',
-          description: 'Oversee all customer billing, invoices, and payment transactions.'
+          title: 'Billing & Quotations',
+          description: 'Oversee all customer billing, invoices, quotations, and payment transactions.'
         };
       }
       if (currentPath === '/app/admin/reports') {
@@ -265,7 +255,7 @@ const Dashboard = () => {
 
   const pageInfo = getPageInfo();
 
-  // Categorized menu items - REMOVED CHATBOT AND SCHEDULE FOR CUSTOMER
+  // Categorized menu items - NO DROPDOWNS, all direct buttons
   const menuItems = {
     admin: {
       sections: [
@@ -339,14 +329,24 @@ const Dashboard = () => {
             { icon: <FaHome />, label: 'Dashboard', path: '/app/customer' },
             { icon: <FaProjectDiagram />, label: 'My Project', path: '/app/customer/project' },
             { icon: <FaCalendarAlt />, label: 'Book Assessment', path: '/app/customer/book-assessment' },
+            { icon: <FaReceipt />, label: 'Billing', path: '/app/customer/billing' },
           ]
         },
         {
-          title: 'Management',
-          icon: <FaTasks />,
+          title: 'Support',
+          icon: <FaHeadset />,
           items: [
-            { icon: <FaFileInvoiceDollar />, label: 'Billing', path: '/app/customer/billing' },
-            // REMOVED: Schedule (FaCalendarDay) and Chatbot items
+            { icon: <FaQuestionCircle />, label: 'FAQs', path: '/app/customer/support?tab=faq' },
+            { icon: <FaInfoCircle />, label: 'Contact Info', path: '/app/customer/support?tab=info' },
+            { icon: <FaBook />, label: 'Guides', path: '/app/customer/support?tab=guides' },
+          ]
+        },
+        {
+          title: 'Settings',
+          icon: <FaCog />,
+          items: [
+            { icon: <FaUser />, label: 'Profile', path: '/app/customer/settings?tab=profile' },
+            { icon: <FaAddressCard />, label: 'Addresses', path: '/app/customer/settings?tab=addresses' },
           ]
         },
         {
@@ -364,23 +364,6 @@ const Dashboard = () => {
   const isAdmin = userRole === 'admin';
   const isEngineer = userRole === 'engineer';
   const isMobile = () => window.innerWidth <= 768;
-
-  // Handle click outside for dropdowns
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (sidebarSettingsDropdownRef.current && !sidebarSettingsDropdownRef.current.contains(event.target)) {
-        setSidebarSettingsOpen(false);
-      }
-      if (sidebarSupportDropdownRef.current && !sidebarSupportDropdownRef.current.contains(event.target)) {
-        setSidebarSupportOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   // Handle window resize for sidebar
   useEffect(() => {
@@ -466,66 +449,52 @@ const Dashboard = () => {
 
   const currentMenu = menuItems[userRole] || menuItems.admin;
 
+  // FIXED: isActive function - exact matching only
   const isActive = (itemPath) => {
     const currentPath = location.pathname;
+    const currentSearch = location.search;
+    const fullPath = currentPath + currentSearch;
     
-    if (currentPath === itemPath) return true;
+    // Exact match (including query params)
+    if (fullPath === itemPath) return true;
     
-    const isDashboardPath = itemPath === '/app/admin' || 
-                            itemPath === '/app/engineer' || 
-                            itemPath === '/app/customer';
-    
-    if (!isDashboardPath && currentPath.startsWith(itemPath + '/')) {
-      return true;
+    // If the item path has no query params
+    if (!itemPath.includes('?')) {
+      // For dashboard paths
+      const isDashboardPath = itemPath === '/app/admin' || 
+                              itemPath === '/app/engineer' || 
+                              itemPath === '/app/customer';
+      
+      // Dashboard: only highlight if exactly the same path
+      if (isDashboardPath) {
+        return currentPath === itemPath;
+      }
+      
+      // For other paths (e.g., /app/customer/project, /app/customer/billing)
+      // Only highlight if the current path starts with the item path
+      // But make sure it's not a different section
+      if (currentPath.startsWith(itemPath) && currentPath !== itemPath) {
+        // Check that the next character is '/' or end of string
+        const nextChar = currentPath[itemPath.length];
+        if (!nextChar || nextChar === '/') {
+          return true;
+        }
+      }
     }
     
     return false;
   };
 
-  const isSettingsActive = () => {
-    const currentPath = location.pathname;
-    return currentPath === '/app/customer/settings' || currentPath.startsWith('/app/customer/settings?');
+  // Handle logout - shows modal first
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
   };
 
-  const isSupportActive = () => {
-    const currentPath = location.pathname;
-    return currentPath === '/app/customer/support' || currentPath.startsWith('/app/customer/support?');
-  };
-
-  const isDropdownItemActive = (path) => {
-    const currentPath = location.pathname;
-    const currentSearch = location.search;
-    const fullPath = path;
-    
-    if (fullPath.includes('?')) {
-      return currentPath + currentSearch === fullPath;
-    }
-    return currentPath === fullPath;
-  };
-
-  const handleSettingsNavigation = (path) => {
+  // Confirm logout - actually perform logout
+  const confirmLogout = () => {
     if (isNavigating) return;
     setIsNavigating(true);
-    setActiveDropdownItem(path);
-    navigate(path);
-    setSidebarSettingsOpen(false);
-    if (isMobile()) setSidebarOpen(false);
-    setTimeout(() => setIsNavigating(false), 500);
-  };
-
-  const handleSupportNavigation = (path) => {
-    if (isNavigating) return;
-    setIsNavigating(true);
-    setActiveDropdownItem(path);
-    navigate(path);
-    setSidebarSupportOpen(false);
-    if (isMobile()) setSidebarOpen(false);
-    setTimeout(() => setIsNavigating(false), 500);
-  };
-
-  const handleLogout = () => {
-    if (isNavigating) return;
-    setIsNavigating(true);
+    setShowLogoutModal(false);
     localStorage.clear();
     sessionStorage.clear();
     setTimeout(() => {
@@ -533,16 +502,18 @@ const Dashboard = () => {
     }, 100);
   };
 
+  // Cancel logout
+  const cancelLogout = () => {
+    setShowLogoutModal(false);
+  };
+
   const handleNavigation = (path) => {
     if (isNavigating) return;
     setIsNavigating(true);
-    setActiveDropdownItem(null);
     navigate(path);
     if (isMobile()) {
       setSidebarOpen(false);
     }
-    setSidebarSettingsOpen(false);
-    setSidebarSupportOpen(false);
     setTimeout(() => setIsNavigating(false), 500);
   };
 
@@ -601,67 +572,6 @@ const Dashboard = () => {
                     )}
                   </button>
                 ))}
-                
-                {/* Settings Dropdown - Only for Customer */}
-                {isCustomer && section.title === 'Management' && (
-                  <div className="dropdown-wrapper-sidebar-layout-dashboard" ref={sidebarSettingsDropdownRef}>
-                    <button
-                      onClick={() => setSidebarSettingsOpen(!sidebarSettingsOpen)}
-                      className={`nav-item-layout-dashboard ${isSettingsActive() ? 'active-layout-dashboard' : ''}`}
-                      disabled={isNavigating}
-                    >
-                      <span className="nav-icon-layout-dashboard"><FaCog /></span>
-                      <span className="nav-label-layout-dashboard">Settings</span>
-                      <FaChevronDown className={`dropdown-arrow-sidebar-layout-dashboard ${sidebarSettingsOpen ? 'open-layout-dashboard' : ''}`} />
-                    </button>
-                    {sidebarSettingsOpen && (
-                      <div className="sidebar-dropdown-menu-layout-dashboard">
-                        {settingsSubmenu.map((item, index) => (
-                          <button
-                            key={index}
-                            onClick={() => handleSettingsNavigation(item.path)}
-                            className={`sidebar-dropdown-item-layout-dashboard ${isDropdownItemActive(item.path) ? 'active-dropdown-item' : ''}`}
-                            disabled={isNavigating}
-                          >
-                            {item.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Support Dropdown - Only for Customer */}
-                {isCustomer && section.title === 'Management' && (
-                  <div className="dropdown-wrapper-sidebar-layout-dashboard" ref={sidebarSupportDropdownRef}>
-                    <button
-                      onClick={() => setSidebarSupportOpen(!sidebarSupportOpen)}
-                      className={`nav-item-layout-dashboard ${isSupportActive() ? 'active-layout-dashboard' : ''}`}
-                      disabled={isNavigating}
-                    >
-                      <span className="nav-icon-layout-dashboard"><FaHeadset /></span>
-                      <span className="nav-label-layout-dashboard">Support</span>
-                      <FaChevronDown className={`dropdown-arrow-sidebar-layout-dashboard ${sidebarSupportOpen ? 'open-layout-dashboard' : ''}`} />
-                    </button>
-                    {sidebarSupportOpen && (
-                      <div className="sidebar-dropdown-menu-layout-dashboard">
-                        {supportSubmenu.map((item, index) => (
-                          <button
-                            key={index}
-                            onClick={() => handleSupportNavigation(item.path)}
-                            className={`sidebar-dropdown-item-layout-dashboard ${isDropdownItemActive(item.path) ? 'active-dropdown-item' : ''}`}
-                            disabled={isNavigating}
-                          >
-                            {item.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* REMOVED: Chatbot button for customer */}
-                {/* REMOVED: Schedule button for customer */}
               </div>
             </div>
           ))}
@@ -671,7 +581,7 @@ const Dashboard = () => {
 
           {/* Logout button at bottom */}
           <button
-            onClick={handleLogout}
+            onClick={handleLogoutClick}
             className="nav-item-layout-dashboard logout-sidebar-btn"
             disabled={isNavigating}
           >
@@ -714,6 +624,36 @@ const Dashboard = () => {
           <Outlet />
         </div>
       </main>
+
+      {/* ============================================
+          LOGOUT CONFIRMATION MODAL
+          ============================================ */}
+      {showLogoutModal && (
+        <div className="logout-modal-overlay" onClick={cancelLogout}>
+          <div className="logout-modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="logout-modal-icon">
+              <FaExclamationTriangle />
+            </div>
+            <h2 className="logout-modal-title">Confirm Logout</h2>
+            <p className="logout-modal-message">Are you sure you want to logout?</p>
+            <p className="logout-modal-sub-message">You will need to login again to access your account.</p>
+            <div className="logout-modal-actions">
+              <button 
+                className="logout-modal-btn logout-modal-btn-cancel"
+                onClick={cancelLogout}
+              >
+                Cancel
+              </button>
+              <button 
+                className="logout-modal-btn logout-modal-btn-confirm"
+                onClick={confirmLogout}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

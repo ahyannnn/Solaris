@@ -122,7 +122,7 @@ exports.login = async (req, res) => {
       
       const attemptsRemaining = 5 - user.loginAttempts;
       return res.status(400).json({
-        message: `Invalid email or password. ${attemptsRemaining} attempt(s) remaining.`,
+        message: `Invalid password. ${attemptsRemaining} attempt(s) remaining.`,
         attemptsRemaining: attemptsRemaining,
         isLocked: false
       });

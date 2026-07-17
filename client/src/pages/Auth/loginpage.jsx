@@ -21,7 +21,7 @@ const LoginPage = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState('');
-  
+
   // New state for login attempts and lockout
   const [attemptsRemaining, setAttemptsRemaining] = useState(null);
   const [isLocked, setIsLocked] = useState(false);
@@ -79,7 +79,7 @@ const LoginPage = () => {
       ...formData,
       [name]: value
     });
-    
+
     // Clear errors when user types
     if (errors[name]) {
       setErrors({
@@ -87,7 +87,7 @@ const LoginPage = () => {
         [name]: ''
       });
     }
-    
+
     // Reset lock-related errors when email changes
     if (name === 'email') {
       setIsLocked(false);
@@ -121,14 +121,14 @@ const LoginPage = () => {
     if (lockTimer) {
       clearInterval(lockTimer);
     }
-    
+
     let remainingMinutes = minutes;
     setLockMinutesRemaining(remainingMinutes);
-    
+
     const timer = setInterval(() => {
       remainingMinutes -= 1;
       setLockMinutesRemaining(remainingMinutes);
-      
+
       if (remainingMinutes <= 0) {
         clearInterval(timer);
         setLockTimer(null);
@@ -138,7 +138,7 @@ const LoginPage = () => {
         // Allow user to try again
       }
     }, 60000); // Update every minute
-    
+
     setLockTimer(timer);
   };
 
@@ -178,7 +178,7 @@ const LoginPage = () => {
       if (!response.ok) {
         try {
           const errorData = JSON.parse(responseText);
-          
+
           // Check for lock status
           if (errorData.isLocked) {
             setIsLocked(true);
@@ -188,17 +188,17 @@ const LoginPage = () => {
             setErrors({ general: errorData.message });
             return;
           }
-          
+
           // Handle attempts remaining
           if (errorData.attemptsRemaining !== undefined) {
             setAttemptsRemaining(errorData.attemptsRemaining);
             setErrors({ general: errorData.message });
             return;
           }
-          
+
           throw new Error(errorData.message || 'Login failed');
         } catch (parseError) {
-          throw new Error(parseError(responseText));
+          throw new Error(parseError.message);
         }
       }
 
@@ -371,7 +371,7 @@ const LoginPage = () => {
                 {isLocked ? 'Account Locked' : 'Login to your account'}
               </h2>
               <p className="new-login-form-subtitle">
-                {isLocked 
+                {isLocked
                   ? `Please wait ${lockMinutesRemaining} minute(s) before trying again`
                   : 'Sign in to manage your solar projects'
                 }
@@ -386,7 +386,7 @@ const LoginPage = () => {
               </div>
             )}
 
-            
+
 
             <form onSubmit={handleSubmit} className="new-login-form">
               {/* EMAIL FIELD */}
@@ -446,10 +446,10 @@ const LoginPage = () => {
                 className={`new-login-submit-btn ${isLoading ? 'new-login-loading' : ''} ${isLocked ? 'new-login-btn-disabled' : ''}`}
                 disabled={isLoading || socialLoading !== '' || isNavigating || isLocked}
               >
-                {isLocked 
-                  ? `Locked (${lockMinutesRemaining}m remaining)` 
-                  : isLoading 
-                    ? 'Signing in...' 
+                {isLocked
+                  ? `Locked (${lockMinutesRemaining}m remaining)`
+                  : isLoading
+                    ? 'Signing in...'
                     : 'Sign In'
                 }
               </button>

@@ -1,5 +1,5 @@
 // pages/Auth/LoginPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaClock } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,6 +12,10 @@ import '../../styles/Auth/loginpage.css';
 const LoginPage = () => {
   const navigate = useNavigate();
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [showSplit, setShowSplit] = useState(false);
+  const [dashboardReady, setDashboardReady] = useState(false);
+  const splitTimerRef = useRef(null);
 
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -22,7 +26,6 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState('');
 
-  // New state for login attempts and lockout
   const [attemptsRemaining, setAttemptsRemaining] = useState(null);
   const [isLocked, setIsLocked] = useState(false);
   const [lockMinutesRemaining, setLockMinutesRemaining] = useState(0);
@@ -34,6 +37,9 @@ const LoginPage = () => {
     return () => {
       if (lockTimer) {
         clearInterval(lockTimer);
+      }
+      if (splitTimerRef.current) {
+        clearTimeout(splitTimerRef.current);
       }
     };
   }, [lockTimer]);
@@ -73,73 +79,63 @@ const LoginPage = () => {
     return 'Login failed';
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+  // Pre-load the dashboard in the background
+  const preloadDashboard = () => {
+    // Create a hidden iframe to preload the dashboard
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: -9999;
+    `;
+    iframe.src = '/app';
+    document.body.appendChild(iframe);
 
-    // Clear errors when user types
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: ''
-      });
-    }
+    // Remove iframe after load
+    iframe.onload = () => {
+      setDashboardReady(true);
+      setTimeout(() => {
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+      }, 100);
+    };
 
-    // Reset lock-related errors when email changes
-    if (name === 'email') {
-      setIsLocked(false);
-      setAttemptsRemaining(null);
-      setLockMinutesRemaining(0);
-      if (lockTimer) {
-        clearInterval(lockTimer);
-        setLockTimer(null);
+    // If iframe doesn't load in 2 seconds, proceed anyway
+    setTimeout(() => {
+      if (!dashboardReady) {
+        setDashboardReady(true);
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
       }
-      setEmailError('');
-    }
+    }, 2000);
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.email) {
-      newErrors.email = 'Email address is required';
-    } else if (!formData.email.endsWith('@gmail.com')) {
-      newErrors.email = 'Please use a valid @gmail.com email address';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    }
-
-    return newErrors;
-  };
-
-  // Start lock countdown timer
-  const startLockTimer = (minutes) => {
-    if (lockTimer) {
-      clearInterval(lockTimer);
-    }
-
-    let remainingMinutes = minutes;
-    setLockMinutesRemaining(remainingMinutes);
-
-    const timer = setInterval(() => {
-      remainingMinutes -= 1;
-      setLockMinutesRemaining(remainingMinutes);
-
-      if (remainingMinutes <= 0) {
-        clearInterval(timer);
-        setLockTimer(null);
-        setIsLocked(false);
-        setAttemptsRemaining(5);
-        setErrors({});
-        // Allow user to try again
-      }
-    }, 60000); // Update every minute
-
-    setLockTimer(timer);
+  // Trigger split animation and navigate
+  const triggerSplitAndNavigate = () => {
+    setIsLoggingIn(true);
+    
+    // Start preloading dashboard immediately
+    preloadDashboard();
+    
+    // Small delay to let preload start
+    setTimeout(() => {
+      setShowSplit(true);
+      
+      // Navigate after split animation completes
+      splitTimerRef.current = setTimeout(() => {
+        navigate("/app", { replace: true });
+        // Clean up
+        setIsLoggingIn(false);
+        setShowSplit(false);
+      }, 900);
+    }, 100);
   };
 
   const handleSubmit = async (e) => {
@@ -179,7 +175,6 @@ const LoginPage = () => {
         try {
           const errorData = JSON.parse(responseText);
 
-          // Check for lock status
           if (errorData.isLocked) {
             setIsLocked(true);
             setAttemptsRemaining(0);
@@ -189,7 +184,6 @@ const LoginPage = () => {
             return;
           }
 
-          // Handle attempts remaining
           if (errorData.attemptsRemaining !== undefined) {
             setAttemptsRemaining(errorData.attemptsRemaining);
             setErrors({ general: errorData.message });
@@ -205,7 +199,6 @@ const LoginPage = () => {
       const data = JSON.parse(responseText);
 
       if (data.token && data.user) {
-        // Reset lock state on successful login
         setIsLocked(false);
         setAttemptsRemaining(null);
         setLockMinutesRemaining(0);
@@ -238,15 +231,12 @@ const LoginPage = () => {
         localStorage.removeItem('hasCompletedSetup');
         sessionStorage.removeItem('hasCompletedSetup');
 
-        setTimeout(() => {
-          window.dispatchEvent(new Event('storage'));
-          navigate("/app", { replace: true });
-        }, 50);
+        // Trigger the split animation with preload
+        triggerSplitAndNavigate();
       }
 
     } catch (err) {
       setErrors({ general: err.message });
-    } finally {
       setIsLoading(false);
       setIsNavigating(false);
     }
@@ -256,7 +246,71 @@ const LoginPage = () => {
     setShowPassword(!showPassword);
   };
 
-  // Centralized error handling
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ''
+      });
+    }
+
+    if (name === 'email') {
+      setIsLocked(false);
+      setAttemptsRemaining(null);
+      setLockMinutesRemaining(0);
+      if (lockTimer) {
+        clearInterval(lockTimer);
+        setLockTimer(null);
+      }
+      setEmailError('');
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.email) {
+      newErrors.email = 'Email address is required';
+    } else if (!formData.email.endsWith('@gmail.com')) {
+      newErrors.email = 'Please use a valid @gmail.com email address';
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    }
+
+    return newErrors;
+  };
+
+  const startLockTimer = (minutes) => {
+    if (lockTimer) {
+      clearInterval(lockTimer);
+    }
+
+    let remainingMinutes = minutes;
+    setLockMinutesRemaining(remainingMinutes);
+
+    const timer = setInterval(() => {
+      remainingMinutes -= 1;
+      setLockMinutesRemaining(remainingMinutes);
+
+      if (remainingMinutes <= 0) {
+        clearInterval(timer);
+        setLockTimer(null);
+        setIsLocked(false);
+        setAttemptsRemaining(5);
+        setErrors({});
+      }
+    }, 60000);
+
+    setLockTimer(timer);
+  };
+
   const handleAuthError = (error) => {
     console.error("Auth error:", error);
 
@@ -271,7 +325,6 @@ const LoginPage = () => {
     }
   };
 
-  // Google Login
   const handleGoogleLogin = async () => {
     if (socialLoading === 'google' || isNavigating || isLocked) return;
 
@@ -329,21 +382,16 @@ const LoginPage = () => {
           storage.setItem(key, value);
         });
 
-        setTimeout(() => {
-          window.dispatchEvent(new Event('storage'));
-          navigate("/app", { replace: true });
-        }, 50);
+        triggerSplitAndNavigate();
       }
 
     } catch (error) {
       handleAuthError(error);
-    } finally {
       setSocialLoading('');
       setIsNavigating(false);
     }
   };
 
-  // Get branding content
   const getBrandingContent = () => {
     return {
       title: 'Login to your account',
@@ -353,7 +401,6 @@ const LoginPage = () => {
     };
   };
 
-  // Form is always on LEFT for login
   const isFormLeft = true;
 
   return (
@@ -362,9 +409,9 @@ const LoginPage = () => {
         <title>Sign In | Salfer Engineering</title>
       </Helmet>
 
-      <div className="new-login-page">
+      <div className={`new-login-page ${showSplit ? 'split-active' : ''}`}>
         {/* FORM SECTION - Always on LEFT */}
-        <div className={`new-login-form-container ${isFormLeft ? 'form-left' : 'form-right'}`}>
+        <div className={`new-login-form-container ${isFormLeft ? 'form-left' : 'form-right'} ${showSplit ? 'split-slide-left' : ''}`}>
           <div className="new-login-form-wrapper">
             <div className="new-login-form-header">
               <h2 className="new-login-form-title">
@@ -378,7 +425,6 @@ const LoginPage = () => {
               </p>
             </div>
 
-            {/* Error Message */}
             {errors.general && (
               <div className={`new-login-general-error ${isLocked ? 'new-login-lock-error' : ''}`}>
                 {isLocked && <FaClock className="new-login-lock-icon" />}
@@ -386,10 +432,7 @@ const LoginPage = () => {
               </div>
             )}
 
-
-
             <form onSubmit={handleSubmit} className="new-login-form">
-              {/* EMAIL FIELD */}
               <div className="new-login-form-group">
                 <label className="new-login-form-label">Email Address</label>
                 <div className="new-login-input-wrapper">
@@ -401,13 +444,12 @@ const LoginPage = () => {
                     placeholder="Enter your email address"
                     value={formData.email}
                     onChange={handleChange}
-                    disabled={isLoading || socialLoading !== '' || isNavigating || isLocked}
+                    disabled={isLoading || socialLoading !== '' || isNavigating || isLocked || isLoggingIn}
                   />
                 </div>
                 {errors.email && <span className="new-login-error-message">{errors.email}</span>}
               </div>
 
-              {/* PASSWORD FIELD */}
               <div className="new-login-form-group">
                 <label className="new-login-form-label">Password</label>
                 <div className="new-login-input-wrapper">
@@ -419,13 +461,13 @@ const LoginPage = () => {
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={handleChange}
-                    disabled={isLoading || socialLoading !== '' || isNavigating || isLocked}
+                    disabled={isLoading || socialLoading !== '' || isNavigating || isLocked || isLoggingIn}
                   />
                   <button
                     type="button"
                     className="new-login-password-toggle"
                     onClick={togglePasswordVisibility}
-                    disabled={isLoading || socialLoading !== '' || isNavigating || isLocked}
+                    disabled={isLoading || socialLoading !== '' || isNavigating || isLocked || isLoggingIn}
                   >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
@@ -433,18 +475,16 @@ const LoginPage = () => {
                 {errors.password && <span className="new-login-error-message">{errors.password}</span>}
               </div>
 
-              {/* FORGOT PASSWORD */}
               <div className="new-login-row-actions">
                 <Link to="/forgotpassword" className="new-login-forgot-link">
                   Forgot password?
                 </Link>
               </div>
 
-              {/* LOGIN BUTTON */}
               <button
                 type="submit"
                 className={`new-login-submit-btn ${isLoading ? 'new-login-loading' : ''} ${isLocked ? 'new-login-btn-disabled' : ''}`}
-                disabled={isLoading || socialLoading !== '' || isNavigating || isLocked}
+                disabled={isLoading || socialLoading !== '' || isNavigating || isLocked || isLoggingIn}
               >
                 {isLocked
                   ? `Locked (${lockMinutesRemaining}m remaining)`
@@ -454,7 +494,6 @@ const LoginPage = () => {
                 }
               </button>
 
-              {/* SOCIAL LOGIN */}
               <div className="new-login-social">
                 <p className="new-login-social-text">Or continue with</p>
                 <div className="new-login-social-buttons">
@@ -462,7 +501,7 @@ const LoginPage = () => {
                     type="button"
                     className={`new-login-social-btn new-login-google-btn ${socialLoading === 'google' ? 'new-login-loading' : ''} ${isLocked ? 'new-login-btn-disabled' : ''}`}
                     onClick={handleGoogleLogin}
-                    disabled={isLoading || socialLoading !== '' || isNavigating || isLocked}
+                    disabled={isLoading || socialLoading !== '' || isNavigating || isLocked || isLoggingIn}
                   >
                     {socialLoading === 'google' ? (
                       <span className="new-login-loading-spinner"></span>
@@ -476,7 +515,6 @@ const LoginPage = () => {
                 </div>
               </div>
 
-              {/* SIGN UP LINK */}
               <div className="new-login-signup-prompt">
                 <p className="new-login-signup-text">
                   Don't have an account?{' '}
@@ -490,7 +528,7 @@ const LoginPage = () => {
         </div>
 
         {/* BRANDING SECTION - Always on RIGHT */}
-        <div className="new-login-branding branding-right">
+        <div className={`new-login-branding branding-right ${showSplit ? 'split-slide-right' : ''}`}>
           <div className="new-login-branding-content">
             <div className="new-login-brand-header">
               <img src={logo} alt="Salfer Engineering" className="new-login-brand-logo" />
@@ -512,6 +550,17 @@ const LoginPage = () => {
             </div>
           </div>
         </div>
+
+        {/* SPLIT REVEAL OVERLAY - Shows when split is active */}
+        {showSplit && (
+          <div className="new-login-split-reveal">
+            <div className="new-login-split-content">
+              <div className="new-login-split-spinner"></div>
+              <h2>Welcome Back!</h2>
+              <p>Loading your dashboard...</p>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

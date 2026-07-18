@@ -31,7 +31,9 @@
   animation: newLoginPageFadeIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* ============================================ */
 /* BRANDING SECTION - SMOOTH SLIDE IN FROM RIGHT */
+/* ============================================ */
 @keyframes newLoginBrandingSlideIn {
   0% {
     opacity: 0;
@@ -247,7 +249,9 @@
   }
 }
 
+/* ============================================ */
 /* FORM SECTION - SMOOTH SLIDE IN FROM LEFT */
+/* ============================================ */
 @keyframes newLoginFormSlideIn {
   0% {
     opacity: 0;
@@ -280,7 +284,6 @@
   overflow: hidden;
 }
 
-/* ===== ENLARGED FORM WRAPPER ===== */
 .new-login-form-wrapper {
   max-width: 480px;
   width: 100%;
@@ -291,7 +294,7 @@
   height: 100%;
 }
 
-/* Form elements with staggered entrance - SMOOTH */
+/* Form elements with staggered entrance */
 @keyframes newLoginFormElementFadeUp {
   0% {
     opacity: 0;
@@ -331,14 +334,12 @@
   font-size: 0.95rem;
 }
 
-/* Form Styles */
 .new-login-form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-/* ===== ENLARGED FORM GROUP ===== */
 .new-login-form-group {
   display: flex;
   flex-direction: column;
@@ -371,7 +372,6 @@
   width: 100%;
 }
 
-/* ===== ENLARGED INPUT ICON ===== */
 .new-login-input-icon {
   position: absolute;
   left: 1rem;
@@ -387,7 +387,6 @@
   transform: scale(1.1) translateX(2px);
 }
 
-/* ===== ENLARGED INPUT - FULL WIDTH ===== */
 .new-login-form-input {
   width: 100%;
   padding: 1rem 1.25rem 1rem 3.25rem;
@@ -447,7 +446,6 @@
   cursor: not-allowed;
 }
 
-/* ===== ENLARGED PASSWORD TOGGLE ===== */
 .new-login-password-toggle {
   position: absolute;
   right: 1rem;
@@ -504,7 +502,6 @@
   opacity: 0;
 }
 
-/* Row Actions - Forgot Password only */
 .new-login-row-actions {
   display: flex;
   justify-content: flex-end;
@@ -544,7 +541,6 @@
   width: 100%;
 }
 
-/* ===== ENLARGED SUBMIT BUTTON ===== */
 .new-login-submit-btn {
   background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
   color: white;
@@ -598,7 +594,6 @@
   transform: none;
 }
 
-/* Loading State */
 .new-login-submit-btn.new-login-loading {
   color: transparent;
   pointer-events: none;
@@ -626,7 +621,6 @@
   }
 }
 
-/* Loading spinner for social buttons */
 .new-login-loading-spinner {
   display: inline-block;
   width: 20px;
@@ -637,7 +631,6 @@
   animation: newLoginSpin 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
 }
 
-/* ===== ENLARGED SOCIAL LOGIN ===== */
 .new-login-social {
   margin-top: 0.25rem;
   opacity: 0;
@@ -676,7 +669,6 @@
   justify-content: center;
 }
 
-/* ===== ENLARGED SOCIAL BUTTON ===== */
 .new-login-social-btn {
   display: flex;
   align-items: center;
@@ -757,7 +749,6 @@
   opacity: 0.7;
 }
 
-/* ===== ENLARGED SIGN UP PROMPT ===== */
 .new-login-signup-prompt {
   text-align: center;
   margin-top: 0.35rem;
@@ -797,7 +788,142 @@
   width: 100%;
 }
 
+/* ============================================ */
+/* SPLIT SCREEN ANIMATION ON SUCCESSFUL LOGIN */
+/* ============================================ */
+
+/* Split animation - both halves slide apart */
+.new-login-page.split-active {
+  animation: splitPageReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9998;
+  pointer-events: none;
+}
+
+@keyframes splitPageReveal {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* Left side slides left */
+.new-login-form-container.split-slide-left {
+  animation: splitLeft 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes splitLeft {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%) scale(0.9);
+    opacity: 0;
+  }
+}
+
+/* Right side slides right */
+.new-login-branding.split-slide-right {
+  animation: splitRight 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes splitRight {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%) scale(0.9);
+    opacity: 0;
+  }
+}
+
+/* ============================================ */
+/* SPLIT REVEAL OVERLAY - Shows in the middle */
+/* ============================================ */
+.new-login-split-reveal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #0f1a24 0%, #1a2a3a 50%, #243b4a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: splitRevealFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes splitRevealFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.new-login-split-content {
+  text-align: center;
+  color: white;
+}
+
+.new-login-split-content h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.new-login-split-content p {
+  font-size: 1.1rem;
+  color: #b0bec5;
+  margin-top: 0.25rem;
+}
+
+.new-login-split-spinner {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1.5rem;
+  border: 4px solid rgba(243, 156, 18, 0.15);
+  border-top: 4px solid #f39c12;
+  border-radius: 50%;
+  animation: splitSpin 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  box-shadow: 0 0 30px rgba(243, 156, 18, 0.15);
+}
+
+@keyframes splitSpin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.05);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+/* ============================================ */
 /* RESPONSIVE DESIGN */
+/* ============================================ */
 @media (max-width: 1024px) {
   .new-login-branding {
     padding: 2.5rem 2rem;
@@ -835,7 +961,6 @@
     }
   }
 
-  /* Branding becomes top section (collapsed) */
   .new-login-branding {
     flex: 0 0 auto;
     min-height: auto;
@@ -881,7 +1006,6 @@
     display: none;
   }
 
-  /* Form takes full width */
   .new-login-form-container {
     flex: 1;
     padding: 1rem 1.5rem 1.5rem;
@@ -924,6 +1048,46 @@
     padding: 0.75rem 1rem;
     font-size: 0.9rem;
     border-radius: 10px;
+  }
+
+  /* Split animation mobile */
+  .new-login-form-container.split-slide-left {
+    animation: splitLeftMobile 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes splitLeftMobile {
+    0% {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-100%) scale(0.9);
+      opacity: 0;
+    }
+  }
+
+  .new-login-branding.split-slide-right {
+    animation: splitRightMobile 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes splitRightMobile {
+    0% {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100%) scale(0.9);
+      opacity: 0;
+    }
+  }
+
+  .new-login-split-content h2 {
+    font-size: 1.8rem;
+  }
+
+  .new-login-split-spinner {
+    width: 50px;
+    height: 50px;
   }
 }
 
@@ -994,9 +1158,22 @@
   .new-login-social-text::after {
     width: 20%;
   }
+
+  .new-login-split-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .new-login-split-content p {
+    font-size: 0.9rem;
+  }
+
+  .new-login-split-spinner {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+  }
 }
 
-/* Small screen optimization for mobile */
 @media (max-width: 380px) {
   .new-login-branding {
     padding: 0.75rem 0.75rem 0.5rem;
@@ -1029,7 +1206,9 @@
   }
 }
 
-/* Reduced motion preferences */
+/* ============================================ */
+/* REDUCED MOTION PREFERENCES */
+/* ============================================ */
 @media (prefers-reduced-motion: reduce) {
   .new-login-page,
   .new-login-branding,
@@ -1043,10 +1222,16 @@
   .new-login-signup-prompt,
   .new-login-brand-name,
   .new-login-brand-tagline,
-  .new-login-brand-description {
+  .new-login-brand-description,
+  .new-login-form-container.split-slide-left,
+  .new-login-branding.split-slide-right,
+  .new-login-split-reveal,
+  .new-login-split-content,
+  .new-login-page.split-active {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
+    visibility: visible !important;
   }
 
   .new-login-brand-logo {
@@ -1062,6 +1247,14 @@
   }
 
   .new-login-branding::after {
+    animation: none !important;
+  }
+
+  .new-login-split-spinner {
+    animation: none !important;
+  }
+
+  .new-login-split-content h2 {
     animation: none !important;
   }
 }

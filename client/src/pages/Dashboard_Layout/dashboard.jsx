@@ -308,6 +308,7 @@ const Dashboard = () => {
           items: [
             { icon: <FaMicrochip />, label: 'Device Data', path: '/app/engineer/device' },
             { icon: <FaCalendarAlt />, label: 'Schedule', path: '/app/engineer/schedule' },
+            { icon: <FaUser />, label: 'Profile', path: '/app/engineer/profile' }, // ADD THIS
           ]
         },
         {
@@ -454,22 +455,22 @@ const Dashboard = () => {
     const currentPath = location.pathname;
     const currentSearch = location.search;
     const fullPath = currentPath + currentSearch;
-    
+
     // Exact match (including query params)
     if (fullPath === itemPath) return true;
-    
+
     // If the item path has no query params
     if (!itemPath.includes('?')) {
       // For dashboard paths
-      const isDashboardPath = itemPath === '/app/admin' || 
-                              itemPath === '/app/engineer' || 
-                              itemPath === '/app/customer';
-      
+      const isDashboardPath = itemPath === '/app/admin' ||
+        itemPath === '/app/engineer' ||
+        itemPath === '/app/customer';
+
       // Dashboard: only highlight if exactly the same path
       if (isDashboardPath) {
         return currentPath === itemPath;
       }
-      
+
       // For other paths (e.g., /app/customer/project, /app/customer/billing)
       // Only highlight if the current path starts with the item path
       // But make sure it's not a different section
@@ -481,7 +482,7 @@ const Dashboard = () => {
         }
       }
     }
-    
+
     return false;
   };
 
@@ -520,7 +521,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard-layout-dashboard">
       {/* Mobile Hamburger Button */}
-      <button 
+      <button
         className="mobile-hamburger-btn"
         onClick={() => setSidebarOpen(true)}
         aria-label="Open menu"
@@ -539,7 +540,7 @@ const Dashboard = () => {
             </div>
             <h1 className="logo-text-layout-dashboard">Salfer Engineering</h1>
           </div>
-          <button 
+          <button
             className="sidebar-close-btn"
             onClick={() => setSidebarOpen(false)}
           >
@@ -638,13 +639,13 @@ const Dashboard = () => {
             <p className="logout-modal-message">Are you sure you want to logout?</p>
             <p className="logout-modal-sub-message">You will need to login again to access your account.</p>
             <div className="logout-modal-actions">
-              <button 
+              <button
                 className="logout-modal-btn logout-modal-btn-cancel"
                 onClick={cancelLogout}
               >
                 Cancel
               </button>
-              <button 
+              <button
                 className="logout-modal-btn logout-modal-btn-confirm"
                 onClick={confirmLogout}
               >

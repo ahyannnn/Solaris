@@ -42,11 +42,36 @@ const Dashboard = () => {
   const [maintenanceStatus, setMaintenanceStatus] = useState({ isUnderMaintenance: false, title: '' });
   const [unreadCount, setUnreadCount] = useState(0);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [animationState, setAnimationState] = useState('idle'); // idle → animating → contentAnimating → complete
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState('user');
   const [userName, setUserName] = useState('Customer User');
   const [userPhoto, setUserPhoto] = useState(null);
+
+  // PREMIUM ENTRANCE ANIMATION SEQUENCE - Sabay ang sidebar at header
+  useEffect(() => {
+    // Use requestAnimationFrame to ensure layout is painted
+    requestAnimationFrame(() => {
+      // Step 1: Dashboard mounts silently
+      // Step 2 & 3: Sidebar AND Header start simultaneously
+      setAnimationState('animating');
+
+      // Step 4 & 5: Content appears after both animations complete
+      const totalDuration = 1000; // 1000ms for sidebar + header
+      
+      setTimeout(() => {
+        setAnimationState('contentAnimating');
+        
+        // After content fade-in completes (500-700ms)
+        setTimeout(() => {
+          setAnimationState('complete');
+        }, 600);
+      }, totalDuration + 100); // Small buffer after animations
+    });
+
+    return () => {};
+  }, []);
 
   // Fetch unread notification count
   const fetchUnreadCount = async () => {
@@ -255,7 +280,7 @@ const Dashboard = () => {
 
   const pageInfo = getPageInfo();
 
-  // Categorized menu items - NO DROPDOWNS, all direct buttons
+  // Categorized menu items
   const menuItems = {
     admin: {
       sections: [
@@ -308,7 +333,7 @@ const Dashboard = () => {
           items: [
             { icon: <FaMicrochip />, label: 'Device Data', path: '/app/engineer/device' },
             { icon: <FaCalendarAlt />, label: 'Schedule', path: '/app/engineer/schedule' },
-            { icon: <FaUser />, label: 'Profile', path: '/app/engineer/profile' }, // ADD THIS
+            { icon: <FaUser />, label: 'Profile', path: '/app/engineer/profile' },
           ]
         },
         {
@@ -381,7 +406,7 @@ const Dashboard = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Handle user authentication and fetch unread count
+  // Handle user authentication
   useEffect(() => {
     if (initialized || isNavigating) return;
 
@@ -400,26 +425,26 @@ const Dashboard = () => {
       return;
     }
 
-    // Fetch unread count after authentication
     fetchUnreadCount();
 
     if (!initialized && location.pathname === '/app') {
       setInitialized(true);
-      setTimeout(() => {
+      // Use requestAnimationFrame for immediate navigation
+      requestAnimationFrame(() => {
         if (role === 'user') {
-          navigate('/app/customer');
+          navigate('/app/customer', { replace: true });
         } else if (role === 'engineer') {
-          navigate('/app/engineer');
+          navigate('/app/engineer', { replace: true });
         } else if (role === 'admin') {
-          navigate('/app/admin');
+          navigate('/app/admin', { replace: true });
         }
-      }, 0);
+      });
     } else {
       setInitialized(true);
     }
   }, [navigate, location.pathname, initialized, isNavigating]);
 
-  // Poll for unread count updates every 30 seconds
+  // Poll for unread count
   useEffect(() => {
     if (!initialized) return;
 
@@ -450,32 +475,23 @@ const Dashboard = () => {
 
   const currentMenu = menuItems[userRole] || menuItems.admin;
 
-  // FIXED: isActive function - exact matching only
   const isActive = (itemPath) => {
     const currentPath = location.pathname;
     const currentSearch = location.search;
     const fullPath = currentPath + currentSearch;
 
-    // Exact match (including query params)
     if (fullPath === itemPath) return true;
 
-    // If the item path has no query params
     if (!itemPath.includes('?')) {
-      // For dashboard paths
       const isDashboardPath = itemPath === '/app/admin' ||
         itemPath === '/app/engineer' ||
         itemPath === '/app/customer';
 
-      // Dashboard: only highlight if exactly the same path
       if (isDashboardPath) {
         return currentPath === itemPath;
       }
 
-      // For other paths (e.g., /app/customer/project, /app/customer/billing)
-      // Only highlight if the current path starts with the item path
-      // But make sure it's not a different section
       if (currentPath.startsWith(itemPath) && currentPath !== itemPath) {
-        // Check that the next character is '/' or end of string
         const nextChar = currentPath[itemPath.length];
         if (!nextChar || nextChar === '/') {
           return true;
@@ -486,12 +502,10 @@ const Dashboard = () => {
     return false;
   };
 
-  // Handle logout - shows modal first
   const handleLogoutClick = () => {
     setShowLogoutModal(true);
   };
 
-  // Confirm logout - actually perform logout
   const confirmLogout = () => {
     if (isNavigating) return;
     setIsNavigating(true);
@@ -503,7 +517,6 @@ const Dashboard = () => {
     }, 100);
   };
 
-  // Cancel logout
   const cancelLogout = () => {
     setShowLogoutModal(false);
   };
@@ -515,24 +528,37 @@ const Dashboard = () => {
     if (isMobile()) {
       setSidebarOpen(false);
     }
-    setTimeout(() => setIsNavigating(false), 500);
+    setTimeout(() => setIsNavigating(false), 300);
   };
 
+  // Determine if content should be visible
+  const isContentVisible = animationState === 'contentAnimating' || animationState === 'complete';
+  const isAnimating = animationState === 'animating';
+  const isAnimationComplete = animationState === 'complete';
+
   return (
-    <div className="dashboard-layout-dashboard">
-      {/* Mobile Hamburger Button */}
-      <button
-        className="mobile-hamburger-btn"
-        onClick={() => setSidebarOpen(true)}
-        aria-label="Open menu"
-      >
-        <FaBars />
-      </button>
+    <div className={`dashboard-layout-dashboard ${animationState !== 'idle' ? 'dashboard-mounted' : ''}`}>
+      {/* Mobile Hamburger Button - Hidden during initial animation */}
+      {animationState !== 'idle' && (
+        <button
+          className="mobile-hamburger-btn"
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Open menu"
+        >
+          <FaBars />
+        </button>
+      )}
 
       {sidebarOpen && <div className="sidebar-overlay-layout-dashboard" onClick={() => setSidebarOpen(false)} />}
 
-      {/* Sidebar */}
-      <aside className={`sidebar-layout-dashboard ${sidebarOpen ? 'open-layout-dashboard' : ''}`}>
+      {/* Sidebar - Slides from LEFT with premium easing */}
+      <aside 
+        className={`sidebar-layout-dashboard 
+          ${sidebarOpen ? 'open-layout-dashboard' : ''} 
+          ${isAnimating ? 'sidebar-entering' : ''}
+          ${isAnimationComplete ? 'sidebar-entered' : ''}
+        `}
+      >
         <div className="sidebar-header-layout-dashboard">
           <div className="logo-container-layout-dashboard">
             <div className="logo-icon-layout-dashboard">
@@ -577,10 +603,8 @@ const Dashboard = () => {
             </div>
           ))}
 
-          {/* SPACER to push logout to bottom */}
           <div className="sidebar-spacer-layout-dashboard"></div>
 
-          {/* Logout button at bottom */}
           <button
             onClick={handleLogoutClick}
             className="nav-item-layout-dashboard logout-sidebar-btn"
@@ -592,9 +616,14 @@ const Dashboard = () => {
         </nav>
       </aside>
 
-      <main className="main-content-layout-dashboard">
-        {/* Header with Page Title and Description */}
-        <header className="dashboard-header-layout-dashboard">
+      {/* Main Content */}
+      <main className={`main-content-layout-dashboard`}>
+        {/* Header - Slides from TOP - Sabay sa sidebar */}
+        <header className={`dashboard-header-layout-dashboard 
+          ${isAnimating ? 'header-sliding' : ''} 
+          ${isAnimationComplete ? 'header-entered' : ''}
+          ${isContentVisible ? 'header-visible' : ''}
+        `}>
           <div className="header-left-layout-dashboard">
             <div className="page-header-info-layout-dashboard">
               <h1 className="page-title-layout-dashboard">{pageInfo.title}</h1>
@@ -621,14 +650,13 @@ const Dashboard = () => {
           </div>
         </header>
 
-        <div className="content-area-layout-dashboard">
+        {/* Content Area - Fades in with slight upward motion */}
+        <div className={`content-area-layout-dashboard ${isContentVisible ? 'content-visible' : 'content-hidden'}`}>
           <Outlet />
         </div>
       </main>
 
-      {/* ============================================
-          LOGOUT CONFIRMATION MODAL
-          ============================================ */}
+      {/* Logout Modal */}
       {showLogoutModal && (
         <div className="logout-modal-overlay" onClick={cancelLogout}>
           <div className="logout-modal-container" onClick={(e) => e.stopPropagation()}>

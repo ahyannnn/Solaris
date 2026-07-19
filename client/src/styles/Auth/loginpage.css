@@ -1,4 +1,4 @@
-/* loginpage.css - Modern Full-Screen Login with Smooth Transitions */
+/* loginpage.css - Modern Full-Screen Login with Pure Split Animation (No Fade) */
 
 /* RESET & BASE */
 * {
@@ -11,11 +11,11 @@
 @keyframes newLoginPageFadeIn {
   0% {
     opacity: 0;
-    transform: scale(0.96) perspective(1000px) rotateX(2deg);
+    transform: scale(0.96);
   }
   100% {
     opacity: 1;
-    transform: scale(1) perspective(1000px) rotateX(0deg);
+    transform: scale(1);
   }
 }
 
@@ -28,7 +28,9 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #ffffff;
   overflow: hidden;
-  animation: newLoginPageFadeIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: newLoginPageFadeIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  position: relative;
+  z-index: 1;
 }
 
 /* ============================================ */
@@ -37,17 +39,15 @@
 @keyframes newLoginBrandingSlideIn {
   0% {
     opacity: 0;
-    transform: translateX(80px) scale(0.95);
-    clip-path: inset(0 0 0 100%);
+    transform: translateX(80px);
   }
   60% {
     opacity: 0.8;
-    transform: translateX(-10px) scale(1.01);
+    transform: translateX(-10px);
   }
   100% {
     opacity: 1;
-    transform: translateX(0) scale(1);
-    clip-path: inset(0 0 0 0%);
+    transform: translateX(0);
   }
 }
 
@@ -63,8 +63,9 @@
   height: 100vh;
   max-height: 100vh;
   order: 1;
-  animation: newLoginBrandingSlideIn 1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+  animation: newLoginBrandingSlideIn 1s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
   overflow: hidden;
+  will-change: transform;
 }
 
 /* Subtle shimmer overlay on branding */
@@ -147,17 +148,17 @@
   color: white;
   letter-spacing: -0.5px;
   opacity: 0;
-  animation: newLoginTextReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+  animation: newLoginTextReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.4s forwards;
 }
 
 @keyframes newLoginTextReveal {
   0% {
     opacity: 0;
-    transform: translateX(-20px) scale(0.95);
+    transform: translateX(-20px);
   }
   100% {
     opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: translateX(0);
   }
 }
 
@@ -168,7 +169,7 @@
   margin-bottom: 0.75rem;
   letter-spacing: 0.3px;
   opacity: 0;
-  animation: newLoginTextReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+  animation: newLoginTextReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards;
 }
 
 .new-login-brand-description {
@@ -177,7 +178,7 @@
   line-height: 1.6;
   margin-bottom: 1.5rem;
   opacity: 0;
-  animation: newLoginTextReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
+  animation: newLoginTextReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.6s forwards;
 }
 
 /* Brand features with staggered animation */
@@ -197,7 +198,7 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   opacity: 0;
   transform: translateX(30px);
-  animation: newLoginFeatureSlide 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: newLoginFeatureSlide 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .new-login-brand-feature:nth-child(1) {
@@ -215,11 +216,11 @@
 @keyframes newLoginFeatureSlide {
   0% {
     opacity: 0;
-    transform: translateX(30px) scale(0.95);
+    transform: translateX(30px);
   }
   100% {
     opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: translateX(0);
   }
 }
 
@@ -255,17 +256,15 @@
 @keyframes newLoginFormSlideIn {
   0% {
     opacity: 0;
-    transform: translateX(-80px) scale(0.95);
-    clip-path: inset(0 100% 0 0);
+    transform: translateX(-80px);
   }
   60% {
     opacity: 0.8;
-    transform: translateX(10px) scale(1.01);
+    transform: translateX(10px);
   }
   100% {
     opacity: 1;
-    transform: translateX(0) scale(1);
-    clip-path: inset(0 0% 0 0);
+    transform: translateX(0);
   }
 }
 
@@ -280,8 +279,9 @@
   height: 100vh;
   max-height: 100vh;
   order: 0;
-  animation: newLoginFormSlideIn 1s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+  animation: newLoginFormSlideIn 1s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
   overflow: hidden;
+  will-change: transform;
 }
 
 .new-login-form-wrapper {
@@ -298,15 +298,15 @@
 @keyframes newLoginFormElementFadeUp {
   0% {
     opacity: 0;
-    transform: translateY(20px) scale(0.97);
+    transform: translateY(20px);
     filter: blur(4px);
   }
   60% {
-    transform: translateY(-3px) scale(1.01);
+    transform: translateY(-3px);
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
     filter: blur(0px);
   }
 }
@@ -314,7 +314,7 @@
 .new-login-form-header {
   margin-bottom: 2rem;
   opacity: 0;
-  animation: newLoginFormElementFadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+  animation: newLoginFormElementFadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
 }
 
 .new-login-form-title {
@@ -346,7 +346,7 @@
   gap: 0.4rem;
   width: 100%;
   opacity: 0;
-  animation: newLoginFormElementFadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: newLoginFormElementFadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .new-login-form-group:nth-child(1) {
@@ -377,7 +377,7 @@
   left: 1rem;
   color: #95a5a6;
   font-size: 1rem;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
   z-index: 2;
 }
@@ -393,7 +393,7 @@
   border: 2px solid #e9ecef;
   border-radius: 12px;
   font-size: 1rem;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   background-color: #f8f9fa;
   color: #1a2632;
   font-family: inherit;
@@ -411,7 +411,7 @@
   border-color: #f39c12;
   background-color: #ffffff;
   box-shadow: 0 0 0 5px rgba(243, 156, 18, 0.08), 0 4px 20px rgba(0, 0, 0, 0.02);
-  transform: translateY(-2px) scale(1.005);
+  transform: translateY(-2px);
 }
 
 .new-login-form-input.new-login-input-error {
@@ -422,22 +422,22 @@
 
 @keyframes newLoginShake {
   0%, 100% {
-    transform: translateX(0) scale(1);
+    transform: translateX(0);
   }
   10% {
-    transform: translateX(-10px) scale(1.01);
+    transform: translateX(-10px);
   }
   30% {
-    transform: translateX(10px) scale(1.01);
+    transform: translateX(10px);
   }
   50% {
-    transform: translateX(-6px) scale(0.99);
+    transform: translateX(-6px);
   }
   70% {
-    transform: translateX(6px) scale(0.99);
+    transform: translateX(6px);
   }
   90% {
-    transform: translateX(-3px) scale(1);
+    transform: translateX(-3px);
   }
 }
 
@@ -458,7 +458,7 @@
   justify-content: center;
   font-size: 1rem;
   padding: 0.5rem;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 2;
 }
 
@@ -476,17 +476,17 @@
   color: #e74c3c;
   font-size: 0.75rem;
   margin-top: 0.25rem;
-  animation: newLoginErrorSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: newLoginErrorSlide 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @keyframes newLoginErrorSlide {
   0% {
     opacity: 0;
-    transform: translateY(-8px) scale(0.95);
+    transform: translateY(-8px);
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
@@ -498,7 +498,7 @@
   margin-bottom: 0.5rem;
   font-size: 0.85rem;
   border-left: 4px solid #dc2626;
-  animation: newLoginErrorSlide 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: newLoginErrorSlide 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   opacity: 0;
 }
 
@@ -508,7 +508,7 @@
   align-items: center;
   margin: 0.25rem 0;
   opacity: 0;
-  animation: newLoginFormElementFadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+  animation: newLoginFormElementFadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards;
 }
 
 .new-login-forgot-link {
@@ -516,7 +516,7 @@
   color: #f39c12;
   text-decoration: none;
   font-weight: 500;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
   padding: 0.25rem 0;
 }
@@ -529,7 +529,7 @@
   width: 0;
   height: 2px;
   background: linear-gradient(90deg, #f39c12, #e67e22);
-  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .new-login-forgot-link:hover {
@@ -550,7 +550,7 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
   display: flex;
   align-items: center;
@@ -558,7 +558,7 @@
   margin-top: 0.25rem;
   letter-spacing: 0.5px;
   opacity: 0;
-  animation: newLoginFormElementFadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.55s forwards;
+  animation: newLoginFormElementFadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.55s forwards;
   overflow: hidden;
   width: 100%;
 }
@@ -571,7 +571,7 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: left 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .new-login-submit-btn:hover:not(:disabled)::before {
@@ -579,12 +579,12 @@
 }
 
 .new-login-submit-btn:hover:not(:disabled) {
-  transform: translateY(-3px) scale(1.01);
+  transform: translateY(-3px);
   box-shadow: 0 8px 35px rgba(243, 156, 18, 0.35);
 }
 
 .new-login-submit-btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.98);
+  transform: translateY(0);
   box-shadow: 0 4px 15px rgba(243, 156, 18, 0.25);
 }
 
@@ -634,7 +634,7 @@
 .new-login-social {
   margin-top: 0.25rem;
   opacity: 0;
-  animation: newLoginFormElementFadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
+  animation: newLoginFormElementFadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.6s forwards;
 }
 
 .new-login-social-text {
@@ -679,7 +679,7 @@
   border-radius: 12px;
   background: white;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   font-size: 0.95rem;
   font-weight: 500;
   color: #4a5568;
@@ -697,7 +697,7 @@
   height: 0;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(243, 156, 18, 0.08), transparent 70%);
-  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
   transform: translate(-50%, -50%);
 }
 
@@ -714,7 +714,7 @@
   font-size: 1.2rem;
   position: relative;
   z-index: 1;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .new-login-social-btn:hover:not(:disabled) .new-login-google-icon {
@@ -730,12 +730,12 @@
 .new-login-social-btn:hover:not(:disabled) {
   border-color: #f39c12;
   background: #fef9e7;
-  transform: translateY(-3px) scale(1.01);
+  transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
 }
 
 .new-login-social-btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.98);
+  transform: translateY(0);
 }
 
 .new-login-social-btn:disabled {
@@ -753,7 +753,7 @@
   text-align: center;
   margin-top: 0.35rem;
   opacity: 0;
-  animation: newLoginFormElementFadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.65s forwards;
+  animation: newLoginFormElementFadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.65s forwards;
 }
 
 .new-login-signup-text {
@@ -765,7 +765,7 @@
   color: #f39c12;
   text-decoration: none;
   font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
 }
 
@@ -777,7 +777,7 @@
   width: 0;
   height: 2px;
   background: linear-gradient(90deg, #f39c12, #e67e22);
-  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .new-login-signup-link:hover {
@@ -789,12 +789,12 @@
 }
 
 /* ============================================ */
-/* SPLIT SCREEN ANIMATION ON SUCCESSFUL LOGIN */
+/* PURE CENTER SPLIT ANIMATION - PARANG AUTOMATIC GLASS DOORS */
+/* WALANG FADE, WALANG SCALE, WALANG ROTATION - PURE SLIDE LANG */
 /* ============================================ */
 
-/* Split animation - both halves slide apart */
+/* Kapag nag-split na, i-lock ang page para hindi na ma-interact */
 .new-login-page.split-active {
-  animation: splitPageReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   overflow: hidden;
   position: fixed;
   top: 0;
@@ -805,119 +805,90 @@
   pointer-events: none;
 }
 
-@keyframes splitPageReveal {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    visibility: hidden;
-  }
-}
-
-/* Left side slides left */
+/* LEFT PANEL - PURE SLIDE PAKALIWA (1.5s) */
 .new-login-form-container.split-slide-left {
-  animation: splitLeft 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: splitLeft 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  position: relative;
+  z-index: 2;
 }
 
 @keyframes splitLeft {
   0% {
-    transform: translateX(0) scale(1);
+    transform: translateX(0);
+    opacity: 1;
+  }
+  30% {
+    transform: translateX(-3%);
     opacity: 1;
   }
   100% {
-    transform: translateX(-100%) scale(0.9);
+    transform: translateX(-100%);
     opacity: 0;
   }
 }
 
-/* Right side slides right */
+/* RIGHT PANEL - PURE SLIDE PAKANAN (1.5s) */
 .new-login-branding.split-slide-right {
-  animation: splitRight 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: splitRight 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  position: relative;
+  z-index: 2;
 }
 
 @keyframes splitRight {
   0% {
-    transform: translateX(0) scale(1);
+    transform: translateX(0);
+    opacity: 1;
+  }
+  30% {
+    transform: translateX(3%);
     opacity: 1;
   }
   100% {
-    transform: translateX(100%) scale(0.9);
+    transform: translateX(100%);
     opacity: 0;
   }
 }
 
 /* ============================================ */
-/* SPLIT REVEAL OVERLAY - Shows in the middle */
+/* MOBILE - VERTICAL SPLIT (pataas at pababa) */
 /* ============================================ */
-.new-login-split-reveal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, #0f1a24 0%, #1a2a3a 50%, #243b4a 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  animation: splitRevealFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
-  opacity: 0;
-  pointer-events: none;
-}
-
-@keyframes splitRevealFadeIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.95);
+@media (max-width: 768px) {
+  .new-login-form-container.split-slide-left {
+    animation: splitLeftMobile 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
-  100% {
-    opacity: 1;
-    transform: scale(1);
+
+  @keyframes splitLeftMobile {
+    0% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    30% {
+      transform: translateY(-3%);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
   }
-}
 
-.new-login-split-content {
-  text-align: center;
-  color: white;
-}
-
-.new-login-split-content h2 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #f39c12, #e67e22);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.new-login-split-content p {
-  font-size: 1.1rem;
-  color: #b0bec5;
-  margin-top: 0.25rem;
-}
-
-.new-login-split-spinner {
-  width: 60px;
-  height: 60px;
-  margin: 0 auto 1.5rem;
-  border: 4px solid rgba(243, 156, 18, 0.15);
-  border-top: 4px solid #f39c12;
-  border-radius: 50%;
-  animation: splitSpin 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-  box-shadow: 0 0 30px rgba(243, 156, 18, 0.15);
-}
-
-@keyframes splitSpin {
-  0% {
-    transform: rotate(0deg) scale(1);
+  .new-login-branding.split-slide-right {
+    animation: splitRightMobile 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
-  50% {
-    transform: rotate(180deg) scale(1.05);
-  }
-  100% {
-    transform: rotate(360deg) scale(1);
+
+  @keyframes splitRightMobile {
+    0% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    30% {
+      transform: translateY(3%);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100%);
+      opacity: 0;
+    }
   }
 }
 
@@ -947,17 +918,17 @@
     flex-direction: column;
     overflow: hidden;
     height: 100vh;
-    animation: newLoginMobileFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: newLoginMobileFadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
   @keyframes newLoginMobileFadeIn {
     0% {
       opacity: 0;
-      transform: translateY(30px) scale(0.97);
+      transform: translateY(30px);
     }
     100% {
       opacity: 1;
-      transform: translateY(0) scale(1);
+      transform: translateY(0);
     }
   }
 
@@ -969,7 +940,7 @@
     padding: 1.5rem 1.5rem 1rem;
     background: linear-gradient(135deg, #0f1a24 0%, #1a2a3a 100%);
     order: 0;
-    animation: newLoginBrandingSlideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: newLoginBrandingSlideIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
   .new-login-branding-content {
@@ -1014,7 +985,7 @@
     height: auto;
     max-height: none;
     order: 1;
-    animation: newLoginFormSlideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+    animation: newLoginFormSlideIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
     overflow-y: auto;
   }
 
@@ -1048,46 +1019,6 @@
     padding: 0.75rem 1rem;
     font-size: 0.9rem;
     border-radius: 10px;
-  }
-
-  /* Split animation mobile */
-  .new-login-form-container.split-slide-left {
-    animation: splitLeftMobile 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
-  @keyframes splitLeftMobile {
-    0% {
-      transform: translateY(0) scale(1);
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(-100%) scale(0.9);
-      opacity: 0;
-    }
-  }
-
-  .new-login-branding.split-slide-right {
-    animation: splitRightMobile 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
-  @keyframes splitRightMobile {
-    0% {
-      transform: translateY(0) scale(1);
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(100%) scale(0.9);
-      opacity: 0;
-    }
-  }
-
-  .new-login-split-content h2 {
-    font-size: 1.8rem;
-  }
-
-  .new-login-split-spinner {
-    width: 50px;
-    height: 50px;
   }
 }
 
@@ -1158,20 +1089,6 @@
   .new-login-social-text::after {
     width: 20%;
   }
-
-  .new-login-split-content h2 {
-    font-size: 1.5rem;
-  }
-
-  .new-login-split-content p {
-    font-size: 0.9rem;
-  }
-
-  .new-login-split-spinner {
-    width: 40px;
-    height: 40px;
-    border-width: 3px;
-  }
 }
 
 @media (max-width: 380px) {
@@ -1224,14 +1141,10 @@
   .new-login-brand-tagline,
   .new-login-brand-description,
   .new-login-form-container.split-slide-left,
-  .new-login-branding.split-slide-right,
-  .new-login-split-reveal,
-  .new-login-split-content,
-  .new-login-page.split-active {
+  .new-login-branding.split-slide-right {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
-    visibility: visible !important;
   }
 
   .new-login-brand-logo {
@@ -1247,14 +1160,6 @@
   }
 
   .new-login-branding::after {
-    animation: none !important;
-  }
-
-  .new-login-split-spinner {
-    animation: none !important;
-  }
-
-  .new-login-split-content h2 {
     animation: none !important;
   }
 }

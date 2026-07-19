@@ -1,4 +1,4 @@
-// App.jsx
+// App.jsx - WITH NO FULL SCREEN LOADING SPINNER
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -91,39 +91,13 @@ const RoleRouteGuard = ({ children, allowedRoles }) => {
   return children;
 };
 
-// Loading Spinner Component
-const LoadingSpinner = () => {
-  return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh',
-      backgroundColor: '#f5f5f5'
-    }}>
-      <div style={{
-        width: '50px',
-        height: '50px',
-        border: '4px solid #e0e0e0',
-        borderTop: '4px solid #f39c12',
-        borderRadius: '50%',
-        animation: 'spin 1s linear infinite'
-      }} />
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
-    </div>
-  );
-};
+// REMOVED: LoadingSpinner component - NO FULL SCREEN SPINNER
 
-// Maintenance Guard - checks if site is under maintenance
+// Maintenance Guard - UPDATED: NO LOADING SPINNER
 const MaintenanceGuard = ({ children }) => {
   const [isUnderMaintenance, setIsUnderMaintenance] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const { role: userRole, token } = getUserData();
+  const [isChecked, setIsChecked] = useState(false);
+  const { role: userRole } = getUserData();
 
   useEffect(() => {
     const checkMaintenance = async () => {
@@ -144,15 +118,17 @@ const MaintenanceGuard = ({ children }) => {
         console.error('Error checking maintenance status:', error);
         setIsUnderMaintenance(false);
       } finally {
-        setLoading(false);
+        setIsChecked(true);
       }
     };
 
     checkMaintenance();
   }, [userRole]);
 
-  if (loading) {
-    return <LoadingSpinner />;
+  // Don't show any loading spinner - just render children immediately
+  // The dashboard will handle its own animations
+  if (!isChecked) {
+    return children; // Return children immediately, no spinner
   }
 
   if (isUnderMaintenance) {

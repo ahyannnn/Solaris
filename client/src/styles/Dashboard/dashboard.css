@@ -1,4 +1,4 @@
-/* dashboard.css - Updated with Poppins font, slightly smaller fonts, same gaps */
+/* dashboard.css - Fixed with simultaneous sidebar and header animation */
 
 /* ============================================
    IMPORT POPPINS FONT FROM GOOGLE
@@ -60,10 +60,13 @@
 
   /* Font Family */
   --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  /* Premium Easing - Linear/Notion style */
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ============================================
-   BASE LAYOUT
+   BASE LAYOUT - MOUNTS SILENTLY
    ============================================ */
 .dashboard-layout-dashboard {
   display: flex;
@@ -72,6 +75,211 @@
   font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   MAIN CONTENT - Fixed positioning
+   ============================================ */
+.main-content-layout-dashboard {
+  flex: 1;
+  margin-left: 280px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-base);
+  transition: margin-left 0.3s var(--ease-premium);
+}
+
+@media (max-width: 768px) {
+  .main-content-layout-dashboard {
+    margin-left: 0;
+  }
+}
+
+/* ============================================
+   PREMIUM ENTRANCE ANIMATIONS - SABAY ANG SIDEBAR AT HEADER
+   ============================================ */
+
+/* SIDEBAR - Slides from left with premium easing */
+.sidebar-layout-dashboard {
+  width: 280px;
+  background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg-secondary) 100%);
+  border-right: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1000;
+  transition: transform 0.3s var(--ease-premium);
+  transform: translateX(0);
+}
+
+/* Initial state - hidden outside left */
+.sidebar-layout-dashboard:not(.open-layout-dashboard) {
+  transform: translateX(-100%);
+}
+
+/* ENTERING animation - slides in from left */
+.sidebar-layout-dashboard.sidebar-entering {
+  animation: sidebarSlideIn 1000ms var(--ease-premium) forwards;
+}
+
+@keyframes sidebarSlideIn {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* ENTERED state - fully visible */
+.sidebar-layout-dashboard.sidebar-entered {
+  transform: translateX(0);
+}
+
+/* Mobile responsive sidebar */
+@media (max-width: 768px) {
+  .sidebar-layout-dashboard {
+    transform: translateX(-100%);
+  }
+  
+  .sidebar-layout-dashboard.open-layout-dashboard {
+    transform: translateX(0);
+  }
+  
+  /* Mobile animation override - don't animate on mobile */
+  .sidebar-layout-dashboard.sidebar-entering {
+    animation: none;
+  }
+}
+
+/* ============================================
+   HEADER - Slides down from top - SABAY SA SIDEBAR
+   ============================================ */
+.dashboard-header-layout-dashboard {
+  background: var(--bg-elevated);
+  padding: 0.75rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: var(--shadow-header);
+  min-height: 80px;
+  width: 100%;
+  
+  /* Initial state - hidden above */
+  opacity: 0;
+  transform: translateY(-100%);
+  /* Prevent flickering during animation */
+  will-change: transform, opacity;
+}
+
+/* HEADER SLIDING - enters simultaneously with sidebar */
+.dashboard-header-layout-dashboard.header-sliding {
+  animation: headerSlideDown 1000ms var(--ease-premium) forwards;
+}
+
+@keyframes headerSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* HEADER ENTERED - fully visible */
+.dashboard-header-layout-dashboard.header-entered {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Prevent header from disappearing when content appears */
+.dashboard-header-layout-dashboard.header-visible {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  animation: none !important;
+}
+
+@media (max-width: 768px) {
+  .dashboard-header-layout-dashboard {
+    padding: 0.75rem 1rem;
+    padding-top: 4rem;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: auto;
+    gap: 0.75rem;
+  }
+}
+
+/* ============================================
+   CONTENT AREA - Fades in with slight upward motion
+   ============================================ */
+.content-area-layout-dashboard {
+  flex: 1;
+  padding: 1.5rem 2rem;
+  overflow-y: auto;
+  background: var(--bg-base);
+}
+
+/* Hidden during animation - prevents flash */
+.content-area-layout-dashboard.content-hidden {
+  opacity: 0;
+  transform: translateY(16px);
+  pointer-events: none;
+}
+
+/* Visible - fades in with upward motion */
+.content-area-layout-dashboard.content-visible {
+  animation: contentFadeIn 600ms var(--ease-premium) forwards;
+}
+
+@keyframes contentFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-area-layout-dashboard {
+    padding: 1rem;
+  }
+}
+
+/* ============================================
+   SIDEBAR OVERLAY
+   ============================================ */
+.sidebar-overlay-layout-dashboard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
+  backdrop-filter: blur(4px);
+}
+
+@media (max-width: 768px) {
+  .sidebar-overlay-layout-dashboard {
+    display: block;
+  }
 }
 
 /* Notification Badge Styles */
@@ -134,46 +342,6 @@
 @media (max-width: 768px) {
   .mobile-hamburger-btn {
     display: flex;
-  }
-}
-
-/* ============================================
-   SIDEBAR - Dark Theme with Gold Accents
-   ============================================ */
-.sidebar-layout-dashboard {
-  width: 280px;
-  background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg-secondary) 100%);
-  border-right: 1px solid var(--sidebar-border);
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  z-index: 1000;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  transform: translateX(0);
-}
-
-.sidebar-layout-dashboard:not(.open-layout-dashboard) {
-  transform: translateX(-100%);
-}
-
-.sidebar-overlay-layout-dashboard {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  display: none;
-  backdrop-filter: blur(4px);
-}
-
-@media (max-width: 768px) {
-  .sidebar-overlay-layout-dashboard {
-    display: block;
   }
 }
 
@@ -255,7 +423,7 @@
 }
 
 /* ============================================
-   SIDEBAR NAVIGATION - SAME GAPS, SLIGHTLY SMALLER FONTS
+   SIDEBAR NAVIGATION
    ============================================ */
 .sidebar-nav-layout-dashboard {
   flex: 1;
@@ -263,16 +431,13 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem; /* SAME GAP */
+  gap: 0.8rem;
 }
 
-/* ============================================
-   SIDEBAR SECTIONS - SAME GAPS, SLIGHTLY SMALLER FONTS
-   ============================================ */
 .sidebar-section-layout-dashboard {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem; /* SAME GAP */
+  gap: 0.3rem;
 }
 
 .sidebar-section-header-layout-dashboard {
@@ -286,7 +451,7 @@
 }
 
 .sidebar-section-icon-layout-dashboard {
-  font-size: 0.7rem; /* Reduced from 0.8rem */
+  font-size: 0.7rem;
   color: var(--sidebar-accent);
   width: 18px;
   display: flex;
@@ -296,7 +461,7 @@
 }
 
 .sidebar-section-title-layout-dashboard {
-  font-size: 0.65rem; /* Reduced from 0.75rem */
+  font-size: 0.65rem;
   font-weight: 600;
   font-family: var(--font-family);
   color: var(--sidebar-text);
@@ -307,23 +472,20 @@
 .sidebar-section-items-layout-dashboard {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem; /* SAME GAP */
+  gap: 0.3rem;
 }
 
-/* ============================================
-   NAVIGATION ITEMS - SLIGHTLY SMALLER FONTS, SAME GAPS
-   ============================================ */
 .nav-item-layout-dashboard {
   display: flex;
   align-items: center;
-  gap: 1.2rem; /* SAME GAP */
+  gap: 1.2rem;
   width: 100%;
-  padding: 0.8rem 1rem 0.8rem 0.75rem; /* SAME PADDING */
+  padding: 0.8rem 1rem 0.8rem 0.75rem;
   background: none;
   border: none;
   cursor: pointer;
   transition: all var(--transition-base);
-  font-size: 0.92rem; /* Reduced from 1rem */
+  font-size: 0.92rem;
   font-weight: 500;
   font-family: var(--font-family);
   color: var(--sidebar-text);
@@ -351,8 +513,8 @@
 }
 
 .nav-icon-layout-dashboard {
-  font-size: 1.05rem; /* Reduced from 1.15rem */
-  width: 26px; /* Slightly reduced */
+  font-size: 1.05rem;
+  width: 26px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -365,22 +527,17 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 0.92rem; /* Reduced from 1rem */
+  font-size: 0.92rem;
   font-family: var(--font-family);
   font-weight: 500;
 }
 
-/* ============================================
-   SPACER - Pushes logout to bottom
-   ============================================ */
 .sidebar-spacer-layout-dashboard {
   flex: 1;
   min-height: 0.5rem;
 }
 
-/* ============================================
-   LOGOUT BUTTON - SLIGHTLY SMALLER FONT, SAME GAPS
-   ============================================ */
+/* Logout Button */
 .nav-item-layout-dashboard.logout-sidebar-btn {
   border-top: 1px solid var(--sidebar-border);
   padding-top: 1rem;
@@ -388,7 +545,7 @@
   margin-bottom: 0.75rem;
   color: var(--sidebar-text);
   flex-shrink: 0;
-  font-size: 0.92rem; /* Reduced from 1rem */
+  font-size: 0.92rem;
   font-family: var(--font-family);
 }
 
@@ -401,121 +558,7 @@
   color: #ef4444;
 }
 
-/* ============================================
-   DROPDOWN STYLES - SLIGHTLY SMALLER FONTS, SAME GAPS
-   ============================================ */
-.dropdown-wrapper-sidebar-layout-dashboard {
-  position: relative;
-  width: 100%;
-}
-
-.dropdown-arrow-sidebar-layout-dashboard {
-  font-size: 0.7rem; /* Reduced from 0.75rem */
-  transition: transform var(--transition-base);
-  margin-left: auto;
-  color: var(--sidebar-text);
-}
-
-.dropdown-arrow-sidebar-layout-dashboard.open-layout-dashboard {
-  transform: rotate(180deg);
-}
-
-.sidebar-dropdown-menu-layout-dashboard {
-  margin-left: 2.8rem; /* SAME MARGIN */
-  margin-top: 0.15rem; /* SAME MARGIN */
-  margin-bottom: 0.15rem; /* SAME MARGIN */
-  border-left: 1px solid var(--sidebar-border);
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem; /* SAME GAP */
-}
-
-.sidebar-dropdown-item-layout-dashboard {
-  display: block;
-  width: 100%;
-  padding: 0.55rem 1rem 0.55rem 1.2rem; /* SAME PADDING */
-  background: none;
-  border: none;
-  color: var(--sidebar-text);
-  font-size: 0.88rem; /* Reduced from 0.95rem */
-  font-weight: 400;
-  font-family: var(--font-family);
-  text-align: left;
-  cursor: pointer;
-  transition: all var(--transition-base);
-  border-radius: var(--radius-sm);
-  position: relative;
-}
-
-/* Active state for dropdown items */
-.sidebar-dropdown-item-layout-dashboard.active-dropdown-item {
-  color: var(--sidebar-text-active);
-  background: var(--sidebar-active);
-}
-
-.sidebar-dropdown-item-layout-dashboard.active-dropdown-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 60%;
-  background: var(--sidebar-accent);
-  border-radius: 0 3px 3px 0;
-}
-
-.sidebar-dropdown-item-layout-dashboard:hover {
-  color: var(--sidebar-text-hover);
-  background: var(--sidebar-hover);
-}
-
-/* ============================================
-   MAIN CONTENT
-   ============================================ */
-.main-content-layout-dashboard {
-  flex: 1;
-  margin-left: 280px;
-  transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-base);
-}
-
-@media (max-width: 768px) {
-  .main-content-layout-dashboard {
-    margin-left: 0;
-  }
-}
-
-/* Dashboard Header - Clean, Minimal */
-.dashboard-header-layout-dashboard {
-  background: var(--bg-elevated);
-  padding: 0.75rem 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  border-bottom: 1px solid var(--border-light);
-  box-shadow: var(--shadow-header);
-  min-height: 80px;
-}
-
-@media (max-width: 768px) {
-  .dashboard-header-layout-dashboard {
-    padding: 0.75rem 1rem;
-    padding-top: 4rem;
-    flex-direction: column;
-    align-items: stretch;
-    min-height: auto;
-    gap: 0.75rem;
-  }
-}
-
+/* Header Left */
 .header-left-layout-dashboard {
   display: flex;
   align-items: center;
@@ -540,7 +583,7 @@
 }
 
 .page-title-layout-dashboard {
-  font-size: 1.15rem; /* Reduced from 1.25rem */
+  font-size: 1.15rem;
   font-weight: 700;
   font-family: var(--font-family);
   color: var(--text-primary);
@@ -549,7 +592,7 @@
 }
 
 .page-description-layout-dashboard {
-  font-size: 0.8rem; /* Reduced from 0.85rem */
+  font-size: 0.8rem;
   font-weight: 400;
   font-family: var(--font-family);
   color: var(--text-secondary);
@@ -560,11 +603,11 @@
 
 @media (max-width: 768px) {
   .page-title-layout-dashboard {
-    font-size: 1rem; /* Reduced from 1.1rem */
+    font-size: 1rem;
   }
   
   .page-description-layout-dashboard {
-    font-size: 0.75rem; /* Reduced from 0.8rem */
+    font-size: 0.75rem;
     max-width: 100%;
   }
 }
@@ -594,19 +637,19 @@
   color: #856404;
   padding: 0.35rem 0.9rem;
   border-radius: 20px;
-  font-size: 0.7rem; /* Reduced from 0.75rem */
+  font-size: 0.7rem;
   font-weight: 500;
   font-family: var(--font-family);
   animation: fadeIn 0.3s ease;
 }
 
 .maintenance-icon {
-  font-size: 0.8rem; /* Reduced from 0.85rem */
+  font-size: 0.8rem;
   animation: pulse-warning 1.5s infinite;
 }
 
 .maintenance-text {
-  font-size: 0.7rem; /* Reduced from 0.75rem */
+  font-size: 0.7rem;
   font-family: var(--font-family);
 }
 
@@ -657,7 +700,7 @@
 }
 
 .header-user-name-layout-dashboard {
-  font-size: 0.88rem; /* Reduced from 0.95rem */
+  font-size: 0.88rem;
   font-weight: 600;
   font-family: var(--font-family);
   color: var(--text-primary);
@@ -669,23 +712,7 @@
   }
 }
 
-/* Content Area */
-.content-area-layout-dashboard {
-  flex: 1;
-  padding: 1.5rem 2rem;
-  overflow-y: auto;
-  background: var(--bg-base);
-}
-
-@media (max-width: 768px) {
-  .content-area-layout-dashboard {
-    padding: 1rem;
-  }
-}
-
-/* ============================================
-   SCROLLBAR STYLING
-   ============================================ */
+/* Scrollbar */
 .sidebar-nav-layout-dashboard::-webkit-scrollbar {
   width: 4px;
 }
@@ -703,44 +730,43 @@
   background: var(--sidebar-accent);
 }
 
-/* ============================================
-   RESPONSIVE ADJUSTMENTS - SAME GAPS, SLIGHTLY SMALLER FONTS
-   ============================================ */
+/* Responsive Adjustments */
 @media (max-width: 768px) {
   .sidebar-layout-dashboard {
     width: 280px;
+    transform: translateX(-100%);
+  }
+  
+  .sidebar-layout-dashboard.open-layout-dashboard {
+    transform: translateX(0);
+  }
+  
+  /* Mobile animation override - don't animate on mobile */
+  .sidebar-layout-dashboard.sidebar-entering {
+    animation: none;
   }
   
   .logo-text-layout-dashboard {
-    font-size: 1.1rem; /* Reduced from 1.2rem */
+    font-size: 1.1rem;
   }
   
   .sidebar-section-title-layout-dashboard {
-    font-size: 0.6rem; /* Reduced from 0.7rem */
+    font-size: 0.6rem;
   }
   
   .nav-item-layout-dashboard {
     padding: 0.7rem 0.9rem;
-    font-size: 0.88rem; /* Reduced from 0.95rem */
-    gap: 1rem; /* SAME GAP */
+    font-size: 0.88rem;
+    gap: 1rem;
   }
   
   .nav-icon-layout-dashboard {
-    font-size: 1rem; /* Reduced from 1.05rem */
+    font-size: 1rem;
     width: 24px;
   }
   
   .nav-label-layout-dashboard {
-    font-size: 0.88rem; /* Reduced from 0.95rem */
-  }
-  
-  .sidebar-dropdown-menu-layout-dashboard {
-    margin-left: 2.4rem; /* SAME MARGIN */
-  }
-  
-  .sidebar-dropdown-item-layout-dashboard {
-    font-size: 0.84rem; /* Reduced from 0.9rem */
-    padding: 0.45rem 0.9rem 0.45rem 1.1rem;
+    font-size: 0.88rem;
   }
 }
 
@@ -763,112 +789,26 @@
   }
   
   .sidebar-section-title-layout-dashboard {
-    font-size: 0.55rem; /* Reduced from 0.65rem */
+    font-size: 0.55rem;
   }
   
   .nav-item-layout-dashboard {
     padding: 0.6rem 0.8rem;
-    font-size: 0.85rem; /* Reduced from 0.9rem */
-    gap: 0.9rem; /* SAME GAP */
+    font-size: 0.85rem;
+    gap: 0.9rem;
   }
   
   .nav-icon-layout-dashboard {
-    font-size: 0.95rem; /* Reduced from 1rem */
+    font-size: 0.95rem;
     width: 22px;
   }
   
   .nav-label-layout-dashboard {
-    font-size: 0.85rem; /* Reduced from 0.9rem */
-  }
-  
-  .sidebar-dropdown-menu-layout-dashboard {
-    margin-left: 2.2rem; /* SAME MARGIN */
-  }
-  
-  .sidebar-dropdown-item-layout-dashboard {
-    font-size: 0.8rem; /* Reduced from 0.85rem */
-    padding: 0.4rem 0.8rem 0.4rem 1rem;
+    font-size: 0.85rem;
   }
 }
 
-/* Reduced motion preferences */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* ============================================
-   CHATBOT SIDEBAR BUTTON
-   ============================================ */
-.nav-item-layout-dashboard.chatbot-sidebar-btn {
-  position: relative;
-  background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(243, 156, 18, 0.05));
-  border: 1px solid rgba(243, 156, 18, 0.2);
-  margin-top: 0.3rem;
-  padding: 0.75rem 1rem 0.75rem 0.75rem;
-}
-
-.nav-item-layout-dashboard.chatbot-sidebar-btn:hover {
-  background: linear-gradient(135deg, rgba(243, 156, 18, 0.2), rgba(243, 156, 18, 0.1));
-  border-color: var(--sidebar-accent);
-}
-
-.nav-item-layout-dashboard.chatbot-sidebar-btn .nav-icon-layout-dashboard {
-  font-size: 1.1rem;
-}
-
-/* Small badge to show it's active/live */
-.nav-item-layout-dashboard.chatbot-sidebar-btn::after {
-  content: '●';
-  position: absolute;
-  right: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #22C55E;
-  font-size: 0.6rem;
-  animation: pulse-dot 2s ease-in-out infinite;
-}
-
-.nav-item-layout-dashboard.chatbot-sidebar-btn.active-layout-dashboard {
-  background: var(--sidebar-active);
-  border-color: var(--sidebar-accent);
-}
-
-.nav-item-layout-dashboard.chatbot-sidebar-btn.active-layout-dashboard::after {
-  color: var(--sidebar-accent);
-}
-
-@keyframes pulse-dot {
-  0%, 100% {
-    opacity: 1;
-    transform: translateY(-50%) scale(1);
-  }
-  50% {
-    opacity: 0.5;
-    transform: translateY(-50%) scale(0.8);
-  }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .nav-item-layout-dashboard.chatbot-sidebar-btn {
-    padding: 0.6rem 0.9rem;
-    margin-top: 0.2rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .nav-item-layout-dashboard.chatbot-sidebar-btn {
-    padding: 0.5rem 0.8rem;
-  }
-}
-
-/* ============================================
-   LOGOUT CONFIRMATION MODAL
-   ============================================ */
+/* Logout Confirmation Modal */
 .logout-modal-overlay {
   position: fixed;
   top: 0;
@@ -994,7 +934,6 @@
   transform: scale(1.02);
 }
 
-/* Mobile Responsive */
 @media (max-width: 480px) {
   .logout-modal-container {
     padding: 2rem 1.5rem 1.5rem;
@@ -1019,5 +958,96 @@
     padding: 0.5rem 1.25rem;
     font-size: 0.82rem;
     min-width: 80px;
+  }
+}
+
+/* Chatbot Sidebar Button */
+.nav-item-layout-dashboard.chatbot-sidebar-btn {
+  position: relative;
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(243, 156, 18, 0.05));
+  border: 1px solid rgba(243, 156, 18, 0.2);
+  margin-top: 0.3rem;
+  padding: 0.75rem 1rem 0.75rem 0.75rem;
+}
+
+.nav-item-layout-dashboard.chatbot-sidebar-btn:hover {
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.2), rgba(243, 156, 18, 0.1));
+  border-color: var(--sidebar-accent);
+}
+
+.nav-item-layout-dashboard.chatbot-sidebar-btn .nav-icon-layout-dashboard {
+  font-size: 1.1rem;
+}
+
+.nav-item-layout-dashboard.chatbot-sidebar-btn::after {
+  content: '●';
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #22C55E;
+  font-size: 0.6rem;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.nav-item-layout-dashboard.chatbot-sidebar-btn.active-layout-dashboard {
+  background: var(--sidebar-active);
+  border-color: var(--sidebar-accent);
+}
+
+.nav-item-layout-dashboard.chatbot-sidebar-btn.active-layout-dashboard::after {
+  color: var(--sidebar-accent);
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateY(-50%) scale(0.8);
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-item-layout-dashboard.chatbot-sidebar-btn {
+    padding: 0.6rem 0.9rem;
+    margin-top: 0.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-item-layout-dashboard.chatbot-sidebar-btn {
+    padding: 0.5rem 0.8rem;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION PREFERENCES
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .sidebar-layout-dashboard.sidebar-entering {
+    animation: none !important;
+    transform: translateX(0) !important;
+    opacity: 1 !important;
+  }
+  
+  .dashboard-header-layout-dashboard.header-sliding {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+  
+  .content-area-layout-dashboard.content-visible {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: translateY(0) !important;
   }
 }

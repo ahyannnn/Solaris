@@ -14,8 +14,8 @@ const LoginPage = () => {
   const [isNavigating, setIsNavigating] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showSplit, setShowSplit] = useState(false);
-  const [dashboardReady, setDashboardReady] = useState(false);
   const splitTimerRef = useRef(null);
+  const navigationStartedRef = useRef(false);
 
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -77,173 +77,6 @@ const LoginPage = () => {
       return responseText || 'Login failed';
     }
     return 'Login failed';
-  };
-
-  // Pre-load the dashboard in the background
-  const preloadDashboard = () => {
-    // Create a hidden iframe to preload the dashboard
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 1px;
-      height: 1px;
-      opacity: 0;
-      pointer-events: none;
-      z-index: -9999;
-    `;
-    iframe.src = '/app';
-    document.body.appendChild(iframe);
-
-    // Remove iframe after load
-    iframe.onload = () => {
-      setDashboardReady(true);
-      setTimeout(() => {
-        if (document.body.contains(iframe)) {
-          document.body.removeChild(iframe);
-        }
-      }, 100);
-    };
-
-    // If iframe doesn't load in 2 seconds, proceed anyway
-    setTimeout(() => {
-      if (!dashboardReady) {
-        setDashboardReady(true);
-        if (document.body.contains(iframe)) {
-          document.body.removeChild(iframe);
-        }
-      }
-    }, 2000);
-  };
-
-  // Trigger split animation and navigate
-  const triggerSplitAndNavigate = () => {
-    setIsLoggingIn(true);
-    
-    // Start preloading dashboard immediately
-    preloadDashboard();
-    
-    // Small delay to let preload start
-    setTimeout(() => {
-      setShowSplit(true);
-      
-      // Navigate after split animation completes
-      splitTimerRef.current = setTimeout(() => {
-        navigate("/app", { replace: true });
-        // Clean up
-        setIsLoggingIn(false);
-        setShowSplit(false);
-      }, 900);
-    }, 100);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (isNavigating || isLocked) return;
-
-    const newErrors = validateForm();
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    setIsLoading(true);
-    setErrors({});
-    setIsNavigating(true);
-    setEmailError('');
-
-    try {
-      const apiUrl = `${import.meta.env.VITE_API_URL}/api/auth/login`;
-
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email.toLowerCase(),
-          password: formData.password,
-          rememberMe: false
-        }),
-      });
-
-      const responseText = await response.text();
-
-      if (!response.ok) {
-        try {
-          const errorData = JSON.parse(responseText);
-
-          if (errorData.isLocked) {
-            setIsLocked(true);
-            setAttemptsRemaining(0);
-            const minutes = errorData.lockMinutesRemaining || 10;
-            startLockTimer(minutes);
-            setErrors({ general: errorData.message });
-            return;
-          }
-
-          if (errorData.attemptsRemaining !== undefined) {
-            setAttemptsRemaining(errorData.attemptsRemaining);
-            setErrors({ general: errorData.message });
-            return;
-          }
-
-          throw new Error(errorData.message || 'Login failed');
-        } catch (parseError) {
-          throw new Error(parseError.message);
-        }
-      }
-
-      const data = JSON.parse(responseText);
-
-      if (data.token && data.user) {
-        setIsLocked(false);
-        setAttemptsRemaining(null);
-        setLockMinutesRemaining(0);
-        if (lockTimer) {
-          clearInterval(lockTimer);
-          setLockTimer(null);
-        }
-
-        clearAuthStorage();
-
-        const storage = sessionStorage;
-        const cleanedToken = cleanToken(data.token);
-
-        const userData = {
-          token: cleanedToken,
-          userName: data.user.fullName || '',
-          userEmail: data.user.email || '',
-          userRole: data.user.role || 'user',
-          userPhotoURL: data.user.photoURL || '',
-          userId: data.user.id || ''
-        };
-
-        Object.entries(userData).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            storage.setItem(key, value);
-          }
-        });
-
-        storage.removeItem('hasCompletedSetup');
-        localStorage.removeItem('hasCompletedSetup');
-        sessionStorage.removeItem('hasCompletedSetup');
-
-        // Trigger the split animation with preload
-        triggerSplitAndNavigate();
-      }
-
-    } catch (err) {
-      setErrors({ general: err.message });
-      setIsLoading(false);
-      setIsNavigating(false);
-    }
-  };
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
   };
 
   const handleChange = (e) => {
@@ -311,6 +144,139 @@ const LoginPage = () => {
     setLockTimer(timer);
   };
 
+  // Trigger split animation and navigate - PURE SPLIT, NO FADE
+  const triggerSplitAndNavigate = () => {
+    if (navigationStartedRef.current) return;
+    navigationStartedRef.current = true;
+    
+    setIsLoggingIn(true);
+    setShowSplit(true);
+    
+    // Wait for split animation to complete (1.5s) then navigate directly
+    splitTimerRef.current = setTimeout(() => {
+      navigate("/app", { replace: true });
+      // Reset states after navigation
+      setTimeout(() => {
+        setIsLoggingIn(false);
+        setShowSplit(false);
+        navigationStartedRef.current = false;
+      }, 50);
+    }, 1500); // Full split duration
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (isNavigating || isLocked) return;
+
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setIsLoading(true);
+    setErrors({});
+    setIsNavigating(true);
+    setEmailError('');
+
+    try {
+      const apiUrl = `${import.meta.env.VITE_API_URL}/api/auth/login`;
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email.toLowerCase(),
+          password: formData.password,
+          rememberMe: false
+        }),
+      });
+
+      const responseText = await response.text();
+
+      if (!response.ok) {
+        try {
+          const errorData = JSON.parse(responseText);
+
+          if (errorData.isLocked) {
+            setIsLocked(true);
+            setAttemptsRemaining(0);
+            const minutes = errorData.lockMinutesRemaining || 10;
+            startLockTimer(minutes);
+            setErrors({ general: errorData.message });
+            setIsLoading(false);
+            setIsNavigating(false);
+            return;
+          }
+
+          if (errorData.attemptsRemaining !== undefined) {
+            setAttemptsRemaining(errorData.attemptsRemaining);
+            setErrors({ general: errorData.message });
+            setIsLoading(false);
+            setIsNavigating(false);
+            return;
+          }
+
+          throw new Error(errorData.message || 'Login failed');
+        } catch (parseError) {
+          throw new Error(parseError.message);
+        }
+      }
+
+      const data = JSON.parse(responseText);
+
+      if (data.token && data.user) {
+        setIsLocked(false);
+        setAttemptsRemaining(null);
+        setLockMinutesRemaining(0);
+        if (lockTimer) {
+          clearInterval(lockTimer);
+          setLockTimer(null);
+        }
+
+        clearAuthStorage();
+
+        const storage = sessionStorage;
+        const cleanedToken = cleanToken(data.token);
+
+        const userData = {
+          token: cleanedToken,
+          userName: data.user.fullName || '',
+          userEmail: data.user.email || '',
+          userRole: data.user.role || 'user',
+          userPhotoURL: data.user.photoURL || '',
+          userId: data.user.id || ''
+        };
+
+        Object.entries(userData).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            storage.setItem(key, value);
+          }
+        });
+
+        storage.removeItem('hasCompletedSetup');
+        localStorage.removeItem('hasCompletedSetup');
+        sessionStorage.removeItem('hasCompletedSetup');
+
+        setIsLoading(false);
+        setIsNavigating(false);
+        triggerSplitAndNavigate();
+      }
+
+    } catch (err) {
+      setErrors({ general: err.message });
+      setIsLoading(false);
+      setIsNavigating(false);
+    }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   const handleAuthError = (error) => {
     console.error("Auth error:", error);
 
@@ -323,6 +289,8 @@ const LoginPage = () => {
     } else {
       setErrors({ general: error.message || 'Login failed' });
     }
+    setSocialLoading('');
+    setIsNavigating(false);
   };
 
   const handleGoogleLogin = async () => {
@@ -382,13 +350,12 @@ const LoginPage = () => {
           storage.setItem(key, value);
         });
 
+        setSocialLoading('');
         triggerSplitAndNavigate();
       }
 
     } catch (error) {
       handleAuthError(error);
-      setSocialLoading('');
-      setIsNavigating(false);
     }
   };
 
@@ -444,7 +411,7 @@ const LoginPage = () => {
                     placeholder="Enter your email address"
                     value={formData.email}
                     onChange={handleChange}
-                    disabled={isLoading || socialLoading !== '' || isNavigating || isLocked || isLoggingIn}
+                    disabled={isNavigating || isLocked || isLoggingIn}
                   />
                 </div>
                 {errors.email && <span className="new-login-error-message">{errors.email}</span>}
@@ -461,13 +428,13 @@ const LoginPage = () => {
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={handleChange}
-                    disabled={isLoading || socialLoading !== '' || isNavigating || isLocked || isLoggingIn}
+                    disabled={isNavigating || isLocked || isLoggingIn}
                   />
                   <button
                     type="button"
                     className="new-login-password-toggle"
                     onClick={togglePasswordVisibility}
-                    disabled={isLoading || socialLoading !== '' || isNavigating || isLocked || isLoggingIn}
+                    disabled={isNavigating || isLocked || isLoggingIn}
                   >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
@@ -499,7 +466,7 @@ const LoginPage = () => {
                 <div className="new-login-social-buttons">
                   <button
                     type="button"
-                    className={`new-login-social-btn new-login-google-btn ${socialLoading === 'google' ? 'new-login-loading' : ''} ${isLocked ? 'new-login-btn-disabled' : ''}`}
+                    className={`new-login-social-btn new-login-google-btn ${isLocked ? 'new-login-btn-disabled' : ''}`}
                     onClick={handleGoogleLogin}
                     disabled={isLoading || socialLoading !== '' || isNavigating || isLocked || isLoggingIn}
                   >
@@ -550,17 +517,6 @@ const LoginPage = () => {
             </div>
           </div>
         </div>
-
-        {/* SPLIT REVEAL OVERLAY - Shows when split is active */}
-        {showSplit && (
-          <div className="new-login-split-reveal">
-            <div className="new-login-split-content">
-              <div className="new-login-split-spinner"></div>
-              <h2>Welcome Back!</h2>
-              <p>Loading your dashboard...</p>
-            </div>
-          </div>
-        )}
       </div>
     </>
   );

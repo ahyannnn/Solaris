@@ -42,34 +42,20 @@ const Dashboard = () => {
   const [maintenanceStatus, setMaintenanceStatus] = useState({ isUnderMaintenance: false, title: '' });
   const [unreadCount, setUnreadCount] = useState(0);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [animationState, setAnimationState] = useState('idle'); // idle → animating → contentAnimating → complete
+  const [dashboardReady, setDashboardReady] = useState(false);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState('user');
   const [userName, setUserName] = useState('Customer User');
   const [userPhoto, setUserPhoto] = useState(null);
 
-  // PREMIUM ENTRANCE ANIMATION SEQUENCE - Sabay ang sidebar at header
+  // OPTIMIZED: Set dashboard as ready immediately - triggers animations
   useEffect(() => {
-    // Use requestAnimationFrame to ensure layout is painted
+    // Use requestAnimationFrame for immediate paint
     requestAnimationFrame(() => {
-      // Step 1: Dashboard mounts silently
-      // Step 2 & 3: Sidebar AND Header start simultaneously
-      setAnimationState('animating');
-
-      // Step 4 & 5: Content appears after both animations complete
-      const totalDuration = 1000; // 1000ms for sidebar + header
-      
-      setTimeout(() => {
-        setAnimationState('contentAnimating');
-        
-        // After content fade-in completes (500-700ms)
-        setTimeout(() => {
-          setAnimationState('complete');
-        }, 600);
-      }, totalDuration + 100); // Small buffer after animations
+      setDashboardReady(true);
     });
-
+    
     return () => {};
   }, []);
 
@@ -531,34 +517,21 @@ const Dashboard = () => {
     setTimeout(() => setIsNavigating(false), 300);
   };
 
-  // Determine if content should be visible
-  const isContentVisible = animationState === 'contentAnimating' || animationState === 'complete';
-  const isAnimating = animationState === 'animating';
-  const isAnimationComplete = animationState === 'complete';
-
   return (
-    <div className={`dashboard-layout-dashboard ${animationState !== 'idle' ? 'dashboard-mounted' : ''}`}>
-      {/* Mobile Hamburger Button - Hidden during initial animation */}
-      {animationState !== 'idle' && (
-        <button
-          className="mobile-hamburger-btn"
-          onClick={() => setSidebarOpen(true)}
-          aria-label="Open menu"
-        >
-          <FaBars />
-        </button>
-      )}
+    <div className={`dashboard-layout-dashboard ${dashboardReady ? 'dashboard-ready' : ''}`}>
+      {/* Mobile Hamburger Button */}
+      <button
+        className="mobile-hamburger-btn"
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open menu"
+      >
+        <FaBars />
+      </button>
 
       {sidebarOpen && <div className="sidebar-overlay-layout-dashboard" onClick={() => setSidebarOpen(false)} />}
 
-      {/* Sidebar - Slides from LEFT with premium easing */}
-      <aside 
-        className={`sidebar-layout-dashboard 
-          ${sidebarOpen ? 'open-layout-dashboard' : ''} 
-          ${isAnimating ? 'sidebar-entering' : ''}
-          ${isAnimationComplete ? 'sidebar-entered' : ''}
-        `}
-      >
+      {/* Sidebar - Slides from LEFT */}
+      <aside className={`sidebar-layout-dashboard ${sidebarOpen ? 'open-layout-dashboard' : ''}`}>
         <div className="sidebar-header-layout-dashboard">
           <div className="logo-container-layout-dashboard">
             <div className="logo-icon-layout-dashboard">
@@ -617,13 +590,9 @@ const Dashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main className={`main-content-layout-dashboard`}>
-        {/* Header - Slides from TOP - Sabay sa sidebar */}
-        <header className={`dashboard-header-layout-dashboard 
-          ${isAnimating ? 'header-sliding' : ''} 
-          ${isAnimationComplete ? 'header-entered' : ''}
-          ${isContentVisible ? 'header-visible' : ''}
-        `}>
+      <main className="main-content-layout-dashboard">
+        {/* Header - Slides from TOP */}
+        <header className="dashboard-header-layout-dashboard">
           <div className="header-left-layout-dashboard">
             <div className="page-header-info-layout-dashboard">
               <h1 className="page-title-layout-dashboard">{pageInfo.title}</h1>
@@ -650,8 +619,8 @@ const Dashboard = () => {
           </div>
         </header>
 
-        {/* Content Area - Fades in with slight upward motion */}
-        <div className={`content-area-layout-dashboard ${isContentVisible ? 'content-visible' : 'content-hidden'}`}>
+        {/* Content Area - Fades in */}
+        <div className="content-area-layout-dashboard">
           <Outlet />
         </div>
       </main>

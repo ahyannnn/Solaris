@@ -1,4 +1,4 @@
-/* dashboard.css - Fixed with simultaneous sidebar and header animation */
+/* dashboard.css - Updated with Poppins font, slightly smaller fonts, same gaps */
 
 /* ============================================
    IMPORT POPPINS FONT FROM GOOGLE
@@ -60,13 +60,10 @@
 
   /* Font Family */
   --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  
-  /* Premium Easing - Linear/Notion style */
-  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ============================================
-   BASE LAYOUT - MOUNTS SILENTLY
+   BASE LAYOUT - NO ENTRANCE ANIMATION
    ============================================ */
 .dashboard-layout-dashboard {
   display: flex;
@@ -75,210 +72,44 @@
   font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/* ============================================
-   MAIN CONTENT - Fixed positioning
-   ============================================ */
-.main-content-layout-dashboard {
-  flex: 1;
-  margin-left: 280px;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-base);
-  transition: margin-left 0.3s var(--ease-premium);
-}
-
-@media (max-width: 768px) {
-  .main-content-layout-dashboard {
-    margin-left: 0;
-  }
-}
-
-/* ============================================
-   PREMIUM ENTRANCE ANIMATIONS - SABAY ANG SIDEBAR AT HEADER
-   ============================================ */
-
-/* SIDEBAR - Slides from left with premium easing */
-.sidebar-layout-dashboard {
-  width: 280px;
-  background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg-secondary) 100%);
-  border-right: 1px solid var(--sidebar-border);
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  z-index: 1000;
-  transition: transform 0.3s var(--ease-premium);
-  transform: translateX(0);
-}
-
-/* Initial state - hidden outside left */
-.sidebar-layout-dashboard:not(.open-layout-dashboard) {
-  transform: translateX(-100%);
-}
-
-/* ENTERING animation - slides in from left */
-.sidebar-layout-dashboard.sidebar-entering {
-  animation: sidebarSlideIn 1000ms var(--ease-premium) forwards;
-}
-
-@keyframes sidebarSlideIn {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(0);
-  }
-}
-
-/* ENTERED state - fully visible */
-.sidebar-layout-dashboard.sidebar-entered {
-  transform: translateX(0);
-}
-
-/* Mobile responsive sidebar */
-@media (max-width: 768px) {
-  .sidebar-layout-dashboard {
-    transform: translateX(-100%);
-  }
-  
-  .sidebar-layout-dashboard.open-layout-dashboard {
-    transform: translateX(0);
-  }
-  
-  /* Mobile animation override - don't animate on mobile */
-  .sidebar-layout-dashboard.sidebar-entering {
-    animation: none;
-  }
-}
-
-/* ============================================
-   HEADER - Slides down from top - SABAY SA SIDEBAR
-   ============================================ */
-.dashboard-header-layout-dashboard {
-  background: var(--bg-elevated);
-  padding: 0.75rem 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  border-bottom: 1px solid var(--border-light);
-  box-shadow: var(--shadow-header);
-  min-height: 80px;
-  width: 100%;
-  
-  /* Initial state - hidden above */
   opacity: 0;
-  transform: translateY(-100%);
-  /* Prevent flickering during animation */
-  will-change: transform, opacity;
+  transition: opacity 0.15s ease;
 }
 
-/* HEADER SLIDING - enters simultaneously with sidebar */
-.dashboard-header-layout-dashboard.header-sliding {
-  animation: headerSlideDown 1000ms var(--ease-premium) forwards;
-}
-
-@keyframes headerSlideDown {
-  0% {
-    opacity: 0;
-    transform: translateY(-100%);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* HEADER ENTERED - fully visible */
-.dashboard-header-layout-dashboard.header-entered {
+/* Dashboard appears instantly when ready - NO ANIMATION */
+.dashboard-layout-dashboard.dashboard-ready {
   opacity: 1;
-  transform: translateY(0);
 }
 
-/* Prevent header from disappearing when content appears */
-.dashboard-header-layout-dashboard.header-visible {
-  opacity: 1 !important;
-  transform: translateY(0) !important;
+/* Remove any potential entrance animations from all dashboard elements */
+.dashboard-layout-dashboard,
+.main-content-layout-dashboard,
+.sidebar-layout-dashboard,
+.dashboard-header-layout-dashboard,
+.content-area-layout-dashboard,
+.dashboard-layout-dashboard * {
   animation: none !important;
 }
 
-@media (max-width: 768px) {
-  .dashboard-header-layout-dashboard {
-    padding: 0.75rem 1rem;
-    padding-top: 4rem;
-    flex-direction: column;
-    align-items: stretch;
-    min-height: auto;
-    gap: 0.75rem;
-  }
-}
-
 /* ============================================
-   CONTENT AREA - Fades in with slight upward motion
+   VERY FAST FADE IN FOR CHILDREN (OPTIONAL)
    ============================================ */
-.content-area-layout-dashboard {
-  flex: 1;
-  padding: 1.5rem 2rem;
-  overflow-y: auto;
-  background: var(--bg-base);
+.dashboard-ready .sidebar-layout-dashboard {
+  animation: dashboardFadeIn 0.1s ease forwards;
 }
 
-/* Hidden during animation - prevents flash */
-.content-area-layout-dashboard.content-hidden {
-  opacity: 0;
-  transform: translateY(16px);
-  pointer-events: none;
+.dashboard-ready .main-content-layout-dashboard {
+  animation: dashboardFadeIn 0.15s ease forwards;
 }
 
-/* Visible - fades in with upward motion */
-.content-area-layout-dashboard.content-visible {
-  animation: contentFadeIn 600ms var(--ease-premium) forwards;
-}
-
-@keyframes contentFadeIn {
+@keyframes dashboardFadeIn {
   0% {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(4px);
   }
   100% {
     opacity: 1;
     transform: translateY(0);
-    pointer-events: all;
-  }
-}
-
-@media (max-width: 768px) {
-  .content-area-layout-dashboard {
-    padding: 1rem;
-  }
-}
-
-/* ============================================
-   SIDEBAR OVERLAY
-   ============================================ */
-.sidebar-overlay-layout-dashboard {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  display: none;
-  backdrop-filter: blur(4px);
-}
-
-@media (max-width: 768px) {
-  .sidebar-overlay-layout-dashboard {
-    display: block;
   }
 }
 
@@ -342,6 +173,46 @@
 @media (max-width: 768px) {
   .mobile-hamburger-btn {
     display: flex;
+  }
+}
+
+/* ============================================
+   SIDEBAR - Dark Theme with Gold Accents
+   ============================================ */
+.sidebar-layout-dashboard {
+  width: 280px;
+  background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg-secondary) 100%);
+  border-right: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1000;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(0);
+}
+
+.sidebar-layout-dashboard:not(.open-layout-dashboard) {
+  transform: translateX(-100%);
+}
+
+.sidebar-overlay-layout-dashboard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
+  backdrop-filter: blur(4px);
+}
+
+@media (max-width: 768px) {
+  .sidebar-overlay-layout-dashboard {
+    display: block;
   }
 }
 
@@ -423,7 +294,7 @@
 }
 
 /* ============================================
-   SIDEBAR NAVIGATION
+   SIDEBAR NAVIGATION - SAME GAPS, SLIGHTLY SMALLER FONTS
    ============================================ */
 .sidebar-nav-layout-dashboard {
   flex: 1;
@@ -434,6 +305,9 @@
   gap: 0.8rem;
 }
 
+/* ============================================
+   SIDEBAR SECTIONS - SAME GAPS, SLIGHTLY SMALLER FONTS
+   ============================================ */
 .sidebar-section-layout-dashboard {
   display: flex;
   flex-direction: column;
@@ -475,6 +349,9 @@
   gap: 0.3rem;
 }
 
+/* ============================================
+   NAVIGATION ITEMS - SLIGHTLY SMALLER FONTS, SAME GAPS
+   ============================================ */
 .nav-item-layout-dashboard {
   display: flex;
   align-items: center;
@@ -532,12 +409,17 @@
   font-weight: 500;
 }
 
+/* ============================================
+   SPACER - Pushes logout to bottom
+   ============================================ */
 .sidebar-spacer-layout-dashboard {
   flex: 1;
   min-height: 0.5rem;
 }
 
-/* Logout Button */
+/* ============================================
+   LOGOUT BUTTON - SLIGHTLY SMALLER FONT, SAME GAPS
+   ============================================ */
 .nav-item-layout-dashboard.logout-sidebar-btn {
   border-top: 1px solid var(--sidebar-border);
   padding-top: 1rem;
@@ -558,7 +440,121 @@
   color: #ef4444;
 }
 
-/* Header Left */
+/* ============================================
+   DROPDOWN STYLES - SLIGHTLY SMALLER FONTS, SAME GAPS
+   ============================================ */
+.dropdown-wrapper-sidebar-layout-dashboard {
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-arrow-sidebar-layout-dashboard {
+  font-size: 0.7rem;
+  transition: transform var(--transition-base);
+  margin-left: auto;
+  color: var(--sidebar-text);
+}
+
+.dropdown-arrow-sidebar-layout-dashboard.open-layout-dashboard {
+  transform: rotate(180deg);
+}
+
+.sidebar-dropdown-menu-layout-dashboard {
+  margin-left: 2.8rem;
+  margin-top: 0.15rem;
+  margin-bottom: 0.15rem;
+  border-left: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.sidebar-dropdown-item-layout-dashboard {
+  display: block;
+  width: 100%;
+  padding: 0.55rem 1rem 0.55rem 1.2rem;
+  background: none;
+  border: none;
+  color: var(--sidebar-text);
+  font-size: 0.88rem;
+  font-weight: 400;
+  font-family: var(--font-family);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  border-radius: var(--radius-sm);
+  position: relative;
+}
+
+/* Active state for dropdown items */
+.sidebar-dropdown-item-layout-dashboard.active-dropdown-item {
+  color: var(--sidebar-text-active);
+  background: var(--sidebar-active);
+}
+
+.sidebar-dropdown-item-layout-dashboard.active-dropdown-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--sidebar-accent);
+  border-radius: 0 3px 3px 0;
+}
+
+.sidebar-dropdown-item-layout-dashboard:hover {
+  color: var(--sidebar-text-hover);
+  background: var(--sidebar-hover);
+}
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+.main-content-layout-dashboard {
+  flex: 1;
+  margin-left: 280px;
+  transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-base);
+}
+
+@media (max-width: 768px) {
+  .main-content-layout-dashboard {
+    margin-left: 0;
+  }
+}
+
+/* Dashboard Header - Clean, Minimal */
+.dashboard-header-layout-dashboard {
+  background: var(--bg-elevated);
+  padding: 0.75rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: var(--shadow-header);
+  min-height: 80px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-header-layout-dashboard {
+    padding: 0.75rem 1rem;
+    padding-top: 4rem;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: auto;
+    gap: 0.75rem;
+  }
+}
+
 .header-left-layout-dashboard {
   display: flex;
   align-items: center;
@@ -712,7 +708,23 @@
   }
 }
 
-/* Scrollbar */
+/* Content Area */
+.content-area-layout-dashboard {
+  flex: 1;
+  padding: 1.5rem 2rem;
+  overflow-y: auto;
+  background: var(--bg-base);
+}
+
+@media (max-width: 768px) {
+  .content-area-layout-dashboard {
+    padding: 1rem;
+  }
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
 .sidebar-nav-layout-dashboard::-webkit-scrollbar {
   width: 4px;
 }
@@ -730,20 +742,12 @@
   background: var(--sidebar-accent);
 }
 
-/* Responsive Adjustments */
+/* ============================================
+   RESPONSIVE ADJUSTMENTS - SAME GAPS, SLIGHTLY SMALLER FONTS
+   ============================================ */
 @media (max-width: 768px) {
   .sidebar-layout-dashboard {
     width: 280px;
-    transform: translateX(-100%);
-  }
-  
-  .sidebar-layout-dashboard.open-layout-dashboard {
-    transform: translateX(0);
-  }
-  
-  /* Mobile animation override - don't animate on mobile */
-  .sidebar-layout-dashboard.sidebar-entering {
-    animation: none;
   }
   
   .logo-text-layout-dashboard {
@@ -767,6 +771,15 @@
   
   .nav-label-layout-dashboard {
     font-size: 0.88rem;
+  }
+  
+  .sidebar-dropdown-menu-layout-dashboard {
+    margin-left: 2.4rem;
+  }
+  
+  .sidebar-dropdown-item-layout-dashboard {
+    font-size: 0.84rem;
+    padding: 0.45rem 0.9rem 0.45rem 1.1rem;
   }
 }
 
@@ -806,9 +819,86 @@
   .nav-label-layout-dashboard {
     font-size: 0.85rem;
   }
+  
+  .sidebar-dropdown-menu-layout-dashboard {
+    margin-left: 2.2rem;
+  }
+  
+  .sidebar-dropdown-item-layout-dashboard {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem 0.4rem 1rem;
+  }
 }
 
-/* Logout Confirmation Modal */
+/* ============================================
+   CHATBOT SIDEBAR BUTTON
+   ============================================ */
+.nav-item-layout-dashboard.chatbot-sidebar-btn {
+  position: relative;
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(243, 156, 18, 0.05));
+  border: 1px solid rgba(243, 156, 18, 0.2);
+  margin-top: 0.3rem;
+  padding: 0.75rem 1rem 0.75rem 0.75rem;
+}
+
+.nav-item-layout-dashboard.chatbot-sidebar-btn:hover {
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.2), rgba(243, 156, 18, 0.1));
+  border-color: var(--sidebar-accent);
+}
+
+.nav-item-layout-dashboard.chatbot-sidebar-btn .nav-icon-layout-dashboard {
+  font-size: 1.1rem;
+}
+
+/* Small badge to show it's active/live */
+.nav-item-layout-dashboard.chatbot-sidebar-btn::after {
+  content: '●';
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #22C55E;
+  font-size: 0.6rem;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.nav-item-layout-dashboard.chatbot-sidebar-btn.active-layout-dashboard {
+  background: var(--sidebar-active);
+  border-color: var(--sidebar-accent);
+}
+
+.nav-item-layout-dashboard.chatbot-sidebar-btn.active-layout-dashboard::after {
+  color: var(--sidebar-accent);
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateY(-50%) scale(0.8);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nav-item-layout-dashboard.chatbot-sidebar-btn {
+    padding: 0.6rem 0.9rem;
+    margin-top: 0.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-item-layout-dashboard.chatbot-sidebar-btn {
+    padding: 0.5rem 0.8rem;
+  }
+}
+
+/* ============================================
+   LOGOUT CONFIRMATION MODAL
+   ============================================ */
 .logout-modal-overlay {
   position: fixed;
   top: 0;
@@ -934,6 +1024,7 @@
   transform: scale(1.02);
 }
 
+/* Mobile Responsive */
 @media (max-width: 480px) {
   .logout-modal-container {
     padding: 2rem 1.5rem 1.5rem;
@@ -961,68 +1052,6 @@
   }
 }
 
-/* Chatbot Sidebar Button */
-.nav-item-layout-dashboard.chatbot-sidebar-btn {
-  position: relative;
-  background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(243, 156, 18, 0.05));
-  border: 1px solid rgba(243, 156, 18, 0.2);
-  margin-top: 0.3rem;
-  padding: 0.75rem 1rem 0.75rem 0.75rem;
-}
-
-.nav-item-layout-dashboard.chatbot-sidebar-btn:hover {
-  background: linear-gradient(135deg, rgba(243, 156, 18, 0.2), rgba(243, 156, 18, 0.1));
-  border-color: var(--sidebar-accent);
-}
-
-.nav-item-layout-dashboard.chatbot-sidebar-btn .nav-icon-layout-dashboard {
-  font-size: 1.1rem;
-}
-
-.nav-item-layout-dashboard.chatbot-sidebar-btn::after {
-  content: '●';
-  position: absolute;
-  right: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #22C55E;
-  font-size: 0.6rem;
-  animation: pulse-dot 2s ease-in-out infinite;
-}
-
-.nav-item-layout-dashboard.chatbot-sidebar-btn.active-layout-dashboard {
-  background: var(--sidebar-active);
-  border-color: var(--sidebar-accent);
-}
-
-.nav-item-layout-dashboard.chatbot-sidebar-btn.active-layout-dashboard::after {
-  color: var(--sidebar-accent);
-}
-
-@keyframes pulse-dot {
-  0%, 100% {
-    opacity: 1;
-    transform: translateY(-50%) scale(1);
-  }
-  50% {
-    opacity: 0.5;
-    transform: translateY(-50%) scale(0.8);
-  }
-}
-
-@media (max-width: 768px) {
-  .nav-item-layout-dashboard.chatbot-sidebar-btn {
-    padding: 0.6rem 0.9rem;
-    margin-top: 0.2rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .nav-item-layout-dashboard.chatbot-sidebar-btn {
-    padding: 0.5rem 0.8rem;
-  }
-}
-
 /* ============================================
    REDUCED MOTION PREFERENCES
    ============================================ */
@@ -1033,21 +1062,15 @@
     transition-duration: 0.01ms !important;
   }
   
-  .sidebar-layout-dashboard.sidebar-entering {
-    animation: none !important;
-    transform: translateX(0) !important;
+  .dashboard-layout-dashboard {
     opacity: 1 !important;
+    transition: none !important;
   }
   
-  .dashboard-header-layout-dashboard.header-sliding {
+  .dashboard-ready .sidebar-layout-dashboard,
+  .dashboard-ready .main-content-layout-dashboard {
     animation: none !important;
     opacity: 1 !important;
-    transform: translateY(0) !important;
-  }
-  
-  .content-area-layout-dashboard.content-visible {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: translateY(0) !important;
+    transform: none !important;
   }
 }

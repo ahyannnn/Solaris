@@ -290,16 +290,14 @@ const Dashboard = () => {
         {/* Welcome Section */}
         <div className="welcome-section-cusdash">
           <div className="welcome-content-cusdash">
-            <h1 className="page-title-cusdash">Dashboard</h1>
-            <p className="welcome-greeting-cusdash">Welcome back, {getFullName() || 'Valued Customer'}</p>
+            
+           
           </div>
           <div className="welcome-actions-cusdash">
             <Link to="book-assessment" className="btn-primary-cusdash">
-              <FaCalendarAlt /> Book Assessment
+              <FaCalendarAlt /> Book Quotation
             </Link>
-            <Link to="book-assessment" className="btn-secondary-cusdash">
-              Request Quote
-            </Link>
+           
           </div>
         </div>
 
@@ -505,12 +503,7 @@ const Dashboard = () => {
           <div className="activities-section-cusdash">
             <div className="section-header-cusdash">
               <h2 className="section-title-cusdash">Recent Activity</h2>
-              {allActivities.length > 0 && (
-                <Link to="book-assessment" className="view-all-link-cusdash">
-                  View All
-                  <FaChevronRight className="arrow-icon-cusdash" />
-                </Link>
-              )}
+              
             </div>
 
             <div className="activities-card-cusdash">

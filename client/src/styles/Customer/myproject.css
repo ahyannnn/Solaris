@@ -1,4 +1,4 @@
-/* styles/Customer/myproject.css - Complete Updated */
+/* styles/Customer/myproject.css - Complete Updated - Fully Responsive */
 
 /* ============================================
    MY PROJECT PAGE - Modern Clean Design
@@ -7,6 +7,7 @@
 .cuspro-page {
   padding-inline: 24px;
   margin: 0 auto;
+  max-width: 1400px;
 }
 
 /* ============================================
@@ -1174,221 +1175,753 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - FULLY OPTIMIZED
    ============================================ */
+
+/* Large Tablets & Small Laptops */
 @media (max-width: 1024px) {
+  .cuspro-page {
+    padding-inline: 20px;
+  }
+
   .cuspro-two-col {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
-  
+
   .cuspro-overview-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .cuspro-progress-ring {
+    width: 120px;
+    height: 120px;
   }
 }
 
+/* Tablets */
 @media (max-width: 768px) {
+  .cuspro-page {
+    padding-inline: 16px;
+  }
+
   .cuspro-header-card {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
+    padding: 1rem 0 0.75rem 0;
   }
-  
+
   .cuspro-header-card h1 {
     font-size: 1.2rem;
   }
-  
+
+  .cuspro-header-card p {
+    font-size: 0.85rem;
+  }
+
+  .cuspro-project-select {
+    max-width: 100%;
+    font-size: 0.9rem;
+    padding: 0.6rem 0.875rem;
+  }
+
   .cuspro-hero-card {
     padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
   }
-  
+
   .cuspro-hero-main {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
-  
+
   .cuspro-hero-main h2 {
     font-size: 1.1rem;
   }
-  
+
+  .cuspro-project-ref {
+    font-size: 0.8rem;
+  }
+
+  .cuspro-status-badge {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.75rem;
+  }
+
   .cuspro-hero-tags {
     gap: 0.5rem;
   }
-  
+
   .cuspro-hero-tags span {
     font-size: 0.75rem;
     padding: 0.2rem 0.6rem;
   }
-  
-  .cuspro-progress-stats {
-    grid-template-columns: 1fr;
+
+  .cuspro-progress-card {
+    padding: 1.25rem;
   }
-  
+
+  .cuspro-progress-ring {
+    width: 110px;
+    height: 110px;
+  }
+
+  .cuspro-progress-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .cuspro-stat strong {
+    font-size: 1rem;
+  }
+
+  .cuspro-stat span {
+    font-size: 0.65rem;
+  }
+
+  .cuspro-photos-card {
+    padding: 1.25rem;
+  }
+
   .cuspro-photos-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
+  .cuspro-details-card {
+    padding: 1.25rem;
+  }
+
   .cuspro-details-grid {
     grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
   }
-  
+
+  .cuspro-detail-item strong {
+    font-size: 0.85rem;
+  }
+
+  .cuspro-detail-item span {
+    font-size: 0.65rem;
+  }
+
+  .cuspro-next-card {
+    padding: 1.25rem;
+  }
+
+  .cuspro-next-content h4 {
+    font-size: 0.9rem;
+  }
+
+  .cuspro-next-content p {
+    font-size: 0.85rem;
+  }
+
   .cuspro-tab {
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
   }
-  
+
+  .cuspro-tab-nav {
+    gap: 0.25rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.25rem;
+  }
+
+  .cuspro-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .cuspro-overview-card {
+    padding: 1.25rem;
+  }
+
+  .cuspro-overview-card h4 {
+    font-size: 0.85rem;
+  }
+
+  .cuspro-timeline-mini-item p {
+    font-size: 0.85rem;
+  }
+
+  .cuspro-payment-full-item {
+    padding: 1.25rem;
+  }
+
   .cuspro-payment-full-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 0.5rem;
   }
-  
+
+  .cuspro-payment-full-header h4 {
+    font-size: 0.9rem;
+  }
+
   .cuspro-payment-full-amount {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
   }
-  
+
+  .cuspro-payment-full-amount strong {
+    font-size: 1.1rem;
+  }
+
+  .cuspro-btn-pay {
+    font-size: 0.8rem;
+    padding: 0.4rem 1.25rem;
+  }
+
   .cuspro-photo-modal-content {
     max-width: 95vw;
+    border-radius: var(--radius-md);
   }
-  
+
   .cuspro-photo-modal-main {
     max-height: 70vh;
   }
-  
+
   .cuspro-photo-modal-main img {
     max-height: 70vh;
   }
-  
+
   .cuspro-photo-nav {
     width: 36px;
     height: 36px;
     font-size: 1rem;
   }
-  
+
   .cuspro-photo-nav.prev {
     left: 0.5rem;
   }
-  
+
   .cuspro-photo-nav.next {
     right: 0.5rem;
   }
+
+  .cuspro-photo-modal-footer {
+    padding: 0.5rem 1rem;
+  }
+
+  .cuspro-photo-counter {
+    font-size: 0.8rem;
+  }
+
+  .cuspro-empty-state-card {
+    padding: 2rem 1.5rem;
+    min-height: 300px;
+  }
+
+  .cuspro-empty-state-card h2 {
+    font-size: 1.25rem;
+  }
+
+  .cuspro-empty-state-card p {
+    font-size: 0.9rem;
+  }
+
+  .cuspro-engineer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .cuspro-engineer-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .cuspro-engineer strong {
+    font-size: 0.85rem;
+  }
 }
 
+/* Small Mobile Devices */
 @media (max-width: 480px) {
-  .cuspro-hero-card {
-    padding: 0.75rem 1rem;
+  .cuspro-page {
+    padding-inline: 12px;
   }
-  
+
+  .cuspro-header-card h1 {
+    font-size: 1rem;
+  }
+
+  .cuspro-header-card p {
+    font-size: 0.8rem;
+  }
+
+  .cuspro-hero-card {
+    padding: 0.75rem 0.875rem;
+  }
+
+  .cuspro-hero-main h2 {
+    font-size: 1rem;
+  }
+
   .cuspro-hero-tags {
     flex-direction: column;
     align-items: flex-start;
+    width: 100%;
   }
-  
-  .cuspro-photos-grid {
-    grid-template-columns: repeat(2, 1fr);
+
+  .cuspro-hero-tags span {
+    width: 100%;
+    justify-content: flex-start;
   }
-  
-  .cuspro-details-grid {
-    grid-template-columns: 1fr;
+
+  .cuspro-status-badge {
+    align-self: flex-start;
   }
-  
-  .cuspro-tab-nav {
-    gap: 0.25rem;
-    overflow-x: auto;
-    flex-wrap: nowrap;
+
+  .cuspro-project-select {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+    padding-right: 2rem;
+    background-position: right 0.75rem center;
+    background-size: 10px;
   }
-  
-  .cuspro-tab {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.75rem;
-    white-space: nowrap;
-  }
-  
-  .cuspro-payment-full-item {
+
+  .cuspro-progress-card {
     padding: 1rem;
   }
-  
-  .cuspro-payment-full-header h4 {
+
+  .cuspro-progress-card h3 {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .cuspro-progress-ring {
+    width: 100px;
+    height: 100px;
+  }
+
+  .cuspro-progress-stats {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+  }
+
+  .cuspro-stat {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .cuspro-stat:last-child {
+    border-bottom: none;
+  }
+
+  .cuspro-stat span {
+    font-size: 0.7rem;
+  }
+
+  .cuspro-stat strong {
+    font-size: 0.95rem;
+  }
+
+  .cuspro-photos-card {
+    padding: 1rem;
+  }
+
+  .cuspro-photos-card h3 {
     font-size: 0.9rem;
   }
-  
-  .cuspro-payment-full-amount strong {
-    font-size: 1rem;
+
+  .cuspro-photos-subtitle {
+    font-size: 0.75rem;
   }
-  
+
+  .cuspro-photos-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+  }
+
+  .cuspro-view-all-btn {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .cuspro-details-card {
+    padding: 1rem;
+  }
+
+  .cuspro-details-card h3 {
+    font-size: 0.9rem;
+  }
+
+  .cuspro-details-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .cuspro-detail-item strong {
+    font-size: 0.85rem;
+  }
+
+  .cuspro-next-card {
+    padding: 1rem;
+  }
+
+  .cuspro-next-card h3 {
+    font-size: 0.9rem;
+  }
+
+  .cuspro-next-content h4 {
+    font-size: 0.85rem;
+  }
+
+  .cuspro-next-content p {
+    font-size: 0.8rem;
+  }
+
   .cuspro-next-actions {
     flex-direction: column;
+    width: 100%;
   }
-  
+
   .cuspro-next-actions .cuspro-btn-primary {
     width: 100%;
     justify-content: center;
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
   }
-  
+
+  .cuspro-tab {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .cuspro-tab-nav {
+    gap: 0.15rem;
+  }
+
+  .cuspro-overview-card {
+    padding: 1rem;
+  }
+
+  .cuspro-overview-card h4 {
+    font-size: 0.85rem;
+  }
+
+  .cuspro-timeline-mini-item p {
+    font-size: 0.8rem;
+  }
+
+  .cuspro-timeline-mini-item small {
+    font-size: 0.65rem;
+  }
+
+  .cuspro-payment-mini-item span {
+    font-size: 0.8rem;
+  }
+
+  .cuspro-payment-mini-item strong {
+    font-size: 0.85rem;
+  }
+
+  .cuspro-payment-full-item {
+    padding: 0.875rem;
+  }
+
+  .cuspro-payment-full-header h4 {
+    font-size: 0.85rem;
+  }
+
+  .cuspro-payment-full-header p {
+    font-size: 0.75rem;
+  }
+
+  .cuspro-payment-full-amount strong {
+    font-size: 1rem;
+  }
+
+  .cuspro-payment-full-amount span {
+    font-size: 0.7rem;
+  }
+
+  .cuspro-payment-full-status {
+    font-size: 0.6rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .cuspro-btn-pay {
+    font-size: 0.75rem;
+    padding: 0.35rem 1rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cuspro-timeline-full {
+    padding: 1rem;
+  }
+
+  .cuspro-timeline-full-item {
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+  }
+
+  .cuspro-timeline-marker {
+    width: 30px;
+    height: 30px;
+    font-size: 0.7rem;
+  }
+
+  .cuspro-timeline-info h4 {
+    font-size: 0.8rem;
+  }
+
+  .cuspro-timeline-date {
+    font-size: 0.7rem;
+  }
+
+  .cuspro-photo-modal-content {
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .cuspro-photo-modal-main {
+    max-height: 75vh;
+  }
+
+  .cuspro-photo-modal-main img {
+    max-height: 75vh;
+  }
+
+  .cuspro-photo-modal-close {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .cuspro-photo-nav {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  .cuspro-photo-nav.prev {
+    left: 0.25rem;
+  }
+
+  .cuspro-photo-nav.next {
+    right: 0.25rem;
+  }
+
   .cuspro-photo-modal-footer {
     flex-direction: column;
     align-items: stretch;
     gap: 0.5rem;
+    padding: 0.5rem;
   }
-  
+
   .cuspro-photo-download {
     justify-content: center;
+    font-size: 0.8rem;
+    padding: 0.35rem 0.75rem;
+  }
+
+  .cuspro-empty-state-card {
+    padding: 1.5rem 1rem;
+    min-height: 250px;
+  }
+
+  .cuspro-empty-icon {
+    font-size: 3rem;
+  }
+
+  .cuspro-empty-state-card h2 {
+    font-size: 1.1rem;
+  }
+
+  .cuspro-empty-state-card p {
+    font-size: 0.85rem;
+  }
+
+  .cuspro-empty-state-card .cuspro-btn-primary {
+    font-size: 0.85rem;
+    padding: 0.5rem 1.5rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cuspro-engineer {
+    gap: 0.4rem;
+  }
+
+  .cuspro-engineer-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 0.85rem;
+  }
+
+  .cuspro-engineer strong {
+    font-size: 0.85rem;
+  }
+
+  .cuspro-engineer p {
+    font-size: 0.75rem;
+  }
+
+  .cuspro-engineer-placeholder {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .cuspro-engineer-placeholder svg {
+    font-size: 2rem;
+  }
+
+  .cuspro-engineer-placeholder strong {
+    font-size: 0.85rem;
+  }
+
+  .cuspro-engineer-placeholder p {
+    font-size: 0.75rem;
+  }
+
+  .cuspro-address p {
+    font-size: 0.8rem;
+  }
+
+  .cuspro-btn-primary {
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* Extra Small Devices */
+@media (max-width: 360px) {
+  .cuspro-page {
+    padding-inline: 8px;
+  }
+
+  .cuspro-hero-card {
+    padding: 0.5rem 0.625rem;
+  }
+
+  .cuspro-hero-main h2 {
+    font-size: 0.9rem;
+  }
+
+  .cuspro-project-ref {
+    font-size: 0.7rem;
+  }
+
+  .cuspro-status-badge {
+    font-size: 0.55rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  .cuspro-hero-tags span {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  .cuspro-photos-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.3rem;
+  }
+
+  .cuspro-progress-ring {
+    width: 80px;
+    height: 80px;
+  }
+
+  .cuspro-tab {
+    font-size: 0.65rem;
+    padding: 0.3rem 0.5rem;
+  }
+
+  .cuspro-payment-full-item {
+    padding: 0.625rem;
+  }
+
+  .cuspro-payment-full-header h4 {
+    font-size: 0.75rem;
+  }
+
+  .cuspro-payment-full-amount strong {
+    font-size: 0.9rem;
+  }
+
+  .cuspro-detail-item strong {
+    font-size: 0.75rem;
+  }
+
+  .cuspro-next-content h4 {
+    font-size: 0.8rem;
+  }
+
+  .cuspro-next-content p {
+    font-size: 0.75rem;
   }
 }
 
 /* ============================================
-   EMPTY STATE - FULL HEIGHT CENTERED
+   REDUCED MOTION PREFERENCES
    ============================================ */
-.cuspro-empty-state-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  background: transparent;
-  border: none;
-  text-align: center;
-  min-height: calc(100vh - 100px);
-  width: 100%;
-}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 
-.cuspro-empty-icon {
-  font-size: 4rem;
-  color: var(--text-muted);
-  margin-bottom: 1rem;
-}
+  .cuspro-hero-card:hover {
+    transform: none !important;
+  }
 
-.cuspro-empty-state-card h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 0.5rem 0;
-}
+  .cuspro-photo-item:hover img {
+    transform: none !important;
+  }
 
-.cuspro-empty-state-card p {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  margin: 0 0 1.5rem 0;
-}
+  .cuspro-photo-item:hover .cuspro-photo-overlay {
+    opacity: 0 !important;
+  }
 
-.cuspro-empty-state-card .cuspro-btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.7rem 2rem;
-  background: var(--sidebar-accent);
-  color: #FFFFFF;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-base);
-}
+  .cuspro-progress-fill {
+    transition: none !important;
+  }
 
-.cuspro-empty-state-card .cuspro-btn-primary:hover {
-  background: var(--sidebar-accent-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+  .skeleton-line {
+    animation: none !important;
+    background: var(--bg-surface) !important;
+  }
+
+  .skeleton-chip {
+    animation: none !important;
+    background: var(--bg-surface) !important;
+  }
+
+  .cuspro-btn-primary:hover,
+  .cuspro-btn-pay:hover,
+  .cuspro-photo-download:hover,
+  .cuspro-view-all-btn:hover {
+    transform: none !important;
+  }
+
+  .cuspro-photo-modal-content {
+    animation: none !important;
+  }
+
+  .cuspro-photo-modal-overlay {
+    animation: none !important;
+  }
+
+  .cuspro-photo-modal-close:hover {
+    transform: none !important;
+  }
 }

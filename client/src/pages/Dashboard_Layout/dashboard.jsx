@@ -629,9 +629,7 @@ const Dashboard = () => {
       {showLogoutModal && (
         <div className="logout-modal-overlay" onClick={cancelLogout}>
           <div className="logout-modal-container" onClick={(e) => e.stopPropagation()}>
-            <div className="logout-modal-icon">
-              <FaExclamationTriangle />
-            </div>
+           
             <h2 className="logout-modal-title">Confirm Logout</h2>
             <p className="logout-modal-message">Are you sure you want to logout?</p>
             <p className="logout-modal-sub-message">You will need to login again to access your account.</p>

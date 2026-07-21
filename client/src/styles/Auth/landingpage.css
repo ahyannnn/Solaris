@@ -1,4 +1,7 @@
-/* ============================================== LANDING PAGE - PREMIUM ANIMATIONS & STYLING ============================================== */
+/* ==============================================
+   LANDING PAGE - PREMIUM ANIMATIONS & STYLING
+   RESPONSIVE SIZING ONLY - COLORS UNCHANGED
+============================================== */
 
 /* Smooth scroll behavior */
 html {
@@ -1382,8 +1385,25 @@ html {
   color: rgba(255, 255, 255, 0.6);
 }
 
-/* ============================================== RESPONSIVE DESIGN ============================================== */
+/* ============================================== RESPONSIVE DESIGN - SIZING ONLY ============================================== */
+
+/* Tablet & Small Laptops */
 @media (max-width: 1024px) {
+  .hero-title-land {
+    font-size: 44px;
+  }
+
+  .hero-subtitle-land {
+    font-size: 20px;
+  }
+
+  .section-title-land {
+    font-size: 36px;
+  }
+
+  .section-subtitle-land {
+    font-size: 18px;
+  }
 
   .about-grid-land,
   .services-grid-land,
@@ -1391,11 +1411,12 @@ html {
   .comparison-grid-land,
   .download-content-land {
     grid-template-columns: 1fr;
-    gap: 48px;
+    gap: 40px;
   }
 
   .whyus-grid-land {
     grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
   }
 
   .results-grid-land {
@@ -1405,41 +1426,161 @@ html {
   .howitworks-steps-land {
     flex-direction: column;
     align-items: center;
+    gap: 32px;
   }
 
   .howitworks-steps-land::before {
     display: none;
   }
 
+  .step-circle-land {
+    width: 70px;
+    height: 70px;
+    font-size: 28px;
+  }
+
   .footer-grid-land {
     grid-template-columns: 1fr 1fr;
+    gap: 32px;
   }
-}
 
-@media (max-width: 768px) {
-  .hero-title-land {
+  .about-section-land,
+  .mission-vision-section-land,
+  .comparison-section-land,
+  .estimator-section-land,
+  .howitworks-section-land,
+  .services-section-land,
+  .whyus-section-land,
+  .download-section-land {
+    padding: 80px 24px;
+  }
+
+  .about-content-land p {
+    font-size: 17px;
+  }
+
+  .mission-card-land,
+  .vision-card-land {
+    padding: 36px 32px;
+  }
+
+  .mission-card-land h3,
+  .vision-card-land h3 {
+    font-size: 24px;
+  }
+
+  .comparison-card-land {
+    padding: 36px 32px;
+  }
+
+  .comparison-card-land h3 {
+    font-size: 24px;
+  }
+
+  .stats-mini-land {
+    gap: 20px;
+  }
+
+  .stat-number-land {
+    font-size: 30px;
+  }
+
+  .estimator-card-land {
+    padding: 36px 32px;
+  }
+
+  .estimator-results-land {
+    padding: 32px 24px;
+  }
+
+  .estimator-results-land h3 {
+    font-size: 24px;
+  }
+
+  .result-item-land strong {
+    font-size: 20px;
+  }
+
+  .services-grid-land {
+    gap: 40px;
+  }
+
+  .services-list-land li {
+    font-size: 17px;
+  }
+
+  .whyus-card-land {
+    padding: 32px 24px;
+  }
+
+  .whyus-icon-land {
     font-size: 40px;
   }
 
+  .download-content-land {
+    gap: 40px;
+  }
+
+  .download-section-land .section-title-land {
+    text-align: center;
+  }
+  
+  .download-section-land .section-subtitle-land {
+    text-align: center;
+  }
+
+  .app-download-card {
+    padding: 32px;
+  }
+
+  .android-icon {
+    font-size: 52px;
+  }
+
+  .app-download-card h3 {
+    font-size: 22px;
+  }
+
+  .footer-land {
+    padding: 60px 24px 24px;
+  }
+}
+
+/* Mobile Devices */
+@media (max-width: 768px) {
+  .hero-title-land {
+    font-size: 36px;
+  }
+
   .hero-subtitle-land {
-    font-size: 18px;
+    font-size: 17px;
+    margin-bottom: 32px;
+  }
+
+  .hero-buttons-land {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-buttons-land .btn-primary-land,
+  .hero-buttons-land .btn-outline-land {
+    width: 100%;
+    max-width: 320px;
+    justify-content: center;
   }
 
   .section-title-land {
-    font-size: 32px;
+    font-size: 30px;
+  }
+
+  .section-subtitle-land {
+    font-size: 16px;
+    margin-bottom: 32px;
   }
 
   .desktop-nav-land {
     display: none;
-  }
-
-  .estimator-inputs-land {
-    grid-template-columns: 1fr;
-  }
-
-  .results-grid-land,
-  .whyus-grid-land {
-    grid-template-columns: 1fr;
   }
 
   .stats-mini-land {
@@ -1447,36 +1588,415 @@ html {
     gap: 16px;
   }
 
+  .stat-mini-land {
+    padding: 20px;
+  }
+
+  .stat-number-land {
+    font-size: 28px;
+  }
+
+  .estimator-inputs-land {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .results-grid-land,
+  .whyus-grid-land {
+    grid-template-columns: 1fr;
+  }
+
   .footer-grid-land {
     grid-template-columns: 1fr;
+    gap: 24px;
   }
 
   .comparison-grid-land {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero-title-land {
-    font-size: 32px;
+    gap: 24px;
   }
 
-  .hero-buttons-land {
-    flex-direction: column;
+  .about-section-land,
+  .mission-vision-section-land,
+  .comparison-section-land,
+  .estimator-section-land,
+  .howitworks-section-land,
+  .services-section-land,
+  .whyus-section-land,
+  .download-section-land {
+    padding: 60px 16px;
+  }
+
+  .about-grid-land,
+  .services-grid-land,
+  .mission-vision-grid-land,
+  .download-content-land {
+    gap: 32px;
+  }
+
+  .about-content-land p {
+    font-size: 16px;
+  }
+
+  .mission-card-land,
+  .vision-card-land {
+    padding: 28px 20px;
+  }
+
+  .mission-card-land h3,
+  .vision-card-land h3 {
+    font-size: 22px;
+  }
+
+  .mission-card-land p,
+  .vision-card-land p {
+    font-size: 16px;
+  }
+
+  .comparison-card-land {
+    padding: 28px 20px;
+  }
+
+  .comparison-card-land h3 {
+    font-size: 22px;
+  }
+
+  .feature-list-land li {
+    font-size: 15px;
+    padding: 10px 0;
+    padding-left: 28px;
+  }
+
+  .card-badge-land {
+    font-size: 13px;
+    padding: 6px 16px;
+  }
+
+  .estimator-card-land {
+    padding: 24px 16px;
+  }
+
+  .estimator-results-land {
+    padding: 24px 16px;
+    margin-top: 32px;
+  }
+
+  .estimator-results-land h3 {
+    font-size: 22px;
+    margin-bottom: 24px;
+  }
+
+  .result-item-land {
+    padding: 18px 16px;
+  }
+
+  .result-item-land strong {
+    font-size: 18px;
+  }
+
+  .howitworks-step-land {
     width: 100%;
+    max-width: 280px;
   }
 
-  .hero-buttons-land button {
-    width: 100%;
+  .step-circle-land {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+    margin-bottom: 16px;
   }
 
-  .header-actions-land {
-    flex-direction: column;
-    gap: 8px;
+  .howitworks-step-land h3 {
+    font-size: 16px;
+  }
+
+  .services-list-land li {
+    font-size: 16px;
+    padding: 12px 0;
+    padding-left: 32px;
+  }
+
+  .services-list-land li::before {
+    font-size: 18px;
+  }
+
+  .whyus-card-land {
+    padding: 28px 20px;
+  }
+
+  .whyus-icon-land {
+    font-size: 36px;
+  }
+
+  .whyus-card-land h3 {
+    font-size: 18px;
+  }
+
+  .whyus-card-land p {
+    font-size: 14px;
+  }
+
+  .download-content-land {
+    gap: 32px;
+  }
+
+  .download-feature-land {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .download-feature-land span {
+    font-size: 15px;
+  }
+
+  .app-download-card {
+    padding: 28px 20px;
+  }
+
+  .android-icon {
+    font-size: 44px;
+  }
+
+  .app-download-card h3 {
+    font-size: 20px;
+  }
+
+  .app-download-card p {
+    font-size: 15px;
+  }
+
+  .download-btn {
+    padding: 12px 24px;
+    font-size: 15px;
+  }
+
+  .footer-land {
+    padding: 48px 16px 20px;
+  }
+
+  .footer-logo-land img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .footer-logo-land h3 {
+    font-size: 18px;
+  }
+
+  .footer-info-land p {
+    font-size: 14px;
+  }
+
+  .footer-links-land h4 {
+    font-size: 16px;
+  }
+
+  .footer-links-land button {
+    font-size: 14px;
   }
 
   .modal-content-land {
-    padding: 32px 24px;
+    padding: 32px 20px;
+  }
+
+  .modal-content-land h2 {
+    font-size: 26px;
+  }
+
+  .modal-content-land p {
+    font-size: 15px;
+  }
+
+  .estimate-form-land {
+    gap: 20px;
+  }
+
+  .estimate-result-land {
+    padding: 24px 20px;
+  }
+
+  .estimate-result-land h3 {
+    font-size: 20px;
+  }
+
+  .result-item-simple-land {
+    font-size: 15px;
+  }
+
+  .container-land {
+    padding: 0 16px;
   }
 }
 
+/* Small Mobile Devices */
+@media (max-width: 480px) {
+  .hero-title-land {
+    font-size: 28px;
+  }
+
+  .hero-subtitle-land {
+    font-size: 16px;
+  }
+
+  .hero-section-land {
+    padding: 100px 16px 60px;
+  }
+
+  .section-title-land {
+    font-size: 26px;
+  }
+
+  .section-subtitle-land {
+    font-size: 15px;
+  }
+
+  .about-section-land,
+  .mission-vision-section-land,
+  .comparison-section-land,
+  .estimator-section-land,
+  .howitworks-section-land,
+  .services-section-land,
+  .whyus-section-land,
+  .download-section-land {
+    padding: 48px 12px;
+  }
+
+  .header-actions-land {
+    gap: 6px;
+  }
+
+  .btn-login-land {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .btn-signup-land {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .logo-img-land {
+    width: 36px;
+    height: 36px;
+  }
+
+  .logo-name-land {
+    font-size: 16px;
+  }
+
+  .logo-tagline-land {
+    font-size: 10px;
+    display: none;
+  }
+
+  .btn-primary-land,
+  .btn-outline-land {
+    padding: 14px 24px;
+    font-size: 15px;
+  }
+
+  .hero-buttons-land .btn-primary-land,
+  .hero-buttons-land .btn-outline-land {
+    max-width: 100%;
+  }
+
+  .comparison-card-land {
+    padding: 24px 16px;
+  }
+
+  .feature-list-land li {
+    font-size: 14px;
+    padding: 8px 0;
+    padding-left: 24px;
+  }
+
+  .estimator-card-land {
+    padding: 20px 12px;
+  }
+
+  .input-group-land input,
+  .input-group-land select {
+    padding: 12px 14px;
+    font-size: 15px;
+  }
+
+  .btn-calculate-land {
+    padding: 14px 24px;
+    font-size: 15px;
+  }
+
+  .results-grid-land {
+    gap: 12px;
+  }
+
+  .result-item-land {
+    padding: 16px 14px;
+  }
+
+  .result-item-land strong {
+    font-size: 16px;
+  }
+
+  .modal-content-land {
+    padding: 24px 16px;
+  }
+
+  .modal-content-land h2 {
+    font-size: 22px;
+  }
+
+  .modal-close-land {
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+    top: 12px;
+    right: 12px;
+  }
+
+  .estimate-result-land {
+    padding: 20px 16px;
+  }
+
+  .result-item-simple-land {
+    padding: 12px 0;
+    font-size: 14px;
+  }
+
+  .result-item-simple-land strong {
+    font-size: 16px;
+  }
+
+  .download-feature-land {
+    padding: 12px 12px;
+    gap: 10px;
+  }
+
+  .download-feature-land span {
+    font-size: 14px;
+  }
+
+  .download-feature-icon-land {
+    font-size: 20px;
+  }
+
+  .app-download-card {
+    padding: 24px 16px;
+  }
+
+  .android-icon {
+    font-size: 40px;
+  }
+
+  .app-download-card h3 {
+    font-size: 18px;
+  }
+
+  .app-download-card p {
+    font-size: 14px;
+  }
+
+  .download-btn {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+}

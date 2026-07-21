@@ -1107,19 +1107,19 @@ const Quotation = () => {
       const rect = event.currentTarget.getBoundingClientRect();
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-      
+
       let top = rect.bottom + scrollTop + 4;
       let left = rect.right + scrollLeft - 180;
-      
+
       if (left + 180 > window.innerWidth) {
         left = rect.left + scrollLeft - 180 + 32;
       }
       if (left < 10) left = 10;
-      
+
       if (top + 200 > window.innerHeight + scrollTop) {
         top = rect.top + scrollTop - 200 - 4;
       }
-      
+
       setDropdownPosition({ top, left });
       setActiveDropdown(itemId);
     }
@@ -1158,10 +1158,7 @@ const Quotation = () => {
       <Helmet><title>My Solar Journey | Salfer Engineering</title></Helmet>
 
       <div className="quotation-container">
-        <div className="quotation-header">
-          <h1>Quotation</h1>
-          <p>Track your projects, view quotations, and manage payments</p>
-        </div>
+        
 
         <div className="quotation-tabs">
           <button
@@ -1182,34 +1179,11 @@ const Quotation = () => {
           >
             Project Bills <span className="tab-badge">{filteredItems.filter(i => i.type === 'project').length}</span>
           </button>
-          <button
-            className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
-            onClick={() => setActiveTab('pending')}
-          >
-            Pending <span className="tab-badge">{filteredItems.filter(i => i.status === 'pending' || i.status === 'pending_payment').length}</span>
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'for_verification' ? 'active' : ''}`}
-            onClick={() => setActiveTab('for_verification')}
-          >
-            For Verification <span className="tab-badge">{filteredItems.filter(i => i.status === 'for_verification').length}</span>
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'paid' ? 'active' : ''}`}
-            onClick={() => setActiveTab('paid')}
-          >
-            Paid <span className="tab-badge">{filteredItems.filter(i => i.status === 'paid').length}</span>
-          </button>
+          
         </div>
 
         <div className="quotation-filters">
-          <div className="filter-group">
-            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
-              <option value="all">All Types</option>
-              <option value="pre-assessment">Pre-Assessments</option>
-              <option value="project">Project Bills</option>
-            </select>
-          </div>
+          
 
           <div className="filter-group">
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
@@ -1249,6 +1223,7 @@ const Quotation = () => {
           <p>Showing {tabItems.length} of {filteredItems.length} transaction(s)</p>
         </div>
 
+        {/* Table Container - Desktop */}
         <div className="quotation-table-container">
           <div className="quotation-table-wrapper">
             {tabItems.length === 0 ? (
@@ -1286,19 +1261,17 @@ const Quotation = () => {
                               <div className="transaction-name">{item.description}</div>
                               {!isPreAssessment && item.invoiceType && (
                                 <span className={`invoice-type-label ${item.invoiceType}`}>
-                                  {invoiceLabel}
+                                 
                                 </span>
                               )}
-                              {isPreAssessment && item.propertyType && (
-                                <span className="property-type-label">{item.propertyType}</span>
-                              )}
+                              
                             </div>
                           </div>
                         </td>
                         <td>
                           <div className="quotation-reference-cell">
                             <span className="ref-id">{isPreAssessment ? item.bookingReference || item.id : item.id}</span>
-                            {item.projectName && <span className="ref-project">{item.projectName}</span>}
+                           
                           </div>
                         </td>
                         <td>{item.date}</td>
@@ -1323,7 +1296,7 @@ const Quotation = () => {
                               </button>
 
                               {isDropdownOpen && (
-                                <div 
+                                <div
                                   className="dropdown-menu"
                                   style={{
                                     top: dropdownPosition.top + 'px',
@@ -1382,6 +1355,134 @@ const Quotation = () => {
               </table>
             )}
           </div>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="quotation-mobile-cards">
+          {tabItems.length === 0 ? (
+            <div className="quotation-empty-state">
+              <h3>No transactions found</h3>
+              <p>Try adjusting your filters or search criteria.</p>
+            </div>
+          ) : (
+            tabItems.map((item, index) => {
+              const isPreAssessment = item.type === 'pre-assessment';
+              const isPayNowButtonDisabled = isPayNowDisabled(item);
+              const disabledReason = getPayNowDisabledReason(item);
+              const invoiceLabel = !isPreAssessment ? getInvoiceTypeLabel(item) : null;
+              const hasReceipt = item.receiptUrl;
+              const isDropdownOpen = activeDropdown === item.id;
+
+              return (
+                <div key={index} className="quotation-mobile-card">
+                  <div className="quotation-mobile-card-header">
+                    <div className="quotation-mobile-card-title">
+                      <span className="ref-id">{isPreAssessment ? item.bookingReference || item.id : item.id}</span>
+                      {item.projectName && <span className="ref-project">{item.projectName}</span>}
+                    </div>
+                    <div className="quotation-mobile-card-status">
+                      {getStatusBadge(item.status)}
+                    </div>
+                  </div>
+
+                  <div className="quotation-mobile-card-body">
+                    <div className="quotation-mobile-card-item">
+                      <span className="label">Transaction</span>
+                      <span className="value">{item.description}</span>
+                      {!isPreAssessment && item.invoiceType && (
+                        <span className={`invoice-type-label ${item.invoiceType}`}>
+                          
+                        </span>
+                      )}
+                      
+                    </div>
+                    <div className="quotation-mobile-card-item">
+                      <span className="label">Amount</span>
+                      <span className="value">
+                        <span className="amount-main">{formatCurrency(item.amount)}</span>
+                        {item.paymentStatus === 'partial' && (
+                          <span className="amount-balance">Balance: {formatCurrency(item.balance)}</span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="quotation-mobile-card-item">
+                      <span className="label">Date</span>
+                      <span className="value">{item.date}</span>
+                    </div>
+                    <div className="quotation-mobile-card-item">
+                      <span className="label">Due Date</span>
+                      <span className="value">{item.dueDate}</span>
+                    </div>
+                  </div>
+
+                  <div className="quotation-mobile-card-footer">
+                    <div className="transaction-info">
+                      <span className="transaction-name">{item.description}</span>
+                    </div>
+                    <div className="dropdown-menu-container">
+                      <button
+                        className="dropdown-trigger-btn"
+                        onClick={(e) => toggleDropdown(item.id, e)}
+                      >
+                        Action ▾
+                      </button>
+
+                      {isDropdownOpen && (
+                        <div
+                          className="dropdown-menu"
+                          style={{
+                            top: dropdownPosition.top + 'px',
+                            left: dropdownPosition.left + 'px'
+                          }}
+                        >
+                          <button
+                            className="dropdown-item"
+                            onClick={() => handleViewDetails(item)}
+                          >
+                            View Details
+                          </button>
+
+                          {(item.status === 'pending' || item.status === 'pending_payment' || item.status === 'partial') && (
+                            <button
+                              className={`dropdown-item ${isPayNowButtonDisabled ? 'disabled' : ''}`}
+                              onClick={() => handlePayNowClick(item)}
+                              disabled={isSubmitting || isPayNowButtonDisabled}
+                              title={disabledReason || ''}
+                            >
+                              {isPayNowButtonDisabled ? 'Unavailable' : 'Pay Now'}
+                            </button>
+                          )}
+
+                          {item.status === 'paid' && hasReceipt && (
+                            <>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => handleViewReceipt(item)}
+                              >
+                                View Receipt
+                              </button>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => handleDownloadReceipt(item)}
+                              >
+                                Download Receipt
+                              </button>
+                            </>
+                          )}
+
+                          {item.status === 'for_verification' && (
+                            <span className="dropdown-item verifying">
+                              Verifying...
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
         {/* Modals - keep same as before */}

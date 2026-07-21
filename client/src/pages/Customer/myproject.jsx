@@ -365,13 +365,7 @@ const MyProject = () => {
       </Helmet>
 
       <div className="cuspro-page">
-        {/* Header */}
-        <div className="cuspro-header-card">
-          <div>
-            <h1>My Project</h1>
-            <p>Track your solar installation progress</p>
-          </div>
-        </div>
+        
 
         {/* Project Selector */}
         {projects.length > 1 && (

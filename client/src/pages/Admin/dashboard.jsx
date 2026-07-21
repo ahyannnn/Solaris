@@ -534,7 +534,7 @@ const AdminDashboard = () => {
         {/* Welcome Section - Like Customer Dashboard */}
         <div className="adsih-welcome-section">
           <div className="adsih-welcome-content">
-            <h1>Dashboard</h1>
+            
             <p>Welcome back, Admin! Here's an overview of your solar business performance</p>
           </div>
           <div className="adsih-welcome-actions">

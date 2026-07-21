@@ -1,4 +1,4 @@
-/* styles/Customer/quotation.css - Clean Professional Design */
+/* styles/Customer/quotation.css - Complete Fixed Version */
 
 :root {
   --primary: #2563EB;
@@ -57,6 +57,12 @@
   padding-bottom: 0;
   overflow-x: auto;
   flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.quotation-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-btn {
@@ -73,6 +79,7 @@
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tab-btn:hover {
@@ -118,6 +125,11 @@
   cursor: pointer;
   min-width: 160px;
   transition: all 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
 }
 
 .filter-group select:focus {
@@ -189,7 +201,9 @@
   margin: 0;
 }
 
-/* Table Container */
+/* ============================================
+   TABLE CONTAINER - Desktop View
+   ============================================ */
 .quotation-table-container {
   background: var(--bg-card);
   border-radius: var(--radius-xl);
@@ -241,7 +255,213 @@
   background: var(--bg-base);
 }
 
-/* Transaction Cell */
+/* ============================================
+   MOBILE CARDS - Hidden on desktop, shown on mobile
+   ============================================ */
+.quotation-mobile-cards {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0;
+}
+
+.quotation-mobile-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+}
+
+.quotation-mobile-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-medium);
+}
+
+.quotation-mobile-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.quotation-mobile-card-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.quotation-mobile-card-title .ref-id {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: monospace;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.quotation-mobile-card-title .ref-project {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.quotation-mobile-card-status {
+  flex-shrink: 0;
+}
+
+.quotation-mobile-card-status .status-badge {
+  font-size: 11px;
+  padding: 4px 12px;
+}
+
+.quotation-mobile-card-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.quotation-mobile-card-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quotation-mobile-card-item .label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.quotation-mobile-card-item .value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.quotation-mobile-card-item .value .amount-main {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.quotation-mobile-card-item .value .amount-balance {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.quotation-mobile-card-item .invoice-type-label {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 10px;
+  border-radius: 12px;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  display: inline-block;
+  width: fit-content;
+}
+
+.quotation-mobile-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quotation-mobile-card-footer .transaction-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.quotation-mobile-card-footer .transaction-info .transaction-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.quotation-mobile-card-footer .dropdown-menu-container {
+  flex-shrink: 0;
+}
+
+.quotation-mobile-card-footer .dropdown-trigger-btn {
+  padding: 6px 14px;
+  font-size: 12px;
+}
+
+/* ============================================
+   MOBILE CARD STATUS BADGE OVERRIDES
+   ============================================ */
+.quotation-mobile-card .status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+.quotation-mobile-card .status-badge.pending {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+.quotation-mobile-card .status-badge.paid {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+.quotation-mobile-card .status-badge.for-verification {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+.quotation-mobile-card .status-badge.processing {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+.quotation-mobile-card .status-badge.quoted {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+.quotation-mobile-card .status-badge.completed {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+.quotation-mobile-card .status-badge.cancelled {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+.quotation-mobile-card .status-badge.overdue {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+.quotation-mobile-card .status-badge.partial {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ============================================
+   TRANSACTION CELL - Desktop
+   ============================================ */
 .quotation-transaction-cell {
   display: flex;
   align-items: center;
@@ -336,7 +556,7 @@
   color: var(--text-muted);
 }
 
-/* Status Badges - Plain Text */
+/* Status Badges - Desktop */
 .status-badge {
   display: inline-block;
   padding: 4px 12px;
@@ -530,7 +750,6 @@
   margin: 0;
 }
 
-/* Modal scrollbar styling */
 .modal::-webkit-scrollbar {
   width: 6px;
 }
@@ -560,7 +779,6 @@
   }
 }
 
-/* Modal Close Button */
 .modal .modal-close {
   position: absolute;
   top: 16px;
@@ -586,7 +804,6 @@
   color: var(--text-primary);
 }
 
-/* Modal Headings */
 .modal h3 {
   font-size: 22px;
   font-weight: 700;
@@ -596,7 +813,6 @@
   letter-spacing: -0.01em;
 }
 
-/* Payment Summary */
 .payment-summary {
   background: var(--bg-base);
   border-radius: var(--radius-md);
@@ -615,7 +831,6 @@
   color: var(--text-primary);
 }
 
-/* Payment Methods */
 .payment-methods {
   margin-bottom: 24px;
 }
@@ -674,7 +889,6 @@
   color: var(--text-muted);
 }
 
-/* Payment Form */
 .payment-form {
   margin-top: 20px;
   padding-top: 20px;
@@ -770,7 +984,6 @@
   color: var(--text-secondary);
 }
 
-/* Buttons */
 .confirm-btn {
   width: 100%;
   padding: 13px;
@@ -851,7 +1064,6 @@
   border-top: 1px solid var(--border-light);
 }
 
-/* Details Modal */
 .details-modal {
   max-width: 680px;
 }
@@ -903,7 +1115,6 @@
   color: var(--text-primary);
 }
 
-/* Success Modal */
 .success-modal {
   max-width: 480px;
   text-align: center;
@@ -963,7 +1174,6 @@
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
-/* Bank Transfer Section */
 .manual-bank-transfer-section {
   margin-top: 20px;
   padding-top: 20px;
@@ -1167,7 +1377,6 @@
   box-shadow: none;
 }
 
-/* Skeleton Loader */
 .skeleton-header {
   height: 40px;
   width: 200px;
@@ -1200,15 +1409,31 @@
   border-radius: var(--radius-xl);
 }
 
+.skeleton-card {
+  height: 120px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+}
+
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
-/* Responsive */
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
 @media (max-width: 1200px) {
   .method-options {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 992px) {
+  .quotation-container {
+    padding: 20px;
   }
 }
 
@@ -1221,6 +1446,10 @@
     font-size: 22px;
   }
 
+  .quotation-header p {
+    font-size: 13px;
+  }
+
   .quotation-tabs {
     gap: 4px;
   }
@@ -1228,6 +1457,15 @@
   .tab-btn {
     padding: 10px 14px;
     font-size: 13px;
+  }
+
+  .tab-btn .tab-label {
+    display: none;
+  }
+
+  .tab-btn .tab-badge {
+    font-size: 10px;
+    padding: 1px 6px;
   }
 
   .quotation-filters {
@@ -1245,10 +1483,19 @@
     width: 100%;
   }
 
-  .quotation-table th,
-  .quotation-table td {
-    padding: 10px 12px;
-    font-size: 13px;
+  .clear-filters-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* HIDE TABLE on mobile */
+  .quotation-table-container {
+    display: none !important;
+  }
+
+  /* SHOW CARDS on mobile */
+  .quotation-mobile-cards {
+    display: flex !important;
   }
 
   .method-options {
@@ -1308,14 +1555,83 @@
     padding: 12px;
   }
 
-  .quotation-table th,
-  .quotation-table td {
-    padding: 8px 10px;
+  .quotation-header h1 {
+    font-size: 20px;
+  }
+
+  .quotation-header p {
     font-size: 12px;
   }
 
-  .quotation-table {
-    min-width: 600px;
+  .quotation-tabs {
+    gap: 2px;
+  }
+
+  .tab-btn {
+    padding: 8px 10px;
+    font-size: 11px;
+    gap: 4px;
+  }
+
+  .tab-badge {
+    font-size: 9px;
+    padding: 1px 5px;
+  }
+
+  /* Mobile Card refinements */
+  .quotation-mobile-card {
+    padding: 14px;
+  }
+
+  .quotation-mobile-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .quotation-mobile-card-title .ref-id {
+    font-size: 13px;
+  }
+
+  .quotation-mobile-card-title .ref-project {
+    font-size: 11px;
+  }
+
+  .quotation-mobile-card-body {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .quotation-mobile-card-item .label {
+    font-size: 9px;
+  }
+
+  .quotation-mobile-card-item .value {
+    font-size: 13px;
+  }
+
+  .quotation-mobile-card-item .value .amount-balance {
+    font-size: 11px;
+  }
+
+  .quotation-mobile-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .quotation-mobile-card-footer .dropdown-menu-container {
+    align-self: stretch;
+  }
+
+  .quotation-mobile-card-footer .dropdown-trigger-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .quotation-mobile-card .status-badge {
+    font-size: 10px;
+    padding: 3px 10px;
   }
 
   .dropdown-trigger-btn {
@@ -1336,14 +1652,12 @@
     padding: 12px 14px;
   }
 
-  .tab-btn {
-    padding: 8px 12px;
-    font-size: 12px;
+  .method-option strong {
+    font-size: 13px;
   }
 
-  .tab-badge {
-    font-size: 10px;
-    padding: 1px 6px;
+  .method-option small {
+    font-size: 11px;
   }
 
   .modal {
@@ -1360,9 +1674,17 @@
     padding: 12px 14px;
   }
 
+  .payment-summary p {
+    font-size: 13px;
+  }
+
   .modal-actions {
     margin-top: 16px;
     padding-top: 16px;
+  }
+
+  .modal-actions button {
+    font-size: 13px;
   }
 
   .cancel-btn {
@@ -1379,6 +1701,18 @@
 
   .bank-card {
     padding: 12px 14px;
+  }
+
+  .bank-name {
+    font-size: 13px;
+  }
+
+  .bank-card-details {
+    font-size: 12px;
+  }
+
+  .detail-item {
+    font-size: 12px;
   }
 
   .details-section h4 {
@@ -1399,8 +1733,215 @@
     font-size: 26px;
   }
 
+  .success-content p {
+    font-size: 13px;
+  }
+
   .success-btn {
     padding: 10px 32px;
     font-size: 14px;
+  }
+
+  .quotation-empty-state {
+    padding: 40px 16px;
+  }
+
+  .quotation-empty-state h3 {
+    font-size: 16px;
+  }
+
+  .quotation-empty-state p {
+    font-size: 13px;
+  }
+
+  .file-upload-area {
+    padding: 12px;
+  }
+
+  .file-upload-area input[type="file"] {
+    font-size: 12px;
+  }
+
+  .file-upload-area small {
+    font-size: 11px;
+  }
+
+  .invoice-summary-box {
+    padding: 12px 14px;
+  }
+
+  .summary-row {
+    font-size: 13px;
+  }
+
+  .summary-row .amount-due {
+    font-size: 14px;
+  }
+
+  .bank-transfer-notice {
+    padding: 12px 14px;
+  }
+
+  .bank-transfer-notice li {
+    font-size: 12px;
+  }
+
+  .gcash-details {
+    padding: 12px 14px;
+  }
+
+  .gcash-details h4 {
+    font-size: 13px;
+  }
+
+  .gcash-details p {
+    font-size: 12px;
+  }
+
+  .info-box {
+    padding: 12px 14px;
+  }
+
+  .info-box strong {
+    font-size: 13px;
+  }
+
+  .info-box p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .quotation-container {
+    padding: 8px;
+  }
+
+  .quotation-header h1 {
+    font-size: 18px;
+  }
+
+  .tab-btn {
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+
+  .tab-badge {
+    font-size: 8px;
+    padding: 1px 4px;
+  }
+
+  .quotation-mobile-card {
+    padding: 12px;
+  }
+
+  .quotation-mobile-card-body {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .quotation-mobile-card-title .ref-id {
+    font-size: 12px;
+  }
+
+  .quotation-mobile-card-item .value {
+    font-size: 12px;
+  }
+
+  .modal {
+    padding: 16px 12px;
+    border-radius: var(--radius-md);
+  }
+
+  .modal h3 {
+    font-size: 16px;
+  }
+
+  .payment-summary p {
+    font-size: 12px;
+  }
+
+  .dropdown-trigger-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .method-option {
+    padding: 10px 12px;
+  }
+
+  .method-option strong {
+    font-size: 12px;
+  }
+
+  .bank-card {
+    padding: 10px 12px;
+  }
+
+  .bank-name {
+    font-size: 12px;
+  }
+
+  .success-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION PREFERENCES
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .quotation-table tbody tr:hover td {
+    background: none !important;
+  }
+
+  .quotation-mobile-card:hover {
+    box-shadow: var(--shadow-sm) !important;
+    border-color: var(--border-light) !important;
+  }
+
+  .dropdown-menu {
+    animation: none !important;
+  }
+
+  .modal {
+    animation: none !important;
+  }
+
+  .skeleton-header,
+  .skeleton-tabs,
+  .skeleton-filters,
+  .skeleton-table,
+  .skeleton-card {
+    animation: none !important;
+    background: var(--bg-surface) !important;
+  }
+
+  .confirm-btn:hover:not(:disabled),
+  .paymongo-btn:hover:not(:disabled),
+  .submit-transfer-btn:hover:not(:disabled),
+  .success-btn:hover {
+    transform: none !important;
+  }
+
+  .method-option:hover,
+  .bank-card:hover,
+  .dropdown-item:hover:not(.disabled) {
+    background: none !important;
+  }
+
+  .tab-btn:hover {
+    color: var(--text-muted) !important;
+  }
+
+  .clear-filters-btn:hover {
+    background: var(--bg-card) !important;
   }
 }

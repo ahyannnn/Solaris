@@ -1428,8 +1428,8 @@
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  background: #DCFCE7;
-  color: #16A34A;
+  
+  color: #111827;
   border-radius: var(--radius-md);
   font-size: 12px;
   font-weight: 500;

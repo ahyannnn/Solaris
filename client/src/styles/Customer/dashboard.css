@@ -1,4 +1,4 @@
-/* styles/Customer/dashboard.css - Clean Professional Design */
+/* styles/Customer/dashboard.css - Clean Professional Design - Fully Responsive */
 
 /* ============================================
    CUSTOMER DASHBOARD - Modern Clean Design
@@ -7,6 +7,7 @@
 .dashboard-container-cusdash {
   padding-inline: 24px;
   margin: 0 auto;
+  max-width: 1400px;
 }
 
 /* ============================================
@@ -1058,63 +1059,182 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - FULLY OPTIMIZED
    ============================================ */
+
+/* Large Tablets & Small Laptops */
+@media (max-width: 1200px) {
+  .dashboard-container-cusdash {
+    padding-inline: 20px;
+  }
+
+  .stats-grid-cusdash {
+    gap: 0.875rem;
+  }
+
+  .stat-card-cusdash {
+    padding: 1rem 1.25rem;
+  }
+
+  .stat-value-cusdash {
+    font-size: 1.75rem;
+  }
+}
+
+/* Tablets */
 @media (max-width: 1024px) {
   .row-layout-cusdash {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
   
   .stats-grid-cusdash {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.875rem;
   }
   
   .action-grid-cusdash {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.625rem;
+  }
+
+  .dashboard-container-cusdash {
+    padding-inline: 18px;
+  }
+
+  .stat-value-cusdash {
+    font-size: 1.5rem;
+  }
+
+  .project-card-enhanced-cusdash {
+    padding: 1.25rem;
+  }
+
+  .progress-ring-wrapper-cusdash {
+    width: 110px;
+    height: 110px;
+  }
+
+  .progress-ring-cusdash {
+    width: 110px;
+    height: 110px;
+  }
+
+  .progress-ring-value-cusdash {
+    font-size: 1.3rem;
+  }
+
+  .activities-card-cusdash {
+    padding: 1rem 1.25rem;
+  }
+
+  .appointments-section-cusdash {
+    padding: 1rem 1.25rem;
   }
 }
 
+/* Mobile Landscape & Small Tablets */
 @media (max-width: 768px) {
+  .dashboard-container-cusdash {
+    padding-inline: 14px;
+  }
+
   .welcome-section-cusdash {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
+    padding: 1rem 0 1rem 0;
+  }
+
+  .page-title-cusdash {
+    font-size: 1.3rem;
+  }
+
+  .welcome-greeting-cusdash {
+    font-size: 0.9rem;
   }
   
   .welcome-actions-cusdash {
     width: 100%;
+    gap: 0.5rem;
   }
   
   .welcome-actions-cusdash .btn-primary-cusdash,
   .welcome-actions-cusdash .btn-secondary-cusdash {
     flex: 1;
     justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
   }
   
   .project-selector-container-cusdash {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.5rem;
   }
   
   .custom-select-cusdash {
     max-width: none;
+    min-width: auto;
+  }
+
+  .project-select-cusdash {
+    padding: 0.5rem 2.25rem 0.5rem 0.875rem;
+    font-size: 0.85rem;
   }
   
   .stats-grid-cusdash {
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
+    gap: 0.625rem;
   }
   
   .stat-card-cusdash {
-    padding: 1rem;
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius-md);
   }
   
   .stat-value-cusdash {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
+  }
+
+  .stat-label-cusdash {
+    font-size: 0.7rem;
+  }
+
+  .stat-trend-cusdash {
+    font-size: 0.7rem;
   }
   
   .action-grid-cusdash {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .quick-action-item-cusdash {
+    padding: 0.625rem 0.75rem;
+    border-radius: var(--radius-md);
+  }
+
+  .quick-action-icon-cusdash {
+    width: 34px;
+    height: 34px;
+    font-size: 0.95rem;
+  }
+
+  .quick-action-label-cusdash {
+    font-size: 0.8rem;
+  }
+
+  .quick-actions-title-cusdash {
+    font-size: 0.75rem;
+  }
+
+  .section-title-cusdash {
+    font-size: 1rem;
+  }
+
+  .view-all-link-cusdash {
+    font-size: 0.8rem;
   }
   
   .project-content-layout-cusdash {
@@ -1131,49 +1251,260 @@
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .project-name-cusdash {
+    font-size: 1rem;
+  }
+
+  .project-system-cusdash {
+    font-size: 0.8rem;
+  }
+
+  .metric-label-cusdash {
+    font-size: 0.8rem;
+  }
+
+  .metric-value-cusdash {
+    font-size: 0.85rem;
+  }
+
+  .action-link-cusdash {
+    font-size: 0.8rem;
+  }
+
+  .progress-ring-wrapper-cusdash {
+    width: 100px;
+    height: 100px;
+  }
+
+  .progress-ring-cusdash {
+    width: 100px;
+    height: 100px;
+  }
+
+  .progress-ring-value-cusdash {
+    font-size: 1.2rem;
+  }
+
+  .progress-ring-label-cusdash {
+    font-size: 0.65rem;
+  }
   
   .activities-card-cusdash {
-    padding: 1rem;
+    padding: 0.875rem 1rem;
+    min-height: 150px;
   }
   
   .activity-item-cusdash {
     flex-wrap: wrap;
     padding: 0.5rem;
+    gap: 0.5rem;
   }
-  
+
+  .activity-icon-wrapper-cusdash {
+    width: 34px;
+    height: 34px;
+    font-size: 0.85rem;
+  }
+
+  .activity-title-cusdash {
+    font-size: 0.8rem;
+  }
+
+  .activity-reference-cusdash {
+    font-size: 0.7rem;
+  }
+
+  .activity-date-cusdash {
+    font-size: 0.7rem;
+  }
+
   .activity-status-cusdash {
     margin-left: auto;
+  }
+
+  .activity-divider-cusdash {
+    margin: 0.15rem 0.5rem;
+  }
+  
+  .appointments-section-cusdash {
+    padding: 0.875rem 1rem;
+  }
+
+  .appointments-title-cusdash {
+    font-size: 0.85rem;
   }
   
   .appointment-item-cusdash {
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    padding: 0.625rem;
+  }
+
+  .appointment-date-cusdash {
+    min-width: 40px;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .appointment-day-cusdash {
+    font-size: 0.95rem;
+  }
+
+  .appointment-month-cusdash {
+    font-size: 0.55rem;
+  }
+
+  .appointment-type-cusdash {
+    font-size: 0.8rem;
+  }
+
+  .appointment-address-cusdash {
+    font-size: 0.7rem;
   }
   
   .milestones-list-cusdash {
-    gap: 0.5rem;
+    gap: 0.35rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+  }
+
+  .milestone-item-cusdash {
+    min-width: 60px;
+    flex: none;
   }
   
   .milestone-label-cusdash {
-    font-size: 0.6rem;
+    font-size: 0.55rem;
+  }
+
+  .milestone-icon-cusdash {
+    font-size: 1rem;
+  }
+
+  .milestone-line-cusdash {
+    display: none;
+  }
+
+  .milestones-title-cusdash {
+    font-size: 0.75rem;
   }
   
   .pending-payments-alert-cusdash {
     flex-direction: column;
     text-align: center;
+    padding: 0.875rem 1rem;
+    gap: 0.75rem;
+  }
+
+  .alert-content-cusdash strong {
+    font-size: 0.85rem;
+  }
+
+  .alert-content-cusdash p {
+    font-size: 0.8rem;
   }
   
   .alert-action-cusdash {
     width: 100%;
     justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .alert-icon-cusdash {
+    font-size: 1.25rem;
+  }
+
+  .empty-state-cusdash {
+    padding: 1.5rem 1rem;
+    min-height: 150px;
+  }
+
+  .empty-state-title-cusdash {
+    font-size: 0.95rem;
+  }
+
+  .empty-state-description-cusdash {
+    font-size: 0.8rem;
+  }
+
+  .empty-small-cusdash {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .empty-text-cusdash {
+    font-size: 0.8rem;
+  }
+
+  .link-cusdash {
+    font-size: 0.8rem;
+  }
+
+  .btn-primary-cusdash,
+  .btn-secondary-cusdash {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    border-radius: var(--radius-sm);
   }
 }
 
+/* Small Mobile Devices */
 @media (max-width: 480px) {
+  .dashboard-container-cusdash {
+    padding-inline: 10px;
+  }
+
   .stats-grid-cusdash {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
   }
   
+  .stat-card-cusdash {
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+  }
+  
+  .stat-value-cusdash {
+    font-size: 1.1rem;
+  }
+
+  .stat-label-cusdash {
+    font-size: 0.65rem;
+    letter-spacing: 0.3px;
+  }
+
+  .stat-trend-cusdash {
+    font-size: 0.65rem;
+  }
+
+  .action-grid-cusdash {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+  }
+
+  .quick-action-item-cusdash {
+    padding: 0.5rem;
+    gap: 0.5rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .quick-action-icon-cusdash {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .quick-action-label-cusdash {
+    font-size: 0.7rem;
+  }
+
+  .quick-action-arrow-cusdash {
+    font-size: 0.6rem;
+  }
+
   .welcome-actions-cusdash {
     flex-direction: column;
   }
@@ -1181,37 +1512,384 @@
   .welcome-actions-cusdash .btn-primary-cusdash,
   .welcome-actions-cusdash .btn-secondary-cusdash {
     width: 100%;
+    justify-content: center;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .page-title-cusdash {
+    font-size: 1.1rem;
+  }
+
+  .welcome-greeting-cusdash {
+    font-size: 0.8rem;
   }
   
   .progress-ring-wrapper-cusdash {
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
   }
   
   .progress-ring-cusdash {
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
   }
   
   .progress-ring-value-cusdash {
-    font-size: 1.2rem;
+    font-size: 1rem;
   }
-  
-  .page-title-cusdash {
-    font-size: 1.2rem;
+
+  .progress-ring-label-cusdash {
+    font-size: 0.55rem;
   }
-  
-  .quick-action-item-cusdash {
-    padding: 0.6rem 0.75rem;
+
+  .project-card-enhanced-cusdash {
+    padding: 0.875rem;
+    border-radius: var(--radius-md);
   }
-  
-  .quick-action-icon-cusdash {
-    width: 32px;
-    height: 32px;
+
+  .project-name-cusdash {
     font-size: 0.9rem;
   }
-  
-  .quick-action-label-cusdash {
+
+  .project-system-cusdash {
+    font-size: 0.75rem;
+  }
+
+  .status-badge-cusdash {
+    font-size: 0.6rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .metric-label-cusdash {
+    font-size: 0.75rem;
+  }
+
+  .metric-value-cusdash {
     font-size: 0.8rem;
+  }
+
+  .action-link-cusdash {
+    font-size: 0.75rem;
+  }
+
+  .section-title-cusdash {
+    font-size: 0.9rem;
+  }
+
+  .view-all-link-cusdash {
+    font-size: 0.75rem;
+  }
+
+  .activities-card-cusdash {
+    padding: 0.75rem;
+    min-height: 120px;
+    border-radius: var(--radius-md);
+  }
+
+  .activity-item-cusdash {
+    padding: 0.4rem;
+    gap: 0.4rem;
+  }
+
+  .activity-icon-wrapper-cusdash {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .activity-title-cusdash {
+    font-size: 0.75rem;
+  }
+
+  .activity-reference-cusdash {
+    font-size: 0.65rem;
+  }
+
+  .activity-date-cusdash {
+    font-size: 0.65rem;
+  }
+
+  .appointments-section-cusdash {
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+  }
+
+  .appointments-title-cusdash {
+    font-size: 0.8rem;
+  }
+
+  .appointment-item-cusdash {
+    padding: 0.5rem;
+    gap: 0.5rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .appointment-date-cusdash {
+    min-width: 34px;
+    padding: 0.15rem 0.3rem;
+  }
+
+  .appointment-day-cusdash {
+    font-size: 0.8rem;
+  }
+
+  .appointment-month-cusdash {
+    font-size: 0.5rem;
+  }
+
+  .appointment-type-cusdash {
+    font-size: 0.75rem;
+  }
+
+  .appointment-address-cusdash {
+    font-size: 0.65rem;
+  }
+
+  .pending-payments-alert-cusdash {
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+  }
+
+  .alert-icon-cusdash {
+    font-size: 1.1rem;
+  }
+
+  .alert-content-cusdash strong {
+    font-size: 0.8rem;
+  }
+
+  .alert-content-cusdash p {
+    font-size: 0.75rem;
+  }
+
+  .alert-action-cusdash {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .milestone-item-cusdash {
+    min-width: 50px;
+  }
+
+  .milestone-icon-cusdash {
+    font-size: 0.85rem;
+  }
+
+  .milestone-label-cusdash {
+    font-size: 0.5rem;
+  }
+
+  .milestone-status-cusdash {
+    font-size: 0.5rem;
+  }
+
+  .empty-state-cusdash {
+    padding: 1rem 0.75rem;
+    min-height: 100px;
+    border-radius: var(--radius-md);
+  }
+
+  .empty-state-title-cusdash {
+    font-size: 0.85rem;
+  }
+
+  .empty-state-description-cusdash {
+    font-size: 0.75rem;
+  }
+
+  .empty-small-cusdash {
+    padding: 1rem 0.5rem;
+  }
+
+  .empty-text-cusdash {
+    font-size: 0.75rem;
+  }
+
+  .link-cusdash {
+    font-size: 0.75rem;
+  }
+
+  .project-selector-container-cusdash {
+    gap: 0.4rem;
+  }
+
+  .selector-label-cusdash {
+    font-size: 0.75rem;
+  }
+
+  .project-select-cusdash {
+    font-size: 0.8rem;
+    padding: 0.4rem 2rem 0.4rem 0.75rem;
+  }
+
+  .select-icon-cusdash {
+    right: 0.5rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Extra Small Devices */
+@media (max-width: 360px) {
+  .dashboard-container-cusdash {
+    padding-inline: 8px;
+  }
+
+  .stats-grid-cusdash {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+  }
+
+  .stat-card-cusdash {
+    padding: 0.6rem;
+  }
+
+  .stat-value-cusdash {
+    font-size: 0.95rem;
+  }
+
+  .stat-label-cusdash {
+    font-size: 0.6rem;
+  }
+
+  .action-grid-cusdash {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  .quick-action-item-cusdash {
+    padding: 0.4rem 0.6rem;
+  }
+
+  .quick-action-icon-cusdash {
+    width: 26px;
+    height: 26px;
+    font-size: 0.7rem;
+  }
+
+  .quick-action-label-cusdash {
+    font-size: 0.65rem;
+  }
+
+  .page-title-cusdash {
+    font-size: 0.95rem;
+  }
+
+  .welcome-greeting-cusdash {
+    font-size: 0.75rem;
+  }
+
+  .btn-primary-cusdash,
+  .btn-secondary-cusdash {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .project-card-enhanced-cusdash {
+    padding: 0.625rem;
+  }
+
+  .project-name-cusdash {
+    font-size: 0.8rem;
+  }
+
+  .project-system-cusdash {
+    font-size: 0.7rem;
+  }
+
+  .progress-ring-wrapper-cusdash {
+    width: 70px;
+    height: 70px;
+  }
+
+  .progress-ring-cusdash {
+    width: 70px;
+    height: 70px;
+  }
+
+  .progress-ring-value-cusdash {
+    font-size: 0.85rem;
+  }
+
+  .progress-ring-label-cusdash {
+    font-size: 0.5rem;
+  }
+
+  .metric-label-cusdash {
+    font-size: 0.7rem;
+  }
+
+  .metric-value-cusdash {
+    font-size: 0.75rem;
+  }
+
+  .activities-card-cusdash {
+    padding: 0.5rem;
+  }
+
+  .activity-title-cusdash {
+    font-size: 0.7rem;
+  }
+
+  .appointments-section-cusdash {
+    padding: 0.5rem;
+  }
+
+  .appointment-type-cusdash {
+    font-size: 0.7rem;
+  }
+
+  .pending-payments-alert-cusdash {
+    padding: 0.5rem;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION PREFERENCES
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .stat-card-cusdash:hover,
+  .quick-action-item-cusdash:hover,
+  .activity-item-cusdash:hover,
+  .appointment-item-cusdash:hover,
+  .project-card-enhanced-cusdash:hover {
+    transform: none !important;
+  }
+
+  .skeleton-line-cusdash {
+    animation: none !important;
+    background: var(--bg-surface) !important;
+  }
+
+  .btn-primary-cusdash:hover,
+  .btn-secondary-cusdash:hover,
+  .alert-action-cusdash:hover,
+  .link-cusdash:hover,
+  .view-all-link-cusdash:hover,
+  .action-link-cusdash:hover {
+    transform: none !important;
+  }
+
+  .quick-action-item-cusdash:hover .quick-action-arrow-cusdash {
+    transform: none !important;
+  }
+
+  .view-all-link-cusdash:hover .arrow-icon-cusdash {
+    transform: none !important;
+  }
+
+  .action-link-cusdash:hover .action-arrow-cusdash {
+    transform: none !important;
+  }
+
+  .progress-ring-fill-cusdash {
+    transition: none !important;
   }
 }

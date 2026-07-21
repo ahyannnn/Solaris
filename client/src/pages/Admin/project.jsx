@@ -335,54 +335,11 @@ const ProjectManagement = () => {
 
       <div className="project-management">
         <div className="project-header">
-          <h1>Project Management</h1>
+          
           <p>Manage solar installation projects from quotation to completion</p>
         </div>
 
-        <div className="project-tabs">
-          <button 
-            className={`tab-btn ${filter === 'all' ? 'active' : ''}`} 
-            onClick={() => { setFilter('all'); setCurrentPage(1); }}
-          >
-            All Projects
-            <span className="tab-badge">{stats.total}</span>
-          </button>
-          <button 
-            className={`tab-btn ${filter === 'quoted' ? 'active' : ''}`} 
-            onClick={() => { setFilter('quoted'); setCurrentPage(1); }}
-          >
-            Quoted
-            <span className="tab-badge">{stats.quoted}</span>
-          </button>
-          <button 
-            className={`tab-btn ${filter === 'approved' ? 'active' : ''}`} 
-            onClick={() => { setFilter('approved'); setCurrentPage(1); }}
-          >
-            Approved
-            <span className="tab-badge">{stats.approved}</span>
-          </button>
-          <button 
-            className={`tab-btn ${filter === 'in_progress' ? 'active' : ''}`} 
-            onClick={() => { setFilter('in_progress'); setCurrentPage(1); }}
-          >
-            In Progress
-            <span className="tab-badge">{stats.inProgress}</span>
-          </button>
-          <button 
-            className={`tab-btn ${filter === 'completed' ? 'active' : ''}`} 
-            onClick={() => { setFilter('completed'); setCurrentPage(1); }}
-          >
-            Completed
-            <span className="tab-badge">{stats.completed}</span>
-          </button>
-          <button 
-            className={`tab-btn ${filter === 'cancelled' ? 'active' : ''}`} 
-            onClick={() => { setFilter('cancelled'); setCurrentPage(1); }}
-          >
-            Cancelled
-            <span className="tab-badge">{stats.cancelled}</span>
-          </button>
-        </div>
+        
 
         <div className="project-filters">
           <div className="filter-group">
@@ -527,21 +484,7 @@ const ProjectManagement = () => {
                 <div className="detail-section"><h4>System</h4><p><strong>Size:</strong> {selectedProject.systemSize} kWp</p><p><strong>Type:</strong> {selectedProject.systemType}</p></div>
                 <div className="detail-section"><h4>Financial</h4><p><strong>Total:</strong> {formatCurrency(selectedProject.totalCost)}</p><p><strong>Paid:</strong> {formatCurrency(selectedProject.amountPaid)}</p><p><strong>Balance:</strong> {formatCurrency(selectedProject.balance)}</p></div>
 
-                {selectedProject.paymentSchedule?.length > 0 && (
-                  <div className="detail-section"><h4>Payment Schedule</h4>
-                    <table className="payment-table"><thead><tr><th>Type</th><th>Amount</th><th>Due</th><th>Status</th></tr></thead>
-                      <tbody>{selectedProject.paymentSchedule.map((p, i) => <tr key={i}><td>{p.type}</td><td>{formatCurrency(p.amount)}</td><td>{formatDate(p.dueDate)}</td><td>{p.status}</td></tr>)}</tbody>
-                    </table>
-                  </div>
-                )}
-
-                <div className="detail-section"><h4>Invoices</h4>
-                  {loadingInvoices ? <FaSpinner className="spinning" /> : projectInvoices.length === 0 ? <p>No invoices</p> :
-                    <table className="payment-table"><thead><tr><th>Invoice</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead>
-                      <tbody>{projectInvoices.map((inv, i) => <tr key={i}><td>{inv.invoiceNumber}</td><td>{inv.invoiceType}</td><td>{formatCurrency(inv.totalAmount)}</td><td>{inv.paymentStatus}</td></tr>)}</tbody>
-                    </table>
-                  }
-                </div>
+                
               </div>
               <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowDetailModal(false)}>Close</button></div>
             </div>

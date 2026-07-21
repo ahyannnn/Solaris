@@ -408,11 +408,7 @@ const EngineerDashboard = () => {
                   </div>
                 </div>
 
-                <div className="assessment-footer-engdas">
-                  <Link to={`/app/engineer/assessment/${activeAssessment._id}`} className="action-link-engdas">
-                    View Details <FaArrowRight className="action-arrow-engdas" />
-                  </Link>
-                </div>
+                
               </div>
             ) : (
               <div className="empty-state-engdas">

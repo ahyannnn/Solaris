@@ -353,7 +353,7 @@ const IoTDevice = () => {
         {/* Header */}
         <div className="iot-header">
           <div>
-            <h1>IoT Device Management</h1>
+            
             <p>Monitor and manage IoT devices</p>
           </div>
           <button className="create-device-btn" onClick={() => { setModalMode('create'); resetForm(); setShowDeviceModal(true); }}>
@@ -361,44 +361,7 @@ const IoTDevice = () => {
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="iot-tabs">
-          <button 
-            className={`tab-btn ${filter === 'all' ? 'active' : ''}`} 
-            onClick={() => { setFilter('all'); setCurrentPage(1); }}
-          >
-            All Devices
-            <span className="tab-badge">{stats.total}</span>
-          </button>
-          <button 
-            className={`tab-btn ${filter === 'available' ? 'active' : ''}`} 
-            onClick={() => { setFilter('available'); setCurrentPage(1); }}
-          >
-            Available
-            <span className="tab-badge">{stats.available}</span>
-          </button>
-          <button 
-            className={`tab-btn ${filter === 'assigned' ? 'active' : ''}`} 
-            onClick={() => { setFilter('assigned'); setCurrentPage(1); }}
-          >
-            Assigned
-            <span className="tab-badge">{stats.assigned}</span>
-          </button>
-          <button 
-            className={`tab-btn ${filter === 'deployed' ? 'active' : ''}`} 
-            onClick={() => { setFilter('deployed'); setCurrentPage(1); }}
-          >
-            Deployed
-            <span className="tab-badge">{stats.deployed}</span>
-          </button>
-          <button 
-            className={`tab-btn ${filter === 'maintenance' ? 'active' : ''}`} 
-            onClick={() => { setFilter('maintenance'); setCurrentPage(1); }}
-          >
-            Maintenance
-            <span className="tab-badge">{stats.maintenance}</span>
-          </button>
-        </div>
+        
 
         {/* Filters */}
         <div className="filters-section">

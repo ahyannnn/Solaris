@@ -72,14 +72,29 @@
   background: var(--primary-hover);
 }
 
-/* Tabs */
-.iot-tabs {
+/* Tabs & Controls - Combined Row */
+.iot-controls {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 16px;
   margin-bottom: 24px;
   border-bottom: 1px solid var(--border-light);
   padding-bottom: 0;
   flex-wrap: wrap;
+}
+
+/* Tabs */
+.iot-tabs {
+  display: flex;
+  gap: 4px;
+  flex: 0 0 auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.iot-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-btn {
@@ -96,6 +111,7 @@
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
+  white-space: nowrap;
 }
 
 .tab-btn:hover {
@@ -122,24 +138,36 @@
   color: white;
 }
 
-/* Filters */
-.filters-section {
+/* Filters & Search - Right side */
+.iot-filters {
   display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: flex-end;
   flex-wrap: wrap;
+  padding-bottom: 4px;
+}
+
+.filter-group {
+  position: relative;
+  flex: 0 0 auto;
 }
 
 .filter-group select {
-  padding: 12px 16px;
+  padding: 10px 14px;
+  padding-right: 32px;
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   font-size: 14px;
   color: var(--text-primary);
   cursor: pointer;
-  min-width: 180px;
+  min-width: 150px;
   transition: all 0.2s;
+  height: 42px;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .filter-group select:focus {
@@ -148,9 +176,21 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+.filter-group::after {
+  content: "▾";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 12px;
+  pointer-events: none;
+}
+
 .search-group {
   flex: 1;
-  max-width: 400px;
+  max-width: 300px;
+  min-width: 180px;
   position: relative;
 }
 
@@ -161,23 +201,31 @@
   transform: translateY(-50%);
   color: var(--text-muted);
   pointer-events: none;
+  font-size: 16px;
 }
 
 .search-group input {
   width: 100%;
-  padding: 12px 16px 12px 42px;
+  padding: 10px 14px 10px 42px;
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   font-size: 14px;
   color: var(--text-primary);
   transition: all 0.2s;
+  box-sizing: border-box;
+  height: 42px;
 }
 
 .search-group input:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-group input::placeholder {
+  color: var(--text-muted);
+  font-size: 14px;
 }
 
 /* Table Container */
@@ -197,6 +245,7 @@
 .device-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 700px;
 }
 
 .device-table thead {
@@ -375,6 +424,18 @@
   box-shadow: var(--shadow-lg);
   z-index: 9999;
   overflow: hidden;
+  animation: dropdownFadeIn 0.15s ease;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .dropdown-item {
@@ -502,6 +563,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .page-btn {
@@ -516,6 +578,7 @@
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
+  height: 36px;
 }
 
 .page-btn:hover:not(:disabled) {
@@ -567,6 +630,7 @@
   align-items: center;
   justify-content: center;
   z-index: 10000;
+  padding: 20px;
 }
 
 .modal-content {
@@ -578,6 +642,18 @@
   overflow: hidden;
   box-shadow: var(--shadow-lg);
   position: relative;
+  animation: modalFadeIn 0.2s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .modal-content h3 {
@@ -891,7 +967,23 @@
   100% { background-position: -200% 0; }
 }
 
-/* Responsive */
+/* ============================================ */
+/* RESPONSIVE BREAKPOINTS */
+/* ============================================ */
+
+/* Tablet and smaller laptops */
+@media (max-width: 1200px) {
+  .filter-group select {
+    min-width: 130px;
+  }
+  
+  .search-group {
+    max-width: 250px;
+    min-width: 150px;
+  }
+}
+
+/* Mobile Landscape & Small Tablets */
 @media (max-width: 768px) {
   .admin-iot {
     padding: 16px;
@@ -911,37 +1003,226 @@
     justify-content: center;
   }
 
+  /* Controls - Stack vertically on mobile */
+  .iot-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding-bottom: 0;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 20px;
+  }
+
+  /* Tabs - Horizontal scroll */
   .iot-tabs {
-    flex-wrap: wrap;
+    flex: 1;
+    gap: 2px;
+    padding-bottom: 0;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 0;
   }
 
   .tab-btn {
-    padding: 8px 14px;
+    padding: 8px 12px;
     font-size: 12px;
   }
 
-  .filters-section {
-    flex-direction: column;
+  .tab-badge {
+    font-size: 9px;
+    padding: 1px 6px;
+  }
+
+  /* Filters & Search - Full width below tabs */
+  .iot-filters {
+    flex: 1;
+    justify-content: stretch;
+    gap: 8px;
+    padding-bottom: 4px;
+    flex-wrap: wrap;
+  }
+
+  .filter-group {
+    flex: 1;
+    min-width: 120px;
   }
 
   .filter-group select {
     width: 100%;
     min-width: unset;
+    height: 40px;
+    font-size: 13px;
+    padding: 8px 12px;
+    padding-right: 32px;
   }
 
   .search-group {
+    flex: 2;
     max-width: 100%;
+    min-width: 150px;
+  }
+  
+  .search-group input {
+    height: 40px;
+    font-size: 13px;
+    padding: 8px 12px 8px 38px;
   }
 
-  .device-table th,
+  .search-group .search-icon {
+    font-size: 14px;
+    left: 12px;
+  }
+
+  /* Table to Cards on Mobile */
+  .table-container {
+    border-radius: var(--radius-lg);
+    overflow: visible;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  .table-wrapper {
+    overflow: visible;
+  }
+
+  .device-table {
+    display: block;
+    min-width: unset;
+  }
+
+  .device-table thead {
+    display: none;
+  }
+
+  .device-table tbody {
+    display: block;
+  }
+
+  .device-table tr {
+    display: block;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
+  }
+
+  .device-table tr:hover td {
+    background: transparent;
+  }
+
   .device-table td {
-    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-light);
+    border-bottom-style: dashed;
     font-size: 13px;
+  }
+
+  .device-table td:last-child {
+    border-bottom: none;
+  }
+
+  .device-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+  }
+
+  .device-table td:first-child {
+    padding-top: 0;
+  }
+
+  .device-table td:last-child {
+    padding-bottom: 0;
+  }
+
+  /* Device Info - Left aligned, ID centered */
+  .device-table td[data-label="Device"] {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .device-table td[data-label="Device"] .device-cell {
+    width: 100%;
+  }
+
+  .device-table td[data-label="Device"] .device-id {
+    margin-left: 0;
+  }
+
+  /* Status - Center aligned */
+  .device-table td[data-label="Status"] {
+    justify-content: center;
+  }
+
+  /* Actions - Center aligned with view button */
+  .device-table td[data-label="Actions"] {
+    justify-content: center;
+  }
+
+  .device-cell {
+    gap: 10px;
+    width: 100%;
+  }
+
+  .device-icon-table {
+    font-size: 16px;
+  }
+
+  .device-name {
+    font-size: 14px;
+  }
+
+  .device-id {
+    font-size: 11px;
+    margin-left: 0;
+  }
+
+  .status-badge-iot {
+    font-size: 11px;
+    padding: 3px 10px;
+  }
+
+  /* Action Buttons - Centered on mobile */
+  .action-buttons {
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .action-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Dropdown - Full width on mobile */
+  .action-dropdown-container {
+    width: 100%;
+  }
+
+  .action-dropdown-toggle {
+    width: 100%;
+    justify-content: center;
+    height: 38px;
+  }
+
+  .action-dropdown-menu {
+    min-width: 200px;
   }
 
   .pagination {
     flex-direction: column;
     align-items: center;
+    gap: 12px;
   }
 
   .pagination-controls {
@@ -968,16 +1249,90 @@
   }
 }
 
+/* Mobile Portrait */
 @media (max-width: 480px) {
-  .device-table th,
-  .device-table td {
-    padding: 8px 10px;
-    font-size: 12px;
+  .admin-iot {
+    padding: 12px;
+  }
+  
+  .iot-header h1 {
+    font-size: 20px;
+  }
+  
+  .iot-header p {
+    font-size: 13px;
   }
 
-  .action-btn {
-    width: 28px;
-    height: 28px;
+  .create-device-btn {
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+
+  /* Controls */
+  .iot-controls {
+    gap: 6px;
+  }
+
+  /* Tabs */
+  .tab-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  /* Filters */
+  .iot-filters {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filter-group select {
+    height: 38px;
+    font-size: 13px;
+  }
+
+  .search-group {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .search-group input {
+    height: 38px;
+    font-size: 13px;
+    padding: 8px 12px 8px 36px;
+  }
+
+  .search-group .search-icon {
+    font-size: 14px;
+    left: 12px;
+  }
+
+  /* Table Cards */
+  .device-table tr {
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+
+  .device-table td {
+    padding: 6px 0;
+    font-size: 12px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .device-table td::before {
+    font-size: 11px;
+  }
+
+  .device-table td:first-child {
+    padding-top: 0;
+  }
+
+  .device-table td:last-child {
+    padding-bottom: 0;
   }
 
   .device-cell {
@@ -986,5 +1341,146 @@
 
   .device-icon-table {
     font-size: 14px;
+  }
+
+  .device-name {
+    font-size: 13px;
+  }
+
+  .device-id {
+    font-size: 10px;
+  }
+
+  .status-badge-iot {
+    font-size: 10px;
+    padding: 2px 10px;
+  }
+
+  /* Action Buttons */
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  /* Dropdown */
+  .action-dropdown-toggle {
+    padding: 6px 12px;
+    font-size: 12px;
+    height: 34px;
+  }
+
+  .action-dropdown-menu {
+    min-width: 180px;
+  }
+
+  .dropdown-item {
+    padding: 10px 14px;
+    font-size: 12px;
+  }
+
+  /* Buttons */
+  .cancel-btn,
+  .save-btn,
+  .delete-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  /* Modal */
+  .modal-content {
+    max-width: 98%;
+    margin: 12px;
+    border-radius: var(--radius-lg);
+  }
+  
+  .modal-content h3 {
+    font-size: 18px;
+    margin: 16px 16px 12px;
+  }
+  
+  .modal-body {
+    padding: 0 16px 16px;
+  }
+  
+  .modal-actions {
+    padding: 12px 16px 16px;
+  }
+  
+  .modal-close {
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+  }
+
+  .device-details-view {
+    padding: 0 16px 16px;
+  }
+
+  .device-form {
+    padding: 0 16px 16px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  /* Pagination */
+  .pagination-info {
+    font-size: 12px;
+  }
+  
+  .page-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    height: 32px;
+  }
+  
+  .page-number {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 360px) {
+  .tab-btn {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  
+  .device-table tr {
+    padding: 10px;
+  }
+  
+  .device-table td {
+    font-size: 11px;
+    padding: 5px 0;
+  }
+  
+  .device-table td::before {
+    font-size: 10px;
+  }
+  
+  .action-dropdown-toggle {
+    font-size: 11px;
+    padding: 4px 10px;
+    height: 30px;
+  }
+  
+  .action-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+
+  .device-table td[data-label="Device"] .device-id {
+    font-size: 9px;
   }
 }

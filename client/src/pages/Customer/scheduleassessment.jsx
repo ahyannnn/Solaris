@@ -2202,7 +2202,7 @@ const ScheduleAssessment = () => {
                     disabled={!freeQuoteTermsAccepted || isSubmitting || hasPendingFreeQuote}
                     className="schedule-btn-success-cusset"
                   >
-                    {isSubmitting ? 'Submitting...' : 'Submit Quote Request'}
+                    {isSubmitting ? 'Submitting...' : 'Submit'}
                   </button>
                 </div>
               </div>

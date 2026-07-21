@@ -502,7 +502,7 @@ const MaintenancePanel = () => {
 
       <div className="maintenance-panel-admain">
         <div className="panel-header-admain">
-          <h1>Maintenance & System Configuration</h1>
+          
           <p>Manage maintenance mode, system parameters, and equipment catalog</p>
         </div>
 

@@ -53,6 +53,13 @@
   gap: 12px;
   border-bottom: 1px solid var(--border-light);
   margin-bottom: 28px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.main-tabs-admain::-webkit-scrollbar {
+  display: none;
 }
 
 .main-tab-btn-admain {
@@ -65,6 +72,7 @@
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
+  white-space: nowrap;
 }
 
 .main-tab-btn-admain:hover {
@@ -301,6 +309,12 @@
   border-radius: var(--radius-md);
   font-size: 14px;
   color: var(--text-primary);
+}
+
+.add-ip-admain input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .add-ip-admain button {
@@ -557,7 +571,7 @@
   overflow-y: auto;
 }
 
-/* Equipment Card */
+/* Equipment Card - Desktop */
 .equipment-card-integrated {
   display: flex;
   justify-content: space-between;
@@ -665,6 +679,13 @@
   color: var(--text-primary);
 }
 
+.form-group-integrated input:focus,
+.form-group-integrated select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
 .input-group-integrated {
   display: flex;
   align-items: center;
@@ -740,6 +761,7 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 20px;
 }
 
 .modal-content {
@@ -750,6 +772,18 @@
   max-height: 85vh;
   overflow-y: auto;
   box-shadow: var(--shadow-lg);
+  animation: modalFadeIn 0.2s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .modal-header {
@@ -811,6 +845,14 @@
   color: var(--text-primary);
 }
 
+.modal-content .form-group input:focus,
+.modal-content .form-group select:focus,
+.modal-content .form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
 .modal-content .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -830,6 +872,12 @@
   font-family: inherit;
   resize: vertical;
   color: var(--text-primary);
+}
+
+.modal-content textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .modal-content p {
@@ -935,7 +983,40 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsive */
+/* ============================================ */
+/* RESPONSIVE BREAKPOINTS */
+/* ============================================ */
+
+/* Tablet and smaller laptops */
+@media (max-width: 1024px) {
+  .maintenance-panel-admain {
+    padding: 20px;
+  }
+  
+  .panel-header-admain h1 {
+    font-size: 26px;
+  }
+  
+  .form-row-admain,
+  .form-row-integrated {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .system-config-integrated {
+    padding: 20px;
+  }
+  
+  .config-subtabs {
+    gap: 6px;
+  }
+  
+  .subtab-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
+
+/* Mobile Landscape & Small Tablets */
 @media (max-width: 768px) {
   .maintenance-panel-admain {
     padding: 16px;
@@ -945,14 +1026,38 @@
     font-size: 24px;
   }
   
+  .panel-header-admain p {
+    font-size: 14px;
+  }
+  
+  .main-tabs-admain {
+    gap: 8px;
+  }
+  
+  .main-tab-btn-admain {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  
   .toggle-card-admain {
     flex-direction: column;
     text-align: center;
+    padding: 20px;
+  }
+  
+  .toggle-btn-admain {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .settings-card-admain {
+    padding: 20px;
   }
   
   .form-row-admain,
   .form-row-integrated {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
   
   .checkbox-group-admain {
@@ -960,13 +1065,108 @@
     gap: 12px;
   }
   
+  .ips-card-admain {
+    padding: 20px;
+  }
+  
   .add-ip-admain {
     flex-direction: column;
   }
   
+  .add-ip-admain button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .history-card-admain {
+    padding: 20px;
+  }
+  
+  /* System Config - Improved for mobile */
+  .system-config-integrated {
+    padding: 16px;
+    border-radius: var(--radius-xl);
+  }
+  
+  .system-config-integrated h3 {
+    font-size: 17px;
+    margin-bottom: 16px;
+  }
+  
+  .system-config-integrated h4 {
+    font-size: 15px;
+    margin: 16px 0 12px 0;
+  }
+  
+  .config-actions-header {
+    justify-content: flex-start;
+    margin-bottom: 16px;
+  }
+  
+  .reset-config-btn {
+    font-size: 13px;
+    padding: 8px 16px;
+  }
+  
+  .config-subtabs {
+    gap: 4px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  
+  .config-subtabs::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .subtab-btn {
+    white-space: nowrap;
+    padding: 8px 14px;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  
+  .form-group-integrated {
+    margin-bottom: 16px;
+  }
+  
+  .form-group-integrated label {
+    font-size: 12px;
+  }
+  
+  .form-group-integrated input,
+  .form-group-integrated select {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+  
+  .input-group-integrated span {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+  
+  .save-config-btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 13px;
+    padding: 10px 20px;
+  }
+  
   .equipment-card-integrated {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    padding: 12px 16px;
+  }
+  
+  .equipment-info-integrated {
+    margin-bottom: 8px;
+  }
+  
+  .equipment-details-integrated {
+    flex-direction: column;
+    gap: 4px;
   }
   
   .equipment-actions-integrated {
@@ -974,9 +1174,20 @@
     justify-content: flex-end;
   }
   
+  .btn-edit-integrated,
+  .btn-remove-integrated {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+  
   .section-header-integrated {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .section-title-integrated h4 {
+    font-size: 14px;
   }
   
   .btn-add-integrated {
@@ -987,6 +1198,7 @@
   .modal-content {
     width: 95%;
     margin: 16px;
+    max-height: 90vh;
   }
   
   .modal-content .form-row {
@@ -1007,22 +1219,490 @@
     margin: 0 16px 16px 16px;
   }
   
+  .modal-header {
+    padding: 16px 20px;
+  }
+  
+  .modal-header h3 {
+    font-size: 17px;
+  }
+  
   .modal-actions {
     flex-wrap: wrap;
+    padding: 16px 20px 20px 20px;
   }
   
   .modal-actions button {
     flex: 1;
+    min-width: 120px;
+  }
+  
+  .history-item-admain {
+    font-size: 12px;
+    padding: 10px;
+  }
+  
+  .ip-item-admain {
+    padding: 8px 0;
+  }
+  
+  .ip-item-admain span {
+    font-size: 12px;
   }
 }
 
+/* Mobile Portrait */
 @media (max-width: 480px) {
+  .maintenance-panel-admain {
+    padding: 12px;
+  }
+  
+  .panel-header-admain h1 {
+    font-size: 20px;
+  }
+  
+  .panel-header-admain p {
+    font-size: 13px;
+  }
+  
+  .main-tab-btn-admain {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  .toggle-card-admain {
+    padding: 16px;
+  }
+  
+  .toggle-info-admain h3 {
+    font-size: 16px;
+  }
+  
+  .toggle-info-admain p {
+    font-size: 13px;
+  }
+  
+  .toggle-btn-admain {
+    font-size: 13px;
+    padding: 10px 20px;
+  }
+  
+  .settings-card-admain {
+    padding: 16px;
+  }
+  
+  .settings-card-admain h3 {
+    font-size: 16px;
+  }
+  
+  .form-group-admain label {
+    font-size: 12px;
+  }
+  
+  .form-group-admain input,
+  .form-group-admain textarea,
+  .form-group-admain select {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+  
+  .checkbox-label-admain {
+    font-size: 13px;
+  }
+  
+  .save-btn-admain {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .ips-card-admain {
+    padding: 16px;
+  }
+  
+  .ips-card-admain h3 {
+    font-size: 16px;
+  }
+  
+  .add-ip-admain input {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+  
+  .add-ip-admain button {
+    font-size: 12px;
+    padding: 8px 16px;
+  }
+  
+  .history-card-admain {
+    padding: 16px;
+  }
+  
+  .history-card-admain h3 {
+    font-size: 16px;
+  }
+  
+  .history-toggle-admain {
+    font-size: 13px;
+    padding: 8px 16px;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .history-item-admain {
+    font-size: 12px;
+    padding: 8px;
+  }
+  
+  /* System Config - Compact for small screens */
+  .system-config-integrated {
+    padding: 12px;
+    border-radius: var(--radius-lg);
+  }
+  
+  .system-config-integrated h3 {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  
+  .system-config-integrated h4 {
+    font-size: 14px;
+    margin: 14px 0 10px 0;
+  }
+  
+  .config-actions-header {
+    margin-bottom: 12px;
+  }
+  
+  .reset-config-btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+  
   .config-subtabs {
-    overflow-x: auto;
-    flex-wrap: nowrap;
+    gap: 3px;
+    margin-bottom: 16px;
   }
   
   .subtab-btn {
-    white-space: nowrap;
+    font-size: 12px;
+    padding: 6px 10px;
+    min-width: auto;
+  }
+  
+  .form-group-integrated {
+    margin-bottom: 12px;
+  }
+  
+  .form-group-integrated label {
+    font-size: 12px;
+  }
+  
+  .form-group-integrated input,
+  .form-group-integrated select {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+  
+  .input-group-integrated {
+    flex-wrap: wrap;
+  }
+  
+  .input-group-integrated span {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+  
+  .form-row-integrated {
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .save-config-btn {
+    font-size: 12px;
+    padding: 8px 16px;
+    margin-top: 12px;
+  }
+  
+  .equipment-section-integrated {
+    border-radius: var(--radius-lg);
+  }
+  
+  .equipment-card-integrated {
+    padding: 10px 12px;
+  }
+  
+  .equipment-name-integrated {
+    font-size: 14px;
+  }
+  
+  .equipment-details-integrated {
+    font-size: 11px;
+    gap: 4px;
+  }
+  
+  .price-integrated,
+  .unit-integrated,
+  .brand-integrated,
+  .warranty-integrated {
+    font-size: 11px;
+  }
+  
+  .equipment-actions-integrated {
+    gap: 6px;
+  }
+  
+  .btn-edit-integrated,
+  .btn-remove-integrated {
+    font-size: 10px;
+    padding: 4px 10px;
+  }
+  
+  .section-header-integrated {
+    padding: 10px 12px;
+  }
+  
+  .section-title-integrated h4 {
+    font-size: 13px;
+  }
+  
+  .item-count-integrated {
+    font-size: 10px;
+  }
+  
+  .btn-add-integrated {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+  
+  .empty-equipment-integrated {
+    padding: 30px 16px;
+    font-size: 13px;
+  }
+  
+  .modal-content {
+    width: 98%;
+    margin: 10px;
+    border-radius: var(--radius-xl);
+  }
+  
+  .modal-header {
+    padding: 14px 16px;
+  }
+  
+  .modal-header h3 {
+    font-size: 16px;
+  }
+  
+  .modal-close {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+  }
+  
+  .modal-content .form-group {
+    padding: 0 16px;
+  }
+  
+  .modal-content .form-group label {
+    font-size: 12px;
+  }
+  
+  .modal-content .form-group input,
+  .modal-content .form-group select,
+  .modal-content .form-group textarea {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+  
+  .modal-content .form-row {
+    padding: 0 16px;
+    gap: 12px;
+  }
+  
+  .modal-content textarea {
+    margin: 0 16px;
+    width: calc(100% - 32px);
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+  
+  .modal-content p {
+    margin: 0 16px 12px 16px;
+    font-size: 13px;
+  }
+  
+  .modal-actions {
+    padding: 12px 16px 16px 16px;
+    flex-direction: column;
+  }
+  
+  .modal-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .btn-cancel,
+  .btn-confirm {
+    font-size: 13px;
+    padding: 8px 16px;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 360px) {
+  .maintenance-panel-admain {
+    padding: 8px;
+  }
+  
+  .panel-header-admain h1 {
+    font-size: 18px;
+  }
+  
+  .panel-header-admain p {
+    font-size: 12px;
+  }
+  
+  .main-tab-btn-admain {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  
+  .toggle-card-admain {
+    padding: 12px;
+  }
+  
+  .toggle-info-admain h3 {
+    font-size: 15px;
+  }
+  
+  .toggle-info-admain p {
+    font-size: 12px;
+  }
+  
+  .toggle-btn-admain {
+    font-size: 12px;
+    padding: 8px 16px;
+  }
+  
+  .settings-card-admain,
+  .ips-card-admain,
+  .history-card-admain {
+    padding: 12px;
+  }
+  
+  .settings-card-admain h3,
+  .ips-card-admain h3,
+  .history-card-admain h3 {
+    font-size: 15px;
+  }
+  
+  .form-group-admain input,
+  .form-group-admain textarea,
+  .form-group-admain select {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+  
+  .add-ip-admain input {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+  
+  .add-ip-admain button {
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+  
+  /* System Config - Extra compact */
+  .system-config-integrated {
+    padding: 8px;
+  }
+  
+  .system-config-integrated h3 {
+    font-size: 14px;
+  }
+  
+  .system-config-integrated h4 {
+    font-size: 13px;
+  }
+  
+  .subtab-btn {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+  
+  .form-group-integrated input,
+  .form-group-integrated select {
+    font-size: 11px;
+    padding: 5px 7px;
+  }
+  
+  .form-group-integrated label {
+    font-size: 11px;
+  }
+  
+  .input-group-integrated span {
+    font-size: 11px;
+    padding: 5px 7px;
+  }
+  
+  .save-config-btn {
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+  
+  .equipment-card-integrated {
+    padding: 8px 10px;
+  }
+  
+  .equipment-name-integrated {
+    font-size: 13px;
+  }
+  
+  .equipment-details-integrated {
+    font-size: 10px;
+  }
+  
+  .btn-edit-integrated,
+  .btn-remove-integrated {
+    font-size: 9px;
+    padding: 3px 8px;
+  }
+  
+  .modal-content {
+    margin: 8px;
+  }
+  
+  .modal-header {
+    padding: 12px 14px;
+  }
+  
+  .modal-header h3 {
+    font-size: 15px;
+  }
+  
+  .modal-content .form-group {
+    padding: 0 14px;
+  }
+  
+  .modal-content .form-row {
+    padding: 0 14px;
+  }
+  
+  .modal-content textarea {
+    margin: 0 14px;
+    width: calc(100% - 28px);
+  }
+  
+  .modal-actions {
+    padding: 10px 14px 14px 14px;
+  }
+  
+  .btn-cancel,
+  .btn-confirm {
+    font-size: 12px;
+    padding: 6px 12px;
   }
 }

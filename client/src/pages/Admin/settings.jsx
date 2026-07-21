@@ -312,7 +312,7 @@ const Settings = () => {
       <div className="admin-settings">
         {/* Header */}
         <div className="settings-header">
-          <h1>System Settings</h1>
+          
           <p>Manage company information, assessment fees, and system configuration</p>
         </div>
 

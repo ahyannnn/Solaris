@@ -48,8 +48,11 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [auditCurrentPage, setAuditCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [auditTotalItems, setAuditTotalItems] = useState(0);
   const [itemsPerPage] = useState(5);
+  const [auditItemsPerPage] = useState(5);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -99,7 +102,7 @@ const UserManagement = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('scroll', handleScroll, true);
     };
-  }, [filterRole, currentPage, activeTab]);
+  }, [filterRole, currentPage, activeTab, auditCurrentPage]);
 
   const handleDropdownClick = (event, userId) => {
     event.stopPropagation();
@@ -150,9 +153,14 @@ const UserManagement = () => {
       setAuditLoading(true);
       const token = sessionStorage.getItem('token');
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/audit`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        params: {
+          page: auditCurrentPage,
+          limit: auditItemsPerPage
+        }
       });
       setAuditLogs(response.data.data || []);
+      setAuditTotalItems(response.data.total || 0);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
       showToast('Failed to load audit logs', 'error');
@@ -163,7 +171,11 @@ const UserManagement = () => {
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1);
+    if (activeTab === 'users') {
+      setCurrentPage(1);
+    } else {
+      setAuditCurrentPage(1);
+    }
   };
 
   const filteredUsers = users.filter(user => {
@@ -174,7 +186,7 @@ const UserManagement = () => {
       user.clientInfo?.contactNumber?.includes(searchTerm);
   });
 
-  // Filter audit logs by search term
+  // Filter audit logs by search term (client-side filtering)
   const filteredAuditLogs = auditLogs.filter(log => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
@@ -186,6 +198,16 @@ const UserManagement = () => {
       log.role?.toLowerCase().includes(searchLower)
     );
   });
+
+  // Calculate audit pagination based on filtered results
+  const auditFilteredTotal = filteredAuditLogs.length;
+  const auditTotalPages = Math.ceil(auditFilteredTotal / auditItemsPerPage);
+  const auditStartItem = (auditCurrentPage - 1) * auditItemsPerPage + 1;
+  const auditEndItem = Math.min(auditCurrentPage * auditItemsPerPage, auditFilteredTotal);
+  const paginatedAuditLogs = filteredAuditLogs.slice(
+    (auditCurrentPage - 1) * auditItemsPerPage,
+    auditCurrentPage * auditItemsPerPage
+  );
 
   const combineFullName = (firstName, lastName) => {
     let fullName = firstName;
@@ -313,7 +335,6 @@ const UserManagement = () => {
         showToast('Password reset successfully!', 'success');
         setShowPasswordModal(false);
         setFormData({ ...formData, password: '', confirmPassword: '' });
-        // Refresh audit logs if on audit tab
         if (activeTab === 'audit') fetchAuditLogs();
       }
     } catch (error) {
@@ -505,16 +526,15 @@ const UserManagement = () => {
     return actions;
   };
 
-  // Calculate pagination
+  // Calculate pagination for users
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
-  const getPageNumbers = () => {
+  const getPageNumbers = (total, current, maxVisible = 5) => {
     const pages = [];
-    const maxVisible = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    let startPage = Math.max(1, current - Math.floor(maxVisible / 2));
+    let endPage = Math.min(total, startPage + maxVisible - 1);
 
     if (endPage - startPage + 1 < maxVisible) {
       startPage = Math.max(1, endPage - maxVisible + 1);
@@ -525,6 +545,9 @@ const UserManagement = () => {
     }
     return pages;
   };
+
+  // Get audit page numbers
+  const auditPageNumbers = getPageNumbers(auditTotalPages, auditCurrentPage);
 
   const SkeletonLoader = () => (
     <div className="user-management">
@@ -564,7 +587,7 @@ const UserManagement = () => {
       <div className="user-management">
         <div className="user-management-header">
           <div>
-            <h1>User Management</h1>
+            
             <p>Manage system users, roles, and permissions</p>
           </div>
 
@@ -584,17 +607,17 @@ const UserManagement = () => {
         <div className="user-tabs">
           <button
             className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('users'); setSearchTerm(''); setCurrentPage(1); }}
+            onClick={() => { setActiveTab('users'); setSearchTerm(''); setCurrentPage(1); setAuditCurrentPage(1); }}
           >
             <FaUsers /> Users
             <span className="tab-badge">{stats.total}</span>
           </button>
           <button
             className={`tab-btn ${activeTab === 'audit' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('audit'); setSearchTerm(''); setCurrentPage(1); }}
+            onClick={() => { setActiveTab('audit'); setSearchTerm(''); setCurrentPage(1); setAuditCurrentPage(1); }}
           >
             <FaHistory /> Audit Logs
-            <span className="tab-badge">{auditLogs.length}</span>
+            
           </button>
         </div>
 
@@ -621,7 +644,7 @@ const UserManagement = () => {
           )}
         </div>
 
-        {/* Table */}
+        {/* Users Table */}
         {activeTab === 'users' && (
           <div className="users-table-container">
             <table className="users-table">
@@ -728,18 +751,17 @@ const UserManagement = () => {
                   <th style={{ width: '15%' }}>Module</th>
                   <th style={{ width: '18%' }}>Action</th>
                   <th style={{ width: '22%' }}>Timestamp</th>
-                 
                 </tr>
               </thead>
               <tbody>
-                {filteredAuditLogs.length === 0 ? (
+                {paginatedAuditLogs.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="empty-state">
+                    <td colSpan="5" className="empty-state">
                       <p>No audit logs found</p>
                     </td>
                   </tr>
                 ) : (
-                  filteredAuditLogs.map(log => {
+                  paginatedAuditLogs.map(log => {
                     // Get user display name
                     let userDisplayName = 'Unknown User';
                     let userInitials = '?';
@@ -747,7 +769,6 @@ const UserManagement = () => {
                     if (log.user) {
                       if (log.user.fullName) {
                         userDisplayName = log.user.fullName;
-                        // Get initials from fullName
                         const nameParts = log.user.fullName.trim().split(' ');
                         if (nameParts.length >= 2) {
                           userInitials = nameParts[0][0] + nameParts[nameParts.length - 1][0];
@@ -783,7 +804,6 @@ const UserManagement = () => {
                             <span>{formatDateTime(log.createdAt)}</span>
                           </div>
                         </td>
-                        
                       </tr>
                     );
                   })
@@ -793,7 +813,7 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* Pagination - Only show for users tab */}
+        {/* Pagination - Users */}
         {activeTab === 'users' && totalPages > 1 && (
           <div className="pagination">
             <div className="pagination-info">
@@ -808,7 +828,7 @@ const UserManagement = () => {
                 <FaChevronLeft /> Previous
               </button>
 
-              {getPageNumbers().map(page => (
+              {getPageNumbers(totalPages, currentPage).map(page => (
                 <button
                   key={page}
                   className={`page-number ${currentPage === page ? 'active' : ''}`}
@@ -822,6 +842,42 @@ const UserManagement = () => {
                 className="page-btn"
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
+              >
+                Next <FaChevronRight />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Pagination - Audit Logs */}
+        {activeTab === 'audit' && auditTotalPages > 1 && (
+          <div className="pagination">
+            <div className="pagination-info">
+              Showing {auditStartItem} to {auditEndItem} of {auditFilteredTotal} entries
+            </div>
+            <div className="pagination-controls">
+              <button
+                className="page-btn"
+                onClick={() => setAuditCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={auditCurrentPage === 1}
+              >
+                <FaChevronLeft /> Previous
+              </button>
+
+              {auditPageNumbers.map(page => (
+                <button
+                  key={page}
+                  className={`page-number ${auditCurrentPage === page ? 'active' : ''}`}
+                  onClick={() => setAuditCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                className="page-btn"
+                onClick={() => setAuditCurrentPage(prev => Math.min(auditTotalPages, prev + 1))}
+                disabled={auditCurrentPage === auditTotalPages}
               >
                 Next <FaChevronRight />
               </button>

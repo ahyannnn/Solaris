@@ -1135,7 +1135,7 @@ const AdminBilling = () => {
       <div className="admin-billing">
         <div className="billing-header">
           <div>
-            <h1>Billing Management</h1>
+            
             <p>Manage invoices, verify payments, and track all transactions</p>
           </div>
           {activeTab === 'solar-invoices' && (

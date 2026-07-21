@@ -332,6 +332,16 @@ const AdminDashboard = () => {
           </div>
           <div className="adsih-chart-body">
             <div className="adsih-comparison-chart">
+              <div className="adsih-chart-legend">
+                <div className="adsih-legend-item">
+                  <div className="adsih-legend-color quote-color"></div>
+                  <span>Free Quotes</span>
+                </div>
+                <div className="adsih-legend-item">
+                  <div className="adsih-legend-color assessment-color"></div>
+                  <span>Pre-Assessments</span>
+                </div>
+              </div>
               <div className="adsih-bar-chart dual-bars">
                 {monthlyData.labels.map((label, index) => (
                   <div key={index} className="adsih-dual-bar-item">
@@ -357,16 +367,7 @@ const AdminDashboard = () => {
                   </div>
                 ))}
               </div>
-              <div className="adsih-chart-legend">
-                <div className="adsih-legend-item">
-                  <div className="adsih-legend-color quote-color"></div>
-                  <span>Free Quotes</span>
-                </div>
-                <div className="adsih-legend-item">
-                  <div className="adsih-legend-color assessment-color"></div>
-                  <span>Pre-Assessments</span>
-                </div>
-              </div>
+              
             </div>
           </div>
         </div>
@@ -437,9 +438,7 @@ const AdminDashboard = () => {
       <div className="adsih-recent-activity">
         <div className="adsih-activity-header">
           <h3><FaClock /> Recent Activity</h3>
-          <button className="adsih-view-all" onClick={() => navigate('/app/admin/siteassessment')}>
-            View All <FaArrowRight />
-          </button>
+          
         </div>
         
         <div className="adsih-activity-list">
@@ -452,7 +451,7 @@ const AdminDashboard = () => {
               <div 
                 key={activity.id} 
                 className="adsih-activity-item"
-                onClick={() => activity.action && navigate(activity.action)}
+                
               >
                 <div className="adsih-activity-icon">
                   {getActivityIcon(activity)}
@@ -537,14 +536,7 @@ const AdminDashboard = () => {
             
             <p>Welcome back, Admin! Here's an overview of your solar business performance</p>
           </div>
-          <div className="adsih-welcome-actions">
-            <button className="btn-primary" onClick={() => navigate('/app/admin/siteassessment')}>
-              <FaPlus /> New Assessment
-            </button>
-            <button className="btn-secondary" onClick={() => navigate('/app/admin/project')}>
-              <FaEye /> View Projects
-            </button>
-          </div>
+          
         </div>
 
         {/* Stats Cards - 4 cards */}

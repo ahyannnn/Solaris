@@ -47,20 +47,89 @@
   margin: 0;
 }
 
+/* Stats Cards - Horizontal Row */
+.assessment-stats-adminasses {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card-adminasses {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+}
+
+.stat-card-adminasses:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.stat-card-adminasses .stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.stat-card-adminasses .stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 4px 0 0 0;
+}
+
+.stat-card-adminasses .stat-change {
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 6px;
+}
+
+.stat-change.positive {
+  color: var(--success);
+}
+
+.stat-change.negative {
+  color: var(--danger);
+}
+
+/* ============================================ */
+/* TABS & FILTERS - Combined Row */
+/* ============================================ */
+.assessment-controls-adminasses {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: 0;
+}
+
 /* Tabs */
 .assessment-tabs-adminasses {
   display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
-  border-bottom: 1px solid var(--border-light);
-  padding-bottom: 0;
+  gap: 4px;
+  flex: 0 0 auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.assessment-tabs-adminasses::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-btn-adminasses {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
+  gap: 6px;
+  padding: 12px 16px;
   background: none;
   border: none;
   border-bottom: 3px solid transparent;
@@ -70,6 +139,7 @@
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
+  white-space: nowrap;
 }
 
 .tab-btn-adminasses:hover {
@@ -96,26 +166,36 @@
   color: white;
 }
 
-/* Filters */
+/* Filters & Search - Right side */
 .assessment-filters-adminasses {
   display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
   align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  padding-bottom: 4px;
+}
+
+.filter-group-adminasses {
+  position: relative;
+  flex: 0 0 auto;
 }
 
 .filter-group-adminasses select {
-  padding: 12px 16px;
+  padding: 10px 14px;
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   font-size: 14px;
   color: var(--text-primary);
   cursor: pointer;
-  min-width: 180px;
+  min-width: 150px;
   transition: all 0.2s;
-  height: 48px;
+  height: 42px;
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 32px;
 }
 
 .filter-group-adminasses select:focus {
@@ -124,16 +204,28 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* Search Group */
+.filter-group-adminasses::after {
+  content: "▾";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 12px;
+  pointer-events: none;
+}
+
 .search-group-adminasses {
   flex: 1;
-  max-width: 400px;
+  max-width: 300px;
+  min-width: 180px;
   position: relative;
 }
 
 .search-group-adminasses input {
   width: 100%;
-  padding: 12px 16px;
+  padding: 10px 14px;
+  padding-right: 36px;
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
@@ -141,7 +233,7 @@
   color: var(--text-primary);
   transition: all 0.2s;
   box-sizing: border-box;
-  height: 48px;
+  height: 42px;
 }
 
 .search-group-adminasses input:focus {
@@ -155,7 +247,17 @@
   font-size: 14px;
 }
 
-/* Table */
+.search-group-adminasses .search-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 16px;
+  pointer-events: none;
+}
+
+/* Table Container */
 .table-container-adminasses {
   background: var(--bg-card);
   border-radius: var(--radius-xl);
@@ -168,6 +270,7 @@
 .data-table-adminasses {
   width: 100%;
   border-collapse: collapse;
+  min-width: 600px;
 }
 
 .data-table-adminasses thead {
@@ -374,6 +477,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .page-btn-adminasses {
@@ -938,23 +1042,60 @@
   border-radius: var(--radius-xl);
 }
 
+.skeleton-stats-adminasses {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.skeleton-stat-adminasses {
+  height: 80px;
+  background: #F1F5F9;
+  border-radius: var(--radius-xl);
+  animation: shimmer 1.5s infinite;
+}
+
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
 /* ============================================ */
-/* RESPONSIVE */
+/* RESPONSIVE BREAKPOINTS */
 /* ============================================ */
+
+/* Tablet and smaller laptops */
 @media (max-width: 1200px) {
   .assessment-stats-adminasses {
     grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
   }
+  
   .skeleton-stats-adminasses {
     grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  
+  .stat-card-adminasses .stat-value {
+    font-size: 22px;
+  }
+  
+  .assessment-controls-adminasses {
+    gap: 12px;
+  }
+  
+  .filter-group-adminasses select {
+    min-width: 130px;
+  }
+  
+  .search-group-adminasses {
+    max-width: 250px;
+    min-width: 150px;
   }
 }
 
+/* Mobile Landscape & Small Tablets */
 @media (max-width: 768px) {
   .site-assessment-adminasses {
     padding: 16px;
@@ -964,28 +1105,203 @@
     font-size: 22px;
   }
 
-  .assessment-filters-adminasses {
+  /* Stats Cards - Horizontal scroll */
+  .assessment-stats-adminasses {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    padding: 2px 0 8px 0;
+    margin-bottom: 20px;
+  }
+  
+  .stat-card-adminasses {
+    min-width: 150px;
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    padding: 12px 14px;
+  }
+  
+  .stat-card-adminasses .stat-value {
+    font-size: 20px;
+  }
+  
+  .stat-card-adminasses .stat-label {
+    font-size: 11px;
+  }
+
+  .skeleton-stats-adminasses {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 2px 0 8px 0;
+  }
+  
+  .skeleton-stat-adminasses {
+    min-width: 150px;
+    flex: 0 0 auto;
+    height: 70px;
+  }
+
+  /* Controls - Stack vertically on mobile */
+  .assessment-controls-adminasses {
     flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding-bottom: 0;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 20px;
+  }
+
+  /* Tabs - Horizontal scroll */
+  .assessment-tabs-adminasses {
+    flex: 1;
+    gap: 2px;
+    padding-bottom: 0;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 0;
+  }
+  
+  .tab-btn-adminasses {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  /* Filters & Search - Full width below tabs */
+  .assessment-filters-adminasses {
+    flex: 1;
+    justify-content: stretch;
+    gap: 8px;
+    padding-bottom: 4px;
+    flex-wrap: wrap;
+  }
+
+  .filter-group-adminasses {
+    flex: 1;
+    min-width: 120px;
   }
 
   .filter-group-adminasses select {
     width: 100%;
     min-width: unset;
+    height: 40px;
+    font-size: 13px;
+    padding: 8px 12px;
+    padding-right: 32px;
   }
 
   .search-group-adminasses {
+    flex: 2;
     max-width: 100%;
+    min-width: 150px;
+  }
+  
+  .search-group-adminasses input {
+    height: 40px;
+    font-size: 13px;
+    padding: 8px 12px;
+    padding-right: 36px;
   }
 
-  .data-table-adminasses th,
+  /* Table to Cards on Mobile */
+  .table-container-adminasses {
+    border-radius: var(--radius-lg);
+    overflow: visible;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  .data-table-adminasses {
+    display: block;
+    min-width: unset;
+  }
+
+  .data-table-adminasses thead {
+    display: none;
+  }
+
+  .data-table-adminasses tbody {
+    display: block;
+  }
+
+  .data-table-adminasses tr {
+    display: block;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
+  }
+
+  .data-table-adminasses tr:hover td {
+    background: transparent;
+  }
+
   .data-table-adminasses td {
-    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-light);
+    border-bottom-style: dashed;
     font-size: 13px;
+  }
+
+  .data-table-adminasses td:last-child {
+    border-bottom: none;
+  }
+
+  .data-table-adminasses td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .data-table-adminasses td:first-child {
+    padding-top: 0;
+  }
+
+  .data-table-adminasses td:last-child {
+    padding-bottom: 0;
+  }
+
+  .ref-cell-adminasses {
+    font-size: 13px;
+  }
+
+  .email-cell-adminasses {
+    font-size: 12px;
+  }
+
+  .status-badge-adminasses {
+    font-size: 11px;
+  }
+
+  .action-dropdown-container-adminasses {
+    width: 100%;
+  }
+
+  .action-dropdown-toggle-adminasses {
+    width: 100%;
+    justify-content: center;
+    height: 38px;
+  }
+
+  .action-dropdown-menu-adminasses {
+    min-width: 200px;
   }
 
   .pagination-adminasses {
     flex-direction: column;
     align-items: center;
+    gap: 12px;
   }
 
   .pagination-controls-adminasses {
@@ -999,10 +1315,7 @@
 
   .modal-actions-adminasses button {
     width: 100%;
-  }
-
-  .action-dropdown-menu-adminasses {
-    min-width: 180px;
+    justify-content: center;
   }
 
   .detail-row-adminasses {
@@ -1010,6 +1323,7 @@
     gap: 2px;
   }
 
+  /* Engineer Modal */
   .assign-engineer-modal-adminasses {
     max-width: 95% !important;
     width: 95% !important;
@@ -1068,25 +1382,123 @@
   }
 }
 
+/* Mobile Portrait */
 @media (max-width: 480px) {
-  .data-table-adminasses th,
-  .data-table-adminasses td {
+  .site-assessment-adminasses {
+    padding: 12px;
+  }
+  
+  .assessment-header-adminasses h1 {
+    font-size: 20px;
+  }
+  
+  .assessment-header-adminasses p {
+    font-size: 13px;
+  }
+  
+  /* Stats Cards */
+  .stat-card-adminasses {
+    min-width: 130px;
+    padding: 10px 12px;
+  }
+  
+  .stat-card-adminasses .stat-value {
+    font-size: 18px;
+  }
+  
+  .stat-card-adminasses .stat-label {
+    font-size: 10px;
+  }
+  
+  .stat-card-adminasses .stat-change {
+    font-size: 11px;
+  }
+  
+  .skeleton-stat-adminasses {
+    min-width: 130px;
+    height: 60px;
+  }
+
+  /* Controls */
+  .assessment-controls-adminasses {
+    gap: 6px;
+  }
+
+  /* Tabs */
+  .tab-btn-adminasses {
     padding: 8px 10px;
     font-size: 12px;
   }
-
-  .table-container-adminasses {
-    border-radius: var(--radius-lg);
+  
+  .tab-badge-adminasses {
+    font-size: 10px;
+    padding: 1px 6px;
   }
 
+  /* Filters */
+  .assessment-filters-adminasses {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .filter-group-adminasses {
+    width: 100%;
+  }
+
+  .filter-group-adminasses select {
+    height: 38px;
+    font-size: 13px;
+  }
+
+  .search-group-adminasses {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .search-group-adminasses input {
+    height: 38px;
+    font-size: 13px;
+  }
+
+  /* Table Cards */
+  .data-table-adminasses tr {
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+
+  .data-table-adminasses td {
+    padding: 6px 0;
+    font-size: 12px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .data-table-adminasses td::before {
+    font-size: 11px;
+  }
+
+  .ref-cell-adminasses {
+    font-size: 12px;
+  }
+  
+  .email-cell-adminasses {
+    font-size: 11px;
+  }
+
+  .status-badge-adminasses {
+    font-size: 10px;
+    padding: 2px 10px;
+  }
+
+  /* Dropdown */
   .action-dropdown-toggle-adminasses {
     padding: 6px 12px;
     font-size: 12px;
+    height: 34px;
   }
 
   .action-dropdown-menu-adminasses {
-    min-width: 160px;
-    right: 10px !important;
+    min-width: 180px;
   }
 
   .dropdown-item-adminasses {
@@ -1094,6 +1506,40 @@
     font-size: 12px;
   }
 
+  /* Buttons */
+  .cancel-btn-adminasses,
+  .approve-btn-adminasses,
+  .reject-btn-adminasses,
+  .assign-btn-adminasses,
+  .verify-btn-adminasses,
+  .upload-btn-adminasses {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  /* Modal */
+  .modal-adminasses {
+    max-width: 98%;
+    border-radius: var(--radius-xl);
+  }
+  
+  .modal-header-adminasses {
+    padding: 14px 16px;
+  }
+  
+  .modal-header-adminasses h3 {
+    font-size: 16px;
+  }
+  
+  .modal-body-adminasses {
+    padding: 16px;
+  }
+  
+  .modal-actions-adminasses {
+    padding: 14px 16px;
+  }
+
+  /* Engineer Modal */
   .assign-engineer-modal-adminasses .modal-body-adminasses {
     padding: 14px 14px !important;
   }
@@ -1133,5 +1579,97 @@
   
   .engineer-selected-badge-adminasses {
     font-size: 14px;
+  }
+  
+  .assign-engineer-modal-adminasses .form-group-adminasses textarea {
+    min-height: 40px;
+    max-height: 60px;
+    font-size: 12px;
+  }
+  
+  .assign-engineer-modal-adminasses .form-group-adminasses input {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+  
+  .assign-engineer-modal-adminasses .form-group-adminasses label {
+    font-size: 12px;
+  }
+
+  /* Pagination */
+  .pagination-info-adminasses {
+    font-size: 12px;
+  }
+  
+  .page-btn-adminasses {
+    padding: 6px 10px;
+    font-size: 12px;
+    height: 32px;
+  }
+  
+  .page-number-adminasses {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 360px) {
+  .stat-card-adminasses {
+    min-width: 110px;
+    padding: 8px 10px;
+  }
+  
+  .stat-card-adminasses .stat-value {
+    font-size: 16px;
+  }
+  
+  .stat-card-adminasses .stat-label {
+    font-size: 9px;
+  }
+  
+  .skeleton-stat-adminasses {
+    min-width: 110px;
+    height: 50px;
+  }
+  
+  .tab-btn-adminasses {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+  
+  .data-table-adminasses tr {
+    padding: 10px;
+  }
+  
+  .data-table-adminasses td {
+    font-size: 11px;
+    padding: 5px 0;
+  }
+  
+  .data-table-adminasses td::before {
+    font-size: 10px;
+  }
+  
+  .action-dropdown-toggle-adminasses {
+    font-size: 11px;
+    padding: 4px 10px;
+    height: 30px;
+  }
+  
+  .engineer-card-adminasses {
+    min-height: 34px;
+    padding: 6px 8px;
+  }
+  
+  .engineer-avatar-adminasses {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+  
+  .engineer-name-adminasses {
+    font-size: 11px;
   }
 }

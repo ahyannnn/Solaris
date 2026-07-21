@@ -430,7 +430,7 @@ const Dashboard = () => {
                     <h3 className="project-name-cusdash">{project.projectName || project.projectReference}</h3>
                     <p className="project-system-cusdash">{project.systemSize} Solar System · {project.systemType}</p>
                   </div>
-                  {getStatusBadge(project.status)}
+                  
                 </div>
 
                 <div className="project-content-layout-cusdash">
@@ -444,11 +444,7 @@ const Dashboard = () => {
                       <span className="metric-label-cusdash">Amount Paid</span>
                       <span className="metric-value-cusdash">{formatCurrency(project.amountPaid)}</span>
                     </div>
-                    <div className="project-actions-cusdash">
-                      <Link to="/app/customer/project" className="action-link-cusdash">
-                        Track Progress <FaArrowRight className="action-arrow-cusdash" />
-                      </Link>
-                    </div>
+                    
                   </div>
                 </div>
 

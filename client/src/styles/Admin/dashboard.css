@@ -39,7 +39,6 @@
    CONTAINER
    ============================================ */
 .adsih-admin-dashboard {
-
   margin: 0 auto;
   padding: 24px;
 }
@@ -121,7 +120,7 @@
 }
 
 /* ============================================
-   STATS CARDS - 4 Cards
+   STATS CARDS - 4 Cards in Horizontal Row
    ============================================ */
 .adsih-stats-grid {
   display: grid;
@@ -702,18 +701,26 @@
 }
 
 /* ============================================
-   RESPONSIVE
+   RESPONSIVE BREAKPOINTS
    ============================================ */
+
+/* Tablet and smaller laptops */
 @media (max-width: 1024px) {
   .adsih-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
   }
   
   .adsih-quick-actions-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  
+  .adsih-stat-value {
+    font-size: 24px;
+  }
 }
 
+/* Mobile Landscape & Small Tablets */
 @media (max-width: 768px) {
   .adsih-admin-dashboard {
     padding: 16px;
@@ -735,35 +742,72 @@
     justify-content: center;
   }
   
+  /* Stats Cards - Stay in horizontal row */
   .adsih-stats-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 4px;
   }
   
   .adsih-stat-card {
-    padding: 14px 16px;
+    min-width: 140px;
+    padding: 12px 14px;
+    scroll-snap-align: start;
+    flex-shrink: 0;
   }
   
   .adsih-stat-value {
-    font-size: 22px;
+    font-size: 20px;
   }
   
+  .adsih-stat-label {
+    font-size: 11px;
+  }
+  
+  .adsih-stat-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  
+  .adsih-stat-details {
+    gap: 8px;
+    padding-top: 8px;
+  }
+  
+  .adsih-stat-detail {
+    font-size: 11px;
+  }
+  
+  /* Quick Actions - 2 columns */
   .adsih-quick-actions-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
   
   .adsih-quick-action-item {
-    padding: 12px;
+    padding: 10px 12px;
   }
   
+  .adsih-quick-action-label {
+    font-size: 13px;
+  }
+  
+  .adsih-quick-action-description {
+    font-size: 11px;
+  }
+  
+  /* Charts - Single column */
   .adsih-charts-row {
     grid-template-columns: 1fr;
     gap: 12px;
   }
   
   .adsih-chart-card {
-    min-height: 300px;
+    min-height: 280px;
   }
   
   .adsih-bar-chart,
@@ -781,7 +825,7 @@
   
   .adsih-activity-item {
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
   }
   
   .adsih-activity-status {
@@ -789,13 +833,72 @@
   }
 }
 
+/* Mobile Portrait */
 @media (max-width: 480px) {
-  .adsih-stats-grid {
-    grid-template-columns: 1fr;
+  .adsih-admin-dashboard {
+    padding: 12px;
   }
   
+  /* Stats Cards - Scrollable horizontal row with snap */
+  .adsih-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    padding: 2px 0 8px 0;
+    margin-bottom: 16px;
+  }
+  
+  .adsih-stat-card {
+    min-width: 130px;
+    padding: 10px 12px;
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+  
+  .adsih-stat-main {
+    margin-bottom: 8px;
+  }
+  
+  .adsih-stat-value {
+    font-size: 18px;
+  }
+  
+  .adsih-stat-label {
+    font-size: 10px;
+  }
+  
+  .adsih-stat-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  .adsih-stat-details {
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 6px;
+  }
+  
+  .adsih-stat-detail {
+    font-size: 10px;
+  }
+  
+  /* Quick Actions - Single column on very small screens */
   .adsih-quick-actions-grid {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .adsih-quick-action-item {
+    padding: 10px 14px;
+  }
+  
+  .adsih-quick-action-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
   }
   
   .adsih-welcome-content h1 {
@@ -811,12 +914,9 @@
     width: 100%;
   }
   
-  .adsih-stat-value {
-    font-size: 20px;
-  }
-  
   .adsih-chart-card {
-    min-height: 260px;
+    min-height: 240px;
+    padding: 14px 16px;
   }
   
   .adsih-bar-chart,
@@ -835,5 +935,61 @@
   .adsih-bar-value {
     font-size: 8px;
     top: -14px;
+  }
+  
+  .adsih-chart-legend {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  
+  .adsih-legend-item {
+    font-size: 11px;
+  }
+  
+  .adsih-activity-item {
+    padding: 8px 0;
+    gap: 8px;
+  }
+  
+  .adsih-activity-message {
+    font-size: 13px;
+  }
+  
+  .adsih-activity-status {
+    font-size: 10px;
+    padding: 3px 10px;
+    margin-left: 44px;
+  }
+  
+  .adsih-activity-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 380px) {
+  .adsih-stat-card {
+    min-width: 110px;
+    padding: 8px 10px;
+  }
+  
+  .adsih-stat-value {
+    font-size: 16px;
+  }
+  
+  .adsih-stat-label {
+    font-size: 9px;
+  }
+  
+  .adsih-stat-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  
+  .adsih-stat-detail {
+    font-size: 9px;
   }
 }

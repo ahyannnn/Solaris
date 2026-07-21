@@ -204,7 +204,7 @@ const AdminSchedule = () => {
       <div className="schedule-management-adsche">
         <div className="schedule-header-adsche">
           <div>
-            <h1>Schedule Management</h1>
+            
             <p>View and manage all site visits, assessments, and installations</p>
           </div>
           <div className="header-actions-adsche">
@@ -212,33 +212,7 @@ const AdminSchedule = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="schedule-stats-adsche">
-          <div className="stat-card-adsche total">
-            <div className="stat-info-adsche">
-              <span className="stat-value-adsche">{stats.total}</span>
-              <span className="stat-label-adsche">Total Schedules</span>
-            </div>
-          </div>
-          <div className="stat-card-adsche upcoming">
-            <div className="stat-info-adsche">
-              <span className="stat-value-adsche">{stats.upcoming}</span>
-              <span className="stat-label-adsche">Upcoming</span>
-            </div>
-          </div>
-          <div className="stat-card-adsche in-progress">
-            <div className="stat-info-adsche">
-              <span className="stat-value-adsche">{stats.inProgress || 0}</span>
-              <span className="stat-label-adsche">In Progress</span>
-            </div>
-          </div>
-          <div className="stat-card-adsche completed">
-            <div className="stat-info-adsche">
-              <span className="stat-value-adsche">{stats.completed}</span>
-              <span className="stat-label-adsche">Completed</span>
-            </div>
-          </div>
-        </div>
+        
 
         {/* Filters */}
         <div className="schedule-filters-adsche">

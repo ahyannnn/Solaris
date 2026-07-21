@@ -535,7 +535,7 @@ const SiteAssessment = () => {
 
       <div className="site-assessment-adminasses">
         <div className="assessment-header-adminasses">
-          <h1>Site Assessment</h1>
+          
           <p>Manage free quote requests and pre-assessment bookings</p>
         </div>
 

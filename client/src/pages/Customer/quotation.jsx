@@ -55,8 +55,8 @@ const Quotation = () => {
 
   // Company bank accounts
   const companyBanks = [
-    { id: 'bpo', name: 'BPO - Bank of the Philippine Islands', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-    { id: 'bpi', name: 'BPI - Bank of the Philippine Islands', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
+    { id: 'bpo', name: 'BPO', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
+    { id: 'bpi', name: 'BPI', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
     { id: 'metrobank', name: 'Metrobank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
     { id: 'security_bank', name: 'Security Bank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' }
   ];

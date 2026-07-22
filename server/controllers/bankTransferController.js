@@ -20,16 +20,12 @@ const generateReceiptNumber = () => {
 
 // Company bank accounts
 const companyBanks = [
+  { id: 'bpo', name: 'BPO', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
   { id: 'bpi', name: 'BPI', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-  { id: 'unionbank', name: 'UnionBank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-  { id: 'bdo', name: 'BDO', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
+  
   { id: 'metrobank', name: 'Metrobank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-  { id: 'landbank', name: 'Landbank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
   { id: 'security_bank', name: 'Security Bank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-  { id: 'chinabank', name: 'China Bank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-  { id: 'pnb', name: 'PNB', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-  { id: 'eastwest', name: 'EastWest Bank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-  { id: 'rcbc', name: 'RCBC', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' }
+  
 ];
 
 // =============================================

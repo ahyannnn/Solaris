@@ -20,7 +20,7 @@ const BankTransferPaymentSchema = new mongoose.Schema({
   bankName: {
     type: String,
     required: true,
-    enum: ['BPI', 'UnionBank', 'BDO', 'Metrobank', 'Landbank', 'Security Bank', 'China Bank', 'PNB', 'EastWest Bank', 'RCBC']
+    enum: ['BPI','Metrobank', 'Security Bank', 'BPO']
   },
   accountName: {
     type: String,

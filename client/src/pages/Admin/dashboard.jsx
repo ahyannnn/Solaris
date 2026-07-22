@@ -1,4 +1,4 @@
-// pages/Admin/AdminDashboard.cuspro.jsx - Redesigned like Customer Dashboard
+// pages/Admin/AdminDashboard.cuspro.jsx - Fully Responsive Admin Dashboard
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
@@ -17,7 +17,11 @@ import {
   FaMoneyBillWave,
   FaCalendarAlt,
   FaEye,
-  FaPlus
+  FaPlus,
+  FaChevronRight,
+  FaHome,
+  FaUserCog,
+  FaTachometerAlt
 } from 'react-icons/fa';
 import '../../styles/Admin/dashboard.css';
 
@@ -255,40 +259,28 @@ const AdminDashboard = () => {
         value: stats.freeQuotes.total,
         icon: <FaFileInvoiceDollar />,
         color: 'blue',
-        details: [
-          { label: 'Pending', value: stats.freeQuotes.pending },
-          { label: 'Completed', value: stats.freeQuotes.completed }
-        ]
+        detail: `${stats.freeQuotes.pending} pending`
       },
       {
         title: 'Pre Assessments',
         value: stats.preAssessments.total,
         icon: <FaClipboardList />,
         color: 'green',
-        details: [
-          { label: 'Pending', value: stats.preAssessments.pending },
-          { label: 'Scheduled', value: stats.preAssessments.scheduled },
-          { label: 'Completed', value: stats.preAssessments.completed }
-        ]
+        detail: `${stats.preAssessments.scheduled} scheduled`
       },
       {
         title: 'Total Revenue',
         value: formatCurrency(stats.revenue.total || 0),
         icon: <FaChartLine />,
         color: 'purple',
-        details: [
-          { label: 'This Month', value: formatCurrency(stats.revenue.thisMonth || 0) }
-        ]
+        detail: `${formatCurrency(stats.revenue.thisMonth)} this month`
       },
       {
         title: 'IoT Devices',
         value: stats.devices.total || 0,
         icon: <FaMicrochip />,
         color: 'orange',
-        details: [
-          { label: 'Active', value: stats.devices.active || 0 },
-          { label: 'Deployed', value: stats.devices.deployed || 0 }
-        ]
+        detail: `${stats.devices.active || 0} active`
       }
     ];
 
@@ -304,12 +296,7 @@ const AdminDashboard = () => {
               <div className="adsih-stat-icon">{card.icon}</div>
             </div>
             <div className="adsih-stat-details">
-              {card.details.map((detail, idx) => (
-                <div key={idx} className="adsih-stat-detail">
-                  <span>{detail.label}</span>
-                  <strong>{detail.value}</strong>
-                </div>
-              ))}
+              <span className="adsih-stat-detail">{card.detail}</span>
             </div>
           </div>
         ))}
@@ -329,6 +316,7 @@ const AdminDashboard = () => {
         <div className="adsih-chart-card">
           <div className="adsih-chart-header">
             <h3>Free Quotes vs Assessments</h3>
+            <span className="adsih-chart-period">Last 12 months</span>
           </div>
           <div className="adsih-chart-body">
             <div className="adsih-comparison-chart">
@@ -342,32 +330,34 @@ const AdminDashboard = () => {
                   <span>Pre-Assessments</span>
                 </div>
               </div>
-              <div className="adsih-bar-chart dual-bars">
-                {monthlyData.labels.map((label, index) => (
-                  <div key={index} className="adsih-dual-bar-item">
-                    <div className="adsih-bars-container">
-                      <div 
-                        className="adsih-bar adsih-quote-bar" 
-                        style={{ height: `${(monthlyData.freeQuotes[index] / maxComparison) * 140}px` }}
-                      >
-                        {monthlyData.freeQuotes[index] > 0 && (
-                          <span className="adsih-bar-value">{monthlyData.freeQuotes[index]}</span>
-                        )}
+              {/* Scrollable wrapper for mobile */}
+              <div className="adsih-chart-scroll-wrapper">
+                <div className="adsih-bar-chart dual-bars">
+                  {monthlyData.labels.map((label, index) => (
+                    <div key={index} className="adsih-dual-bar-item">
+                      <div className="adsih-bars-container">
+                        <div 
+                          className="adsih-bar adsih-quote-bar" 
+                          style={{ height: `${(monthlyData.freeQuotes[index] / maxComparison) * 140}px` }}
+                        >
+                          {monthlyData.freeQuotes[index] > 0 && (
+                            <span className="adsih-bar-value">{monthlyData.freeQuotes[index]}</span>
+                          )}
+                        </div>
+                        <div 
+                          className="adsih-bar adsih-assessment-bar" 
+                          style={{ height: `${(monthlyData.assessments[index] / maxComparison) * 140}px` }}
+                        >
+                          {monthlyData.assessments[index] > 0 && (
+                            <span className="adsih-bar-value">{monthlyData.assessments[index]}</span>
+                          )}
+                        </div>
                       </div>
-                      <div 
-                        className="adsih-bar adsih-assessment-bar" 
-                        style={{ height: `${(monthlyData.assessments[index] / maxComparison) * 140}px` }}
-                      >
-                        {monthlyData.assessments[index] > 0 && (
-                          <span className="adsih-bar-value">{monthlyData.assessments[index]}</span>
-                        )}
-                      </div>
+                      <span className="adsih-bar-label">{label}</span>
                     </div>
-                    <span className="adsih-bar-label">{label}</span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-              
             </div>
           </div>
         </div>
@@ -376,6 +366,7 @@ const AdminDashboard = () => {
         <div className="adsih-chart-card">
           <div className="adsih-chart-header">
             <h3>Revenue Overview</h3>
+            <span className="adsih-chart-period">Last 12 months</span>
           </div>
           <div className="adsih-chart-body">
             {monthlyData.revenue.every(v => v === 0) ? (
@@ -384,18 +375,21 @@ const AdminDashboard = () => {
                 <small>Complete payments to see revenue trends</small>
               </div>
             ) : (
-              <div className="adsih-bar-chart">
-                {monthlyData.revenue.map((value, index) => (
-                  <div key={index} className="adsih-bar-item">
-                    <div 
-                      className="adsih-bar adsih-revenue-bar" 
-                      style={{ height: `${(value / maxRevenue) * 140}px` }}
-                    >
-                      {value > 0 && <span className="adsih-bar-value">{formatCurrency(value)}</span>}
+              /* Scrollable wrapper for mobile */
+              <div className="adsih-chart-scroll-wrapper">
+                <div className="adsih-bar-chart">
+                  {monthlyData.revenue.map((value, index) => (
+                    <div key={index} className="adsih-bar-item">
+                      <div 
+                        className="adsih-bar adsih-revenue-bar" 
+                        style={{ height: `${(value / maxRevenue) * 140}px` }}
+                      >
+                        {value > 0 && <span className="adsih-bar-value">{formatCurrency(value)}</span>}
+                      </div>
+                      <span className="adsih-bar-label">{monthlyData.labels[index]}</span>
                     </div>
-                    <span className="adsih-bar-label">{monthlyData.labels[index]}</span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -412,6 +406,7 @@ const AdminDashboard = () => {
         case 'pending': return 'pending';
         case 'for_verification': return 'verification';
         case 'scheduled': return 'scheduled';
+        case 'paid': return 'completed';
         default: return '';
       }
     };
@@ -422,6 +417,7 @@ const AdminDashboard = () => {
         case 'pending': return 'Pending';
         case 'for_verification': return 'Verifying';
         case 'scheduled': return 'Scheduled';
+        case 'paid': return 'Paid';
         default: return status;
       }
     };
@@ -438,20 +434,26 @@ const AdminDashboard = () => {
       <div className="adsih-recent-activity">
         <div className="adsih-activity-header">
           <h3><FaClock /> Recent Activity</h3>
-          
+          <button 
+            className="adsih-view-all"
+            onClick={() => navigate('/app/admin/siteassessment')}
+          >
+            View All <FaChevronRight />
+          </button>
         </div>
         
         <div className="adsih-activity-list">
           {recentActivities.length === 0 ? (
             <div className="adsih-empty-activity">
               <p>No recent activities</p>
+              <small>Activities will appear here as they happen</small>
             </div>
           ) : (
             recentActivities.map((activity) => (
               <div 
                 key={activity.id} 
                 className="adsih-activity-item"
-                
+                onClick={() => navigate(activity.action)}
               >
                 <div className="adsih-activity-icon">
                   {getActivityIcon(activity)}
@@ -533,7 +535,6 @@ const AdminDashboard = () => {
         {/* Welcome Section - Like Customer Dashboard */}
         <div className="adsih-welcome-section">
           <div className="adsih-welcome-content">
-            
             <p>Welcome back, Admin! Here's an overview of your solar business performance</p>
           </div>
           
@@ -551,6 +552,9 @@ const AdminDashboard = () => {
                 key={index} 
                 className={`adsih-quick-action-item ${action.color}`}
                 onClick={() => navigate(action.link)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && navigate(action.link)}
               >
                 <div className="adsih-quick-action-icon">{action.icon}</div>
                 <div className="adsih-quick-action-content">

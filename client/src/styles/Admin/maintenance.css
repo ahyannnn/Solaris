@@ -94,6 +94,113 @@
   border-radius: 2px;
 }
 
+/* ============================================ */
+/* SUB-TABS - Progressive Disclosure */
+/* ============================================ */
+
+.config-subtabs-wrapper {
+  position: relative;
+  margin-bottom: 24px;
+}
+
+/* Mobile Sub-tab Toggle */
+.mobile-subtab-toggle {
+  display: none;
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobile-subtab-toggle:hover {
+  border-color: var(--border-medium);
+}
+
+.mobile-subtab-toggle .subtab-label {
+  text-transform: capitalize;
+  color: var(--text-primary);
+}
+
+.mobile-subtab-toggle .toggle-arrow {
+  font-size: 14px;
+  transition: transform 0.3s ease;
+  color: var(--text-muted);
+}
+
+.mobile-subtab-toggle .toggle-arrow.open {
+  transform: rotate(180deg);
+}
+
+/* Sub-tabs Container */
+.config-subtabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-light);
+  flex-wrap: wrap;
+  background: var(--bg-card);
+  padding: 4px 4px 0 4px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  transition: all 0.3s ease;
+}
+
+.subtab-btn {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  white-space: nowrap;
+}
+
+.subtab-btn:hover {
+  color: var(--primary);
+}
+
+.subtab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.subtab-btn .subtab-icon {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.subtab-btn .subtab-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  background: var(--bg-base);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-left: 6px;
+  transition: all 0.2s;
+}
+
+.subtab-btn.active .subtab-badge {
+  background: var(--primary);
+  color: white;
+}
+
+/* Sub-tab Content */
+.subtab-content {
+  animation: fadeIn 0.3s ease;
+}
+
 /* Toggle Card */
 .toggle-card-admain {
   background: var(--bg-card);
@@ -461,45 +568,6 @@
 .reset-config-btn:hover {
   background: #FEE2E2;
   border-color: var(--danger);
-}
-
-.config-subtabs {
-  display: flex;
-  gap: 8px;
-  border-bottom: 1px solid var(--border-light);
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-
-.subtab-btn {
-  padding: 10px 20px;
-  background: none;
-  border: none;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-}
-
-.subtab-btn:hover {
-  color: var(--primary);
-}
-
-.subtab-btn.active {
-  color: var(--primary);
-}
-
-.subtab-btn.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--primary);
-  border-radius: 2px;
 }
 
 /* Equipment Section */
@@ -1039,6 +1107,88 @@
     font-size: 14px;
   }
   
+  /* ============================================ */
+  /* SUB-TABS - PROGRESSIVE DISCLOSURE MOBILE */
+  /* ============================================ */
+  
+  .config-subtabs-wrapper {
+    margin-bottom: 16px;
+  }
+  
+  .mobile-subtab-toggle {
+    display: flex;
+  }
+  
+  .config-subtabs {
+    display: none;
+    flex-direction: column;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 4px;
+    margin-top: 4px;
+    box-shadow: var(--shadow-lg);
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    animation: slideDown 0.3s ease;
+    border-bottom: 1px solid var(--border-light);
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  .config-subtabs.open {
+    display: flex;
+  }
+  
+  .subtab-btn {
+    padding: 12px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    border-bottom-color: transparent;
+    justify-content: flex-start;
+    display: flex;
+    align-items: center;
+  }
+  
+  .subtab-btn:last-child {
+    border-bottom: none;
+  }
+  
+  .subtab-btn.active {
+    border-bottom-color: transparent;
+    background: var(--bg-base);
+  }
+  
+  .subtab-btn.active::after {
+    display: none;
+  }
+  
+  .subtab-btn .subtab-icon {
+    font-size: 18px;
+    margin-right: 10px;
+  }
+  
+  .subtab-btn .subtab-badge {
+    margin-left: auto;
+  }
+  
+  /* ============================================ */
+  /* END SUB-TABS MOBILE */
+  /* ============================================ */
+  
   .toggle-card-admain {
     flex-direction: column;
     text-align: center;
@@ -1106,26 +1256,6 @@
   .reset-config-btn {
     font-size: 13px;
     padding: 8px 16px;
-  }
-  
-  .config-subtabs {
-    gap: 4px;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: 2px;
-  }
-  
-  .config-subtabs::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .subtab-btn {
-    white-space: nowrap;
-    padding: 8px 14px;
-    font-size: 13px;
-    flex-shrink: 0;
   }
   
   .form-group-integrated {
@@ -1270,6 +1400,22 @@
     font-size: 13px;
   }
   
+  /* Sub-tabs mobile - compact */
+  .mobile-subtab-toggle {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  
+  .subtab-btn {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  
+  .subtab-btn .subtab-icon {
+    font-size: 16px;
+    margin-right: 8px;
+  }
+  
   .toggle-card-admain {
     padding: 16px;
   }
@@ -1378,17 +1524,6 @@
     justify-content: center;
     font-size: 12px;
     padding: 8px 14px;
-  }
-  
-  .config-subtabs {
-    gap: 3px;
-    margin-bottom: 16px;
-  }
-  
-  .subtab-btn {
-    font-size: 12px;
-    padding: 6px 10px;
-    min-width: auto;
   }
   
   .form-group-integrated {
@@ -1569,6 +1704,22 @@
     padding: 6px 10px;
   }
   
+  /* Sub-tabs - extra compact */
+  .mobile-subtab-toggle {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .subtab-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .subtab-btn .subtab-icon {
+    font-size: 14px;
+    margin-right: 6px;
+  }
+  
   .toggle-card-admain {
     padding: 12px;
   }
@@ -1626,11 +1777,6 @@
   
   .system-config-integrated h4 {
     font-size: 13px;
-  }
-  
-  .subtab-btn {
-    font-size: 10px;
-    padding: 4px 8px;
   }
   
   .form-group-integrated input,

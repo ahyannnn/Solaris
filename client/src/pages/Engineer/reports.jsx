@@ -253,7 +253,7 @@ const Reports = () => {
             </select>
           </div>
           <div className="search-group-engreports">
-            <FaSearch className="search-icon-engreports" />
+            
             <input
               type="text"
               placeholder="Search by reference or client..."

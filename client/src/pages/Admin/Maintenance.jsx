@@ -13,7 +13,13 @@ import {
   FaPowerOff,
   FaPlay,
   FaCog,
-  FaTimes
+  FaTimes,
+  FaChevronDown,
+  FaBox,
+  FaCalculator,
+  FaMoneyBillWave,
+  FaReceipt,
+  FaMobileAlt
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/maintenance.css';
@@ -23,6 +29,7 @@ const MaintenancePanel = () => {
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [activeMainTab, setActiveMainTab] = useState('maintenance');
+  const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
 
   // Maintenance Mode State
   const [isEnabled, setIsEnabled] = useState(false);
@@ -478,6 +485,18 @@ const MaintenancePanel = () => {
     return new Date(date).toLocaleString();
   };
 
+  // Get the current tab label for mobile toggle
+  const getSubTabLabel = () => {
+    const labels = {
+      equipment: 'Equipment Catalog',
+      calculations: 'Calculations',
+      financial: 'Financial',
+      taxes: 'Taxes',
+      apps: 'App Management'
+    };
+    return labels[activeConfigTab] || 'Select Tab';
+  };
+
   if (loading) {
     return (
       <>
@@ -502,7 +521,7 @@ const MaintenancePanel = () => {
 
       <div className="maintenance-panel-admain">
         <div className="panel-header-admain">
-          
+          <h1>Maintenance & System Configuration</h1>
           <p>Manage maintenance mode, system parameters, and equipment catalog</p>
         </div>
 
@@ -512,12 +531,14 @@ const MaintenancePanel = () => {
             className={`main-tab-btn-admain ${activeMainTab === 'maintenance' ? 'active-admain' : ''}`}
             onClick={() => setActiveMainTab('maintenance')}
           >
+            <FaTools className="tab-icon" />
             Maintenance Mode
           </button>
           <button
             className={`main-tab-btn-admain ${activeMainTab === 'systemconfig' ? 'active-admain' : ''}`}
             onClick={() => setActiveMainTab('systemconfig')}
           >
+            <FaCog className="tab-icon" />
             System Configuration
           </button>
         </div>
@@ -691,23 +712,42 @@ const MaintenancePanel = () => {
               </button>
             </div>
 
-            <div className="config-subtabs">
-              <button className={`subtab-btn ${activeConfigTab === 'equipment' ? 'active' : ''}`} onClick={() => setActiveConfigTab('equipment')}>
-                Equipment Catalog
+            {/* Sub-tabs with Progressive Disclosure */}
+            <div className="config-subtabs-wrapper">
+              {/* Mobile Toggle Button */}
+              <button 
+                className={`mobile-subtab-toggle ${isSubMenuOpen ? 'open' : ''}`}
+                onClick={() => setIsSubMenuOpen(!isSubMenuOpen)}
+                aria-label="Toggle configuration tabs"
+              >
+                <span className="subtab-label">{getSubTabLabel()}</span>
+                <FaChevronDown className={`toggle-arrow ${isSubMenuOpen ? 'open' : ''}`} />
               </button>
-              <button className={`subtab-btn ${activeConfigTab === 'calculations' ? 'active' : ''}`} onClick={() => setActiveConfigTab('calculations')}>
-                Calculations
-              </button>
-              <button className={`subtab-btn ${activeConfigTab === 'financial' ? 'active' : ''}`} onClick={() => setActiveConfigTab('financial')}>
-                Financial
-              </button>
-              <button className={`subtab-btn ${activeConfigTab === 'taxes' ? 'active' : ''}`} onClick={() => setActiveConfigTab('taxes')}>
-                Taxes
-              </button>
-              <button className={`subtab-btn ${activeConfigTab === 'apps' ? 'active' : ''}`} onClick={() => setActiveConfigTab('apps')}>
-                App Management
-              </button>
+
+              {/* Sub-tabs - Desktop & Mobile Dropdown */}
+              <div className={`config-subtabs ${isSubMenuOpen ? 'open' : ''}`}>
+                <button 
+                  className={`subtab-btn ${activeConfigTab === 'equipment' ? 'active' : ''}`} 
+                  onClick={() => { setActiveConfigTab('equipment'); setIsSubMenuOpen(false); }}
+                >
+                  <span className="subtab-icon"></span>
+                  Equipment Catalog
+                  <span className="subtab-badge">
+                    {Object.values(config.equipmentPrices || {}).reduce((acc, items) => acc + (items?.filter(i => i.isActive !== false).length || 0), 0)}
+                  </span>
+                </button>
+                
+                <button 
+                  className={`subtab-btn ${activeConfigTab === 'apps' ? 'active' : ''}`} 
+                  onClick={() => { setActiveConfigTab('apps'); setIsSubMenuOpen(false); }}
+                >
+                  <span className="subtab-icon"></span>
+                  App Management
+                </button>
+              </div>
             </div>
+
+            {/* Tab Content */}
             {activeConfigTab === 'equipment' && (
               <div className="equipment-catalog-integrated">
                 <div className="form-group-integrated">
@@ -759,72 +799,8 @@ const MaintenancePanel = () => {
               </div>
             )}
 
-            {activeConfigTab === 'calculations' && (
-              <div className="config-section-integrated">
-                <h3>System Calculation Parameters</h3>
-                <div className="form-row-integrated">
-                  <div className="form-group-integrated">
-                    <label>Average Sun Hours (hours/day)</label>
-                    <input type="number" step="0.1" value={config.systemCalculations?.averageSunHours || 4.5} onChange={(e) => updateNestedValue('systemCalculations.averageSunHours', parseFloat(e.target.value))} />
-                  </div>
-                  <div className="form-group-integrated">
-                    <label>System Losses (%)</label>
-                    <input type="number" step="0.01" value={((config.systemCalculations?.systemLosses || 0.2) * 100).toFixed(1)} onChange={(e) => updateNestedValue('systemCalculations.systemLosses', parseFloat(e.target.value) / 100)} />
-                  </div>
-                </div>
-                <div className="form-row-integrated">
-                  <div className="form-group-integrated">
-                    <label>Derating Factor</label>
-                    <input type="number" step="0.01" value={config.systemCalculations?.deratingFactor || 0.77} onChange={(e) => updateNestedValue('systemCalculations.deratingFactor', parseFloat(e.target.value))} />
-                  </div>
-                  <div className="form-group-integrated">
-                    <label>Panel Efficiency (%)</label>
-                    <input type="number" step="0.01" value={((config.systemCalculations?.panelEfficiency || 0.18) * 100).toFixed(1)} onChange={(e) => updateNestedValue('systemCalculations.panelEfficiency', parseFloat(e.target.value) / 100)} />
-                  </div>
-                </div>
-                <button className="save-config-btn" onClick={() => handleConfigSave({ systemCalculations: config.systemCalculations })} disabled={savingConfig}>
-                  <FaSave /> Save Calculations
-                </button>
-              </div>
-            )}
+            
 
-            {activeConfigTab === 'financial' && (
-              <div className="config-section-integrated">
-                <h3>Financial Parameters</h3>
-                <div className="form-row-integrated">
-                  <div className="form-group-integrated">
-                    <label>Electricity Rate (₱/kWh)</label>
-                    <input type="number" step="0.5" value={config.financialParams?.electricityRate || 11.5} onChange={(e) => updateNestedValue('financialParams.electricityRate', parseFloat(e.target.value))} />
-                  </div>
-                  <div className="form-group-integrated">
-                    <label>Inflation Rate (%)</label>
-                    <input type="number" step="0.01" value={((config.financialParams?.inflationRate || 0.03) * 100).toFixed(1)} onChange={(e) => updateNestedValue('financialParams.inflationRate', parseFloat(e.target.value) / 100)} />
-                  </div>
-                </div>
-                <button className="save-config-btn" onClick={() => handleConfigSave({ financialParams: config.financialParams })} disabled={savingConfig}>
-                  <FaSave /> Save Financial Settings
-                </button>
-              </div>
-            )}
-
-            {activeConfigTab === 'taxes' && (
-              <div className="config-section-integrated">
-                <h3>Taxes and Fees</h3>
-                <div className="form-row-integrated">
-                  <div className="form-group-integrated">
-                    <label>VAT Rate (%)</label>
-                    <input type="number" step="0.01" value={((config.taxesAndFees?.vatRate || 0.12) * 100).toFixed(1)} onChange={(e) => updateNestedValue('taxesAndFees.vatRate', parseFloat(e.target.value) / 100)} />
-                  </div>
-                  <div className="form-group-integrated">
-                    <label>Permit Fee (₱)</label>
-                    <input type="number" value={config.taxesAndFees?.permitFee || 3000} onChange={(e) => updateNestedValue('taxesAndFees.permitFee', parseFloat(e.target.value))} />
-                  </div>
-                </div>
-                <button className="save-config-btn" onClick={() => handleConfigSave({ taxesAndFees: config.taxesAndFees })} disabled={savingConfig}>
-                  <FaSave /> Save Taxes & Fees
-                </button>
-              </div>
-            )}
             {activeConfigTab === 'apps' && (
               <div className="config-section-integrated">
                 <AppManagement

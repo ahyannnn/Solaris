@@ -172,7 +172,7 @@ const EngineerProject = () => {
       <div className="engineer-project-container">
         <div className="project-header-engineerproject">
           <div>
-            <h1>My Projects</h1>
+           
             <p>View and track your assigned solar installation projects</p>
           </div>
         </div>
@@ -192,7 +192,7 @@ const EngineerProject = () => {
             </select>
           </div>
           <div className="search-group-engineerproject">
-            <FaSearch className="search-icon" />
+            
             <input
               type="text"
               placeholder="Search by project name, reference or client..."

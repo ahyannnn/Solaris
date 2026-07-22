@@ -265,7 +265,7 @@ const EngineerDashboard = () => {
         {/* Welcome Section */}
         <div className="engdas-welcome-section">
           <div className="engdas-welcome-content">
-            <h1 className="engdas-page-title">Dashboard</h1>
+            
             <p className="engdas-welcome-greeting">Welcome back, {userName || 'Engineer'}!</p>
           </div>
           <div className="engdas-welcome-actions">

@@ -276,6 +276,7 @@ const Dashboard = () => {
           items: [
             { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/app/admin' },
             { icon: <FaClipboardList />, label: 'Site Assessments', path: '/app/admin/siteassessment' },
+            { icon: <FaFileInvoiceDollar />, label: 'Billing', path: '/app/admin/billing' },
             { icon: <FaProjectDiagram />, label: 'Projects', path: '/app/admin/project' },
             { icon: <FaMicrochip />, label: 'IoT Devices', path: '/app/admin/iotdevice' },
           ]
@@ -285,11 +286,11 @@ const Dashboard = () => {
           icon: <FaTasks />,
           items: [
             { icon: <FaUsers />, label: 'User Management', path: '/app/admin/usermanagement' },
-            { icon: <FaFileInvoiceDollar />, label: 'Billing', path: '/app/admin/billing' },
+            
             { icon: <FaChartBar />, label: 'Reports', path: '/app/admin/reports' },
             { icon: <FaCalendarAlt />, label: 'Schedule', path: '/app/admin/schedule' },
             { icon: <FaTools />, label: 'Maintenance', path: '/app/admin/maintenance' },
-            { icon: <FaCog />, label: 'Settings', path: '/app/admin/settings' },
+            
           ]
         },
         {
@@ -319,7 +320,7 @@ const Dashboard = () => {
           items: [
             { icon: <FaMicrochip />, label: 'Device Data', path: '/app/engineer/device' },
             { icon: <FaCalendarAlt />, label: 'Schedule', path: '/app/engineer/schedule' },
-            { icon: <FaUser />, label: 'Profile', path: '/app/engineer/profile' },
+            
           ]
         },
         {

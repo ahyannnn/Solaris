@@ -365,14 +365,14 @@ const IoTDevice = () => {
       <div className="iot-device-engineer-iotdevicead">
         <div className="iot-header-iotdevicead">
           <div>
-            <h1>My IoT Devices</h1>
+           
             <p>Monitor environmental data from your deployed devices</p>
           </div>
         </div>
 
         <div className="iot-filters-iotdevicead">
           <div className="search-group-iotdevicead">
-            <FaSearch className="search-icon-iotdevicead" />
+            
             <input
               type="text"
               placeholder="Search by device ID, name, or client..."

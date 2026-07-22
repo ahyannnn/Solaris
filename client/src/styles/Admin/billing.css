@@ -1,4 +1,4 @@
-/* styles/Admin/billing.css - Clean Modern Design without Cards */
+/* styles/Admin/billing.css - Clean Modern Design with Progressive Disclosure */
 
 :root {
   --primary: #2563EB;
@@ -33,7 +33,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 16px;
 }
@@ -72,55 +72,99 @@
   background: var(--primary-hover);
 }
 
-/* Tabs & Controls - Combined Row */
-.billing-controls {
-  display: flex;
+/* ============================================ */
+/* PROGRESSIVE DISCLOSURE TABS */
+/* ============================================ */
+
+.billing-tabs-wrapper {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+/* Mobile Tab Toggle */
+.mobile-tab-toggle {
+  display: none;
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+  justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-  border-bottom: 1px solid var(--border-light);
-  padding-bottom: 0;
-  flex-wrap: wrap;
+}
+
+.mobile-tab-toggle:hover {
+  border-color: var(--border-medium);
+}
+
+.mobile-tab-toggle .tab-label {
+  text-transform: capitalize;
+}
+
+.mobile-tab-toggle .toggle-arrow {
+  font-size: 14px;
+  transition: transform 0.3s ease;
+  color: var(--text-muted);
+}
+
+.mobile-tab-toggle .toggle-arrow.open {
+  transform: rotate(180deg);
 }
 
 /* Tabs */
 .billing-tabs {
   display: flex;
   gap: 4px;
-  flex: 0 0 auto;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.billing-tabs::-webkit-scrollbar {
-  display: none;
+  background: var(--bg-card);
+  padding: 4px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-light);
+  transition: all 0.3s ease;
+  overflow: hidden;
 }
 
 .tab-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 18px;
+  padding: 12px 20px;
   background: none;
   border: none;
-  border-bottom: 3px solid transparent;
-  font-size: 13px;
+  border-radius: var(--radius-lg);
+  font-size: 14px;
   font-weight: 500;
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
   white-space: nowrap;
+  flex: 1;
+  justify-content: center;
+}
+
+.tab-btn .tab-icon {
+  font-size: 16px;
 }
 
 .tab-btn:hover {
   color: var(--text-primary);
+  background: var(--bg-base);
 }
 
 .tab-btn.active {
   color: var(--primary);
-  border-bottom-color: var(--primary);
+  background: var(--bg-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.tab-btn.active .tab-badge {
+  background: var(--primary);
+  color: white;
 }
 
 .tab-badge {
@@ -133,20 +177,71 @@
   transition: all 0.2s;
 }
 
-.tab-btn.active .tab-badge {
-  background: var(--primary);
-  color: white;
+/* ============================================ */
+/* QUICK STATS - Progressive Disclosure */
+/* ============================================ */
+
+.quick-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  transition: all 0.3s ease;
 }
 
-/* Filters & Search - Right side */
+.quick-stats:hover {
+  border-color: var(--border-medium);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-value.pending {
+  color: var(--warning);
+}
+
+.stat-value.warning {
+  color: var(--danger);
+}
+
+.stat-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--border-light);
+}
+
+/* ============================================ */
+/* FILTERS SECTION */
+/* ============================================ */
+
 .filters-section {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex: 1;
-  justify-content: flex-end;
+  margin-bottom: 20px;
   flex-wrap: wrap;
-  padding-bottom: 4px;
 }
 
 .filter-group {
@@ -154,8 +249,19 @@
   flex: 0 0 auto;
 }
 
+.filter-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 14px;
+  pointer-events: none;
+}
+
 .filter-group select {
   padding: 10px 14px;
+  padding-left: 36px;
   padding-right: 32px;
   background: var(--bg-card);
   border: 1px solid var(--border-light);
@@ -163,7 +269,7 @@
   font-size: 14px;
   color: var(--text-primary);
   cursor: pointer;
-  min-width: 150px;
+  min-width: 160px;
   transition: all 0.2s;
   height: 42px;
   appearance: none;
@@ -189,7 +295,7 @@
 
 .search-group {
   flex: 1;
-  max-width: 300px;
+  max-width: 320px;
   min-width: 180px;
   position: relative;
 }
@@ -228,7 +334,29 @@
   font-size: 14px;
 }
 
-/* Table Container */
+/* ============================================ */
+/* TAB CONTENT */
+/* ============================================ */
+
+.tab-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================ */
+/* TABLE */
+/* ============================================ */
+
 .payments-table-container {
   background: var(--bg-card);
   border-radius: var(--radius-xl);
@@ -236,6 +364,11 @@
   overflow: hidden;
   margin-bottom: 24px;
   box-shadow: var(--shadow-sm);
+}
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .payments-table {
@@ -300,7 +433,10 @@
   color: var(--text-muted);
 }
 
-/* Status Badges - Plain Text */
+/* ============================================ */
+/* BADGES - Plain Text */
+/* ============================================ */
+
 .status-badge {
   display: inline-block;
   padding: 4px 12px;
@@ -312,56 +448,6 @@
   color: var(--text-primary) !important;
 }
 
-.status-badge.pending { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.status-badge.for-verification { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.status-badge.paid { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.status-badge.partial { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.status-badge.failed { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.status-badge.overdue { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.status-badge.waiting { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.status-badge.verified { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.status-badge.rejected { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.status-badge.scheduled { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.status-badge.deployed { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.status-badge.collecting { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-
-/* Invoice Type Badges - Plain Text */
 .invoice-type {
   display: inline-block;
   padding: 2px 10px;
@@ -373,28 +459,6 @@
   color: var(--text-primary) !important;
 }
 
-.invoice-type.initial { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.invoice-type.progress { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.invoice-type.final { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.invoice-type.full { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.invoice-type.additional { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-
-/* Gateway Badges - Plain Text */
 .gateway-badge {
   display: inline-block;
   padding: 2px 10px;
@@ -406,20 +470,30 @@
   color: var(--text-primary) !important;
 }
 
-.gateway-badge.paymongo { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.gateway-badge.cash { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.gateway-badge.manual { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
+.verified-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 600;
+  background: none !important;
+  color: var(--text-primary) !important;
 }
 
-/* Receipt */
+.failed-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 600;
+  background: none !important;
+  color: var(--text-primary) !important;
+}
+
+/* ============================================ */
+/* RECEIPT */
+/* ============================================ */
+
 .receipt-cell {
   text-align: center;
 }
@@ -442,33 +516,10 @@
   color: var(--text-muted);
 }
 
-/* Verified Badges - Plain Text */
-.verified-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 30px;
-  font-size: 11px;
-  font-weight: 600;
-  background: none !important;
-  color: var(--text-primary) !important;
-}
+/* ============================================ */
+/* ACTION DROPDOWN */
+/* ============================================ */
 
-.verified-badge.auto-verified {
-  background: none !important;
-  color: var(--text-primary) !important;
-}
-
-.failed-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 30px;
-  font-size: 11px;
-  font-weight: 600;
-  background: none !important;
-  color: var(--text-primary) !important;
-}
-
-/* Action Dropdown - NO CLIPPING */
 .action-dropdown-container {
   position: relative;
   display: inline-block;
@@ -563,7 +614,10 @@
 .dropdown-item.warning:hover { background: var(--warning); color: white; }
 .dropdown-item.info:hover { background: var(--primary); color: white; }
 
-/* Transaction Type - Plain Text */
+/* ============================================ */
+/* TRANSACTION TYPE */
+/* ============================================ */
+
 .transaction-type {
   display: inline-block;
   padding: 2px 10px;
@@ -574,16 +628,10 @@
   color: var(--text-primary) !important;
 }
 
-.transaction-type.pre { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
-.transaction-type.project { 
-  background: none !important; 
-  color: var(--text-primary) !important; 
-}
+/* ============================================ */
+/* BANK TRANSFER */
+/* ============================================ */
 
-/* Bank Transfer Table */
 .customer-cell small {
   display: block;
   font-size: 12px;
@@ -610,7 +658,10 @@
   background: #FEE2E2 !important;
 }
 
-/* Pagination */
+/* ============================================ */
+/* PAGINATION */
+/* ============================================ */
+
 .pagination {
   display: flex;
   align-items: center;
@@ -683,7 +734,10 @@
   color: white;
 }
 
-/* Modal */
+/* ============================================ */
+/* MODALS */
+/* ============================================ */
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -1345,11 +1399,11 @@
   }
   
   .filter-group select {
-    min-width: 130px;
+    min-width: 140px;
   }
   
   .search-group {
-    max-width: 250px;
+    max-width: 260px;
     min-width: 150px;
   }
 }
@@ -1374,47 +1428,99 @@
     justify-content: center;
   }
 
-  /* Controls - Stack vertically on mobile */
-  .billing-controls {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding-bottom: 0;
-    border-bottom: 1px solid var(--border-light);
-    margin-bottom: 20px;
+  /* ============================================ */
+  /* PROGRESSIVE DISCLOSURE - MOBILE */
+  /* ============================================ */
+
+  .mobile-tab-toggle {
+    display: flex;
   }
 
-  /* Tabs - Horizontal scroll */
   .billing-tabs {
-    flex: 1;
-    gap: 2px;
-    padding-bottom: 0;
-    border-bottom: 1px solid var(--border-light);
-    margin-bottom: 0;
+    display: none;
+    flex-direction: column;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 4px;
+    margin-top: 4px;
+    box-shadow: var(--shadow-lg);
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .billing-tabs.open {
+    display: flex;
   }
 
   .tab-btn {
-    padding: 8px 12px;
-    font-size: 12px;
+    padding: 12px 16px;
+    font-size: 14px;
+    flex: none;
+    justify-content: flex-start;
+    border-radius: var(--radius-md);
   }
 
-  .tab-badge {
-    font-size: 9px;
-    padding: 1px 6px;
+  .tab-btn .tab-icon {
+    font-size: 18px;
   }
 
-  /* Filters & Search - Full width below tabs */
+  /* ============================================ */
+  /* QUICK STATS - MOBILE */
+  /* ============================================ */
+
+  .quick-stats {
+    padding: 10px 14px;
+    gap: 10px;
+    border-radius: var(--radius-lg);
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .quick-stats::-webkit-scrollbar {
+    display: none;
+  }
+
+  .stat-item {
+    flex: 0 0 auto;
+  }
+
+  .stat-value {
+    font-size: 16px;
+  }
+
+  .stat-divider {
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  /* ============================================ */
+  /* FILTERS - MOBILE */
+  /* ============================================ */
+
   .filters-section {
-    flex: 1;
-    justify-content: stretch;
+    flex-direction: column;
     gap: 8px;
-    padding-bottom: 4px;
-    flex-wrap: wrap;
   }
 
   .filter-group {
-    flex: 1;
-    min-width: 120px;
+    width: 100%;
   }
 
   .filter-group select {
@@ -1422,34 +1528,33 @@
     min-width: unset;
     height: 40px;
     font-size: 13px;
-    padding: 8px 12px;
-    padding-right: 32px;
   }
 
   .search-group {
-    flex: 2;
+    width: 100%;
     max-width: 100%;
-    min-width: 150px;
+    min-width: unset;
   }
-  
+
   .search-group input {
     height: 40px;
     font-size: 13px;
-    padding: 8px 12px 8px 38px;
   }
 
-  .search-group .search-icon {
-    font-size: 14px;
-    left: 12px;
-  }
+  /* ============================================ */
+  /* TABLE TO CARDS - MOBILE */
+  /* ============================================ */
 
-  /* Table to Cards on Mobile */
   .payments-table-container {
     border-radius: var(--radius-lg);
     overflow: visible;
     background: transparent;
     border: none;
     box-shadow: none;
+  }
+
+  .table-responsive {
+    overflow-x: visible;
   }
 
   .payments-table {
@@ -1513,39 +1618,6 @@
     padding-bottom: 0;
   }
 
-  /* Individual column alignments - NOT all right aligned */
-  .payments-table tbody tr td[data-label="Reference"] {
-    justify-content: flex-start;
-  }
-  
-  .payments-table tbody tr td[data-label="Reference"] .ref-cell {
-    font-size: 13px;
-  }
-
-  .payments-table tbody tr td[data-label="Customer"] {
-    justify-content: flex-start;
-  }
-
-  .payments-table tbody tr td[data-label="Amount"] {
-    justify-content: flex-start;
-  }
-  
-  .payments-table tbody tr td[data-label="Amount"] .amount {
-    font-size: 14px;
-  }
-
-  .payments-table tbody tr td[data-label="Status"] {
-    justify-content: center;
-  }
-
-  .payments-table tbody tr td[data-label="Date"] {
-    justify-content: flex-start;
-  }
-
-  .payments-table tbody tr td[data-label="Type"] {
-    justify-content: flex-start;
-  }
-
   .payments-table tbody tr td[data-label="Actions"] {
     justify-content: flex-end;
   }
@@ -1560,7 +1632,10 @@
     min-width: 160px;
   }
 
-  /* Modal */
+  /* ============================================ */
+  /* MODAL - MOBILE */
+  /* ============================================ */
+
   .modal-content {
     max-width: 100%;
     margin: 16px;
@@ -1596,6 +1671,10 @@
     grid-template-columns: 1fr;
   }
 
+  /* ============================================ */
+  /* PAGINATION - MOBILE */
+  /* ============================================ */
+
   .pagination {
     flex-direction: column;
     align-items: center;
@@ -1626,52 +1705,30 @@
     padding: 10px 16px;
   }
 
-  /* Controls */
-  .billing-controls {
-    gap: 6px;
-  }
-
-  /* Tabs */
-  .tab-btn {
-    padding: 6px 10px;
-    font-size: 11px;
-  }
-
-  /* Filters */
-  .filters-section {
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .filter-group {
-    width: 100%;
-  }
-
-  .filter-group select {
-    height: 38px;
-    font-size: 13px;
-  }
-
-  .search-group {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .search-group input {
-    height: 38px;
-    font-size: 13px;
-    padding: 8px 12px 8px 36px;
-  }
-
-  .search-group .search-icon {
+  .mobile-tab-toggle {
+    padding: 12px 14px;
     font-size: 14px;
-    left: 12px;
   }
 
-  /* Table Cards */
+  .tab-btn {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .tab-btn .tab-icon {
+    font-size: 16px;
+  }
+
+  .stat-value {
+    font-size: 14px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
   .payments-table tbody tr {
     padding: 12px;
-    margin-bottom: 10px;
   }
 
   .payments-table tbody tr td {
@@ -1681,51 +1738,6 @@
 
   .payments-table tbody tr td::before {
     font-size: 11px;
-  }
-
-  .payments-table tbody tr td:first-child {
-    padding-top: 0;
-  }
-
-  .payments-table tbody tr td:last-child {
-    padding-bottom: 0;
-  }
-
-  /* Individual column alignments on small screens */
-  .payments-table tbody tr td[data-label="Reference"] {
-    justify-content: flex-start;
-  }
-
-  .payments-table tbody tr td[data-label="Reference"] .ref-cell {
-    font-size: 12px;
-  }
-
-  .payments-table tbody tr td[data-label="Customer"] {
-    justify-content: flex-start;
-  }
-
-  .payments-table tbody tr td[data-label="Amount"] {
-    justify-content: flex-start;
-  }
-
-  .payments-table tbody tr td[data-label="Amount"] .amount {
-    font-size: 13px;
-  }
-
-  .payments-table tbody tr td[data-label="Status"] {
-    justify-content: center;
-  }
-
-  .payments-table tbody tr td[data-label="Date"] {
-    justify-content: flex-start;
-  }
-
-  .payments-table tbody tr td[data-label="Type"] {
-    justify-content: flex-start;
-  }
-
-  .payments-table tbody tr td[data-label="Actions"] {
-    justify-content: flex-end;
   }
 
   .status-badge {
@@ -1743,7 +1755,6 @@
     padding: 1px 8px;
   }
 
-  /* Dropdown */
   .action-dropdown-toggle {
     padding: 4px 10px;
     font-size: 11px;
@@ -1751,7 +1762,7 @@
   }
 
   .action-dropdown-menu {
-    min-width: 160px;
+    min-width: 150px;
   }
 
   .dropdown-item {
@@ -1759,11 +1770,8 @@
     font-size: 12px;
   }
 
-  /* Modal */
   .modal-content {
     padding: 16px;
-    margin: 12px;
-    border-radius: var(--radius-lg);
   }
 
   .modal-content h3 {
@@ -1772,10 +1780,6 @@
 
   .modal-body {
     max-height: 50vh;
-  }
-
-  .modal-actions {
-    padding-top: 12px;
   }
 
   .modal-actions .btn-cancel,
@@ -1795,11 +1799,6 @@
     padding: 6px 0;
   }
 
-  .detail-row span,
-  .detail-row strong {
-    font-size: 13px;
-  }
-
   .detail-section h4 {
     font-size: 13px;
   }
@@ -1815,7 +1814,6 @@
     font-size: 13px;
   }
 
-  /* Pagination */
   .pagination-info {
     font-size: 12px;
   }
@@ -1852,8 +1850,8 @@
   }
 
   .tab-btn {
-    padding: 4px 8px;
-    font-size: 10px;
+    padding: 8px 12px;
+    font-size: 12px;
   }
 
   .payments-table tbody tr {
@@ -1867,14 +1865,6 @@
 
   .payments-table tbody tr td::before {
     font-size: 10px;
-  }
-
-  .payments-table tbody tr td[data-label="Reference"] .ref-cell {
-    font-size: 11px;
-  }
-
-  .payments-table tbody tr td[data-label="Amount"] .amount {
-    font-size: 12px;
   }
 
   .status-badge {
@@ -1899,4 +1889,4 @@
     height: 28px;
     font-size: 11px;
   }
-} 
+}

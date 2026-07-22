@@ -129,7 +129,7 @@ const EngineerSchedule = () => {
 
       <div className="engineer-schedule-container-esch">
         <div className="schedule-header-esch">
-          <h1>My Schedule</h1>
+          
           <p>View your upcoming site visits and assessments</p>
         </div>
 
@@ -146,7 +146,7 @@ const EngineerSchedule = () => {
             </select>
           </div>
           <div className="search-group-esch">
-            <FaSearch className="search-icon-esch" />
+            
             <input
               type="text"
               placeholder="Search by title or client..."

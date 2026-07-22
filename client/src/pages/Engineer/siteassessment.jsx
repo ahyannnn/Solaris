@@ -1685,7 +1685,7 @@ const MyAssessments = () => {
         <Helmet><title>My Assessments | Engineer | SOLARIS</title></Helmet>
         <div className="my-assessments-enad">
           <div className="assessments-header-enad">
-            <h1>My Assessments</h1>
+            
             <p>Manage free quotes and site assessments assigned to you</p>
           </div>
 

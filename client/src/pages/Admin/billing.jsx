@@ -1,4 +1,4 @@
-// pages/Admin/Billing.jsx - Redesigned without cards
+// pages/Admin/Billing.jsx - Redesigned with Progressive Disclosure Tabs and Responsive UI
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -24,7 +24,12 @@ import {
   FaUser,
   FaFileInvoice,
   FaBuilding,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaChartBar,
+  FaWallet,
+  FaCreditCard,
+  FaArrowRight,
+  FaFilter
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/billing.css';
@@ -33,6 +38,7 @@ const AdminBilling = () => {
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pre-assessments');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Pre-assessment state
   const [assessments, setAssessments] = useState([]);
@@ -1081,7 +1087,7 @@ const AdminBilling = () => {
   // ============ PAGINATION HELPERS ============
   const getPageNumbers = (totalPages, currentPage) => {
     const pages = [];
-    const maxVisible = 5;
+    const maxVisible = 3;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
     let endPage = Math.min(totalPages, startPage + maxVisible - 1);
 
@@ -1138,37 +1144,63 @@ const AdminBilling = () => {
             
             <p>Manage invoices, verify payments, and track all transactions</p>
           </div>
-          {activeTab === 'solar-invoices' && (
-            <button className="create-invoice-btn" onClick={() => { setModalMode('create'); fetchProjects(); setShowInvoiceModal(true); }}>
-              <FaPlus /> Create Solar Invoice
+          
+        </div>
+
+        {/* Progressive Disclosure Tabs - Mobile Hamburger */}
+        <div className="billing-tabs-wrapper">
+          <button 
+            className={`mobile-tab-toggle ${isMobileMenuOpen ? 'active' : ''}`}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle tabs menu"
+          >
+            <span className="tab-label">{activeTab.replace('-', ' ').toUpperCase()}</span>
+            <FaChevronDown className={`toggle-arrow ${isMobileMenuOpen ? 'open' : ''}`} />
+          </button>
+          
+          <div className={`billing-tabs ${isMobileMenuOpen ? 'open' : ''}`}>
+            <button 
+              className={`tab-btn ${activeTab === 'pre-assessments' ? 'active' : ''}`} 
+              onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); setIsMobileMenuOpen(false); }}
+            >
+              <FaFileInvoice className="tab-icon" />
+              <span>Pre-Assessments</span>
+              <span className="tab-badge">{stats.totalPreAssessments}</span>
             </button>
-          )}
+            <button 
+              className={`tab-btn ${activeTab === 'solar-invoices' ? 'active' : ''}`} 
+              onClick={() => { setActiveTab('solar-invoices'); setFilter('all'); setCurrentPage(1); setIsMobileMenuOpen(false); }}
+            >
+              <FaReceipt className="tab-icon" />
+              <span>Solar Invoices</span>
+              <span className="tab-badge">{stats.totalSolarInvoices}</span>
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'bank-transfers' ? 'active' : ''}`} 
+              onClick={() => { setActiveTab('bank-transfers'); setBankTransferFilter('waiting_verification'); setBankTransferPage(1); setIsMobileMenuOpen(false); }}
+            >
+              <FaUniversity className="tab-icon" />
+              <span>Bank Transfers</span>
+              {bankTransferStats?.waiting_verification > 0 && (
+                <span className="tab-badge">{bankTransferStats.waiting_verification}</span>
+              )}
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'transactions' ? 'active' : ''}`} 
+              onClick={() => { setActiveTab('transactions'); setFilter('all'); setCurrentPage(1); setTransactionPage(1); setIsMobileMenuOpen(false); }}
+            >
+              <FaChartBar className="tab-icon" />
+              <span>Transactions</span>
+            </button>
+          </div>
         </div>
 
-        {/* Tabs */}
-        <div className="billing-tabs">
-          <button className={`tab-btn ${activeTab === 'pre-assessments' ? 'active' : ''}`} onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); }}>
-            Pre-Assessments
-            <span className="tab-badge">{stats.totalPreAssessments}</span>
-          </button>
-          <button className={`tab-btn ${activeTab === 'solar-invoices' ? 'active' : ''}`} onClick={() => { setActiveTab('solar-invoices'); setFilter('all'); setCurrentPage(1); }}>
-            Solar Invoices
-            <span className="tab-badge">{stats.totalSolarInvoices}</span>
-          </button>
-          <button className={`tab-btn ${activeTab === 'bank-transfers' ? 'active' : ''}`} onClick={() => { setActiveTab('bank-transfers'); setBankTransferFilter('waiting_verification'); setBankTransferPage(1); }}>
-            <FaUniversity /> Bank Transfers
-            {bankTransferStats?.waiting_verification > 0 && (
-              <span className="tab-badge">{bankTransferStats.waiting_verification}</span>
-            )}
-          </button>
-          <button className={`tab-btn ${activeTab === 'transactions' ? 'active' : ''}`} onClick={() => { setActiveTab('transactions'); setFilter('all'); setCurrentPage(1); setTransactionPage(1); }}>
-            Transactions
-          </button>
-        </div>
+        
 
-        {/* Filters - REMOVED SEARCH ICON */}
+        {/* Filters - With progressive disclosure */}
         <div className="filters-section">
           <div className="filter-group">
+            
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
               <option value="all">All Status</option>
               {activeTab === 'pre-assessments' ? (
@@ -1200,6 +1232,7 @@ const AdminBilling = () => {
             </select>
           </div>
           <div className="search-group">
+            
             <input 
               type="text" 
               placeholder="Search..." 
@@ -1209,96 +1242,102 @@ const AdminBilling = () => {
           </div>
         </div>
 
+        {/* ============================================ */}
+        {/* TAB CONTENT - Progressive Disclosure */}
+        {/* ============================================ */}
+
         {/* PRE-ASSESSMENTS TABLE */}
         {activeTab === 'pre-assessments' && (
-          <>
+          <div className="tab-content active">
             <div className="payments-table-container">
-              <table className="payments-table">
-                <thead>
-                  <tr>
-                    <th>Booking Ref</th>
-                    <th>Invoice</th>
-                    <th>Client</th>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Gateway</th>
-                    <th>Payment</th>
-                    <th>Assessment</th>
-                    <th>Receipt</th>
-                    <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {assessments.length === 0 ? (
-                    <tr><td colSpan="10" className="empty-state">No pre-assessments found</td></tr>
-                  ) : (
-                    assessments.map(assessment => {
-                      const actions = getPreAssessmentActions(assessment);
-                      const isOpen = openDropdownId === assessment._id;
-                      const autoVerified = (assessment.paymentGateway === 'paymongo' || assessment.autoVerified === true) && assessment.paymentStatus === 'paid';
+              <div className="table-responsive">
+                <table className="payments-table">
+                  <thead>
+                    <tr>
+                      <th>Booking Ref</th>
+                      <th>Invoice</th>
+                      <th>Client</th>
+                      <th>Date</th>
+                      <th>Amount</th>
+                      <th>Gateway</th>
+                      <th>Payment</th>
+                      <th>Assessment</th>
+                      <th>Receipt</th>
+                      <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {assessments.length === 0 ? (
+                      <tr><td colSpan="10" className="empty-state">No pre-assessments found</td></tr>
+                    ) : (
+                      assessments.map(assessment => {
+                        const actions = getPreAssessmentActions(assessment);
+                        const isOpen = openDropdownId === assessment._id;
+                        const autoVerified = (assessment.paymentGateway === 'paymongo' || assessment.autoVerified === true) && assessment.paymentStatus === 'paid';
 
-                      return (
-                        <tr key={assessment._id}>
-                          <td className="ref-cell">{assessment.bookingReference}</td>
-                          <td>{assessment.invoiceNumber}</td>
-                          <td><strong>{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</strong></td>
-                          <td>{formatDate(assessment.bookedAt)}</td>
-                          <td className="amount">{formatCurrency(assessment.assessmentFee)}</td>
-                          <td>{getGatewayBadge(assessment)}</td>
-                          <td>{getPaymentStatusBadge(assessment.paymentStatus)}</td>
-                          <td>{getAssessmentStatusBadge(assessment.assessmentStatus)}</td>
-                          <td className="receipt-cell">
-                            {assessment.receiptUrl ? (
-                              <a href={assessment.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link" onClick={(e) => e.stopPropagation()}>
-                                <FaReceipt /> View
-                              </a>
-                            ) : (
-                              <span className="no-receipt">—</span>
-                            )}
-                          </td>
-                          <td style={{ textAlign: 'center', position: 'relative' }}>
-                            {autoVerified ? (
-                              <span className="verified-badge auto-verified">Auto-Verified</span>
-                            ) : assessment.paymentMethod === 'cash' && assessment.paymentStatus === 'paid' ? (
-                              <span className="verified-badge">Verified</span>
-                            ) : assessment.paymentStatus === 'failed' ? (
-                              <span className="failed-badge">Failed</span>
-                            ) : (
-                              <div className="action-dropdown-container">
-                                <button 
-                                  className="action-dropdown-toggle" 
-                                  ref={el => buttonRefs.current[assessment._id] = el}
-                                  onClick={(e) => handleDropdownClick(e, assessment._id)}
-                                >
-                                  Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
-                                </button>
-                                {isOpen && (
-                                  <div 
-                                    className="action-dropdown-menu"
-                                    ref={dropdownRef}
-                                    style={{
-                                      position: 'fixed',
-                                      top: dropdownPosition.top,
-                                      right: dropdownPosition.right,
-                                      zIndex: 9999,
-                                    }}
+                        return (
+                          <tr key={assessment._id}>
+                            <td data-label="Reference" className="ref-cell">{assessment.bookingReference}</td>
+                            <td data-label="Invoice">{assessment.invoiceNumber}</td>
+                            <td data-label="Customer"><strong>{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</strong></td>
+                            <td data-label="Date">{formatDate(assessment.bookedAt)}</td>
+                            <td data-label="Amount" className="amount">{formatCurrency(assessment.assessmentFee)}</td>
+                            <td data-label="Gateway">{getGatewayBadge(assessment)}</td>
+                            <td data-label="Payment">{getPaymentStatusBadge(assessment.paymentStatus)}</td>
+                            <td data-label="Assessment">{getAssessmentStatusBadge(assessment.assessmentStatus)}</td>
+                            <td data-label="Receipt" className="receipt-cell">
+                              {assessment.receiptUrl ? (
+                                <a href={assessment.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link" onClick={(e) => e.stopPropagation()}>
+                                  <FaReceipt /> View
+                                </a>
+                              ) : (
+                                <span className="no-receipt">—</span>
+                              )}
+                            </td>
+                            <td data-label="Actions" style={{ textAlign: 'center', position: 'relative' }}>
+                              {autoVerified ? (
+                                <span className="verified-badge auto-verified">Auto-Verified</span>
+                              ) : assessment.paymentMethod === 'cash' && assessment.paymentStatus === 'paid' ? (
+                                <span className="verified-badge">Verified</span>
+                              ) : assessment.paymentStatus === 'failed' ? (
+                                <span className="failed-badge">Failed</span>
+                              ) : (
+                                <div className="action-dropdown-container">
+                                  <button 
+                                    className="action-dropdown-toggle" 
+                                    ref={el => buttonRefs.current[assessment._id] = el}
+                                    onClick={(e) => handleDropdownClick(e, assessment._id)}
                                   >
-                                    {actions.map((action, idx) => (
-                                      <button key={idx} className={`dropdown-item ${action.color || ''}`} onClick={action.action}>
-                                        <span>{action.label}</span>
-                                      </button>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                                    Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
+                                  </button>
+                                  {isOpen && (
+                                    <div 
+                                      className="action-dropdown-menu"
+                                      ref={dropdownRef}
+                                      style={{
+                                        position: 'fixed',
+                                        top: dropdownPosition.top,
+                                        right: dropdownPosition.right,
+                                        zIndex: 9999,
+                                      }}
+                                    >
+                                      {actions.map((action, idx) => (
+                                        <button key={idx} className={`dropdown-item ${action.color || ''}`} onClick={action.action}>
+                                          <span>{action.label}</span>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {totalPages > 1 && (
@@ -1327,97 +1366,99 @@ const AdminBilling = () => {
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
 
         {/* SOLAR INVOICES TABLE */}
         {activeTab === 'solar-invoices' && (
-          <>
+          <div className="tab-content active">
             <div className="payments-table-container">
-              <table className="payments-table">
-                <thead>
-                  <tr>
-                    <th>Invoice #</th>
-                    <th>Project ID</th>
-                    <th>Client</th>
-                    <th>Type</th>
-                    <th>Due Date</th>
-                    <th>Amount</th>
-                    <th>Paid</th>
-                    <th>Balance</th>
-                    <th>Status</th>
-                    <th>Receipt</th>
-                    <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {solarInvoices.length === 0 ? (
-                    <tr><td colSpan="11" className="empty-state">No solar invoices found</td></tr>
-                  ) : (
-                    solarInvoices.map(invoice => {
-                      const actions = getSolarInvoiceActions(invoice);
-                      const isOpen = openDropdownId === invoice._id;
-                      const autoVerified = invoice.paymentStatus === 'paid' && invoice.payments?.some(p => p.method === 'paymongo');
+              <div className="table-responsive">
+                <table className="payments-table">
+                  <thead>
+                    <tr>
+                      <th>Invoice #</th>
+                      <th>Project ID</th>
+                      <th>Client</th>
+                      <th>Type</th>
+                      <th>Due Date</th>
+                      <th>Amount</th>
+                      <th>Paid</th>
+                      <th>Balance</th>
+                      <th>Status</th>
+                      <th>Receipt</th>
+                      <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {solarInvoices.length === 0 ? (
+                      <tr><td colSpan="11" className="empty-state">No solar invoices found</td></tr>
+                    ) : (
+                      solarInvoices.map(invoice => {
+                        const actions = getSolarInvoiceActions(invoice);
+                        const isOpen = openDropdownId === invoice._id;
+                        const autoVerified = invoice.paymentStatus === 'paid' && invoice.payments?.some(p => p.method === 'paymongo');
 
-                      return (
-                        <tr key={invoice._id}>
-                          <td className="ref-cell">{invoice.invoiceNumber}</td>
-                          <td><span className="project-id">{invoice.projectId?.projectReference || invoice.projectId?._id || 'N/A'}</span></td>
-                          <td><strong>{invoice.clientId?.contactFirstName} {invoice.clientId?.contactLastName}</strong></td>
-                          <td>{getInvoiceTypeBadge(invoice.invoiceType)}</td>
-                          <td>{formatDate(invoice.dueDate)}</td>
-                          <td className="amount">{formatCurrency(invoice.totalAmount)}</td>
-                          <td className="amount">{formatCurrency(invoice.amountPaid)}</td>
-                          <td className="amount balance">{formatCurrency(invoice.balance)}</td>
-                          <td>{getPaymentStatusBadge(invoice.paymentStatus)}</td>
-                          <td className="receipt-cell">
-                            {invoice.receiptUrl ? (
-                              <a href={invoice.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link" onClick={(e) => e.stopPropagation()}>
-                                <FaReceipt /> View
-                              </a>
-                            ) : (
-                              <span className="no-receipt">—</span>
-                            )}
-                          </td>
-                          <td style={{ textAlign: 'center', position: 'relative' }}>
-                            {autoVerified ? (
-                              <span className="verified-badge auto-verified">Auto-Verified</span>
-                            ) : (
-                              <div className="action-dropdown-container">
-                                <button 
-                                  className="action-dropdown-toggle" 
-                                  ref={el => buttonRefs.current[invoice._id] = el}
-                                  onClick={(e) => handleDropdownClick(e, invoice._id)}
-                                >
-                                  Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
-                                </button>
-                                {isOpen && (
-                                  <div 
-                                    className="action-dropdown-menu"
-                                    ref={dropdownRef}
-                                    style={{
-                                      position: 'fixed',
-                                      top: dropdownPosition.top,
-                                      right: dropdownPosition.right,
-                                      zIndex: 9999,
-                                    }}
+                        return (
+                          <tr key={invoice._id}>
+                            <td data-label="Invoice #" className="ref-cell">{invoice.invoiceNumber}</td>
+                            <td data-label="Project ID"><span className="project-id">{invoice.projectId?.projectReference || invoice.projectId?._id || 'N/A'}</span></td>
+                            <td data-label="Customer"><strong>{invoice.clientId?.contactFirstName} {invoice.clientId?.contactLastName}</strong></td>
+                            <td data-label="Type">{getInvoiceTypeBadge(invoice.invoiceType)}</td>
+                            <td data-label="Due Date">{formatDate(invoice.dueDate)}</td>
+                            <td data-label="Amount" className="amount">{formatCurrency(invoice.totalAmount)}</td>
+                            <td data-label="Paid" className="amount">{formatCurrency(invoice.amountPaid)}</td>
+                            <td data-label="Balance" className="amount balance">{formatCurrency(invoice.balance)}</td>
+                            <td data-label="Status">{getPaymentStatusBadge(invoice.paymentStatus)}</td>
+                            <td data-label="Receipt" className="receipt-cell">
+                              {invoice.receiptUrl ? (
+                                <a href={invoice.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link" onClick={(e) => e.stopPropagation()}>
+                                  <FaReceipt /> View
+                                </a>
+                              ) : (
+                                <span className="no-receipt">—</span>
+                              )}
+                            </td>
+                            <td data-label="Actions" style={{ textAlign: 'center', position: 'relative' }}>
+                              {autoVerified ? (
+                                <span className="verified-badge auto-verified">Auto-Verified</span>
+                              ) : (
+                                <div className="action-dropdown-container">
+                                  <button 
+                                    className="action-dropdown-toggle" 
+                                    ref={el => buttonRefs.current[invoice._id] = el}
+                                    onClick={(e) => handleDropdownClick(e, invoice._id)}
                                   >
-                                    {actions.map((action, idx) => (
-                                      <button key={idx} className={`dropdown-item ${action.color || ''}`} onClick={action.action}>
-                                        <span>{action.label}</span>
-                                      </button>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                                    Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
+                                  </button>
+                                  {isOpen && (
+                                    <div 
+                                      className="action-dropdown-menu"
+                                      ref={dropdownRef}
+                                      style={{
+                                        position: 'fixed',
+                                        top: dropdownPosition.top,
+                                        right: dropdownPosition.right,
+                                        zIndex: 9999,
+                                      }}
+                                    >
+                                      {actions.map((action, idx) => (
+                                        <button key={idx} className={`dropdown-item ${action.color || ''}`} onClick={action.action}>
+                                          <span>{action.label}</span>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {totalPages > 1 && (
@@ -1446,88 +1487,90 @@ const AdminBilling = () => {
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
 
         {/* BANK TRANSFERS TABLE */}
         {activeTab === 'bank-transfers' && (
-          <>
+          <div className="tab-content active">
             <div className="payments-table-container">
-              <table className="payments-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Customer</th>
-                    <th>Invoice #</th>
-                    <th>Bank</th>
-                    <th>Amount</th>
-                    <th>Reference</th>
-                    <th>Status</th>
-                    <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bankTransfers.length === 0 ? (
-                    <tr><td colSpan="8" className="empty-state">
-                      <FaExclamationTriangle /> No bank transfer submissions found
-                    </td></tr>
-                  ) : (
-                    bankTransfers.map(payment => {
-                      const actions = getBankTransferActions(payment);
-                      const isOpen = openDropdownId === payment._id;
+              <div className="table-responsive">
+                <table className="payments-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Customer</th>
+                      <th>Invoice #</th>
+                      <th>Bank</th>
+                      <th>Amount</th>
+                      <th>Reference</th>
+                      <th>Status</th>
+                      <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bankTransfers.length === 0 ? (
+                      <tr><td colSpan="8" className="empty-state">
+                        <FaExclamationTriangle /> No bank transfer submissions found
+                      </td></tr>
+                    ) : (
+                      bankTransfers.map(payment => {
+                        const actions = getBankTransferActions(payment);
+                        const isOpen = openDropdownId === payment._id;
 
-                      return (
-                        <tr key={payment._id} className={payment.status === 'rejected' ? 'rejected-row' : ''}>
-                          <td>{formatDate(payment.createdAt)}</td>
-                          <td className="customer-cell">
-                            <div>
-                              <strong>{payment.clientId?.contactFirstName} {payment.clientId?.contactLastName}</strong>
-                              <small>{payment.clientEmail}</small>
-                            </div>
-                          </td>
-                          <td className="invoice-cell">
-                            <strong>{payment.invoiceId?.invoiceNumber}</strong>
-                            <small>{payment.invoiceId?.invoiceType}</small>
-                          </td>
-                          <td><span className="bank-name">{payment.bankName}</span></td>
-                          <td className="amount">{formatCurrency(payment.amount)}</td>
-                          <td className="ref-cell">{payment.transactionReference}</td>
-                          <td>{getBankTransferStatusBadge(payment.status)}</td>
-                          <td style={{ textAlign: 'center', position: 'relative' }}>
-                            <div className="action-dropdown-container">
-                              <button 
-                                className="action-dropdown-toggle" 
-                                ref={el => buttonRefs.current[payment._id] = el}
-                                onClick={(e) => handleDropdownClick(e, payment._id)}
-                              >
-                                Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
-                              </button>
-                              {isOpen && (
-                                <div 
-                                  className="action-dropdown-menu"
-                                  ref={dropdownRef}
-                                  style={{
-                                    position: 'fixed',
-                                    top: dropdownPosition.top,
-                                    right: dropdownPosition.right,
-                                    zIndex: 9999,
-                                  }}
+                        return (
+                          <tr key={payment._id} className={payment.status === 'rejected' ? 'rejected-row' : ''}>
+                            <td data-label="Date">{formatDate(payment.createdAt)}</td>
+                            <td data-label="Customer" className="customer-cell">
+                              <div>
+                                <strong>{payment.clientId?.contactFirstName} {payment.clientId?.contactLastName}</strong>
+                                <small>{payment.clientEmail}</small>
+                              </div>
+                            </td>
+                            <td data-label="Invoice #" className="invoice-cell">
+                              <strong>{payment.invoiceId?.invoiceNumber}</strong>
+                              <small>{payment.invoiceId?.invoiceType}</small>
+                            </td>
+                            <td data-label="Bank"><span className="bank-name">{payment.bankName}</span></td>
+                            <td data-label="Amount" className="amount">{formatCurrency(payment.amount)}</td>
+                            <td data-label="Reference" className="ref-cell">{payment.transactionReference}</td>
+                            <td data-label="Status">{getBankTransferStatusBadge(payment.status)}</td>
+                            <td data-label="Actions" style={{ textAlign: 'center', position: 'relative' }}>
+                              <div className="action-dropdown-container">
+                                <button 
+                                  className="action-dropdown-toggle" 
+                                  ref={el => buttonRefs.current[payment._id] = el}
+                                  onClick={(e) => handleDropdownClick(e, payment._id)}
                                 >
-                                  {actions.map((action, idx) => (
-                                    <button key={idx} className={`dropdown-item ${action.color || ''}`} onClick={action.action}>
-                                      <span>{action.label}</span>
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                                  Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
+                                </button>
+                                {isOpen && (
+                                  <div 
+                                    className="action-dropdown-menu"
+                                    ref={dropdownRef}
+                                    style={{
+                                      position: 'fixed',
+                                      top: dropdownPosition.top,
+                                      right: dropdownPosition.right,
+                                      zIndex: 9999,
+                                    }}
+                                  >
+                                    {actions.map((action, idx) => (
+                                      <button key={idx} className={`dropdown-item ${action.color || ''}`} onClick={action.action}>
+                                        <span>{action.label}</span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {bankTransferTotalPages > 1 && (
@@ -1556,55 +1599,57 @@ const AdminBilling = () => {
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
 
         {/* TRANSACTIONS TABLE */}
         {activeTab === 'transactions' && (
-          <>
+          <div className="tab-content active">
             <div className="payments-table-container">
-              <table className="payments-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Reference</th>
-                    <th>Invoice</th>
-                    <th>Client</th>
-                    <th>Amount</th>
-                    <th>Method</th>
-                    <th>Status</th>
-                    <th>Receipt</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transactions.length === 0 ? (
-                    <tr><td colSpan="9" className="empty-state">No transactions found</td></tr>
-                  ) : (
-                    getCurrentTransactionItems().map(transaction => (
-                      <tr key={transaction.id}>
-                        <td>{formatDate(transaction.date)}</td>
-                        <td><span className={`transaction-type ${transaction.type === 'Pre-Assessment' ? 'pre' : 'project'}`}>{transaction.type}</span></td>
-                        <td>{transaction.reference}</td>
-                        <td>{transaction.invoiceNumber}</td>
-                        <td><strong>{transaction.client}</strong></td>
-                        <td className="amount">{formatCurrency(transaction.amount)}</td>
-                        <td>{transaction.method?.toUpperCase()}</td>
-                        <td>{getPaymentStatusBadge(transaction.status)}</td>
-                        <td className="receipt-cell">
-                          {transaction.receiptUrl ? (
-                            <a href={transaction.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link">
-                              <FaReceipt /> View
-                            </a>
-                          ) : (
-                            <span className="no-receipt">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+              <div className="table-responsive">
+                <table className="payments-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Type</th>
+                      <th>Reference</th>
+                      <th>Invoice</th>
+                      <th>Client</th>
+                      <th>Amount</th>
+                      <th>Method</th>
+                      <th>Status</th>
+                      <th>Receipt</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactions.length === 0 ? (
+                      <tr><td colSpan="9" className="empty-state">No transactions found</td></tr>
+                    ) : (
+                      getCurrentTransactionItems().map(transaction => (
+                        <tr key={transaction.id}>
+                          <td data-label="Date">{formatDate(transaction.date)}</td>
+                          <td data-label="Type"><span className={`transaction-type ${transaction.type === 'Pre-Assessment' ? 'pre' : 'project'}`}>{transaction.type}</span></td>
+                          <td data-label="Reference">{transaction.reference}</td>
+                          <td data-label="Invoice">{transaction.invoiceNumber}</td>
+                          <td data-label="Customer"><strong>{transaction.client}</strong></td>
+                          <td data-label="Amount" className="amount">{formatCurrency(transaction.amount)}</td>
+                          <td data-label="Method">{transaction.method?.toUpperCase()}</td>
+                          <td data-label="Status">{getPaymentStatusBadge(transaction.status)}</td>
+                          <td data-label="Receipt" className="receipt-cell">
+                            {transaction.receiptUrl ? (
+                              <a href={transaction.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link">
+                                <FaReceipt /> View
+                              </a>
+                            ) : (
+                              <span className="no-receipt">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {transactionTotalPages > 1 && (
@@ -1633,7 +1678,7 @@ const AdminBilling = () => {
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
 
         {/* ============================================ */}

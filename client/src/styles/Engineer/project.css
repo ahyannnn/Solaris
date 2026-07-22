@@ -1,4 +1,4 @@
-/* styles/Engineer/project.css - Clean Professional Design */
+/* styles/Engineer/project.css - Clean Professional Design with Card Layout */
 
 :root {
   --primary: #2563EB;
@@ -17,6 +17,7 @@
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
   --shadow-md: 0 4px 6px rgba(0,0,0,0.04);
   --shadow-lg: 0 10px 25px rgba(0,0,0,0.08);
+  --shadow-card: 0 2px 8px rgba(0,0,0,0.06);
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
@@ -42,7 +43,7 @@
 }
 
 .project-header-engineerproject h1 {
-  font-size: 28px;
+  font-size: clamp(20px, 4vw, 28px);
   font-weight: 700;
   color: var(--text-primary);
   margin: 0 0 4px 0;
@@ -50,7 +51,7 @@
 }
 
 .project-header-engineerproject p {
-  font-size: 14px;
+  font-size: clamp(13px, 1.5vw, 14px);
   color: var(--text-muted);
   margin: 0;
 }
@@ -69,6 +70,7 @@
 .filter-group-engineerproject {
   position: relative;
   min-width: 180px;
+  flex: 1 1 auto;
 }
 
 .filter-group-engineerproject .filter-icon {
@@ -85,7 +87,7 @@
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
-  font-size: 14px;
+  font-size: clamp(13px, 1.2vw, 14px);
   color: var(--text-primary);
   cursor: pointer;
   appearance: none;
@@ -98,14 +100,11 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.search-group-engineerproject {
-  flex: 1;
-  min-width: 250px;
-  position: relative;
-}
+
+
 
 .search-group-engineerproject .search-icon {
-  position: absolute;
+  
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
@@ -118,7 +117,7 @@
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
-  font-size: 14px;
+  font-size: clamp(13px, 1.2vw, 14px);
   color: var(--text-primary);
   transition: all var(--transition-base);
 }
@@ -138,6 +137,7 @@
   border: 1px solid var(--border-light);
   overflow-x: auto;
   box-shadow: var(--shadow-sm);
+  -webkit-overflow-scrolling: touch;
 }
 
 .projects-table-engineerproject {
@@ -154,9 +154,9 @@
 
 .projects-table-engineerproject th {
   text-align: left;
-  padding: 14px 16px;
+  padding: clamp(10px, 1.5vw, 14px) clamp(12px, 1.5vw, 16px);
   background: var(--bg-base);
-  font-size: 11px;
+  font-size: clamp(10px, 1vw, 11px);
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -165,7 +165,7 @@
 }
 
 .projects-table-engineerproject td {
-  padding: 14px 16px;
+  padding: clamp(10px, 1.5vw, 14px) clamp(12px, 1.5vw, 16px);
   color: var(--text-primary);
   border-bottom: 1px solid var(--border-light);
   vertical-align: middle;
@@ -193,13 +193,13 @@
 }
 
 .project-name {
-  font-size: 14px;
+  font-size: clamp(13px, 1.2vw, 14px);
   font-weight: 500;
   color: var(--text-primary);
 }
 
 .project-ref {
-  font-size: 12px;
+  font-size: clamp(11px, 1vw, 12px);
   color: var(--text-muted);
   font-family: monospace;
 }
@@ -211,13 +211,13 @@
 }
 
 .client-name {
-  font-size: 14px;
+  font-size: clamp(13px, 1.2vw, 14px);
   font-weight: 500;
   color: var(--text-primary);
 }
 
 .client-email {
-  font-size: 12px;
+  font-size: clamp(11px, 1vw, 12px);
   color: var(--text-muted);
 }
 
@@ -228,13 +228,13 @@
 }
 
 .system-cell span:first-child {
-  font-size: 14px;
+  font-size: clamp(13px, 1.2vw, 14px);
   font-weight: 500;
   color: var(--text-primary);
 }
 
 .system-type {
-  font-size: 12px;
+  font-size: clamp(11px, 1vw, 12px);
   color: var(--text-muted);
 }
 
@@ -245,24 +245,21 @@
 }
 
 .payment-label {
-  font-size: 13px;
+  font-size: clamp(12px, 1.1vw, 13px);
   font-weight: 500;
   color: var(--text-primary);
 }
 
 .payment-detail {
-  font-size: 11px;
+  font-size: clamp(10px, 0.9vw, 11px);
   color: var(--text-muted);
 }
 
-.amount-cell {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
+.amount-cell,
 .paid-cell {
   font-weight: 600;
   color: var(--text-primary);
+  font-size: clamp(13px, 1.2vw, 14px);
 }
 
 /* ============================================
@@ -272,7 +269,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 100px;
+  min-width: 80px;
 }
 
 .progress-bar-bg {
@@ -291,10 +288,10 @@
 }
 
 .progress-percent {
-  font-size: 12px;
+  font-size: clamp(11px, 1vw, 12px);
   font-weight: 600;
   color: var(--text-primary);
-  min-width: 40px;
+  min-width: 35px;
 }
 
 /* ============================================
@@ -302,55 +299,23 @@
    ============================================ */
 .status-badge-engineerproject {
   display: inline-block;
-  padding: 4px 12px;
+  padding: clamp(2px, 0.5vw, 4px) clamp(8px, 1vw, 12px);
   border-radius: 20px;
-  font-size: 12px;
+  font-size: clamp(10px, 1vw, 12px);
   font-weight: 500;
   white-space: nowrap;
   background: var(--bg-surface) !important;
   color: var(--text-primary) !important;
 }
 
-.status-badge-engineerproject.quoted {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.status-badge-engineerproject.approved {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.status-badge-engineerproject.initial-paid {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.status-badge-engineerproject.full-paid {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.status-badge-engineerproject.full-paid-installment {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.status-badge-engineerproject.in-progress {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.status-badge-engineerproject.progress-paid {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.status-badge-engineerproject.completed {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
+.status-badge-engineerproject.quoted,
+.status-badge-engineerproject.approved,
+.status-badge-engineerproject.initial-paid,
+.status-badge-engineerproject.full-paid,
+.status-badge-engineerproject.full-paid-installment,
+.status-badge-engineerproject.in-progress,
+.status-badge-engineerproject.progress-paid,
+.status-badge-engineerproject.completed,
 .status-badge-engineerproject.cancelled {
   background: var(--bg-surface) !important;
   color: var(--text-primary) !important;
@@ -361,24 +326,16 @@
    ============================================ */
 .payment-status-badge {
   display: inline-block;
-  padding: 2px 10px;
+  padding: clamp(2px, 0.3vw, 3px) clamp(8px, 0.8vw, 10px);
   border-radius: 12px;
-  font-size: 11px;
+  font-size: clamp(10px, 0.9vw, 11px);
   font-weight: 500;
   background: var(--bg-surface) !important;
   color: var(--text-primary) !important;
 }
 
-.payment-status-badge.paid {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.payment-status-badge.pending {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
+.payment-status-badge.paid,
+.payment-status-badge.pending,
 .payment-status-badge.overdue {
   background: var(--bg-surface) !important;
   color: var(--text-primary) !important;
@@ -391,15 +348,16 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 16px;
+  padding: clamp(6px, 0.8vw, 8px) clamp(12px, 1.5vw, 16px);
   background: var(--primary);
   color: #FFFFFF;
   border: none;
   border-radius: var(--radius-md);
-  font-size: 13px;
+  font-size: clamp(12px, 1.1vw, 13px);
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-base);
+  white-space: nowrap;
 }
 
 .view-btn-engineerproject:hover {
@@ -413,24 +371,24 @@
    ============================================ */
 .empty-state-engineerproject {
   text-align: center;
-  padding: 60px 20px;
+  padding: clamp(40px, 8vw, 60px) clamp(20px, 4vw, 40px);
   color: var(--text-muted);
 }
 
 .empty-state-engineerproject .empty-icon {
-  font-size: 48px;
+  font-size: clamp(36px, 6vw, 48px);
   color: var(--border-medium);
   margin-bottom: 16px;
 }
 
 .empty-state-engineerproject h3 {
-  font-size: 18px;
+  font-size: clamp(16px, 2vw, 18px);
   color: var(--text-primary);
   margin: 0 0 8px 0;
 }
 
 .empty-state-engineerproject p {
-  font-size: 14px;
+  font-size: clamp(13px, 1.2vw, 14px);
   color: var(--text-muted);
   margin: 0;
 }
@@ -442,21 +400,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: clamp(12px, 2vw, 16px);
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid var(--border-light);
+  flex-wrap: wrap;
 }
 
 .page-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: clamp(6px, 0.8vw, 8px) clamp(12px, 1.5vw, 16px);
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
-  font-size: 13px;
+  font-size: clamp(12px, 1.1vw, 13px);
   color: var(--text-primary);
   cursor: pointer;
   transition: all var(--transition-base);
@@ -473,7 +432,7 @@
 }
 
 .page-info {
-  font-size: 14px;
+  font-size: clamp(13px, 1.2vw, 14px);
   color: var(--text-secondary);
 }
 
@@ -492,7 +451,7 @@
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  padding: 20px;
+  padding: clamp(12px, 3vw, 20px);
 }
 
 .modal-content-engineerproject {
@@ -502,7 +461,7 @@
   max-width: 620px;
   max-height: 90vh;
   overflow-y: auto;
-  padding: 28px 32px;
+  padding: clamp(20px, 4vw, 28px) clamp(16px, 3vw, 32px);
   box-shadow: var(--shadow-lg);
   animation: modalFadeIn 0.25s ease;
 }
@@ -540,7 +499,7 @@
 }
 
 .modal-content-engineerproject h3 {
-  font-size: 20px;
+  font-size: clamp(18px, 2.5vw, 20px);
   font-weight: 700;
   color: var(--text-primary);
   margin: 0 0 20px 0;
@@ -555,7 +514,7 @@
 }
 
 .detail-section h4 {
-  font-size: 14px;
+  font-size: clamp(13px, 1.2vw, 14px);
   font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 8px 0;
@@ -565,7 +524,7 @@
 
 .detail-section p {
   margin: 4px 0;
-  font-size: 14px;
+  font-size: clamp(13px, 1.2vw, 14px);
   color: var(--text-secondary);
 }
 
@@ -582,9 +541,9 @@
 
 .payment-schedule-table th {
   text-align: left;
-  padding: 8px 12px;
+  padding: clamp(6px, 0.8vw, 8px) clamp(8px, 1vw, 12px);
   background: var(--bg-base);
-  font-size: 11px;
+  font-size: clamp(10px, 0.9vw, 11px);
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -592,8 +551,8 @@
 }
 
 .payment-schedule-table td {
-  padding: 8px 12px;
-  font-size: 13px;
+  padding: clamp(6px, 0.8vw, 8px) clamp(8px, 1vw, 12px);
+  font-size: clamp(12px, 1.1vw, 13px);
   color: var(--text-primary);
   border-bottom: 1px solid var(--border-light);
 }
@@ -609,7 +568,7 @@
 /* Photo Grid */
 .photo-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 120px), 1fr));
   gap: 8px;
   margin-top: 8px;
 }
@@ -637,7 +596,7 @@
   background: rgba(0, 0, 0, 0.6);
   color: #FFFFFF;
   text-align: center;
-  font-size: 11px;
+  font-size: clamp(10px, 0.9vw, 11px);
   text-decoration: none;
   opacity: 0;
   transition: opacity var(--transition-base);
@@ -658,12 +617,12 @@
 }
 
 .close-btn {
-  padding: 10px 24px;
+  padding: clamp(8px, 1vw, 10px) clamp(16px, 2vw, 24px);
   background: var(--bg-base);
   color: var(--text-primary);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
-  font-size: 14px;
+  font-size: clamp(13px, 1.2vw, 14px);
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-base);
@@ -684,19 +643,19 @@
 }
 
 .skeleton-line.large {
-  height: 32px;
-  width: 250px;
+  height: clamp(28px, 4vw, 32px);
+  width: clamp(150px, 25vw, 250px);
   margin-bottom: 8px;
 }
 
 .skeleton-line.medium {
   height: 18px;
-  width: 350px;
+  width: clamp(200px, 35vw, 350px);
 }
 
 .skeleton-select {
   height: 44px;
-  width: 180px;
+  width: clamp(150px, 20vw, 180px);
   background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-base) 50%, var(--bg-surface) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
@@ -706,7 +665,7 @@
 .skeleton-search {
   height: 44px;
   flex: 1;
-  min-width: 250px;
+  min-width: 150px;
   background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-base) 50%, var(--bg-surface) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
@@ -741,30 +700,35 @@
 }
 
 /* ============================================
-   RESPONSIVE
+   RESPONSIVE CARD LAYOUT
    ============================================ */
+
+/* Tablets - Hide some columns */
 @media (max-width: 1024px) {
   .projects-table-engineerproject {
     min-width: 900px;
   }
+  
+  .filter-group-engineerproject {
+    min-width: 150px;
+  }
 }
 
+/* Mobile - Convert to Cards */
 @media (max-width: 768px) {
   .engineer-project-container {
     padding: 16px;
   }
 
-  .project-header-engineerproject h1 {
-    font-size: 22px;
-  }
-
   .project-filters-engineerproject {
     flex-direction: column;
+    gap: 12px;
   }
 
   .filter-group-engineerproject {
     min-width: unset;
     width: 100%;
+    flex: 1 1 auto;
   }
 
   .search-group-engineerproject {
@@ -772,16 +736,138 @@
     min-width: unset;
   }
 
-  .projects-table-engineerproject {
-    min-width: 800px;
+  /* Hide table header and convert rows to cards */
+  .projects-table-engineerproject thead {
+    display: none;
   }
 
-  .projects-table-engineerproject th,
+  .projects-table-engineerproject,
+  .projects-table-engineerproject tbody,
+  .projects-table-engineerproject tr,
   .projects-table-engineerproject td {
-    padding: 10px 12px;
-    font-size: 13px;
+    display: block;
+    width: 100%;
   }
 
+  .projects-table-engineerproject {
+    min-width: unset;
+  }
+
+  .projects-table-engineerproject tbody tr {
+    display: block;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-card);
+    transition: all var(--transition-base);
+    position: relative;
+  }
+
+  .projects-table-engineerproject tbody tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .projects-table-engineerproject tbody tr:hover td {
+    background: transparent;
+  }
+
+  .projects-table-engineerproject tbody tr:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .projects-table-engineerproject td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border: none;
+    border-bottom: 1px solid var(--border-light);
+    background: transparent !important;
+    gap: 12px;
+  }
+
+  .projects-table-engineerproject td:last-child {
+    border-bottom: none;
+  }
+
+  /* Add labels before each cell content */
+  .projects-table-engineerproject td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+    min-width: 80px;
+  }
+
+  /* Hide labels for specific cells that don't need them */
+  .projects-table-engineerproject td:first-child::before {
+    content: "Project";
+  }
+
+  /* Adjust cell contents for card layout */
+  .projects-table-engineerproject td > * {
+    flex: 1;
+    text-align: right;
+  }
+
+  .project-cell,
+  .client-cell,
+  .system-cell,
+  .payment-cell {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .project-ref {
+    font-size: 10px;
+  }
+
+  .client-email {
+    font-size: 10px;
+  }
+
+  .system-type {
+    font-size: 10px;
+  }
+
+  .payment-detail {
+    font-size: 10px;
+  }
+
+  .status-badge-engineerproject,
+  .payment-status-badge {
+    text-align: center;
+    min-width: 60px;
+  }
+
+  .progress-bar-cell {
+    justify-content: flex-end;
+    min-width: 100px;
+  }
+
+  .progress-bar-cell .progress-bar-bg {
+    max-width: 100px;
+  }
+
+  /* View button in card */
+  .view-btn-engineerproject {
+    width: 100%;
+    justify-content: center;
+    padding: 10px;
+  }
+
+  /* Empty state in card view */
+  .empty-state-engineerproject {
+    padding: 40px 20px;
+  }
+
+  /* Modal adjustments */
   .modal-content-engineerproject {
     padding: 20px;
     margin: 10px;
@@ -789,7 +875,7 @@
   }
 
   .photo-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 100px), 1fr));
   }
 
   .modal-actions {
@@ -803,9 +889,40 @@
 
   .pagination-engineerproject {
     flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .page-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  /* Skeleton loading for cards */
+  .skeleton-table {
+    height: auto;
+    padding: 0;
+    border: none;
+    background: transparent;
+  }
+
+  .skeleton-table-row {
+    height: auto;
+    padding: 16px;
+    margin-bottom: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+  }
+
+  .skeleton-table-row::before {
+    content: "Loading...";
+    display: block;
+    color: var(--text-muted);
+    font-size: 12px;
   }
 }
 
+/* Small Mobile Phones */
 @media (max-width: 480px) {
   .engineer-project-container {
     padding: 12px;
@@ -815,21 +932,25 @@
     font-size: 20px;
   }
 
-  .projects-table-engineerproject {
-    min-width: 700px;
+  .projects-table-engineerproject tbody tr {
+    padding: 12px;
+    margin-bottom: 12px;
   }
 
-  .projects-table-engineerproject th,
   .projects-table-engineerproject td {
     padding: 8px 10px;
     font-size: 12px;
+    flex-wrap: wrap;
   }
 
-  .project-name {
-    font-size: 12px;
+  .projects-table-engineerproject td::before {
+    font-size: 10px;
+    min-width: 60px;
   }
 
-  .client-name {
+  .project-name,
+  .client-name,
+  .system-cell span:first-child {
     font-size: 12px;
   }
 
@@ -837,22 +958,30 @@
     font-size: 12px;
   }
 
-  .amount-cell {
-    font-size: 12px;
-  }
-
+  .amount-cell,
   .paid-cell {
     font-size: 12px;
   }
 
   .view-btn-engineerproject {
-    font-size: 11px;
-    padding: 4px 10px;
+    font-size: 12px;
+    padding: 8px 12px;
   }
 
   .status-badge-engineerproject {
     font-size: 10px;
     padding: 2px 8px;
+  }
+
+  .payment-status-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+
+  .modal-content-engineerproject {
+    padding: 16px;
+    margin: 8px;
+    width: 98%;
   }
 
   .modal-content-engineerproject h3 {
@@ -864,20 +993,193 @@
   }
 
   .photo-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 80px), 1fr));
+    gap: 6px;
   }
 
   .progress-bar-cell {
-    min-width: 70px;
+    min-width: 60px;
   }
 
   .progress-percent {
     font-size: 10px;
-    min-width: 30px;
+    min-width: 28px;
   }
 
   .payment-schedule-table td {
     font-size: 12px;
     padding: 6px 8px;
+  }
+  
+  .pagination-engineerproject {
+    gap: 8px;
+  }
+  
+  .page-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .page-info {
+    font-size: 12px;
+  }
+}
+
+/* Extra Small Mobile Phones */
+@media (max-width: 360px) {
+  .engineer-project-container {
+    padding: 8px;
+  }
+  
+  .projects-table-engineerproject tbody tr {
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .projects-table-engineerproject td {
+    padding: 6px 8px;
+    font-size: 11px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .projects-table-engineerproject td::before {
+    margin-bottom: 4px;
+  }
+  
+  .projects-table-engineerproject td > * {
+    text-align: left;
+    width: 100%;
+  }
+  
+  .project-cell,
+  .client-cell,
+  .system-cell,
+  .payment-cell {
+    align-items: flex-start;
+    text-align: left;
+  }
+  
+  .progress-bar-cell {
+    justify-content: flex-start;
+  }
+  
+  .project-name,
+  .client-name,
+  .system-cell span:first-child {
+    font-size: 11px;
+  }
+  
+  .view-btn-engineerproject {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+  
+  .status-badge-engineerproject {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+  
+  .payment-status-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+  
+  .modal-content-engineerproject {
+    padding: 12px;
+  }
+  
+  .photo-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 70px), 1fr));
+  }
+}
+
+/* Landscape Mobile Phones */
+@media (max-width: 768px) and (orientation: landscape) {
+  .engineer-project-container {
+    padding: 12px 16px;
+  }
+  
+  .project-filters-engineerproject {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .filter-group-engineerproject {
+    flex: 1 1 150px;
+    min-width: 120px;
+  }
+  
+  .search-group-engineerproject {
+    flex: 2 1 200px;
+  }
+  
+  .projects-table-engineerproject tbody tr {
+    padding: 12px 16px;
+  }
+  
+  .projects-table-engineerproject td {
+    padding: 6px 8px;
+  }
+  
+  .modal-content-engineerproject {
+    max-height: 85vh;
+  }
+  
+  .photo-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 100px), 1fr));
+  }
+}
+
+/* High DPI Screens */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .projects-table-engineerproject {
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-base: #0F172A;
+    --bg-card: #1E293B;
+    --bg-surface: #334155;
+    --text-primary: #F1F5F9;
+    --text-secondary: #CBD5E1;
+    --text-muted: #94A3B8;
+    --border-light: #334155;
+    --border-medium: #475569;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.2);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.3);
+    --shadow-card: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  
+  .status-badge-engineerproject,
+  .payment-status-badge {
+    background: var(--bg-surface) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  .view-btn-engineerproject {
+    background: var(--primary);
+    color: #FFFFFF;
+  }
+  
+  .view-btn-engineerproject:hover {
+    background: var(--primary-hover);
+  }
+  
+  .modal-overlay-engineerproject {
+    background: rgba(0, 0, 0, 0.7);
+  }
+  
+  .photo-view-link {
+    background: rgba(0, 0, 0, 0.7);
+  }
+  
+  .projects-table-engineerproject tbody tr {
+    background: var(--bg-card);
+    border-color: var(--border-light);
   }
 }

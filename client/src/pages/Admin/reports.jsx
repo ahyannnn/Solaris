@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
-import { FaSpinner, FaFilePdf, FaFileExcel, FaPrint, FaTimes, FaDownload, FaEye, FaChevronDown } from 'react-icons/fa';
+import { FaSpinner, FaFilePdf, FaFileExcel, FaTimes } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/reports.css';
+import logo from '../../assets/Salfare_Logo.png';
 
 // Helper function to convert assessment status string to number
 const getStatusNumber = (statusString) => {
@@ -23,79 +24,6 @@ const getStatusNumber = (statusString) => {
     'cancelled': 12
   };
   return statusMap[statusString] || null;
-};
-
-// Assessment Status Constants with numbers
-const ASSESSMENT_STATUS = {
-  1: { label: 'pending_review', display: 'Pending Review' },
-  2: { label: 'pending_payment', display: 'Pending Payment' },
-  3: { label: 'scheduled', display: 'Scheduled' },
-  4: { label: 'site_visit_ongoing', display: 'Site Visit Ongoing' },
-  5: { label: 'device_deployed', display: 'Device Deployed' },
-  6: { label: 'data_collecting', display: 'Data Collecting' },
-  7: { label: 'data_analyzing', display: 'Data Analyzing' },
-  8: { label: 'report_draft', display: 'Report Draft' },
-  9: { label: 'quotation_generated', display: 'Quotation Generated' },
-  10: { label: 'quotation_accepted', display: 'Quotation Accepted' },
-  11: { label: 'completed', display: 'Completed' },
-  12: { label: 'cancelled', display: 'Cancelled' }
-};
-
-// Assessment Results Summary Ranges
-const ASSESSMENT_RESULTS_SUMMARY = {
-  IRRADIANCE: {
-    POOR: { min: 0, max: 300, label: 'Poor' },
-    MODERATE: { min: 301, max: 500, label: 'Moderate' },
-    GOOD: { min: 501, max: 700, label: 'Good' },
-    EXCELLENT: { min: 701, max: 1000, label: 'Excellent' }
-  },
-  TEMPERATURE: {
-    OPTIMAL: { min: 15, max: 25, label: 'Optimal' },
-    ACCEPTABLE: { min: 26, max: 35, label: 'Acceptable' },
-    HIGH: { min: 36, max: 45, label: 'High - Efficiency Reduced' },
-    CRITICAL: { min: 46, max: 60, label: 'Critical - Significant Loss' }
-  },
-  HUMIDITY: {
-    LOW: { min: 0, max: 30, label: 'Low' },
-    MODERATE: { min: 31, max: 60, label: 'Moderate' },
-    HIGH: { min: 61, max: 80, label: 'High' },
-    VERY_HIGH: { min: 81, max: 100, label: 'Very High - Condensation Risk' }
-  },
-  SHADING_IMPACT: {
-    NEGLIGIBLE: { min: 0, max: 10, label: 'Negligible Impact' },
-    LOW: { min: 11, max: 20, label: 'Low Impact' },
-    MODERATE: { min: 21, max: 35, label: 'Moderate Impact' },
-    SEVERE: { min: 36, max: 100, label: 'Severe Impact - Not Recommended' }
-  },
-  SITE_SUITABILITY: {
-    POOR: { min: 0, max: 39, label: 'Poor - Not Recommended' },
-    FAIR: { min: 40, max: 59, label: 'Fair - Consider with Caution' },
-    GOOD: { min: 60, max: 79, label: 'Good - Recommended' },
-    EXCELLENT: { min: 80, max: 100, label: 'Excellent - Highly Recommended' }
-  },
-  PAYBACK_PERIOD: {
-    EXCELLENT: { min: 0, max: 3, label: 'Excellent ROI' },
-    GOOD: { min: 3.1, max: 5, label: 'Good ROI' },
-    ACCEPTABLE: { min: 5.1, max: 7, label: 'Acceptable ROI' },
-    POOR: { min: 7.1, max: 15, label: 'Poor ROI' }
-  },
-  CO2_OFFSET: {
-    SMALL: { min: 0, max: 2, label: 'Small Impact' },
-    MEDIUM: { min: 2.1, max: 5, label: 'Medium Impact' },
-    LARGE: { min: 5.1, max: 10, label: 'Large Impact' },
-    SIGNIFICANT: { min: 10.1, max: 100, label: 'Significant Impact' }
-  }
-};
-
-// Helper function to get rating based on value
-const getRating = (value, ranges) => {
-  if (!value && value !== 0) return null;
-  for (const [key, range] of Object.entries(ranges)) {
-    if (value >= range.min && value <= range.max) {
-      return { key, ...range };
-    }
-  }
-  return null;
 };
 
 const Reports = () => {
@@ -117,15 +45,6 @@ const Reports = () => {
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [payments, setPayments] = useState([]);
-
-  const [stats, setStats] = useState({
-    revenue: { total: 0, thisMonth: 0, lastMonth: 0 },
-    assessments: { total: 0, completed: 0, pending: 0, suitable: 0, notSuitable: 0, conditional: 0 },
-    projects: { total: 0, inProgress: 0, completed: 0, pending: 0, fullPaid: 0, initialPaid: 0 },
-    clients: { total: 0, active: 0, new: 0, residential: 0, company: 0, industrial: 0 },
-    payments: { total: 0, paid: 0, pending: 0, forVerification: 0 }
-  });
 
   useEffect(() => {
     fetchAllData();
@@ -156,57 +75,12 @@ const Reports = () => {
       setProjects(allProjects);
       setClients(allClients);
 
-      // Calculate suitability from assessments
-      const calculateScore = (assessment) => {
-        const results = assessment.assessmentResults || {};
-        const peakSunHours = results.peakSunHours;
-        const shadingPercentage = results.shadingPercentage;
-        const summaryScore = results.summary?.siteSuitabilityScore;
-
-        if (summaryScore) return summaryScore;
-
-        if (peakSunHours && shadingPercentage !== undefined) {
-          let score = 100;
-          if (peakSunHours >= 5.5) score -= 0;
-          else if (peakSunHours >= 5) score -= 5;
-          else if (peakSunHours >= 4.5) score -= 10;
-          else if (peakSunHours >= 4) score -= 20;
-          else if (peakSunHours >= 3.5) score -= 30;
-          else if (peakSunHours >= 3) score -= 40;
-          else score -= 50;
-
-          if (shadingPercentage <= 5) score -= 0;
-          else if (shadingPercentage <= 10) score -= 10;
-          else if (shadingPercentage <= 15) score -= 20;
-          else if (shadingPercentage <= 20) score -= 25;
-          else score -= 30;
-
-          return Math.max(0, Math.min(100, Math.round(score)));
-        }
-        return null;
-      };
-
-      const suitable = allAssessments.filter(a => {
-        const score = calculateScore(a);
-        return score !== null && score >= 70;
-      }).length;
-
-      const conditional = allAssessments.filter(a => {
-        const score = calculateScore(a);
-        return score !== null && score >= 50 && score < 70;
-      }).length;
-
-      const notSuitable = allAssessments.filter(a => {
-        const score = calculateScore(a);
-        return score !== null && score < 50;
-      }).length;
-
-      // Build transactions for client transaction report
+      // Build transactions for financial report
       const preTransactions = allAssessments
         .filter(a => a.invoiceNumber)
         .map(a => ({
           id: a._id,
-          type: 'Pre-Assessment Booking',
+          type: 'Pre-Assessment',
           reference: a.bookingReference,
           invoiceNumber: a.invoiceNumber,
           amount: a.assessmentFee,
@@ -217,7 +91,8 @@ const Reports = () => {
           clientId: a.clientId?._id,
           clientEmail: a.clientId?.userId?.email,
           clientPhone: a.clientId?.contactNumber,
-          clientType: a.clientId?.client_type || 'Residential'
+          clientType: a.clientId?.client_type || 'Residential',
+          address: a.clientId?.address
         }));
 
       // Build project payments
@@ -234,58 +109,14 @@ const Reports = () => {
           date: p.startDate || p.createdAt,
           client: `${p.clientId?.contactFirstName || ''} ${p.clientId?.contactLastName || ''}`.trim(),
           clientId: p.clientId?._id,
+          clientEmail: p.clientId?.userId?.email,
           clientPhone: p.clientId?.contactNumber,
-          clientType: p.clientId?.client_type || 'Residential'
+          clientType: p.clientId?.client_type || 'Residential',
+          address: p.clientId?.address
         }));
 
       const allTransactions = [...preTransactions, ...projectTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
       setTransactions(allTransactions);
-
-      // Calculate payment stats
-      const paidPayments = allTransactions.filter(p => p.status === 'Paid' || p.status === 'Completed' || p.status === 'Full Payment Received').length;
-      const pendingPayments = allTransactions.filter(p => p.status === 'Pending').length;
-      const forVerification = allTransactions.filter(p => p.status === 'For Verification').length;
-      const totalRevenue = allTransactions.reduce((sum, p) => sum + (p.amount || 0), 0);
-      const thisMonthRevenue = allTransactions
-        .filter(p => (p.status === 'Paid' || p.status === 'Completed') && new Date(p.date).getMonth() === new Date().getMonth())
-        .reduce((sum, p) => sum + p.amount, 0);
-      const lastMonthRevenue = allTransactions
-        .filter(p => (p.status === 'Paid' || p.status === 'Completed') && new Date(p.date).getMonth() === new Date().getMonth() - 1)
-        .reduce((sum, p) => sum + p.amount, 0);
-
-      setStats({
-        revenue: { total: totalRevenue, thisMonth: thisMonthRevenue, lastMonth: lastMonthRevenue },
-        assessments: {
-          total: allAssessments.length,
-          completed: allAssessments.filter(a => a.assessmentStatus === 'completed').length,
-          pending: allAssessments.filter(a => a.assessmentStatus === 'pending_payment' || a.assessmentStatus === 'pending_review').length,
-          suitable,
-          notSuitable,
-          conditional
-        },
-        projects: {
-          total: allProjects.length,
-          inProgress: allProjects.filter(p => p.status === 'in_progress').length,
-          completed: allProjects.filter(p => p.status === 'completed').length,
-          pending: allProjects.filter(p => p.status === 'pending' || p.status === 'quoted' || p.status === 'approved').length,
-          fullPaid: allProjects.filter(p => p.status === 'full_paid').length,
-          initialPaid: allProjects.filter(p => p.status === 'initial_paid').length
-        },
-        clients: {
-          total: allClients.length,
-          active: allClients.filter(c => c.status === 'active').length,
-          new: allClients.filter(c => new Date(c.createdAt).getMonth() === new Date().getMonth()).length,
-          residential: allClients.filter(c => c.client_type === 'Residential').length,
-          company: allClients.filter(c => c.client_type === 'Company').length,
-          industrial: allClients.filter(c => c.client_type === 'Industrial').length
-        },
-        payments: {
-          total: allTransactions.length,
-          paid: paidPayments,
-          pending: pendingPayments,
-          forVerification: forVerification
-        }
-      });
 
       setLoading(false);
     } catch (error) {
@@ -301,7 +132,7 @@ const Reports = () => {
       const token = sessionStorage.getItem('token');
 
       let reportPayload = {
-        type: activeTab,
+        type: activeTab === 'clients' ? 'client-transaction' : activeTab, // ✅ Map 'clients' to 'client-transaction'
         dateRange,
         filters: {}
       };
@@ -310,7 +141,7 @@ const Reports = () => {
         reportPayload.filters.assessmentId = selectedAssessment;
       } else if (activeTab === 'project-summary' && selectedProject) {
         reportPayload.filters.projectId = selectedProject;
-      } else if (activeTab === 'client-transaction' && selectedClient) {
+      } else if (activeTab === 'clients' && selectedClient) {
         reportPayload.filters.clientId = selectedClient;
       }
 
@@ -330,14 +161,46 @@ const Reports = () => {
     }
   };
 
+  // The table and its export must come from the same server query.
+  const fetchCurrentReport = async () => {
+    const token = sessionStorage.getItem('token');
+    const params = new URLSearchParams({
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate
+    });
+
+    if (activeTab === 'site-assessment' && selectedAssessment) params.append('assessmentId', selectedAssessment);
+    if (activeTab === 'project-summary' && selectedProject) params.append('projectId', selectedProject);
+    if (activeTab === 'financial' && selectedProject) params.append('projectId', selectedProject);
+    if (activeTab === 'clients' && selectedClient) params.append('clientId', selectedClient);
+
+    const endpoint = activeTab === 'clients' ? 'client-transaction' : activeTab;
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/admin/reports/${endpoint}?${params}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data?.report;
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchCurrentReport()
+      .then(report => { if (!cancelled) setReportData({ report }); })
+      .catch(error => {
+        console.error('Error loading report data:', error);
+        if (!cancelled) setReportData({ report: null });
+      });
+    return () => { cancelled = true; };
+  }, [activeTab, dateRange.startDate, dateRange.endDate, selectedAssessment, selectedProject, selectedClient]);
+
   const exportReport = async (format) => {
     setGenerating(true);
     try {
       const token = sessionStorage.getItem('token');
 
-      let dataToExport = null;
+      let dataToExport = await fetchCurrentReport();
 
-      if (reportData && reportData.report) {
+      if (false && reportData && reportData.report) {
         dataToExport = reportData.report;
       } else {
         const params = new URLSearchParams();
@@ -348,7 +211,9 @@ const Reports = () => {
           params.append('assessmentId', selectedAssessment);
         } else if (activeTab === 'project-summary' && selectedProject) {
           params.append('projectId', selectedProject);
-        } else if (activeTab === 'client-transaction' && selectedClient) {
+        } else if (activeTab === 'financial' && selectedProject) {
+          params.append('projectId', selectedProject);
+        } else if (activeTab === 'clients' && selectedClient) {
           params.append('clientId', selectedClient);
         }
 
@@ -368,7 +233,8 @@ const Reports = () => {
             `${import.meta.env.VITE_API_URL}/api/admin/reports/financial?${params}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
-        } else if (activeTab === 'client-transaction') {
+        } else if (activeTab === 'clients') {
+          // ✅ Use client-transaction for the API endpoint
           response = await axios.get(
             `${import.meta.env.VITE_API_URL}/api/admin/reports/client-transaction?${params}`,
             { headers: { Authorization: `Bearer ${token}` } }
@@ -381,16 +247,19 @@ const Reports = () => {
       }
 
       if (!dataToExport) {
-        showToast('No data to export. Please generate a report first.', 'warning');
+        showToast('No data matches the selected filters.', 'warning');
         setGenerating(false);
         return;
       }
+
+      // ✅ Map 'clients' to 'client-transaction' for export
+      const exportType = activeTab === 'clients' ? 'client-transaction' : activeTab;
 
       const exportResponse = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/admin/reports/export`,
         {
           format: format,
-          type: activeTab,
+          type: exportType,
           data: dataToExport
         },
         {
@@ -443,14 +312,6 @@ const Reports = () => {
         <div className="skeleton-line large"></div>
         <div className="skeleton-line medium"></div>
       </div>
-      <div className="stats-cards">
-        {[1, 2, 3, 4].map(i => (
-          <div key={i} className="stat-card skeleton-card">
-            <div className="skeleton-line small"></div>
-            <div className="skeleton-line large"></div>
-          </div>
-        ))}
-      </div>
       <div className="report-tabs">
         {[1, 2, 3, 4].map(i => (
           <div key={i} className="skeleton-tab"></div>
@@ -475,38 +336,6 @@ const Reports = () => {
           <p>Generate comprehensive reports and analyze business performance</p>
         </div>
 
-        {/* Quick Stats Cards */}
-        <div className="stats-cards">
-          <div className="stat-card revenue">
-            <div className="stat-info">
-              <span className="stat-value">{formatCurrency(stats.revenue.total)}</span>
-              <span className="stat-label">Total Revenue</span>
-              <span className="stat-change">+{formatCurrency(stats.revenue.thisMonth)} this month</span>
-            </div>
-          </div>
-          <div className="stat-card assessments">
-            <div className="stat-info">
-              <span className="stat-value">{stats.assessments.total}</span>
-              <span className="stat-label">Total Assessments</span>
-              <span className="stat-change">{stats.assessments.completed} completed</span>
-            </div>
-          </div>
-          <div className="stat-card projects">
-            <div className="stat-info">
-              <span className="stat-value">{stats.projects.total}</span>
-              <span className="stat-label">Total Projects</span>
-              <span className="stat-change">{stats.projects.inProgress} in progress</span>
-            </div>
-          </div>
-          <div className="stat-card clients">
-            <div className="stat-info">
-              <span className="stat-value">{stats.clients.total}</span>
-              <span className="stat-label">Total Clients</span>
-              <span className="stat-change">{stats.clients.active} active</span>
-            </div>
-          </div>
-        </div>
-
         {/* Report Type Tabs */}
         <div className="report-tabs">
           <button
@@ -528,10 +357,10 @@ const Reports = () => {
             Financial
           </button>
           <button
-            className={`tab-btn ${activeTab === 'client-transaction' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('client-transaction'); setReportData(null); }}
+            className={`tab-btn ${activeTab === 'clients' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('clients'); setReportData(null); }}
           >
-            Client Transactions
+            Clients
           </button>
         </div>
 
@@ -570,7 +399,7 @@ const Reports = () => {
             </div>
           )}
 
-          {activeTab === 'client-transaction' && (
+          {activeTab === 'clients' && (
             <div className="report-filter">
               <label>Filter by Client</label>
               <select value={selectedClient} onChange={(e) => setSelectedClient(e.target.value)}>
@@ -582,173 +411,47 @@ const Reports = () => {
             </div>
           )}
 
-          <button className="generate-btn" onClick={generateReport} disabled={generating}>
-            {generating ? <FaSpinner className="spinning" /> : 'Generate Report'}
-          </button>
         </div>
 
         {/* ============ SITE ASSESSMENT REPORTS ============ */}
         {activeTab === 'site-assessment' && (
           <div className="report-content">
             <div className="report-section">
-              <h2>Site Assessment Results</h2>
-              <p>Complete results of site evaluations including IoT data, technical findings, and suitability analysis.</p>
-
-              <div className="suitability-summary">
-                <div className="suitability-card suitable">
-                  <div className="suitability-stats">
-                    <span className="label">Suitable for Solar</span>
-                    <strong>{stats.assessments.suitable}</strong>
-                    <span className="percentage">{stats.assessments.total > 0 ? ((stats.assessments.suitable / stats.assessments.total) * 100).toFixed(1) : 0}%</span>
-                  </div>
-                </div>
-                <div className="suitability-card conditional">
-                  <div className="suitability-stats">
-                    <span className="label">Conditional Approval</span>
-                    <strong>{stats.assessments.conditional}</strong>
-                    <span className="percentage">{stats.assessments.total > 0 ? ((stats.assessments.conditional / stats.assessments.total) * 100).toFixed(1) : 0}%</span>
-                  </div>
-                </div>
-                <div className="suitability-card not-suitable">
-                  <div className="suitability-stats">
-                    <span className="label">Not Suitable</span>
-                    <strong>{stats.assessments.notSuitable}</strong>
-                    <span className="percentage">{stats.assessments.total > 0 ? ((stats.assessments.notSuitable / stats.assessments.total) * 100).toFixed(1) : 0}%</span>
-                  </div>
-                </div>
-                <div className="suitability-card pending">
-                  <div className="suitability-stats">
-                    <span className="label">Pending Assessment</span>
-                    <strong>{stats.assessments.pending}</strong>
-                  </div>
-                </div>
-              </div>
+              <h2>Site Assessment</h2>
+              <p>Complete list of site evaluations with booking details and status.</p>
             </div>
 
             <div className="report-section">
-              <h2>IoT Data & Environmental Metrics</h2>
-              <div className="technical-findings-grid">
-                <div className="finding-card irradiance">
-                  <div className="finding-info">
-                    <span>Average Irradiance</span>
-                    <strong>529.17 W/m²</strong>
-                    <small>Peak: 1123.40 W/m²</small>
-                  </div>
-                </div>
-                <div className="finding-card temperature">
-                  <div className="finding-info">
-                    <span>Temperature Impact</span>
-                    <strong>42.3°C</strong>
-                    <small>-8.2% derating</small>
-                  </div>
-                </div>
-                <div className="finding-card humidity">
-                  <div className="finding-info">
-                    <span>Average Humidity</span>
-                    <strong>67.8%</strong>
-                    <small>Range: 45–89%</small>
-                  </div>
-                </div>
-                <div className="finding-card shading">
-                  <div className="finding-info">
-                    <span>Peak Sun Hours</span>
-                    <strong>4.2 hrs/day</strong>
-                    <small>12.5% shading loss</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="report-section">
-              <h2>Detailed Assessment Results with IoT Data</h2>
               <div className="table-container">
                 <table className="reports-table">
                   <thead>
                     <tr>
-                      <th>Status #</th>
                       <th>Booking Ref</th>
                       <th>Client Name</th>
-                      <th>Avg Irradiance</th>
-                      <th>Peak Sun Hours</th>
-                      <th>Avg Temp</th>
-                      <th>Humidity</th>
-                      <th>Shading</th>
-                      <th>Suitability Score</th>
-                      <th>Recommendation</th>
+                      <th>Contact</th>
+                      <th>Type</th>
+                      <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {assessments.slice(0, 10).map(assessment => {
-                      const results = assessment.assessmentResults || {};
-                      const peakSunHours = results.peakSunHours;
-                      const avgIrradiance = results.averageIrradiance;
-                      const avgTemp = results.averageTemperature;
-                      const avgHumidity = results.averageHumidity;
-                      const shadingPercentage = results.shadingPercentage;
-
+                    {(reportData?.report?.assessments || []).map(assessment => {
                       const statusNum = getStatusNumber(assessment.assessmentStatus);
-
-                      let suitabilityScore = results.summary?.siteSuitabilityScore;
-
-                      if (!suitabilityScore && peakSunHours && shadingPercentage !== undefined) {
-                        let score = 100;
-                        if (peakSunHours >= 5.5) score -= 0;
-                        else if (peakSunHours >= 5) score -= 5;
-                        else if (peakSunHours >= 4.5) score -= 10;
-                        else if (peakSunHours >= 4) score -= 20;
-                        else if (peakSunHours >= 3.5) score -= 30;
-                        else if (peakSunHours >= 3) score -= 40;
-                        else score -= 50;
-
-                        if (shadingPercentage <= 5) score -= 0;
-                        else if (shadingPercentage <= 10) score -= 10;
-                        else if (shadingPercentage <= 15) score -= 20;
-                        else if (shadingPercentage <= 20) score -= 25;
-                        else score -= 30;
-
-                        suitabilityScore = Math.max(0, Math.min(100, Math.round(score)));
-                      }
-
-                      const irradianceRating = getRating(avgIrradiance, ASSESSMENT_RESULTS_SUMMARY.IRRADIANCE);
-                      const tempRating = getRating(avgTemp, ASSESSMENT_RESULTS_SUMMARY.TEMPERATURE);
-                      const humidityRating = getRating(avgHumidity, ASSESSMENT_RESULTS_SUMMARY.HUMIDITY);
-                      const shadingRating = getRating(shadingPercentage, ASSESSMENT_RESULTS_SUMMARY.SHADING_IMPACT);
+                      const statusDisplay = assessment.statusDisplay || (statusNum ? `${assessment.assessmentStatus?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}` : 'N/A');
 
                       return (
                         <tr key={assessment._id}>
-                          <td>
-                            <span className="status-number-badge">
-                              {statusNum || 'N/A'}
-                            </span>
-                          </td>
                           <td className="ref-cell">{assessment.bookingReference}</td>
-                          <td className="client-cell">{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</td>
-                          <td className="metric-cell">
-                            {avgIrradiance ? `${avgIrradiance.toFixed(0)} W/m²` : 'N/A'}
-                            {irradianceRating && <small>({irradianceRating.label})</small>}
-                          </td>
-                          <td className="metric-cell">{peakSunHours?.toFixed(1) || 'N/A'} hrs</td>
-                          <td className="metric-cell">
-                            {avgTemp ? `${avgTemp.toFixed(1)}°C` : 'N/A'}
-                            {tempRating && <small>({tempRating.label})</small>}
-                          </td>
-                          <td className="metric-cell">
-                            {avgHumidity ? `${avgHumidity.toFixed(0)}%` : 'N/A'}
-                            {humidityRating && <small>({humidityRating.label})</small>}
-                          </td>
-                          <td className="metric-cell">
-                            {shadingPercentage !== undefined ? `${shadingPercentage.toFixed(0)}%` : 'N/A'}
-                            {shadingRating && <small>({shadingRating.label})</small>}
-                          </td>
-                          <td className="score-cell">
-                            <span className="score-badge">
-                              {suitabilityScore || 'N/A'}
+                          <td className="client-cell">{assessment.clientName || 'N/A'}</td>
+                          <td>{assessment.clientContact || 'N/A'}</td>
+                          <td>
+                            <span className="property-type-badge">
+                              {assessment.propertyType || 'N/A'}
                             </span>
                           </td>
-                          <td className="recommendation-cell">
-                            {suitabilityScore >= 70 ? 'Suitable for Solar' :
-                              suitabilityScore >= 50 ? 'Conditional Approval' :
-                                suitabilityScore ? 'Not Recommended' : 'Pending Assessment'}
+                          <td>
+                            <span className="status-badge">
+                              {statusDisplay}
+                            </span>
                           </td>
                         </tr>
                       );
@@ -773,83 +476,47 @@ const Reports = () => {
         {activeTab === 'project-summary' && (
           <div className="report-content">
             <div className="report-section">
-              <h2>Project Status Overview</h2>
-              <p>Shows the overall status of projects. Tracks project progress. Helps monitor pending tasks and milestones.</p>
-
-              <div className="project-stats-grid">
-                <div className="project-stat-card">
-                  <span className="stat-label">Total Projects</span>
-                  <strong className="stat-value">{stats.projects.total}</strong>
-                </div>
-                <div className="project-stat-card in-progress">
-                  <span className="stat-label">In Progress</span>
-                  <strong>{stats.projects.inProgress}</strong>
-                </div>
-                <div className="project-stat-card completed">
-                  <span className="stat-label">Completed</span>
-                  <strong>{stats.projects.completed}</strong>
-                </div>
-                <div className="project-stat-card pending">
-                  <span className="stat-label">Pending</span>
-                  <strong>{stats.projects.pending}</strong>
-                </div>
-                <div className="project-stat-card full-paid">
-                  <span className="stat-label">Full Payment</span>
-                  <strong>{stats.projects.fullPaid}</strong>
-                </div>
-              </div>
+              <h2>Project Summary</h2>
+              <p>Overview of all projects with key details and status.</p>
             </div>
 
             <div className="report-section">
-              <h2>Project Progress Tracking</h2>
               <div className="table-container">
                 <table className="reports-table">
                   <thead>
                     <tr>
-                      <th>Project Name</th>
-                      <th>Reference</th>
-                      <th>Client</th>
+                      <th>Project Ref</th>
+                      <th>Client Name</th>
+                      <th>Contact</th>
+                      <th>System Type</th>
                       <th>System Size</th>
                       <th>Status</th>
-                      <th>Progress</th>
-                      <th>Amount Paid</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {projects.map(project => {
-                      let progress = 0;
-                      if (project.status === 'completed') progress = 100;
-                      else if (project.status === 'in_progress') progress = 50;
-                      else if (project.status === 'full_paid') progress = 30;
-                      else if (project.status === 'initial_paid') progress = 15;
-                      else progress = 5;
-
-                      return (
-                        <tr key={project._id}>
-                          <td className="project-name-cell"><strong>{project.projectName}</strong></td>
-                          <td className="ref-cell">{project.projectReference}</td>
-                          <td className="client-cell">{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</td>
-                          <td>{project.systemSize || 'N/A'} kWp</td>
-                          <td>
-                            <span className={`project-status-badge ${project.status}`}>
-                              {project.status === 'in_progress' ? 'In Progress' :
-                                project.status === 'completed' ? 'Completed' :
-                                  project.status === 'full_paid' ? 'Full Payment' :
-                                    project.status === 'initial_paid' ? 'Initial Paid' :
-                                      project.status === 'quoted' ? 'Quoted' :
-                                        project.status === 'approved' ? 'Approved' : 'Pending'}
-                            </span>
-                          </td>
-                          <td>
-                            <div className="progress-bar-container">
-                              <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
-                              <span className="progress-text">{progress}%</span>
-                            </div>
-                          </td>
-                          <td className="amount">{formatCurrency(project.amountPaid || 0)}</td>
-                        </tr>
-                      );
-                    })}
+                    {(reportData?.report?.projects || []).map(project => (
+                      <tr key={project._id}>
+                        <td className="ref-cell">{project.projectReference}</td>
+                        <td className="client-cell">{project.clientName || 'N/A'}</td>
+                        <td>{project.clientContact || 'N/A'}</td>
+                        <td>
+                          <span className="system-type-badge">
+                            {project.systemType || 'N/A'}
+                          </span>
+                        </td>
+                        <td>{project.systemSize || 'N/A'} kWp</td>
+                        <td>
+                          <span className={`project-status-badge ${project.status}`}>
+                            {project.status === 'in_progress' ? 'In Progress' :
+                              project.status === 'completed' ? 'Completed' :
+                                project.status === 'full_paid' ? 'Full Payment' :
+                                  project.status === 'initial_paid' ? 'Initial Paid' :
+                                    project.status === 'quoted' ? 'Quoted' :
+                                      project.status === 'approved' ? 'Approved' : 'Pending'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -870,90 +537,32 @@ const Reports = () => {
         {activeTab === 'financial' && (
           <div className="report-content">
             <div className="report-section">
-              <h2>Financial Summary</h2>
-              <p>Summarizes payments made by clients. Includes billing records. Helps track overall financial performance.</p>
-
-              <div className="financial-summary-grid">
-                <div className="financial-card total-revenue">
-                  <div>
-                    <span>Total Revenue</span>
-                    <strong>{formatCurrency(stats.revenue.total)}</strong>
-                  </div>
-                </div>
-                <div className="financial-card this-month">
-                  <div>
-                    <span>This Month</span>
-                    <strong>{formatCurrency(stats.revenue.thisMonth)}</strong>
-                  </div>
-                </div>
-                <div className="financial-card last-month">
-                  <div>
-                    <span>Last Month</span>
-                    <strong>{formatCurrency(stats.revenue.lastMonth)}</strong>
-                  </div>
-                </div>
-                <div className="financial-card growth">
-                  <div>
-                    <span>Growth</span>
-                    <strong className={stats.revenue.thisMonth > stats.revenue.lastMonth ? 'positive' : 'negative'}>
-                      {stats.revenue.lastMonth > 0 ? ((stats.revenue.thisMonth - stats.revenue.lastMonth) / stats.revenue.lastMonth * 100).toFixed(1) : 0}%
-                    </strong>
-                  </div>
-                </div>
-              </div>
+              <h2>Financial</h2>
+              <p>Summary of all financial transactions including payments and status.</p>
             </div>
 
             <div className="report-section">
-              <h2>Payment Summary by Status</h2>
-              <div className="payment-status-grid">
-                <div className="payment-status-card paid">
-                  <div>
-                    <span>Paid Transactions</span>
-                    <strong>{stats.payments.paid}</strong>
-                    <small>{formatCurrency(transactions.filter(t => t.status === 'Paid' || t.status === 'Completed').reduce((sum, t) => sum + t.amount, 0))}</small>
-                  </div>
-                </div>
-                <div className="payment-status-card pending">
-                  <div>
-                    <span>Pending Payments</span>
-                    <strong>{stats.payments.pending}</strong>
-                  </div>
-                </div>
-                <div className="payment-status-card verification">
-                  <div>
-                    <span>For Verification</span>
-                    <strong>{stats.payments.forVerification}</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="report-section">
-              <h2>Recent Transactions</h2>
               <div className="table-container">
                 <table className="reports-table">
                   <thead>
                     <tr>
-                      <th>Date</th>
+                      <th>Project/Booking Ref</th>
                       <th>Client Name</th>
-                      <th>Type</th>
-                      <th>Reference</th>
                       <th>Amount</th>
                       <th>Payment Method</th>
                       <th>Status</th>
+                      <th>Date</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {transactions.slice(0, 15).map((transaction, idx) => (
+                    {(reportData?.report?.payments || []).map((transaction, idx) => (
                       <tr key={idx}>
-                        <td>{formatDate(transaction.date)}</td>
-                        <td className="client-cell">{transaction.client}</td>
-                        <td><span className="transaction-type pre">{transaction.type}</span></td>
                         <td className="ref-cell">{transaction.reference || transaction.projectName}</td>
+                        <td className="client-cell">{transaction.clientName || transaction.client || 'N/A'}</td>
                         <td className="amount">{formatCurrency(transaction.amount)}</td>
                         <td>
                           <span className={`payment-method ${transaction.method?.toLowerCase()}`}>
-                            {transaction.method}
+                            {transaction.paymentMethod || transaction.method || 'N/A'}
                           </span>
                         </td>
                         <td>
@@ -961,6 +570,7 @@ const Reports = () => {
                             {transaction.status}
                           </span>
                         </td>
+                        <td>{formatDate(transaction.date)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -979,123 +589,50 @@ const Reports = () => {
           </div>
         )}
 
-        {/* ============ CLIENT TRANSACTION REPORTS ============ */}
-        {activeTab === 'client-transaction' && (
+        {/* ============ CLIENTS REPORTS ============ */}
+        {activeTab === 'clients' && (
           <div className="report-content">
             <div className="report-section">
-              <h2>Client Transaction History</h2>
-              <p>Displays detailed records of client bookings. Includes payment transactions. Useful for reviewing client activity history.</p>
-
-              <div className="client-stats-grid">
-                <div className="client-stat-card">
-                  <div>
-                    <span>Total Clients</span>
-                    <strong>{stats.clients.total}</strong>
-                  </div>
-                </div>
-                <div className="client-stat-card">
-                  <div>
-                    <span>Active Clients</span>
-                    <strong>{stats.clients.active}</strong>
-                  </div>
-                </div>
-                <div className="client-stat-card">
-                  <div>
-                    <span>New This Month</span>
-                    <strong>{stats.clients.new}</strong>
-                  </div>
-                </div>
-                <div className="client-stat-card">
-                  <div>
-                    <span>Total Transactions</span>
-                    <strong>{transactions.length}</strong>
-                  </div>
-                </div>
-              </div>
+              <h2>Clients</h2>
+              <p>Complete list of all clients with their contact details and information.</p>
             </div>
 
             <div className="report-section">
-              <h2>Client Demographics</h2>
-              <div className="demographics-grid">
-                <div className="demo-card">
-                  <h3>Client Type Distribution</h3>
-                  <div className="demo-item">
-                    <span>Residential</span>
-                    <strong>{Math.round((stats.clients.residential / stats.clients.total) * 100) || 0}%</strong>
-                    <div className="progress-bar">
-                      <div className="progress" style={{ width: `${(stats.clients.residential / stats.clients.total) * 100 || 0}%` }}></div>
-                    </div>
-                  </div>
-                  <div className="demo-item">
-                    <span>Company</span>
-                    <strong>{Math.round((stats.clients.company / stats.clients.total) * 100) || 0}%</strong>
-                    <div className="progress-bar">
-                      <div className="progress" style={{ width: `${(stats.clients.company / stats.clients.total) * 100 || 0}%` }}></div>
-                    </div>
-                  </div>
-                  <div className="demo-item">
-                    <span>Industrial</span>
-                    <strong>{Math.round((stats.clients.industrial / stats.clients.total) * 100) || 0}%</strong>
-                    <div className="progress-bar">
-                      <div className="progress" style={{ width: `${(stats.clients.industrial / stats.clients.total) * 100 || 0}%` }}></div>
-                    </div>
-                  </div>
-                </div>
-                <div className="demo-card">
-                  <h3>Payment Method Distribution</h3>
-                  <div className="demo-item">
-                    <span>PayMongo</span>
-                    <strong>{transactions.filter(t => t.method === 'PayMongo').length}</strong>
-                  </div>
-                  <div className="demo-item">
-                    <span>GCash</span>
-                    <strong>{transactions.filter(t => t.method === 'gcash').length}</strong>
-                  </div>
-                  <div className="demo-item">
-                    <span>Cash/Manual</span>
-                    <strong>{transactions.filter(t => t.method === 'cash' || t.method === 'Manual').length}</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="report-section">
-              <h2>Client Transaction Details</h2>
               <div className="table-container">
                 <table className="reports-table">
                   <thead>
                     <tr>
-                      <th>Date</th>
-                      <th>Client Name</th>
+                      <th>Name</th>
                       <th>Contact</th>
-                      <th>Transaction Type</th>
-                      <th>Reference</th>
-                      <th>Amount</th>
-                      <th>Payment Method</th>
-                      <th>Status</th>
+                      <th>Email</th>
+                      <th>Client Type</th>
+                      <th>Address</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {transactions.slice(0, 20).map((transaction, idx) => (
-                      <tr key={idx}>
-                        <td>{formatDate(transaction.date)}</td>
-                        <td className="client-cell"><strong>{transaction.client}</strong></td>
-                        <td>{transaction.clientPhone || 'N/A'}</td>
-                        <td><span className="transaction-type pre">{transaction.type}</span></td>
-                        <td className="ref-cell">{transaction.reference || transaction.projectName}</td>
-                        <td className="amount">{formatCurrency(transaction.amount)}</td>
-                        <td>
-                          <span className={`payment-method ${transaction.method?.toLowerCase()}`}>
-                            {transaction.method}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="status-badge">
-                            {transaction.status}
-                          </span>
-                        </td>
+                    {(reportData?.report?.clients || []).length > 0 ? (
+                      (reportData?.report?.clients || []).map(client => (
+                        <tr key={client._id}>
+                          <td className="client-cell">
+                            <strong>{client.clientName || 'N/A'}</strong>
+                          </td>
+                          <td>{client.clientContact || 'N/A'}</td>
+                          <td>{client.email || 'N/A'}</td>
+                          <td>
+                            <span className="client-type-badge">
+                            {client.clientType || 'Residential'}
+                            </span>
+                          </td>
+                          <td>
+                            {client.address || 'N/A'}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="5" className="empty-state">No clients found</td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -1113,15 +650,225 @@ const Reports = () => {
         )}
 
         {/* Report Preview Modal */}
-        {reportData && (
+        {false && reportData && reportData.report && (
           <div className="report-preview-overlay" onClick={() => setReportData(null)}>
             <div className="report-preview" onClick={e => e.stopPropagation()}>
               <div className="preview-header">
-                <h3>Report Preview</h3>
                 <button className="close-preview" onClick={() => setReportData(null)}><FaTimes /></button>
               </div>
               <div className="preview-content">
-                <pre>{JSON.stringify(reportData, null, 2)}</pre>
+                {/* Company Logo and Report Header */}
+                <div className="report-header">
+                  <div className="company-info">
+                    <img
+                      src={logo}
+                      alt="Salfer Engineering"
+                      className="company-logo"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextElementSibling.style.display = 'flex';
+                      }}
+                    />
+                    <div className="company-logo-placeholder" style={{ display: 'none' }}>
+                      <span>🏢</span>
+                    </div>
+                    <div className="company-details">
+                      <h2 className="company-name">Salfer Engineering</h2>
+                      <p className="company-address">San Nicolas St. Bunsuran 3rd, Pandi, Bulacan</p>
+                      <p className="company-tagline">Solar Technology Enterprise</p>
+                    </div>
+                  </div>
+                  <div className="report-title-section">
+                    <h3 className="report-title">
+                      {activeTab === 'clients' ? 'Clients Report' : reportData.report.title || 'Report'}
+                    </h3>
+                    <p className="report-generated">Generated: {new Date(reportData.report.generatedAt).toLocaleString()}</p>
+                    {reportData.report.dateRange && (
+                      <p className="report-date-range">
+                        Date Range: {reportData.report.dateRange.startDate || 'All'} to {reportData.report.dateRange.endDate || 'All'}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Assessment Details Table - Only for site-assessment tab */}
+                {activeTab === 'site-assessment' && reportData.report.assessments && reportData.report.assessments.length > 0 && (
+                  <div className="preview-table-section">
+                    <h4>Assessment Details</h4>
+                    <div className="table-container">
+                      <table className="reports-table">
+                        <thead>
+                          <tr>
+                            <th>Booking Ref</th>
+                            <th>Client Name</th>
+                            <th>Contact</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {reportData.report.assessments.slice(0, 10).map((item, index) => (
+                            <tr key={index}>
+                              <td className="ref-cell">{item.bookingReference || 'N/A'}</td>
+                              <td className="client-cell">{item.clientName || 'N/A'}</td>
+                              <td>{item.clientContact || 'N/A'}</td>
+                              <td>
+                                <span className="property-type-badge">
+                                  {item.propertyType || 'N/A'}
+                                </span>
+                              </td>
+                              <td>
+                                <span className="status-badge">
+                                  {item.statusDisplay || item.assessmentStatus || 'N/A'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {reportData.report.assessments.length > 10 && (
+                        <p className="preview-note">Showing 10 of {reportData.report.assessments.length} records</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Project Details Table - Only for project-summary tab */}
+                {activeTab === 'project-summary' && reportData.report.projects && reportData.report.projects.length > 0 && (
+                  <div className="preview-table-section">
+                    <h4>Project Details</h4>
+                    <div className="table-container">
+                      <table className="reports-table">
+                        <thead>
+                          <tr>
+                            <th>Project Ref</th>
+                            <th>Client Name</th>
+                            <th>Contact</th>
+                            <th>System Type</th>
+                            <th>System Size</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {reportData.report.projects.slice(0, 10).map((item, index) => (
+                            <tr key={index}>
+                              <td className="ref-cell">{item.projectReference || 'N/A'}</td>
+                              <td className="client-cell">{item.clientName || 'N/A'}</td>
+                              <td>{item.clientContact || 'N/A'}</td>
+                              <td>
+                                <span className="system-type-badge">
+                                  {item.systemType || 'N/A'}
+                                </span>
+                              </td>
+                              <td>{item.systemSize || 'N/A'} kWp</td>
+                              <td>
+                                <span className={`project-status-badge ${item.status?.toLowerCase()}`}>
+                                  {item.status || 'N/A'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {reportData.report.projects.length > 10 && (
+                        <p className="preview-note">Showing 10 of {reportData.report.projects.length} records</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Payment Details Table - Only for financial tab */}
+                {activeTab === 'financial' && reportData.report.payments && reportData.report.payments.length > 0 && (
+                  <div className="preview-table-section">
+                    <h4>Payment Details</h4>
+                    <div className="table-container">
+                      <table className="reports-table">
+                        <thead>
+                          <tr>
+                            <th>Reference</th>
+                            <th>Client Name</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {reportData.report.payments.slice(0, 10).map((item, index) => (
+                            <tr key={index}>
+                              <td className="ref-cell">{item.reference || item.projectName || 'N/A'}</td>
+                              <td className="client-cell">{item.clientName || item.client || 'N/A'}</td>
+                              <td className="amount">{formatCurrency(item.amount || 0)}</td>
+                              <td>
+                                <span className={`payment-method ${(item.method || item.paymentMethod || '').toLowerCase()}`}>
+                                  {item.method || item.paymentMethod || 'N/A'}
+                                </span>
+                              </td>
+                              <td>
+                                <span className="status-badge">
+                                  {item.status || 'N/A'}
+                                </span>
+                              </td>
+                              <td>{item.date ? formatDate(item.date) : 'N/A'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {reportData.report.payments.length > 10 && (
+                        <p className="preview-note">Showing 10 of {reportData.report.payments.length} records</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Clients Details Table - Only for clients tab */}
+                {activeTab === 'clients' && reportData.report.clients && reportData.report.clients.length > 0 && (
+                  <div className="preview-table-section">
+                    <h4>Client Details</h4>
+                    <div className="table-container">
+                      <table className="reports-table">
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Contact</th>
+                            <th>Email</th>
+                            <th>Client Type</th>
+                            <th>Address</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {reportData.report.clients.slice(0, 10).map((item, index) => (
+                            <tr key={index}>
+                              <td className="client-cell"><strong>{item.clientName || 'N/A'}</strong></td>
+                              <td>{item.clientContact || 'N/A'}</td>
+                              <td>{item.email || 'N/A'}</td>
+                              <td>
+                                <span className="client-type-badge">
+                                  {item.clientType || 'Residential'}
+                                </span>
+                              </td>
+                              <td>
+                                {item.address || 'N/A'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {reportData.report.clients.length > 10 && (
+                        <p className="preview-note">Showing 10 of {reportData.report.clients.length} records</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {!reportData.report.assessments?.length &&
+                  !reportData.report.projects?.length &&
+                  !reportData.report.payments?.length &&
+                  !reportData.report.clients?.length && (
+                    <div className="preview-raw">
+                      <pre>{JSON.stringify(reportData.report, null, 2)}</pre>
+                    </div>
+                  )}
               </div>
               <div className="preview-actions">
                 <button className="export-btn pdf" onClick={() => exportReport('pdf')}>
@@ -1137,7 +884,6 @@ const Reports = () => {
             </div>
           </div>
         )}
-
         <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} position="bottom-right" />
       </div>
     </>

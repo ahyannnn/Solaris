@@ -82,35 +82,34 @@ class GitHubService {
         }
     }
 
-    // ... rest of the methods remain the same ...
-    async uploadAsset(releaseId, fileBuffer, fileName, contentType = 'application/vnd.android.package-archive') {
-        try {
-            const form = new FormData();
-            form.append('file', fileBuffer, {
-                filename: fileName,
-                contentType: contentType
-            });
+    async uploadAsset(
+    releaseId,
+    fileBuffer,
+    fileName,
+    contentType = 'application/vnd.android.package-archive'
+) {
+    try {
+        const response = await axios.post(
+            `${this.uploadUrl}/repos/${this.owner}/${this.repo}/releases/${releaseId}/assets?name=${encodeURIComponent(fileName)}`,
+            fileBuffer, // <-- RAW BUFFER
+            {
+                headers: {
+                    Authorization: `token ${this.token}`,
+                    Accept: 'application/vnd.github.v3+json',
+                    'Content-Type': contentType,
+                    'Content-Length': fileBuffer.length
+                },
+                maxBodyLength: Infinity,
+                maxContentLength: Infinity
+            }
+        );
 
-            const response = await axios.post(
-                `${this.uploadUrl}/repos/${this.owner}/${this.repo}/releases/${releaseId}/assets?name=${encodeURIComponent(fileName)}`,
-                form,
-                {
-                    headers: {
-                        ...this.getHeaders(),
-                        ...form.getHeaders(),
-                        'Content-Length': form.getLengthSync()
-                    },
-                    maxContentLength: Infinity,
-                    maxBodyLength: Infinity
-                }
-            );
-
-            return response.data;
-        } catch (error) {
-            console.error('Upload error:', error.response?.data || error.message);
-            throw error;
-        }
+        return response.data;
+    } catch (error) {
+        console.error(error.response?.data || error.message);
+        throw error;
     }
+}
 
     async deleteAsset(assetId) {
         try {

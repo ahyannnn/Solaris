@@ -1,6 +1,7 @@
 // controllers/bankTransferController.js
 const BankTransferPayment = require('../models/BankTransferPayment');
 const SolarInvoice = require('../models/SolarInvoice');
+const PreAssessment = require('../models/PreAssessment'); // ✅ ADD THIS
 const Project = require('../models/Project');
 const Client = require('../models/Clients');
 const User = require('../models/Users');
@@ -22,10 +23,8 @@ const generateReceiptNumber = () => {
 const companyBanks = [
   { id: 'bpo', name: 'BPO', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
   { id: 'bpi', name: 'BPI', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-  
   { id: 'metrobank', name: 'Metrobank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
   { id: 'security_bank', name: 'Security Bank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
-  
 ];
 
 // =============================================
@@ -108,51 +107,117 @@ const submitManualBankTransfer = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Client not found' });
     }
 
-    // Get invoice
-    const invoice = await SolarInvoice.findById(invoiceId);
-    if (!invoice) {
-      return res.status(404).json({ success: false, message: 'Invoice not found' });
+    // =============================================
+    // 🔍 FIND INVOICE - CHECK BOTH MODELS
+    // =============================================
+    let invoice = null;
+    let invoiceType = null; // 'solar' or 'preassessment'
+    let project = null;
+
+    // First, try to find as SolarInvoice
+    let solarInvoice = null;
+    if (mongoose.Types.ObjectId.isValid(invoiceId)) {
+      solarInvoice = await SolarInvoice.findById(invoiceId);
+    } else {
+      solarInvoice = await SolarInvoice.findOne({ invoiceNumber: invoiceId });
     }
 
-    // Verify ownership
-    if (invoice.clientId.toString() !== client._id.toString()) {
-      return res.status(403).json({ success: false, message: 'Unauthorized' });
-    }
+    if (solarInvoice) {
+      invoice = solarInvoice;
+      invoiceType = 'solar';
+      
+      // Verify ownership
+      if (invoice.clientId.toString() !== client._id.toString()) {
+        return res.status(403).json({ success: false, message: 'Unauthorized' });
+      }
 
-    // Check if invoice is already paid
-    if (invoice.paymentStatus === 'paid') {
-      return res.status(400).json({
-        success: false,
-        message: 'Invoice is already paid'
+      // Check if invoice is already paid
+      if (invoice.paymentStatus === 'paid') {
+        return res.status(400).json({
+          success: false,
+          message: 'Invoice is already paid'
+        });
+      }
+
+      // Get project
+      project = await Project.findById(invoice.projectId);
+      if (!project) {
+        return res.status(404).json({ success: false, message: 'Project not found' });
+      }
+
+      // Check if there's already a pending verification for this invoice
+      const existingPending = await BankTransferPayment.findOne({
+        invoiceId: invoice._id,
+        status: 'waiting_verification'
       });
+
+      if (existingPending) {
+        return res.status(400).json({
+          success: false,
+          message: 'You already have a pending verification request for this invoice. Please wait for admin approval.'
+        });
+      }
+
+    } else {
+      // Try to find as PreAssessment
+      let preAssessment = null;
+      if (mongoose.Types.ObjectId.isValid(invoiceId)) {
+        preAssessment = await PreAssessment.findById(invoiceId);
+      } else {
+        preAssessment = await PreAssessment.findOne({ invoiceNumber: invoiceId });
+      }
+
+      if (preAssessment) {
+        invoice = preAssessment;
+        invoiceType = 'preassessment';
+        
+        // Verify ownership
+        if (invoice.clientId.toString() !== client._id.toString()) {
+          return res.status(403).json({ success: false, message: 'Unauthorized' });
+        }
+
+        // Check if already paid
+        if (invoice.paymentStatus === 'paid') {
+          return res.status(400).json({
+            success: false,
+            message: 'Assessment fee is already paid'
+          });
+        }
+
+        // For PreAssessment, check if there's already a pending verification
+        const existingPending = await BankTransferPayment.findOne({
+          invoiceId: invoice._id,
+          status: 'waiting_verification'
+        });
+
+        if (existingPending) {
+          return res.status(400).json({
+            success: false,
+            message: 'You already have a pending verification request for this assessment. Please wait for admin approval.'
+          });
+        }
+
+        // No project for PreAssessment
+        project = null;
+
+      } else {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Invoice not found in either SolarInvoice or PreAssessment' 
+        });
+      }
     }
 
-    // Get project
-    const project = await Project.findById(invoice.projectId);
-    if (!project) {
-      return res.status(404).json({ success: false, message: 'Project not found' });
-    }
-
-    // Check if there's already a pending verification for this invoice
-    const existingPending = await BankTransferPayment.findOne({
-      invoiceId: invoice._id,
-      status: 'waiting_verification'
-    });
-
-    if (existingPending) {
-      return res.status(400).json({
-        success: false,
-        message: 'You already have a pending verification request for this invoice. Please wait for admin approval.'
-      });
-    }
-
-    // Upload proof to Cloudinary
+    // =============================================
+    // 📤 UPLOAD PROOF TO CLOUDINARY
+    // =============================================
     let proofUrl = '';
     try {
+      const invoiceNumber = invoice.invoiceNumber || 'assessment';
       const result = await new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
-            folder: `solar-tps/bank-transfer-proofs/${invoice.invoiceNumber}`,
+            folder: `solar-tps/bank-transfer-proofs/${invoiceNumber}`,
             resource_type: 'auto',
             allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf'],
             transformation: [
@@ -179,10 +244,12 @@ const submitManualBankTransfer = async (req, res) => {
       });
     }
 
-    // Create bank transfer payment record
+    // =============================================
+    // 💾 CREATE BANK TRANSFER PAYMENT RECORD
+    // =============================================
     const bankTransfer = new BankTransferPayment({
       invoiceId: invoice._id,
-      projectId: project._id,
+      projectId: project ? project._id : null,
       clientId: client._id,
       bankName: bankName,
       accountName: accountName || '',
@@ -192,17 +259,20 @@ const submitManualBankTransfer = async (req, res) => {
       transferTime: transferTime,
       proofOfPayment: proofUrl,
       remarks: remarks || '',
-      status: 'waiting_verification'
+      status: 'waiting_verification',
+      invoiceType: invoiceType // Track which model this belongs to
     });
 
     await bankTransfer.save();
 
-    // Update invoice paymentStatus to 'for_verification'
+    // =============================================
+    // 🔄 UPDATE INVOICE PAYMENT STATUS
+    // =============================================
     invoice.paymentStatus = 'for_verification';
     await invoice.save();
 
     // Log the submission
-    console.log(`✅ Manual bank transfer submitted: ${bankTransfer._id} for invoice ${invoice.invoiceNumber}`);
+    console.log(`✅ Manual bank transfer submitted: ${bankTransfer._id} for ${invoiceType} invoice ${invoice.invoiceNumber}`);
 
     res.status(201).json({
       success: true,
@@ -211,6 +281,7 @@ const submitManualBankTransfer = async (req, res) => {
         id: bankTransfer._id,
         status: bankTransfer.status,
         invoiceNumber: invoice.invoiceNumber,
+        invoiceType: invoiceType,
         amount: bankTransfer.amount,
         submittedAt: bankTransfer.createdAt
       }
@@ -426,6 +497,13 @@ const getBankTransferById = async (req, res) => {
 // @desc    Approve a bank transfer payment
 // @route   PUT /api/payments/bank-transfer/:id/approve
 // @access  Private (Admin only)
+// =============================================
+// ADMIN: Approve Bank Transfer Payment
+// =============================================
+
+// @desc    Approve a bank transfer payment
+// @route   PUT /api/payments/bank-transfer/:id/approve
+// @access  Private (Admin only)
 const approveBankTransfer = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -436,8 +514,6 @@ const approveBankTransfer = async (req, res) => {
 
     // Find the bank transfer payment
     const bankTransfer = await BankTransferPayment.findById(id)
-      .populate('invoiceId')
-      .populate('projectId')
       .populate('clientId');
 
     if (!bankTransfer) {
@@ -459,9 +535,31 @@ const approveBankTransfer = async (req, res) => {
       });
     }
 
-    const invoice = bankTransfer.invoiceId;
-    const project = bankTransfer.projectId;
     const client = bankTransfer.clientId;
+    let invoice = null;
+    let project = null;
+
+    // =============================================
+    // 🔍 GET INVOICE BASED ON TYPE
+    // =============================================
+    if (bankTransfer.invoiceType === 'solar') {
+      invoice = await SolarInvoice.findById(bankTransfer.invoiceId);
+      if (invoice) {
+        project = await Project.findById(invoice.projectId);
+      }
+    } else if (bankTransfer.invoiceType === 'preassessment') {
+      invoice = await PreAssessment.findById(bankTransfer.invoiceId);
+      // No project for PreAssessment
+    }
+
+    if (!invoice) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: 'Invoice not found'
+      });
+    }
 
     // Check if invoice is already paid
     if (invoice.paymentStatus === 'paid') {
@@ -482,91 +580,151 @@ const approveBankTransfer = async (req, res) => {
     const paymentReference = bankTransfer.transactionReference;
 
     // =============================================
-    // 1. UPDATE INVOICE
+    // 💰 PROCESS PAYMENT BASED ON INVOICE TYPE
     // =============================================
-    await invoice.addPayment({
-      amount: paymentAmount,
-      method: paymentMethod,
-      reference: paymentReference,
-      date: new Date(),
-      notes: `Manual bank transfer via ${bankTransfer.bankName}. Verified by admin.`
-    });
-
-    // =============================================
-    // 2. UPDATE PROJECT
-    // =============================================
-    if (project) {
-      const scheduleItem = project.paymentSchedule?.find(p => p.type === invoice.invoiceType);
-      if (scheduleItem && scheduleItem.status !== 'paid') {
-        scheduleItem.status = 'paid';
-        scheduleItem.paidAt = new Date();
-        scheduleItem.paymentReference = paymentReference;
-        scheduleItem.paymentGateway = 'manual_bank_transfer';
-        
-        project.amountPaid = (project.amountPaid || 0) + paymentAmount;
-        project.balance = project.totalCost - project.amountPaid;
-
-        // Update project status based on payment type
-        if (invoice.invoiceType === 'initial' && project.status === 'approved') {
-          project.status = 'initial_paid';
-        } else if (invoice.invoiceType === 'progress' && project.status === 'in_progress') {
-          project.status = 'progress_paid';
-        } else if (invoice.invoiceType === 'full') {
-          project.status = 'full_paid';
-          project.fullPaymentCompleted = true;
-        } else if (project.amountPaid >= project.totalCost) {
-          project.status = 'full_paid';
-          project.fullPaymentCompleted = true;
-        }
-
-        await project.save({ session });
-      }
-    }
-
-    // =============================================
-    // 3. GENERATE RECEIPT
-    // =============================================
-    let receipt = null;
-    try {
-      // Map invoice type to receipt payment type enum
-      let receiptPaymentType = 'full';
-      switch (invoice.invoiceType) {
-        case 'initial': receiptPaymentType = 'initial'; break;
-        case 'progress': receiptPaymentType = 'progress'; break;
-        case 'final': receiptPaymentType = 'final'; break;
-        case 'full': receiptPaymentType = 'full'; break;
-        default: receiptPaymentType = 'additional';
-      }
-
-      const customerName = `${client.contactFirstName || ''} ${client.contactLastName || ''}`.trim();
-
-      receipt = await receiptService.generateReceipt({
-        paymentType: receiptPaymentType,
+    
+    if (bankTransfer.invoiceType === 'solar') {
+      // =============================================
+      // 1. UPDATE SOLAR INVOICE
+      // =============================================
+      await invoice.addPayment({
         amount: paymentAmount,
-        paymentMethod: `Bank Transfer (${bankTransfer.bankName})`,
-        referenceNumber: bankTransfer.transactionReference,
-        invoiceNumber: invoice.invoiceNumber,
-        customer: {
-          name: customerName,
-          address: 'N/A',
-          contact: client.contactNumber,
-          email: clientUser?.email
-        },
-        projectName: project?.projectName || 'Solar Installation',
-        verifiedBy: adminId,
-        verifiedAt: new Date(),
-        notes: `Manual bank transfer via ${bankTransfer.bankName}. Transaction Ref: ${bankTransfer.transactionReference}`,
-        paymentDate: new Date()
+        method: paymentMethod,
+        reference: paymentReference,
+        date: new Date(),
+        notes: `Manual bank transfer via ${bankTransfer.bankName}. Verified by admin.`
       });
 
-      if (receipt && receipt.success) {
-        invoice.receiptUrl = receipt.receiptUrl;
-        invoice.receiptNumber = receipt.receiptNumber;
-        await invoice.save({ session });
-        console.log(`✅ Receipt generated: ${receipt.receiptNumber}`);
+      // =============================================
+      // 2. UPDATE PROJECT (for SolarInvoice)
+      // =============================================
+      if (project) {
+        const scheduleItem = project.paymentSchedule?.find(p => p.type === invoice.invoiceType);
+        if (scheduleItem && scheduleItem.status !== 'paid') {
+          scheduleItem.status = 'paid';
+          scheduleItem.paidAt = new Date();
+          scheduleItem.paymentReference = paymentReference;
+          scheduleItem.paymentGateway = 'manual_bank_transfer';
+          
+          project.amountPaid = (project.amountPaid || 0) + paymentAmount;
+          project.balance = project.totalCost - project.amountPaid;
+
+          // Update project status based on payment type
+          if (invoice.invoiceType === 'initial' && project.status === 'approved') {
+            project.status = 'initial_paid';
+          } else if (invoice.invoiceType === 'progress' && project.status === 'in_progress') {
+            project.status = 'progress_paid';
+          } else if (invoice.invoiceType === 'full') {
+            project.status = 'full_paid';
+            project.fullPaymentCompleted = true;
+          } else if (project.amountPaid >= project.totalCost) {
+            project.status = 'full_paid';
+            project.fullPaymentCompleted = true;
+          }
+
+          await project.save({ session });
+        }
       }
-    } catch (receiptError) {
-      console.error('Receipt generation error (non-blocking):', receiptError.message);
+
+      // =============================================
+      // 3. GENERATE RECEIPT FOR SOLAR INVOICE
+      // =============================================
+      let receipt = null;
+      try {
+        let receiptPaymentType = 'full';
+        switch (invoice.invoiceType) {
+          case 'initial': receiptPaymentType = 'initial'; break;
+          case 'progress': receiptPaymentType = 'progress'; break;
+          case 'final': receiptPaymentType = 'final'; break;
+          case 'full': receiptPaymentType = 'full'; break;
+          default: receiptPaymentType = 'additional';
+        }
+
+        const customerName = `${client.contactFirstName || ''} ${client.contactLastName || ''}`.trim();
+
+        receipt = await receiptService.generateReceipt({
+          paymentType: receiptPaymentType,
+          amount: paymentAmount,
+          paymentMethod: `Bank Transfer (${bankTransfer.bankName})`,
+          referenceNumber: bankTransfer.transactionReference,
+          invoiceNumber: invoice.invoiceNumber,
+          customer: {
+            name: customerName,
+            address: 'N/A',
+            contact: client.contactNumber,
+            email: clientUser?.email
+          },
+          projectName: project?.projectName || 'Solar Installation',
+          verifiedBy: adminId,
+          verifiedAt: new Date(),
+          notes: `Manual bank transfer via ${bankTransfer.bankName}. Transaction Ref: ${bankTransfer.transactionReference}`,
+          paymentDate: new Date()
+        });
+
+        if (receipt && receipt.success) {
+          invoice.receiptUrl = receipt.receiptUrl;
+          invoice.receiptNumber = receipt.receiptNumber;
+          await invoice.save({ session });
+          console.log(`✅ Receipt generated: ${receipt.receiptNumber}`);
+        }
+      } catch (receiptError) {
+        console.error('Receipt generation error (non-blocking):', receiptError.message);
+      }
+
+    } else if (bankTransfer.invoiceType === 'preassessment') {
+      // =============================================
+      // 1. UPDATE PRE-ASSESSMENT
+      // =============================================
+      invoice.paymentStatus = 'paid';
+      invoice.paymentCompletedAt = new Date();
+      // ✅ FIX: Use 'manual' instead of 'bank_transfer' since the enum only accepts ['gcash', 'card', 'manual']
+      invoice.paymentMethod = 'bank_transfer'; // Keep as 'bank_transfer' for clarity, but ensure PreAssessment model accepts it
+      invoice.paymentReference = paymentReference;
+      invoice.verifiedBy = adminId;
+      invoice.verifiedAt = new Date();
+      invoice.autoVerified = true;
+      
+      // Update assessment status
+      if (invoice.assessmentStatus === 'pending_payment') {
+        invoice.assessmentStatus = 'scheduled';
+      }
+      
+      await invoice.save({ session });
+
+      // =============================================
+      // 2. GENERATE RECEIPT FOR PRE-ASSESSMENT
+      // =============================================
+      try {
+        const customerName = `${client.contactFirstName || ''} ${client.contactLastName || ''}`.trim();
+
+        const receipt = await receiptService.generateReceipt({
+          paymentType: 'assessment',
+          amount: paymentAmount,
+          paymentMethod: `Bank Transfer (${bankTransfer.bankName})`,
+          referenceNumber: bankTransfer.transactionReference,
+          invoiceNumber: invoice.invoiceNumber || 'N/A',
+          customer: {
+            name: customerName,
+            address: 'N/A',
+            contact: client.contactNumber,
+            email: clientUser?.email
+          },
+          projectName: 'Solar Assessment Fee',
+          verifiedBy: adminId,
+          verifiedAt: new Date(),
+          notes: `Assessment fee payment via bank transfer ${bankTransfer.bankName}. Transaction Ref: ${bankTransfer.transactionReference}`,
+          paymentDate: new Date()
+        });
+
+        if (receipt && receipt.success) {
+          invoice.receiptUrl = receipt.receiptUrl;
+          invoice.receiptNumber = receipt.receiptNumber;
+          await invoice.save({ session });
+          console.log(`✅ Assessment receipt generated: ${receipt.receiptNumber}`);
+        }
+      } catch (receiptError) {
+        console.error('Assessment receipt generation error (non-blocking):', receiptError.message);
+      }
     }
 
     // =============================================
@@ -585,7 +743,7 @@ const approveBankTransfer = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    console.log(`✅ Bank transfer ${bankTransfer._id} approved for invoice ${invoice.invoiceNumber}`);
+    console.log(`✅ Bank transfer ${bankTransfer._id} approved for ${bankTransfer.invoiceType} invoice ${invoice.invoiceNumber}`);
 
     res.json({
       success: true,
@@ -594,6 +752,7 @@ const approveBankTransfer = async (req, res) => {
         id: bankTransfer._id,
         status: bankTransfer.status,
         invoiceNumber: invoice.invoiceNumber,
+        invoiceType: bankTransfer.invoiceType,
         paymentStatus: invoice.paymentStatus,
         receiptUrl: invoice.receiptUrl,
         receiptNumber: invoice.receiptNumber,
@@ -639,9 +798,7 @@ const rejectBankTransfer = async (req, res) => {
     }
 
     // Find the bank transfer payment
-    const bankTransfer = await BankTransferPayment.findById(id)
-      .populate('invoiceId')
-      .populate('clientId');
+    const bankTransfer = await BankTransferPayment.findById(id);
 
     if (!bankTransfer) {
       await session.abortTransaction();
@@ -662,11 +819,19 @@ const rejectBankTransfer = async (req, res) => {
       });
     }
 
-    const invoice = bankTransfer.invoiceId;
+    // Get invoice based on type
+    let invoice = null;
+    if (bankTransfer.invoiceType === 'solar') {
+      invoice = await SolarInvoice.findById(bankTransfer.invoiceId);
+    } else if (bankTransfer.invoiceType === 'preassessment') {
+      invoice = await PreAssessment.findById(bankTransfer.invoiceId);
+    }
 
-    // Revert invoice payment status
-    invoice.paymentStatus = 'pending';
-    await invoice.save({ session });
+    if (invoice) {
+      // Revert invoice payment status
+      invoice.paymentStatus = 'pending';
+      await invoice.save({ session });
+    }
 
     // Update bank transfer record
     bankTransfer.status = 'rejected';
@@ -679,7 +844,7 @@ const rejectBankTransfer = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    console.log(`❌ Bank transfer ${bankTransfer._id} rejected for invoice ${invoice.invoiceNumber}`);
+    console.log(`❌ Bank transfer ${bankTransfer._id} rejected for ${bankTransfer.invoiceType} invoice`);
 
     res.json({
       success: true,
@@ -688,7 +853,7 @@ const rejectBankTransfer = async (req, res) => {
         id: bankTransfer._id,
         status: bankTransfer.status,
         rejectionReason: bankTransfer.rejectionReason,
-        invoiceNumber: invoice.invoiceNumber
+        invoiceType: bankTransfer.invoiceType
       }
     });
 
@@ -734,6 +899,28 @@ const getBankTransferStatus = async (req, res) => {
       });
     }
 
+    // Get invoice details based on type
+    let invoiceDetails = null;
+    if (payment.invoiceType === 'solar') {
+      const invoice = await SolarInvoice.findById(payment.invoiceId);
+      if (invoice) {
+        invoiceDetails = {
+          invoiceNumber: invoice.invoiceNumber,
+          totalAmount: invoice.totalAmount,
+          paymentStatus: invoice.paymentStatus
+        };
+      }
+    } else if (payment.invoiceType === 'preassessment') {
+      const assessment = await PreAssessment.findById(payment.invoiceId);
+      if (assessment) {
+        invoiceDetails = {
+          invoiceNumber: assessment.invoiceNumber || 'N/A',
+          totalAmount: assessment.assessmentFee || 1500,
+          paymentStatus: assessment.paymentStatus
+        };
+      }
+    }
+
     res.json({
       success: true,
       hasSubmission: true,
@@ -751,7 +938,9 @@ const getBankTransferStatus = async (req, res) => {
         rejectionReason: payment.rejectionReason,
         receiptUrl: payment.receiptUrl,
         receiptNumber: payment.receiptNumber,
-        verifiedAt: payment.verifiedAt
+        verifiedAt: payment.verifiedAt,
+        invoiceType: payment.invoiceType,
+        invoiceDetails: invoiceDetails
       }
     });
 

@@ -46,7 +46,7 @@ const preAssessmentSchema = new mongoose.Schema({
   assessmentFee: { type: Number, default: 1500 },
   bookingReference: { type: String }, // Removed unique: true
   invoiceNumber: { type: String }, // Removed unique: true and sparse: true
-  paymentMethod: { type: String, enum: ['gcash', 'card', 'cash'], default: null },
+  paymentMethod: { type: String, enum: ['gcash', 'card','bank_transfer', 'cash'], default: null },
   paymentProof: { type: String },
   paymentProofFileId: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
   paymentReference: { type: String },

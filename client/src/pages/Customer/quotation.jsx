@@ -858,10 +858,13 @@ const Quotation = () => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-PH', {
-      style: 'currency', currency: 'PHP', minimumFractionDigits: 0, maximumFractionDigits: 0
-    }).format(amount || 0);
-  };
+  return new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount || 0);
+};
 
   const getFilteredItems = () => {
     let filtered = [...allItems];

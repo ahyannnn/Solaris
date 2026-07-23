@@ -4,13 +4,19 @@ const mongoose = require('mongoose');
 const BankTransferPaymentSchema = new mongoose.Schema({
   invoiceId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'SolarInvoice',
+    ref: 'SolarInvoice', // This will be either SolarInvoice or PreAssessment
     required: true
+  },
+  invoiceType: {
+    type: String,
+    enum: ['solar', 'preassessment'],
+    required: true,
+    default: 'solar'
   },
   projectId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Project',
-    required: true
+    required: false // Make it optional for PreAssessment
   },
   clientId: {
     type: mongoose.Schema.Types.ObjectId,

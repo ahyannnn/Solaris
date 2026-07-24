@@ -27,7 +27,15 @@ const preAssessmentSchema = new mongoose.Schema({
   nightPercentage: { type: Number, default: 0 },
   totalDailyConsumption: { type: Number, default: 0 },
   targetSavings: { type: Number, enum: [100, 75, 50, 25], default: null },
+  motorAppliancesWatts: {
+    type: Number,
+    default: 0
+  },
 
+  nonMotorAppliancesWatts: {
+    type: Number,
+    default: 0
+  },
   // ============ SYSTEM CALCULATIONS ============
   recommendedSystemSize: { type: Number, default: null },
   inverterSize: { type: Number, default: null },
@@ -46,7 +54,7 @@ const preAssessmentSchema = new mongoose.Schema({
   assessmentFee: { type: Number, default: 1500 },
   bookingReference: { type: String }, // Removed unique: true
   invoiceNumber: { type: String }, // Removed unique: true and sparse: true
-  paymentMethod: { type: String, enum: ['gcash', 'card','bank_transfer', 'cash'], default: null },
+  paymentMethod: { type: String, enum: ['gcash', 'card', 'bank_transfer', 'cash'], default: null },
   paymentProof: { type: String },
   paymentProofFileId: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
   paymentReference: { type: String },

@@ -2,34 +2,34 @@ const mongoose = require('mongoose');
 
 const freeQuoteSchema = new mongoose.Schema({
   // Client Information
-  clientId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Client', 
-    required: true, 
-    index: true 
+  clientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Client',
+    required: true,
+    index: true
   },
-  addressId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Address' 
+  addressId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Address'
   },
-  
+
   // Request Details
-  monthlyBill: { 
-    type: Number, 
-    required: true 
+  monthlyBill: {
+    type: Number,
+    required: true
   },
-  propertyType: { 
-    type: String, 
-    enum: ['residential', 'commercial', 'industrial'], 
-    required: true 
+  propertyType: {
+    type: String,
+    enum: ['residential', 'commercial', 'industrial'],
+    required: true
   },
-  desiredCapacity: { 
-    type: String 
+  desiredCapacity: {
+    type: String
   },
-  
+
   // ============ SYSTEM PREFERENCES ============
-  systemType: { 
-    type: String, 
+  systemType: {
+    type: String,
     enum: ['grid-tie', 'hybrid', 'off-grid'],
     default: null
   },
@@ -38,127 +38,135 @@ const freeQuoteSchema = new mongoose.Schema({
     enum: ['concrete', 'metal', 'tile', 'other'],
     default: null
   },
-  roofLength: { 
+  roofLength: {
     type: Number,
     default: null
   },
-  roofWidth: { 
+  roofWidth: {
     type: Number,
     default: null
   },
-  targetSavings: { 
-    type: Number, 
-    enum: [100, 75, 50, 25], 
-    default: null 
+  targetSavings: {
+    type: Number,
+    enum: [100, 75, 50, 25],
+    default: null
   },
-  
+
   // ============ CONSUMPTION DATA ============
-  monthlyConsumption: { 
-    type: Number, 
-    default: null 
+  monthlyConsumption: {
+    type: Number,
+    default: null
   },
-  dayConsumption: { 
-    type: Number, 
-    default: null 
+  dayConsumption: {
+    type: Number,
+    default: null
   },
-  nightConsumption: { 
-    type: Number, 
-    default: null 
+  nightConsumption: {
+    type: Number,
+    default: null
   },
-  dayPercentage: { 
-    type: Number, 
-    default: null 
+  dayPercentage: {
+    type: Number,
+    default: null
   },
-  nightPercentage: { 
-    type: Number, 
-    default: null 
+  nightPercentage: {
+    type: Number,
+    default: null
   },
-  totalDailyConsumption: { 
-    type: Number, 
-    default: null 
+  totalDailyConsumption: {
+    type: Number,
+    default: null
   },
-  
+  motorAppliancesWatts: {
+    type: Number,
+    default: 0
+  },
+
+  nonMotorAppliancesWatts: {
+    type: Number,
+    default: 0
+  },
   // ============ SYSTEM CALCULATIONS ============
-  recommendedSystemSize: { 
-    type: Number, 
-    default: null 
+  recommendedSystemSize: {
+    type: Number,
+    default: null
   },
-  inverterSize: { 
-    type: Number, 
-    default: null 
+  inverterSize: {
+    type: Number,
+    default: null
   },
-  batteryCapacityKwh: { 
-    type: Number, 
-    default: null 
+  batteryCapacityKwh: {
+    type: Number,
+    default: null
   },
-  panelsNeeded: { 
-    type: Number, 
-    default: null 
+  panelsNeeded: {
+    type: Number,
+    default: null
   },
-  
+
   // ============ ✅ NEW: ANNUAL PRODUCTION ============
-  estimatedAnnualProduction: { 
-    type: Number, 
-    default: null 
+  estimatedAnnualProduction: {
+    type: Number,
+    default: null
   },
-  estimatedAnnualProductionMin: { 
-    type: Number, 
-    default: null 
+  estimatedAnnualProductionMin: {
+    type: Number,
+    default: null
   },
-  estimatedAnnualProductionMax: { 
-    type: Number, 
-    default: null 
+  estimatedAnnualProductionMax: {
+    type: Number,
+    default: null
   },
-  
+
   // ============ ✅ NEW: CO2 OFFSET ============
-  co2Offset: { 
-    type: Number, 
-    default: null 
+  co2Offset: {
+    type: Number,
+    default: null
   },
-  co2OffsetMin: { 
-    type: Number, 
-    default: null 
+  co2OffsetMin: {
+    type: Number,
+    default: null
   },
-  co2OffsetMax: { 
-    type: Number, 
-    default: null 
+  co2OffsetMax: {
+    type: Number,
+    default: null
   },
-  
+
   // ============ STATUS ============
-  status: { 
-    type: String, 
+  status: {
+    type: String,
     enum: ['pending', 'assigned', 'processing', 'completed', 'accepted', 'cancelled'],
     default: 'pending'
   },
-  
+
   // Engineer Assignment
-  assignedEngineerId: { 
-    type: mongoose.Schema.Types.ObjectId, 
+  assignedEngineerId: {
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     index: true
   },
-  assignedAt: { 
-    type: Date 
+  assignedAt: {
+    type: Date
   },
-  assignedBy: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User' 
+  assignedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   },
-  
+
   // Admin Response
-  quotationReference: { 
-    type: String, 
-    unique: true 
+  quotationReference: {
+    type: String,
+    unique: true
   },
-  quotationFile: { 
-    type: String 
+  quotationFile: {
+    type: String
   },
-  quotationUrl: { 
-    type: String 
+  quotationUrl: {
+    type: String
   },
   quotationSentAt: Date,
   adminRemarks: String,
-  
+
   // Quotation Details (for storing system recommendations)
   quotationDetails: {
     systemSize: Number,
@@ -171,15 +179,15 @@ const freeQuoteSchema = new mongoose.Schema({
     warrantyYears: Number,
     remarks: String
   },
-  
+
   // Timestamps
-  requestedAt: { 
-    type: Date, 
-    default: Date.now 
+  requestedAt: {
+    type: Date,
+    default: Date.now
   },
-  processedBy: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User' 
+  processedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   },
   processedAt: Date
 }, {

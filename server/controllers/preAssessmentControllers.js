@@ -894,7 +894,9 @@ exports.createPreAssessment = async (req, res) => {
       dayPercentage,
       nightPercentage,
       totalDailyConsumption,
-      targetSavings,  // ✅ ADD TARGET SAVINGS
+      targetSavings,  
+      motorAppliancesWatts,      // ✅ ADD THIS
+      nonMotorAppliancesWatts,   // ✅ ADD THIS
     } = req.body;
 
     const client = await Client.findOne({ userId });
@@ -941,7 +943,9 @@ exports.createPreAssessment = async (req, res) => {
       dayPercentage: roundTo2Decimals(dayPercentage),
       nightPercentage: roundTo2Decimals(nightPercentage),
       totalDailyConsumption: roundTo2Decimals(totalDailyConsumption),
-      targetSavings: targetSavings ? parseInt(targetSavings) : null,  // ✅ ADD TARGET SAVINGS
+      targetSavings: targetSavings ? parseInt(targetSavings) : null,
+      motorAppliancesWatts: motorAppliancesWatts ? parseFloat(motorAppliancesWatts) : 0,      // ✅ ADD THIS
+      nonMotorAppliancesWatts: nonMotorAppliancesWatts ? parseFloat(nonMotorAppliancesWatts) : 0, // ✅ ADD THIS
     };
 
     const preAssessment = new PreAssessment(preAssessmentData);
@@ -980,7 +984,9 @@ exports.createPreAssessment = async (req, res) => {
         dayPercentage: preAssessment.dayPercentage,
         nightPercentage: preAssessment.nightPercentage,
         totalDailyConsumption: preAssessment.totalDailyConsumption,
-        targetSavings: preAssessment.targetSavings,  // ✅ ADD TARGET SAVINGS
+        targetSavings: preAssessment.targetSavings,  
+        motorAppliancesWatts: preAssessment.motorAppliancesWatts,      // ✅ ADD THIS
+        nonMotorAppliancesWatts: preAssessment.nonMotorAppliancesWatts, // ✅ ADD THIS
       }
     });
 

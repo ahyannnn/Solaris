@@ -8,6 +8,10 @@ const equipmentItemSchema = new mongoose.Schema({
   brand: { type: String, default: '' },
   model: { type: String, default: '' },
   warranty: { type: Number, default: 0 },
+  capacity: {
+    value: { type: Number, default: 0 },
+    unit: { type: String, default: "" }
+  },
   unit: { type: String, default: 'piece' },
   isActive: { type: Boolean, default: true },
   notes: { type: String, default: '' },

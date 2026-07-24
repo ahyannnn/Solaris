@@ -20,12 +20,12 @@ const generateTaskId = () => {
 exports.getMaintenanceStatus = async (req, res) => {
   try {
     let maintenance = await Maintenance.findOne();
-    
+
     if (!maintenance) {
       maintenance = new Maintenance();
       await maintenance.save();
     }
-    
+
     res.json({
       success: true,
       isUnderMaintenance: maintenance.isUnderMaintenance,
@@ -40,7 +40,7 @@ exports.getMaintenanceStatus = async (req, res) => {
       contactPhone: maintenance.contactPhone,
       socialLinks: maintenance.socialLinks
     });
-    
+
   } catch (error) {
     console.error('Get maintenance status error:', error);
     res.status(500).json({ message: 'Failed to get maintenance status', error: error.message });
@@ -54,39 +54,39 @@ exports.enableMaintenance = async (req, res) => {
   try {
     const { title, message, estimatedDuration, showCountdown, showProgressBar, contactEmail, contactPhone, socialLinks } = req.body;
     const adminId = req.user.id;
-    
+
     let maintenance = await Maintenance.findOne();
-    
+
     if (!maintenance) {
       maintenance = new Maintenance();
     }
-    
+
     // Check if already under maintenance
     if (maintenance.isUnderMaintenance) {
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         message: 'Maintenance mode is already enabled. Please disable it first before enabling again.',
         isUnderMaintenance: true,
         startedAt: maintenance.scheduledStart
       });
     }
-    
+
     await maintenance.startMaintenance(
       title || maintenance.title,
       message || maintenance.message,
       estimatedDuration || maintenance.estimatedDuration,
       req.user.id
     );
-    
+
     // Update additional settings
     if (showCountdown !== undefined) maintenance.showCountdown = showCountdown;
     if (showProgressBar !== undefined) maintenance.showProgressBar = showProgressBar;
     if (contactEmail) maintenance.contactEmail = contactEmail;
     if (contactPhone) maintenance.contactPhone = contactPhone;
     if (socialLinks) maintenance.socialLinks = socialLinks;
-    
+
     await maintenance.save();
-    
+
     // Create maintenance task record
     const task = new MaintenanceTask({
       taskId: generateTaskId(),
@@ -111,7 +111,7 @@ exports.enableMaintenance = async (req, res) => {
       module: "Maintenance",
       action: `Enabled maintenance mode${title ? `: ${title}` : ''}`
     });
-    
+
     res.json({
       success: true,
       message: 'Maintenance mode enabled',
@@ -122,7 +122,7 @@ exports.enableMaintenance = async (req, res) => {
         message: maintenance.message
       }
     });
-    
+
   } catch (error) {
     console.error('Enable maintenance error:', error);
     res.status(500).json({ message: 'Failed to enable maintenance', error: error.message });
@@ -136,23 +136,23 @@ exports.disableMaintenance = async (req, res) => {
   try {
     const adminId = req.user.id;
     let maintenance = await Maintenance.findOne();
-    
+
     if (!maintenance) {
       maintenance = new Maintenance();
       await maintenance.save();
     }
-    
+
     // Check if not under maintenance
     if (!maintenance.isUnderMaintenance) {
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         message: 'Maintenance mode is not currently enabled. Nothing to disable.',
         isUnderMaintenance: false
       });
     }
-    
+
     await maintenance.endMaintenance(req.user.id);
-    
+
     // Create maintenance task record
     const task = new MaintenanceTask({
       taskId: generateTaskId(),
@@ -176,7 +176,7 @@ exports.disableMaintenance = async (req, res) => {
       module: "Maintenance",
       action: "Disabled maintenance mode"
     });
-    
+
     res.json({
       success: true,
       message: 'Maintenance mode disabled',
@@ -185,7 +185,7 @@ exports.disableMaintenance = async (req, res) => {
         scheduledEnd: maintenance.scheduledEnd
       }
     });
-    
+
   } catch (error) {
     console.error('Disable maintenance error:', error);
     res.status(500).json({ message: 'Failed to disable maintenance', error: error.message });
@@ -198,12 +198,12 @@ exports.disableMaintenance = async (req, res) => {
 exports.updateMaintenanceSettings = async (req, res) => {
   try {
     const adminId = req.user.id;
-    const { 
-      title, 
-      message, 
-      estimatedDuration, 
-      allowedIPs, 
-      allowedRoles, 
+    const {
+      title,
+      message,
+      estimatedDuration,
+      allowedIPs,
+      allowedRoles,
       whitelistedRoutes,
       showCountdown,
       showProgressBar,
@@ -211,13 +211,13 @@ exports.updateMaintenanceSettings = async (req, res) => {
       contactPhone,
       socialLinks
     } = req.body;
-    
+
     let maintenance = await Maintenance.findOne();
-    
+
     if (!maintenance) {
       maintenance = new Maintenance();
     }
-    
+
     if (title) maintenance.title = title;
     if (message) maintenance.message = message;
     if (estimatedDuration) maintenance.estimatedDuration = estimatedDuration;
@@ -229,10 +229,10 @@ exports.updateMaintenanceSettings = async (req, res) => {
     if (contactEmail) maintenance.contactEmail = contactEmail;
     if (contactPhone) maintenance.contactPhone = contactPhone;
     if (socialLinks) maintenance.socialLinks = socialLinks;
-    
+
     maintenance.updatedBy = req.user.id;
     maintenance.updatedAt = new Date();
-    
+
     await maintenance.save();
 
     // Save audit trail
@@ -242,13 +242,13 @@ exports.updateMaintenanceSettings = async (req, res) => {
       module: "Maintenance",
       action: "Updated maintenance settings"
     });
-    
+
     res.json({
       success: true,
       message: 'Maintenance settings updated',
       maintenance
     });
-    
+
   } catch (error) {
     console.error('Update maintenance settings error:', error);
     res.status(500).json({ message: 'Failed to update settings', error: error.message });
@@ -263,16 +263,16 @@ exports.getMaintenanceHistory = async (req, res) => {
     const maintenance = await Maintenance.findOne()
       .populate('maintenanceHistory.initiatedBy', 'firstName lastName email')
       .populate('maintenanceHistory.completedAt');
-    
+
     if (!maintenance) {
       return res.json({ success: true, history: [] });
     }
-    
+
     res.json({
       success: true,
       history: maintenance.maintenanceHistory
     });
-    
+
   } catch (error) {
     console.error('Get maintenance history error:', error);
     res.status(500).json({ message: 'Failed to get history', error: error.message });
@@ -286,17 +286,17 @@ exports.addAllowedIP = async (req, res) => {
   try {
     const { ip } = req.body;
     const adminId = req.user.id;
-    
+
     if (!ip) {
       return res.status(400).json({ message: 'IP address is required' });
     }
-    
+
     let maintenance = await Maintenance.findOne();
-    
+
     if (!maintenance) {
       maintenance = new Maintenance();
     }
-    
+
     if (!maintenance.allowedIPs.includes(ip)) {
       maintenance.allowedIPs.push(ip);
       await maintenance.save();
@@ -309,13 +309,13 @@ exports.addAllowedIP = async (req, res) => {
       module: "Maintenance",
       action: `Added IP ${ip} to whitelist`
     });
-    
+
     res.json({
       success: true,
       message: 'IP address added to whitelist',
       allowedIPs: maintenance.allowedIPs
     });
-    
+
   } catch (error) {
     console.error('Add allowed IP error:', error);
     res.status(500).json({ message: 'Failed to add IP', error: error.message });
@@ -329,13 +329,13 @@ exports.removeAllowedIP = async (req, res) => {
   try {
     const { ip } = req.params;
     const adminId = req.user.id;
-    
+
     let maintenance = await Maintenance.findOne();
-    
+
     if (!maintenance) {
       maintenance = new Maintenance();
     }
-    
+
     maintenance.allowedIPs = maintenance.allowedIPs.filter(allowedIp => allowedIp !== ip);
     await maintenance.save();
 
@@ -346,13 +346,13 @@ exports.removeAllowedIP = async (req, res) => {
       module: "Maintenance",
       action: `Removed IP ${ip} from whitelist`
     });
-    
+
     res.json({
       success: true,
       message: 'IP address removed from whitelist',
       allowedIPs: maintenance.allowedIPs
     });
-    
+
   } catch (error) {
     console.error('Remove allowed IP error:', error);
     res.status(500).json({ message: 'Failed to remove IP', error: error.message });
@@ -367,17 +367,17 @@ exports.removeAllowedIP = async (req, res) => {
 exports.getSystemConfig = async (req, res) => {
   try {
     let config = await SystemConfig.findOne();
-    
+
     if (!config) {
       config = new SystemConfig();
       await config.save();
     }
-    
+
     res.json({
       success: true,
       config
     });
-    
+
   } catch (error) {
     console.error('Get system config error:', error);
     res.status(500).json({ message: 'Failed to fetch system configuration', error: error.message });
@@ -392,15 +392,15 @@ exports.updateSystemConfig = async (req, res) => {
     const updates = req.body;
     const { reason } = req.query;
     const adminId = req.user.id;
-    
+
     let config = await SystemConfig.findOne();
-    
+
     if (!config) {
       config = new SystemConfig();
     }
-    
+
     const result = await config.updateConfig(updates, req.user.id, reason || 'Manual update');
-    
+
     // Create maintenance task record
     const task = new MaintenanceTask({
       taskId: generateTaskId(),
@@ -417,7 +417,7 @@ exports.updateSystemConfig = async (req, res) => {
       status: 'completed',
       createdBy: req.user.id
     });
-    
+
     await task.save();
 
     // Save audit trail
@@ -427,14 +427,14 @@ exports.updateSystemConfig = async (req, res) => {
       module: "Maintenance",
       action: `Updated system configuration: ${result.updated} settings changed`
     });
-    
+
     res.json({
       success: true,
       message: 'System configuration updated successfully',
       updated: result.updated,
       history: result.history
     });
-    
+
   } catch (error) {
     console.error('Update system config error:', error);
     res.status(500).json({ message: 'Failed to update system configuration', error: error.message });
@@ -447,12 +447,12 @@ exports.updateSystemConfig = async (req, res) => {
 exports.resetSystemConfig = async (req, res) => {
   try {
     const adminId = req.user.id;
-    
+
     // Create new default config
     const newConfig = new SystemConfig();
-    
+
     let config = await SystemConfig.findOne();
-    
+
     if (config) {
       const oldConfig = config.toObject();
       await config.updateConfig(newConfig.toObject(), req.user.id, 'Reset to defaults');
@@ -460,7 +460,7 @@ exports.resetSystemConfig = async (req, res) => {
       config = newConfig;
       await config.save();
     }
-    
+
     const task = new MaintenanceTask({
       taskId: generateTaskId(),
       title: 'System Configuration Reset',
@@ -474,7 +474,7 @@ exports.resetSystemConfig = async (req, res) => {
       status: 'completed',
       createdBy: req.user.id
     });
-    
+
     await task.save();
 
     // Save audit trail
@@ -484,13 +484,13 @@ exports.resetSystemConfig = async (req, res) => {
       module: "Maintenance",
       action: "Reset system configuration to defaults"
     });
-    
+
     res.json({
       success: true,
       message: 'System configuration reset to defaults',
       config
     });
-    
+
   } catch (error) {
     console.error('Reset system config error:', error);
     res.status(500).json({ message: 'Failed to reset configuration', error: error.message });
@@ -504,16 +504,16 @@ exports.getConfigHistory = async (req, res) => {
   try {
     const config = await SystemConfig.findOne()
       .populate('updateHistory.updatedBy', 'firstName lastName email');
-    
+
     if (!config) {
       return res.json({ success: true, history: [] });
     }
-    
+
     res.json({
       success: true,
       history: config.updateHistory
     });
-    
+
   } catch (error) {
     console.error('Get config history error:', error);
     res.status(500).json({ message: 'Failed to fetch history', error: error.message });
@@ -530,48 +530,48 @@ exports.addEquipmentItem = async (req, res) => {
     const { type, name, price, brand, warranty, unit, notes } = req.body;
     const { reason } = req.query;
     const adminId = req.user.id;
-    
+
     // Validate equipment type
     const validTypes = [
       'solarPanels', 'inverters', 'batteries', 'mountingStructures',
       'electricalComponents', 'cablesAndWiring', 'safetyEquipment',
       'junctionBoxes', 'disconnectSwitches', 'meters'
     ];
-    
+
     if (!validTypes.includes(type)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: `Invalid equipment type. Must be one of: ${validTypes.join(', ')}` 
+      return res.status(400).json({
+        success: false,
+        message: `Invalid equipment type. Must be one of: ${validTypes.join(', ')}`
       });
     }
-    
+
     // Validate required fields
     if (!name || !name.trim()) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Equipment name is required' 
+      return res.status(400).json({
+        success: false,
+        message: 'Equipment name is required'
       });
     }
-    
+
     if (!price || price <= 0) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Valid price is required' 
+      return res.status(400).json({
+        success: false,
+        message: 'Valid price is required'
       });
     }
-    
+
     let config = await SystemConfig.findOne();
     if (!config) {
       config = new SystemConfig();
       await config.save();
     }
-    
+
     const newItem = await config.addEquipmentItem(
       type,
-      { 
-        name: name.trim(), 
-        price: parseFloat(price), 
-        brand: brand || '', 
+      {
+        name: name.trim(),
+        price: parseFloat(price),
+        brand: brand || '',
         warranty: warranty || 0,
         unit: unit || 'piece',
         notes: notes || ''
@@ -579,7 +579,7 @@ exports.addEquipmentItem = async (req, res) => {
       req.user.id,
       reason || `Added new ${type.slice(0, -1)}: ${name}`
     );
-    
+
     // Create maintenance task record
     const task = new MaintenanceTask({
       taskId: generateTaskId(),
@@ -595,7 +595,7 @@ exports.addEquipmentItem = async (req, res) => {
       status: 'completed',
       createdBy: req.user.id
     });
-    
+
     await task.save();
 
     // Save audit trail
@@ -605,19 +605,19 @@ exports.addEquipmentItem = async (req, res) => {
       module: "Maintenance",
       action: `Added ${type.slice(0, -1)}: ${name}`
     });
-    
+
     res.json({
       success: true,
       message: `${name} added successfully to ${type}`,
       item: newItem
     });
-    
+
   } catch (error) {
     console.error('Add equipment error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to add equipment', 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add equipment',
+      error: error.message
     });
   }
 };
@@ -628,40 +628,55 @@ exports.addEquipmentItem = async (req, res) => {
 exports.updateEquipmentItem = async (req, res) => {
   try {
     const { type, itemId } = req.params;
-    const { name, price, brand, warranty, unit, notes, isActive } = req.body;
+    const {
+      name,
+      price,
+      brand,
+      warranty,
+      capacity,
+      unit,
+      notes,
+      isActive
+    } = req.body;
     const { reason } = req.query;
     const adminId = req.user.id;
-    
+
     const validTypes = [
       'solarPanels', 'inverters', 'batteries', 'mountingStructures',
       'electricalComponents', 'cablesAndWiring', 'safetyEquipment',
       'junctionBoxes', 'disconnectSwitches', 'meters'
     ];
-    
+
     if (!validTypes.includes(type)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid equipment type' 
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid equipment type'
       });
     }
-    
+
     let config = await SystemConfig.findOne();
     if (!config) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Configuration not found' 
+      return res.status(404).json({
+        success: false,
+        message: 'Configuration not found'
       });
     }
-    
+
     const updates = {};
     if (name !== undefined) updates.name = name.trim();
     if (price !== undefined) updates.price = parseFloat(price);
     if (brand !== undefined) updates.brand = brand;
+    if (capacity !== undefined) {
+      updates.capacity = {
+        value: Number(capacity.value),
+        unit: capacity.unit
+      };
+    }
     if (warranty !== undefined) updates.warranty = parseInt(warranty);
     if (unit !== undefined) updates.unit = unit;
     if (notes !== undefined) updates.notes = notes;
     if (isActive !== undefined) updates.isActive = isActive === 'true' || isActive === true;
-    
+
     const updatedItem = await config.updateEquipmentItem(
       type,
       itemId,
@@ -669,7 +684,7 @@ exports.updateEquipmentItem = async (req, res) => {
       req.user.id,
       reason || `Updated ${type.slice(0, -1)}: ${name || 'equipment'}`
     );
-    
+
     // Create maintenance task record
     const task = new MaintenanceTask({
       taskId: generateTaskId(),
@@ -685,7 +700,7 @@ exports.updateEquipmentItem = async (req, res) => {
       status: 'completed',
       createdBy: req.user.id
     });
-    
+
     await task.save();
 
     // Save audit trail
@@ -695,19 +710,19 @@ exports.updateEquipmentItem = async (req, res) => {
       module: "Maintenance",
       action: `Updated ${type.slice(0, -1)}: ${updatedItem.name}`
     });
-    
+
     res.json({
       success: true,
       message: 'Equipment updated successfully',
       item: updatedItem
     });
-    
+
   } catch (error) {
     console.error('Update equipment error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to update equipment', 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update equipment',
+      error: error.message
     });
   }
 };
@@ -721,28 +736,28 @@ exports.removeEquipmentItem = async (req, res) => {
     const { reason } = req.body;
     const { hardDelete } = req.query;
     const adminId = req.user.id;
-    
+
     const validTypes = [
       'solarPanels', 'inverters', 'batteries', 'mountingStructures',
       'electricalComponents', 'cablesAndWiring', 'safetyEquipment',
       'junctionBoxes', 'disconnectSwitches', 'meters'
     ];
-    
+
     if (!validTypes.includes(type)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid equipment type' 
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid equipment type'
       });
     }
-    
+
     let config = await SystemConfig.findOne();
     if (!config) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Configuration not found' 
+      return res.status(404).json({
+        success: false,
+        message: 'Configuration not found'
       });
     }
-    
+
     let removedItem;
     if (hardDelete === 'true') {
       removedItem = await config.hardDeleteEquipmentItem(
@@ -759,7 +774,7 @@ exports.removeEquipmentItem = async (req, res) => {
         reason || `Removed ${type.slice(0, -1)}`
       );
     }
-    
+
     // Create maintenance task record
     const task = new MaintenanceTask({
       taskId: generateTaskId(),
@@ -775,7 +790,7 @@ exports.removeEquipmentItem = async (req, res) => {
       status: 'completed',
       createdBy: req.user.id
     });
-    
+
     await task.save();
 
     // Save audit trail
@@ -785,19 +800,19 @@ exports.removeEquipmentItem = async (req, res) => {
       module: "Maintenance",
       action: `${hardDelete === 'true' ? 'Permanently deleted' : 'Removed'} ${type.slice(0, -1)}: ${removedItem.name}`
     });
-    
+
     res.json({
       success: true,
       message: `Equipment ${hardDelete === 'true' ? 'permanently deleted' : 'removed'} successfully`,
       item: removedItem
     });
-    
+
   } catch (error) {
     console.error('Remove equipment error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to remove equipment', 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: 'Failed to remove equipment',
+      error: error.message
     });
   }
 };
@@ -809,46 +824,46 @@ exports.getEquipmentByType = async (req, res) => {
   try {
     const { type } = req.params;
     const { includeInactive } = req.query;
-    
+
     const validTypes = [
       'solarPanels', 'inverters', 'batteries', 'mountingStructures',
       'electricalComponents', 'cablesAndWiring', 'safetyEquipment',
       'junctionBoxes', 'disconnectSwitches', 'meters'
     ];
-    
+
     if (!validTypes.includes(type)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid equipment type' 
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid equipment type'
       });
     }
-    
+
     let config = await SystemConfig.findOne();
     if (!config) {
       config = new SystemConfig();
       await config.save();
     }
-    
+
     let items = config.equipmentPrices[type] || [];
-    
+
     // Filter by active status if needed
     if (includeInactive !== 'true') {
       items = items.filter(item => item.isActive !== false);
     }
-    
+
     res.json({
       success: true,
       type,
       count: items.length,
       items
     });
-    
+
   } catch (error) {
     console.error('Get equipment by type error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to fetch equipment', 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch equipment',
+      error: error.message
     });
   }
 };
@@ -861,36 +876,36 @@ exports.bulkUpdateEquipment = async (req, res) => {
     const { type, items, action } = req.body;
     const { reason } = req.query;
     const adminId = req.user.id;
-    
+
     const validTypes = [
       'solarPanels', 'inverters', 'batteries', 'mountingStructures',
       'electricalComponents', 'cablesAndWiring', 'safetyEquipment',
       'junctionBoxes', 'disconnectSwitches', 'meters'
     ];
-    
+
     if (!validTypes.includes(type)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid equipment type' 
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid equipment type'
       });
     }
-    
+
     if (!items || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Items array is required' 
+      return res.status(400).json({
+        success: false,
+        message: 'Items array is required'
       });
     }
-    
+
     let config = await SystemConfig.findOne();
     if (!config) {
       config = new SystemConfig();
       await config.save();
     }
-    
+
     let results = [];
-    
-    switch(action) {
+
+    switch (action) {
       case 'replace':
         // Replace entire array
         config.equipmentPrices[type] = items.map(item => ({
@@ -901,7 +916,7 @@ exports.bulkUpdateEquipment = async (req, res) => {
         }));
         results = config.equipmentPrices[type];
         break;
-        
+
       case 'add':
         // Add multiple items
         for (const item of items) {
@@ -914,16 +929,16 @@ exports.bulkUpdateEquipment = async (req, res) => {
           results.push(newItem);
         }
         break;
-        
+
       default:
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Invalid action. Use: add, update, or replace' 
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid action. Use: add, update, or replace'
         });
     }
-    
+
     await config.save();
-    
+
     // Create maintenance task record
     const task = new MaintenanceTask({
       taskId: generateTaskId(),
@@ -940,7 +955,7 @@ exports.bulkUpdateEquipment = async (req, res) => {
       status: 'completed',
       createdBy: req.user.id
     });
-    
+
     await task.save();
 
     // Save audit trail
@@ -950,7 +965,7 @@ exports.bulkUpdateEquipment = async (req, res) => {
       module: "Maintenance",
       action: `Bulk ${action} ${results.length} ${type.slice(0, -1)}s`
     });
-    
+
     res.json({
       success: true,
       message: `Successfully ${action}ed ${results.length} items`,
@@ -958,13 +973,13 @@ exports.bulkUpdateEquipment = async (req, res) => {
       count: results.length,
       items: results
     });
-    
+
   } catch (error) {
     console.error('Bulk update equipment error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to bulk update equipment', 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: 'Failed to bulk update equipment',
+      error: error.message
     });
   }
 };

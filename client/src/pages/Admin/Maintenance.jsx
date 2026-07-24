@@ -79,6 +79,12 @@ const MaintenancePanel = () => {
     price: 0,
     brand: '',
     warranty: 0,
+
+    capacity: {
+      value: 0,
+      unit: 'W'
+    },
+
     unit: 'piece',
     notes: ''
   });
@@ -320,8 +326,21 @@ const MaintenancePanel = () => {
       price: 0,
       brand: '',
       warranty: 0,
-      unit: 'piece',
-      notes: ''
+
+      capacity: {
+        value: 0,
+        unit:
+          type === "solarPanels"
+            ? "W"
+            : type === "inverters"
+              ? "kW"
+              : type === "batteries"
+                ? "kWh"
+                : ""
+      },
+
+      unit: "piece",
+      notes: ""
     });
     setShowEquipmentModal(true);
   };
@@ -330,12 +349,18 @@ const MaintenancePanel = () => {
     setEquipmentType(type);
     setEditingItem(item);
     setEquipmentForm({
-      name: item.name || '',
+      name: item.name || "",
       price: item.price || 0,
-      brand: item.brand || '',
+      brand: item.brand || "",
       warranty: item.warranty || 0,
-      unit: item.unit || 'piece',
-      notes: item.notes || ''
+
+      capacity: {
+        value: item.capacity?.value || 0,
+        unit: item.capacity?.unit || ""
+      },
+
+      unit: item.unit || "piece",
+      notes: item.notes || ""
     });
     setShowEquipmentModal(true);
   };
@@ -440,6 +465,11 @@ const MaintenancePanel = () => {
           <div className="equipment-name-integrated">{item.name}</div>
           <div className="equipment-details-integrated">
             <span className="price-integrated">₱{item.price.toLocaleString()}</span>
+            {item.capacity?.value > 0 && (
+              <span className="capacity-integrated">
+                {item.capacity.value} {item.capacity.unit}
+              </span>
+            )}
             {item.unit && <span className="unit-integrated">per {item.unit}</span>}
             {item.brand && <span className="brand-integrated">{item.brand}</span>}
             {item.warranty > 0 && <span className="warranty-integrated">{item.warranty} yrs</span>}
@@ -715,7 +745,7 @@ const MaintenancePanel = () => {
             {/* Sub-tabs with Progressive Disclosure */}
             <div className="config-subtabs-wrapper">
               {/* Mobile Toggle Button */}
-              <button 
+              <button
                 className={`mobile-subtab-toggle ${isSubMenuOpen ? 'open' : ''}`}
                 onClick={() => setIsSubMenuOpen(!isSubMenuOpen)}
                 aria-label="Toggle configuration tabs"
@@ -726,8 +756,8 @@ const MaintenancePanel = () => {
 
               {/* Sub-tabs - Desktop & Mobile Dropdown */}
               <div className={`config-subtabs ${isSubMenuOpen ? 'open' : ''}`}>
-                <button 
-                  className={`subtab-btn ${activeConfigTab === 'equipment' ? 'active' : ''}`} 
+                <button
+                  className={`subtab-btn ${activeConfigTab === 'equipment' ? 'active' : ''}`}
                   onClick={() => { setActiveConfigTab('equipment'); setIsSubMenuOpen(false); }}
                 >
                   <span className="subtab-icon"></span>
@@ -736,9 +766,9 @@ const MaintenancePanel = () => {
                     {Object.values(config.equipmentPrices || {}).reduce((acc, items) => acc + (items?.filter(i => i.isActive !== false).length || 0), 0)}
                   </span>
                 </button>
-                
-                <button 
-                  className={`subtab-btn ${activeConfigTab === 'apps' ? 'active' : ''}`} 
+
+                <button
+                  className={`subtab-btn ${activeConfigTab === 'apps' ? 'active' : ''}`}
                   onClick={() => { setActiveConfigTab('apps'); setIsSubMenuOpen(false); }}
                 >
                   <span className="subtab-icon"></span>
@@ -757,7 +787,12 @@ const MaintenancePanel = () => {
                     <input
                       type="number"
                       value={config.assessmentFee || 1500}
-                      onChange={(e) => setConfig({ ...config, assessmentFee: parseFloat(e.target.value) })}
+                      onChange={(e) => setConfig({
+                        ...config, assessmentFee:
+                          e.target.value === ""
+                            ? ""
+                            : Number(e.target.value)
+                      })}
                     />
                   </div>
                 </div>
@@ -777,15 +812,30 @@ const MaintenancePanel = () => {
                 <div className="form-row-integrated">
                   <div className="form-group-integrated">
                     <label>Per kW Installation (₱)</label>
-                    <input type="number" value={config.laborRates?.perKw || 5000} onChange={(e) => updateNestedValue('laborRates.perKw', parseFloat(e.target.value))} />
+                    <input type="number" value={config.laborRates?.perKw || 5000} onChange={(e) => updateNestedValue(
+                      'laborRates.perKw',
+                      e.target.value === ""
+                        ? ""
+                        : Number(e.target.value)
+                    )} />
                   </div>
                   <div className="form-group-integrated">
                     <label>Per Panel Installation (₱)</label>
-                    <input type="number" value={config.laborRates?.perPanel || 1000} onChange={(e) => updateNestedValue('laborRates.perPanel', parseFloat(e.target.value))} />
+                    <input type="number" value={config.laborRates?.perPanel || 1000} onChange={(e) => updateNestedValue(
+                      'laborRates.perPanel',
+                      e.target.value === ""
+                        ? ""
+                        : Number(e.target.value)
+                    )} />
                   </div>
                   <div className="form-group-integrated">
                     <label>Minimum Labor Fee (₱)</label>
-                    <input type="number" value={config.laborRates?.minimumFee || 10000} onChange={(e) => updateNestedValue('laborRates.minimumFee', parseFloat(e.target.value))} />
+                    <input type="number" value={config.laborRates?.minimumFee || 10000} onChange={(e) => updateNestedValue(
+                      'laborRates.minimumFee',
+                      e.target.value === ""
+                        ? ""
+                        : Number(e.target.value)
+                    )} />
                   </div>
                 </div>
 
@@ -799,7 +849,7 @@ const MaintenancePanel = () => {
               </div>
             )}
 
-            
+
 
             {activeConfigTab === 'apps' && (
               <div className="config-section-integrated">
@@ -827,22 +877,80 @@ const MaintenancePanel = () => {
               </div>
               <div className="form-group">
                 <label>Price *</label>
-                <input type="number" value={equipmentForm.price} onChange={(e) => setEquipmentForm({ ...equipmentForm, price: parseFloat(e.target.value) })} />
+                <input type="number" value={equipmentForm.price} onChange={(e) => setEquipmentForm({ ...equipmentForm, price: Number(e.target.value) || 0 })} />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Capacity</label>
+                  <input
+                    type="number"
+                    value={equipmentForm.capacity.value}
+                    onChange={(e) =>
+                      setEquipmentForm({
+                        ...equipmentForm,
+                        capacity: {
+                          ...equipmentForm.capacity,
+                          value: Number(e.target.value)
+                        }
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Capacity Unit</label>
+                  <select
+                    value={equipmentForm.capacity.unit}
+                    onChange={(e) =>
+                      setEquipmentForm({
+                        ...equipmentForm,
+                        capacity: {
+                          ...equipmentForm.capacity,
+                          unit: e.target.value
+                        }
+                      })
+                    }
+                  >
+                    {equipmentType === "solarPanels" && (
+                      <option value="W">W</option>
+                    )}
+
+                    {equipmentType === "inverters" && (
+                      <option value="kW">kW</option>
+                    )}
+
+                    {equipmentType === "batteries" && (
+                      <option value="kWh">kWh</option>
+                    )}
+
+                    {!["solarPanels", "inverters", "batteries"].includes(equipmentType) && (
+                      <option value="">N/A</option>
+                    )}
+                  </select>
+                </div>
               </div>
               <div className="form-row">
                 <div className="form-group">
                   <label>Unit</label>
-                  <select value={equipmentForm.unit} onChange={(e) => setEquipmentForm({ ...equipmentForm, unit: e.target.value })}>
+                  <select
+                    value={equipmentForm.unit}
+                    onChange={(e) =>
+                      setEquipmentForm({
+                        ...equipmentForm,
+                        unit: e.target.value
+                      })
+                    }
+                  >
                     <option value="piece">Piece</option>
-                    <option value="watt">Watt</option>
-                    <option value="kw">kW</option>
-                    <option value="meter">Meter</option>
                     <option value="set">Set</option>
+                    <option value="meter">Meter</option>
+                    <option value="roll">Roll</option>
+                    <option value="box">Box</option>
                   </select>
                 </div>
                 <div className="form-group">
                   <label>Warranty (years)</label>
-                  <input type="number" value={equipmentForm.warranty} onChange={(e) => setEquipmentForm({ ...equipmentForm, warranty: parseInt(e.target.value) })} />
+                  <input type="number" value={equipmentForm.warranty} onChange={(e) => setEquipmentForm({ ...equipmentForm, warranty: Number(e.target.value) || 0 })} />
                 </div>
               </div>
               <div className="form-group">

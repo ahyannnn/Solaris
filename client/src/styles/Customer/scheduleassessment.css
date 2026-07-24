@@ -717,6 +717,23 @@
   color: #7C3AED;
 }
 
+.result-card-cusset.motor-nonmotor-result {
+  border-color: #A78BFA;
+  background: #F5F3FF;
+}
+.result-card-cusset.motor-nonmotor-result .result-icon {
+  color: #a3233e;
+}
+
+.result-card-cusset.motor-nonmotor-result .load-divider {
+  color: #ce93d8;
+  font-size: 16px;
+  font-weight: 300;
+}
+.result-card-cusset.motor-nonmotor-result .stat-divider {
+  color: #ce93d8;
+}
+
 .result-info {
   display: flex;
   flex-direction: column;

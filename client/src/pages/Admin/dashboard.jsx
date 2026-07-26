@@ -1,4 +1,4 @@
-// pages/Admin/AdminDashboard.cuspro.jsx - Fully Responsive Admin Dashboard
+// pages/Admin/AdminDashboard.cuspro.jsx - Premium Modern Recharts Redesign
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
@@ -11,19 +11,18 @@ import {
   FaCheckCircle,
   FaExclamationTriangle,
   FaArrowRight,
-  FaClock,
   FaUsers,
   FaProjectDiagram,
   FaMoneyBillWave,
   FaCalendarAlt,
-  FaEye,
-  FaPlus,
   FaChevronRight,
-  FaHome,
-  FaUserCog,
-  FaTachometerAlt
+  FaClock,
+  FaArrowUp
 } from 'react-icons/fa';
 import '../../styles/Admin/dashboard.css';
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+} from 'recharts';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -226,14 +225,14 @@ const AdminDashboard = () => {
       icon: <FaClipboardList />, 
       label: 'Manage Assessments', 
       description: 'Review and assign assessments',
-      color: 'blue',
+      color: 'indigo',
       link: '/app/admin/siteassessment'
     },
     { 
       icon: <FaProjectDiagram />, 
       label: 'View Projects', 
       description: 'Track all projects status',
-      color: 'green',
+      color: 'emerald',
       link: '/app/admin/project'
     },
     { 
@@ -247,11 +246,12 @@ const AdminDashboard = () => {
       icon: <FaUsers />, 
       label: 'User Management', 
       description: 'Manage user accounts',
-      color: 'orange',
+      color: 'amber',
       link: '/app/admin/usermanagement'
     }
   ];
 
+  /* --- STATS CARDS COMPONENT WITH SPARKLINES --- */
   const StatsCards = () => {
     const cards = [
       {
@@ -259,146 +259,255 @@ const AdminDashboard = () => {
         value: stats.freeQuotes.total,
         icon: <FaFileInvoiceDollar />,
         color: 'blue',
-        detail: `${stats.freeQuotes.pending} pending`
+        detail: `${stats.freeQuotes.pending} pending`,
+        trend: '+12%',
+        data: monthlyData.freeQuotes
       },
       {
         title: 'Pre Assessments',
         value: stats.preAssessments.total,
         icon: <FaClipboardList />,
         color: 'green',
-        detail: `${stats.preAssessments.scheduled} scheduled`
+        detail: `${stats.preAssessments.scheduled} scheduled`,
+        trend: '+8%',
+        data: monthlyData.assessments
       },
       {
         title: 'Total Revenue',
         value: formatCurrency(stats.revenue.total || 0),
         icon: <FaChartLine />,
         color: 'purple',
-        detail: `${formatCurrency(stats.revenue.thisMonth)} this month`
+        detail: `${formatCurrency(stats.revenue.thisMonth)} this month`,
+        trend: '+5%',
+        data: monthlyData.revenue
       },
       {
         title: 'IoT Devices',
         value: stats.devices.total || 0,
         icon: <FaMicrochip />,
         color: 'orange',
-        detail: `${stats.devices.active || 0} active`
+        detail: `${stats.devices.active || 0} active`,
+        trend: '+16%',
+        data: monthlyData.revenue 
       }
     ];
 
     return (
-      <div className="adsih-stats-grid">
-        {cards.map((card, index) => (
-          <div key={index} className={`adsih-stat-card ${card.color}`}>
-            <div className="adsih-stat-main">
-              <div className="adsih-stat-info">
-                <span className="adsih-stat-label">{card.title}</span>
-                <span className="adsih-stat-value">{card.value}</span>
+      <div className="modern-stats-grid">
+        {cards.map((card, index) => {
+          const maxVal = Math.max(...card.data, 1);
+          
+          return (
+            <div key={index} className={`modern-stat-card ${card.color}`}>
+              <div className="modern-stat-header">
+                <div className={`modern-stat-icon-wrapper ${card.color}`}>
+                  {card.icon}
+                </div>
+                <div className="modern-stat-trend">
+                  <FaArrowUp className="modern-trend-icon" /> {card.trend}
+                </div>
               </div>
-              <div className="adsih-stat-icon">{card.icon}</div>
+              <div className="modern-stat-content">
+                <span className="modern-stat-value">{card.value}</span>
+                <span className="modern-stat-label">{card.title}</span>
+                <span className="modern-stat-detail">{card.detail}</span>
+              </div>
+              
+              {/* Sparkline Footer */}
+              <div className="modern-stat-sparkline">
+                <svg width="100%" height="30" viewBox="0 0 120 30" preserveAspectRatio="none">
+                  <path
+                    d={`M0 ${30 - (card.data[0] / maxVal) * 25} ${
+                      card.data.map((d, i) => `L${(i / (card.data.length - 1)) * 120} ${30 - (d / maxVal) * 25}`).join(' ')
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
             </div>
-            <div className="adsih-stat-details">
-              <span className="adsih-stat-detail">{card.detail}</span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   };
 
-  const Charts = () => {
-    const maxFreeQuotes = Math.max(...monthlyData.freeQuotes, 1);
-    const maxAssessments = Math.max(...monthlyData.assessments, 1);
-    const maxComparison = Math.max(maxFreeQuotes, maxAssessments);
-    const maxRevenue = Math.max(...monthlyData.revenue, 1);
+  /* --- RECHARTS: PROJECT OVERVIEW AREA CHART (Left) --- */
+  const ProjectOverviewChart = () => {
+    const chartData = monthlyData.labels.map((label, i) => ({
+      name: label,
+      quotes: monthlyData.freeQuotes[i],
+      assessments: monthlyData.assessments[i]
+    }));
+
+    const CustomTooltip = ({ active, payload, label }) => {
+      if (active && payload && payload.length) {
+        return (
+          <div className="modern-chart-tooltip">
+            <p className="tooltip-label">{label}</p>
+            {payload.map((entry, idx) => (
+              <p key={idx} className="tooltip-item" style={{ color: entry.color }}>
+                {entry.name}: {entry.value}
+              </p>
+            ))}
+          </div>
+        );
+      }
+      return null;
+    };
 
     return (
-      <div className="adsih-charts-row">
-        {/* Free Quotes vs Pre-Assessments Chart */}
-        <div className="adsih-chart-card">
-          <div className="adsih-chart-header">
-            <h3>Free Quotes vs Assessments</h3>
-            <span className="adsih-chart-period">Last 12 months</span>
+      <div className="modern-chart-card">
+        <div className="modern-chart-header">
+          <div>
+            <h3>Project Overview</h3>
+            <span className="modern-chart-period">Track your quotes and assessments performance</span>
           </div>
-          <div className="adsih-chart-body">
-            <div className="adsih-comparison-chart">
-              <div className="adsih-chart-legend">
-                <div className="adsih-legend-item">
-                  <div className="adsih-legend-color quote-color"></div>
-                  <span>Free Quotes</span>
-                </div>
-                <div className="adsih-legend-item">
-                  <div className="adsih-legend-color assessment-color"></div>
-                  <span>Pre-Assessments</span>
-                </div>
-              </div>
-              {/* Scrollable wrapper for mobile */}
-              <div className="adsih-chart-scroll-wrapper">
-                <div className="adsih-bar-chart dual-bars">
-                  {monthlyData.labels.map((label, index) => (
-                    <div key={index} className="adsih-dual-bar-item">
-                      <div className="adsih-bars-container">
-                        <div 
-                          className="adsih-bar adsih-quote-bar" 
-                          style={{ height: `${(monthlyData.freeQuotes[index] / maxComparison) * 140}px` }}
-                        >
-                          {monthlyData.freeQuotes[index] > 0 && (
-                            <span className="adsih-bar-value">{monthlyData.freeQuotes[index]}</span>
-                          )}
-                        </div>
-                        <div 
-                          className="adsih-bar adsih-assessment-bar" 
-                          style={{ height: `${(monthlyData.assessments[index] / maxComparison) * 140}px` }}
-                        >
-                          {monthlyData.assessments[index] > 0 && (
-                            <span className="adsih-bar-value">{monthlyData.assessments[index]}</span>
-                          )}
-                        </div>
-                      </div>
-                      <span className="adsih-bar-label">{label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+          <div className="modern-chart-actions">
+            <span className="modern-legend-dot quote-color"></span> Free Quotes
+            <span className="modern-legend-dot assessment-color"></span> Pre-Assessments
           </div>
         </div>
-
-        {/* Revenue Overview Chart */}
-        <div className="adsih-chart-card">
-          <div className="adsih-chart-header">
-            <h3>Revenue Overview</h3>
-            <span className="adsih-chart-period">Last 12 months</span>
-          </div>
-          <div className="adsih-chart-body">
-            {monthlyData.revenue.every(v => v === 0) ? (
-              <div className="adsih-empty-chart">
-                <p>No revenue data available</p>
-                <small>Complete payments to see revenue trends</small>
-              </div>
-            ) : (
-              /* Scrollable wrapper for mobile */
-              <div className="adsih-chart-scroll-wrapper">
-                <div className="adsih-bar-chart">
-                  {monthlyData.revenue.map((value, index) => (
-                    <div key={index} className="adsih-bar-item">
-                      <div 
-                        className="adsih-bar adsih-revenue-bar" 
-                        style={{ height: `${(value / maxRevenue) * 140}px` }}
-                      >
-                        {value > 0 && <span className="adsih-bar-value">{formatCurrency(value)}</span>}
-                      </div>
-                      <span className="adsih-bar-label">{monthlyData.labels[index]}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+        <div className="modern-chart-body" style={{ height: '280px' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorQuotes" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#a78bfa" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorAssessments" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f472b6" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#f472b6" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" />
+              <XAxis 
+                dataKey="name" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{fill: '#94a3b8', fontSize: 12}} 
+                dy={10}
+              />
+              <YAxis 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{fill: '#94a3b8', fontSize: 12}} 
+                width={30}
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{stroke: '#cbd5e1', strokeWidth: 1}} />
+              <Area 
+                type="monotone" 
+                dataKey="quotes" 
+                stroke="#8b5cf6" 
+                strokeWidth={3} 
+                fillOpacity={1} 
+                fill="url(#colorQuotes)" 
+                dot={{ r: 5, fill: '#8b5cf6', strokeWidth: 2, stroke: '#fff' }}
+                activeDot={{ r: 7 }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="assessments" 
+                stroke="#ec4899" 
+                strokeWidth={3} 
+                fillOpacity={1} 
+                fill="url(#colorAssessments)" 
+                dot={{ r: 5, fill: '#ec4899', strokeWidth: 2, stroke: '#fff' }}
+                activeDot={{ r: 7 }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
     );
   };
 
-  // Recent Activity - Like Customer Dashboard
+  /* --- RECHARTS: REVENUE TREND AREA CHART (Right - Green) --- */
+  const RevenueTrendChart = () => {
+    const chartData = monthlyData.labels.map((label, i) => ({
+      name: label,
+      revenue: monthlyData.revenue[i]
+    }));
+
+    const CustomTooltip = ({ active, payload, label }) => {
+      if (active && payload && payload.length) {
+        return (
+          <div className="modern-chart-tooltip">
+            <p className="tooltip-label">{label}</p>
+            <p className="tooltip-item" style={{ color: '#10b981' }}>
+              Revenue: {formatCurrency(payload[0].value)}
+            </p>
+          </div>
+        );
+      }
+      return null;
+    };
+
+    return (
+      <div className="modern-chart-card">
+        <div className="modern-chart-header">
+          <div>
+            <h3>Revenue Trend</h3>
+            <span className="modern-chart-period">Monthly revenue overview from Jan to Dec</span>
+          </div>
+          <div className="modern-chart-actions">
+            <span className="modern-legend-dot revenue-color"></span> Monthly Revenue
+          </div>
+        </div>
+        <div className="modern-chart-body" style={{ height: '280px' }}>
+          {monthlyData.revenue.every(v => v === 0) ? (
+            <div className="modern-empty-chart">
+              <p>No revenue data available</p>
+              <small>Complete payments to see revenue trends</small>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{fill: '#94a3b8', fontSize: 12}} 
+                  dy={10}
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{fill: '#94a3b8', fontSize: 12}} 
+                  width={50}
+                  tickFormatter={(value) => `₱${value >= 1000 ? (value/1000).toFixed(0) + 'k' : value}`}
+                />
+                <Tooltip content={<CustomTooltip />} cursor={{stroke: '#cbd5e1', strokeWidth: 1}} />
+                <Area 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="#10b981" 
+                  strokeWidth={3} 
+                  fillOpacity={1} 
+                  fill="url(#colorRevenue)" 
+                  dot={{ r: 5, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }}
+                  activeDot={{ r: 7 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  /* --- RECENT ACTIVITY COMPONENT --- */
   const RecentActivity = () => {
     const getStatusClass = (status) => {
       switch(status) {
@@ -431,20 +540,22 @@ const AdminDashboard = () => {
     };
 
     return (
-      <div className="adsih-recent-activity">
-        <div className="adsih-activity-header">
-          <h3><FaClock /> Recent Activity</h3>
+      <div className="modern-activity-container">
+        <div className="modern-activity-header">
+          <div className="modern-activity-title">
+            <FaClock /> Recent Activity
+          </div>
           <button 
-            className="adsih-view-all"
+            className="modern-activity-view-all"
             onClick={() => navigate('/app/admin/siteassessment')}
           >
             View All <FaChevronRight />
           </button>
         </div>
         
-        <div className="adsih-activity-list">
+        <div className="modern-activity-list">
           {recentActivities.length === 0 ? (
-            <div className="adsih-empty-activity">
+            <div className="modern-empty-activity">
               <p>No recent activities</p>
               <small>Activities will appear here as they happen</small>
             </div>
@@ -452,17 +563,17 @@ const AdminDashboard = () => {
             recentActivities.map((activity) => (
               <div 
                 key={activity.id} 
-                className="adsih-activity-item"
+                className="modern-activity-item"
                 onClick={() => navigate(activity.action)}
               >
-                <div className="adsih-activity-icon">
+                <div className={`modern-activity-icon ${getStatusClass(activity.status)}`}>
                   {getActivityIcon(activity)}
                 </div>
-                <div className="adsih-activity-content">
-                  <p className="adsih-activity-message">{activity.message}</p>
-                  <span className="adsih-activity-time">{activity.time}</span>
+                <div className="modern-activity-content">
+                  <p className="modern-activity-message">{activity.message}</p>
+                  <span className="modern-activity-time">{activity.time}</span>
                 </div>
-                <div className={`adsih-activity-status ${getStatusClass(activity.status)}`}>
+                <div className={`modern-activity-status ${getStatusClass(activity.status)}`}>
                   {getStatusText(activity.status)}
                 </div>
               </div>
@@ -473,30 +584,60 @@ const AdminDashboard = () => {
     );
   };
 
-  const SkeletonLoader = () => (
-    <div className="adsih-admin-dashboard">
-      <div className="adsih-welcome-section">
-        <div className="skeleton-title"></div>
-        <div className="skeleton-subtitle"></div>
+  /* --- QUICK ACTIONS COMPONENT --- */
+  const QuickActions = () => (
+    <div className="modern-quick-actions">
+      <div className="modern-section-header">
+        <h3>Quick Actions</h3>
       </div>
-      <div className="adsih-stats-grid">
-        {[1, 2, 3, 4].map(i => (
-          <div key={i} className="adsih-stat-card skeleton-card">
-            <div className="skeleton-stat-main"></div>
-            <div className="skeleton-details"></div>
+      <div className="modern-quick-actions-grid">
+        {quickActions.map((action, index) => (
+          <div 
+            key={index} 
+            className={`modern-quick-action-item ${action.color}`}
+            onClick={() => navigate(action.link)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && navigate(action.link)}
+          >
+            <div className="modern-quick-action-icon-wrapper">
+              {action.icon}
+            </div>
+            <div className="modern-quick-action-content">
+              <span className="modern-quick-action-label">{action.label}</span>
+              <span className="modern-quick-action-description">{action.description}</span>
+            </div>
+            <FaArrowRight className="modern-quick-action-arrow" />
           </div>
         ))}
       </div>
-      <div className="adsih-quick-actions-grid">
+    </div>
+  );
+
+  /* --- SKELETON LOADER --- */
+  const SkeletonLoader = () => (
+    <div className="modern-admin-dashboard">
+      <div className="modern-welcome-section">
+        <div className="skeleton-title"></div>
+        <div className="skeleton-subtitle"></div>
+      </div>
+      <div className="modern-stats-grid">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="modern-stat-card skeleton-card">
+            <div className="skeleton-stat-main"></div>
+          </div>
+        ))}
+      </div>
+      <div className="modern-quick-actions-grid">
         {[1, 2, 3, 4].map(i => (
           <div key={i} className="skeleton-quick-action"></div>
         ))}
       </div>
-      <div className="adsih-charts-row">
-        <div className="adsih-chart-card skeleton-card">
+      <div className="modern-charts-row">
+        <div className="modern-chart-card skeleton-card">
           <div className="skeleton-chart"></div>
         </div>
-        <div className="adsih-chart-card skeleton-card">
+        <div className="modern-chart-card skeleton-card">
           <div className="skeleton-chart"></div>
         </div>
       </div>
@@ -516,11 +657,11 @@ const AdminDashboard = () => {
 
   if (error) {
     return (
-      <div className="adsih-error-state">
-        <FaExclamationTriangle className="adsih-error-icon" />
+      <div className="modern-error-state">
+        <FaExclamationTriangle className="modern-error-icon" />
         <h2>Error Loading Dashboard</h2>
         <p>{error}</p>
-        <button onClick={fetchDashboardData} className="adsih-retry-btn">Retry</button>
+        <button onClick={fetchDashboardData} className="modern-retry-btn">Retry</button>
       </div>
     );
   }
@@ -531,44 +672,21 @@ const AdminDashboard = () => {
         <title>Admin Dashboard | Salfer Engineering</title>
       </Helmet>
 
-      <div className="adsih-admin-dashboard">
-        {/* Welcome Section - Like Customer Dashboard */}
-        <div className="adsih-welcome-section">
-          <div className="adsih-welcome-content">
-            <p>Welcome back, Admin! Here's an overview of your solar business performance</p>
-          </div>
-          
-        </div>
+      <div className="modern-admin-dashboard">
+        {/* Welcome Section - Premium Hero */}
+       
 
-        {/* Stats Cards - 4 cards */}
+        {/* Stats Cards with SVG Sparklines */}
         <StatsCards />
 
-        {/* Quick Actions - Like Customer Dashboard */}
-        <div className="adsih-quick-actions">
-          <h3 className="adsih-quick-actions-title">Quick Actions</h3>
-          <div className="adsih-quick-actions-grid">
-            {quickActions.map((action, index) => (
-              <div 
-                key={index} 
-                className={`adsih-quick-action-item ${action.color}`}
-                onClick={() => navigate(action.link)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && navigate(action.link)}
-              >
-                <div className="adsih-quick-action-icon">{action.icon}</div>
-                <div className="adsih-quick-action-content">
-                  <span className="adsih-quick-action-label">{action.label}</span>
-                  <span className="adsih-quick-action-description">{action.description}</span>
-                </div>
-                <FaArrowRight className="adsih-quick-action-arrow" />
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Quick Actions */}
+        <QuickActions />
 
-        {/* Charts Row */}
-        <Charts />
+        {/* Charts Row - Both Area Charts */}
+        <div className="modern-charts-row">
+          <ProjectOverviewChart />
+          <RevenueTrendChart />
+        </div>
 
         {/* Recent Activity */}
         <RecentActivity />

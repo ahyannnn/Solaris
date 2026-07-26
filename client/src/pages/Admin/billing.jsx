@@ -1,4 +1,4 @@
-// pages/Admin/Billing.jsx - Redesigned with Progressive Disclosure Tabs and Responsive UI
+// pages/Admin/Billing.jsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -29,10 +29,16 @@ import {
   FaWallet,
   FaCreditCard,
   FaArrowRight,
-  FaFilter
+  FaFilter,
+  FaSyncAlt
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/billing.css';
+
+// Recharts Imports
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+} from 'recharts';
 
 const AdminBilling = () => {
   const { toast, showToast, hideToast } = useToast();
@@ -96,13 +102,16 @@ const AdminBilling = () => {
   const [transactionTotalPages, setTransactionTotalPages] = useState(1);
   const [transactionTotalItems, setTransactionTotalItems] = useState(0);
 
+  // CHART DATA STATES
+  const [paymentMethodChartData, setPaymentMethodChartData] = useState([]);
+
   // Filter and pagination
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [itemsPerPage] = useState(5);
+  const [itemsPerPage] = useState(10);
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 20 });
   const dropdownRef = useRef(null);
@@ -169,14 +178,14 @@ const AdminBilling = () => {
         setOpenDropdownId(null);
       }
     };
-    
+
     const handleScroll = () => {
       setOpenDropdownId(null);
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     window.addEventListener('scroll', handleScroll, true);
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('scroll', handleScroll, true);
@@ -516,6 +525,33 @@ const AdminBilling = () => {
         pendingAmount: (preStatsRes.data.pendingRevenue || 0) + (solarStatsRes.data.stats?.pendingAmount || 0),
         projectPayments: projectPayments
       });
+
+      // --- PROCESS CHART DATA (Payment Methods) ---
+      let cashCount = 0;
+      let gcashCount = 0;
+      let bankCount = 0;
+      let paymongoCount = 0;
+
+      assessments.forEach(a => {
+        if (a.paymentMethod === 'cash' && a.paymentStatus === 'paid') cashCount++;
+        else if (a.paymentMethod === 'gcash' && a.paymentStatus === 'paid') gcashCount++;
+        else if (a.paymentGateway === 'paymongo' && a.paymentStatus === 'paid') paymongoCount++;
+      });
+
+      // Check bank transfers specifically
+      const bankTransfersRes = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/payments/bank-transfer/stats`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      bankCount = bankTransfersRes.data.stats?.verified || 0;
+
+      setPaymentMethodChartData([
+        { name: 'Cash', count: cashCount },
+        { name: 'GCash', count: gcashCount },
+        { name: 'Bank Transfer', count: bankCount },
+        { name: 'PayMongo', count: paymongoCount }
+      ]);
+
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -886,61 +922,61 @@ const AdminBilling = () => {
     });
   };
 
-  // ============ BADGE FUNCTIONS ============
+  // ============ BADGE FUNCTIONS - Plain Text Only ============
   const getPaymentStatusBadge = (status) => {
-    const badges = {
-      'pending': <span className="status-badge pending">Pending</span>,
-      'for_verification': <span className="status-badge for-verification">Verifying</span>,
-      'paid': <span className="status-badge paid">Paid</span>,
-      'partial': <span className="status-badge partial">Partial</span>,
-      'failed': <span className="status-badge failed">Failed</span>,
-      'overdue': <span className="status-badge overdue">Overdue</span>,
-      'waiting_verification': <span className="status-badge waiting">Waiting for Verification</span>,
-      'verified': <span className="status-badge verified">Verified</span>,
-      'rejected': <span className="status-badge rejected">Rejected</span>
+    const statusMap = {
+      'pending': 'Pending',
+      'for_verification': 'Verifying',
+      'paid': 'Paid',
+      'partial': 'Partial',
+      'failed': 'Failed',
+      'overdue': 'Overdue',
+      'waiting_verification': 'Waiting for Verification',
+      'verified': 'Verified',
+      'rejected': 'Rejected'
     };
-    return badges[status] || <span className="status-badge">{status}</span>;
+    return <span className="status-badge-adminbilling">{statusMap[status] || status}</span>;
   };
 
   const getBankTransferStatusBadge = (status) => {
-    const badges = {
-      'waiting_verification': <span className="status-badge waiting">Waiting for Verification</span>,
-      'verified': <span className="status-badge verified">Verified</span>,
-      'rejected': <span className="status-badge rejected">Rejected</span>
+    const statusMap = {
+      'waiting_verification': 'Waiting for Verification',
+      'verified': 'Verified',
+      'rejected': 'Rejected'
     };
-    return badges[status] || <span className="status-badge">{status}</span>;
+    return <span className="status-badge-adminbilling">{statusMap[status] || status}</span>;
   };
 
   const getAssessmentStatusBadge = (status) => {
-    const badges = {
-      'pending_payment': <span className="status-badge pending">Pending</span>,
-      'scheduled': <span className="status-badge scheduled">Scheduled</span>,
-      'device_deployed': <span className="status-badge deployed">Deployed</span>,
-      'data_collecting': <span className="status-badge collecting">Collecting</span>,
-      'completed': <span className="status-badge paid">Completed</span>
+    const statusMap = {
+      'pending_payment': 'Pending',
+      'scheduled': 'Scheduled',
+      'device_deployed': 'Deployed',
+      'data_collecting': 'Collecting',
+      'completed': 'Completed'
     };
-    return badges[status] || <span className="status-badge">{status}</span>;
+    return <span className="status-badge-adminbilling">{statusMap[status] || status}</span>;
   };
 
   const getInvoiceTypeBadge = (type) => {
     const badges = {
-      'initial': <span className="invoice-type initial">Initial (30%)</span>,
-      'progress': <span className="invoice-type progress">Progress (40%)</span>,
-      'final': <span className="invoice-type final">Final (30%)</span>,
-      'full': <span className="invoice-type full">Full (100%)</span>,
-      'additional': <span className="invoice-type additional">Additional</span>
+      'initial': <span className="invoice-type-adminbilling initial">Initial (30%)</span>,
+      'progress': <span className="invoice-type-adminbilling progress">Progress (40%)</span>,
+      'final': <span className="invoice-type-adminbilling final">Final (30%)</span>,
+      'full': <span className="invoice-type-adminbilling full">Full (100%)</span>,
+      'additional': <span className="invoice-type-adminbilling additional">Additional</span>
     };
-    return badges[type] || <span className="invoice-type">{type}</span>;
+    return badges[type] || <span className="invoice-type-adminbilling">{type}</span>;
   };
 
   const getGatewayBadge = (assessment) => {
     if (assessment.paymentGateway === 'paymongo' || assessment.autoVerified === true) {
-      return <span className="gateway-badge paymongo">PayMongo</span>;
+      return <span className="gateway-badge-adminbilling paymongo">PayMongo</span>;
     }
     if (assessment.paymentMethod === 'cash') {
-      return <span className="gateway-badge cash">Cash</span>;
+      return <span className="gateway-badge-adminbilling cash">Cash</span>;
     }
-    return <span className="gateway-badge manual">Manual</span>;
+    return <span className="gateway-badge-adminbilling manual">Manual</span>;
   };
 
   // ============ ACTION FUNCTIONS ============
@@ -1108,22 +1144,41 @@ const AdminBilling = () => {
     return transactions.slice(startIndex, endIndex);
   };
 
+  // ============ CUSTOM TOOLTIPS ============
+  const PaymentTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="recharts-custom-tooltip-adminbilling">
+          <p className="tooltip-label-adminbilling">{label}</p>
+          <p className="tooltip-item-adminbilling" style={{ color: '#6366f1' }}>
+            Count: {payload[0].value}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   // ============ SKELETON LOADER ============
   const SkeletonLoader = () => (
     <div className="admin-billing">
-      <div className="billing-header">
-        <div className="skeleton-line large"></div>
-        <div className="skeleton-button"></div>
+      <div className="billing-header-adminbilling">
+        <div className="skeleton-line-large-adminbilling"></div>
+        <div className="skeleton-button-adminbilling"></div>
       </div>
-      <div className="billing-tabs">
-        {[1, 2, 3, 4].map(i => <div key={i} className="skeleton-tab"></div>)}
+      <div className="billing-charts-row-adminbilling">
+        <div className="skeleton-chart-adminbilling"></div>
+        <div className="skeleton-chart-adminbilling"></div>
       </div>
-      <div className="filters-section">
-        <div className="skeleton-select"></div>
-        <div className="skeleton-search"></div>
+      <div className="billing-tabs-adminbilling">
+        {[1, 2, 3, 4].map(i => <div key={i} className="skeleton-tab-adminbilling"></div>)}
       </div>
-      <div className="payments-table-container">
-        <div className="skeleton-table"></div>
+      <div className="filters-section-adminbilling">
+        <div className="skeleton-select-adminbilling"></div>
+        <div className="skeleton-search-adminbilling"></div>
+      </div>
+      <div className="payments-table-container-adminbilling">
+        <div className="skeleton-table-adminbilling"></div>
       </div>
     </div>
   );
@@ -1139,68 +1194,129 @@ const AdminBilling = () => {
       </Helmet>
 
       <div className="admin-billing">
-        <div className="billing-header">
-          <div>
-            
-            <p>Manage invoices, verify payments, and track all transactions</p>
-          </div>
-          
+
+        {/* --- Minimalist Header (Empty) --- */}
+        <div className="billing-header-adminbilling">
+          <div></div>
         </div>
 
+        {/* ============================================ */}
+        {/* CHARTS ROW                                  */}
+        {/* ============================================ */}
+        <div className="billing-charts-row-adminbilling">
+
+          {/* CHART 1: Payment Methods Bar Chart */}
+          <div className="billing-chart-card-adminbilling">
+            <div className="billing-chart-header-adminbilling">
+              <h3>Payment Method Distribution</h3>
+              <span className="billing-chart-period-adminbilling">Paid Transactions</span>
+            </div>
+            <div className="billing-chart-wrapper-adminbilling">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={paymentMethodChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorPayment" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0.2} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#E5E7EB" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} width={30} allowDecimals={false} />
+                  <Tooltip content={<PaymentTooltip />} cursor={{ stroke: '#D1D5DB', strokeWidth: 1 }} />
+                  <Bar dataKey="count" fill="url(#colorPayment)" radius={[4, 4, 0, 0]} barSize={45} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* CHART 2: Dummy Placeholder / Comparison Chart (Kept 2 charts for balance) */}
+          <div className="billing-chart-card-adminbilling">
+            <div className="billing-chart-header-adminbilling">
+              <h3>Revenue Overview</h3>
+              <span className="billing-chart-period-adminbilling">Total vs Pending</span>
+            </div>
+            <div className="billing-chart-wrapper-adminbilling">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={paymentMethodChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.2} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#E5E7EB" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} width={30} allowDecimals={false} />
+                  <Tooltip content={<PaymentTooltip />} cursor={{ stroke: '#D1D5DB', strokeWidth: 1 }} />
+                  <Bar dataKey="count" fill="url(#colorRevenue)" radius={[4, 4, 0, 0]} barSize={45} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+        </div>
+
+        {/* ============================================ */}
+        {/* TABS AND UI CONTENT BELOW                   */}
+        {/* ============================================ */}
+
         {/* Progressive Disclosure Tabs - Mobile Hamburger */}
-        <div className="billing-tabs-wrapper">
-          <button 
-            className={`mobile-tab-toggle ${isMobileMenuOpen ? 'active' : ''}`}
+        <div className="billing-tabs-wrapper-adminbilling">
+          <button
+            className={`mobile-tab-toggle-adminbilling ${isMobileMenuOpen ? 'active' : ''}`}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle tabs menu"
           >
-            <span className="tab-label">{activeTab.replace('-', ' ').toUpperCase()}</span>
-            <FaChevronDown className={`toggle-arrow ${isMobileMenuOpen ? 'open' : ''}`} />
+            <span className="tab-label-adminbilling">{activeTab.replace('-', ' ').toUpperCase()}</span>
+            <FaChevronDown className={`toggle-arrow-adminbilling ${isMobileMenuOpen ? 'open' : ''}`} />
           </button>
-          
-          <div className={`billing-tabs ${isMobileMenuOpen ? 'open' : ''}`}>
-            <button 
-              className={`tab-btn ${activeTab === 'pre-assessments' ? 'active' : ''}`} 
+
+          <div className={`billing-tabs-adminbilling ${isMobileMenuOpen ? 'open' : ''}`}>
+            <button
+              className={`tab-btn-adminbilling ${activeTab === 'pre-assessments' ? 'active' : ''}`}
               onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); setIsMobileMenuOpen(false); }}
             >
-              <FaFileInvoice className="tab-icon" />
               <span>Pre-Assessments</span>
-              <span className="tab-badge">{stats.totalPreAssessments}</span>
+              <span className="tab-badge-adminbilling">{stats.totalPreAssessments}</span>
             </button>
-            <button 
-              className={`tab-btn ${activeTab === 'solar-invoices' ? 'active' : ''}`} 
+            <button
+              className={`tab-btn-adminbilling ${activeTab === 'solar-invoices' ? 'active' : ''}`}
               onClick={() => { setActiveTab('solar-invoices'); setFilter('all'); setCurrentPage(1); setIsMobileMenuOpen(false); }}
             >
-              <FaReceipt className="tab-icon" />
               <span>Solar Invoices</span>
-              <span className="tab-badge">{stats.totalSolarInvoices}</span>
+              <span className="tab-badge-adminbilling">{stats.totalSolarInvoices}</span>
             </button>
-            <button 
-              className={`tab-btn ${activeTab === 'bank-transfers' ? 'active' : ''}`} 
+            <button
+              className={`tab-btn-adminbilling ${activeTab === 'bank-transfers' ? 'active' : ''}`}
               onClick={() => { setActiveTab('bank-transfers'); setBankTransferFilter('waiting_verification'); setBankTransferPage(1); setIsMobileMenuOpen(false); }}
             >
-              <FaUniversity className="tab-icon" />
               <span>Bank Transfers</span>
               {bankTransferStats?.waiting_verification > 0 && (
-                <span className="tab-badge">{bankTransferStats.waiting_verification}</span>
+                <span className="tab-badge-adminbilling">{bankTransferStats.waiting_verification}</span>
               )}
             </button>
-            <button 
-              className={`tab-btn ${activeTab === 'transactions' ? 'active' : ''}`} 
+            <button
+              className={`tab-btn-adminbilling ${activeTab === 'transactions' ? 'active' : ''}`}
               onClick={() => { setActiveTab('transactions'); setFilter('all'); setCurrentPage(1); setTransactionPage(1); setIsMobileMenuOpen(false); }}
             >
-              <FaChartBar className="tab-icon" />
               <span>Transactions</span>
             </button>
           </div>
         </div>
 
-        
-
-        {/* Filters - With progressive disclosure */}
-        <div className="filters-section">
-          <div className="filter-group">
-            
+        {/* Toolbar: Search Left, Filter Middle, Refresh Right */}
+        <div className="filters-section-adminbilling">
+          <div className="search-group-adminbilling">
+            <FaSearch className="search-icon-adminbilling" />
+            <input
+              type="text"
+              placeholder="Search by client name or reference..."
+              value={activeTab === 'bank-transfers' ? bankTransferSearch : searchTerm}
+              onChange={(e) => activeTab === 'bank-transfers' ? setBankTransferSearch(e.target.value) : setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="filter-group-adminbilling">
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
               <option value="all">All Status</option>
               {activeTab === 'pre-assessments' ? (
@@ -1230,28 +1346,23 @@ const AdminBilling = () => {
                 </>
               )}
             </select>
+            <FaChevronDown className="select-arrow-adminbilling" />
           </div>
-          <div className="search-group">
-            
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              value={activeTab === 'bank-transfers' ? bankTransferSearch : searchTerm} 
-              onChange={(e) => activeTab === 'bank-transfers' ? setBankTransferSearch(e.target.value) : setSearchTerm(e.target.value)} 
-            />
-          </div>
+          <button className="refresh-btn-adminbilling" onClick={() => { fetchData(); fetchStats(); }}>
+            <FaSyncAlt className={loading ? 'spinning-adminbilling' : ''} /> Refresh
+          </button>
         </div>
 
         {/* ============================================ */}
-        {/* TAB CONTENT - Progressive Disclosure */}
+        {/* TAB CONTENT - Progressive Disclosure        */}
         {/* ============================================ */}
 
         {/* PRE-ASSESSMENTS TABLE */}
         {activeTab === 'pre-assessments' && (
-          <div className="tab-content active">
-            <div className="payments-table-container">
-              <div className="table-responsive">
-                <table className="payments-table">
+          <div className="tab-content-adminbilling active">
+            <div className="payments-table-container-adminbilling">
+              <div className="table-responsive-adminbilling">
+                <table className="payments-table-adminbilling">
                   <thead>
                     <tr>
                       <th>Booking Ref</th>
@@ -1268,7 +1379,7 @@ const AdminBilling = () => {
                   </thead>
                   <tbody>
                     {assessments.length === 0 ? (
-                      <tr><td colSpan="10" className="empty-state">No pre-assessments found</td></tr>
+                      <tr><td colSpan="10" className="empty-state-adminbilling">No pre-assessments found</td></tr>
                     ) : (
                       assessments.map(assessment => {
                         const actions = getPreAssessmentActions(assessment);
@@ -1277,42 +1388,42 @@ const AdminBilling = () => {
 
                         return (
                           <tr key={assessment._id}>
-                            <td data-label="Reference" className="ref-cell">{assessment.bookingReference}</td>
+                            <td data-label="Reference" className="ref-cell-adminbilling">{assessment.bookingReference}</td>
                             <td data-label="Invoice">{assessment.invoiceNumber}</td>
                             <td data-label="Customer"><strong>{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</strong></td>
                             <td data-label="Date">{formatDate(assessment.bookedAt)}</td>
-                            <td data-label="Amount" className="amount">{formatCurrency(assessment.assessmentFee)}</td>
+                            <td data-label="Amount" className="amount-adminbilling">{formatCurrency(assessment.assessmentFee)}</td>
                             <td data-label="Gateway">{getGatewayBadge(assessment)}</td>
                             <td data-label="Payment">{getPaymentStatusBadge(assessment.paymentStatus)}</td>
                             <td data-label="Assessment">{getAssessmentStatusBadge(assessment.assessmentStatus)}</td>
-                            <td data-label="Receipt" className="receipt-cell">
+                            <td data-label="Receipt" className="receipt-cell-adminbilling">
                               {assessment.receiptUrl ? (
-                                <a href={assessment.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link" onClick={(e) => e.stopPropagation()}>
+                                <a href={assessment.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link-adminbilling" onClick={(e) => e.stopPropagation()}>
                                   <FaReceipt /> View
                                 </a>
                               ) : (
-                                <span className="no-receipt">—</span>
+                                <span className="no-receipt-adminbilling">—</span>
                               )}
                             </td>
                             <td data-label="Actions" style={{ textAlign: 'center', position: 'relative' }}>
                               {autoVerified ? (
-                                <span className="verified-badge auto-verified">Auto-Verified</span>
+                                <span className="verified-badge-adminbilling auto-verified">Auto</span>
                               ) : assessment.paymentMethod === 'cash' && assessment.paymentStatus === 'paid' ? (
-                                <span className="verified-badge">Verified</span>
+                                <span className="verified-badge-adminbilling">Verified</span>
                               ) : assessment.paymentStatus === 'failed' ? (
-                                <span className="failed-badge">Failed</span>
+                                <span className="failed-badge-adminbilling">Failed</span>
                               ) : (
-                                <div className="action-dropdown-container">
-                                  <button 
-                                    className="action-dropdown-toggle" 
+                                <div className="action-dropdown-container-adminbilling">
+                                  <button
+                                    className="action-dropdown-toggle-adminbilling"
                                     ref={el => buttonRefs.current[assessment._id] = el}
                                     onClick={(e) => handleDropdownClick(e, assessment._id)}
                                   >
-                                    Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
+                                    Action <FaChevronDown className={`dropdown-arrow-adminbilling ${isOpen ? 'open' : ''}`} />
                                   </button>
                                   {isOpen && (
-                                    <div 
-                                      className="action-dropdown-menu"
+                                    <div
+                                      className="action-dropdown-menu-adminbilling"
                                       ref={dropdownRef}
                                       style={{
                                         position: 'fixed',
@@ -1322,7 +1433,7 @@ const AdminBilling = () => {
                                       }}
                                     >
                                       {actions.map((action, idx) => (
-                                        <button key={idx} className={`dropdown-item ${action.color || ''}`} onClick={action.action}>
+                                        <button key={idx} className={`dropdown-item-adminbilling ${action.color || ''}`} onClick={action.action}>
                                           <span>{action.label}</span>
                                         </button>
                                       ))}
@@ -1341,26 +1452,26 @@ const AdminBilling = () => {
             </div>
 
             {totalPages > 1 && (
-              <div className="pagination">
-                <div className="pagination-info">
+              <div className="pagination-adminbilling">
+                <div className="pagination-info-adminbilling">
                   Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
                 </div>
-                <div className="pagination-controls">
-                  <button className="page-btn" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+                <div className="pagination-controls-adminbilling">
+                  <button className="page-btn-adminbilling" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
                     <FaChevronLeft /> Previous
                   </button>
-                  
+
                   {getPageNumbers(totalPages, currentPage).map(page => (
                     <button
                       key={page}
-                      className={`page-number ${currentPage === page ? 'active' : ''}`}
+                      className={`page-number-adminbilling ${currentPage === page ? 'active' : ''}`}
                       onClick={() => setCurrentPage(page)}
                     >
                       {page}
                     </button>
                   ))}
-                  
-                  <button className="page-btn" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
+
+                  <button className="page-btn-adminbilling" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
                     Next <FaChevronRight />
                   </button>
                 </div>
@@ -1371,10 +1482,10 @@ const AdminBilling = () => {
 
         {/* SOLAR INVOICES TABLE */}
         {activeTab === 'solar-invoices' && (
-          <div className="tab-content active">
-            <div className="payments-table-container">
-              <div className="table-responsive">
-                <table className="payments-table">
+          <div className="tab-content-adminbilling active">
+            <div className="payments-table-container-adminbilling">
+              <div className="table-responsive-adminbilling">
+                <table className="payments-table-adminbilling">
                   <thead>
                     <tr>
                       <th>Invoice #</th>
@@ -1392,7 +1503,7 @@ const AdminBilling = () => {
                   </thead>
                   <tbody>
                     {solarInvoices.length === 0 ? (
-                      <tr><td colSpan="11" className="empty-state">No solar invoices found</td></tr>
+                      <tr><td colSpan="11" className="empty-state-adminbilling">No solar invoices found</td></tr>
                     ) : (
                       solarInvoices.map(invoice => {
                         const actions = getSolarInvoiceActions(invoice);
@@ -1401,39 +1512,39 @@ const AdminBilling = () => {
 
                         return (
                           <tr key={invoice._id}>
-                            <td data-label="Invoice #" className="ref-cell">{invoice.invoiceNumber}</td>
-                            <td data-label="Project ID"><span className="project-id">{invoice.projectId?.projectReference || invoice.projectId?._id || 'N/A'}</span></td>
+                            <td data-label="Invoice #" className="ref-cell-adminbilling">{invoice.invoiceNumber}</td>
+                            <td data-label="Project ID"><span className="project-id-adminbilling">{invoice.projectId?.projectReference || invoice.projectId?._id || 'N/A'}</span></td>
                             <td data-label="Customer"><strong>{invoice.clientId?.contactFirstName} {invoice.clientId?.contactLastName}</strong></td>
                             <td data-label="Type">{getInvoiceTypeBadge(invoice.invoiceType)}</td>
                             <td data-label="Due Date">{formatDate(invoice.dueDate)}</td>
-                            <td data-label="Amount" className="amount">{formatCurrency(invoice.totalAmount)}</td>
-                            <td data-label="Paid" className="amount">{formatCurrency(invoice.amountPaid)}</td>
-                            <td data-label="Balance" className="amount balance">{formatCurrency(invoice.balance)}</td>
+                            <td data-label="Amount" className="amount-adminbilling">{formatCurrency(invoice.totalAmount)}</td>
+                            <td data-label="Paid" className="amount-adminbilling">{formatCurrency(invoice.amountPaid)}</td>
+                            <td data-label="Balance" className="amount-adminbilling balance">{formatCurrency(invoice.balance)}</td>
                             <td data-label="Status">{getPaymentStatusBadge(invoice.paymentStatus)}</td>
-                            <td data-label="Receipt" className="receipt-cell">
+                            <td data-label="Receipt" className="receipt-cell-adminbilling">
                               {invoice.receiptUrl ? (
-                                <a href={invoice.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link" onClick={(e) => e.stopPropagation()}>
+                                <a href={invoice.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link-adminbilling" onClick={(e) => e.stopPropagation()}>
                                   <FaReceipt /> View
                                 </a>
                               ) : (
-                                <span className="no-receipt">—</span>
+                                <span className="no-receipt-adminbilling">—</span>
                               )}
                             </td>
                             <td data-label="Actions" style={{ textAlign: 'center', position: 'relative' }}>
                               {autoVerified ? (
-                                <span className="verified-badge auto-verified">Auto-Verified</span>
+                                <span className="verified-badge-adminbilling auto-verified">Auto</span>
                               ) : (
-                                <div className="action-dropdown-container">
-                                  <button 
-                                    className="action-dropdown-toggle" 
+                                <div className="action-dropdown-container-adminbilling">
+                                  <button
+                                    className="action-dropdown-toggle-adminbilling"
                                     ref={el => buttonRefs.current[invoice._id] = el}
                                     onClick={(e) => handleDropdownClick(e, invoice._id)}
                                   >
-                                    Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
+                                    Action <FaChevronDown className={`dropdown-arrow-adminbilling ${isOpen ? 'open' : ''}`} />
                                   </button>
                                   {isOpen && (
-                                    <div 
-                                      className="action-dropdown-menu"
+                                    <div
+                                      className="action-dropdown-menu-adminbilling"
                                       ref={dropdownRef}
                                       style={{
                                         position: 'fixed',
@@ -1443,7 +1554,7 @@ const AdminBilling = () => {
                                       }}
                                     >
                                       {actions.map((action, idx) => (
-                                        <button key={idx} className={`dropdown-item ${action.color || ''}`} onClick={action.action}>
+                                        <button key={idx} className={`dropdown-item-adminbilling ${action.color || ''}`} onClick={action.action}>
                                           <span>{action.label}</span>
                                         </button>
                                       ))}
@@ -1462,26 +1573,26 @@ const AdminBilling = () => {
             </div>
 
             {totalPages > 1 && (
-              <div className="pagination">
-                <div className="pagination-info">
+              <div className="pagination-adminbilling">
+                <div className="pagination-info-adminbilling">
                   Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
                 </div>
-                <div className="pagination-controls">
-                  <button className="page-btn" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+                <div className="pagination-controls-adminbilling">
+                  <button className="page-btn-adminbilling" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
                     <FaChevronLeft /> Previous
                   </button>
-                  
+
                   {getPageNumbers(totalPages, currentPage).map(page => (
                     <button
                       key={page}
-                      className={`page-number ${currentPage === page ? 'active' : ''}`}
+                      className={`page-number-adminbilling ${currentPage === page ? 'active' : ''}`}
                       onClick={() => setCurrentPage(page)}
                     >
                       {page}
                     </button>
                   ))}
-                  
-                  <button className="page-btn" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
+
+                  <button className="page-btn-adminbilling" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
                     Next <FaChevronRight />
                   </button>
                 </div>
@@ -1492,10 +1603,10 @@ const AdminBilling = () => {
 
         {/* BANK TRANSFERS TABLE */}
         {activeTab === 'bank-transfers' && (
-          <div className="tab-content active">
-            <div className="payments-table-container">
-              <div className="table-responsive">
-                <table className="payments-table">
+          <div className="tab-content-adminbilling active">
+            <div className="payments-table-container-adminbilling">
+              <div className="table-responsive-adminbilling">
+                <table className="payments-table-adminbilling">
                   <thead>
                     <tr>
                       <th>Date</th>
@@ -1510,7 +1621,7 @@ const AdminBilling = () => {
                   </thead>
                   <tbody>
                     {bankTransfers.length === 0 ? (
-                      <tr><td colSpan="8" className="empty-state">
+                      <tr><td colSpan="8" className="empty-state-adminbilling">
                         <FaExclamationTriangle /> No bank transfer submissions found
                       </td></tr>
                     ) : (
@@ -1519,34 +1630,34 @@ const AdminBilling = () => {
                         const isOpen = openDropdownId === payment._id;
 
                         return (
-                          <tr key={payment._id} className={payment.status === 'rejected' ? 'rejected-row' : ''}>
+                          <tr key={payment._id} className={payment.status === 'rejected' ? 'rejected-row-adminbilling' : ''}>
                             <td data-label="Date">{formatDate(payment.createdAt)}</td>
-                            <td data-label="Customer" className="customer-cell">
+                            <td data-label="Customer" className="customer-cell-adminbilling">
                               <div>
                                 <strong>{payment.clientId?.contactFirstName} {payment.clientId?.contactLastName}</strong>
                                 <small>{payment.clientEmail}</small>
                               </div>
                             </td>
-                            <td data-label="Invoice #" className="invoice-cell">
+                            <td data-label="Invoice #" className="invoice-cell-adminbilling">
                               <strong>{payment.invoiceId?.invoiceNumber}</strong>
                               <small>{payment.invoiceId?.invoiceType}</small>
                             </td>
-                            <td data-label="Bank"><span className="bank-name">{payment.bankName}</span></td>
-                            <td data-label="Amount" className="amount">{formatCurrency(payment.amount)}</td>
-                            <td data-label="Reference" className="ref-cell">{payment.transactionReference}</td>
+                            <td data-label="Bank"><span className="bank-name-adminbilling">{payment.bankName}</span></td>
+                            <td data-label="Amount" className="amount-adminbilling">{formatCurrency(payment.amount)}</td>
+                            <td data-label="Reference" className="ref-cell-adminbilling">{payment.transactionReference}</td>
                             <td data-label="Status">{getBankTransferStatusBadge(payment.status)}</td>
                             <td data-label="Actions" style={{ textAlign: 'center', position: 'relative' }}>
-                              <div className="action-dropdown-container">
-                                <button 
-                                  className="action-dropdown-toggle" 
+                              <div className="action-dropdown-container-adminbilling">
+                                <button
+                                  className="action-dropdown-toggle-adminbilling"
                                   ref={el => buttonRefs.current[payment._id] = el}
                                   onClick={(e) => handleDropdownClick(e, payment._id)}
                                 >
-                                  Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
+                                  Action <FaChevronDown className={`dropdown-arrow-adminbilling ${isOpen ? 'open' : ''}`} />
                                 </button>
                                 {isOpen && (
-                                  <div 
-                                    className="action-dropdown-menu"
+                                  <div
+                                    className="action-dropdown-menu-adminbilling"
                                     ref={dropdownRef}
                                     style={{
                                       position: 'fixed',
@@ -1556,7 +1667,7 @@ const AdminBilling = () => {
                                     }}
                                   >
                                     {actions.map((action, idx) => (
-                                      <button key={idx} className={`dropdown-item ${action.color || ''}`} onClick={action.action}>
+                                      <button key={idx} className={`dropdown-item-adminbilling ${action.color || ''}`} onClick={action.action}>
                                         <span>{action.label}</span>
                                       </button>
                                     ))}
@@ -1574,26 +1685,26 @@ const AdminBilling = () => {
             </div>
 
             {bankTransferTotalPages > 1 && (
-              <div className="pagination">
-                <div className="pagination-info">
+              <div className="pagination-adminbilling">
+                <div className="pagination-info-adminbilling">
                   Showing {((bankTransferPage - 1) * itemsPerPage) + 1} to {Math.min(bankTransferPage * itemsPerPage, bankTransferTotalItems)} of {bankTransferTotalItems} entries
                 </div>
-                <div className="pagination-controls">
-                  <button className="page-btn" onClick={() => setBankTransferPage(p => Math.max(1, p - 1))} disabled={bankTransferPage === 1}>
+                <div className="pagination-controls-adminbilling">
+                  <button className="page-btn-adminbilling" onClick={() => setBankTransferPage(p => Math.max(1, p - 1))} disabled={bankTransferPage === 1}>
                     <FaChevronLeft /> Previous
                   </button>
-                  
+
                   {getPageNumbers(bankTransferTotalPages, bankTransferPage).map(page => (
                     <button
                       key={page}
-                      className={`page-number ${bankTransferPage === page ? 'active' : ''}`}
+                      className={`page-number-adminbilling ${bankTransferPage === page ? 'active' : ''}`}
                       onClick={() => setBankTransferPage(page)}
                     >
                       {page}
                     </button>
                   ))}
-                  
-                  <button className="page-btn" onClick={() => setBankTransferPage(p => Math.min(bankTransferTotalPages, p + 1))} disabled={bankTransferPage === bankTransferTotalPages}>
+
+                  <button className="page-btn-adminbilling" onClick={() => setBankTransferPage(p => Math.min(bankTransferTotalPages, p + 1))} disabled={bankTransferPage === bankTransferTotalPages}>
                     Next <FaChevronRight />
                   </button>
                 </div>
@@ -1604,10 +1715,10 @@ const AdminBilling = () => {
 
         {/* TRANSACTIONS TABLE */}
         {activeTab === 'transactions' && (
-          <div className="tab-content active">
-            <div className="payments-table-container">
-              <div className="table-responsive">
-                <table className="payments-table">
+          <div className="tab-content-adminbilling active">
+            <div className="payments-table-container-adminbilling">
+              <div className="table-responsive-adminbilling">
+                <table className="payments-table-adminbilling">
                   <thead>
                     <tr>
                       <th>Date</th>
@@ -1623,25 +1734,25 @@ const AdminBilling = () => {
                   </thead>
                   <tbody>
                     {transactions.length === 0 ? (
-                      <tr><td colSpan="9" className="empty-state">No transactions found</td></tr>
+                      <tr><td colSpan="9" className="empty-state-adminbilling">No transactions found</td></tr>
                     ) : (
                       getCurrentTransactionItems().map(transaction => (
                         <tr key={transaction.id}>
                           <td data-label="Date">{formatDate(transaction.date)}</td>
-                          <td data-label="Type"><span className={`transaction-type ${transaction.type === 'Pre-Assessment' ? 'pre' : 'project'}`}>{transaction.type}</span></td>
+                          <td data-label="Type"><span className={`transaction-type-adminbilling ${transaction.type === 'Pre-Assessment' ? 'pre' : 'project'}`}>{transaction.type}</span></td>
                           <td data-label="Reference">{transaction.reference}</td>
                           <td data-label="Invoice">{transaction.invoiceNumber}</td>
                           <td data-label="Customer"><strong>{transaction.client}</strong></td>
-                          <td data-label="Amount" className="amount">{formatCurrency(transaction.amount)}</td>
+                          <td data-label="Amount" className="amount-adminbilling">{formatCurrency(transaction.amount)}</td>
                           <td data-label="Method">{transaction.method?.toUpperCase()}</td>
                           <td data-label="Status">{getPaymentStatusBadge(transaction.status)}</td>
-                          <td data-label="Receipt" className="receipt-cell">
+                          <td data-label="Receipt" className="receipt-cell-adminbilling">
                             {transaction.receiptUrl ? (
-                              <a href={transaction.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link">
+                              <a href={transaction.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link-adminbilling">
                                 <FaReceipt /> View
                               </a>
                             ) : (
-                              <span className="no-receipt">—</span>
+                              <span className="no-receipt-adminbilling">—</span>
                             )}
                           </td>
                         </tr>
@@ -1653,26 +1764,26 @@ const AdminBilling = () => {
             </div>
 
             {transactionTotalPages > 1 && (
-              <div className="pagination">
-                <div className="pagination-info">
+              <div className="pagination-adminbilling">
+                <div className="pagination-info-adminbilling">
                   Showing {((transactionPage - 1) * itemsPerPage) + 1} to {Math.min(transactionPage * itemsPerPage, transactionTotalItems)} of {transactionTotalItems} entries
                 </div>
-                <div className="pagination-controls">
-                  <button className="page-btn" onClick={() => setTransactionPage(p => Math.max(1, p - 1))} disabled={transactionPage === 1}>
+                <div className="pagination-controls-adminbilling">
+                  <button className="page-btn-adminbilling" onClick={() => setTransactionPage(p => Math.max(1, p - 1))} disabled={transactionPage === 1}>
                     <FaChevronLeft /> Previous
                   </button>
-                  
+
                   {getPageNumbers(transactionTotalPages, transactionPage).map(page => (
                     <button
                       key={page}
-                      className={`page-number ${transactionPage === page ? 'active' : ''}`}
+                      className={`page-number-adminbilling ${transactionPage === page ? 'active' : ''}`}
                       onClick={() => setTransactionPage(page)}
                     >
                       {page}
                     </button>
                   ))}
-                  
-                  <button className="page-btn" onClick={() => setTransactionPage(p => Math.min(transactionTotalPages, p + 1))} disabled={transactionPage === transactionTotalPages}>
+
+                  <button className="page-btn-adminbilling" onClick={() => setTransactionPage(p => Math.min(transactionTotalPages, p + 1))} disabled={transactionPage === transactionTotalPages}>
                     Next <FaChevronRight />
                   </button>
                 </div>
@@ -1682,33 +1793,33 @@ const AdminBilling = () => {
         )}
 
         {/* ============================================ */}
-        {/* MODALS - Same as before, kept for functionality */}
+        {/* MODALS - Kept for functionality              */}
         {/* ============================================ */}
 
         {/* Verify Payment Modal */}
         {showVerifyModal && selectedAssessment && (
-          <div className="modal-overlay" onClick={() => setShowVerifyModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adminbilling" onClick={() => setShowVerifyModal(false)}>
+            <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>Verify Payment</h3>
-              <div className="modal-body">
-                <div className="payment-details">
-                  <div className="detail-row"><span>Ref:</span><strong>{selectedAssessment.bookingReference}</strong></div>
-                  <div className="detail-row"><span>Amount:</span><strong>{formatCurrency(selectedAssessment.assessmentFee)}</strong></div>
+              <div className="modal-body-adminbilling">
+                <div className="payment-details-adminbilling">
+                  <div className="detail-row-adminbilling"><span>Ref:</span><strong>{selectedAssessment.bookingReference}</strong></div>
+                  <div className="detail-row-adminbilling"><span>Amount:</span><strong>{formatCurrency(selectedAssessment.assessmentFee)}</strong></div>
                 </div>
                 {selectedAssessment.paymentProof && (
-                  <div className="payment-proof">
-                    <button className="view-proof-btn" onClick={() => window.open(selectedAssessment.paymentProof, '_blank')}>View Screenshot</button>
+                  <div className="payment-proof-adminbilling">
+                    <button className="view-proof-btn-adminbilling" onClick={() => window.open(selectedAssessment.paymentProof, '_blank')}>View Screenshot</button>
                   </div>
                 )}
-                <div className="verification-notes">
+                <div className="verification-notes-adminbilling">
                   <label>Notes</label>
                   <textarea rows="3" value={verificationNote} onChange={(e) => setVerificationNote(e.target.value)} />
                 </div>
               </div>
-              <div className="modal-actions">
-                <button className="btn-cancel" onClick={() => setShowVerifyModal(false)}>Cancel</button>
-                <button className="btn-reject" onClick={() => handleVerifyPayment(false)}>Reject</button>
-                <button className="btn-verify" onClick={() => handleVerifyPayment(true)}>Verify</button>
+              <div className="modal-actions-adminbilling">
+                <button className="btn-cancel-adminbilling" onClick={() => setShowVerifyModal(false)}>Cancel</button>
+                <button className="btn-reject-adminbilling" onClick={() => handleVerifyPayment(false)}>Reject</button>
+                <button className="btn-verify-adminbilling" onClick={() => handleVerifyPayment(true)}>Verify</button>
               </div>
             </div>
           </div>
@@ -1716,13 +1827,13 @@ const AdminBilling = () => {
 
         {/* Edit Status Modal */}
         {showEditStatusModal && selectedAssessment && (
-          <div className="modal-overlay" onClick={() => setShowEditStatusModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adminbilling" onClick={() => setShowEditStatusModal(false)}>
+            <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>Edit Status</h3>
-              <div className="modal-body">
-                <div className="detail-row"><span>Ref:</span><strong>{selectedAssessment.bookingReference}</strong></div>
-                <div className="detail-row"><span>Amount:</span><strong>{formatCurrency(selectedAssessment.assessmentFee)}</strong></div>
-                <div className="form-group">
+              <div className="modal-body-adminbilling">
+                <div className="detail-row-adminbilling"><span>Ref:</span><strong>{selectedAssessment.bookingReference}</strong></div>
+                <div className="detail-row-adminbilling"><span>Amount:</span><strong>{formatCurrency(selectedAssessment.assessmentFee)}</strong></div>
+                <div className="form-group-adminbilling">
                   <label>Status</label>
                   <select value={editStatusData.paymentStatus} onChange={(e) => setEditStatusData({ ...editStatusData, paymentStatus: e.target.value })}>
                     <option value="">Select</option>
@@ -1731,15 +1842,15 @@ const AdminBilling = () => {
                     <option value="failed">Cancel</option>
                   </select>
                 </div>
-                <div className="verification-notes">
+                <div className="verification-notes-adminbilling">
                   <label>Notes</label>
                   <textarea rows="3" value={editStatusData.notes} onChange={(e) => setEditStatusData({ ...editStatusData, notes: e.target.value })} />
                 </div>
               </div>
-              <div className="modal-actions">
-                <button className="btn-cancel" onClick={() => setShowEditStatusModal(false)}>Cancel</button>
-                <button className="btn-save" onClick={handleEditPaymentStatus} disabled={!editStatusData.paymentStatus || isSubmitting}>
-                  {isSubmitting ? <FaSpinner className="spinning" /> : 'Save'}
+              <div className="modal-actions-adminbilling">
+                <button className="btn-cancel-adminbilling" onClick={() => setShowEditStatusModal(false)}>Cancel</button>
+                <button className="btn-save-adminbilling" onClick={handleEditPaymentStatus} disabled={!editStatusData.paymentStatus || isSubmitting}>
+                  {isSubmitting ? <FaSpinner className="spinning-adminbilling" /> : 'Save'}
                 </button>
               </div>
             </div>
@@ -1748,21 +1859,21 @@ const AdminBilling = () => {
 
         {/* Solar Verify Modal */}
         {showSolarVerifyModal && selectedInvoice && (
-          <div className="modal-overlay" onClick={() => setShowSolarVerifyModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adminbilling" onClick={() => setShowSolarVerifyModal(false)}>
+            <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>Verify Invoice Payment</h3>
-              <div className="modal-body">
-                <div className="detail-row"><span>Invoice:</span><strong>{selectedInvoice.invoiceNumber}</strong></div>
-                <div className="detail-row"><span>Amount:</span><strong>{formatCurrency(selectedInvoice.totalAmount)}</strong></div>
-                <div className="verification-notes">
+              <div className="modal-body-adminbilling">
+                <div className="detail-row-adminbilling"><span>Invoice:</span><strong>{selectedInvoice.invoiceNumber}</strong></div>
+                <div className="detail-row-adminbilling"><span>Amount:</span><strong>{formatCurrency(selectedInvoice.totalAmount)}</strong></div>
+                <div className="verification-notes-adminbilling">
                   <label>Notes</label>
                   <textarea rows="3" value={verificationNote} onChange={(e) => setVerificationNote(e.target.value)} />
                 </div>
               </div>
-              <div className="modal-actions">
-                <button className="btn-cancel" onClick={() => setShowSolarVerifyModal(false)}>Cancel</button>
-                <button className="btn-reject" onClick={() => handleVerifySolarPayment(false, selectedInvoice)}>Reject</button>
-                <button className="btn-verify" onClick={() => handleVerifySolarPayment(true, selectedInvoice)}>Verify</button>
+              <div className="modal-actions-adminbilling">
+                <button className="btn-cancel-adminbilling" onClick={() => setShowSolarVerifyModal(false)}>Cancel</button>
+                <button className="btn-reject-adminbilling" onClick={() => handleVerifySolarPayment(false, selectedInvoice)}>Reject</button>
+                <button className="btn-verify-adminbilling" onClick={() => handleVerifySolarPayment(true, selectedInvoice)}>Verify</button>
               </div>
             </div>
           </div>
@@ -1770,21 +1881,21 @@ const AdminBilling = () => {
 
         {/* Invoice Modal - Create/View */}
         {showInvoiceModal && (
-          <div className="modal-overlay" onClick={() => setShowInvoiceModal(false)}>
-            <div className="modal-content invoice-modal" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adminbilling" onClick={() => setShowInvoiceModal(false)}>
+            <div className="modal-content-adminbilling invoice-modal-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>{modalMode === 'create' ? 'Create Invoice' : 'Invoice Details'}</h3>
               {modalMode === 'create' ? (
-                <div className="modal-body">
-                  <div className="invoice-form">
-                    <div className="form-group">
+                <div className="modal-body-adminbilling">
+                  <div className="invoice-form-adminbilling">
+                    <div className="form-group-adminbilling">
                       <label>Project *</label>
                       <select value={invoiceFormData.projectId} onChange={(e) => setInvoiceFormData({ ...invoiceFormData, projectId: e.target.value })}>
                         <option value="">Select project...</option>
                         {projects.map(p => <option key={p._id} value={p._id}>{p.projectName} - {p.projectReference}</option>)}
                       </select>
                     </div>
-                    <div className="form-row">
-                      <div className="form-group">
+                    <div className="form-row-adminbilling">
+                      <div className="form-group-adminbilling">
                         <label>Type</label>
                         <select value={invoiceFormData.invoiceType} onChange={(e) => setInvoiceFormData({ ...invoiceFormData, invoiceType: e.target.value })}>
                           <option value="initial">Initial (30%)</option>
@@ -1793,22 +1904,22 @@ const AdminBilling = () => {
                           <option value="full">Full (100%)</option>
                         </select>
                       </div>
-                      <div className="form-group">
+                      <div className="form-group-adminbilling">
                         <label>Due Date *</label>
                         <input type="date" value={invoiceFormData.dueDate} onChange={(e) => setInvoiceFormData({ ...invoiceFormData, dueDate: e.target.value })} />
                       </div>
                     </div>
-                    <div className="invoice-totals">
-                      <div className="total-row"><span>Total:</span><strong>{formatCurrency(invoiceFormData.totalAmount)}</strong></div>
+                    <div className="invoice-totals-adminbilling">
+                      <div className="total-row-adminbilling"><span>Total:</span><strong>{formatCurrency(invoiceFormData.totalAmount)}</strong></div>
                     </div>
                   </div>
                 </div>
               ) : (
                 selectedInvoice && (
                   <>
-                    <div className="modal-body">
-                      <div className="invoice-view">
-                        <div className="detail-section">
+                    <div className="modal-body-adminbilling">
+                      <div className="invoice-view-adminbilling">
+                        <div className="detail-section-adminbilling">
                           <p><strong>Invoice:</strong> {selectedInvoice.invoiceNumber}</p>
                           <p><strong>Project:</strong> {selectedInvoice.projectId?.projectName}</p>
                           <p><strong>Type:</strong> {selectedInvoice.invoiceType}</p>
@@ -1822,8 +1933,8 @@ const AdminBilling = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="modal-actions">
-                      <button className="btn-cancel" onClick={() => setShowInvoiceModal(false)}>Close</button>
+                    <div className="modal-actions-adminbilling">
+                      <button className="btn-cancel-adminbilling" onClick={() => setShowInvoiceModal(false)}>Close</button>
                     </div>
                   </>
                 )
@@ -1834,33 +1945,33 @@ const AdminBilling = () => {
 
         {/* Payment Modal */}
         {showPaymentModal && selectedInvoice && (
-          <div className="modal-overlay" onClick={() => setShowPaymentModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adminbilling" onClick={() => setShowPaymentModal(false)}>
+            <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>Record Payment</h3>
-              <div className="modal-body">
-                <div className="payment-info">
+              <div className="modal-body-adminbilling">
+                <div className="payment-info-adminbilling">
                   <p><strong>Invoice:</strong> {selectedInvoice.invoiceNumber}</p>
                   <p><strong>Balance:</strong> {formatCurrency(selectedInvoice.balance)}</p>
                 </div>
-                <div className="form-group">
+                <div className="form-group-adminbilling">
                   <label>Amount *</label>
                   <input type="number" value={paymentData.amount} onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })} />
                 </div>
-                <div className="form-group">
+                <div className="form-group-adminbilling">
                   <label>Method</label>
                   <select value={paymentData.method} onChange={(e) => setPaymentData({ ...paymentData, method: e.target.value })}>
                     <option value="gcash">GCash</option>
                     <option value="cash">Cash</option>
                   </select>
                 </div>
-                <div className="form-group">
+                <div className="form-group-adminbilling">
                   <label>Reference</label>
                   <input type="text" value={paymentData.reference} onChange={(e) => setPaymentData({ ...paymentData, reference: e.target.value })} />
                 </div>
               </div>
-              <div className="modal-actions">
-                <button className="btn-cancel" onClick={() => setShowPaymentModal(false)}>Cancel</button>
-                <button className="btn-record" onClick={handleRecordPayment} disabled={!paymentData.amount || isSubmitting}>
+              <div className="modal-actions-adminbilling">
+                <button className="btn-cancel-adminbilling" onClick={() => setShowPaymentModal(false)}>Cancel</button>
+                <button className="btn-record-adminbilling" onClick={handleRecordPayment} disabled={!paymentData.amount || isSubmitting}>
                   {isSubmitting ? 'Recording...' : 'Record'}
                 </button>
               </div>
@@ -1870,11 +1981,11 @@ const AdminBilling = () => {
 
         {/* Detail Modal for Pre-assessment */}
         {showDetailModal && selectedAssessment && (
-          <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adminbilling" onClick={() => setShowDetailModal(false)}>
+            <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>Pre-Assessment Details</h3>
-              <div className="modal-body">
-                <div className="detail-section">
+              <div className="modal-body-adminbilling">
+                <div className="detail-section-adminbilling">
                   <p><strong>Booking Ref:</strong> {selectedAssessment.bookingReference}</p>
                   <p><strong>Invoice:</strong> {selectedAssessment.invoiceNumber}</p>
                   <p><strong>Client:</strong> {selectedAssessment.clientId?.contactFirstName} {selectedAssessment.clientId?.contactLastName}</p>
@@ -1886,8 +1997,8 @@ const AdminBilling = () => {
                   )}
                 </div>
               </div>
-              <div className="modal-actions">
-                <button className="btn-cancel" onClick={() => setShowDetailModal(false)}>Close</button>
+              <div className="modal-actions-adminbilling">
+                <button className="btn-cancel-adminbilling" onClick={() => setShowDetailModal(false)}>Close</button>
               </div>
             </div>
           </div>
@@ -1895,25 +2006,25 @@ const AdminBilling = () => {
 
         {/* Bank Transfer Detail Modal */}
         {showBankTransferDetailModal && selectedBankTransfer && (
-          <div className="modal-overlay" onClick={() => setShowBankTransferDetailModal(false)}>
-            <div className="modal-content detail-modal" onClick={e => e.stopPropagation()}>
-              <button className="modal-close" onClick={() => setShowBankTransferDetailModal(false)}><FaTimes /></button>
-              
-              <div className="modal-header">
-                <div className="modal-title">
+          <div className="modal-overlay-adminbilling" onClick={() => setShowBankTransferDetailModal(false)}>
+            <div className="modal-content-adminbilling detail-modal-adminbilling" onClick={e => e.stopPropagation()}>
+              <button className="modal-close-adminbilling" onClick={() => setShowBankTransferDetailModal(false)}><FaTimes /></button>
+
+              <div className="modal-header-adminbilling">
+                <div className="modal-title-adminbilling">
                   <h3>Bank Transfer Details</h3>
                   {getBankTransferStatusBadge(selectedBankTransfer.status)}
                 </div>
-                <div className="modal-subtitle">
+                <div className="modal-subtitle-adminbilling">
                   <span>Submitted: {formatDateTime(selectedBankTransfer.createdAt)}</span>
                 </div>
               </div>
 
-              <div className="modal-body">
+              <div className="modal-body-adminbilling">
                 {/* Customer Info */}
-                <div className="detail-section">
+                <div className="detail-section-adminbilling">
                   <h4><FaUser /> Customer Information</h4>
-                  <div className="detail-grid two-col">
+                  <div className="detail-grid-adminbilling two-col">
                     <div>
                       <label>Name</label>
                       <p>{selectedBankTransfer.clientId?.contactFirstName} {selectedBankTransfer.clientId?.contactLastName}</p>
@@ -1930,9 +2041,9 @@ const AdminBilling = () => {
                 </div>
 
                 {/* Invoice Info */}
-                <div className="detail-section">
+                <div className="detail-section-adminbilling">
                   <h4><FaFileInvoice /> Invoice Information</h4>
-                  <div className="detail-grid two-col">
+                  <div className="detail-grid-adminbilling two-col">
                     <div>
                       <label>Invoice Number</label>
                       <p><strong>{selectedBankTransfer.invoiceId?.invoiceNumber}</strong></p>
@@ -1943,19 +2054,19 @@ const AdminBilling = () => {
                     </div>
                     <div>
                       <label>Expected Amount</label>
-                      <p className="amount">{formatCurrency(selectedBankTransfer.invoiceId?.totalAmount)}</p>
+                      <p className="amount-adminbilling">{formatCurrency(selectedBankTransfer.invoiceId?.totalAmount)}</p>
                     </div>
                     <div>
                       <label>Balance</label>
-                      <p className="amount">{formatCurrency(selectedBankTransfer.invoiceId?.balance)}</p>
+                      <p className="amount-adminbilling">{formatCurrency(selectedBankTransfer.invoiceId?.balance)}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Project Info */}
-                <div className="detail-section">
+                <div className="detail-section-adminbilling">
                   <h4><FaBuilding /> Project Information</h4>
-                  <div className="detail-grid two-col">
+                  <div className="detail-grid-adminbilling two-col">
                     <div>
                       <label>Project Name</label>
                       <p>{selectedBankTransfer.projectId?.projectName || 'N/A'}</p>
@@ -1968,9 +2079,9 @@ const AdminBilling = () => {
                 </div>
 
                 {/* Payment Info */}
-                <div className="detail-section">
+                <div className="detail-section-adminbilling">
                   <h4><FaMoneyBillWave /> Payment Information</h4>
-                  <div className="detail-grid two-col">
+                  <div className="detail-grid-adminbilling two-col">
                     <div>
                       <label>Bank Used</label>
                       <p><strong>{selectedBankTransfer.bankName}</strong></p>
@@ -1985,7 +2096,7 @@ const AdminBilling = () => {
                     </div>
                     <div>
                       <label>Amount Submitted</label>
-                      <p className="amount">{formatCurrency(selectedBankTransfer.amount)}</p>
+                      <p className="amount-adminbilling">{formatCurrency(selectedBankTransfer.amount)}</p>
                     </div>
                     <div>
                       <label>Transfer Date</label>
@@ -1999,58 +2110,58 @@ const AdminBilling = () => {
                 </div>
 
                 {/* Proof of Payment */}
-                <div className="detail-section">
+                <div className="detail-section-adminbilling">
                   <h4>Proof of Payment</h4>
-                  <div className="proof-container">
+                  <div className="proof-container-adminbilling">
                     {selectedBankTransfer.proofOfPayment ? (
-                      <div className="proof-actions">
-                        <button className="proof-btn" onClick={() => handleViewBankProof(selectedBankTransfer.proofOfPayment)}>
+                      <div className="proof-actions-adminbilling">
+                        <button className="proof-btn-adminbilling" onClick={() => handleViewBankProof(selectedBankTransfer.proofOfPayment)}>
                           <FaEye /> View Proof
                         </button>
-                        <a href={selectedBankTransfer.proofOfPayment} download className="proof-btn download">
+                        <a href={selectedBankTransfer.proofOfPayment} download className="proof-btn-adminbilling download">
                           <FaDownload /> Download
                         </a>
                       </div>
                     ) : (
-                      <p className="no-proof">No proof uploaded</p>
+                      <p className="no-proof-adminbilling">No proof uploaded</p>
                     )}
                   </div>
                 </div>
 
                 {/* Remarks */}
                 {selectedBankTransfer.remarks && (
-                  <div className="detail-section">
+                  <div className="detail-section-adminbilling">
                     <h4>Remarks</h4>
-                    <p className="remarks-text">{selectedBankTransfer.remarks}</p>
+                    <p className="remarks-text-adminbilling">{selectedBankTransfer.remarks}</p>
                   </div>
                 )}
 
                 {/* Rejection Reason */}
                 {selectedBankTransfer.status === 'rejected' && selectedBankTransfer.rejectionReason && (
-                  <div className="detail-section rejected">
+                  <div className="detail-section-adminbilling rejected">
                     <h4><FaTimesCircle /> Rejection Reason</h4>
-                    <p className="rejection-text">{selectedBankTransfer.rejectionReason}</p>
+                    <p className="rejection-text-adminbilling">{selectedBankTransfer.rejectionReason}</p>
                   </div>
                 )}
 
                 {/* Receipt */}
                 {selectedBankTransfer.status === 'verified' && selectedBankTransfer.receiptUrl && (
-                  <div className="detail-section">
+                  <div className="detail-section-adminbilling">
                     <h4><FaReceipt /> Receipt</h4>
-                    <div className="receipt-actions">
-                      <button className="receipt-btn" onClick={() => handleViewReceipt(selectedBankTransfer, 'bank-transfer')}>
+                    <div className="receipt-actions-adminbilling">
+                      <button className="receipt-btn-adminbilling" onClick={() => handleViewReceipt(selectedBankTransfer, 'bank-transfer')}>
                         <FaReceipt /> View Receipt
                       </button>
-                      <span className="receipt-number">#{selectedBankTransfer.receiptNumber}</span>
+                      <span className="receipt-number-adminbilling">#{selectedBankTransfer.receiptNumber}</span>
                     </div>
                   </div>
                 )}
 
                 {/* Verification Info */}
                 {selectedBankTransfer.status !== 'waiting_verification' && selectedBankTransfer.verifiedAt && (
-                  <div className="detail-section">
+                  <div className="detail-section-adminbilling">
                     <h4>Verification Info</h4>
-                    <div className="detail-grid two-col">
+                    <div className="detail-grid-adminbilling two-col">
                       <div>
                         <label>Verified By</label>
                         <p>{selectedBankTransfer.verifiedBy?.firstName} {selectedBankTransfer.verifiedBy?.lastName}</p>
@@ -2064,19 +2175,19 @@ const AdminBilling = () => {
                 )}
               </div>
 
-              <div className="modal-footer">
+              <div className="modal-footer-adminbilling">
                 {selectedBankTransfer.status === 'waiting_verification' && (
                   <>
-                    <button className="btn-reject" onClick={() => setShowBankRejectModal(true)} disabled={isSubmitting}>
+                    <button className="btn-reject-adminbilling" onClick={() => setShowBankRejectModal(true)} disabled={isSubmitting}>
                       Reject
                     </button>
-                    <button className="btn-approve" onClick={() => handleApproveBankTransfer(selectedBankTransfer._id)} disabled={isSubmitting}>
-                      {isSubmitting ? <FaSpinner className="spinning" /> : <FaCheckCircle />}
+                    <button className="btn-approve-adminbilling" onClick={() => handleApproveBankTransfer(selectedBankTransfer._id)} disabled={isSubmitting}>
+                      {isSubmitting ? <FaSpinner className="spinning-adminbilling" /> : <FaCheckCircle />}
                       Approve Payment
                     </button>
                   </>
                 )}
-                <button className="btn-close" onClick={() => setShowBankTransferDetailModal(false)}>Close</button>
+                <button className="btn-close-adminbilling" onClick={() => setShowBankTransferDetailModal(false)}>Close</button>
               </div>
             </div>
           </div>
@@ -2084,18 +2195,18 @@ const AdminBilling = () => {
 
         {/* Bank Transfer Reject Modal */}
         {showBankRejectModal && selectedBankTransfer && (
-          <div className="modal-overlay" onClick={() => setShowBankRejectModal(false)}>
-            <div className="modal-content reject-modal" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
+          <div className="modal-overlay-adminbilling" onClick={() => setShowBankRejectModal(false)}>
+            <div className="modal-content-adminbilling reject-modal-adminbilling" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-adminbilling">
                 <h3>Reject Bank Transfer Payment</h3>
-                <button className="modal-close" onClick={() => setShowBankRejectModal(false)}><FaTimes /></button>
+                <button className="modal-close-adminbilling" onClick={() => setShowBankRejectModal(false)}><FaTimes /></button>
               </div>
 
-              <div className="modal-body">
-                <div className="reject-info">
-                  <FaExclamationTriangle className="warning-icon" />
+              <div className="modal-body-adminbilling">
+                <div className="reject-info-adminbilling">
+                  <FaExclamationTriangle className="warning-icon-adminbilling" />
                   <p>You are about to reject this bank transfer payment.</p>
-                  <div className="payment-summary">
+                  <div className="payment-summary-adminbilling">
                     <div><strong>Customer:</strong> {selectedBankTransfer.clientId?.contactFirstName} {selectedBankTransfer.clientId?.contactLastName}</div>
                     <div><strong>Invoice:</strong> {selectedBankTransfer.invoiceId?.invoiceNumber}</div>
                     <div><strong>Amount:</strong> {formatCurrency(selectedBankTransfer.amount)}</div>
@@ -2103,7 +2214,7 @@ const AdminBilling = () => {
                   </div>
                 </div>
 
-                <div className="form-group">
+                <div className="form-group-adminbilling">
                   <label>Rejection Reason *</label>
                   <textarea
                     value={bankRejectionReason}
@@ -2115,10 +2226,10 @@ const AdminBilling = () => {
                 </div>
               </div>
 
-              <div className="modal-footer">
-                <button className="btn-cancel" onClick={() => setShowBankRejectModal(false)}>Cancel</button>
-                <button className="btn-reject-confirm" onClick={handleRejectBankTransfer} disabled={isSubmitting || !bankRejectionReason.trim()}>
-                  {isSubmitting ? <FaSpinner className="spinning" /> : <FaTimes />}
+              <div className="modal-footer-adminbilling">
+                <button className="btn-cancel-adminbilling" onClick={() => setShowBankRejectModal(false)}>Cancel</button>
+                <button className="btn-reject-confirm-adminbilling" onClick={handleRejectBankTransfer} disabled={isSubmitting || !bankRejectionReason.trim()}>
+                  {isSubmitting ? <FaSpinner className="spinning-adminbilling" /> : <FaTimes />}
                   Confirm Rejection
                 </button>
               </div>

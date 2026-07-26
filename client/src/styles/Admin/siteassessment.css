@@ -1,1675 +1,978 @@
-/* styles/Admin/siteassessment.css */
+/* src/styles/Admin/siteassessment.css */
+
+/* =========================================
+   PREMIUM SAAS ADMIN DASHBOARD - SITE ASSESSMENT
+   ========================================= */
 
 :root {
-  --primary: #2563EB;
-  --primary-hover: #1D4ED8;
-  --success: #22C55E;
-  --warning: #F59E0B;
-  --danger: #EF4444;
-  --bg-base: #F8FAFC;
-  --bg-card: #FFFFFF;
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #64748B;
-  --border-light: #E2E8F0;
-  --border-medium: #CBD5E1;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.04);
-  --shadow-lg: 0 10px 25px rgba(0,0,0,0.08);
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
-  --radius-2xl: 24px;
+  --primary-blue: #2563eb;
+  --primary-blue-light: #dbeafe;
+  --indigo: #6366f1;
+  --indigo-light: #e0e7ff;
+  --emerald: #10b981;
+  --emerald-light: #d1fae5;
+  
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-500: #64748b;
+  --gray-700: #334155;
+  --gray-900: #0f172a;
+  
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  --border-radius: 16px;
 }
 
-.site-assessment-adminasses {
-  padding: 24px;
-  background: var(--bg-base);
+/* --- Base Reset & Layout --- */
+.site-assessment-adminsiteassess {
+  background-color: var(--gray-50);
   min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--gray-900);
 }
 
-/* Header */
-.assessment-header-adminasses {
-  margin-bottom: 28px;
-}
-
-.assessment-header-adminasses h1 {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 4px 0;
-  letter-spacing: -0.02em;
-}
-
-.assessment-header-adminasses p {
-  font-size: 14px;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-/* Stats Cards - Horizontal Row */
-.assessment-stats-adminasses {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.stat-card-adminasses {
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-xl);
-  padding: 16px 18px;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s;
-}
-
-.stat-card-adminasses:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-.stat-card-adminasses .stat-label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.stat-card-adminasses .stat-value {
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 4px 0 0 0;
-}
-
-.stat-card-adminasses .stat-change {
-  font-size: 12px;
-  font-weight: 500;
-  margin-top: 6px;
-}
-
-.stat-change.positive {
-  color: var(--success);
-}
-
-.stat-change.negative {
-  color: var(--danger);
-}
-
-/* ============================================ */
-/* TABS & FILTERS - Combined Row */
-/* ============================================ */
-.assessment-controls-adminasses {
+/* --- Header (Minimal) --- */
+.header-adminsiteassess {
   display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  height: 5px; /* Minimal spacing */
+}
+
+/* --- Chart Area (Colorful & Modern) --- */
+.chart-area-adminsiteassess {
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
+  padding: 24px;
+  margin-bottom: 16px; /* Decreased gap */
+  box-shadow: var(--card-shadow);
+  height: 260px;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.3s ease;
+}
+
+.chart-area-adminsiteassess:hover {
+  box-shadow: var(--card-hover-shadow);
+}
+
+.chart-header-adminsiteassess {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  border-bottom: 1px solid var(--border-light);
-  padding-bottom: 0;
+  margin-bottom: 16px;
 }
 
-/* Tabs */
-.assessment-tabs-adminasses {
-  display: flex;
-  gap: 4px;
-  flex: 0 0 auto;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+.chart-header-adminsiteassess h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--gray-900);
+  letter-spacing: -0.01em;
 }
 
-.assessment-tabs-adminasses::-webkit-scrollbar {
-  display: none;
+.chart-period-adminsiteassess {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-500);
+  background: var(--gray-100);
+  padding: 4px 12px;
+  border-radius: 20px;
 }
 
-.tab-btn-adminasses {
+.chart-wrapper-adminsiteassess {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+}
+
+/* Recharts Tooltip */
+.recharts-custom-tooltip-adminsiteassess {
+  background: #FFFFFF;
+  padding: 10px 14px;
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--gray-200);
+}
+.tooltip-label-adminsiteassess { 
+  font-weight: 600; 
+  font-size: 13px; 
+  margin: 0 0 6px 0; 
+  color: var(--gray-900); 
+  border-bottom: 1px solid var(--gray-200);
+  padding-bottom: 4px;
+}
+.tooltip-item-adminsiteassess { 
+  font-size: 13px; 
+  margin: 2px 0; 
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 12px 16px;
-  background: none;
+}
+.tooltip-item-adminsiteassess::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+/* --- Tabs (Placed below chart) --- */
+.tabs-adminsiteassess {
+  display: flex;
+  gap: 0px;
+  border-bottom: 1px solid var(--gray-200);
+  margin-bottom: 16px; /* Decreased gap */
+}
+
+.tab-btn-adminsiteassess {
+  background: transparent;
   border: none;
-  border-bottom: 3px solid transparent;
-  font-size: 14px;
+  padding: 14px 24px;
+  font-size: 15px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--gray-500);
   cursor: pointer;
-  transition: all 0.2s;
   position: relative;
-  white-space: nowrap;
-}
-
-.tab-btn-adminasses:hover {
-  color: var(--text-primary);
-}
-
-.tab-btn-adminasses.active-adminasses {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-}
-
-.tab-badge-adminasses {
-  background: var(--bg-base);
-  color: var(--text-secondary);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 20px;
-  transition: all 0.2s;
-}
-
-.tab-btn-adminasses.active-adminasses .tab-badge-adminasses {
-  background: var(--primary);
-  color: white;
-}
-
-/* Filters & Search - Right side */
-.assessment-filters-adminasses {
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex: 1;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  padding-bottom: 4px;
+  gap: 10px;
 }
 
-.filter-group-adminasses {
-  position: relative;
-  flex: 0 0 auto;
+.tab-btn-adminsiteassess:hover {
+  color: var(--primary-blue);
 }
 
-.filter-group-adminasses select {
-  padding: 10px 14px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  color: var(--text-primary);
-  cursor: pointer;
-  min-width: 150px;
-  transition: all 0.2s;
-  height: 42px;
-  appearance: none;
-  -webkit-appearance: none;
-  padding-right: 32px;
+.tab-btn-adminsiteassess.active-adminsiteassess {
+  color: var(--primary-blue);
+  font-weight: 600;
 }
 
-.filter-group-adminasses select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.filter-group-adminasses::after {
-  content: "▾";
+.tab-btn-adminsiteassess.active-adminsiteassess::after {
+  content: '';
   position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
+  bottom: -1px;
+  left: 24px;
+  right: 24px;
+  height: 3px;
+  background-color: var(--primary-blue);
+  border-radius: 10px 10px 0 0;
+}
+
+.tab-badge-adminsiteassess {
+  background-color: var(--gray-100);
+  color: var(--gray-500);
   font-size: 12px;
-  pointer-events: none;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 50px;
 }
 
-.search-group-adminasses {
+.tab-btn-adminsiteassess.active-adminsiteassess .tab-badge-adminsiteassess {
+  background-color: var(--primary-blue-light);
+  color: var(--primary-blue);
+}
+
+/* --- Toolbar --- */
+.toolbar-adminsiteassess {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px; /* Decreased gap */
+  flex-wrap: wrap;
+}
+
+.search-group-adminsiteassess {
   flex: 1;
-  max-width: 300px;
-  min-width: 180px;
+  min-width: 250px;
   position: relative;
 }
 
-.search-group-adminasses input {
-  width: 100%;
-  padding: 10px 14px;
-  padding-right: 36px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  color: var(--text-primary);
-  transition: all 0.2s;
-  box-sizing: border-box;
-  height: 42px;
-}
-
-.search-group-adminasses input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.search-group-adminasses input::placeholder {
-  color: var(--text-muted);
-  font-size: 14px;
-}
-
-.search-group-adminasses .search-icon {
+.search-icon-adminsiteassess {
   position: absolute;
-  right: 12px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-muted);
-  font-size: 16px;
+  color: var(--gray-500);
+  font-size: 14px;
+}
+
+.search-group-adminsiteassess input {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  font-size: 14px;
+  background: #FFFFFF;
+  color: var(--gray-900);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.search-group-adminsiteassess input:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px var(--primary-blue-light);
+}
+
+.search-group-adminsiteassess input::placeholder {
+  color: var(--gray-500);
+}
+
+.filter-group-adminsiteassess {
+  position: relative;
+}
+
+.filter-group-adminsiteassess select {
+  appearance: none;
+  padding: 12px 44px 12px 16px;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  background: #FFFFFF;
+  color: var(--gray-900);
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 150px;
+}
+
+.filter-group-adminsiteassess select:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px var(--primary-blue-light);
+}
+
+.select-arrow-adminsiteassess {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-500);
   pointer-events: none;
+  font-size: 12px;
 }
 
-/* Table Container */
-.table-container-adminasses {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-light);
-  overflow-x: auto;
-  margin-bottom: 24px;
-  box-shadow: var(--shadow-sm);
+.refresh-btn-adminsiteassess {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.data-table-adminasses {
+.refresh-btn-adminsiteassess:hover {
+  background: var(--gray-100);
+  border-color: var(--gray-300);
+  color: var(--gray-900);
+}
+
+@keyframes spin-adminsiteassess {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinning-adminsiteassess {
+  animation: spin-adminsiteassess 1s linear infinite;
+}
+
+/* --- Table (Strictly Sharp Corners) --- */
+.table-container-adminsiteassess {
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 0; /* REMOVED ROUND CORNERS */
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+}
+
+.data-table-adminsiteassess {
   width: 100%;
   border-collapse: collapse;
-  min-width: 600px;
+  font-size: 14px;
 }
 
-.data-table-adminasses thead {
+.data-table-adminsiteassess thead {
+  background: var(--primary-blue);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.data-table-adminsiteassess th {
+  text-align: left;
+  padding: 14px 18px;
+  font-weight: 600;
+  color: #FFFFFF;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
-.data-table-adminasses th {
-  text-align: left;
-  padding: 14px 16px;
-  background: var(--bg-base);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--border-light);
+.data-table-adminsiteassess tbody tr {
+  border-bottom: 1px solid var(--gray-100);
+  transition: all 0.15s ease;
 }
 
-.data-table-adminasses td {
-  padding: 14px 16px;
-  font-size: 14px;
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--border-light);
-}
-
-.data-table-adminasses tr:last-child td {
+.data-table-adminsiteassess tbody tr:last-child {
   border-bottom: none;
 }
 
-.data-table-adminasses tr:hover td {
-  background: var(--bg-base);
+.data-table-adminsiteassess tbody tr:hover {
+  background-color: var(--gray-50);
 }
 
-.ref-cell-adminasses {
+/* Alternating rows */
+.data-table-adminsiteassess tbody tr:nth-child(even) {
+  background-color: #FAFBFC;
+}
+.data-table-adminsiteassess tbody tr:nth-child(even):hover {
+  background-color: var(--gray-100);
+}
+
+.data-table-adminsiteassess td {
+  padding: 14px 18px; 
+  color: var(--gray-700);
+  vertical-align: middle;
+}
+
+.ref-cell-adminsiteassess {
   font-weight: 600;
-  color: var(--text-primary);
-  font-family: monospace;
+  color: var(--gray-900);
   font-size: 13px;
 }
 
-.email-cell-adminasses {
+.amount-cell-adminsiteassess {
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.email-cell-adminsiteassess {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--gray-500);
   margin-top: 2px;
 }
 
-.amount-cell-adminasses {
-  font-weight: 600;
-  color: var(--text-primary);
+.contact-info-adminsiteassess {
+  font-size: 14px;
 }
 
-/* Status Badges - Plain Text */
-.status-badge-adminasses {
+.empty-state-adminsiteassess {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--gray-500);
+  font-size: 15px;
+}
+
+/* --- Status Badges (Clean & Simple) --- */
+.status-badge-adminsiteassess {
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 30px;
+  border-radius: 6px;
   font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
-  background: none !important;
-  color: var(--text-primary) !important;
+  font-weight: 600;
+  background: var(--gray-100);
+  color: var(--gray-700);
+  text-transform: capitalize;
 }
 
-/* ============================================ */
-/* ACTION DROPDOWN - FIXED POSITIONING */
-/* ============================================ */
-.action-dropdown-container-adminasses {
+/* --- Action Dropdown --- */
+.action-dropdown-container-adminsiteassess {
   position: relative;
   display: inline-block;
 }
 
-.action-dropdown-toggle-adminasses {
-  display: inline-flex;
+.action-dropdown-toggle-adminsiteassess {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
+  gap: 6px;
+  padding: 6px 14px;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-  height: 36px;
+  transition: all 0.2s ease;
 }
 
-.action-dropdown-toggle-adminasses:hover {
-  background: var(--bg-base);
-  border-color: var(--border-medium);
+.action-dropdown-toggle-adminsiteassess:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+  color: var(--gray-900);
 }
 
-.dropdown-arrow-adminasses {
-  font-size: 11px;
-  transition: transform 0.2s;
+.dropdown-arrow-adminsiteassess {
+  font-size: 10px;
+  transition: transform 0.2s ease;
 }
 
-.dropdown-arrow-adminasses.open-adminasses {
+.dropdown-arrow-adminsiteassess.open-adminsiteassess {
   transform: rotate(180deg);
 }
 
-.action-dropdown-menu-adminasses {
-  position: fixed;
-  min-width: 220px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  z-index: 9999;
+.action-dropdown-menu-adminsiteassess {
+  min-width: 180px;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+  padding: 6px 0;
   overflow: hidden;
-  animation: dropdownFadeIn 0.15s ease;
 }
 
-@keyframes dropdownFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.dropdown-item-adminasses {
+.dropdown-item-adminsiteassess {
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 12px 16px;
-  background: none;
+  padding: 10px 16px;
+  background: transparent;
   border: none;
-  border-bottom: 1px solid var(--border-light);
-  font-size: 13px;
-  color: var(--text-primary);
+  font-size: 14px;
+  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s ease;
   text-align: left;
 }
 
-.dropdown-item-adminasses:last-child {
+.dropdown-item-adminsiteassess:hover:not(.disabled-adminsiteassess) {
+  background: var(--gray-50);
+}
+
+.dropdown-item-adminsiteassess svg {
+  font-size: 14px;
+  color: var(--gray-500);
+  width: 16px;
+  text-align: center;
+}
+
+.dropdown-item-adminsiteassess.disabled-adminsiteassess {
+  color: var(--gray-300);
+  cursor: default;
+}
+
+.dropdown-item-adminsiteassess.disabled-adminsiteassess svg {
+  color: var(--gray-300);
+}
+
+/* --- Pagination --- */
+.pagination-adminsiteassess {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0 0 0; /* Decreased top padding */
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.pagination-info-adminsiteassess {
+  color: var(--gray-500);
+  font-size: 14px;
+}
+
+.pagination-controls-adminsiteassess {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.page-btn-adminsiteassess {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-btn-adminsiteassess:hover:not(:disabled) {
+  background: var(--gray-50);
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+}
+
+.page-btn-adminsiteassess:disabled {
+  opacity: 0.5;
+  cursor: default;
+  border-color: var(--gray-100);
+}
+
+.page-number-adminsiteassess {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-number-adminsiteassess:hover:not(.active-adminsiteassess) {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+}
+
+.page-number-adminsiteassess.active-adminsiteassess {
+  background: var(--primary-blue);
+  color: #FFFFFF;
+  border-color: var(--primary-blue);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+}
+
+/* --- Modals --- */
+.modal-overlay-adminsiteassess {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+}
+
+.modal-adminsiteassess {
+  background: #FFFFFF;
+  border-radius: var(--border-radius);
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
+  padding: 0;
+}
+
+.modal-header-adminsiteassess {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.modal-header-adminsiteassess h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--gray-900);
+}
+
+.modal-close-adminsiteassess {
+  background: var(--gray-100);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 18px;
+  color: var(--gray-500);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.modal-close-adminsiteassess:hover {
+  background: var(--gray-200);
+  color: var(--gray-900);
+}
+
+.modal-body-adminsiteassess {
+  padding: 28px;
+}
+
+.detail-row-adminsiteassess {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.detail-row-adminsiteassess:last-child {
   border-bottom: none;
 }
 
-.dropdown-item-adminasses:hover:not(.disabled-adminasses) {
-  background: var(--bg-base);
+.detail-row-adminsiteassess span {
+  color: var(--gray-500);
 }
 
-.dropdown-item-adminasses.disabled-adminasses {
+.detail-section-adminsiteassess {
+  margin-bottom: 24px;
+}
+
+.detail-section-adminsiteassess h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gray-500);
+  margin: 0 0 14px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detail-section-adminsiteassess p {
+  margin: 6px 0;
+  font-size: 14px;
+  color: var(--gray-700);
+}
+
+.detail-section-adminsiteassess p strong {
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-right: 6px;
+}
+
+.form-group-adminsiteassess {
+  margin-top: 20px;
+}
+
+.form-group-adminsiteassess label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--gray-700);
+}
+
+.form-group-adminsiteassess textarea,
+.form-group-adminsiteassess input[type="text"],
+.form-group-adminsiteassess input[type="date"],
+.form-group-adminsiteassess select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  font-size: 14px;
+  background: #FFFFFF;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-group-adminsiteassess textarea:focus,
+.form-group-adminsiteassess input:focus,
+.form-group-adminsiteassess select:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px var(--primary-blue-light);
+}
+
+.info-box-adminsiteassess {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  background: var(--gray-50);
+  border-radius: 10px;
+  border: 1px solid var(--gray-200);
+  margin-top: 20px;
+  color: var(--gray-500);
+  font-size: 13px;
+}
+
+.info-box-adminsiteassess svg {
+  margin-top: 2px;
+  color: var(--primary-blue);
+}
+
+.modal-actions-adminsiteassess {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 28px;
+  border-top: 1px solid var(--gray-200);
+}
+
+.modal-actions-adminsiteassess button {
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid var(--gray-200);
+  background: #FFFFFF;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-actions-adminsiteassess button:hover:not(:disabled) {
+  background: var(--gray-50);
+}
+
+.modal-actions-adminsiteassess button:disabled {
   opacity: 0.6;
   cursor: default;
 }
 
-.dropdown-item-adminasses svg {
-  font-size: 14px;
-  width: 16px;
-  flex-shrink: 0;
+.cancel-btn-adminsiteassess {
+  background: #FFFFFF;
 }
 
-.dropdown-item-adminasses.success svg { color: var(--success); }
-.dropdown-item-adminasses.danger svg { color: var(--danger); }
-.dropdown-item-adminasses.warning svg { color: var(--warning); }
-.dropdown-item-adminasses.primary svg { color: var(--primary); }
-
-.dropdown-item-adminasses.success:hover:not(.disabled-adminasses) { background: var(--success); color: white; }
-.dropdown-item-adminasses.danger:hover:not(.disabled-adminasses) { background: var(--danger); color: white; }
-.dropdown-item-adminasses.warning:hover:not(.disabled-adminasses) { background: var(--warning); color: white; }
-.dropdown-item-adminasses.primary:hover:not(.disabled-adminasses) { background: var(--primary); color: white; }
-
-.dropdown-item-adminasses.success:hover:not(.disabled-adminasses) svg,
-.dropdown-item-adminasses.danger:hover:not(.disabled-adminasses) svg,
-.dropdown-item-adminasses.warning:hover:not(.disabled-adminasses) svg,
-.dropdown-item-adminasses.primary:hover:not(.disabled-adminasses) svg {
-  color: white;
+.approve-btn-adminsiteassess, .verify-btn-adminsiteassess, .assign-btn-adminsiteassess, .upload-btn-adminsiteassess {
+  background: var(--primary-blue) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary-blue) !important;
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.15) !important;
 }
 
-/* Empty State */
-.empty-state-adminasses {
-  text-align: center;
-  padding: 48px;
-  color: var(--text-muted);
+.approve-btn-adminsiteassess:hover, .verify-btn-adminsiteassess:hover, .assign-btn-adminsiteassess:hover, .upload-btn-adminsiteassess:hover {
+  background: #1d4ed8 !important;
+  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.25) !important;
 }
 
-/* Pagination */
-.pagination-adminasses {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 8px;
-  flex-wrap: wrap;
+.reject-btn-adminsiteassess {
+  background: #FEF2F2 !important;
+  color: #DC2626 !important;
+  border-color: #FECACA !important;
 }
 
-.pagination-info-adminasses {
-  font-size: 13px;
-  color: var(--text-secondary);
+.reject-btn-adminsiteassess:hover {
+  background: #FEE2E2 !important;
 }
 
-.pagination-controls-adminasses {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.page-btn-adminasses {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s;
-  height: 36px;
-}
-
-.page-btn-adminasses:hover:not(:disabled) {
-  background: var(--bg-base);
-  border-color: var(--border-medium);
-}
-
-.page-btn-adminasses:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.page-number-adminasses {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.page-number-adminasses:hover:not(.active-adminasses) {
-  background: var(--bg-base);
-  border-color: var(--border-medium);
-}
-
-.page-number-adminasses.active-adminasses {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: white;
-}
-
-/* Modal */
-.modal-overlay-adminasses {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-  padding: 20px;
-}
-
-.modal-adminasses {
-  background: var(--bg-card);
-  border-radius: var(--radius-2xl);
-  width: 90%;
-  max-width: 520px;
-  max-height: 90vh;
-  overflow: hidden;
-  box-shadow: var(--shadow-lg);
-  animation: modalFadeIn 0.2s ease;
-  display: flex;
-  flex-direction: column;
-}
-
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(-12px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.detail-modal-adminasses {
-  max-width: 700px;
-}
-
-.modal-header-adminasses {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--border-light);
-  flex-shrink: 0;
-}
-
-.modal-header-adminasses h3 {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.modal-close-adminasses {
-  width: 32px;
-  height: 32px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.modal-close-adminasses:hover {
-  background: var(--bg-base);
-  color: var(--text-primary);
-}
-
-.modal-body-adminasses {
-  padding: 24px;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.modal-actions-adminasses {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  padding: 20px 24px;
-  border-top: 1px solid var(--border-light);
-  flex-shrink: 0;
-}
-
-.detail-row-adminasses {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border-light);
-}
-
-.detail-row-adminasses:last-child {
-  border-bottom: none;
-}
-
-.detail-row-adminasses span {
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.detail-row-adminasses strong {
-  color: var(--text-primary);
-  font-size: 14px;
-}
-
-.detail-section-adminasses {
-  margin-bottom: 24px;
-}
-
-.detail-section-adminasses:last-child {
-  margin-bottom: 0;
-}
-
-.detail-section-adminasses h4 {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 12px 0;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-light);
-}
-
-.detail-section-adminasses p {
-  margin: 6px 0;
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-/* Form */
-.form-group-adminasses {
-  margin-bottom: 16px;
-}
-
-.form-group-adminasses:last-child {
-  margin-bottom: 0;
-}
-
-.form-group-adminasses label {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-  margin-bottom: 6px;
-}
-
-.form-group-adminasses input,
-.form-group-adminasses select,
-.form-group-adminasses textarea {
-  width: 100%;
-  padding: 12px 14px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  color: var(--text-primary);
-  transition: all 0.2s;
-  box-sizing: border-box;
-}
-
-.form-group-adminasses input:focus,
-.form-group-adminasses select:focus,
-.form-group-adminasses textarea:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.form-group-adminasses input[type="file"] {
-  padding: 10px;
-  background: var(--bg-base);
-}
-
-.info-box-adminasses {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 12px 16px;
-  background: #F0F9FF;
-  border: 1px solid #BAE6FD;
-  border-radius: var(--radius-md);
-  margin-top: 12px;
-}
-
-.info-box-adminasses svg {
-  color: #0EA5E9;
-  font-size: 16px;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.info-box-adminasses small {
-  color: #0C4A6E;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-/* ============================================ */
-/* ENGINEER CARD SELECTION - SMALLER SIZING */
-/* ============================================ */
-.assign-engineer-modal-adminasses {
-  max-width: 680px !important;
-  width: 92% !important;
-  max-height: 85vh !important;
-}
-
-.assign-engineer-modal-adminasses .modal-body-adminasses {
-  padding: 20px 24px !important;
-  overflow-y: visible !important;
-  max-height: none !important;
-}
-
-.assign-engineer-modal-adminasses .form-group-adminasses {
-  margin-bottom: 16px;
-}
-
-.assign-engineer-modal-adminasses .form-group-adminasses:last-child {
-  margin-bottom: 0;
-}
-
-.assign-engineer-modal-adminasses .detail-row-adminasses {
-  padding: 6px 0;
-}
-
-.assign-engineer-modal-adminasses .detail-row-adminasses strong {
-  font-size: 14px;
-}
-
-.assign-engineer-modal-adminasses .modal-header-adminasses {
-  padding: 18px 24px;
-  flex-shrink: 0;
-}
-
-.assign-engineer-modal-adminasses .modal-header-adminasses h3 {
-  font-size: 18px;
-}
-
-.assign-engineer-modal-adminasses .modal-actions-adminasses {
-  padding: 16px 24px;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
-.assign-engineer-modal-adminasses .modal-actions-adminasses button {
-  padding: 10px 24px;
-  font-size: 14px;
-}
-
-.assign-engineer-modal-adminasses .form-group-adminasses label {
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 6px;
-  color: var(--text-primary);
-}
-
-.assign-engineer-modal-adminasses .form-group-adminasses input,
-.assign-engineer-modal-adminasses .form-group-adminasses textarea {
-  padding: 10px 14px;
-  font-size: 13px;
-  border-radius: var(--radius-md);
-}
-
-.assign-engineer-modal-adminasses .form-group-adminasses textarea {
-  min-height: 60px;
-  resize: vertical;
-  max-height: 80px;
-}
-
-.engineer-grid-adminasses {
+/* Engineer Grid inside Modal */
+.engineer-grid-adminsiteassess {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  padding: 2px 0;
-  overflow: visible !important;
-  max-height: none !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 6px;
 }
 
-.engineer-card-adminasses {
+.engineer-card-adminsiteassess {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
-  background: var(--bg-card);
-  border: 2px solid var(--border-light);
-  border-radius: var(--radius-md);
+  padding: 14px;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
-  position: relative;
-  min-height: 50px;
+  background: #FFFFFF;
 }
 
-.engineer-card-adminasses:hover {
-  border-color: var(--border-medium);
-  background: var(--bg-base);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+.engineer-card-adminsiteassess:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
 }
 
-.engineer-card-adminasses.selected-adminasses {
-  border-color: var(--primary);
-  background: #EFF6FF;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
-  transform: translateY(-1px);
+.engineer-card-adminsiteassess.selected-adminsiteassess {
+  border-color: var(--primary-blue);
+  background: var(--primary-blue-light);
+  box-shadow: 0 0 0 4px var(--primary-blue-light);
 }
 
-.engineer-avatar-adminasses {
+.engineer-avatar-adminsiteassess {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--primary);
-  color: white;
+  background: var(--gray-200);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--gray-500);
+  font-size: 14px;
   flex-shrink: 0;
 }
 
-.engineer-info-adminasses {
+.engineer-info-adminsiteassess {
   flex: 1;
   min-width: 0;
 }
 
-.engineer-name-adminasses {
-  font-size: 13px;
+.engineer-name-adminsiteassess {
+  font-size: 14px;
   font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 2px;
-  line-height: 1.3;
-}
-
-.engineer-email-adminasses {
-  font-size: 12px;
-  color: var(--text-muted);
+  color: var(--gray-900);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.engineer-selected-badge-adminasses {
-  color: var(--success);
-  font-size: 16px;
-  flex-shrink: 0;
-  margin-left: 2px;
+.engineer-email-adminsiteassess {
+  font-size: 12px;
+  color: var(--gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.no-engineers-adminasses {
+.engineer-selected-badge-adminsiteassess {
+  color: var(--primary-blue);
+  font-size: 18px;
+}
+
+.no-engineers-adminsiteassess {
   grid-column: 1 / -1;
+  padding: 20px;
   text-align: center;
-  padding: 24px 20px;
-  color: var(--text-muted);
+  color: var(--gray-500);
+  background: var(--gray-50);
+  border-radius: 10px;
+  border: 1px dashed var(--gray-300);
+}
+
+/* --- Skeleton Loaders --- */
+.skeleton-title-adminsiteassess { height: 28px; width: 200px; background: var(--gray-200); border-radius: 4px; margin-bottom: 8px; }
+.skeleton-subtitle-adminsiteassess { height: 16px; width: 300px; background: var(--gray-200); border-radius: 4px; }
+.skeleton-tab-adminsiteassess { height: 40px; width: 120px; background: var(--gray-200); border-radius: 4px; margin-right: 16px; }
+.skeleton-chart-adminsiteassess { height: 200px; background: var(--gray-200); border-radius: var(--border-radius); margin-bottom: 16px; }
+.skeleton-table-adminsiteassess { height: 400px; background: var(--gray-200); border-radius: 0; }
+
+@keyframes shimmer-adminsiteassess {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
+.skeleton-title-adminsiteassess, .skeleton-subtitle-adminsiteassess, .skeleton-tab-adminsiteassess, .skeleton-chart-adminsiteassess, .skeleton-table-adminsiteassess {
+  background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
+  background-size: 200px 100%;
+  animation: shimmer-adminsiteassess 1.5s infinite;
+}
+
+/* --- Responsive Tweaks --- */
+@media (max-width: 1024px) {
+  .site-assessment-adminsiteassess { padding: 16px 24px; }
+  .engineer-grid-adminsiteassess { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .site-assessment-adminsiteassess { padding: 16px; }
+  .toolbar-adminsiteassess { flex-direction: column; align-items: stretch; }
+  .search-group-adminsiteassess { min-width: auto; }
+  .pagination-adminsiteassess { flex-direction: column; align-items: stretch; gap: 12px; }
+  .pagination-controls-adminsiteassess { justify-content: center; flex-wrap: wrap; }
+  .data-table-adminsiteassess { font-size: 13px; }
+  .data-table-adminsiteassess th, .data-table-adminsiteassess td { padding: 12px 12px; }
+  .modal-adminsiteassess { width: 95%; }
+  .modal-actions-adminsiteassess { flex-direction: column-reverse; }
+  .modal-actions-adminsiteassess button { width: 100%; justify-content: center; }
+  .chart-area-adminsiteassess { height: 220px; }
+}
+/* --- Toolbar --- */
+.toolbar-adminsiteassess {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: nowrap;
+}
+
+.search-group-adminsiteassess {
+  flex: 0 0 280px;
+  max-width: 320px;
+  position: relative;
+}
+
+.search-icon-adminsiteassess {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-500);
   font-size: 14px;
 }
 
-.engineer-grid-adminasses::-webkit-scrollbar {
-  display: none;
+.search-group-adminsiteassess input {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  font-size: 14px;
+  background: #FFFFFF;
+  color: var(--gray-900);
+  outline: none;
+  transition: all 0.2s ease;
 }
 
-/* Buttons */
-.cancel-btn-adminasses {
-  padding: 10px 20px;
-  background: var(--bg-base);
-  color: var(--text-primary);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
+.search-group-adminsiteassess input:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px var(--primary-blue-light);
+}
+
+.search-group-adminsiteassess input::placeholder {
+  color: var(--gray-500);
+}
+
+.filter-group-adminsiteassess {
+  flex: 0 0 auto;
+  position: relative;
+}
+
+.filter-group-adminsiteassess select {
+  appearance: none;
+  padding: 12px 44px 12px 16px;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
+  background: #FFFFFF;
+  color: var(--gray-900);
+  outline: none;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  min-width: 150px;
 }
 
-.cancel-btn-adminasses:hover {
-  background: var(--border-light);
+.filter-group-adminsiteassess select:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px var(--primary-blue-light);
 }
 
-.approve-btn-adminasses {
-  padding: 10px 20px;
-  background: var(--success);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
+.select-arrow-adminsiteassess {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-500);
+  pointer-events: none;
+  font-size: 12px;
 }
 
-.approve-btn-adminasses:hover:not(:disabled) {
-  background: #16A34A;
-}
-
-.reject-btn-adminasses {
-  padding: 10px 20px;
-  background: var(--danger);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.reject-btn-adminasses:hover:not(:disabled) {
-  background: #DC2626;
-}
-
-.assign-btn-adminasses {
-  padding: 10px 20px;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.assign-btn-adminasses:hover:not(:disabled) {
-  background: var(--primary-hover);
-}
-
-.verify-btn-adminasses {
-  padding: 10px 20px;
-  background: var(--warning);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
+.refresh-btn-adminsiteassess {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.verify-btn-adminasses:hover:not(:disabled) {
-  background: #D97706;
-}
-
-.upload-btn-adminasses {
-  padding: 10px 20px;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
+  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.upload-btn-adminasses:hover:not(:disabled) {
-  background: var(--primary-hover);
-}
-
-.approve-btn-adminasses:disabled,
-.reject-btn-adminasses:disabled,
-.assign-btn-adminasses:disabled,
-.verify-btn-adminasses:disabled,
-.upload-btn-adminasses:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Skeleton Loader */
-.skeleton-title-adminasses {
-  height: 28px;
-  width: 200px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 6px;
-  margin-bottom: 8px;
-}
-
-.skeleton-subtitle-adminasses {
-  height: 16px;
-  width: 300px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 6px;
-}
-
-.skeleton-tab-adminasses {
-  height: 44px;
-  width: 150px;
-  background: #F1F5F9;
-  border-radius: var(--radius-md);
-}
-
-.skeleton-table-adminasses {
-  height: 300px;
-  background: #F1F5F9;
-  border-radius: var(--radius-xl);
-}
-
-.skeleton-stats-adminasses {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.skeleton-stat-adminasses {
-  height: 80px;
-  background: #F1F5F9;
-  border-radius: var(--radius-xl);
-  animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* ============================================ */
-/* RESPONSIVE BREAKPOINTS */
-/* ============================================ */
-
-/* Tablet and smaller laptops */
-@media (max-width: 1200px) {
-  .assessment-stats-adminasses {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-  }
-  
-  .skeleton-stats-adminasses {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-  }
-  
-  .stat-card-adminasses .stat-value {
-    font-size: 22px;
-  }
-  
-  .assessment-controls-adminasses {
-    gap: 12px;
-  }
-  
-  .filter-group-adminasses select {
-    min-width: 130px;
-  }
-  
-  .search-group-adminasses {
-    max-width: 250px;
-    min-width: 150px;
-  }
-}
-
-/* Mobile Landscape & Small Tablets */
-@media (max-width: 768px) {
-  .site-assessment-adminasses {
-    padding: 16px;
-  }
-
-  .assessment-header-adminasses h1 {
-    font-size: 22px;
-  }
-
-  /* Stats Cards - Horizontal scroll */
-  .assessment-stats-adminasses {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory;
-    padding: 2px 0 8px 0;
-    margin-bottom: 20px;
-  }
-  
-  .stat-card-adminasses {
-    min-width: 150px;
-    flex: 0 0 auto;
-    scroll-snap-align: start;
-    padding: 12px 14px;
-  }
-  
-  .stat-card-adminasses .stat-value {
-    font-size: 20px;
-  }
-  
-  .stat-card-adminasses .stat-label {
-    font-size: 11px;
-  }
-
-  .skeleton-stats-adminasses {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding: 2px 0 8px 0;
-  }
-  
-  .skeleton-stat-adminasses {
-    min-width: 150px;
-    flex: 0 0 auto;
-    height: 70px;
-  }
-
-  /* Controls - Stack vertically on mobile */
-  .assessment-controls-adminasses {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding-bottom: 0;
-    border-bottom: 1px solid var(--border-light);
-    margin-bottom: 20px;
-  }
-
-  /* Tabs - Horizontal scroll */
-  .assessment-tabs-adminasses {
-    flex: 1;
-    gap: 2px;
-    padding-bottom: 0;
-    border-bottom: 1px solid var(--border-light);
-    margin-bottom: 0;
-  }
-  
-  .tab-btn-adminasses {
-    padding: 10px 12px;
-    font-size: 13px;
-  }
-
-  /* Filters & Search - Full width below tabs */
-  .assessment-filters-adminasses {
-    flex: 1;
-    justify-content: stretch;
-    gap: 8px;
-    padding-bottom: 4px;
-    flex-wrap: wrap;
-  }
-
-  .filter-group-adminasses {
-    flex: 1;
-    min-width: 120px;
-  }
-
-  .filter-group-adminasses select {
-    width: 100%;
-    min-width: unset;
-    height: 40px;
-    font-size: 13px;
-    padding: 8px 12px;
-    padding-right: 32px;
-  }
-
-  .search-group-adminasses {
-    flex: 2;
-    max-width: 100%;
-    min-width: 150px;
-  }
-  
-  .search-group-adminasses input {
-    height: 40px;
-    font-size: 13px;
-    padding: 8px 12px;
-    padding-right: 36px;
-  }
-
-  /* Table to Cards on Mobile */
-  .table-container-adminasses {
-    border-radius: var(--radius-lg);
-    overflow: visible;
-    background: transparent;
-    border: none;
-    box-shadow: none;
-  }
-
-  .data-table-adminasses {
-    display: block;
-    min-width: unset;
-  }
-
-  .data-table-adminasses thead {
-    display: none;
-  }
-
-  .data-table-adminasses tbody {
-    display: block;
-  }
-
-  .data-table-adminasses tr {
-    display: block;
-    background: var(--bg-card);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.2s;
-  }
-
-  .data-table-adminasses tr:hover td {
-    background: transparent;
-  }
-
-  .data-table-adminasses td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border-light);
-    border-bottom-style: dashed;
-    font-size: 13px;
-  }
-
-  .data-table-adminasses td:last-child {
-    border-bottom: none;
-  }
-
-  .data-table-adminasses td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: var(--text-muted);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-  }
-
-  .data-table-adminasses td:first-child {
-    padding-top: 0;
-  }
-
-  .data-table-adminasses td:last-child {
-    padding-bottom: 0;
-  }
-
-  .ref-cell-adminasses {
-    font-size: 13px;
-  }
-
-  .email-cell-adminasses {
-    font-size: 12px;
-  }
-
-  .status-badge-adminasses {
-    font-size: 11px;
-  }
-
-  .action-dropdown-container-adminasses {
-    width: 100%;
-  }
-
-  .action-dropdown-toggle-adminasses {
-    width: 100%;
-    justify-content: center;
-    height: 38px;
-  }
-
-  .action-dropdown-menu-adminasses {
-    min-width: 200px;
-  }
-
-  .pagination-adminasses {
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .pagination-controls-adminasses {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .modal-actions-adminasses {
-    flex-direction: column;
-  }
-
-  .modal-actions-adminasses button {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .detail-row-adminasses {
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  /* Engineer Modal */
-  .assign-engineer-modal-adminasses {
-    max-width: 95% !important;
-    width: 95% !important;
-    max-height: 90vh !important;
-  }
-  
-  .assign-engineer-modal-adminasses .modal-body-adminasses {
-    padding: 16px 18px !important;
-  }
-  
-  .assign-engineer-modal-adminasses .modal-header-adminasses {
-    padding: 14px 18px !important;
-  }
-  
-  .assign-engineer-modal-adminasses .modal-header-adminasses h3 {
-    font-size: 17px;
-  }
-  
-  .assign-engineer-modal-adminasses .modal-actions-adminasses {
-    padding: 14px 18px !important;
-    flex-direction: column;
-  }
-  
-  .assign-engineer-modal-adminasses .modal-actions-adminasses button {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .engineer-grid-adminasses {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-  
-  .engineer-card-adminasses {
-    padding: 10px 12px;
-    min-height: 44px;
-  }
-  
-  .engineer-avatar-adminasses {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-  }
-  
-  .engineer-name-adminasses {
-    font-size: 13px;
-  }
-  
-  .engineer-email-adminasses {
-    font-size: 11px;
-  }
-  
-  .assign-engineer-modal-adminasses .form-group-adminasses textarea {
-    min-height: 50px;
-    max-height: 70px;
-  }
-}
-
-/* Mobile Portrait */
-@media (max-width: 480px) {
-  .site-assessment-adminasses {
-    padding: 12px;
-  }
-  
-  .assessment-header-adminasses h1 {
-    font-size: 20px;
-  }
-  
-  .assessment-header-adminasses p {
-    font-size: 13px;
-  }
-  
-  /* Stats Cards */
-  .stat-card-adminasses {
-    min-width: 130px;
-    padding: 10px 12px;
-  }
-  
-  .stat-card-adminasses .stat-value {
-    font-size: 18px;
-  }
-  
-  .stat-card-adminasses .stat-label {
-    font-size: 10px;
-  }
-  
-  .stat-card-adminasses .stat-change {
-    font-size: 11px;
-  }
-  
-  .skeleton-stat-adminasses {
-    min-width: 130px;
-    height: 60px;
-  }
-
-  /* Controls */
-  .assessment-controls-adminasses {
-    gap: 6px;
-  }
-
-  /* Tabs */
-  .tab-btn-adminasses {
-    padding: 8px 10px;
-    font-size: 12px;
-  }
-  
-  .tab-badge-adminasses {
-    font-size: 10px;
-    padding: 1px 6px;
-  }
-
-  /* Filters */
-  .assessment-filters-adminasses {
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .filter-group-adminasses {
-    width: 100%;
-  }
-
-  .filter-group-adminasses select {
-    height: 38px;
-    font-size: 13px;
-  }
-
-  .search-group-adminasses {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .search-group-adminasses input {
-    height: 38px;
-    font-size: 13px;
-  }
-
-  /* Table Cards */
-  .data-table-adminasses tr {
-    padding: 12px;
-    margin-bottom: 10px;
-  }
-
-  .data-table-adminasses td {
-    padding: 6px 0;
-    font-size: 12px;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
-  .data-table-adminasses td::before {
-    font-size: 11px;
-  }
-
-  .ref-cell-adminasses {
-    font-size: 12px;
-  }
-  
-  .email-cell-adminasses {
-    font-size: 11px;
-  }
-
-  .status-badge-adminasses {
-    font-size: 10px;
-    padding: 2px 10px;
-  }
-
-  /* Dropdown */
-  .action-dropdown-toggle-adminasses {
-    padding: 6px 12px;
-    font-size: 12px;
-    height: 34px;
-  }
-
-  .action-dropdown-menu-adminasses {
-    min-width: 180px;
-  }
-
-  .dropdown-item-adminasses {
-    padding: 10px 14px;
-    font-size: 12px;
-  }
-
-  /* Buttons */
-  .cancel-btn-adminasses,
-  .approve-btn-adminasses,
-  .reject-btn-adminasses,
-  .assign-btn-adminasses,
-  .verify-btn-adminasses,
-  .upload-btn-adminasses {
-    padding: 8px 16px;
-    font-size: 13px;
-  }
-
-  /* Modal */
-  .modal-adminasses {
-    max-width: 98%;
-    border-radius: var(--radius-xl);
-  }
-  
-  .modal-header-adminasses {
-    padding: 14px 16px;
-  }
-  
-  .modal-header-adminasses h3 {
-    font-size: 16px;
-  }
-  
-  .modal-body-adminasses {
-    padding: 16px;
-  }
-  
-  .modal-actions-adminasses {
-    padding: 14px 16px;
-  }
-
-  /* Engineer Modal */
-  .assign-engineer-modal-adminasses .modal-body-adminasses {
-    padding: 14px 14px !important;
-  }
-  
-  .assign-engineer-modal-adminasses .modal-header-adminasses {
-    padding: 12px 14px !important;
-  }
-  
-  .assign-engineer-modal-adminasses .modal-actions-adminasses {
-    padding: 12px 14px !important;
-  }
-  
-  .assign-engineer-modal-adminasses .modal-actions-adminasses button {
-    padding: 8px 16px;
-    font-size: 13px;
-  }
-  
-  .engineer-card-adminasses {
-    padding: 8px 10px;
-    min-height: 38px;
-    gap: 8px;
-  }
-  
-  .engineer-avatar-adminasses {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
-  }
-  
-  .engineer-name-adminasses {
-    font-size: 12px;
-  }
-  
-  .engineer-email-adminasses {
-    font-size: 10px;
-  }
-  
-  .engineer-selected-badge-adminasses {
-    font-size: 14px;
-  }
-  
-  .assign-engineer-modal-adminasses .form-group-adminasses textarea {
-    min-height: 40px;
-    max-height: 60px;
-    font-size: 12px;
-  }
-  
-  .assign-engineer-modal-adminasses .form-group-adminasses input {
-    font-size: 12px;
-    padding: 8px 12px;
-  }
-  
-  .assign-engineer-modal-adminasses .form-group-adminasses label {
-    font-size: 12px;
-  }
-
-  /* Pagination */
-  .pagination-info-adminasses {
-    font-size: 12px;
-  }
-  
-  .page-btn-adminasses {
-    padding: 6px 10px;
-    font-size: 12px;
-    height: 32px;
-  }
-  
-  .page-number-adminasses {
-    width: 32px;
-    height: 32px;
-    font-size: 12px;
-  }
-}
-
-/* Extra small devices */
-@media (max-width: 360px) {
-  .stat-card-adminasses {
-    min-width: 110px;
-    padding: 8px 10px;
-  }
-  
-  .stat-card-adminasses .stat-value {
-    font-size: 16px;
-  }
-  
-  .stat-card-adminasses .stat-label {
-    font-size: 9px;
-  }
-  
-  .skeleton-stat-adminasses {
-    min-width: 110px;
-    height: 50px;
-  }
-  
-  .tab-btn-adminasses {
-    padding: 6px 8px;
-    font-size: 11px;
-  }
-  
-  .data-table-adminasses tr {
-    padding: 10px;
-  }
-  
-  .data-table-adminasses td {
-    font-size: 11px;
-    padding: 5px 0;
-  }
-  
-  .data-table-adminasses td::before {
-    font-size: 10px;
-  }
-  
-  .action-dropdown-toggle-adminasses {
-    font-size: 11px;
-    padding: 4px 10px;
-    height: 30px;
-  }
-  
-  .engineer-card-adminasses {
-    min-height: 34px;
-    padding: 6px 8px;
-  }
-  
-  .engineer-avatar-adminasses {
-    width: 24px;
-    height: 24px;
-    font-size: 10px;
-  }
-  
-  .engineer-name-adminasses {
-    font-size: 11px;
-  }
+.refresh-btn-adminsiteassess:hover {
+  background: var(--gray-100);
+  border-color: var(--gray-300);
+  color: var(--gray-900);
 }

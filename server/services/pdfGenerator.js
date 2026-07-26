@@ -185,6 +185,28 @@ class PDFGenerator {
       doc.text(`Page ${pageNumber} of ${totalPages}`, this.margin, footerY, { align: 'center', width: this.pageWidth - (this.margin * 2) });
    }
 
+   drawTermsAndConditions(doc, y, termsText, title = 'TERMS & CONDITIONS') {
+      y = this.drawSectionHeader(doc, y, title);
+      doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
+
+      const defaultTerms = [
+         '1. This quotation is valid for 30 days from the date of issue.',
+         '2. Final pricing is subject to site inspection and any changes in equipment specifications.',
+         '3. Installation schedules depend on site readiness, weather conditions, and permit approvals.',
+         '4. Payment should be made according to the agreed payment terms prior to system commissioning.',
+         '5. SALFER ENGINEERING reserves the right to revise the proposal if the site conditions differ from the initial assessment.'
+      ];
+
+      const terms = termsText || defaultTerms.join('\n');
+      doc.text(terms, this.margin + 10, y, {
+         width: this.pageWidth - (this.margin * 2) - 10,
+         align: 'left',
+         lineGap: 2
+      });
+
+      return y + 70;
+   }
+
    // Draw table header with borders - UPDATED with #92D050 background and black text
    drawTableHeader(doc, y, columns) {
       const tableX = this.margin;
@@ -571,19 +593,16 @@ class PDFGenerator {
             const doc = new PDFDocument({ margin: this.margin, size: 'A4' });
             const chunks = [];
 
-            // ✅ Register Roboto font at the beginning
             this.registerRobotoFont(doc);
 
             doc.on('data', chunk => chunks.push(chunk));
             doc.on('end', () => resolve(Buffer.concat(chunks)));
             doc.on('error', reject);
 
-            // Draw Free Quote Header
             let y = this.drawHeader(doc, true, 'SOLAR QUOTATION', quoteData.quotationReference,
                quoteData.quotationNumber, this.formatDate(new Date()),
                this.formatDate(quoteData.quotationExpiryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)));
 
-            // Client Information - Black text
             y = this.drawSectionHeader(doc, y, 'CLIENT INFORMATION');
             doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
             doc.text(`Name: ${quoteData.clientName}`, this.margin + 10, y);
@@ -597,7 +616,6 @@ class PDFGenerator {
             if (quoteData.address) doc.text(`Address: ${quoteData.address.substring(0, 80)}`, this.margin + 10, y);
             y += 18;
 
-            // System Specifications - Black text
             y = this.drawSectionHeader(doc, y, 'SYSTEM SPECIFICATIONS');
 
             const specs = [
@@ -618,7 +636,6 @@ class PDFGenerator {
 
             y += 10;
 
-            // Equipment Cost Breakdown Table
             y = this.drawSectionHeader(doc, y, 'SOLAR PV PROPOSAL');
 
             const columns = [
@@ -634,147 +651,77 @@ class PDFGenerator {
             const cb = quoteData.costBreakdown;
             const rows = [];
 
-            // Collect all equipment items (same as before)
             if (cb?.equipment?.panels && cb.equipment.panels.quantity > 0) {
-               rows.push([
-                  'Panels',
-                  cb.equipment.panels.name || 'Solar Panels',
-                  cb.equipment.panels.quantity.toString(),
-                  this.formatCurrency(cb.equipment.panels.unitPrice),
-                  this.formatCurrency(cb.equipment.panels.total)
-               ]);
+               rows.push(['Panels', cb.equipment.panels.name || 'Solar Panels', cb.equipment.panels.quantity.toString(), this.formatCurrency(cb.equipment.panels.unitPrice), this.formatCurrency(cb.equipment.panels.total)]);
             }
 
             if (cb?.equipment?.inverter && cb.equipment.inverter.quantity > 0) {
-               rows.push([
-                  'Inv',
-                  cb.equipment.inverter.name || 'Inverter',
-                  cb.equipment.inverter.quantity.toString(),
-                  this.formatCurrency(cb.equipment.inverter.unitPrice),
-                  this.formatCurrency(cb.equipment.inverter.total)
-               ]);
+               rows.push(['Inv', cb.equipment.inverter.name || 'Inverter', cb.equipment.inverter.quantity.toString(), this.formatCurrency(cb.equipment.inverter.unitPrice), this.formatCurrency(cb.equipment.inverter.total)]);
             }
 
             if (cb?.equipment?.battery && cb.equipment.battery.quantity > 0) {
-               rows.push([
-                  'Batt',
-                  cb.equipment.battery.name || 'Battery',
-                  cb.equipment.battery.quantity.toString(),
-                  this.formatCurrency(cb.equipment.battery.unitPrice),
-                  this.formatCurrency(cb.equipment.battery.total)
-               ]);
+               rows.push(['Batt', cb.equipment.battery.name || 'Battery', cb.equipment.battery.quantity.toString(), this.formatCurrency(cb.equipment.battery.unitPrice), this.formatCurrency(cb.equipment.battery.total)]);
             }
 
             if (cb?.equipment?.mountingStructure && cb.equipment.mountingStructure.quantity > 0) {
-               rows.push([
-                  'Mount',
-                  cb.equipment.mountingStructure.name || 'Mounting',
-                  cb.equipment.mountingStructure.quantity.toString(),
-                  this.formatCurrency(cb.equipment.mountingStructure.unitPrice),
-                  this.formatCurrency(cb.equipment.mountingStructure.total)
-               ]);
+               rows.push(['Mount', cb.equipment.mountingStructure.name || 'Mounting', cb.equipment.mountingStructure.quantity.toString(), this.formatCurrency(cb.equipment.mountingStructure.unitPrice), this.formatCurrency(cb.equipment.mountingStructure.total)]);
             }
 
-            // Electrical Components
             if (cb?.equipment?.electricalComponents?.items && cb.equipment.electricalComponents.items.length > 0) {
                cb.equipment.electricalComponents.items.forEach(item => {
                   if (item.quantity > 0) {
-                     rows.push([
-                        'Elec',
-                        item.name.substring(0, 25),
-                        item.quantity.toString(),
-                        this.formatCurrency(item.price),
-                        this.formatCurrency(item.total)
-                     ]);
+                     rows.push(['Elec', item.name.substring(0, 25), item.quantity.toString(), this.formatCurrency(item.price), this.formatCurrency(item.total)]);
                   }
                });
             }
 
-            // Cables
             if (cb?.equipment?.cables?.items && cb.equipment.cables.items.length > 0) {
                cb.equipment.cables.items.forEach(item => {
                   if (item.quantity > 0) {
                      const displayName = item.length ? `${item.name.substring(0, 20)} (${item.length}m)` : item.name.substring(0, 25);
-                     rows.push([
-                        'Cable',
-                        displayName,
-                        item.quantity.toString(),
-                        this.formatCurrency(item.price),
-                        this.formatCurrency(item.total)
-                     ]);
+                     rows.push(['Cable', displayName, item.quantity.toString(), this.formatCurrency(item.price), this.formatCurrency(item.total)]);
                   }
                });
             }
 
-            // Junction Boxes
             if (cb?.equipment?.junctionBoxes?.items && cb.equipment.junctionBoxes.items.length > 0) {
                cb.equipment.junctionBoxes.items.forEach(item => {
                   if (item.quantity > 0) {
-                     rows.push([
-                        'J-Box',
-                        item.name.substring(0, 25),
-                        item.quantity.toString(),
-                        this.formatCurrency(item.price),
-                        this.formatCurrency(item.total)
-                     ]);
+                     rows.push(['J-Box', item.name.substring(0, 25), item.quantity.toString(), this.formatCurrency(item.price), this.formatCurrency(item.total)]);
                   }
                });
             }
 
-            // Disconnect Switches
             if (cb?.equipment?.disconnectSwitches?.items && cb.equipment.disconnectSwitches.items.length > 0) {
                cb.equipment.disconnectSwitches.items.forEach(item => {
                   if (item.quantity > 0) {
-                     rows.push([
-                        'Sw',
-                        item.name.substring(0, 25),
-                        item.quantity.toString(),
-                        this.formatCurrency(item.price),
-                        this.formatCurrency(item.total)
-                     ]);
+                     rows.push(['Sw', item.name.substring(0, 25), item.quantity.toString(), this.formatCurrency(item.price), this.formatCurrency(item.total)]);
                   }
                });
             }
 
-            // Meters
             if (cb?.equipment?.meters?.items && cb.equipment.meters.items.length > 0) {
                cb.equipment.meters.items.forEach(item => {
                   if (item.quantity > 0) {
-                     rows.push([
-                        'Mtr',
-                        item.name.substring(0, 25),
-                        item.quantity.toString(),
-                        this.formatCurrency(item.price),
-                        this.formatCurrency(item.total)
-                     ]);
+                     rows.push(['Mtr', item.name.substring(0, 25), item.quantity.toString(), this.formatCurrency(item.price), this.formatCurrency(item.total)]);
                   }
                });
             }
 
-            // Additional Equipment
             if (cb?.equipment?.additional && cb.equipment.additional.length > 0) {
                cb.equipment.additional.forEach(item => {
                   if (item.quantity > 0) {
-                     rows.push([
-                        'Add',
-                        item.name.substring(0, 25),
-                        item.quantity.toString(),
-                        this.formatCurrency(item.price),
-                        this.formatCurrency(item.total)
-                     ]);
+                     rows.push(['Add', item.name.substring(0, 25), item.quantity.toString(), this.formatCurrency(item.price), this.formatCurrency(item.total)]);
                   }
                });
             }
 
-            // Draw all rows
             for (let i = 0; i < rows.length; i++) {
                const requiredSpace = 20;
                if (y + requiredSpace > this.maxY - 120) {
                   doc.addPage();
                   y = this.minY;
-                  this.drawHeader(doc, true, 'SOLAR QUOTATION', quoteData.quotationReference,
-                     quoteData.quotationNumber, this.formatDate(new Date()),
-                     this.formatDate(quoteData.quotationExpiryDate));
+                  this.drawHeader(doc, true, 'SOLAR QUOTATION', quoteData.quotationReference, quoteData.quotationNumber, this.formatDate(new Date()), this.formatDate(quoteData.quotationExpiryDate));
                   y = this.drawSectionHeader(doc, y, 'SOLAR PV PROPOSAL');
                   y = this.drawTableHeader(doc, y, columns);
                }
@@ -784,7 +731,6 @@ class PDFGenerator {
 
             y += 5;
 
-            // Equipment Subtotal - Yellow color for amount
             const equipmentTotal = quoteData.calculatedEquipmentTotal || quoteData.equipmentCost || 0;
             doc.font(this.fonts.tableHeader).fontSize(8).fillColor('#000000');
             doc.text('SUBTOTAL (EQUIPMENT)', this.pageWidth - this.margin - 200, y, { width: 100, align: 'right' });
@@ -793,7 +739,6 @@ class PDFGenerator {
             doc.fillColor('#000000');
             y += 18;
 
-            // Installation Cost Section
             y = this.drawSectionHeader(doc, y, 'INSTALLATION COST');
 
             const installColumns = [
@@ -803,7 +748,6 @@ class PDFGenerator {
             y = this.drawTableHeader(doc, y, installColumns);
 
             const installationTotal = quoteData.calculatedInstallationTotal || quoteData.installationCost || 0;
-
             const installRows = [
                ['Equipment Cost', this.formatCurrency(equipmentTotal)],
                ['Installation Labor', this.formatCurrency(installationTotal)]
@@ -815,7 +759,6 @@ class PDFGenerator {
 
             y += 5;
 
-            // Grand Total - Yellow color for total amount
             const grandTotal = quoteData.calculatedTotalCost || quoteData.totalCost || 0;
             doc.font(this.fonts.title).fontSize(11).fillColor('#000000');
             doc.text('TOTAL INVESTMENT', this.margin, y);
@@ -824,29 +767,44 @@ class PDFGenerator {
             doc.fillColor('#000000');
             y += 20;
 
-            // Payment Terms
-            if (quoteData.paymentTerms && y + 35 < this.maxY) {
-               y = this.drawSectionHeader(doc, y, 'PAYMENT TERMS');
+            this.drawFooter(doc, 1, 2, 'This is a computer-generated quotation. Terms and conditions apply.');
+
+            doc.addPage();
+            let y2 = this.drawHeader(doc, true, 'SOLAR QUOTATION', quoteData.quotationReference, quoteData.quotationNumber, this.formatDate(new Date()), this.formatDate(quoteData.quotationExpiryDate));
+            y2 = this.drawSectionHeader(doc, y2, 'FINANCIAL & PERFORMANCE SUMMARY');
+
+            const metricColumns = [
+               { label: 'Metric', width: 220, align: 'left' },
+               { label: 'Value', width: 180, align: 'right' }
+            ];
+            y2 = this.drawTableHeader(doc, y2, metricColumns);
+
+            const metricRows = [];
+            if (quoteData.annualProduction > 0) metricRows.push(['Annual Energy Production', `${quoteData.annualProduction.toLocaleString()} kWh/year`]);
+            if (quoteData.co2Offset > 0) metricRows.push(['CO₂ Offset', `${quoteData.co2Offset.toLocaleString()} kg/year`]);
+            if (quoteData.roiYears > 0) metricRows.push(['ROI (Payback Period)', `${quoteData.roiYears.toFixed(1)} years`]);
+
+            metricRows.forEach((row, index) => {
+               y2 = this.drawTableRow(doc, y2, metricColumns, row, index === metricRows.length - 1);
+            });
+            y2 += 12;
+
+            if (quoteData.paymentTerms) {
+               y2 = this.drawSectionHeader(doc, y2, 'PAYMENT TERMS');
                doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
-               doc.text(quoteData.paymentTerms, this.margin + 10, y, {
-                  width: this.pageWidth - (this.margin * 2) - 10,
-                  align: 'left'
-               });
-               y += 20;
+               doc.text(quoteData.paymentTerms, this.margin + 10, y2, { width: this.pageWidth - (this.margin * 2) - 10, align: 'left' });
+               y2 += 24;
             }
 
-            // Remarks
-            if (quoteData.remarks && y + 35 < this.maxY) {
-               y = this.drawSectionHeader(doc, y, 'REMARKS');
+            if (quoteData.remarks) {
+               y2 = this.drawSectionHeader(doc, y2, 'REMARKS');
                doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
-               doc.text(quoteData.remarks, this.margin + 10, y, {
-                  width: this.pageWidth - (this.margin * 2) - 10,
-                  align: 'left'
-               });
+               doc.text(quoteData.remarks, this.margin + 10, y2, { width: this.pageWidth - (this.margin * 2) - 10, align: 'left' });
+               y2 += 20;
             }
 
-            // Footer
-            this.drawFooter(doc, 1, 1, 'This is a computer-generated quotation. Terms and conditions apply.');
+            this.drawTermsAndConditions(doc, y2, quoteData.paymentTerms || quoteData.remarks || null);
+            this.drawFooter(doc, 2, 2, 'This is a computer-generated quotation. Terms and conditions apply.');
 
             doc.end();
          } catch (error) {
@@ -856,7 +814,7 @@ class PDFGenerator {
       });
    }
 
-   // ============ PRE-ASSESSMENT PDF (2 Pages) ============
+   // ============ PRE-ASSESSMENT PDF (3 Pages) ============
    async generatePreAssessmentPDF(assessmentData) {
       return new Promise((resolve, reject) => {
          try {
@@ -867,19 +825,19 @@ class PDFGenerator {
             });
             const chunks = [];
 
-            // ✅ Register Roboto font at the beginning
             this.registerRobotoFont(doc);
 
             doc.on('data', chunk => chunks.push(chunk));
             doc.on('end', () => resolve(Buffer.concat(chunks)));
             doc.on('error', reject);
 
-            // Page 1 - Main Assessment
-            this.drawPreAssessmentPage1(doc, assessmentData).then(() => {
-               // Page 2 - IoT & Site Analysis
+            this.drawPreAssessmentPage1(doc, assessmentData, 1, 3).then(() => {
                doc.addPage();
-               this.drawPreAssessmentPage2(doc, assessmentData).then(() => {
-                  doc.end();
+               this.drawPreAssessmentPage2(doc, assessmentData, 2, 3).then(() => {
+                  doc.addPage();
+                  this.drawPreAssessmentPage3(doc, assessmentData, 3, 3).then(() => {
+                     doc.end();
+                  }).catch(reject);
                }).catch(reject);
             }).catch(reject);
 
@@ -890,7 +848,7 @@ class PDFGenerator {
    }
 
    // Page 1 content for Pre-Assessment
-   async drawPreAssessmentPage1(doc, data) {
+   async drawPreAssessmentPage1(doc, data, pageNumber = 1, totalPages = 3) {
       let y = this.drawHeader(doc, true, 'PRE-ASSESSMENT REPORT', data.bookingReference,
          data.quotationNumber, this.formatDate(new Date()),
          this.formatDate(data.quotationExpiryDate));
@@ -900,7 +858,6 @@ class PDFGenerator {
       y = this.drawEquipmentTable(doc, y, data);
       y = this.drawInstallationCost(doc, y, data);
 
-      // Payment terms if space allows - Black text
       if (data.paymentTerms && y + 60 < this.maxY) {
          y = this.drawSectionHeader(doc, y, 'PAYMENT TERMS');
          doc.font(this.fonts.body).fontSize(this.fontSizes.body).fillColor('#000000');
@@ -908,23 +865,82 @@ class PDFGenerator {
          doc.text(termsShort, this.margin + 10, y, { width: this.pageWidth - (this.margin * 2) - 10 });
       }
 
-      this.drawFooter(doc, 1, 2);
+      this.drawFooter(doc, pageNumber, totalPages);
    }
 
-   // Page 2 content for Pre-Assessment - UPDATED with black text
-   async drawPreAssessmentPage2(doc, data) {
-      let y = this.drawHeader(doc, true, 'SITE FINDINGS & ANALYSIS', data.bookingReference,
+   // Page 2 content for Pre-Assessment
+   async drawPreAssessmentPage2(doc, data, pageNumber = 2, totalPages = 3) {
+      let y = this.drawHeader(doc, true, 'ASSESSMENT SUMMARY & ROI', data.bookingReference,
          data.quotationNumber, null, null);
 
-      // 7-Day Monitoring Results
+      if (data.performanceEstimates) {
+         y = this.drawSectionHeader(doc, y, 'ESTIMATED PERFORMANCE');
+         const pe = data.performanceEstimates;
+         doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
+         doc.text(`Annual Production: ${pe.annualProduction?.toLocaleString() || 0} kWh`, this.margin + 10, y);
+         y += 14;
+         doc.text(`Annual Savings: `, this.margin + 10, y);
+         doc.font(this.fonts.currency).fontSize(8);
+         doc.text(this.formatCurrency(pe.annualSavings), this.margin + 110, y, { width: 100, align: 'left' });
+         doc.font(this.fonts.body);
+         y += 14;
+         doc.text(`Payback Period: ${pe.paybackPeriod || 0} years`, this.margin + 10, y);
+         y += 14;
+         doc.text(`CO₂ Reduction: ${pe.co2Offset?.toLocaleString() || 0} kg/year`, this.margin + 10, y);
+         y += 18;
+      }
+
+      if (data.estimatedAnnualProduction > 0 || data.co2Offset > 0 || data.roiYears > 0) {
+         y = this.drawSectionHeader(doc, y, 'ROI & ENVIRONMENTAL METRICS');
+         const metricColumns = [
+            { label: 'Metric', width: 200, align: 'left' },
+            { label: 'Value', width: 200, align: 'right' }
+         ];
+         y = this.drawTableHeader(doc, y, metricColumns);
+
+         const metricRows = [];
+         if (data.estimatedAnnualProduction > 0) metricRows.push(['Annual Energy Production', `${data.estimatedAnnualProduction.toLocaleString()} kWh/year`]);
+         if (data.co2Offset > 0) metricRows.push(['CO₂ Offset', `${data.co2Offset.toLocaleString()} kg/year`]);
+         if (data.roiYears > 0) metricRows.push(['ROI (Payback Period)', `${data.roiYears.toFixed(1)} years`]);
+
+         metricRows.forEach((row, index) => {
+            y = this.drawTableRow(doc, y, metricColumns, row, index === metricRows.length - 1);
+         });
+         y += 12;
+      }
+
+      if (data.siteAssessment) {
+         y = this.drawSectionHeader(doc, y, 'SITE ASSESSMENT');
+         const sa = data.siteAssessment;
+         doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
+         if (sa.roofCondition) {
+            doc.text(`Roof Condition: ${sa.roofCondition}`, this.margin + 10, y);
+            y += 14;
+         }
+         if (sa.roofLength && sa.roofWidth) {
+            doc.text(`Roof Dimensions: ${sa.roofLength}m × ${sa.roofWidth}m (${(sa.roofLength * sa.roofWidth).toFixed(1)}m²)`, this.margin + 10, y);
+            y += 14;
+         }
+         if (sa.structuralIntegrity) {
+            doc.text(`Structural Integrity: ${sa.structuralIntegrity}`, this.margin + 10, y);
+            y += 14;
+         }
+      }
+
+      this.drawFooter(doc, pageNumber, totalPages);
+   }
+
+   // Page 3 content for Pre-Assessment
+   async drawPreAssessmentPage3(doc, data, pageNumber = 3, totalPages = 3) {
+      let y = this.drawHeader(doc, true, '7-DAY IOT MONITORING & ANALYSIS', data.bookingReference,
+         data.quotationNumber, null, null);
+
       if (data.iotAnalysis) {
          y = this.drawSectionHeader(doc, y, '7-DAY MONITORING RESULTS');
-
          const iot = data.iotAnalysis;
          const leftColX = this.margin + 10;
          const rightColX = this.margin + 280;
 
-         // Left column - Irradiance - Black text
          doc.font(this.fonts.sectionHeader).fontSize(8).fillColor('#000000');
          doc.text('Solar Irradiance', leftColX, y);
          y += 14;
@@ -936,7 +952,6 @@ class PDFGenerator {
          doc.text(`Peak Sun Hours: ${iot.peakSunHours?.toFixed(1) || 0} hrs/day`, leftColX + 10, y);
          y += 16;
 
-         // Temperature - Black text
          doc.font(this.fonts.sectionHeader).fontSize(8).fillColor('#000000');
          doc.text('Temperature', leftColX, y);
          y += 14;
@@ -946,7 +961,6 @@ class PDFGenerator {
          doc.text(`Range: ${iot.minTemperature?.toFixed(1) || 0}°C - ${iot.maxTemperature?.toFixed(1) || 0}°C`, leftColX + 10, y);
          y += 16;
 
-         // Humidity - Black text
          doc.font(this.fonts.sectionHeader).fontSize(8).fillColor('#000000');
          doc.text('Humidity', leftColX, y);
          y += 14;
@@ -956,7 +970,6 @@ class PDFGenerator {
          doc.text(`Range: ${iot.minHumidity?.toFixed(0) || 0}% - ${iot.maxHumidity?.toFixed(0) || 0}%`, leftColX + 10, y);
          y += 16;
 
-         // Right column - System Recommendations - Black text
          let rightY = y - 110;
          doc.font(this.fonts.sectionHeader).fontSize(8).fillColor('#000000');
          doc.text('System Recommendations', rightColX, rightY);
@@ -982,114 +995,34 @@ class PDFGenerator {
          y += 10;
       }
 
-      // Performance Estimates - Black text
-      if (data.performanceEstimates) {
-         const requiredSpace = 80;
-         if (y + requiredSpace > this.maxY - 80) {
-            doc.addPage();
-            y = this.minY;
-            this.drawHeader(doc, true, 'SITE FINDINGS & ANALYSIS', data.bookingReference,
-               data.quotationNumber, null, null);
-         }
+      if (data.siteAssessment?.recommendations) {
+         y = this.drawSectionHeader(doc, y, 'ENGINEER RECOMMENDATIONS');
+         doc.font(this.fonts.body).fontSize(7).fillColor('#000000');
+         const maxWidth = this.pageWidth - (this.margin * 2) - 20;
+         const lines = [];
+         let currentLine = '';
 
-         y = this.drawSectionHeader(doc, y, 'ESTIMATED PERFORMANCE');
-
-         const pe = data.performanceEstimates;
-         doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
-         doc.text(`Annual Production: ${pe.annualProduction?.toLocaleString() || 0} kWh`, this.margin + 10, y);
-         y += 14;
-
-         // Use black text for labels, yellow for amounts? No, keep all black for consistency
-         doc.text(`Annual Savings: `, this.margin + 10, y);
-         doc.font(this.fonts.currency).fontSize(8);
-         doc.text(this.formatCurrency(pe.annualSavings), this.margin + 110, y, { width: 100, align: 'left' });
-         doc.font(this.fonts.body);
-         y += 14;
-
-         if (pe.monthlySavings) {
-            doc.text(`Monthly Savings: `, this.margin + 10, y);
-            doc.font(this.fonts.currency).fontSize(8);
-            doc.text(this.formatCurrency(pe.monthlySavings), this.margin + 110, y, { width: 100, align: 'left' });
-            doc.font(this.fonts.body);
-            y += 14;
-         }
-
-         doc.fillColor('#000000');
-         doc.text(`Payback Period: ${pe.paybackPeriod || 0} years`, this.margin + 10, y);
-         y += 14;
-         doc.text(`CO₂ Reduction: ${pe.co2Offset?.toLocaleString() || 0} kg/year`, this.margin + 10, y);
-         y += 20;
-      }
-
-      // Site Assessment - Black text
-      if (data.siteAssessment) {
-         const requiredSpace = 100;
-         if (y + requiredSpace > this.maxY - 60) {
-            doc.addPage();
-            y = this.minY;
-            this.drawHeader(doc, true, 'SITE FINDINGS & ANALYSIS', data.bookingReference,
-               data.quotationNumber, null, null);
-         }
-
-         y = this.drawSectionHeader(doc, y, 'SITE ASSESSMENT');
-
-         const sa = data.siteAssessment;
-         doc.font(this.fonts.body).fontSize(8).fillColor('#000000');
-
-         if (sa.roofCondition) {
-            doc.text(`Roof Condition: ${sa.roofCondition}`, this.margin + 10, y);
-            y += 14;
-         }
-
-         if (sa.roofLength && sa.roofWidth) {
-            doc.text(`Roof Dimensions: ${sa.roofLength}m × ${sa.roofWidth}m (${(sa.roofLength * sa.roofWidth).toFixed(1)}m²)`,
-               this.margin + 10, y);
-            y += 14;
-         }
-
-         if (sa.structuralIntegrity) {
-            doc.text(`Structural Integrity: ${sa.structuralIntegrity}`, this.margin + 10, y);
-            y += 14;
-         }
-
-         if (sa.estimatedInstallationTime) {
-            doc.text(`Installation Time: ${sa.estimatedInstallationTime} days`, this.margin + 10, y);
-            y += 18;
-         }
-
-         // Engineer Recommendations at the bottom - Black text
-         if (sa.recommendations) {
-            y = this.drawSectionHeader(doc, y, 'Engineer Recommendations');
-            doc.font(this.fonts.body).fontSize(7).fillColor('#000000');
-
-            // Split long text into multiple lines
-            const recommendations = sa.recommendations;
-            const maxWidth = this.pageWidth - (this.margin * 2) - 20;
-            const lines = [];
-            let currentLine = '';
-
-            for (let i = 0; i < recommendations.length; i++) {
-               const char = recommendations[i];
-               const testLine = currentLine + char;
-               const textWidth = doc.widthOfString(testLine, { font: this.fonts.body, size: 7 });
-
-               if (textWidth > maxWidth) {
-                  lines.push(currentLine);
-                  currentLine = char;
-               } else {
-                  currentLine = testLine;
-               }
+         for (let i = 0; i < data.siteAssessment.recommendations.length; i++) {
+            const char = data.siteAssessment.recommendations[i];
+            const testLine = currentLine + char;
+            const textWidth = doc.widthOfString(testLine, { font: this.fonts.body, size: 7 });
+            if (textWidth > maxWidth) {
+               lines.push(currentLine);
+               currentLine = char;
+            } else {
+               currentLine = testLine;
             }
-            if (currentLine) lines.push(currentLine);
-
-            lines.forEach(line => {
-               doc.text(line, this.margin + 10, y, { width: maxWidth, align: 'left' });
-               y += 12;
-            });
          }
+         if (currentLine) lines.push(currentLine);
+
+         lines.forEach(line => {
+            doc.text(line, this.margin + 10, y, { width: maxWidth, align: 'left' });
+            y += 12;
+         });
       }
 
-      this.drawFooter(doc, 2, 2, 'This report is based on on-site assessment and 7-day IoT monitoring data.');
+      this.drawTermsAndConditions(doc, y, data.paymentTerms || null);
+      this.drawFooter(doc, pageNumber, totalPages, 'This report is based on on-site assessment and 7-day IoT monitoring data.');
    }
 }
 

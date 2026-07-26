@@ -18,6 +18,10 @@ const freeQuoteSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  rate:{
+    type: Number,
+    required: true
+  },
   propertyType: {
     type: String,
     enum: ['residential', 'commercial', 'industrial'],
@@ -104,7 +108,7 @@ const freeQuoteSchema = new mongoose.Schema({
     default: null
   },
 
-  // ============ ✅ NEW: ANNUAL PRODUCTION ============
+  // ============ ANNUAL PRODUCTION ============
   estimatedAnnualProduction: {
     type: Number,
     default: null
@@ -118,7 +122,7 @@ const freeQuoteSchema = new mongoose.Schema({
     default: null
   },
 
-  // ============ ✅ NEW: CO2 OFFSET ============
+  // ============ CO2 OFFSET ============
   co2Offset: {
     type: Number,
     default: null
@@ -128,6 +132,12 @@ const freeQuoteSchema = new mongoose.Schema({
     default: null
   },
   co2OffsetMax: {
+    type: Number,
+    default: null
+  },
+
+  // ============ ROI DATA ============
+  roiYears: {
     type: Number,
     default: null
   },
@@ -167,7 +177,7 @@ const freeQuoteSchema = new mongoose.Schema({
   quotationSentAt: Date,
   adminRemarks: String,
 
-  // Quotation Details (for storing system recommendations)
+  // Quotation Details
   quotationDetails: {
     systemSize: Number,
     systemType: String,

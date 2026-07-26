@@ -231,7 +231,8 @@ exports.generateQuotationPDF = async (req, res) => {
       estimatedAnnualProductionMax,
       co2Offset,
       co2OffsetMin,
-      co2OffsetMax
+      co2OffsetMax,
+      roiYears  // NEW: ROI years
     } = req.body;
 
     const assessment = await PreAssessment.findById(id)
@@ -421,6 +422,7 @@ exports.generateQuotationPDF = async (req, res) => {
       co2Offset: co2Offset || 0,
       co2OffsetMin: co2OffsetMin || 0,
       co2OffsetMax: co2OffsetMax || 0,
+      roiYears: roiYears || 0,  // NEW: ROI years
       siteAssessment: {
         roofCondition: assessment.engineerAssessment?.roofCondition,
         roofLength: assessment.engineerAssessment?.roofLength,
@@ -504,6 +506,7 @@ exports.generateQuotationPDF = async (req, res) => {
         co2Offset: co2Offset || 0,
         co2OffsetMin: co2OffsetMin || 0,
         co2OffsetMax: co2OffsetMax || 0,
+        roiYears: roiYears || 0,  // NEW: ROI years
         generatedAt: new Date().toISOString()
       }
     });
@@ -540,7 +543,11 @@ exports.generateQuotationPDF = async (req, res) => {
           disconnectSwitches: costBreakdown.equipment.disconnectSwitches,
           meters: costBreakdown.equipment.meters,
           additional: costBreakdown.equipment.additional
-        }
+        },
+        // ✅ NEW: Add to systemDetails
+        annualProduction: estimatedAnnualProduction || 0,
+        co2Offset: co2Offset || 0,
+        roiYears: roiYears || 0
       },
       generatedAt: new Date(),
       generatedBy: engineerId
@@ -549,13 +556,14 @@ exports.generateQuotationPDF = async (req, res) => {
     assessment.finalQuotation = result.secure_url;
     assessment.assessmentStatus = 'report_draft';
 
-    // ✅ NEW: Save estimated production and CO2 offset from frontend
+    // ✅ NEW: Save estimated production, CO2 offset, and ROI years from frontend
     assessment.estimatedAnnualProduction = estimatedAnnualProduction || null;
     assessment.estimatedAnnualProductionMin = estimatedAnnualProductionMin || null;
     assessment.estimatedAnnualProductionMax = estimatedAnnualProductionMax || null;
     assessment.co2Offset = co2Offset || null;
     assessment.co2OffsetMin = co2OffsetMin || null;
     assessment.co2OffsetMax = co2OffsetMax || null;
+    assessment.roiYears = roiYears || null;  // NEW: ROI years
 
     await assessment.save();
 
@@ -574,7 +582,8 @@ exports.generateQuotationPDF = async (req, res) => {
             totalCost: calculatedTotalCost,
             systemSize: systemSize,
             estimatedAnnualProduction: estimatedAnnualProduction || 0,
-            co2Offset: co2Offset || 0
+            co2Offset: co2Offset || 0,
+            roiYears: roiYears || 0
           }
         }
       );
@@ -597,7 +606,8 @@ exports.generateQuotationPDF = async (req, res) => {
         estimatedAnnualProductionMax: assessment.estimatedAnnualProductionMax,
         co2Offset: assessment.co2Offset,
         co2OffsetMin: assessment.co2OffsetMin,
-        co2OffsetMax: assessment.co2OffsetMax
+        co2OffsetMax: assessment.co2OffsetMax,
+        roiYears: assessment.roiYears
       }
     });
 

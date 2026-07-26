@@ -84,7 +84,8 @@ const MaintenancePanel = () => {
       value: 0,
       unit: 'W'
     },
-
+    panelArea: 0,
+    dob: 0,
     unit: 'piece',
     notes: ''
   });
@@ -338,7 +339,8 @@ const MaintenancePanel = () => {
                 ? "kWh"
                 : ""
       },
-
+      panelArea: 0,
+      dob: 0,
       unit: "piece",
       notes: ""
     });
@@ -358,7 +360,8 @@ const MaintenancePanel = () => {
         value: item.capacity?.value || 0,
         unit: item.capacity?.unit || ""
       },
-
+      panelArea: item.panelArea || 0,
+      dob: item.dob || 0,
       unit: item.unit || "piece",
       notes: item.notes || ""
     });
@@ -402,62 +405,66 @@ const MaintenancePanel = () => {
   };
 
   const handleAddEquipment = async () => {
-    if (!equipmentForm.name || equipmentForm.price <= 0) {
-      showToast('Please enter name and valid price', 'warning');
-      return;
-    }
+  if (!equipmentForm.name || equipmentForm.price <= 0) {
+    showToast('Please enter name and valid price', 'warning');
+    return;
+  }
 
-    setSavingConfig(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment`,
-        {
-          type: equipmentType,
-          ...equipmentForm,
-          reason: `Added new ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}`
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+  setSavingConfig(true);
+  try {
+    const token = sessionStorage.getItem('token');
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment`,
+      {
+        type: equipmentType,
+        ...equipmentForm,
+        dob: equipmentForm.dob || 0,  // ← ENSURE THIS IS INCLUDED
+        reason: `Added new ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}`
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-      showToast(response.data.message, 'success');
-      setShowEquipmentModal(false);
-      fetchSystemConfig();
-    } catch (error) {
-      console.error('Error adding equipment:', error);
-      showToast(error.response?.data?.message || 'Failed to add equipment', 'error');
-    } finally {
-      setSavingConfig(false);
-    }
-  };
+    showToast(response.data.message, 'success');
+    setShowEquipmentModal(false);
+    fetchSystemConfig();
+  } catch (error) {
+    console.error('Error adding equipment:', error);
+    showToast(error.response?.data?.message || 'Failed to add equipment', 'error');
+  } finally {
+    setSavingConfig(false);
+  }
+};
 
-  const handleUpdateEquipment = async () => {
-    if (!equipmentForm.name || equipmentForm.price <= 0) {
-      showToast('Please enter name and valid price', 'warning');
-      return;
-    }
+const handleUpdateEquipment = async () => {
+  if (!equipmentForm.name || equipmentForm.price <= 0) {
+    showToast('Please enter name and valid price', 'warning');
+    return;
+  }
 
-    setSavingConfig(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/${equipmentType}/${editingItem._id}`,
-        { ...equipmentForm, reason: `Updated ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}` },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+  setSavingConfig(true);
+  try {
+    const token = sessionStorage.getItem('token');
+    const response = await axios.put(
+      `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/${equipmentType}/${editingItem._id}`,
+      { 
+        ...equipmentForm, 
+        dob: equipmentForm.dob || 0,  // ← ENSURE THIS IS INCLUDED
+        reason: `Updated ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}` 
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-      showToast(response.data.message, 'success');
-      setShowEquipmentModal(false);
-      fetchSystemConfig();
-    } catch (error) {
-      console.error('Error updating equipment:', error);
-      showToast(error.response?.data?.message || 'Failed to update equipment', 'error');
-    } finally {
-      setSavingConfig(false);
-    }
-  };
+    showToast(response.data.message, 'success');
+    setShowEquipmentModal(false);
+    fetchSystemConfig();
+  } catch (error) {
+    console.error('Error updating equipment:', error);
+    showToast(error.response?.data?.message || 'Failed to update equipment', 'error');
+  } finally {
+    setSavingConfig(false);
+  }
+};
 
-  // Equipment Card Component
   const EquipmentCard = ({ item, type }) => {
     return (
       <div className="equipment-card-integrated">
@@ -468,6 +475,17 @@ const MaintenancePanel = () => {
             {item.capacity?.value > 0 && (
               <span className="capacity-integrated">
                 {item.capacity.value} {item.capacity.unit}
+              </span>
+            )}
+            {type === "solarPanels" && item.panelArea > 0 && (
+              <span className="panel-area-integrated">
+                {item.panelArea} m²
+              </span>
+            )}
+            {/* ADD THIS - Display DoB for batteries */}
+            {type === "batteries" && item.dob > 0 && (
+              <span className="dob-integrated" >
+                DoD: {item.dob}%
               </span>
             )}
             {item.unit && <span className="unit-integrated">per {item.unit}</span>}
@@ -929,6 +947,43 @@ const MaintenancePanel = () => {
                   </select>
                 </div>
               </div>
+
+              {equipmentType === "solarPanels" && (
+                <div className="form-group">
+                  <label>Panel Area (m²)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={equipmentForm.panelArea}
+                    onChange={(e) =>
+                      setEquipmentForm({
+                        ...equipmentForm,
+                        panelArea: Number(e.target.value) || 0
+                      })
+                    }
+                  />
+                </div>
+              )}
+              {equipmentType === "batteries" && (
+                <div className="form-group">
+                  <label>Depth of Discharge (DoD) %</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={equipmentForm.dob}
+                    onChange={(e) =>
+                      setEquipmentForm({
+                        ...equipmentForm,
+                        dob: Number(e.target.value) || 0
+                      })
+                    }
+                    placeholder="e.g., 80"
+                  />
+                  <small>Recommended: 50-80% for lead-acid, 80-100% for lithium</small>
+                </div>
+              )}
               <div className="form-row">
                 <div className="form-group">
                   <label>Unit</label>

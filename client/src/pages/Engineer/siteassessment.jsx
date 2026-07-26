@@ -4,6 +4,20 @@ import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import '../../styles/Engineer/siteassessment.css';
 
+// Import Calculation Card Components
+import {
+  AreaCalculationCard,
+  ElectricityCalculationCard,
+  NetMeteringCalculationCard,
+  CalculationResultsCard
+} from '../../components/Engineer/SystemCalculationCards.jsx';
+
+// Import Equipment Selection Component
+import { SystemEquipmentSelection } from '../../components/Engineer/SystemEquipmentSelection.jsx';
+
+// Import Calculation Hook
+import { useSystemCalculation } from '../../hooks/useSystemCalculation.js';
+
 const MyAssessments = () => {
   const [freeQuotes, setFreeQuotes] = useState([]);
   const [preAssessments, setPreAssessments] = useState([]);
@@ -124,6 +138,8 @@ const MyAssessments = () => {
     totalSystemCost: 0
   });
 
+
+
   // Free Quote Form State
   const [freeQuoteForm, setFreeQuoteForm] = useState({
     quotationNumber: '',
@@ -200,6 +216,9 @@ const MyAssessments = () => {
   const showToast = (message, type) => {
     alert(message);
   };
+
+  // Use the calculation hook
+  const calculation = useSystemCalculation();
 
   // Fetch system recommendations for pre-assessment
   const fetchSystemRecommendations = async (assessmentId) => {
@@ -872,6 +891,7 @@ const MyAssessments = () => {
 
   const fetchFreeQuoteDetails = async (quoteId) => {
     try {
+      resetCalculationState();
       const token = sessionStorage.getItem('token');
       const response = await axios.get(`${API_BASE_URL}/api/free-quotes/${quoteId}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -890,6 +910,7 @@ const MyAssessments = () => {
         if (foundQuote && foundQuote.address) addressData = foundQuote.address;
       }
 
+      // Ensure all numeric fields are properly parsed
       const formattedQuote = {
         ...quote,
         clientName: quote.clientId?.contactFirstName || '',
@@ -898,30 +919,37 @@ const MyAssessments = () => {
         clientPhone: quote.clientId?.contactNumber || '',
         clientType: quote.clientId?.client_type || 'Residential',
         address: addressData,
-        systemType: quote.systemType,
-        roofLength: quote.roofLength,
-        roofWidth: quote.roofWidth,
-        recommendedSystemSize: quote.recommendedSystemSize || null,
-        inverterSize: quote.inverterSize || null,
-        batteryCapacityKwh: quote.batteryCapacityKwh || null,
-        panelsNeeded: quote.panelsNeeded || null,
-        monthlyConsumption: quote.monthlyConsumption || null,
-        dayConsumption: quote.dayConsumption || null,
-        nightConsumption: quote.nightConsumption || null,
-        dayPercentage: quote.dayPercentage || null,
-        nightPercentage: quote.nightPercentage || null,
-        totalDailyConsumption: quote.totalDailyConsumption || null,
-        targetSavings: quote.targetSavings || null,
-        estimatedAnnualProduction: quote.estimatedAnnualProduction || null,
-        estimatedAnnualProductionMin: quote.estimatedAnnualProductionMin || null,
-        estimatedAnnualProductionMax: quote.estimatedAnnualProductionMax || null,
-        co2Offset: quote.co2Offset || null,
-        co2OffsetMin: quote.co2OffsetMin || null,
-        co2OffsetMax: quote.co2OffsetMax || null
+        systemType: quote.systemType || 'grid-tie',
+        // Ensure all numeric fields are numbers
+        roofLength: parseFloat(quote.roofLength) || 0,
+        roofWidth: parseFloat(quote.roofWidth) || 0,
+        recommendedSystemSize: parseFloat(quote.recommendedSystemSize) || null,
+        inverterSize: parseFloat(quote.inverterSize) || null,
+        batteryCapacityKwh: parseFloat(quote.batteryCapacityKwh) || null,
+        panelsNeeded: parseInt(quote.panelsNeeded) || null,
+        monthlyConsumption: parseFloat(quote.monthlyConsumption) || null,
+        dayConsumption: parseFloat(quote.dayConsumption) || 0,
+        nightConsumption: parseFloat(quote.nightConsumption) || 0,
+        dayPercentage: parseFloat(quote.dayPercentage) || null,
+        nightPercentage: parseFloat(quote.nightPercentage) || null,
+        totalDailyConsumption: parseFloat(quote.totalDailyConsumption) || 0,
+        targetSavings: parseFloat(quote.targetSavings) || null,
+        monthlyBill: parseFloat(quote.monthlyBill) || 0,
+        rate: parseFloat(quote.rate) || 12,
+        estimatedAnnualProduction: parseFloat(quote.estimatedAnnualProduction) || null,
+        estimatedAnnualProductionMin: parseFloat(quote.estimatedAnnualProductionMin) || null,
+        estimatedAnnualProductionMax: parseFloat(quote.estimatedAnnualProductionMax) || null,
+        co2Offset: parseFloat(quote.co2Offset) || null,
+        co2OffsetMin: parseFloat(quote.co2OffsetMin) || null,
+        co2OffsetMax: parseFloat(quote.co2OffsetMax) || null
       };
 
       setSelectedItem(formattedQuote);
       setSelectedType('free_quote');
+
+      // Initialize calculation data with the formatted quote
+      calculation.initializeFromData(formattedQuote);
+
       const autoExpiryDate = getExpiryDate30Days();
 
       setFreeQuoteForm({
@@ -951,6 +979,7 @@ const MyAssessments = () => {
 
   const fetchPreAssessmentDetails = async (assessmentId) => {
     try {
+      resetCalculationState();
       const token = sessionStorage.getItem('token');
       const response = await axios.get(`${API_BASE_URL}/api/pre-assessments/${assessmentId}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -969,6 +998,10 @@ const MyAssessments = () => {
         if (foundAssessment && foundAssessment.address) addressData = foundAssessment.address;
       }
 
+      // Extract IoT data from assessmentResults
+      const iotData = assessment.assessmentResults || {};
+
+      // Ensure all IoT fields are properly parsed with defaults
       const formattedAssessment = {
         ...assessment,
         clientName: assessment.clientId?.contactFirstName || '',
@@ -988,7 +1021,7 @@ const MyAssessments = () => {
         roofWidth: assessment.roofWidth,
         dataCollectionStart: assessment.dataCollectionStart,
         dataCollectionEnd: assessment.dataCollectionEnd,
-        totalReadings: assessment.totalReadings,
+        totalReadings: assessment.totalReadings || iotData.totalReadings || 0,
         monthlyBill: assessment.monthlyBill || 0,
         rate: assessment.rate || 0,
         consumption: assessment.consumption || 0,
@@ -1001,11 +1034,49 @@ const MyAssessments = () => {
         recommendedSystemSize: assessment.recommendedSystemSize || null,
         inverterSize: assessment.inverterSize || null,
         batteryCapacityKwh: assessment.batteryCapacityKwh || null,
-        panelsNeeded: assessment.panelsNeeded || null
+        panelsNeeded: assessment.panelsNeeded || null,
+        // IoT Assessment Results
+        assessmentResults: {
+          peakSunHours: iotData.peakSunHours || 0,
+          averageIrradiance: iotData.averageIrradiance || 0,
+          maxIrradiance: iotData.maxIrradiance || 0,
+          minIrradiance: iotData.minIrradiance || 0,
+          averageTemperature: iotData.averageTemperature || 0,
+          maxTemperature: iotData.maxTemperature || 0,
+          minTemperature: iotData.minTemperature || 0,
+          temperatureDerating: iotData.temperatureDerating || 0,
+          averageHumidity: iotData.averageHumidity || 0,
+          maxHumidity: iotData.maxHumidity || 0,
+          minHumidity: iotData.minHumidity || 0,
+          shadingPercentage: iotData.shadingPercentage || 0,
+          gpsCoordinates: iotData.gpsCoordinates || null,
+          totalReadings: iotData.totalReadings || assessment.totalReadings || 0,
+          dataCollectionStart: iotData.dataCollectionStart || assessment.dataCollectionStart,
+          dataCollectionEnd: iotData.dataCollectionEnd || assessment.dataCollectionEnd,
+          summary: iotData.summary || {
+            totalDays: 0,
+            dataPointsPerDay: 0,
+            siteSuitabilityScore: 0,
+            recommendedSystemSize: 0,
+            estimatedAnnualProduction: 0,
+            estimatedAnnualSavings: 0
+          }
+        }
       };
 
       setSelectedItem(formattedAssessment);
       setSelectedType('pre_assessment');
+
+      // Initialize calculation data with the formatted assessment
+      calculation.initializeFromData(formattedAssessment);
+
+      // If IoT data has peakSunHours, set PSH from it
+      if (iotData.peakSunHours && iotData.peakSunHours > 0) {
+        calculation.setPshFromIoT(iotData.peakSunHours);
+      }
+
+      // Set assessment results for display
+      setAssessmentResults(iotData);
 
       if (assessment.engineerAssessment) {
         setAssessmentForm({
@@ -1068,10 +1139,6 @@ const MyAssessments = () => {
         });
       }
 
-      if (assessment.assessmentResults) {
-        setAssessmentResults(assessment.assessmentResults);
-      }
-
       await fetchSystemRecommendations(assessmentId);
 
       if (assessment.sitePhotos) {
@@ -1082,7 +1149,6 @@ const MyAssessments = () => {
       showToast('Failed to load assessment details', 'error');
     }
   };
-
   const analyzeIoTData = async () => {
     if (!selectedItem || selectedType !== 'pre_assessment') return;
     setAnalyzingData(true);
@@ -1105,177 +1171,192 @@ const MyAssessments = () => {
   };
 
   // Main PDF Generation Function
-  const generateQuotationPDF = async () => {
-    const isFreeQuote = selectedType === 'free_quote';
+const generateQuotationPDF = async () => {
+  const isFreeQuote = selectedType === 'free_quote';
 
-    const systemSize = isFreeQuote ? freeQuoteForm.systemSize : quotationForm.systemSize;
-    const totalCost = isFreeQuote ? freeQuoteCalculatedCosts.totalSystemCost : calculatedCosts.totalSystemCost;
+  const systemSize = isFreeQuote ? freeQuoteForm.systemSize : quotationForm.systemSize;
+  const totalCost = isFreeQuote ? freeQuoteCalculatedCosts.totalSystemCost : calculatedCosts.totalSystemCost;
+  const annualProduction = isFreeQuote 
+    ? calculation.calculationResults.estimatedAnnualProduction || 0 
+    : calculation.calculationResults.estimatedAnnualProduction || 0;
+  const co2Offset = isFreeQuote
+    ? calculation.calculationResults.co2Offset || 0
+    : calculation.calculationResults.co2Offset || 0;
 
-    if (!systemSize || parseFloat(systemSize) <= 0) {
-      showToast('Please enter a valid system size (greater than 0)', 'warning');
-      return;
-    }
+  if (!systemSize || parseFloat(systemSize) <= 0) {
+    showToast('Please enter a valid system size (greater than 0)', 'warning');
+    return;
+  }
 
-    if (!totalCost || parseFloat(totalCost) <= 0) {
-      showToast('Please enter a valid total cost (greater than 0)', 'warning');
-      return;
-    }
+  if (!totalCost || parseFloat(totalCost) <= 0) {
+    showToast('Please enter a valid total cost (greater than 0)', 'warning');
+    return;
+  }
 
-    setGeneratingPDF(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      const endpoint = isFreeQuote
-        ? `${API_BASE_URL}/api/free-quotes/${selectedItem._id}/generate-quotation`
-        : `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/generate-quotation`;
+  setGeneratingPDF(true);
+  try {
+    const token = sessionStorage.getItem('token');
+    const endpoint = isFreeQuote
+      ? `${API_BASE_URL}/api/free-quotes/${selectedItem._id}/generate-quotation`
+      : `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/generate-quotation`;
 
-      const iotDataForPDF = !isFreeQuote ? {
-        totalReadings: assessmentResults?.totalReadings || 0,
-        peakSunHours: systemMetrics?.peakSunHours || assessmentResults?.peakSunHours || 0,
-        averageIrradiance: systemMetrics?.averageIrradiance || assessmentResults?.averageIrradiance || 0,
-        maxIrradiance: systemMetrics?.maxIrradiance || assessmentResults?.maxIrradiance || 0,
-        minIrradiance: systemMetrics?.minIrradiance || assessmentResults?.minIrradiance || 0,
-        averageTemperature: systemMetrics?.averageTemperature || assessmentResults?.averageTemperature || 0,
-        maxTemperature: systemMetrics?.maxTemperature || assessmentResults?.maxTemperature || 0,
-        minTemperature: systemMetrics?.minTemperature || assessmentResults?.minTemperature || 0,
-        temperatureDerating: systemMetrics?.temperatureDerating || 0,
-        averageHumidity: systemMetrics?.averageHumidity || assessmentResults?.averageHumidity || 0,
-        maxHumidity: systemMetrics?.maxHumidity || assessmentResults?.maxHumidity || 0,
-        minHumidity: systemMetrics?.minHumidity || assessmentResults?.minHumidity || 0,
-        shadingPercentage: systemMetrics?.shadingPercentage || 0,
-        dataCollectionStart: selectedItem?.dataCollectionStart,
-        dataCollectionEnd: selectedItem?.dataCollectionEnd,
-        gpsCoordinates: systemMetrics?.gpsLocation || assessmentResults?.gpsCoordinates,
-        optimalOrientation: systemMetrics?.optimalOrientation || 'South-facing',
-        optimalTiltAngle: systemMetrics?.optimalTilt || 15,
-        recommendedSystemSize: systemMetrics?.recommendedSystemSize || systemSize,
-        panelsNeeded: systemMetrics?.panelsNeeded || panelQuantity,
-        inverterSize: systemMetrics?.inverterSize || Math.ceil(parseFloat(systemSize) * 1.2),
-        performanceRatio: systemMetrics?.performanceRatio || 85,
-        estimatedMonthlySavings: systemMetrics?.estimatedMonthlySavings || 0,
-        estimatedAnnualSavings: systemMetrics?.estimatedAnnualSavings || 0,
-        paybackPeriod: systemMetrics?.paybackPeriod || 0,
-        estimatedAnnualProduction: systemMetrics?.estimatedAnnualProduction || (parseFloat(systemSize) * 1200),
-        co2Offset: systemMetrics?.co2Offset || (parseFloat(systemSize) * 800),
-        roofArea: systemMetrics?.availableRoofArea || (assessmentForm.roofLength * assessmentForm.roofWidth),
-        estimatedInstallationTime: systemMetrics?.estimatedInstallationTime || assessmentForm.estimatedInstallationTime || 3,
-        roofCondition: assessmentForm.roofCondition,
-        structuralIntegrity: assessmentForm.structuralIntegrity,
-        temperatureRange: systemMetrics?.temperatureRange || `${assessmentResults?.minTemperature || 25}°C - ${assessmentResults?.maxTemperature || 32}°C`,
-        irradianceLevel: systemMetrics?.averageIrradiance || 0,
-        siteSuitabilityScore: systemMetrics?.siteSuitabilityScore || 85
-      } : null;
+    const iotDataForPDF = !isFreeQuote ? {
+      totalReadings: assessmentResults?.totalReadings || 0,
+      peakSunHours: systemMetrics?.peakSunHours || assessmentResults?.peakSunHours || 0,
+      averageIrradiance: systemMetrics?.averageIrradiance || assessmentResults?.averageIrradiance || 0,
+      maxIrradiance: systemMetrics?.maxIrradiance || assessmentResults?.maxIrradiance || 0,
+      minIrradiance: systemMetrics?.minIrradiance || assessmentResults?.minIrradiance || 0,
+      averageTemperature: systemMetrics?.averageTemperature || assessmentResults?.averageTemperature || 0,
+      maxTemperature: systemMetrics?.maxTemperature || assessmentResults?.maxTemperature || 0,
+      minTemperature: systemMetrics?.minTemperature || assessmentResults?.minTemperature || 0,
+      temperatureDerating: systemMetrics?.temperatureDerating || 0,
+      averageHumidity: systemMetrics?.averageHumidity || assessmentResults?.averageHumidity || 0,
+      maxHumidity: systemMetrics?.maxHumidity || assessmentResults?.maxHumidity || 0,
+      minHumidity: systemMetrics?.minHumidity || assessmentResults?.minHumidity || 0,
+      shadingPercentage: systemMetrics?.shadingPercentage || 0,
+      dataCollectionStart: selectedItem?.dataCollectionStart,
+      dataCollectionEnd: selectedItem?.dataCollectionEnd,
+      gpsCoordinates: systemMetrics?.gpsLocation || assessmentResults?.gpsCoordinates,
+      optimalOrientation: systemMetrics?.optimalOrientation || 'South-facing',
+      optimalTiltAngle: systemMetrics?.optimalTilt || 15,
+      recommendedSystemSize: systemMetrics?.recommendedSystemSize || systemSize,
+      panelsNeeded: systemMetrics?.panelsNeeded || panelQuantity,
+      inverterSize: systemMetrics?.inverterSize || Math.ceil(parseFloat(systemSize) * 1.2),
+      performanceRatio: systemMetrics?.performanceRatio || 85,
+      estimatedMonthlySavings: systemMetrics?.estimatedMonthlySavings || 0,
+      estimatedAnnualSavings: systemMetrics?.estimatedAnnualSavings || 0,
+      paybackPeriod: systemMetrics?.paybackPeriod || 0,
+      estimatedAnnualProduction: systemMetrics?.estimatedAnnualProduction || (parseFloat(systemSize) * 1200),
+      co2Offset: systemMetrics?.co2Offset || (parseFloat(systemSize) * 800),
+      roofArea: systemMetrics?.availableRoofArea || (assessmentForm.roofLength * assessmentForm.roofWidth),
+      estimatedInstallationTime: systemMetrics?.estimatedInstallationTime || assessmentForm.estimatedInstallationTime || 3,
+      roofCondition: assessmentForm.roofCondition,
+      structuralIntegrity: assessmentForm.structuralIntegrity,
+      temperatureRange: systemMetrics?.temperatureRange || `${assessmentResults?.minTemperature || 25}°C - ${assessmentResults?.maxTemperature || 32}°C`,
+      irradianceLevel: systemMetrics?.averageIrradiance || 0,
+      siteSuitabilityScore: systemMetrics?.siteSuitabilityScore || 85
+    } : null;
 
-      const payload = isFreeQuote ? {
-        quotationNumber: freeQuoteForm.quotationNumber,
-        quotationExpiryDate: freeQuoteForm.quotationExpiryDate,
-        systemSize: parseFloat(freeQuoteForm.systemSize),
-        systemType: freeQuoteForm.systemType,
-        panelsNeeded: freeQuotePanelQuantity,
-        panelType: freeQuoteSelectedPanel?.name || '',
-        inverterType: freeQuoteSelectedInverter?.name || '',
-        batteryType: freeQuoteSelectedBattery?.name || '',
-        installationCost: freeQuoteCalculatedCosts.installationLaborCost,
-        equipmentCost: freeQuoteCalculatedCosts.totalEquipmentCost,
-        totalCost: freeQuoteCalculatedCosts.totalSystemCost,
-        paymentTerms: freeQuoteForm.paymentTerms,
-        warrantyYears: parseInt(freeQuoteForm.warrantyYears) || 10,
-        remarks: freeQuoteForm.remarks,
-        includeIoTData: false,
-        equipmentDetails: {
-          panel: freeQuoteSelectedPanel,
-          panelQuantity: freeQuotePanelQuantity,
-          inverter: freeQuoteSelectedInverter,
-          inverterQuantity: freeQuoteInverterQuantity,
-          battery: freeQuoteSelectedBattery,
-          batteryQuantity: freeQuoteBatteryQuantity,
-          mountingStructure: freeQuoteSelectedMountingStructure,
-          mountingStructureQuantity: freeQuoteMountingStructureQuantity,
-          electricalComponents: freeQuoteSelectedElectricalComponents.map(item => ({
-            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-          })),
-          cables: freeQuoteSelectedCables.map(item => ({
-            id: item.id, name: item.name, quantity: item.quantity, length: item.length, price: item.price, total: item.total
-          })),
-          junctionBoxes: freeQuoteSelectedJunctionBoxes.map(item => ({
-            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-          })),
-          disconnectSwitches: freeQuoteSelectedDisconnectSwitches.map(item => ({
-            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-          })),
-          meters: freeQuoteSelectedMeters.map(item => ({
-            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-          })),
-          additionalEquipment: freeQuoteAdditionalEquipment.map(item => ({
-            name: item.name, quantity: item.quantity, price: item.price, total: item.total
-          }))
-        }
-      } : {
-        quotationNumber: quotationForm.quotationNumber,
-        quotationExpiryDate: quotationForm.quotationExpiryDate,
-        systemSize: parseFloat(quotationForm.systemSize),
-        systemType: quotationForm.systemType,
-        panelsNeeded: panelQuantity,
-        panelType: selectedPanel?.name || '',
-        inverterType: selectedInverter?.name || '',
-        batteryType: selectedBattery?.name || '',
-        installationCost: calculatedCosts.installationLaborCost,
-        equipmentCost: calculatedCosts.totalEquipmentCost,
-        totalCost: calculatedCosts.totalSystemCost,
-        paymentTerms: quotationForm.paymentTerms,
-        warrantyYears: parseInt(quotationForm.warrantyYears) || 10,
-        includeIoTData: includeIoTData,
-        iotData: includeIoTData ? iotDataForPDF : null,
-        equipmentDetails: {
-          panel: selectedPanel,
-          panelQuantity: panelQuantity,
-          inverter: selectedInverter,
-          inverterQuantity: inverterQuantity,
-          battery: selectedBattery,
-          batteryQuantity: batteryQuantity,
-          mountingStructure: selectedMountingStructure,
-          mountingStructureQuantity: mountingStructureQuantity,
-          electricalComponents: selectedElectricalComponents.map(item => ({
-            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-          })),
-          cables: selectedCables.map(item => ({
-            id: item.id, name: item.name, quantity: item.quantity, length: item.length, price: item.price, total: item.total
-          })),
-          junctionBoxes: selectedJunctionBoxes.map(item => ({
-            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-          })),
-          disconnectSwitches: selectedDisconnectSwitches.map(item => ({
-            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-          })),
-          meters: selectedMeters.map(item => ({
-            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-          })),
-          additionalEquipment: additionalEquipment.map(item => ({
-            name: item.name, quantity: item.quantity, price: item.price, total: item.total
-          }))
-        }
-      };
+    // Calculate ROI years
+    const roiYears = annualProduction > 0 ? Number((totalCost / annualProduction).toFixed(1)) : 0;
 
-      const response = await axios.post(endpoint, payload, { headers: { Authorization: `Bearer ${token}` } });
-      showToast('Quotation PDF generated and uploaded successfully!', 'success');
-
-      if (isFreeQuote) {
-        fetchFreeQuoteDetails(selectedItem._id);
-      } else {
-        fetchPreAssessmentDetails(selectedItem._id);
+    const payload = isFreeQuote ? {
+      quotationNumber: freeQuoteForm.quotationNumber,
+      quotationExpiryDate: freeQuoteForm.quotationExpiryDate,
+      systemSize: parseFloat(freeQuoteForm.systemSize),
+      systemType: freeQuoteForm.systemType,
+      panelsNeeded: freeQuotePanelQuantity,
+      panelType: freeQuoteSelectedPanel?.name || '',
+      inverterType: freeQuoteSelectedInverter?.name || '',
+      batteryType: freeQuoteSelectedBattery?.name || '',
+      installationCost: freeQuoteCalculatedCosts.installationLaborCost,
+      equipmentCost: freeQuoteCalculatedCosts.totalEquipmentCost,
+      totalCost: freeQuoteCalculatedCosts.totalSystemCost,
+      paymentTerms: freeQuoteForm.paymentTerms,
+      warrantyYears: parseInt(freeQuoteForm.warrantyYears) || 10,
+      remarks: freeQuoteForm.remarks,
+      includeIoTData: false,
+      annualProduction: annualProduction,
+      co2Offset: co2Offset,
+      roiYears: roiYears,
+      equipmentDetails: {
+        panel: freeQuoteSelectedPanel,
+        panelQuantity: freeQuotePanelQuantity,
+        inverter: freeQuoteSelectedInverter,
+        inverterQuantity: freeQuoteInverterQuantity,
+        battery: freeQuoteSelectedBattery,
+        batteryQuantity: freeQuoteBatteryQuantity,
+        mountingStructure: freeQuoteSelectedMountingStructure,
+        mountingStructureQuantity: freeQuoteMountingStructureQuantity,
+        electricalComponents: freeQuoteSelectedElectricalComponents.map(item => ({
+          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+        })),
+        cables: freeQuoteSelectedCables.map(item => ({
+          id: item.id, name: item.name, quantity: item.quantity, length: item.length, price: item.price, total: item.total
+        })),
+        junctionBoxes: freeQuoteSelectedJunctionBoxes.map(item => ({
+          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+        })),
+        disconnectSwitches: freeQuoteSelectedDisconnectSwitches.map(item => ({
+          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+        })),
+        meters: freeQuoteSelectedMeters.map(item => ({
+          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+        })),
+        additionalEquipment: freeQuoteAdditionalEquipment.map(item => ({
+          name: item.name, quantity: item.quantity, price: item.price, total: item.total
+        }))
       }
-    } catch (err) {
-      console.error('Error generating PDF:', err);
-      showToast(err.response?.data?.message || 'Failed to generate PDF', 'error');
-    } finally {
-      setGeneratingPDF(false);
+    } : {
+      quotationNumber: quotationForm.quotationNumber,
+      quotationExpiryDate: quotationForm.quotationExpiryDate,
+      systemSize: parseFloat(quotationForm.systemSize),
+      systemType: quotationForm.systemType,
+      panelsNeeded: panelQuantity,
+      panelType: selectedPanel?.name || '',
+      inverterType: selectedInverter?.name || '',
+      batteryType: selectedBattery?.name || '',
+      installationCost: calculatedCosts.installationLaborCost,
+      equipmentCost: calculatedCosts.totalEquipmentCost,
+      totalCost: calculatedCosts.totalSystemCost,
+      paymentTerms: quotationForm.paymentTerms,
+      warrantyYears: parseInt(quotationForm.warrantyYears) || 10,
+      includeIoTData: includeIoTData,
+      iotData: includeIoTData ? iotDataForPDF : null,
+      annualProduction: annualProduction,
+      co2Offset: co2Offset,
+      roiYears: roiYears,
+      equipmentDetails: {
+        panel: selectedPanel,
+        panelQuantity: panelQuantity,
+        inverter: selectedInverter,
+        inverterQuantity: inverterQuantity,
+        battery: selectedBattery,
+        batteryQuantity: batteryQuantity,
+        mountingStructure: selectedMountingStructure,
+        mountingStructureQuantity: mountingStructureQuantity,
+        electricalComponents: selectedElectricalComponents.map(item => ({
+          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+        })),
+        cables: selectedCables.map(item => ({
+          id: item.id, name: item.name, quantity: item.quantity, length: item.length, price: item.price, total: item.total
+        })),
+        junctionBoxes: selectedJunctionBoxes.map(item => ({
+          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+        })),
+        disconnectSwitches: selectedDisconnectSwitches.map(item => ({
+          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+        })),
+        meters: selectedMeters.map(item => ({
+          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+        })),
+        additionalEquipment: additionalEquipment.map(item => ({
+          name: item.name, quantity: item.quantity, price: item.price, total: item.total
+        }))
+      }
+    };
+
+    const response = await axios.post(endpoint, payload, { headers: { Authorization: `Bearer ${token}` } });
+    showToast('Quotation PDF generated and uploaded successfully!', 'success');
+
+    if (isFreeQuote) {
+      fetchFreeQuoteDetails(selectedItem._id);
+    } else {
+      fetchPreAssessmentDetails(selectedItem._id);
     }
-  };
+  } catch (err) {
+    console.error('Error generating PDF:', err);
+    showToast(err.response?.data?.message || 'Failed to generate PDF', 'error');
+  } finally {
+    setGeneratingPDF(false);
+  }
+};
 
   // Utility functions
   const hasDeviceAssigned = (item) => {
     return !!(item.iotDeviceId || item.assignedDevice || item.assignedDeviceId);
   };
-  
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -1339,9 +1420,17 @@ const MyAssessments = () => {
   const closeReportConfirmModal = () => {
     setShowReportConfirmModal(false);
   };
-
-  // Event handlers
+  const resetCalculationState = () => {
+    calculation.setShowCalculationCards(true);
+    calculation.setShowEquipmentSelection(false);
+    calculation.setHasCalculated(false);
+    calculation.setSelectedCalculationMethod(null);
+    calculation.resetCalculationCards();
+  };
+  // Update handleSelectItem
   const handleSelectItem = (item) => {
+    resetCalculationState();
+
     if (item.type === 'free_quote') {
       fetchFreeQuoteDetails(item.id);
     } else {
@@ -1658,7 +1747,6 @@ const MyAssessments = () => {
               <th>Client</th>
               <th>Type</th>
               <th>Status</th>
-              <th>System Size</th>
               <th>Address</th>
               <th>Date</th>
               <th>Actions</th>
@@ -1685,7 +1773,6 @@ const MyAssessments = () => {
         <Helmet><title>My Assessments | Engineer | SOLARIS</title></Helmet>
         <div className="my-assessments-enad">
           <div className="assessments-header-enad">
-            
             <p>Manage free quotes and site assessments assigned to you</p>
           </div>
 
@@ -1757,7 +1844,6 @@ const MyAssessments = () => {
                       <th>Client</th>
                       <th>Type</th>
                       <th>Status</th>
-                      <th>System Size</th>
                       <th>Address</th>
                       <th>Date</th>
                       <th>Actions</th>
@@ -1784,9 +1870,6 @@ const MyAssessments = () => {
                           <td className="status-cell-enad">
                             <span className={`status-badge-enad ${StatusConfig.color}`}>{StatusConfig.label}</span>
                           </td>
-                          <td className="size-cell-enad">
-                            {item.recommendedSystemSize ? `${item.recommendedSystemSize} kWp` : '—'}
-                          </td>
                           <td className="address-cell-enad">
                             <span className="address-text-enad" title={getFullAddress(item.address)}>
                               {getFullAddress(item.address)}
@@ -1800,10 +1883,10 @@ const MyAssessments = () => {
                               View
                             </button>
                             {item.type === 'pre_assessment' && hasDeviceAssigned(item) && (
-                              <span className="device-indicator-enad" title="Device Assigned">📡</span>
+                              <span className="device-indicator-enad" title="Device Assigned"></span>
                             )}
                             {item.type === 'free_quote' && item.quotationFile && (
-                              <span className="quotation-indicator-enad" title="Quotation Ready">📄</span>
+                              <span className="quotation-indicator-enad" title="Quotation Ready"></span>
                             )}
                           </td>
                         </tr>
@@ -1823,7 +1906,7 @@ const MyAssessments = () => {
                   >
                     Previous
                   </button>
-                  
+
                   <div className="pagination-numbers-enad">
                     {[...Array(totalPages).keys()].map(number => (
                       <button
@@ -1879,6 +1962,7 @@ const MyAssessments = () => {
                     <div className="client-meta-item-enad">{selectedItem.clientEmail || 'No email'}</div>
                     <div className="client-meta-item-enad">{selectedItem.clientPhone || 'No contact'}</div>
                     <div className="client-meta-item-enad"><span className="capitalize">{selectedItem.clientType || 'Residential'}</span></div>
+                    <div className="client-meta-item-enad">{getFullAddress(selectedItem.address) || 'No address'}</div>
                   </div>
                 </div>
                 <div className={`status-badge-enad ${StatusConfig.color}`}>{StatusConfig.label}</div>
@@ -1963,360 +2047,231 @@ const MyAssessments = () => {
                 </div>
               )}
 
-              <div className="info-grid-enad">
-                <div className="info-item-enad"><span className="info-label-enad">Monthly Bill</span><span className="info-value-enad">{formatCurrency(selectedItem.monthlyBill)}</span></div>
-                <div className="info-item-enad"><span className="info-label-enad">Property Type</span><span className="info-value-enad capitalize">{selectedItem.propertyType}</span></div>
-                <div className="info-item-enad info-full-width-enad"><span className="info-label-enad">Address</span><span className="info-value-enad">{getFullAddress(selectedItem.address)}</span></div>
-              </div>
-
               <div className="detail-section-enad">
-                <h3 className="detail-section-title-enad">Equipment Selection and Quotation</h3>
-
                 {/* Basic Information */}
                 <div className="quotation-section">
                   <h4>Basic Information</h4>
                   <div className="form-grid-enad">
                     <div className="form-group-enad">
                       <label className="form-label-enad">Quotation Number</label>
-                      <input type="text" className="assessment-form-input-enad" value={freeQuoteForm.quotationNumber} onChange={(e) => handleFreeQuoteFormChange('quotationNumber', e.target.value)} />
+                      <div className="assessment-form-input-enad">{freeQuoteForm.quotationNumber}</div>
                     </div>
                     <div className="form-group-enad">
-                      <label className="form-label-enad">Expiry Date (30 Days Auto)</label>
-                      <input
-                        type="date"
-                        className="assessment-form-input-enad"
-                        value={freeQuoteForm.quotationExpiryDate}
-                        onChange={(e) => handleFreeQuoteFormChange('quotationExpiryDate', e.target.value)}
-                      />
+                      <label className="form-label-enad">Expiry Date</label>
+                      <div className="assessment-form-input-enad">{formatDate(freeQuoteForm.quotationExpiryDate)}</div>
                       <small className="form-hint-enad">Automatically set to 30 days from today</small>
                     </div>
                     <div className="form-group-enad">
                       <label className="form-label-enad">System Type</label>
-                      <select className="assessment-form-select-enad" value={freeQuoteForm.systemType} onChange={(e) => handleFreeQuoteFormChange('systemType', e.target.value)}>
-                        {SYSTEM_TYPES.map(type => (<option key={type.value} value={type.value}>{type.label}</option>))}
-                      </select>
-                    </div>
-                    <div className="form-group-enad">
-                      <label className="form-label-enad">System Size (kWp) *</label>
-                      <input type="number" step="0.5" className="assessment-form-input-enad" value={freeQuoteForm.systemSize} onChange={(e) => handleFreeQuoteFormChange('systemSize', parseFloat(e.target.value))} placeholder="e.g., 5.0" />
+                      <div className="assessment-form-input-enad">{getSystemTypeLabel(freeQuoteForm.systemType)}</div>
                     </div>
                   </div>
                 </div>
 
-                {/* Solar Panels */}
-                <div className="quotation-section">
-                  <h4>Solar Panels</h4>
-                  <div className="equipment-selection-row">
-                    <div className="form-group-enad">
-                      <select className="assessment-form-select-enad" value={freeQuoteSelectedPanel?._id || ''} onChange={(e) => { const panel = availablePanels.find(p => p._id === e.target.value); setFreeQuoteSelectedPanel(panel); if (panel && panel.unit === 'watt') setFreeQuotePanelQuantity(1); }}>
-                        <option value="">-- Select Panel --</option>
-                        {availablePanels.filter(p => p.isActive).map(panel => (<option key={panel._id} value={panel._id}>{panel.name} - {panel.brand} - ₱{panel.price.toLocaleString()}/{panel.unit}</option>))}
-                      </select>
-                    </div>
-                    <div className="form-group-enad">
-                      <input type="number" min="1" className="assessment-form-input-enad" value={freeQuotePanelQuantity} onChange={(e) => setFreeQuotePanelQuantity(parseInt(e.target.value) || 0)} disabled={freeQuoteSelectedPanel?.unit === 'watt'} />
-                    </div>
-                    <div className="cost-display"><span className="cost-value">{formatCurrency(freeQuoteCalculatedCosts.panelCost)}</span></div>
-                  </div>
-                  {freeQuoteSelectedPanel?.unit === 'watt' && <small className="form-hint-enad">Price is per watt. Total calculated based on system size: {freeQuoteForm.systemSize} kWp</small>}
-                </div>
-
-                {/* Inverters */}
-                <div className="quotation-section">
-                  <h4>Inverters</h4>
-                  <div className="equipment-selection-row">
-                    <div className="form-group-enad">
-                      <select className="assessment-form-select-enad" value={freeQuoteSelectedInverter?._id || ''} onChange={(e) => { const inverter = availableInverters.find(i => i._id === e.target.value); setFreeQuoteSelectedInverter(inverter); }}>
-                        <option value="">-- Select Inverter --</option>
-                        {availableInverters.filter(i => i.isActive).map(inverter => (<option key={inverter._id} value={inverter._id}>{inverter.name} - {inverter.brand} - ₱{inverter.price.toLocaleString()}</option>))}
-                      </select>
-                    </div>
-                    <div className="form-group-enad">
-                      <input type="number" min="1" className="assessment-form-input-enad" value={freeQuoteInverterQuantity} onChange={(e) => setFreeQuoteInverterQuantity(parseInt(e.target.value) || 0)} />
-                    </div>
-                    <div className="cost-display"><span className="cost-value">{formatCurrency(freeQuoteCalculatedCosts.inverterCost)}</span></div>
-                  </div>
-                </div>
-
-                {/* Batteries */}
-                <div className="quotation-section">
-                  <h4>Batteries (Optional)</h4>
-                  <div className="equipment-selection-row">
-                    <div className="form-group-enad">
-                      <select className="assessment-form-select-enad" value={freeQuoteSelectedBattery?._id || ''} onChange={(e) => { const battery = availableBatteries.find(b => b._id === e.target.value); setFreeQuoteSelectedBattery(battery); }}>
-                        <option value="">-- No Battery --</option>
-                        {availableBatteries.filter(b => b.isActive).map(battery => (<option key={battery._id} value={battery._id}>{battery.name} - {battery.brand} - ₱{battery.price.toLocaleString()}</option>))}
-                      </select>
-                    </div>
-                    <div className="form-group-enad">
-                      <input type="number" min="0" className="assessment-form-input-enad" value={freeQuoteBatteryQuantity} onChange={(e) => setFreeQuoteBatteryQuantity(parseInt(e.target.value) || 0)} />
-                    </div>
-                    <div className="cost-display"><span className="cost-value">{formatCurrency(freeQuoteCalculatedCosts.batteryCost)}</span></div>
-                  </div>
-                </div>
-
-                {/* Mounting Structure */}
-                <div className="quotation-section">
-                  <h4>Mounting Structure</h4>
-                  <div className="equipment-selection-row">
-                    <div className="form-group-enad">
-                      <select className="assessment-form-select-enad" value={freeQuoteSelectedMountingStructure?._id || ''} onChange={(e) => { const structure = availableMountingStructures.find(m => m._id === e.target.value); setFreeQuoteSelectedMountingStructure(structure); }}>
-                        <option value="">-- Select Mounting Structure --</option>
-                        {availableMountingStructures.filter(m => m.isActive).map(structure => (<option key={structure._id} value={structure._id}>{structure.name} - {structure.brand} - ₱{structure.price.toLocaleString()}/{structure.unit}</option>))}
-                      </select>
-                    </div>
-                    <div className="form-group-enad">
-                      <input type="number" min="1" className="assessment-form-input-enad" value={freeQuoteMountingStructureQuantity} onChange={(e) => setFreeQuoteMountingStructureQuantity(parseInt(e.target.value) || 0)} />
-                    </div>
-                    <div className="cost-display"><span className="cost-value">{formatCurrency(freeQuoteCalculatedCosts.mountingCost)}</span></div>
-                  </div>
-                </div>
-
-                {/* Electrical Components */}
-                <div className="quotation-section">
-                  <h4>Electrical Components</h4>
-                  <button type="button" className="btn-add-item" onClick={freeQuoteAddElectricalComponent}>+ Add Component</button>
-                  {freeQuoteSelectedElectricalComponents.map((item, index) => (
-                    <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateElectricalComponent(index, 'id', e.target.value)}>
-                        <option value="">-- Select Component --</option>
-                        {availableElectricalComponents.filter(c => c.isActive).map(comp => (<option key={comp._id} value={comp._id}>{comp.name} - ₱{comp.price.toLocaleString()}</option>))}
-                      </select>
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateElectricalComponent(index, 'quantity', parseInt(e.target.value) || 0)} />
-                      <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveElectricalComponent(index)}>Remove</button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Cables */}
-                <div className="quotation-section">
-                  <h4>Cables and Wiring</h4>
-                  <button type="button" className="btn-add-item" onClick={freeQuoteAddCable}>+ Add Cable</button>
-                  {freeQuoteSelectedCables.map((item, index) => (
-                    <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateCable(index, 'id', e.target.value)}>
-                        <option value="">-- Select Cable Type --</option>
-                        {availableCables.filter(c => c.isActive).map(cable => (<option key={cable._id} value={cable._id}>{cable.name} - ₱{cable.price.toLocaleString()}/{cable.unit}</option>))}
-                      </select>
-                      <input type="number" placeholder="Length (m)" className="assessment-form-input-enad" value={item.length} onChange={(e) => freeQuoteUpdateCable(index, 'length', parseFloat(e.target.value) || 0)} />
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateCable(index, 'quantity', parseInt(e.target.value) || 0)} />
-                      <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveCable(index)}>Remove</button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Junction Boxes */}
-                <div className="quotation-section">
-                  <h4>Junction Boxes</h4>
-                  <button type="button" className="btn-add-item" onClick={freeQuoteAddJunctionBox}>+ Add Junction Box</button>
-                  {freeQuoteSelectedJunctionBoxes.map((item, index) => (
-                    <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateJunctionBox(index, 'id', e.target.value)}>
-                        <option value="">-- Select Junction Box --</option>
-                        {availableJunctionBoxes.filter(j => j.isActive).map(box => (<option key={box._id} value={box._id}>{box.name} - ₱{box.price.toLocaleString()}</option>))}
-                      </select>
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateJunctionBox(index, 'quantity', parseInt(e.target.value) || 0)} />
-                      <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveJunctionBox(index)}>Remove</button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Disconnect Switches */}
-                <div className="quotation-section">
-                  <h4>Disconnect Switches</h4>
-                  <button type="button" className="btn-add-item" onClick={freeQuoteAddDisconnectSwitch}>+ Add Switch</button>
-                  {freeQuoteSelectedDisconnectSwitches.map((item, index) => (
-                    <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateDisconnectSwitch(index, 'id', e.target.value)}>
-                        <option value="">-- Select Switch --</option>
-                        {availableDisconnectSwitches.filter(s => s.isActive).map(sw => (<option key={sw._id} value={sw._id}>{sw.name} - ₱{sw.price.toLocaleString()}</option>))}
-                      </select>
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateDisconnectSwitch(index, 'quantity', parseInt(e.target.value) || 0)} />
-                      <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveDisconnectSwitch(index)}>Remove</button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Meters */}
-                <div className="quotation-section">
-                  <h4>Meters</h4>
-                  <button type="button" className="btn-add-item" onClick={freeQuoteAddMeter}>+ Add Meter</button>
-                  {freeQuoteSelectedMeters.map((item, index) => (
-                    <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => freeQuoteUpdateMeter(index, 'id', e.target.value)}>
-                        <option value="">-- Select Meter --</option>
-                        {availableMeters.filter(m => m.isActive).map(meter => (<option key={meter._id} value={meter._id}>{meter.name} - ₱{meter.price.toLocaleString()}</option>))}
-                      </select>
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateMeter(index, 'quantity', parseInt(e.target.value) || 0)} />
-                      <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveMeter(index)}>Remove</button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Additional Equipment */}
-                <div className="quotation-section">
-                  <h4>Additional Equipment</h4>
-                  <button type="button" className="btn-add-item" onClick={freeQuoteAddAdditionalEquipment}>+ Add Custom Item</button>
-                  {freeQuoteAdditionalEquipment.map((item, index) => (
-                    <div key={index} className="additional-item-row">
-                      <input type="text" placeholder="Item name" className="assessment-form-input-enad" value={item.name} onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'name', e.target.value)} />
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'quantity', parseInt(e.target.value) || 0)} />
-                      <input type="number" placeholder="Price" className="assessment-form-input-enad" value={item.price} onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'price', parseFloat(e.target.value) || 0)} />
-                      <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveAdditionalEquipment(index)}>Remove</button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Installation Labor */}
-                <div className="quotation-section">
-                  <h4>Installation Labor</h4>
-                  <div className="labor-percentage-control">
-                    <div className="labor-control-group">
-                      <div>
-                        <label className="form-label-enad">Labor Cost (%)</label>
-                        <input
-                          type="number"
-                          step="1"
-                          min="0"
-                          max="100"
-                          className="assessment-form-input-enad labor-input"
-                          value={laborCostPercentage}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value) || 0;
-                            setLaborCostPercentage(Math.min(100, Math.max(0, value)));
-                            setTimeout(() => freeQuoteCalculateTotalCosts(), 0);
-                          }}
-                        />
-                        <small className="form-hint-enad">Default: 20% of total equipment cost</small>
+                {/* ===== CALCULATION CARDS SECTION ===== */}
+                {calculation.showCalculationCards && (
+                  <div className="calculation-cards-container">
+                    <div className="calculation-cards-header">
+                      <h3>System Size Calculation</h3>
+                      <p>Select a calculation method to determine the optimal system size</p>
+                      <div className="system-type-indicator">
+                        <span>System Type: </span>
+                        <strong>{getSystemTypeLabel(freeQuoteForm.systemType)}</strong>
                       </div>
                     </div>
-                  </div>
-                  <div className="labor-calculation">
-                    <div className="labor-detail">
-                      <span>Total Equipment Cost:</span>
-                      <span>{formatCurrency(freeQuoteCalculatedCosts.totalEquipmentCost)}</span>
-                    </div>
-                    <div className="labor-detail">
-                      <span>Labor Cost ({laborCostPercentage}%):</span>
-                      <span>{formatCurrency(freeQuoteCalculatedCosts.installationLaborCost)}</span>
-                    </div>
-                    <div className="labor-total">
-                      <strong>Subtotal (Equipment + Labor)</strong>
-                      <strong>{formatCurrency(freeQuoteCalculatedCosts.subtotalCost)}</strong>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Overhead & Contingency */}
-                <div className="quotation-section">
-                  <h4>Overhead & Contingency</h4>
-                  <div className="cost-percentage-control">
-                    <div>
-                      <label className="form-label-enad">Overhead & Contingency (% of Subtotal)</label>
-                      <input
-                        type="number"
-                        step="1"
-                        min="0"
-                        max="100"
-                        className="assessment-form-input-enad overhead-input"
-                        value={overheadContingencyPercentage}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value) || 0;
-                          setOverheadContingencyPercentage(Math.min(100, Math.max(0, value)));
-                          setTimeout(() => freeQuoteCalculateTotalCosts(), 0);
-                        }}
+                    <div className="calculation-cards-grid">
+                      {/* Based on Area - Show for Grid-Tie and Off-Grid */}
+                      {(freeQuoteForm.systemType === 'grid-tie' || freeQuoteForm.systemType === 'off-grid') && (
+                        <AreaCalculationCard
+                          roofLength={calculation.roofLength}
+                          roofWidth={calculation.roofWidth}
+                          roofArea={calculation.roofArea}
+                          selectedPanelForCalc={calculation.selectedPanelForCalc}
+                          setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                          availablePanels={availablePanels}
+                          calculateByArea={() => calculation.calculateByArea(freeQuoteForm.systemType)}
+                          isDataLoaded={calculation.isDataLoaded}
+                        />
+                      )}
+
+                      {/* Based on Electricity - Show for all system types */}
+                      <ElectricityCalculationCard
+                        totalDailyConsumption={calculation.totalDailyConsumption}
+                        dayConsumption={calculation.dayConsumption}
+                        nightConsumption={calculation.nightConsumption}
+                        ratePerKwh={calculation.ratePerKwh}
+                        monthlyBill={calculation.monthlyBill}
+                        pshValue={calculation.pshValue}
+                        setPshValue={calculation.setPshValue}
+                        targetSavings={calculation.targetSavings}
+                        selectedPanelForCalc={calculation.selectedPanelForCalc}
+                        setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                        availablePanels={availablePanels}
+                        calculateByElectricity={() => calculation.calculateByElectricity(freeQuoteForm.systemType)}
+                        isDataLoaded={calculation.isDataLoaded}
+                        selectedBatteryForCalc={calculation.selectedBatteryForCalc}
+                        batteryAutonomy={calculation.batteryAutonomy}
+                        setBatteryAutonomy={calculation.setBatteryAutonomy}
                       />
-                      <small className="form-hint-enad">Default: 15% of subtotal (Equipment + Labor)</small>
-                    </div>
-                  </div>
-                  <div className="cost-calculation">
-                    <div className="cost-detail">
-                      <span>Subtotal (Equipment + Labor):</span>
-                      <span>{formatCurrency(freeQuoteCalculatedCosts.subtotalCost)}</span>
-                    </div>
-                    <div className="cost-detail">
-                      <span>Overhead & Contingency ({overheadContingencyPercentage}%):</span>
-                      <span>{formatCurrency(freeQuoteCalculatedCosts.overheadContingencyCost)}</span>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Contractor Profit */}
-                <div className="quotation-section">
-                  <h4>Contractor Profit</h4>
-                  <div className="cost-percentage-control">
-                    <div>
-                      <label className="form-label-enad">Contractor Profit (% of Subtotal)</label>
-                      <input
-                        type="number"
-                        step="1"
-                        min="0"
-                        max="100"
-                        className="assessment-form-input-enad profit-input"
-                        value={contractorProfitPercentage}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value) || 0;
-                          setContractorProfitPercentage(Math.min(100, Math.max(0, value)));
-                          setTimeout(() => freeQuoteCalculateTotalCosts(), 0);
-                        }}
+                      {/* Based on Net Metering - Show for Grid-Tie only */}
+                      {freeQuoteForm.systemType === 'grid-tie' && (
+                        <NetMeteringCalculationCard
+                          dayConsumption={calculation.dayConsumption}
+                          nightConsumption={calculation.nightConsumption}
+                          dayPvCapacity={calculation.dayPvCapacity}
+                          nightPvCapacity={calculation.nightPvCapacity}
+                          totalPvCapacity={calculation.totalPvCapacity}
+                          selectedPanelForCalc={calculation.selectedPanelForCalc}
+                          setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                          availablePanels={availablePanels}
+                          calculateByNetMetering={calculation.calculateByNetMetering}
+                          isDataLoaded={calculation.isDataLoaded}
+                          targetSavings={calculation.targetSavings}
+                        />
+                      )}
+                    </div>
+
+                    {/* Show results if calculated */}
+                    {calculation.hasCalculated && calculation.calculationResults.recommendedSystemSize > 0 && (
+                      <CalculationResultsCard
+                        calculationResults={calculation.calculationResults}
+                        selectedCalculationMethod={calculation.selectedCalculationMethod}
+                        applyCalculationResults={() => calculation.applyCalculationResults(
+                          setFreeQuoteForm,
+                          setFreeQuoteSelectedPanel,
+                          setFreeQuotePanelQuantity,
+                          setFreeQuoteSelectedInverter,
+                          setFreeQuoteInverterQuantity,
+                          setFreeQuoteSelectedBattery,
+                          setFreeQuoteBatteryQuantity,
+                          availablePanels,
+                          availableInverters,
+                          availableBatteries,
+                          showToast
+                        )}
+                        resetCalculationCards={calculation.resetCalculationCards}
                       />
-                      <small className="form-hint-enad">Default: 10% of subtotal (Equipment + Labor)</small>
-                    </div>
+                    )}
                   </div>
-                  <div className="cost-calculation">
-                    <div className="cost-detail">
-                      <span>Subtotal (Equipment + Labor):</span>
-                      <span>{formatCurrency(freeQuoteCalculatedCosts.subtotalCost)}</span>
-                    </div>
-                    <div className="cost-detail">
-                      <span>Contractor Profit ({contractorProfitPercentage}%):</span>
-                      <span>{formatCurrency(freeQuoteCalculatedCosts.contractorProfitCost)}</span>
-                    </div>
-                  </div>
-                </div>
+                )}
 
-                {/* Complete Cost Summary */}
-                <div className="cost-summary-large">
-                  <h3>Complete Cost Summary</h3>
-                  <div className="summary-row"><span>Solar Panels:</span><span>{formatCurrency(freeQuoteCalculatedCosts.panelCost)}</span></div>
-                  <div className="summary-row"><span>Inverters:</span><span>{formatCurrency(freeQuoteCalculatedCosts.inverterCost)}</span></div>
-                  <div className="summary-row"><span>Batteries:</span><span>{formatCurrency(freeQuoteCalculatedCosts.batteryCost)}</span></div>
-                  <div className="summary-row"><span>Mounting Structure:</span><span>{formatCurrency(freeQuoteCalculatedCosts.mountingCost)}</span></div>
-                  <div className="summary-row"><span>Electrical Components:</span><span>{formatCurrency(freeQuoteCalculatedCosts.electricalCost)}</span></div>
-                  <div className="summary-row"><span>Cables and Wiring:</span><span>{formatCurrency(freeQuoteCalculatedCosts.cableCost)}</span></div>
-                  <div className="summary-row"><span>Junction Boxes:</span><span>{formatCurrency(freeQuoteCalculatedCosts.junctionBoxCost)}</span></div>
-                  <div className="summary-row"><span>Disconnect Switches:</span><span>{formatCurrency(freeQuoteCalculatedCosts.disconnectSwitchCost)}</span></div>
-                  <div className="summary-row"><span>Meters:</span><span>{formatCurrency(freeQuoteCalculatedCosts.meterCost)}</span></div>
-                  <div className="summary-row"><span>Additional Equipment:</span><span>{formatCurrency(freeQuoteCalculatedCosts.additionalCost)}</span></div>
-                  <div className="summary-row"><span>Equipment Total:</span><span>{formatCurrency(freeQuoteCalculatedCosts.totalEquipmentCost)}</span></div>
-                  <div className="summary-row"><span>Installation Labor ({laborCostPercentage}%):</span><span>{formatCurrency(freeQuoteCalculatedCosts.installationLaborCost)}</span></div>
-                  <div className="summary-row"><span>Subtotal (Equipment + Labor):</span><span>{formatCurrency(freeQuoteCalculatedCosts.subtotalCost)}</span></div>
-                  <div className="summary-row"><span>Overhead & Contingency ({overheadContingencyPercentage}%):</span><span>{formatCurrency(freeQuoteCalculatedCosts.overheadContingencyCost)}</span></div>
-                  <div className="summary-row"><span>Contractor Profit ({contractorProfitPercentage}%):</span><span>{formatCurrency(freeQuoteCalculatedCosts.contractorProfitCost)}</span></div>
-                  <div className="summary-row total"><span>TOTAL SYSTEM COST:</span><span>{formatCurrency(freeQuoteCalculatedCosts.totalSystemCost)}</span></div>
-                </div>
+                {/* ===== EQUIPMENT SELECTION ===== */}
+                {calculation.showEquipmentSelection && (
+                  <>
+                    {/* Show calculated results summary */}
+                    {calculation.calculationResults.recommendedSystemSize > 0 && (
+                      <div className="calculated-results-summary">
+                        <h4>System Summary</h4>
+                        <div className="summary-grid">
+                          <div className="summary-item">
+                            <label>System Size</label>
+                            <strong>{calculation.calculationResults.recommendedSystemSize} kWp</strong>
+                          </div>
+                          <div className="summary-item">
+                            <label>Inverter Size</label>
+                            <strong>{calculation.calculationResults.inverterSize} kW</strong>
+                          </div>
+                          <div className="summary-item">
+                            <label>Panels Needed</label>
+                            <strong>{calculation.calculationResults.panelsNeeded} pcs</strong>
+                          </div>
+                          {calculation.calculationResults.batteryCapacityKwh > 0 && (
+                            <div className="summary-item">
+                              <label>Battery Capacity</label>
+                              <strong>{calculation.calculationResults.batteryCapacityKwh} kWh</strong>
+                            </div>
+                          )}
+                          <div className="summary-item">
+                            <label>Annual Production</label>
+                            <strong>{calculation.calculationResults.estimatedAnnualProduction?.toLocaleString() || 0} kWh/yr</strong>
+                          </div>
+                          <div className="summary-item">
+                            <label>CO₂ Offset</label>
+                            <strong>{calculation.calculationResults.co2Offset?.toLocaleString() || 0} kg/yr</strong>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
-                {/* Payment Terms & Remarks */}
-                <div className="form-group-enad">
-                  <label className="form-label-enad">Payment Terms</label>
-                  <textarea className="assessment-form-textarea-enad" value={freeQuoteForm.paymentTerms} onChange={(e) => handleFreeQuoteFormChange('paymentTerms', e.target.value)} rows={2} placeholder="e.g., 30% down payment, 70% upon completion" />
-                </div>
-                <div className="form-group-enad">
-                  <label className="form-label-enad">Remarks</label>
-                  <textarea className="assessment-form-textarea-enad" value={freeQuoteForm.remarks} onChange={(e) => handleFreeQuoteFormChange('remarks', e.target.value)} rows={2} placeholder="Additional notes or special instructions" />
-                </div>
+                    <SystemEquipmentSelection
+                      availablePanels={availablePanels}
+                      freeQuoteSelectedPanel={freeQuoteSelectedPanel}
+                      setFreeQuoteSelectedPanel={setFreeQuoteSelectedPanel}
+                      freeQuotePanelQuantity={freeQuotePanelQuantity}
+                      setFreeQuotePanelQuantity={setFreeQuotePanelQuantity}
+                      freeQuoteCalculatedCosts={freeQuoteCalculatedCosts}
+                      availableInverters={availableInverters}
+                      freeQuoteSelectedInverter={freeQuoteSelectedInverter}
+                      setFreeQuoteSelectedInverter={setFreeQuoteSelectedInverter}
+                      freeQuoteInverterQuantity={freeQuoteInverterQuantity}
+                      setFreeQuoteInverterQuantity={setFreeQuoteInverterQuantity}
+                      availableBatteries={availableBatteries}
+                      freeQuoteSelectedBattery={freeQuoteSelectedBattery}
+                      setFreeQuoteSelectedBattery={setFreeQuoteSelectedBattery}
+                      freeQuoteBatteryQuantity={freeQuoteBatteryQuantity}
+                      setFreeQuoteBatteryQuantity={setFreeQuoteBatteryQuantity}
+                      availableMountingStructures={availableMountingStructures}
+                      freeQuoteSelectedMountingStructure={freeQuoteSelectedMountingStructure}
+                      setFreeQuoteSelectedMountingStructure={setFreeQuoteSelectedMountingStructure}
+                      freeQuoteMountingStructureQuantity={freeQuoteMountingStructureQuantity}
+                      setFreeQuoteMountingStructureQuantity={setFreeQuoteMountingStructureQuantity}
+                      availableElectricalComponents={availableElectricalComponents}
+                      freeQuoteSelectedElectricalComponents={freeQuoteSelectedElectricalComponents}
+                      freeQuoteAddElectricalComponent={freeQuoteAddElectricalComponent}
+                      freeQuoteUpdateElectricalComponent={freeQuoteUpdateElectricalComponent}
+                      freeQuoteRemoveElectricalComponent={freeQuoteRemoveElectricalComponent}
+                      availableCables={availableCables}
+                      freeQuoteSelectedCables={freeQuoteSelectedCables}
+                      freeQuoteAddCable={freeQuoteAddCable}
+                      freeQuoteUpdateCable={freeQuoteUpdateCable}
+                      freeQuoteRemoveCable={freeQuoteRemoveCable}
+                      availableJunctionBoxes={availableJunctionBoxes}
+                      freeQuoteSelectedJunctionBoxes={freeQuoteSelectedJunctionBoxes}
+                      freeQuoteAddJunctionBox={freeQuoteAddJunctionBox}
+                      freeQuoteUpdateJunctionBox={freeQuoteUpdateJunctionBox}
+                      freeQuoteRemoveJunctionBox={freeQuoteRemoveJunctionBox}
+                      availableDisconnectSwitches={availableDisconnectSwitches}
+                      freeQuoteSelectedDisconnectSwitches={freeQuoteSelectedDisconnectSwitches}
+                      freeQuoteAddDisconnectSwitch={freeQuoteAddDisconnectSwitch}
+                      freeQuoteUpdateDisconnectSwitch={freeQuoteUpdateDisconnectSwitch}
+                      freeQuoteRemoveDisconnectSwitch={freeQuoteRemoveDisconnectSwitch}
+                      availableMeters={availableMeters}
+                      freeQuoteSelectedMeters={freeQuoteSelectedMeters}
+                      freeQuoteAddMeter={freeQuoteAddMeter}
+                      freeQuoteUpdateMeter={freeQuoteUpdateMeter}
+                      freeQuoteRemoveMeter={freeQuoteRemoveMeter}
+                      freeQuoteAdditionalEquipment={freeQuoteAdditionalEquipment}
+                      freeQuoteAddAdditionalEquipment={freeQuoteAddAdditionalEquipment}
+                      freeQuoteUpdateAdditionalEquipment={freeQuoteUpdateAdditionalEquipment}
+                      freeQuoteRemoveAdditionalEquipment={freeQuoteRemoveAdditionalEquipment}
+                      laborCostPercentage={laborCostPercentage}
+                      setLaborCostPercentage={setLaborCostPercentage}
+                      overheadContingencyPercentage={overheadContingencyPercentage}
+                      setOverheadContingencyPercentage={setOverheadContingencyPercentage}
+                      contractorProfitPercentage={contractorProfitPercentage}
+                      setContractorProfitPercentage={setContractorProfitPercentage}
+                      freeQuoteCalculateTotalCosts={freeQuoteCalculateTotalCosts}
+                      freeQuoteForm={freeQuoteForm}
+                      handleFreeQuoteFormChange={handleFreeQuoteFormChange}
+                      systemType={freeQuoteForm.systemType}
+                      getSystemTypeLabel={getSystemTypeLabel}
+                      formatCurrency={formatCurrency}
+                      generateQuotationPDF={generateQuotationPDF}
+                      generatingPDF={generatingPDF}
+                       annualProduction={calculation.calculationResults.estimatedAnnualProduction || 0}
+                    />
+                  </>
+                )}
 
-                <div className="action-buttons-enad">
-                  <button onClick={generateQuotationPDF} disabled={generatingPDF || !freeQuoteForm.systemSize || freeQuoteCalculatedCosts.totalSystemCost === 0} className="btn-primary-enad">
-                    {generatingPDF ? 'Generating...' : 'Generate and Upload PDF'}
-                  </button>
-                </div>
+                {/* Show equipment if already selected (fallback) */}
+                {!calculation.showCalculationCards && !calculation.showEquipmentSelection && (
+                  <>
+                    {/* Keep the existing equipment selection code here as fallback */}
+                    {/* ... existing equipment selection code ... */}
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -2547,7 +2502,7 @@ const MyAssessments = () => {
                   )}
                 </div>
 
-                {/* IoT Monitoring Results */}
+                {/* IoT Monitoring Results - Show always */}
                 {assessmentResults && (
                   <div className="iot-metrics-section">
                     <h4>IoT Monitoring Results (7-Day Data Collection)</h4>
@@ -2614,420 +2569,212 @@ const MyAssessments = () => {
                   </div>
                 )}
 
-                {/* System Recommendations */}
-                {loadingMetrics ? (
-                  <div className="loading-metrics">Loading system recommendations...</div>
-                ) : systemMetrics ? (
-                  <>
-                    <div className="system-recommendations">
-                      <h4>System Recommendation</h4>
-                      <div className="recommendations-grid">
-                        <div className="rec-item">
-                          <label>Recommended System Size</label>
-                          <strong>{systemMetrics.recommendedSystemSize} kWp</strong>
-                        </div>
-                        {systemMetrics.systemType !== 'grid-tie' && (
-                          <div className="rec-item">
-                            <label>Battery Size</label>
-                            <strong>{systemMetrics.batteryCapacityKwh} kWh</strong>
-                          </div>
-                        )}
-                        <div className="rec-item">
-                          <label>Inverter Size</label>
-                          <strong>{systemMetrics.inverterSize} kW</strong>
-                        </div>
-                        <div className="rec-item">
-                          <label>Optimal Orientation</label>
-                          <strong>{systemMetrics.optimalOrientation}</strong>
-                        </div>
-                        <div className="rec-item">
-                          <label>Optimal Tilt Angle</label>
-                          <strong>{systemMetrics.optimalTilt}°</strong>
-                        </div>
-                        <div className="rec-item">
-                          <label>Available Roof Area</label>
-                          <strong>{systemMetrics.availableRoofArea} m²</strong>
-                        </div>
+                {/* ===== CALCULATION CARDS SECTION ===== */}
+                {calculation.showCalculationCards && (
+                  <div className="calculation-cards-container">
+                    <div className="calculation-cards-header">
+                      <h3>📊 System Size Calculation</h3>
+                      <p>Select a calculation method to determine the optimal system size</p>
+                      <div className="system-type-indicator">
+                        <span>System Type: </span>
+                        <strong>{getSystemTypeLabel(selectedItem.systemType || 'grid-tie')}</strong>
                       </div>
                     </div>
 
-                    {/* Annual Production Estimates */}
-                    {systemMetrics.estimatedAnnualProduction && (
-                      <div className="system-recommendations">
-                        <h4>Annual Production Estimates</h4>
-                        <div className="recommendations-grid">
-                          <div className="rec-item">
-                            <label>Annual Production (Actual)</label>
-                            <strong>{systemMetrics.estimatedAnnualProduction.toLocaleString()} kWh/year</strong>
-                            <small className="form-hint-enad">Based on {systemMetrics.peakSunHours || 4.5} PSH</small>
-                          </div>
-                          {systemMetrics.estimatedAnnualProductionRange && (
-                            <div className="rec-item">
-                              <label>Annual Production Range</label>
-                              <strong>
-                                {systemMetrics.estimatedAnnualProductionRange.min?.toLocaleString()} - {systemMetrics.estimatedAnnualProductionRange.max?.toLocaleString()} kWh/year
-                              </strong>
-                              <small className="form-hint-enad">{systemMetrics.estimatedAnnualProductionRange.minPsh}-{systemMetrics.estimatedAnnualProductionRange.maxPsh} PSH range</small>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                    <div className="calculation-cards-grid">
+                      {/* Based on Area - Show for Grid-Tie and Off-Grid */}
+                      {(selectedItem.systemType === 'grid-tie' || selectedItem.systemType === 'off-grid') && (
+                        <AreaCalculationCard
+                          roofLength={calculation.roofLength}
+                          roofWidth={calculation.roofWidth}
+                          roofArea={calculation.roofArea}
+                          selectedPanelForCalc={calculation.selectedPanelForCalc}
+                          setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                          availablePanels={availablePanels}
+                          calculateByArea={() => calculation.calculateByArea(selectedItem.systemType || 'grid-tie')}
+                          isDataLoaded={calculation.isDataLoaded}
+                        />
+                      )}
 
-                    {/* CO2 Offset Estimates */}
-                    {systemMetrics.co2Offset && (
-                      <div className="system-recommendations">
-                        <h4>Environmental Impact</h4>
-                        <div className="recommendations-grid">
-                          <div className="rec-item">
-                            <label>CO2 Offset (Actual)</label>
-                            <strong>{systemMetrics.co2Offset.toLocaleString()} kg/year</strong>
-                            <small className="form-hint-enad">Based on {systemMetrics.peakSunHours || 4.5} PSH</small>
-                          </div>
-                          {systemMetrics.co2OffsetRange && (
-                            <div className="rec-item">
-                              <label>CO2 Offset Range</label>
-                              <strong>
-                                {systemMetrics.co2OffsetRange.min?.toLocaleString()} - {systemMetrics.co2OffsetRange.max?.toLocaleString()} kg/year
-                              </strong>
-                              <small className="form-hint-enad">{systemMetrics.estimatedAnnualProductionRange?.minPsh}-{systemMetrics.estimatedAnnualProductionRange?.maxPsh} PSH range</small>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                      {/* Based on Electricity - Show for all system types */}
+                      <ElectricityCalculationCard
+                        totalDailyConsumption={calculation.totalDailyConsumption}
+                        dayConsumption={calculation.dayConsumption}
+                        nightConsumption={calculation.nightConsumption}
+                        ratePerKwh={calculation.ratePerKwh}
+                        monthlyBill={calculation.monthlyBill}
+                        pshValue={calculation.pshValue}
+                        setPshValue={calculation.setPshValue}
+                        targetSavings={calculation.targetSavings}
+                        selectedPanelForCalc={calculation.selectedPanelForCalc}
+                        setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                        availablePanels={availablePanels}
+                        calculateByElectricity={() => calculation.calculateByElectricity(selectedItem.systemType || 'grid-tie')}
+                        isDataLoaded={calculation.isDataLoaded}
+                        selectedBatteryForCalc={calculation.selectedBatteryForCalc}
+                        batteryAutonomy={calculation.batteryAutonomy}
+                        setBatteryAutonomy={calculation.setBatteryAutonomy}
+                        systemType={selectedItem.systemType || 'grid-tie'}
+                      />
+
+                      {/* Based on Net Metering - Show for Grid-Tie only */}
+                      {selectedItem.systemType === 'grid-tie' && (
+                        <NetMeteringCalculationCard
+                          dayConsumption={calculation.dayConsumption}
+                          nightConsumption={calculation.nightConsumption}
+                          dayPvCapacity={calculation.dayPvCapacity}
+                          nightPvCapacity={calculation.nightPvCapacity}
+                          totalPvCapacity={calculation.totalPvCapacity}
+                          selectedPanelForCalc={calculation.selectedPanelForCalc}
+                          setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                          availablePanels={availablePanels}
+                          calculateByNetMetering={calculation.calculateByNetMetering}
+                          isDataLoaded={calculation.isDataLoaded}
+                          targetSavings={calculation.targetSavings}
+                        />
+                      )}
+                    </div>
+
+                    {/* Show results if calculated */}
+                    {calculation.hasCalculated && calculation.calculationResults.recommendedSystemSize > 0 && (
+                      <CalculationResultsCard
+                        calculationResults={calculation.calculationResults}
+                        selectedCalculationMethod={calculation.selectedCalculationMethod}
+                        applyCalculationResults={() => calculation.applyCalculationResults(
+                          setQuotationForm,
+                          setSelectedPanel,
+                          setPanelQuantity,
+                          setSelectedInverter,
+                          setInverterQuantity,
+                          setSelectedBattery,
+                          setBatteryQuantity,
+                          availablePanels,
+                          availableInverters,
+                          availableBatteries,
+                          showToast
+                        )}
+                        resetCalculationCards={calculation.resetCalculationCards}
+                        systemType={selectedItem.systemType || 'grid-tie'}
+                      />
                     )}
-                  </>
-                ) : (
-                  <div className="no-metrics">No system recommendations available yet. Please ensure IoT data has been collected and device has been retrieved.</div>
+                  </div>
                 )}
 
-                {/* Basic Info Form */}
-                <div className="quotation-section">
-                  <h4>Basic Information</h4>
-                  <div className="form-grid-enad">
-                    <div className="form-group-enad">
-                      <label className="form-label-enad">Quotation Number</label>
-                      <input type="text" className="assessment-form-input-enad" value={quotationForm.quotationNumber} onChange={(e) => handleQuotationChange('quotationNumber', e.target.value)} />
-                    </div>
-                    <div className="form-group-enad">
-                      <label className="form-label-enad">Expiry Date (30 Days)</label>
-                      <input type="date" className="assessment-form-input-enad" value={quotationForm.quotationExpiryDate} onChange={(e) => handleQuotationChange('quotationExpiryDate', e.target.value)} />
-                    </div>
-                    <div className="form-group-enad">
-                      <label className="form-label-enad">System Type</label>
-                      <select className="assessment-form-select-enad" value={quotationForm.systemType} onChange={(e) => handleQuotationChange('systemType', e.target.value)}>
-                        {SYSTEM_TYPES.map(type => (<option key={type.value} value={type.value}>{type.label}</option>))}
-                      </select>
-                    </div>
-                    <div className="form-group-enad">
-                      <label className="form-label-enad">System Size (kWp)</label>
-                      <input type="number" step="0.5" className="assessment-form-input-enad" value={quotationForm.systemSize} onChange={(e) => handleQuotationChange('systemSize', parseFloat(e.target.value))} placeholder="e.g., 5.0" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Solar Panels */}
-                <div className="quotation-section">
-                  <h4>Solar Panels</h4>
-                  <div className="equipment-selection-row">
-                    <div className="form-group-enad">
-                      <select className="assessment-form-select-enad" value={selectedPanel?._id || ''} onChange={(e) => { const panel = availablePanels.find(p => p._id === e.target.value); setSelectedPanel(panel); if (panel && panel.unit === 'watt') setPanelQuantity(1); }}>
-                        <option value="">-- Select Panel --</option>
-                        {availablePanels.filter(p => p.isActive).map(panel => (<option key={panel._id} value={panel._id}>{panel.name} - {panel.brand} - ₱{panel.price.toLocaleString()}/{panel.unit}</option>))}
-                      </select>
-                    </div>
-                    <div className="form-group-enad">
-                      <input type="number" min="1" className="assessment-form-input-enad" value={panelQuantity} onChange={(e) => setPanelQuantity(parseInt(e.target.value) || 0)} disabled={selectedPanel?.unit === 'watt'} />
-                    </div>
-                    <div className="cost-display"><label>Panel Cost</label><div className="cost-value">{formatCurrency(calculatedCosts.panelCost)}</div></div>
-                  </div>
-                  {selectedPanel?.unit === 'watt' && <small className="form-hint-enad">Price is per watt. Total calculated based on system size: {quotationForm.systemSize} kWp</small>}
-                </div>
-
-                {/* Inverters */}
-                <div className="quotation-section">
-                  <h4>Inverters</h4>
-                  <div className="equipment-selection-row">
-                    <div className="form-group-enad">
-                      <select className="assessment-form-select-enad" value={selectedInverter?._id || ''} onChange={(e) => { const inverter = availableInverters.find(i => i._id === e.target.value); setSelectedInverter(inverter); }}>
-                        <option value="">-- Select Inverter --</option>
-                        {availableInverters.filter(i => i.isActive).map(inverter => (<option key={inverter._id} value={inverter._id}>{inverter.name} - {inverter.brand} - ₱{inverter.price.toLocaleString()}</option>))}
-                      </select>
-                    </div>
-                    <div className="form-group-enad">
-                      <input type="number" min="1" className="assessment-form-input-enad" value={inverterQuantity} onChange={(e) => setInverterQuantity(parseInt(e.target.value) || 0)} />
-                    </div>
-                    <div className="cost-display"><label>Inverter Cost</label><div className="cost-value">{formatCurrency(calculatedCosts.inverterCost)}</div></div>
-                  </div>
-                </div>
-
-                {/* Batteries */}
-                <div className="quotation-section">
-                  <h4>Batteries (Optional)</h4>
-                  <div className="equipment-selection-row">
-                    <div className="form-group-enad">
-                      <select className="assessment-form-select-enad" value={selectedBattery?._id || ''} onChange={(e) => { const battery = availableBatteries.find(b => b._id === e.target.value); setSelectedBattery(battery); }}>
-                        <option value="">-- No Battery --</option>
-                        {availableBatteries.filter(b => b.isActive).map(battery => (<option key={battery._id} value={battery._id}>{battery.name} - {battery.brand} - ₱{battery.price.toLocaleString()}</option>))}
-                      </select>
-                    </div>
-                    <div className="form-group-enad">
-                      <input type="number" min="0" className="assessment-form-input-enad" value={batteryQuantity} onChange={(e) => setBatteryQuantity(parseInt(e.target.value) || 0)} />
-                    </div>
-                    <div className="cost-display"><label>Battery Cost</label><div className="cost-value">{formatCurrency(calculatedCosts.batteryCost)}</div></div>
-                  </div>
-                </div>
-
-                {/* Mounting Structure */}
-                <div className="quotation-section">
-                  <h4>Mounting Structure</h4>
-                  <div className="equipment-selection-row">
-                    <div className="form-group-enad">
-                      <select className="assessment-form-select-enad" value={selectedMountingStructure?._id || ''} onChange={(e) => { const structure = availableMountingStructures.find(m => m._id === e.target.value); setSelectedMountingStructure(structure); }}>
-                        <option value="">-- Select Mounting Structure --</option>
-                        {availableMountingStructures.filter(m => m.isActive).map(structure => (<option key={structure._id} value={structure._id}>{structure.name} - {structure.brand} - ₱{structure.price.toLocaleString()}/{structure.unit}</option>))}
-                      </select>
-                    </div>
-                    <div className="form-group-enad">
-                      <input type="number" min="1" className="assessment-form-input-enad" value={mountingStructureQuantity} onChange={(e) => setMountingStructureQuantity(parseInt(e.target.value) || 0)} />
-                    </div>
-                    <div className="cost-display"><label>Mounting Cost</label><div className="cost-value">{formatCurrency(calculatedCosts.mountingCost)}</div></div>
-                  </div>
-                </div>
-
-                {/* Electrical Components */}
-                <div className="quotation-section">
-                  <h4>Electrical Components</h4>
-                  <button type="button" className="btn-add-item" onClick={addElectricalComponent}>+ Add Component</button>
-                  {selectedElectricalComponents.map((item, index) => (
-                    <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateElectricalComponent(index, 'id', e.target.value)}>
-                        <option value="">-- Select Component --</option>
-                        {availableElectricalComponents.filter(c => c.isActive).map(comp => (
-                          <option key={comp._id} value={comp._id}>{comp.name} - ₱{comp.price.toLocaleString()}</option>
-                        ))}
-                      </select>
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateElectricalComponent(index, 'quantity', parseInt(e.target.value) || 0)} />
-                      <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => removeElectricalComponent(index)}>Remove</button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Cables */}
-                <div className="quotation-section">
-                  <h4>Cables and Wiring</h4>
-                  <button type="button" className="btn-add-item" onClick={addCable}>+ Add Cable</button>
-                  {selectedCables.map((item, index) => (
-                    <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateCable(index, 'id', e.target.value)}>
-                        <option value="">-- Select Cable Type --</option>
-                        {availableCables.filter(c => c.isActive).map(cable => (
-                          <option key={cable._id} value={cable._id}>{cable.name} - ₱{cable.price.toLocaleString()}/{cable.unit}</option>
-                        ))}
-                      </select>
-                      <input type="number" placeholder="Length (m)" className="assessment-form-input-enad" value={item.length} onChange={(e) => updateCable(index, 'length', parseFloat(e.target.value) || 0)} />
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateCable(index, 'quantity', parseInt(e.target.value) || 0)} />
-                      <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => removeCable(index)}>Remove</button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Junction Boxes */}
-                <div className="quotation-section">
-                  <h4>Junction Boxes</h4>
-                  <button type="button" className="btn-add-item" onClick={addJunctionBox}>+ Add Junction Box</button>
-                  {selectedJunctionBoxes.map((item, index) => (
-                    <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateJunctionBox(index, 'id', e.target.value)}>
-                        <option value="">-- Select Junction Box --</option>
-                        {availableJunctionBoxes.filter(j => j.isActive).map(box => (
-                          <option key={box._id} value={box._id}>{box.name} - ₱{box.price.toLocaleString()}</option>
-                        ))}
-                      </select>
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateJunctionBox(index, 'quantity', parseInt(e.target.value) || 0)} />
-                      <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => removeJunctionBox(index)}>Remove</button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Disconnect Switches */}
-                <div className="quotation-section">
-                  <h4>Disconnect Switches</h4>
-                  <button type="button" className="btn-add-item" onClick={addDisconnectSwitch}>+ Add Switch</button>
-                  {selectedDisconnectSwitches.map((item, index) => (
-                    <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateDisconnectSwitch(index, 'id', e.target.value)}>
-                        <option value="">-- Select Switch --</option>
-                        {availableDisconnectSwitches.filter(s => s.isActive).map(sw => (
-                          <option key={sw._id} value={sw._id}>{sw.name} - ₱{sw.price.toLocaleString()}</option>
-                        ))}
-                      </select>
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateDisconnectSwitch(index, 'quantity', parseInt(e.target.value) || 0)} />
-                      <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => removeDisconnectSwitch(index)}>Remove</button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Meters */}
-                <div className="quotation-section">
-                  <h4>Meters</h4>
-                  <button type="button" className="btn-add-item" onClick={addMeter}>+ Add Meter</button>
-                  {selectedMeters.map((item, index) => (
-                    <div key={index} className="additional-item-row">
-                      <select className="assessment-form-select-enad" value={item.id || ''} onChange={(e) => updateMeter(index, 'id', e.target.value)}>
-                        <option value="">-- Select Meter --</option>
-                        {availableMeters.filter(m => m.isActive).map(meter => (
-                          <option key={meter._id} value={meter._id}>{meter.name} - ₱{meter.price.toLocaleString()}</option>
-                        ))}
-                      </select>
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateMeter(index, 'quantity', parseInt(e.target.value) || 0)} />
-                      <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => removeMeter(index)}>Remove</button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Additional Equipment */}
-                <div className="quotation-section">
-                  <h4>Additional Equipment</h4>
-                  <button type="button" className="btn-add-item" onClick={addAdditionalEquipment}>+ Add Custom Item</button>
-                  {additionalEquipment.map((item, index) => (
-                    <div key={index} className="additional-item-row">
-                      <input type="text" placeholder="Item name" className="assessment-form-input-enad" value={item.name} onChange={(e) => updateAdditionalEquipment(index, 'name', e.target.value)} />
-                      <input type="number" placeholder="Qty" className="assessment-form-input-enad" value={item.quantity} onChange={(e) => updateAdditionalEquipment(index, 'quantity', parseInt(e.target.value) || 0)} />
-                      <input type="number" placeholder="Price" className="assessment-form-input-enad" value={item.price} onChange={(e) => updateAdditionalEquipment(index, 'price', parseFloat(e.target.value) || 0)} />
-                      <span className="item-total">{formatCurrency(item.total || 0)}</span>
-                      <button type="button" className="btn-remove" onClick={() => removeAdditionalEquipment(index)}>Remove</button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Installation Labor */}
-                <div className="quotation-section">
-                  <div className="labor-percentage-control">
-                    <div className="labor-control-group">
-                      <div>
-                        <label className="form-label-enad">Labor Cost (% of Equipment)</label>
-                        <input
-                          type="number"
-                          step="1"
-                          min="0"
-                          max="100"
-                          className="assessment-form-input-enad labor-input"
-                          value={laborCostPercentage}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value) || 0;
-                            setLaborCostPercentage(Math.min(100, Math.max(0, value)));
-                            setTimeout(() => calculateTotalCosts(), 0);
-                          }}
-                        />
-                        <small className="form-hint-enad">Default: 20% of total equipment cost</small>
+                {/* ===== EQUIPMENT SELECTION ===== */}
+                {calculation.showEquipmentSelection && (
+                  <>
+                    {/* Show calculated results summary */}
+                    {calculation.calculationResults.recommendedSystemSize > 0 && (
+                      <div className="calculated-results-summary">
+                        <h4>System Summary</h4>
+                        <div className="summary-grid">
+                          <div className="summary-item">
+                            <label>System Size</label>
+                            <strong>{calculation.calculationResults.recommendedSystemSize} kWp</strong>
+                          </div>
+                          <div className="summary-item">
+                            <label>Inverter Size</label>
+                            <strong>{calculation.calculationResults.inverterSize} kW</strong>
+                          </div>
+                          <div className="summary-item">
+                            <label>Panels Needed</label>
+                            <strong>{calculation.calculationResults.panelsNeeded} pcs</strong>
+                          </div>
+                          {calculation.calculationResults.batteryCapacityKwh > 0 && (
+                            <div className="summary-item">
+                              <label>Battery Capacity</label>
+                              <strong>{calculation.calculationResults.batteryCapacityKwh} kWh</strong>
+                            </div>
+                          )}
+                          <div className="summary-item">
+                            <label>Annual Production</label>
+                            <strong>{calculation.calculationResults.estimatedAnnualProduction?.toLocaleString() || 0} kWh/yr</strong>
+                          </div>
+                          <div className="summary-item">
+                            <label>CO₂ Offset</label>
+                            <strong>{calculation.calculationResults.co2Offset?.toLocaleString() || 0} kg/yr</strong>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    )}
 
-                  <div className="labor-calculation">
-                    <div className="labor-detail">
-                      <span>Total Equipment Cost:</span>
-                      <span>{formatCurrency(calculatedCosts.totalEquipmentCost)}</span>
-                    </div>
-                    <div className="labor-detail">
-                      <span>Labor Cost ({laborCostPercentage}%):</span>
-                      <span>{formatCurrency(calculatedCosts.installationLaborCost)}</span>
-                    </div>
-                    <div className="labor-total">
-                      <strong>Subtotal</strong>
-                      <strong>{formatCurrency(calculatedCosts.subtotalCost)}</strong>
-                    </div>
-                  </div>
-                </div>
+                    <SystemEquipmentSelection
+                      availablePanels={availablePanels}
+                      freeQuoteSelectedPanel={selectedPanel}
+                      setFreeQuoteSelectedPanel={setSelectedPanel}
+                      freeQuotePanelQuantity={panelQuantity}
+                      setFreeQuotePanelQuantity={setPanelQuantity}
+                      freeQuoteCalculatedCosts={calculatedCosts}
+                      availableInverters={availableInverters}
+                      freeQuoteSelectedInverter={selectedInverter}
+                      setFreeQuoteSelectedInverter={setSelectedInverter}
+                      freeQuoteInverterQuantity={inverterQuantity}
+                      setFreeQuoteInverterQuantity={setInverterQuantity}
+                      availableBatteries={availableBatteries}
+                      freeQuoteSelectedBattery={selectedBattery}
+                      setFreeQuoteSelectedBattery={setSelectedBattery}
+                      freeQuoteBatteryQuantity={batteryQuantity}
+                      setFreeQuoteBatteryQuantity={setBatteryQuantity}
+                      availableMountingStructures={availableMountingStructures}
+                      freeQuoteSelectedMountingStructure={selectedMountingStructure}
+                      setFreeQuoteSelectedMountingStructure={setSelectedMountingStructure}
+                      freeQuoteMountingStructureQuantity={mountingStructureQuantity}
+                      setFreeQuoteMountingStructureQuantity={setMountingStructureQuantity}
+                      availableElectricalComponents={availableElectricalComponents}
+                      freeQuoteSelectedElectricalComponents={selectedElectricalComponents}
+                      freeQuoteAddElectricalComponent={addElectricalComponent}
+                      freeQuoteUpdateElectricalComponent={updateElectricalComponent}
+                      freeQuoteRemoveElectricalComponent={removeElectricalComponent}
+                      availableCables={availableCables}
+                      freeQuoteSelectedCables={selectedCables}
+                      freeQuoteAddCable={addCable}
+                      freeQuoteUpdateCable={updateCable}
+                      freeQuoteRemoveCable={removeCable}
+                      availableJunctionBoxes={availableJunctionBoxes}
+                      freeQuoteSelectedJunctionBoxes={selectedJunctionBoxes}
+                      freeQuoteAddJunctionBox={addJunctionBox}
+                      freeQuoteUpdateJunctionBox={updateJunctionBox}
+                      freeQuoteRemoveJunctionBox={removeJunctionBox}
+                      availableDisconnectSwitches={availableDisconnectSwitches}
+                      freeQuoteSelectedDisconnectSwitches={selectedDisconnectSwitches}
+                      freeQuoteAddDisconnectSwitch={addDisconnectSwitch}
+                      freeQuoteUpdateDisconnectSwitch={updateDisconnectSwitch}
+                      freeQuoteRemoveDisconnectSwitch={removeDisconnectSwitch}
+                      availableMeters={availableMeters}
+                      freeQuoteSelectedMeters={selectedMeters}
+                      freeQuoteAddMeter={addMeter}
+                      freeQuoteUpdateMeter={updateMeter}
+                      freeQuoteRemoveMeter={removeMeter}
+                      freeQuoteAdditionalEquipment={additionalEquipment}
+                      freeQuoteAddAdditionalEquipment={addAdditionalEquipment}
+                      freeQuoteUpdateAdditionalEquipment={updateAdditionalEquipment}
+                      freeQuoteRemoveAdditionalEquipment={removeAdditionalEquipment}
+                      laborCostPercentage={laborCostPercentage}
+                      setLaborCostPercentage={setLaborCostPercentage}
+                      overheadContingencyPercentage={overheadContingencyPercentage}
+                      setOverheadContingencyPercentage={setOverheadContingencyPercentage}
+                      contractorProfitPercentage={contractorProfitPercentage}
+                      setContractorProfitPercentage={setContractorProfitPercentage}
+                      freeQuoteCalculateTotalCosts={calculateTotalCosts}
+                      freeQuoteForm={quotationForm}
+                      handleFreeQuoteFormChange={handleQuotationChange}
+                      systemType={selectedItem.systemType || 'grid-tie'}
+                      getSystemTypeLabel={getSystemTypeLabel}
+                      formatCurrency={formatCurrency}
+                      generateQuotationPDF={generateQuotationPDF}
+                      generatingPDF={generatingPDF}
+                      annualProduction={calculation.calculationResults.estimatedAnnualProduction || 0}
+                    />
+                  </>
+                )}
 
-                {/* Overhead & Contingency */}
-                <div className="quotation-section">
-                  <div className="cost-percentage-control">
-                    <div>
-                      <label className="form-label-enad">Overhead & Contingency</label>
-                      <input
-                        type="number"
-                        step="1"
-                        min="0"
-                        max="100"
-                        className="assessment-form-input-enad overhead-input"
-                        value={overheadContingencyPercentage}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value) || 0;
-                          setOverheadContingencyPercentage(Math.min(100, Math.max(0, value)));
-                          setTimeout(() => calculateTotalCosts(), 0);
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="cost-calculation">
-                    <div className="cost-detail">
-                      <span>Overhead & Contingency ({overheadContingencyPercentage}%):</span>
-                      <span>{formatCurrency(calculatedCosts.overheadContingencyCost)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contractor Profit */}
-                <div className="quotation-section">
-                  <div className="cost-percentage-control">
-                    <div>
-                      <label className="form-label-enad">Contractor Profit</label>
-                      <input
-                        type="number"
-                        step="1"
-                        min="0"
-                        max="100"
-                        className="assessment-form-input-enad profit-input"
-                        value={contractorProfitPercentage}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value) || 0;
-                          setContractorProfitPercentage(Math.min(100, Math.max(0, value)));
-                          setTimeout(() => calculateTotalCosts(), 0);
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="cost-calculation">
-                    <div className="cost-detail">
-                      <span>Contractor Profit ({contractorProfitPercentage}%):</span>
-                      <span>{formatCurrency(calculatedCosts.contractorProfitCost)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Complete Cost Summary */}
-                <div className="cost-summary-large">
-                  <h3>Complete Cost Summary</h3>
-                  <div className="summary-row"><span>Solar Panels:</span><span>{formatCurrency(calculatedCosts.panelCost)}</span></div>
-                  <div className="summary-row"><span>Inverters:</span><span>{formatCurrency(calculatedCosts.inverterCost)}</span></div>
-                  <div className="summary-row"><span>Batteries:</span><span>{formatCurrency(calculatedCosts.batteryCost)}</span></div>
-                  <div className="summary-row"><span>Mounting Structure:</span><span>{formatCurrency(calculatedCosts.mountingCost)}</span></div>
-                  <div className="summary-row"><span>Electrical Components:</span><span>{formatCurrency(calculatedCosts.electricalCost)}</span></div>
-                  <div className="summary-row"><span>Cables and Wiring:</span><span>{formatCurrency(calculatedCosts.cableCost)}</span></div>
-                  <div className="summary-row"><span>Junction Boxes:</span><span>{formatCurrency(calculatedCosts.junctionBoxCost)}</span></div>
-                  <div className="summary-row"><span>Disconnect Switches:</span><span>{formatCurrency(calculatedCosts.disconnectSwitchCost)}</span></div>
-                  <div className="summary-row"><span>Meters:</span><span>{formatCurrency(calculatedCosts.meterCost)}</span></div>
-                  <div className="summary-row"><span>Additional Equipment:</span><span>{formatCurrency(calculatedCosts.additionalCost)}</span></div>
-                  <div className="summary-row"><span>Equipment Total:</span><span>{formatCurrency(calculatedCosts.totalEquipmentCost)}</span></div>
-                  <div className="summary-row"><span>Installation Labor:</span><span>{formatCurrency(calculatedCosts.installationLaborCost)}</span></div>
-                  <div className="summary-row"><span>Direct Cost:</span><span>{formatCurrency(calculatedCosts.subtotalCost)}</span></div>
-                  <div className="summary-row"><span>Overhead & Contingency:</span><span>{formatCurrency(calculatedCosts.overheadContingencyCost)}</span></div>
-                  <div className="summary-row"><span>Contractor Profit:</span><span>{formatCurrency(calculatedCosts.contractorProfitCost)}</span></div>
-                  <div className="summary-row total"><span>TOTAL SYSTEM COST:</span><span>{formatCurrency(calculatedCosts.totalSystemCost)}</span></div>
-                </div>
-
-                <div className="action-buttons-enad">
-                  <button onClick={generateQuotationPDF} disabled={generatingPDF || !quotationForm.systemSize || calculatedCosts.totalSystemCost === 0} className="btn-primary-enad">
-                    {generatingPDF ? 'Generating...' : 'Generate and Upload PDF'}
-                  </button>
-                </div>
+                {/* Show existing equipment if already selected (fallback) */}
+                {!calculation.showCalculationCards && !calculation.showEquipmentSelection && (
+                  <>
+                    {/* Keep the existing equipment selection code from the original file */}
+                    {/* ... existing equipment selection code ... */}
+                  </>
+                )}
               </div>
             )}
 

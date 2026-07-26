@@ -527,7 +527,7 @@ exports.getConfigHistory = async (req, res) => {
 // @access  Private (Admin)
 exports.addEquipmentItem = async (req, res) => {
   try {
-    const { type, name, price, brand, warranty, unit, notes } = req.body;
+    const { type, name, price, brand, capacity, panelArea, warranty, unit, notes } = req.body;
     const { reason } = req.query;
     const adminId = req.user.id;
 
@@ -573,6 +573,9 @@ exports.addEquipmentItem = async (req, res) => {
         price: parseFloat(price),
         brand: brand || '',
         warranty: warranty || 0,
+        capacity: capacity || { value: 0, unit: '' },
+        panelArea: panelArea || 0,
+        dob: dob || 0,
         unit: unit || 'piece',
         notes: notes || ''
       },
@@ -634,6 +637,8 @@ exports.updateEquipmentItem = async (req, res) => {
       brand,
       warranty,
       capacity,
+      panelArea,
+      dob,
       unit,
       notes,
       isActive
@@ -672,6 +677,8 @@ exports.updateEquipmentItem = async (req, res) => {
         unit: capacity.unit
       };
     }
+    if (panelArea !== undefined) updates.panelArea = Number(panelArea || 0);
+    if (dob !== undefined) updates.dob = Number(dob || 0);
     if (warranty !== undefined) updates.warranty = parseInt(warranty);
     if (unit !== undefined) updates.unit = unit;
     if (notes !== undefined) updates.notes = notes;

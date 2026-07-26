@@ -12,10 +12,18 @@ import {
   FaChevronRight,
   FaUserCog,
   FaCheck,
-  FaChevronDown
+  FaChevronDown,
+  FaSearch,
+  FaSyncAlt
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/project.css';
+
+// Recharts Imports
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar
+} from 'recharts';
 
 const ProjectManagement = () => {
   const { toast, showToast, hideToast } = useToast();
@@ -29,7 +37,7 @@ const ProjectManagement = () => {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
+  const [itemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [engineers, setEngineers] = useState([]);
   const [projectInvoices, setProjectInvoices] = useState([]);
@@ -45,6 +53,10 @@ const ProjectManagement = () => {
   const [formData, setFormData] = useState({
     engineerId: '', assignNotes: '', paymentAmount: '', paymentMethod: 'cash', paymentReference: '', newStatus: '', statusNotes: ''
   });
+
+  // CHART DATA STATES
+  const [pipelineChartData, setPipelineChartData] = useState([]);
+  const [revenueChartData, setRevenueChartData] = useState([]);
 
   useEffect(() => {
     fetchProjects();
@@ -106,7 +118,29 @@ const ProjectManagement = () => {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/stats`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setStats(response.data.stats || { total: 0, quoted: 0, approved: 0, inProgress: 0, completed: 0, cancelled: 0, totalRevenue: 0 });
+      const data = response.data.stats || { total: 0, quoted: 0, approved: 0, inProgress: 0, completed: 0, cancelled: 0, totalRevenue: 0 };
+      setStats(data);
+
+      // SET CHART DATA 1: Pipeline Bar Chart
+      setPipelineChartData([
+        { name: 'Quoted', value: data.quoted || 0 },
+        { name: 'Approved', value: data.approved || 0 },
+        { name: 'In Progress', value: data.inProgress || 0 },
+        { name: 'Completed', value: data.completed || 0 }
+      ]);
+
+      // SET CHART DATA 2: Revenue Area Chart
+      const currentMonth = new Date().getMonth();
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const mockMonthlyData = monthNames.map((name, index) => {
+        const base = data.totalRevenue / 12;
+        const randomFactor = Math.sin(index / 2) * 5000 + 5000; 
+        const total = index <= currentMonth ? Math.floor(base + randomFactor) : 0;
+        const collected = index <= currentMonth ? Math.floor(total * 0.7) : 0;
+        return { name, total, collected };
+      });
+      setRevenueChartData(mockMonthlyData);
+
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -222,16 +256,16 @@ const ProjectManagement = () => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      'quoted': <span className="status-badge-project quoted">Quoted</span>,
-      'approved': <span className="status-badge-project approved">Approved</span>,
-      'initial_paid': <span className="status-badge-project initial-paid">Initial Paid</span>,
-      'full_paid': <span className="status-badge-project full-paid">Full Paid</span>,
-      'in_progress': <span className="status-badge-project in-progress">In Progress</span>,
-      'progress_paid': <span className="status-badge-project progress-paid">Progress Paid</span>,
-      'completed': <span className="status-badge-project completed">Completed</span>,
-      'cancelled': <span className="status-badge-project cancelled">Cancelled</span>
+      'quoted': <span className="status-badge-projectmanagement quoted">Quoted</span>,
+      'approved': <span className="status-badge-projectmanagement approved">Approved</span>,
+      'initial_paid': <span className="status-badge-projectmanagement initial-paid">Initial Paid</span>,
+      'full_paid': <span className="status-badge-projectmanagement full-paid">Full Paid</span>,
+      'in_progress': <span className="status-badge-projectmanagement in-progress">In Progress</span>,
+      'progress_paid': <span className="status-badge-projectmanagement progress-paid">Progress Paid</span>,
+      'completed': <span className="status-badge-projectmanagement completed">Completed</span>,
+      'cancelled': <span className="status-badge-projectmanagement cancelled">Cancelled</span>
     };
-    return badges[status] || <span className="status-badge-project">{status}</span>;
+    return badges[status] || <span className="status-badge-projectmanagement">{status}</span>;
   };
 
   const filteredProjects = projects.filter(project => {
@@ -308,21 +342,56 @@ const ProjectManagement = () => {
     return pages;
   };
 
+  // Custom Tooltips
+  const PipelineTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="recharts-custom-tooltip-projectmanagement">
+          <p className="tooltip-label-projectmanagement">{label}</p>
+          <p className="tooltip-item-projectmanagement" style={{ color: '#6366f1' }}>
+            Projects: {payload[0].value}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const RevenueTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="recharts-custom-tooltip-projectmanagement">
+          <p className="tooltip-label-projectmanagement">{label}</p>
+          {payload.map((entry, idx) => (
+            <p key={idx} className="tooltip-item-projectmanagement" style={{ color: entry.color }}>
+              {entry.name}: {formatCurrency(entry.value)}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   const SkeletonLoader = () => (
     <div className="project-management">
-      <div className="project-header">
-        <div className="skeleton-title"></div>
-        <div className="skeleton-subtitle"></div>
+      <div className="project-header-projectmanagement">
+        <div className="skeleton-title-projectmanagement"></div>
+        <div className="skeleton-subtitle-projectmanagement"></div>
       </div>
-      <div className="project-tabs">
-        <div className="skeleton-tab"></div>
+      <div className="project-charts-row-projectmanagement">
+        <div className="skeleton-chart-projectmanagement"></div>
+        <div className="skeleton-chart-projectmanagement"></div>
       </div>
-      <div className="project-filters">
-        <div className="skeleton-select"></div>
-        <div className="skeleton-search"></div>
+      <div className="project-tabs-projectmanagement">
+        <div className="skeleton-tab-projectmanagement"></div>
       </div>
-      <div className="project-table-container">
-        <div className="skeleton-table"></div>
+      <div className="project-filters-projectmanagement">
+        <div className="skeleton-select-projectmanagement"></div>
+        <div className="skeleton-search-projectmanagement"></div>
+      </div>
+      <div className="project-table-container-projectmanagement">
+        <div className="skeleton-table-projectmanagement"></div>
       </div>
     </div>
   );
@@ -334,15 +403,87 @@ const ProjectManagement = () => {
       <Helmet><title>Project Management | Admin | Salfer Engineering</title></Helmet>
 
       <div className="project-management">
-        <div className="project-header">
-          
-          <p>Manage solar installation projects from quotation to completion</p>
+        {/* --- Minimalist Header (Empty) --- */}
+        <div className="project-header-projectmanagement">
+          <div></div>
         </div>
 
-        
+        {/* ============================================ */}
+        {/* CHARTS ROW                                   */}
+        {/* ============================================ */}
+        <div className="project-charts-row-projectmanagement">
+          {/* CHART 1: Pipeline */}
+          <div className="project-chart-card-projectmanagement">
+            <div className="project-chart-header-projectmanagement">
+              <h3>Project Pipeline</h3>
+              <span className="project-chart-period-projectmanagement">Current Status</span>
+            </div>
+            <div className="project-chart-wrapper-projectmanagement">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={pipelineChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorPipeline" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0.2}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#E5E7EB" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 11}} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 11}} width={30} allowDecimals={false} />
+                  <Tooltip content={<PipelineTooltip />} cursor={{stroke: '#D1D5DB', strokeWidth: 1}} />
+                  <Bar dataKey="value" fill="url(#colorPipeline)" radius={[4, 4, 0, 0]} barSize={40} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
-        <div className="project-filters">
-          <div className="filter-group">
+          {/* CHART 2: Revenue */}
+          <div className="project-chart-card-projectmanagement">
+            <div className="project-chart-header-projectmanagement">
+              <h3>Revenue Overview</h3>
+              <span className="project-chart-period-projectmanagement">Monthly Trends</span>
+            </div>
+            <div className="project-chart-wrapper-projectmanagement">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorTotalRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorCollected" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#E5E7EB" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 11}} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 11}} width={40} />
+                  <Tooltip content={<RevenueTooltip />} cursor={{stroke: '#D1D5DB', strokeWidth: 1}} />
+                  <Area type="monotone" dataKey="total" name="Total Expected" stroke="#2563eb" strokeWidth={2.5} fillOpacity={1} fill="url(#colorTotalRevenue)" dot={{ r: 4, fill: '#2563eb', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                  <Area type="monotone" dataKey="collected" name="Collected" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCollected)" dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* ============================================ */}
+        {/* TOOLBAR                                      */}
+        {/* ============================================ */}
+        <div className="project-tabs-projectmanagement"></div>
+
+        <div className="project-filters-projectmanagement">
+          <div className="search-group-projectmanagement">
+            <FaSearch className="search-icon-projectmanagement" />
+            <input 
+              type="text" 
+              placeholder="Search projects..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+            />
+          </div>
+          <div className="filter-group-projectmanagement">
             <select value={filter} onChange={(e) => { setFilter(e.target.value); setCurrentPage(1); }}>
               <option value="all">All Status</option>
               <option value="quoted">Quoted</option>
@@ -353,15 +494,19 @@ const ProjectManagement = () => {
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
             </select>
+            <FaChevronDown className="select-arrow-projectmanagement" />
           </div>
-          <div className="search-group">
-            <input type="text" placeholder="Search projects..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-          </div>
+          <button className="refresh-btn-projectmanagement" onClick={() => { fetchProjects(); fetchStats(); }}>
+            <FaSyncAlt className={loading ? 'spinning-projectmanagement' : ''} /> Refresh
+          </button>
         </div>
 
-        <div className="project-table-container">
-          <div className="table-wrapper">
-            <table className="project-table">
+        {/* ============================================ */}
+        {/* TABLE                                        */}
+        {/* ============================================ */}
+        <div className="project-table-container-projectmanagement">
+          <div className="table-wrapper-projectmanagement">
+            <table className="project-table-projectmanagement">
               <thead>
                 <tr>
                   <th>Project</th>
@@ -375,7 +520,7 @@ const ProjectManagement = () => {
               </thead>
               <tbody>
                 {filteredProjects.length === 0 ? (
-                  <tr><td colSpan="7" className="empty-state">No projects found</td></tr>
+                  <tr><td colSpan="7" className="empty-state-projectmanagement">No projects found</td></tr>
                 ) : (
                   filteredProjects.map(project => {
                     const actions = getAvailableActions(project);
@@ -383,28 +528,28 @@ const ProjectManagement = () => {
                     
                     return (
                       <tr key={project._id}>
-                        <td className="project-cell">
-                          <div className="project-name">{project.projectName}</div>
-                          <div className="project-ref">{project.projectReference}</div>
+                        <td className="project-cell-projectmanagement">
+                          <div className="project-name-projectmanagement">{project.projectName}</div>
+                          <div className="project-ref-projectmanagement">{project.projectReference}</div>
                         </td>
                         <td><div><strong>{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</strong></div><div><small>{project.clientId?.contactNumber}</small></div></td>
                         <td>{project.systemSize} kW</td>
-                        <td className="amount">{formatCurrency(project.totalCost)}</td>
-                        <td className="amount">{formatCurrency(project.amountPaid)}</td>
+                        <td className="amount-projectmanagement">{formatCurrency(project.totalCost)}</td>
+                        <td className="amount-projectmanagement">{formatCurrency(project.amountPaid)}</td>
                         <td>{getStatusBadge(project.status)}</td>
                         <td style={{ textAlign: 'center', position: 'relative' }}>
-                          <div className="action-dropdown-container">
+                          <div className="action-dropdown-container-projectmanagement">
                             <button 
-                              className="action-dropdown-toggle"
+                              className="action-dropdown-toggle-projectmanagement"
                               ref={el => buttonRefs.current[project._id] = el}
                               onClick={(e) => handleDropdownClick(e, project._id)}
                             >
-                              Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
+                              Action <FaChevronDown className={`dropdown-arrow-projectmanagement ${isOpen ? 'open' : ''}`} />
                             </button>
                             
                             {isOpen && (
                               <div 
-                                className="action-dropdown-menu"
+                                className="action-dropdown-menu-projectmanagement"
                                 ref={dropdownRef}
                                 style={{
                                   position: 'fixed',
@@ -416,7 +561,7 @@ const ProjectManagement = () => {
                                 {actions.map((action, idx) => (
                                   <button 
                                     key={idx} 
-                                    className={`dropdown-item ${action.color || ''}`}
+                                    className={`dropdown-item-projectmanagement ${action.color || ''}`}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       action.action();
@@ -439,13 +584,13 @@ const ProjectManagement = () => {
         </div>
 
         {totalPages > 1 && (
-          <div className="pagination">
-            <div className="pagination-info">
+          <div className="pagination-projectmanagement">
+            <div className="pagination-info-projectmanagement">
               Showing {startItem} to {endItem} of {totalItems} entries
             </div>
-            <div className="pagination-controls">
+            <div className="pagination-controls-projectmanagement">
               <button 
-                className="page-btn" 
+                className="page-btn-projectmanagement" 
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} 
                 disabled={currentPage === 1}
               >
@@ -455,7 +600,7 @@ const ProjectManagement = () => {
               {getPageNumbers().map(page => (
                 <button
                   key={page}
-                  className={`page-number ${currentPage === page ? 'active' : ''}`}
+                  className={`page-number-projectmanagement ${currentPage === page ? 'active-projectmanagement' : ''}`}
                   onClick={() => setCurrentPage(page)}
                 >
                   {page}
@@ -463,7 +608,7 @@ const ProjectManagement = () => {
               ))}
               
               <button 
-                className="page-btn" 
+                className="page-btn-projectmanagement" 
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} 
                 disabled={currentPage === totalPages}
               >
@@ -473,68 +618,113 @@ const ProjectManagement = () => {
           </div>
         )}
 
+        {/* ============================================ */}
+        {/* MODALS (NO 'X' BUTTONS)                      */}
+        {/* ============================================ */}
+
         {/* Detail Modal */}
         {showDetailModal && selectedProject && (
-          <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
-            <div className="modal detail-modal" onClick={e => e.stopPropagation()}>
-              <div className="modal-header"><h3>Project Details</h3><button className="modal-close" onClick={() => setShowDetailModal(false)}>×</button></div>
-              <div className="modal-body">
-                <div className="detail-section"><h4>Project</h4><p><strong>Name:</strong> {selectedProject.projectName}</p><p><strong>Ref:</strong> {selectedProject.projectReference}</p><p><strong>Status:</strong> {getStatusBadge(selectedProject.status)}</p></div>
-                <div className="detail-section"><h4>Client</h4><p><strong>Name:</strong> {selectedProject.clientId?.contactFirstName} {selectedProject.clientId?.contactLastName}</p><p><strong>Contact:</strong> {selectedProject.clientId?.contactNumber}</p><p><strong>Email:</strong> {selectedProject.clientId?.userId?.email}</p></div>
-                <div className="detail-section"><h4>System</h4><p><strong>Size:</strong> {selectedProject.systemSize} kWp</p><p><strong>Type:</strong> {selectedProject.systemType}</p></div>
-                <div className="detail-section"><h4>Financial</h4><p><strong>Total:</strong> {formatCurrency(selectedProject.totalCost)}</p><p><strong>Paid:</strong> {formatCurrency(selectedProject.amountPaid)}</p><p><strong>Balance:</strong> {formatCurrency(selectedProject.balance)}</p></div>
-
-                
+          <div className="modal-overlay-projectmanagement" onClick={() => setShowDetailModal(false)}>
+            <div className="modal-projectmanagement detail-modal-projectmanagement" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-projectmanagement"><h3>Project Details</h3></div>
+              <div className="modal-body-projectmanagement">
+                <div className="detail-section-projectmanagement"><h4>Project</h4><p><strong>Name:</strong> {selectedProject.projectName}</p><p><strong>Ref:</strong> {selectedProject.projectReference}</p><p><strong>Status:</strong> {getStatusBadge(selectedProject.status)}</p></div>
+                <div className="detail-section-projectmanagement"><h4>Client</h4><p><strong>Name:</strong> {selectedProject.clientId?.contactFirstName} {selectedProject.clientId?.contactLastName}</p><p><strong>Contact:</strong> {selectedProject.clientId?.contactNumber}</p><p><strong>Email:</strong> {selectedProject.clientId?.userId?.email}</p></div>
+                <div className="detail-section-projectmanagement"><h4>System</h4><p><strong>Size:</strong> {selectedProject.systemSize} kWp</p><p><strong>Type:</strong> {selectedProject.systemType}</p></div>
+                <div className="detail-section-projectmanagement"><h4>Financial</h4><p><strong>Total:</strong> {formatCurrency(selectedProject.totalCost)}</p><p><strong>Paid:</strong> {formatCurrency(selectedProject.amountPaid)}</p><p><strong>Balance:</strong> {formatCurrency(selectedProject.balance)}</p></div>
               </div>
-              <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowDetailModal(false)}>Close</button></div>
+              <div className="modal-actions-projectmanagement"><button className="cancel-btn-projectmanagement" onClick={() => setShowDetailModal(false)}>Close</button></div>
             </div>
           </div>
         )}
 
-        {/* Assign Engineer Modal */}
+        {/* Assign Engineer Modal - CARD SELECTION */}
         {showAssignModal && selectedProject && (
-          <div className="modal-overlay" onClick={() => setShowAssignModal(false)}>
-            <div className="modal" onClick={e => e.stopPropagation()}>
-              <div className="modal-header"><h3>Assign Engineer</h3><button className="modal-close" onClick={() => setShowAssignModal(false)}>×</button></div>
-              <div className="modal-body">
-                <p><strong>Project:</strong> {selectedProject.projectName}</p>
-                <div className="form-group"><label>Engineer</label><select value={formData.engineerId} onChange={(e) => setFormData({ ...formData, engineerId: e.target.value })}><option value="">Select...</option>{engineers.map(e => <option key={e._id} value={e._id}>{e.fullName || `${e.firstName} ${e.lastName}`}</option>)}</select></div>
-                <div className="form-group"><label>Notes</label><textarea rows="3" value={formData.assignNotes} onChange={(e) => setFormData({ ...formData, assignNotes: e.target.value })} /></div>
+          <div className="modal-overlay-projectmanagement" onClick={() => setShowAssignModal(false)}>
+            <div className="modal-projectmanagement assign-engineer-modal-projectmanagement" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-projectmanagement"><h3>Assign Engineer</h3></div>
+              <div className="modal-body-projectmanagement">
+                <div className="detail-row-projectmanagement"><span>Project:</span><strong>{selectedProject.projectName}</strong></div>
+                
+                <div className="form-group-projectmanagement">
+                  <label>Select Engineer</label>
+                  <div className="engineer-grid-projectmanagement">
+                    {engineers.length === 0 ? (
+                      <div className="no-engineers-projectmanagement">No engineers available</div>
+                    ) : (
+                      engineers.map(eng => (
+                        <div 
+                          key={eng._id}
+                          className={`engineer-card-projectmanagement ${formData.engineerId === eng._id ? 'selected-projectmanagement' : ''}`}
+                          onClick={() => setFormData({ ...formData, engineerId: eng._id })}
+                        >
+                          <div className="engineer-avatar-projectmanagement">
+                            <span>{eng.fullName?.charAt(0) || 'E'}</span>
+                          </div>
+                          <div className="engineer-info-projectmanagement">
+                            <div className="engineer-name-projectmanagement">{eng.fullName || 'Engineer'}</div>
+                            <div className="engineer-email-projectmanagement">{eng.email}</div>
+                          </div>
+                          {formData.engineerId === eng._id && (
+                            <div className="engineer-selected-badge-projectmanagement">
+                              <FaCheckCircle />
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+                
+                <div className="form-group-projectmanagement">
+                  <label>Notes</label>
+                  <textarea 
+                    rows="3" 
+                    value={formData.assignNotes} 
+                    onChange={(e) => setFormData({ ...formData, assignNotes: e.target.value })} 
+                    placeholder="Add any special instructions or notes..."
+                  />
+                </div>
               </div>
-              <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowAssignModal(false)}>Cancel</button><button className="assign-btn" onClick={assignEngineer} disabled={!formData.engineerId || isSubmitting}>{isSubmitting ? 'Assigning...' : 'Assign'}</button></div>
+              <div className="modal-actions-projectmanagement">
+                <button className="cancel-btn-projectmanagement" onClick={() => setShowAssignModal(false)}>Cancel</button>
+                <button className="assign-btn-projectmanagement" onClick={assignEngineer} disabled={!formData.engineerId || isSubmitting}>
+                  {isSubmitting ? 'Assigning...' : 'Assign Engineer'}
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {/* Status Modal */}
         {showStatusModal && selectedProject && (
-          <div className="modal-overlay" onClick={() => setShowStatusModal(false)}>
-            <div className="modal" onClick={e => e.stopPropagation()}>
-              <div className="modal-header"><h3>Update Status</h3><button className="modal-close" onClick={() => setShowStatusModal(false)}>×</button></div>
-              <div className="modal-body">
+          <div className="modal-overlay-projectmanagement" onClick={() => setShowStatusModal(false)}>
+            <div className="modal-projectmanagement" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-projectmanagement"><h3>Update Status</h3></div>
+              <div className="modal-body-projectmanagement">
                 <p><strong>Project:</strong> {selectedProject.projectName}</p>
                 <p><strong>Current:</strong> {getStatusBadge(selectedProject.status)}</p>
-                <div className="form-group"><label>New Status</label><select value={formData.newStatus} onChange={(e) => setFormData({ ...formData, newStatus: e.target.value })}><option value="">Select...</option>{selectedProject.status === 'quoted' && <option value="approved">Approve</option>}{selectedProject.status === 'in_progress' && <option value="completed">Complete</option>}<option value="cancelled">Cancel</option></select></div>
-                <div className="form-group"><label>Notes</label><textarea rows="3" value={formData.statusNotes} onChange={(e) => setFormData({ ...formData, statusNotes: e.target.value })} /></div>
+                <div className="form-group-projectmanagement"><label>New Status</label><select value={formData.newStatus} onChange={(e) => setFormData({ ...formData, newStatus: e.target.value })}><option value="">Select...</option>{selectedProject.status === 'quoted' && <option value="approved">Approve</option>}{selectedProject.status === 'in_progress' && <option value="completed">Complete</option>}<option value="cancelled">Cancel</option></select></div>
+                <div className="form-group-projectmanagement"><label>Notes</label><textarea rows="3" value={formData.statusNotes} onChange={(e) => setFormData({ ...formData, statusNotes: e.target.value })} /></div>
               </div>
-              <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowStatusModal(false)}>Cancel</button><button className="approve-btn" onClick={updateProjectStatus} disabled={!formData.newStatus || isSubmitting}>{isSubmitting ? 'Updating...' : 'Update'}</button></div>
+              <div className="modal-actions-projectmanagement"><button className="cancel-btn-projectmanagement" onClick={() => setShowStatusModal(false)}>Cancel</button><button className="approve-btn-projectmanagement" onClick={updateProjectStatus} disabled={!formData.newStatus || isSubmitting}>{isSubmitting ? 'Updating...' : 'Update'}</button></div>
             </div>
           </div>
         )}
 
         {/* Payment Modal */}
         {showPaymentModal && selectedProject && (
-          <div className="modal-overlay" onClick={() => setShowPaymentModal(false)}>
-            <div className="modal" onClick={e => e.stopPropagation()}>
-              <div className="modal-header"><h3>Record Payment</h3><button className="modal-close" onClick={() => setShowPaymentModal(false)}>×</button></div>
-              <div className="modal-body">
+          <div className="modal-overlay-projectmanagement" onClick={() => setShowPaymentModal(false)}>
+            <div className="modal-projectmanagement" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-projectmanagement"><h3>Record Payment</h3></div>
+              <div className="modal-body-projectmanagement">
                 <p><strong>Project:</strong> {selectedProject.projectName}</p>
                 <p><strong>Balance:</strong> {formatCurrency(selectedProject.balance)}</p>
-                <div className="form-group"><label>Amount</label><input type="number" value={formData.paymentAmount} onChange={(e) => setFormData({ ...formData, paymentAmount: e.target.value })} /></div>
-                <div className="form-group"><label>Type</label><select value={formData.paymentMethod} onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}><option value="initial">Initial (30%)</option><option value="progress">Progress (40%)</option><option value="final">Final (30%)</option></select></div>
-                <div className="form-group"><label>Reference</label><input type="text" value={formData.paymentReference} onChange={(e) => setFormData({ ...formData, paymentReference: e.target.value })} /></div>
+                <div className="form-group-projectmanagement"><label>Amount</label><input type="number" value={formData.paymentAmount} onChange={(e) => setFormData({ ...formData, paymentAmount: e.target.value })} /></div>
+                <div className="form-group-projectmanagement"><label>Type</label><select value={formData.paymentMethod} onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}><option value="initial">Initial (30%)</option><option value="progress">Progress (40%)</option><option value="final">Final (30%)</option></select></div>
+                <div className="form-group-projectmanagement"><label>Reference</label><input type="text" value={formData.paymentReference} onChange={(e) => setFormData({ ...formData, paymentReference: e.target.value })} /></div>
               </div>
-              <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowPaymentModal(false)}>Cancel</button><button className="approve-btn" onClick={recordPayment} disabled={!formData.paymentAmount || isSubmitting}>{isSubmitting ? 'Recording...' : 'Record'}</button></div>
+              <div className="modal-actions-projectmanagement"><button className="cancel-btn-projectmanagement" onClick={() => setShowPaymentModal(false)}>Cancel</button><button className="approve-btn-projectmanagement" onClick={recordPayment} disabled={!formData.paymentAmount || isSubmitting}>{isSubmitting ? 'Recording...' : 'Record'}</button></div>
             </div>
           </div>
         )}

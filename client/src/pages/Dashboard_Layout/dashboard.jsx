@@ -518,18 +518,30 @@ const Dashboard = () => {
     setTimeout(() => setIsNavigating(false), 300);
   };
 
+  const closeSidebar = () => {
+    if (isMobile()) {
+      setSidebarOpen(false);
+    }
+  };
+
   return (
     <div className={`dashboard-layout-dashboard ${dashboardReady ? 'dashboard-ready' : ''}`}>
-      {/* Mobile Hamburger Button */}
+      {/* Mobile Hamburger Button - 3 lines only */}
       <button
-        className="mobile-hamburger-btn"
+        className={`mobile-hamburger-btn ${sidebarOpen ? 'hidden' : ''}`}
         onClick={() => setSidebarOpen(true)}
         aria-label="Open menu"
       >
-        <FaBars />
+        <span className="hamburger-line"></span>
+        <span className="hamburger-line"></span>
+        <span className="hamburger-line"></span>
       </button>
 
-      {sidebarOpen && <div className="sidebar-overlay-layout-dashboard" onClick={() => setSidebarOpen(false)} />}
+      {/* Sidebar Overlay - Click to close */}
+      <div 
+        className={`sidebar-overlay-layout-dashboard ${sidebarOpen ? 'visible' : ''}`} 
+        onClick={closeSidebar} 
+      />
 
       {/* Sidebar - Slides from LEFT */}
       <aside className={`sidebar-layout-dashboard ${sidebarOpen ? 'open-layout-dashboard' : ''}`}>
@@ -540,12 +552,6 @@ const Dashboard = () => {
             </div>
             <h1 className="logo-text-layout-dashboard">Salfer Engineering</h1>
           </div>
-          <button
-            className="sidebar-close-btn"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <FaTimes />
-          </button>
         </div>
 
         <nav className="sidebar-nav-layout-dashboard">
@@ -592,7 +598,7 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <main className="main-content-layout-dashboard">
-        {/* Header - Slides from TOP */}
+        {/* Header */}
         <header className="dashboard-header-layout-dashboard">
           <div className="header-left-layout-dashboard">
             <div className="page-header-info-layout-dashboard">
@@ -620,7 +626,7 @@ const Dashboard = () => {
           </div>
         </header>
 
-        {/* Content Area - Fades in */}
+        {/* Content Area */}
         <div className="content-area-layout-dashboard">
           <Outlet />
         </div>
@@ -630,7 +636,6 @@ const Dashboard = () => {
       {showLogoutModal && (
         <div className="logout-modal-overlay" onClick={cancelLogout}>
           <div className="logout-modal-container" onClick={(e) => e.stopPropagation()}>
-           
             <h2 className="logout-modal-title">Confirm Logout</h2>
             <p className="logout-modal-message">Are you sure you want to logout?</p>
             <p className="logout-modal-sub-message">You will need to login again to access your account.</p>

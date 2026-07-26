@@ -36,7 +36,7 @@ const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [auditLoading, setAuditLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('users'); // 'users' or 'audit'
+  const [activeTab, setActiveTab] = useState('users');
   const [stats, setStats] = useState({
     total: 0,
     activeUsers: 0,
@@ -51,8 +51,8 @@ const UserManagement = () => {
   const [auditCurrentPage, setAuditCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [auditTotalItems, setAuditTotalItems] = useState(0);
-  const [itemsPerPage] = useState(5);
-  const [auditItemsPerPage] = useState(5);
+  const [itemsPerPage] = useState(10);
+  const [auditItemsPerPage] = useState(10);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -186,7 +186,6 @@ const UserManagement = () => {
       user.clientInfo?.contactNumber?.includes(searchTerm);
   });
 
-  // Filter audit logs by search term (client-side filtering)
   const filteredAuditLogs = auditLogs.filter(log => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
@@ -199,7 +198,6 @@ const UserManagement = () => {
     );
   });
 
-  // Calculate audit pagination based on filtered results
   const auditFilteredTotal = filteredAuditLogs.length;
   const auditTotalPages = Math.ceil(auditFilteredTotal / auditItemsPerPage);
   const auditStartItem = (auditCurrentPage - 1) * auditItemsPerPage + 1;
@@ -458,18 +456,18 @@ const UserManagement = () => {
 
   const getRoleBadge = (role) => {
     const badges = {
-      admin: <span className="role-badge admin">Admin</span>,
-      engineer: <span className="role-badge engineer">Engineer</span>,
-      user: <span className="role-badge user">Customer</span>
+      admin: <span className="role-badge-usermanagement admin">Admin</span>,
+      engineer: <span className="role-badge-usermanagement engineer">Engineer</span>,
+      user: <span className="role-badge-usermanagement user">Customer</span>
     };
-    return badges[role] || <span className="role-badge">{role}</span>;
+    return badges[role] || <span className="role-badge-usermanagement">{role}</span>;
   };
 
   const getStatusBadge = (isActive) => {
     if (isActive) {
-      return <span className="status-badge active"><FaCheckCircle /> Active</span>;
+      return <span className="status-badge-usermanagement active"><FaCheckCircle /> Active</span>;
     }
-    return <span className="status-badge inactive"><FaTimesCircle /> Inactive</span>;
+    return <span className="status-badge-usermanagement inactive"><FaTimesCircle /> Inactive</span>;
   };
 
   const formatDate = (date) => {
@@ -504,15 +502,15 @@ const UserManagement = () => {
 
   const getActionBadge = (action) => {
     const badges = {
-      'Create': <span className="action-badge create">Create</span>,
-      'Update': <span className="action-badge update">Update</span>,
-      'Delete': <span className="action-badge delete">Delete</span>,
-      'Login': <span className="action-badge login">Login</span>,
-      'Logout': <span className="action-badge logout">Logout</span>,
-      'Status Change': <span className="action-badge status">Status Change</span>,
-      'Password Reset': <span className="action-badge password">Password Reset</span>
+      'Create': <span className="action-badge-usermanagement">Create</span>,
+      'Update': <span className="action-badge-usermanagement">Update</span>,
+      'Delete': <span className="action-badge-usermanagement">Delete</span>,
+      'Login': <span className="action-badge-usermanagement">Login</span>,
+      'Logout': <span className="action-badge-usermanagement">Logout</span>,
+      'Status Change': <span className="action-badge-usermanagement">Status Change</span>,
+      'Password Reset': <span className="action-badge-usermanagement">Password Reset</span>
     };
-    return badges[action] || <span className="action-badge default">{action}</span>;
+    return badges[action] || <span className="action-badge-usermanagement">{action}</span>;
   };
 
   const getAvailableActions = (user) => {
@@ -550,22 +548,22 @@ const UserManagement = () => {
   const auditPageNumbers = getPageNumbers(auditTotalPages, auditCurrentPage);
 
   const SkeletonLoader = () => (
-    <div className="user-management">
-      <div className="user-management-header">
-        <div className="skeleton-line large"></div>
-        <div className="skeleton-button"></div>
+    <div className="user-management-usermanagement">
+      <div className="user-management-header-usermanagement">
+        <div className="skeleton-line-large-usermanagement"></div>
+        <div className="skeleton-button-usermanagement"></div>
       </div>
-      <div className="user-tabs">
-        <div className="skeleton-tab"></div>
-        <div className="skeleton-tab"></div>
-        <div className="skeleton-tab"></div>
-        <div className="skeleton-tab"></div>
+      <div className="user-tabs-usermanagement">
+        <div className="skeleton-tab-usermanagement"></div>
+        <div className="skeleton-tab-usermanagement"></div>
+        <div className="skeleton-tab-usermanagement"></div>
+        <div className="skeleton-tab-usermanagement"></div>
       </div>
-      <div className="user-filters-section">
-        <div className="skeleton-search"></div>
+      <div className="user-filters-section-usermanagement">
+        <div className="skeleton-search-usermanagement"></div>
       </div>
-      <div className="users-table-container">
-        <div className="skeleton-table"></div>
+      <div className="users-table-container-usermanagement">
+        <div className="skeleton-table-usermanagement"></div>
       </div>
     </div>
   );
@@ -584,47 +582,48 @@ const UserManagement = () => {
         <title>User Management | Admin | Salfer Engineering</title>
       </Helmet>
 
-      <div className="user-management">
-        <div className="user-management-header">
-          <div>
-            
-            <p>Manage system users, roles, and permissions</p>
+      <div className="user-management-usermanagement">
+        {/* --- Minimalist Header --- */}
+        <div className="user-management-header-usermanagement">
+          <div></div>
+        </div>
+
+        {/* --- Tabs + Buttons Wrapper --- */}
+        <div className="user-tabs-wrapper-usermanagement">
+          <div className="user-tabs-usermanagement">
+            <button
+              className={`tab-btn-usermanagement ${activeTab === 'users' ? 'active-usermanagement' : ''}`}
+              onClick={() => { setActiveTab('users'); setSearchTerm(''); setCurrentPage(1); setAuditCurrentPage(1); }}
+            >
+              <FaUsers /> Users
+              <span className="tab-badge-usermanagement">{stats.total}</span>
+            </button>
+            <button
+              className={`tab-btn-usermanagement ${activeTab === 'audit' ? 'active-usermanagement' : ''}`}
+              onClick={() => { setActiveTab('audit'); setSearchTerm(''); setCurrentPage(1); setAuditCurrentPage(1); }}
+            >
+              <FaHistory /> Audit Logs
+            </button>
           </div>
 
-          {activeTab === 'users' && (
-            <button className="create-user-btn" onClick={handleOpenCreateModal}>
-              <FaUserPlus /> Add User
-            </button>
-          )}
-          {activeTab === 'audit' && (
-            <button className="refresh-btn" onClick={fetchAuditLogs}>
-              <FaHistory /> Refresh Logs
-            </button>
-          )}
+          <div className="user-tab-actions-usermanagement">
+            {activeTab === 'users' && (
+              <button className="create-user-btn-usermanagement" onClick={handleOpenCreateModal}>
+                <FaUserPlus /> Add User
+              </button>
+            )}
+            {activeTab === 'audit' && (
+              <button className="refresh-btn-usermanagement" onClick={fetchAuditLogs}>
+                <FaHistory /> Refresh Logs
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Tabs */}
-        <div className="user-tabs">
-          <button
-            className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('users'); setSearchTerm(''); setCurrentPage(1); setAuditCurrentPage(1); }}
-          >
-            <FaUsers /> Users
-            <span className="tab-badge">{stats.total}</span>
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'audit' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('audit'); setSearchTerm(''); setCurrentPage(1); setAuditCurrentPage(1); }}
-          >
-            <FaHistory /> Audit Logs
-            
-          </button>
-        </div>
-
-        {/* Filters */}
-        <div className="user-filters-section">
-          <div className="search-box">
-            <FaSearch className="search-icon" />
+        {/* --- Filters --- */}
+        <div className="user-filters-section-usermanagement">
+          <div className="search-box-usermanagement">
+            <FaSearch className="search-icon-usermanagement" />
             <input
               type="text"
               placeholder={activeTab === 'users' ? "Search by name, email, or contact number..." : "Search logs by user, module, action, or role..."}
@@ -633,7 +632,7 @@ const UserManagement = () => {
             />
           </div>
           {activeTab === 'users' && (
-            <div className="filter-role">
+            <div className="filter-role-usermanagement">
               <select value={filterRole} onChange={(e) => { setFilterRole(e.target.value); setCurrentPage(1); }}>
                 <option value="all">All Roles</option>
                 <option value="admin">Admin</option>
@@ -646,8 +645,8 @@ const UserManagement = () => {
 
         {/* Users Table */}
         {activeTab === 'users' && (
-          <div className="users-table-container">
-            <table className="users-table">
+          <div className="users-table-container-usermanagement">
+            <table className="users-table-usermanagement">
               <thead>
                 <tr>
                   <th style={{ width: '25%' }}>User</th>
@@ -662,7 +661,7 @@ const UserManagement = () => {
               <tbody>
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="empty-state">
+                    <td colSpan="7" className="empty-state-usermanagement">
                       <p>No users found</p>
                     </td>
                   </tr>
@@ -674,39 +673,39 @@ const UserManagement = () => {
                     return (
                       <tr key={user._id}>
                         <td>
-                          <div className="user-cell-content">
-                            <div className="user-avatar">
+                          <div className="user-cell-content-usermanagement">
+                            <div className="user-avatar-usermanagement">
                               {user.clientInfo?.firstName ? (
-                                <div className="avatar-initials">{user.clientInfo.firstName[0]}{user.clientInfo.lastName?.[0]}</div>
+                                <div className="avatar-initials-usermanagement">{user.clientInfo.firstName[0]}{user.clientInfo.lastName?.[0]}</div>
                               ) : (
-                                <FaUserCircle className="avatar-icon" />
+                                <FaUserCircle className="avatar-icon-usermanagement" />
                               )}
                             </div>
-                            <div className="user-name">{user.fullName || '—'}</div>
+                            <div className="user-name-usermanagement">{user.fullName || '—'}</div>
                           </div>
                         </td>
-                        <td className="email-cell">
-                          <FaEnvelope className="email-icon" />
-                          <span className="email-text">{user.email}</span>
+                        <td className="email-cell-usermanagement">
+                          <FaEnvelope className="email-icon-usermanagement" />
+                          <span className="email-text-usermanagement">{user.email}</span>
                         </td>
-                        <td className="contact-cell">
+                        <td className="contact-cell-usermanagement">
                           {user.clientInfo?.contactNumber || '—'}
                         </td>
                         <td>{getRoleBadge(user.role)}</td>
                         <td>{getStatusBadge(user.isActive)}</td>
                         <td>{formatDate(user.createdAt)}</td>
                         <td style={{ textAlign: 'center', position: 'relative' }}>
-                          <div className="action-dropdown-container">
+                          <div className="action-dropdown-container-usermanagement">
                             <button
-                              className="action-dropdown-toggle"
+                              className="action-dropdown-toggle-usermanagement"
                               ref={el => buttonRefs.current[user._id] = el}
                               onClick={(e) => handleDropdownClick(e, user._id)}
                             >
-                              Action <FaChevronDown className={`dropdown-arrow ${isOpen ? 'open' : ''}`} />
+                              Action <FaChevronDown className={`dropdown-arrow-usermanagement ${isOpen ? 'open-usermanagement' : ''}`} />
                             </button>
                             {isOpen && (
                               <div
-                                className="action-dropdown-menu"
+                                className="action-dropdown-menu-usermanagement"
                                 ref={dropdownRef}
                                 style={{
                                   position: 'fixed',
@@ -718,7 +717,7 @@ const UserManagement = () => {
                                 {actions.map((action, idx) => (
                                   <button
                                     key={idx}
-                                    className={`dropdown-item ${action.color || ''}`}
+                                    className={`dropdown-item-usermanagement ${action.color || ''}`}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       action.action();
@@ -742,8 +741,8 @@ const UserManagement = () => {
 
         {/* Audit Logs Table */}
         {activeTab === 'audit' && (
-          <div className="users-table-container audit-logs-table">
-            <table className="users-table">
+          <div className="users-table-container-usermanagement audit-logs-table-usermanagement">
+            <table className="users-table-usermanagement">
               <thead>
                 <tr>
                   <th style={{ width: '18%' }}>User</th>
@@ -756,13 +755,12 @@ const UserManagement = () => {
               <tbody>
                 {paginatedAuditLogs.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="empty-state">
+                    <td colSpan="5" className="empty-state-usermanagement">
                       <p>No audit logs found</p>
                     </td>
                   </tr>
                 ) : (
                   paginatedAuditLogs.map(log => {
-                    // Get user display name
                     let userDisplayName = 'Unknown User';
                     let userInitials = '?';
 
@@ -784,23 +782,23 @@ const UserManagement = () => {
                     return (
                       <tr key={log._id}>
                         <td>
-                          <div className="user-cell-content">
-                            <div className="user-avatar small-avatar">
-                              <div className="avatar-initials">{userInitials}</div>
+                          <div className="user-cell-content-usermanagement">
+                            <div className="user-avatar-usermanagement small-avatar-usermanagement">
+                              <div className="avatar-initials-usermanagement">{userInitials}</div>
                             </div>
-                            <div className="user-name">{userDisplayName}</div>
+                            <div className="user-name-usermanagement">{userDisplayName}</div>
                           </div>
                         </td>
                         <td>{getRoleBadge(log.role)}</td>
                         <td>
-                          <span className="module-badge">
+                          <span className="module-badge-usermanagement">
                             {getModuleIcon(log.module)} {log.module}
                           </span>
                         </td>
                         <td>{getActionBadge(log.action)}</td>
                         <td>
-                          <div className="timestamp-cell">
-                            <FaCalendarAlt className="timestamp-icon" />
+                          <div className="timestamp-cell-usermanagement">
+                            <FaCalendarAlt className="timestamp-icon-usermanagement" />
                             <span>{formatDateTime(log.createdAt)}</span>
                           </div>
                         </td>
@@ -815,13 +813,13 @@ const UserManagement = () => {
 
         {/* Pagination - Users */}
         {activeTab === 'users' && totalPages > 1 && (
-          <div className="pagination">
-            <div className="pagination-info">
+          <div className="pagination-usermanagement">
+            <div className="pagination-info-usermanagement">
               Showing {startItem} to {endItem} of {totalItems} entries
             </div>
-            <div className="pagination-controls">
+            <div className="pagination-controls-usermanagement">
               <button
-                className="page-btn"
+                className="page-btn-usermanagement"
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
               >
@@ -831,7 +829,7 @@ const UserManagement = () => {
               {getPageNumbers(totalPages, currentPage).map(page => (
                 <button
                   key={page}
-                  className={`page-number ${currentPage === page ? 'active' : ''}`}
+                  className={`page-number-usermanagement ${currentPage === page ? 'active-usermanagement' : ''}`}
                   onClick={() => setCurrentPage(page)}
                 >
                   {page}
@@ -839,7 +837,7 @@ const UserManagement = () => {
               ))}
 
               <button
-                className="page-btn"
+                className="page-btn-usermanagement"
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
               >
@@ -851,13 +849,13 @@ const UserManagement = () => {
 
         {/* Pagination - Audit Logs */}
         {activeTab === 'audit' && auditTotalPages > 1 && (
-          <div className="pagination">
-            <div className="pagination-info">
+          <div className="pagination-usermanagement">
+            <div className="pagination-info-usermanagement">
               Showing {auditStartItem} to {auditEndItem} of {auditFilteredTotal} entries
             </div>
-            <div className="pagination-controls">
+            <div className="pagination-controls-usermanagement">
               <button
-                className="page-btn"
+                className="page-btn-usermanagement"
                 onClick={() => setAuditCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={auditCurrentPage === 1}
               >
@@ -867,7 +865,7 @@ const UserManagement = () => {
               {auditPageNumbers.map(page => (
                 <button
                   key={page}
-                  className={`page-number ${auditCurrentPage === page ? 'active' : ''}`}
+                  className={`page-number-usermanagement ${auditCurrentPage === page ? 'active-usermanagement' : ''}`}
                   onClick={() => setAuditCurrentPage(page)}
                 >
                   {page}
@@ -875,7 +873,7 @@ const UserManagement = () => {
               ))}
 
               <button
-                className="page-btn"
+                className="page-btn-usermanagement"
                 onClick={() => setAuditCurrentPage(prev => Math.min(auditTotalPages, prev + 1))}
                 disabled={auditCurrentPage === auditTotalPages}
               >
@@ -885,40 +883,40 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* User Modal (Create/Edit/View) */}
+        {/* User Modal */}
         {showUserModal && (
-          <div className="modal-overlay" onClick={() => setShowUserModal(false)}>
-            <div className={`modal-content user-modal ${modalMode}`} onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
+          <div className="modal-overlay-usermanagement" onClick={() => setShowUserModal(false)}>
+            <div className={`modal-content-usermanagement user-modal-usermanagement ${modalMode}`} onClick={e => e.stopPropagation()}>
+              <div className="modal-header-usermanagement">
                 <h3>{modalMode === 'view' ? 'User Details' : modalMode === 'edit' ? 'Edit User' : 'Create New User'}</h3>
-                <button className="modal-close" onClick={() => setShowUserModal(false)}>×</button>
+                <button className="modal-close-usermanagement" onClick={() => setShowUserModal(false)}>×</button>
               </div>
-              <div className="modal-body">
+              <div className="modal-body-usermanagement">
                 {modalMode === 'view' && selectedUser && (
-                  <div className="user-details-view">
-                    <div className="detail-section">
+                  <div className="user-details-view-usermanagement">
+                    <div className="detail-section-usermanagement">
                       <h4>Account Information</h4>
-                      <div className="detail-row"><span>Full Name:</span><strong>{selectedUser.fullName || '—'}</strong></div>
-                      <div className="detail-row"><span>Email:</span><strong>{selectedUser.email}</strong></div>
-                      <div className="detail-row"><span>Role:</span><strong>{getRoleBadge(selectedUser.role)}</strong></div>
-                      <div className="detail-row"><span>Status:</span><strong>{getStatusBadge(selectedUser.isActive)}</strong></div>
-                      <div className="detail-row"><span>Created:</span><strong>{formatDate(selectedUser.createdAt)}</strong></div>
-                      <div className="detail-row"><span>Last Login:</span><strong>{formatDate(selectedUser.lastLogin)}</strong></div>
+                      <div className="detail-row-usermanagement"><span>Full Name:</span><strong>{selectedUser.fullName || '—'}</strong></div>
+                      <div className="detail-row-usermanagement"><span>Email:</span><strong>{selectedUser.email}</strong></div>
+                      <div className="detail-row-usermanagement"><span>Role:</span><strong>{getRoleBadge(selectedUser.role)}</strong></div>
+                      <div className="detail-row-usermanagement"><span>Status:</span><strong>{getStatusBadge(selectedUser.isActive)}</strong></div>
+                      <div className="detail-row-usermanagement"><span>Created:</span><strong>{formatDate(selectedUser.createdAt)}</strong></div>
+                      <div className="detail-row-usermanagement"><span>Last Login:</span><strong>{formatDate(selectedUser.lastLogin)}</strong></div>
                     </div>
                     {selectedUser.clientInfo && (
-                      <div className="detail-section">
+                      <div className="detail-section-usermanagement">
                         <h4>Client Information</h4>
-                        <div className="detail-row"><span>First Name:</span><strong>{selectedUser.clientInfo.firstName || '—'}</strong></div>
-                        <div className="detail-row"><span>Last Name:</span><strong>{selectedUser.clientInfo.lastName || '—'}</strong></div>
-                        <div className="detail-row"><span>Contact Number:</span><strong>{selectedUser.clientInfo.contactNumber || '—'}</strong></div>
+                        <div className="detail-row-usermanagement"><span>First Name:</span><strong>{selectedUser.clientInfo.firstName || '—'}</strong></div>
+                        <div className="detail-row-usermanagement"><span>Last Name:</span><strong>{selectedUser.clientInfo.lastName || '—'}</strong></div>
+                        <div className="detail-row-usermanagement"><span>Contact Number:</span><strong>{selectedUser.clientInfo.contactNumber || '—'}</strong></div>
                       </div>
                     )}
                   </div>
                 )}
                 {(modalMode === 'edit' || modalMode === 'create') && (
-                  <form className="user-form">
-                    <div className="form-row">
-                      <div className="form-group">
+                  <form className="user-form-usermanagement">
+                    <div className="form-row-usermanagement">
+                      <div className="form-group-usermanagement">
                         <label>First Name *</label>
                         <input
                           type="text"
@@ -926,9 +924,9 @@ const UserManagement = () => {
                           onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                           className={formErrors.firstName ? 'error' : ''}
                         />
-                        {formErrors.firstName && <span className="error-text">{formErrors.firstName}</span>}
+                        {formErrors.firstName && <span className="error-text-usermanagement">{formErrors.firstName}</span>}
                       </div>
-                      <div className="form-group">
+                      <div className="form-group-usermanagement">
                         <label>Last Name *</label>
                         <input
                           type="text"
@@ -936,11 +934,11 @@ const UserManagement = () => {
                           onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                           className={formErrors.lastName ? 'error' : ''}
                         />
-                        {formErrors.lastName && <span className="error-text">{formErrors.lastName}</span>}
+                        {formErrors.lastName && <span className="error-text-usermanagement">{formErrors.lastName}</span>}
                       </div>
                     </div>
-                    <div className="form-row">
-                      <div className="form-group">
+                    <div className="form-row-usermanagement">
+                      <div className="form-group-usermanagement">
                         <label>Email Address *</label>
                         <input
                           type="email"
@@ -949,10 +947,10 @@ const UserManagement = () => {
                           disabled={modalMode === 'edit'}
                           className={formErrors.email ? 'error' : ''}
                         />
-                        {formErrors.email && <span className="error-text">{formErrors.email}</span>}
+                        {formErrors.email && <span className="error-text-usermanagement">{formErrors.email}</span>}
                         {modalMode === 'edit' && <small>Email cannot be changed</small>}
                       </div>
-                      <div className="form-group">
+                      <div className="form-group-usermanagement">
                         <label>Contact Number</label>
                         <input
                           type="tel"
@@ -962,8 +960,8 @@ const UserManagement = () => {
                       </div>
                     </div>
                     {modalMode === 'create' && (
-                      <div className="form-row">
-                        <div className="form-group">
+                      <div className="form-row-usermanagement">
+                        <div className="form-group-usermanagement">
                           <label>Password *</label>
                           <input
                             type="password"
@@ -971,10 +969,10 @@ const UserManagement = () => {
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                             className={formErrors.password ? 'error' : ''}
                           />
-                          {formErrors.password && <span className="error-text">{formErrors.password}</span>}
+                          {formErrors.password && <span className="error-text-usermanagement">{formErrors.password}</span>}
                           <small>Password must be at least 6 characters</small>
                         </div>
-                        <div className="form-group">
+                        <div className="form-group-usermanagement">
                           <label>Confirm Password *</label>
                           <input
                             type="password"
@@ -982,17 +980,17 @@ const UserManagement = () => {
                             onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                             className={formErrors.confirmPassword ? 'error' : ''}
                           />
-                          {formErrors.confirmPassword && <span className="error-text">{formErrors.confirmPassword}</span>}
+                          {formErrors.confirmPassword && <span className="error-text-usermanagement">{formErrors.confirmPassword}</span>}
                         </div>
                       </div>
                     )}
                   </form>
                 )}
               </div>
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowUserModal(false)}>Cancel</button>
+              <div className="modal-actions-usermanagement">
+                <button className="cancel-btn-usermanagement" onClick={() => setShowUserModal(false)}>Cancel</button>
                 {(modalMode === 'edit' || modalMode === 'create') && (
-                  <button className="save-btn" onClick={handleSaveUser} disabled={isSubmitting}>
+                  <button className="save-btn-usermanagement" onClick={handleSaveUser} disabled={isSubmitting}>
                     {isSubmitting ? 'Saving...' : 'Save User'}
                   </button>
                 )}
@@ -1003,19 +1001,19 @@ const UserManagement = () => {
 
         {/* Password Reset Modal */}
         {showPasswordModal && selectedUser && (
-          <div className="modal-overlay" onClick={() => setShowPasswordModal(false)}>
-            <div className="modal-content password-modal" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
+          <div className="modal-overlay-usermanagement" onClick={() => setShowPasswordModal(false)}>
+            <div className="modal-content-usermanagement password-modal-usermanagement" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-usermanagement">
                 <h3>Reset Password</h3>
-                <button className="modal-close" onClick={() => setShowPasswordModal(false)}>×</button>
+                <button className="modal-close-usermanagement" onClick={() => setShowPasswordModal(false)}>×</button>
               </div>
-              <div className="modal-body">
-                <div className="user-info-summary">
+              <div className="modal-body-usermanagement">
+                <div className="user-info-summary-usermanagement">
                   <p><strong>User:</strong> {selectedUser.fullName || selectedUser.email}</p>
                   <p><strong>Role:</strong> {getRoleBadge(selectedUser.role)}</p>
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
+                <div className="form-row-usermanagement">
+                  <div className="form-group-usermanagement">
                     <label>New Password *</label>
                     <input
                       type="password"
@@ -1023,12 +1021,12 @@ const UserManagement = () => {
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       className={passwordErrors.password ? 'error' : ''}
                     />
-                    {passwordErrors.password && <span className="error-text">{passwordErrors.password}</span>}
+                    {passwordErrors.password && <span className="error-text-usermanagement">{passwordErrors.password}</span>}
                     <small>Password must be at least 6 characters</small>
                   </div>
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
+                <div className="form-row-usermanagement">
+                  <div className="form-group-usermanagement">
                     <label>Confirm Password *</label>
                     <input
                       type="password"
@@ -1036,13 +1034,13 @@ const UserManagement = () => {
                       onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                       className={passwordErrors.confirmPassword ? 'error' : ''}
                     />
-                    {passwordErrors.confirmPassword && <span className="error-text">{passwordErrors.confirmPassword}</span>}
+                    {passwordErrors.confirmPassword && <span className="error-text-usermanagement">{passwordErrors.confirmPassword}</span>}
                   </div>
                 </div>
               </div>
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowPasswordModal(false)}>Cancel</button>
-                <button className="save-btn" onClick={handleResetPassword} disabled={isSubmitting}>
+              <div className="modal-actions-usermanagement">
+                <button className="cancel-btn-usermanagement" onClick={() => setShowPasswordModal(false)}>Cancel</button>
+                <button className="save-btn-usermanagement" onClick={handleResetPassword} disabled={isSubmitting}>
                   {isSubmitting ? 'Resetting...' : 'Reset Password'}
                 </button>
               </div>
@@ -1052,15 +1050,15 @@ const UserManagement = () => {
 
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && selectedUser && (
-          <div className="modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
-            <div className="modal-content confirm-modal" onClick={e => e.stopPropagation()}>
-              <div className="confirm-icon"><FaExclamationTriangle /></div>
+          <div className="modal-overlay-usermanagement" onClick={() => setShowDeleteConfirm(false)}>
+            <div className="modal-content-usermanagement confirm-modal-usermanagement" onClick={e => e.stopPropagation()}>
+              <div className="confirm-icon-usermanagement"><FaExclamationTriangle /></div>
               <h3>Delete User</h3>
               <p>Are you sure you want to delete <strong>{selectedUser.fullName || selectedUser.email}</strong>?</p>
-              <p className="warning-text">This action cannot be undone.</p>
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
-                <button className="delete-btn" onClick={handleDeleteUser} disabled={isSubmitting}>
+              <p className="warning-text-usermanagement">This action cannot be undone.</p>
+              <div className="modal-actions-usermanagement">
+                <button className="cancel-btn-usermanagement" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+                <button className="delete-btn-usermanagement" onClick={handleDeleteUser} disabled={isSubmitting}>
                   {isSubmitting ? 'Deleting...' : 'Delete User'}
                 </button>
               </div>
@@ -1070,14 +1068,14 @@ const UserManagement = () => {
 
         {/* Status Toggle Modal */}
         {showStatusConfirm && selectedUser && (
-          <div className="modal-overlay" onClick={() => setShowStatusConfirm(false)}>
-            <div className="modal-content confirm-modal" onClick={e => e.stopPropagation()}>
-              <div className="confirm-icon">{statusAction === 'deactivate' ? <FaBan /> : <FaCheck />}</div>
+          <div className="modal-overlay-usermanagement" onClick={() => setShowStatusConfirm(false)}>
+            <div className="modal-content-usermanagement confirm-modal-usermanagement" onClick={e => e.stopPropagation()}>
+              <div className="confirm-icon-usermanagement">{statusAction === 'deactivate' ? <FaBan /> : <FaCheck />}</div>
               <h3>{statusAction === 'deactivate' ? 'Deactivate User' : 'Activate User'}</h3>
               <p>Are you sure you want to <strong>{statusAction}</strong> <strong>{selectedUser.fullName || selectedUser.email}</strong>?</p>
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowStatusConfirm(false)}>Cancel</button>
-                <button className="delete-btn" onClick={handleToggleStatus} disabled={isSubmitting}>
+              <div className="modal-actions-usermanagement">
+                <button className="cancel-btn-usermanagement" onClick={() => setShowStatusConfirm(false)}>Cancel</button>
+                <button className="delete-btn-usermanagement" onClick={handleToggleStatus} disabled={isSubmitting}>
                   {isSubmitting ? 'Processing...' : statusAction}
                 </button>
               </div>

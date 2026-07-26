@@ -1,1655 +1,1305 @@
-/* styles/Admin/usermanagement.css */
+/* src/styles/Admin/usermanagement.css */
 
 :root {
-  --primary: #2563EB;
-  --primary-hover: #1D4ED8;
-  --success: #22C55E;
-  --success-hover: #16A34A;
-  --warning: #F59E0B;
-  --danger: #EF4444;
-  --bg-base: #F8FAFC;
-  --bg-card: #FFFFFF;
-  --bg-elevated: #FFFFFF;
-  --bg-surface: #F1F5F9;
-  --bg-highlight: #E2E8F0;
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #64748B;
-  --border-light: #E2E8F0;
-  --border-medium: #CBD5E1;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.04);
-  --shadow-lg: 0 10px 25px rgba(0,0,0,0.08);
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
-  --radius-2xl: 24px;
-  --transition-base: 0.2s ease;
+  --primary-blue: #2563eb;
+  --primary-blue-light: #dbeafe;
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-500: #64748b;
+  --gray-700: #334155;
+  --gray-900: #0f172a;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  --border-radius: 16px;
 }
 
-/* ============================================
-   MAIN CONTAINER
-   ============================================ */
-.user-management {
-  padding: 24px;
-  background: var(--bg-base);
+/* --- Base Layout - MATCH SITE ASSESSMENT --- */
+.user-management-usermanagement {
+  background-color: var(--gray-50);
   min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--gray-900);
+  /* REMOVED padding: 16px 0; */
+  padding: 0;
 }
 
-/* ============================================
-   HEADER
-   ============================================ */
-.user-management-header {
+/* --- Header (Minimal) - MATCH SITE ASSESSMENT --- */
+.user-management-header-usermanagement {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-bottom: 28px;
+  align-items: flex-start;
+  height: 5px; /* MATCH site assessment */
+  padding: 0; /* REMOVED padding: 0 40px; */
+}
+
+/* =========================================
+   TABS + BUTTONS WRAPPER - MATCH SITE ASSESSMENT
+   ========================================= */
+.user-tabs-wrapper-usermanagement {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--gray-200);
+  margin: 0 0 16px 0; /* REMOVED horizontal margins */
+  padding: 0;
   flex-wrap: wrap;
   gap: 12px;
 }
 
-.user-management-header h1 {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 4px 0;
-  letter-spacing: -0.02em;
+.user-tabs-usermanagement {
+  display: flex;
+  gap: 0px;
 }
 
-.user-management-header p {
-  font-size: 14px;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.create-user-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 24px;
-  background: var(--primary);
-  color: #FFFFFF;
+.tab-btn-usermanagement {
+  background: transparent;
   border: none;
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 600;
+  padding: 14px 24px; /* MATCH site assessment */
+  font-size: 15px; /* MATCH site assessment */
+  font-weight: 500;
+  color: var(--gray-500);
   cursor: pointer;
-  transition: all var(--transition-base);
+  position: relative;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.create-user-btn:hover {
-  background: var(--primary-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+.tab-btn-usermanagement:hover {
+  color: var(--primary-blue);
 }
 
-.refresh-btn {
-  display: inline-flex;
+.tab-btn-usermanagement.active-usermanagement {
+  color: var(--primary-blue);
+  font-weight: 600;
+}
+
+.tab-btn-usermanagement.active-usermanagement::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 24px;
+  right: 24px;
+  height: 3px;
+  background-color: var(--primary-blue);
+  border-radius: 10px 10px 0 0;
+}
+
+.tab-badge-usermanagement {
+  background-color: var(--gray-100);
+  color: var(--gray-500);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 50px;
+}
+
+.tab-btn-usermanagement.active-usermanagement .tab-badge-usermanagement {
+  background-color: var(--primary-blue-light);
+  color: var(--primary-blue);
+}
+
+.user-tab-actions-usermanagement {
+  display: flex;
+  gap: 12px;
+}
+
+.create-user-btn-usermanagement,
+.refresh-btn-usermanagement {
+  display: flex;
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-base);
-}
-
-.refresh-btn:hover {
-  background: var(--bg-base);
-  border-color: var(--border-medium);
-}
-
-/* ============================================
-   TABS
-   ============================================ */
-.user-tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 24px;
-  border-bottom: 2px solid var(--border-light);
-  padding-bottom: 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.user-tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.user-tabs .tab-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all var(--transition-base);
-  position: relative;
-  white-space: nowrap;
-}
-
-.user-tabs .tab-btn:hover {
-  color: var(--text-primary);
-}
-
-.user-tabs .tab-btn.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-}
-
-.user-tabs .tab-badge {
-  background: var(--bg-surface);
-  color: var(--text-secondary);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 20px;
-  transition: all var(--transition-base);
-}
-
-.user-tabs .tab-btn.active .tab-badge {
-  background: var(--primary);
+  background: var(--gray-900);
   color: #FFFFFF;
+  border: none;
+  border-radius: 10px; /* MATCH site assessment */
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-/* ============================================
-   FILTERS
-   ============================================ */
-.user-filters-section {
+.create-user-btn-usermanagement:hover,
+.refresh-btn-usermanagement:hover {
+  background: #374151;
+}
+
+/* =========================================
+   FILTERS - MATCH SITE ASSESSMENT
+   ========================================= */
+.user-filters-section-usermanagement {
   display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
   align-items: center;
+  gap: 16px;
+  padding: 0; /* REMOVED padding: 0 40px; */
+  margin-bottom: 16px; /* MATCH site assessment */
+  flex-wrap: nowrap;
 }
 
-.search-box {
-  flex: 1;
-  max-width: 400px;
+.search-box-usermanagement {
+  flex: 0 0 280px; /* MATCH site assessment */
+  max-width: 320px;
   position: relative;
 }
 
-.search-box .search-icon {
+.search-icon-usermanagement {
   position: absolute;
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-muted);
-  pointer-events: none;
+  color: var(--gray-500);
+  font-size: 14px;
 }
 
-.search-box input {
+.search-box-usermanagement input {
   width: 100%;
-  padding: 10px 16px 10px 42px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
+  padding: 12px 14px 12px 42px; /* MATCH site assessment */
+  border: 1px solid var(--gray-200);
+  border-radius: 10px; /* MATCH site assessment */
   font-size: 14px;
-  color: var(--text-primary);
-  transition: all var(--transition-base);
-}
-
-.search-box input:focus {
+  background: #FFFFFF;
+  color: var(--gray-900);
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  transition: all 0.2s ease;
 }
 
-.filter-role select {
-  padding: 10px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
+.search-box-usermanagement input:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px var(--primary-blue-light);
+}
+
+.search-box-usermanagement input::placeholder {
+  color: var(--gray-500);
+}
+
+.filter-role-usermanagement {
+  flex: 0 0 auto;
+  position: relative;
+}
+
+.filter-role-usermanagement select {
+  padding: 12px 44px 12px 16px; /* MATCH site assessment */
+  border: 1px solid var(--gray-200);
+  border-radius: 10px; /* MATCH site assessment */
   font-size: 14px;
-  color: var(--text-primary);
+  font-weight: 500;
+  background: #FFFFFF;
+  color: var(--gray-900);
+  outline: none;
   cursor: pointer;
-  min-width: 160px;
-  transition: all var(--transition-base);
+  transition: all 0.2s ease;
+  min-width: 150px;
+  appearance: none;
 }
 
-.filter-role select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+.filter-role-usermanagement select:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px var(--primary-blue-light);
 }
 
-/* ============================================
-   TABLE CONTAINER
-   ============================================ */
-.users-table-container {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-light);
-  overflow-x: auto;
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 20px;
+/* Add dropdown arrow for filter */
+.filter-role-usermanagement {
+  position: relative;
 }
 
-/* ============================================
-   TABLE
-   ============================================ */
-.users-table {
+.filter-role-usermanagement::after {
+  content: '▼';
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-500);
+  pointer-events: none;
+  font-size: 10px;
+}
+
+/* =========================================
+   TABLES - MATCH SITE ASSESSMENT
+   ========================================= */
+.users-table-container-usermanagement {
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 0; /* REMOVED rounded corners to match site assessment */
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  margin: 0; /* REMOVED margin: 0 40px; */
+}
+
+.users-table-usermanagement {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px;
+  font-size: 14px;
 }
 
-.users-table thead {
+.users-table-usermanagement thead {
+  background: var(--primary-blue); /* MATCH site assessment - blue header */
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.users-table-usermanagement th {
+  text-align: left;
+  padding: 14px 18px; /* MATCH site assessment */
+  font-weight: 600;
+  color: #FFFFFF;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
-.users-table th {
-  text-align: left;
-  padding: 14px 16px;
-  background: var(--bg-base);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--border-light);
+.users-table-usermanagement tbody tr {
+  border-bottom: 1px solid var(--gray-100);
+  transition: all 0.15s ease;
 }
 
-.users-table td {
-  padding: 14px 16px;
-  font-size: 14px;
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--border-light);
-  vertical-align: middle;
-}
-
-.users-table tbody tr:last-child td {
+.users-table-usermanagement tbody tr:last-child {
   border-bottom: none;
 }
 
-.users-table tbody tr:hover td {
-  background: var(--bg-base);
+.users-table-usermanagement tbody tr:hover {
+  background-color: var(--gray-50);
 }
 
-/* ============================================
-   USER CELL
-   ============================================ */
-.user-cell-content {
+.users-table-usermanagement tbody tr:nth-child(even) {
+  background-color: #FAFBFC;
+}
+
+.users-table-usermanagement tbody tr:nth-child(even):hover {
+  background-color: var(--gray-100);
+}
+
+.users-table-usermanagement td {
+  padding: 14px 18px; /* MATCH site assessment */
+  color: var(--gray-700);
+  vertical-align: middle;
+}
+
+.empty-state-usermanagement {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--gray-500);
+  font-size: 15px;
+}
+
+/* --- User Cells --- */
+.user-cell-content-usermanagement {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.user-avatar {
-  width: 36px;
-  height: 36px;
+.user-avatar-usermanagement {
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
+  background: var(--gray-200);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
-.user-avatar .avatar-initials {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: #FFFFFF;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
+.avatar-initials-usermanagement {
   font-weight: 600;
+  font-size: 13px;
+  color: var(--gray-500);
 }
 
-.user-avatar .avatar-icon {
-  font-size: 36px;
-  color: var(--text-muted);
+.avatar-icon-usermanagement {
+  font-size: 20px;
+  color: var(--gray-500);
 }
 
-.user-avatar.small-avatar .avatar-initials {
+.user-name-usermanagement {
+  font-weight: 500;
+  color: var(--gray-900);
+}
+
+.small-avatar-usermanagement {
   width: 28px;
   height: 28px;
-  font-size: 11px;
 }
 
-.user-name {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-/* ============================================
-   EMAIL CELL
-   ============================================ */
-.email-cell {
+/* --- Email & Contact Cells --- */
+.email-cell-usermanagement {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.email-cell .email-icon {
-  color: var(--text-muted);
+.email-icon-usermanagement {
+  color: var(--gray-500);
   font-size: 14px;
 }
 
-.email-cell .email-text {
-  font-size: 14px;
-  color: var(--text-secondary);
+.email-text-usermanagement {
+  color: var(--gray-700);
 }
 
-/* ============================================
-   CONTACT CELL
-   ============================================ */
-.contact-cell {
-  font-size: 14px;
-  color: var(--text-secondary);
+.contact-cell-usermanagement {
+  color: var(--gray-700);
 }
 
-/* ============================================
-   ROLE BADGE - PLAIN TEXT
-   ============================================ */
-.role-badge {
+/* --- Role Badges - MATCH SITE ASSESSMENT --- */
+.role-badge-usermanagement {
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 20px;
+  border-radius: 6px;
   font-size: 12px;
-  font-weight: 500;
-  background: none !important;
-  color: var(--text-primary) !important;
+  font-weight: 600;
+  background: var(--gray-100);
+  color: var(--gray-700);
 }
 
-.role-badge.admin {
-  background: none !important;
-  color: var(--text-primary) !important;
-}
-
-.role-badge.engineer {
-  background: none !important;
-  color: var(--text-primary) !important;
-}
-
-.role-badge.user {
-  background: none !important;
-  color: var(--text-primary) !important;
-}
-
-/* ============================================
-   STATUS BADGE - PLAIN TEXT
-   ============================================ */
-.status-badge {
+/* --- Status Badges - MATCH SITE ASSESSMENT --- */
+.status-badge-usermanagement {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   padding: 4px 12px;
-  border-radius: 20px;
+  border-radius: 6px;
   font-size: 12px;
-  font-weight: 500;
-  background: none !important;
-  color: var(--text-primary) !important;
+  font-weight: 600;
+  background: var(--gray-100);
+  color: var(--gray-700);
 }
 
-.status-badge.active {
-  background: none !important;
-  color: var(--text-primary) !important;
-}
-
-.status-badge.inactive {
-  background: none !important;
-  color: var(--text-primary) !important;
-}
-
-/* ============================================
-   ACTION DROPDOWN
-   ============================================ */
-.action-dropdown-container {
+/* --- Action Dropdowns - MATCH SITE ASSESSMENT --- */
+.action-dropdown-container-usermanagement {
   position: relative;
   display: inline-block;
 }
 
-.action-dropdown-toggle {
-  display: inline-flex;
+.action-dropdown-toggle-usermanagement {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
+  gap: 6px;
+  padding: 6px 14px; /* MATCH site assessment */
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--gray-700);
   cursor: pointer;
-  transition: all var(--transition-base);
-  white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
-.action-dropdown-toggle:hover {
-  background: var(--bg-base);
-  border-color: var(--border-medium);
+.action-dropdown-toggle-usermanagement:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+  color: var(--gray-900);
 }
 
-.dropdown-arrow {
-  font-size: 11px;
-  transition: transform 0.2s;
+.dropdown-arrow-usermanagement {
+  font-size: 10px;
+  transition: transform 0.2s ease;
 }
 
-.dropdown-arrow.open {
+.dropdown-arrow-usermanagement.open-usermanagement {
   transform: rotate(180deg);
 }
 
-.action-dropdown-menu {
-  position: fixed;
-  min-width: 200px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  z-index: 9999;
+.action-dropdown-menu-usermanagement {
+  min-width: 180px;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+  padding: 6px 0;
   overflow: hidden;
-  animation: dropdownFadeIn 0.15s ease;
 }
 
-@keyframes dropdownFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.action-dropdown-menu .dropdown-item {
+.dropdown-item-usermanagement {
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 12px 16px;
-  background: none;
+  padding: 10px 16px;
+  background: transparent;
   border: none;
-  border-bottom: 1px solid var(--border-light);
-  font-size: 13px;
-  color: var(--text-primary);
+  font-size: 14px;
+  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s ease;
   text-align: left;
 }
 
-.action-dropdown-menu .dropdown-item:last-child {
-  border-bottom: none;
+.dropdown-item-usermanagement:hover:not(.disabled) {
+  background: var(--gray-50);
 }
 
-.action-dropdown-menu .dropdown-item:hover {
-  background: var(--bg-base);
+.dropdown-item-usermanagement svg {
+  font-size: 14px;
+  color: var(--gray-500);
+  width: 16px;
+  text-align: center;
 }
 
-.action-dropdown-menu .dropdown-item.primary svg {
-  color: var(--primary);
+.dropdown-item-usermanagement.disabled {
+  color: var(--gray-300);
+  cursor: default;
 }
 
-.action-dropdown-menu .dropdown-item.warning svg {
-  color: var(--warning);
+.dropdown-item-usermanagement.disabled svg {
+  color: var(--gray-300);
 }
 
-.action-dropdown-menu .dropdown-item.success svg {
-  color: var(--success);
+.dropdown-item-usermanagement.primary {
+  color: #1E40AF;
 }
 
-.action-dropdown-menu .dropdown-item.danger svg {
-  color: var(--danger);
+.dropdown-item-usermanagement.warning {
+  color: #92400E;
 }
 
-.action-dropdown-menu .dropdown-item.primary:hover {
-  background: var(--primary);
-  color: #FFFFFF;
-}
-.action-dropdown-menu .dropdown-item.primary:hover svg {
-  color: #FFFFFF;
+.dropdown-item-usermanagement.danger {
+  color: #991B1B;
 }
 
-.action-dropdown-menu .dropdown-item.warning:hover {
-  background: var(--warning);
-  color: #FFFFFF;
-}
-.action-dropdown-menu .dropdown-item.warning:hover svg {
-  color: #FFFFFF;
+.dropdown-item-usermanagement.success {
+  color: #065F46;
 }
 
-.action-dropdown-menu .dropdown-item.success:hover {
-  background: var(--success);
-  color: #FFFFFF;
-}
-.action-dropdown-menu .dropdown-item.success:hover svg {
-  color: #FFFFFF;
-}
-
-.action-dropdown-menu .dropdown-item.danger:hover {
-  background: var(--danger);
-  color: #FFFFFF;
-}
-.action-dropdown-menu .dropdown-item.danger:hover svg {
-  color: #FFFFFF;
-}
-
-/* ============================================
-   AUDIT LOGS SPECIFIC
-   ============================================ */
-.audit-logs-table .module-badge {
+/* --- Audit Log Specifics --- */
+.audit-logs-table-usermanagement .module-badge-usermanagement {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 12px;
-  background: var(--bg-surface);
-  border-radius: 20px;
-  font-size: 12px;
-  color: var(--text-secondary);
+  background: var(--gray-100);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-700);
 }
 
-.audit-logs-table .action-badge {
+.action-badge-usermanagement {
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 500;
-  background: none !important;
-  color: var(--text-primary) !important;
-}
-
-.action-badge.create {
-  background: none !important;
-  color: var(--text-primary) !important;
-}
-
-.action-badge.update {
-  background: none !important;
-  color: var(--text-primary) !important;
-}
-
-.action-badge.delete {
-  background: none !important;
-  color: var(--text-primary) !important;
-}
-
-.action-badge.login {
-  background: none !important;
-  color: var(--text-primary) !important;
-}
-
-.action-badge.logout {
-  background: none !important;
-  color: var(--text-primary) !important;
-}
-
-.action-badge.status {
-  background: none !important;
-  color: var(--text-primary) !important;
-}
-
-.action-badge.password {
-  background: none !important;
-  color: var(--text-primary) !important;
-}
-
-.action-badge.default {
-  background: none !important;
-  color: var(--text-primary) !important;
-}
-
-.timestamp-cell {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.timestamp-cell .timestamp-icon {
+  border-radius: 6px;
   font-size: 12px;
-  color: var(--text-muted);
+  font-weight: 500;
+  background: var(--gray-100);
+  color: var(--gray-700);
 }
 
-/* ============================================
-   EMPTY STATE
-   ============================================ */
-.empty-state {
-  text-align: center;
-  padding: 48px 20px;
-  color: var(--text-muted);
-}
-
-.empty-state p {
-  font-size: 14px;
-  margin: 0;
-}
-
-/* ============================================
-   PAGINATION
-   ============================================ */
-.pagination {
+.timestamp-cell-usermanagement {
   display: flex;
   align-items: center;
+  gap: 6px;
+  color: var(--gray-500);
+  font-size: 13px;
+}
+
+.timestamp-icon-usermanagement {
+  color: var(--gray-500);
+  font-size: 13px;
+}
+
+/* =========================================
+   PAGINATION - MATCH SITE ASSESSMENT
+   ========================================= */
+.pagination-usermanagement {
+  display: flex;
   justify-content: space-between;
+  align-items: center;
+  padding: 16px 0 0 0; /* MATCH site assessment */
+  flex-wrap: wrap;
   gap: 16px;
-  flex-wrap: wrap;
 }
 
-.pagination-info {
-  font-size: 13px;
-  color: var(--text-secondary);
+.pagination-info-usermanagement {
+  color: var(--gray-500);
+  font-size: 14px;
 }
 
-.pagination-controls {
+.pagination-controls-usermanagement {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
 }
 
-.page-btn {
+.page-btn-usermanagement {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  color: var(--text-secondary);
+  gap: 8px;
+  padding: 8px 16px; /* MATCH site assessment */
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-700);
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.2s ease;
 }
 
-.page-btn:hover:not(:disabled) {
-  background: var(--bg-base);
-  border-color: var(--border-medium);
+.page-btn-usermanagement:hover:not(:disabled) {
+  background: var(--gray-50);
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
 }
 
-.page-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.page-btn-usermanagement:disabled {
+  opacity: 0.5;
+  cursor: default;
+  border-color: var(--gray-100);
 }
 
-.page-number {
-  width: 36px;
-  height: 36px;
+.page-number-usermanagement {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  color: var(--text-secondary);
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--gray-700);
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.2s ease;
 }
 
-.page-number:hover:not(.active) {
-  background: var(--bg-base);
-  border-color: var(--border-medium);
+.page-number-usermanagement:hover:not(.active-usermanagement) {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
 }
 
-.page-number.active {
-  background: var(--primary);
-  border-color: var(--primary);
+.page-number-usermanagement.active-usermanagement {
+  background: var(--primary-blue);
   color: #FFFFFF;
+  border-color: var(--primary-blue);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
 }
 
-/* ============================================
-   MODAL - OVERLAY
-   ============================================ */
-.modal-overlay {
+/* =========================================
+   MODALS - MATCH SITE ASSESSMENT
+   ========================================= */
+.modal-overlay-usermanagement {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
-  padding: 20px;
+  z-index: 9998;
 }
 
-/* ============================================
-   MODAL - CONTENT
-   ============================================ */
-.modal-content {
-  background: var(--bg-card);
-  border-radius: var(--radius-2xl);
-  width: 100%;
-  max-width: 560px;
-  max-height: 92vh;
+.modal-content-usermanagement {
+  background: #FFFFFF;
+  border-radius: var(--border-radius);
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  animation: modalFadeIn 0.25s ease;
+  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
+  padding: 0;
 }
 
-.modal-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.modal-content::-webkit-scrollbar-track {
-  background: var(--bg-base);
-  border-radius: 3px;
-}
-
-.modal-content::-webkit-scrollbar-thumb {
-  background: var(--border-medium);
-  border-radius: 3px;
-}
-
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(-16px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.modal-content .modal-header {
+.modal-header-usermanagement {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--border-light);
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--gray-200);
 }
 
-.modal-content .modal-header h3 {
-  font-size: 18px;
+.modal-header-usermanagement h3 {
+  font-size: 20px;
   font-weight: 700;
-  color: var(--text-primary);
   margin: 0;
+  color: var(--gray-900);
 }
 
-.modal-content .modal-close {
+.modal-close-usermanagement {
+  background: var(--gray-100);
+  border: none;
   width: 32px;
   height: 32px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: var(--text-muted);
+  border-radius: 50%;
+  font-size: 18px;
+  color: var(--gray-500);
   cursor: pointer;
-  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-base);
+  transition: all 0.2s ease;
 }
 
-.modal-content .modal-close:hover {
-  background: var(--bg-base);
-  color: var(--text-primary);
+.modal-close-usermanagement:hover {
+  background: var(--gray-200);
+  color: var(--gray-900);
 }
 
-.modal-content .modal-body {
-  padding: 24px;
-  max-height: 60vh;
-  overflow-y: auto;
+.modal-body-usermanagement {
+  padding: 28px;
 }
 
-.modal-content .modal-actions {
+.modal-actions-usermanagement {
   display: flex;
-  gap: 12px;
   justify-content: flex-end;
-  padding: 16px 24px;
-  border-top: 1px solid var(--border-light);
+  gap: 12px;
+  padding: 20px 28px;
+  border-top: 1px solid var(--gray-200);
 }
 
-/* ============================================
-   MODAL - USER DETAILS VIEW
-   ============================================ */
-.user-details-view .detail-section {
+.modal-actions-usermanagement button {
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid var(--gray-200);
+  background: #FFFFFF;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-actions-usermanagement button:hover:not(:disabled) {
+  background: var(--gray-50);
+}
+
+.modal-actions-usermanagement button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.cancel-btn-usermanagement {
+  background: #FFFFFF;
+}
+
+.save-btn-usermanagement {
+  background: var(--primary-blue) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary-blue) !important;
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.15) !important;
+}
+
+.save-btn-usermanagement:hover {
+  background: #1d4ed8 !important;
+  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.25) !important;
+}
+
+.delete-btn-usermanagement {
+  background: #DC2626 !important;
+  color: #FFFFFF !important;
+  border-color: #DC2626 !important;
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.15) !important;
+}
+
+.delete-btn-usermanagement:hover {
+  background: #B91C1C !important;
+  box-shadow: 0 6px 12px rgba(220, 38, 38, 0.25) !important;
+}
+
+/* --- User View --- */
+.user-details-view-usermanagement .detail-section-usermanagement {
   margin-bottom: 20px;
 }
 
-.user-details-view .detail-section:last-child {
-  margin-bottom: 0;
-}
-
-.user-details-view .detail-section h4 {
+.user-details-view-usermanagement h4 {
   font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 10px 0;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--border-light);
+  font-weight: 700;
+  color: var(--gray-500);
+  margin: 0 0 14px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.user-details-view .detail-row {
+.detail-row-usermanagement {
   display: flex;
   justify-content: space-between;
-  padding: 6px 0;
-  font-size: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--gray-100);
 }
 
-.user-details-view .detail-row span {
-  color: var(--text-secondary);
+.detail-row-usermanagement:last-child {
+  border-bottom: none;
 }
 
-.user-details-view .detail-row strong {
-  color: var(--text-primary);
-  font-weight: 500;
+.detail-row-usermanagement span {
+  color: var(--gray-500);
 }
 
-/* ============================================
-   MODAL - FORM
-   ============================================ */
-.user-form .form-row {
+.detail-row-usermanagement strong {
+  color: var(--gray-900);
+}
+
+/* --- User Form --- */
+.user-form-usermanagement .form-row-usermanagement {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  margin-bottom: 16px;
 }
 
-.user-form .form-row:last-child {
-  margin-bottom: 0;
+.form-group-usermanagement {
+  margin-top: 20px;
 }
 
-.user-form .form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.form-group-usermanagement:first-child {
+  margin-top: 0;
 }
 
-.user-form .form-group label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.user-form .form-group input {
-  padding: 10px 14px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
+.form-group-usermanagement label {
+  display: block;
   font-size: 14px;
-  color: var(--text-primary);
-  transition: all var(--transition-base);
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--gray-700);
+}
+
+.form-group-usermanagement input {
   width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  font-size: 14px;
+  background: #FFFFFF;
+  outline: none;
+  transition: all 0.2s ease;
   box-sizing: border-box;
 }
 
-.user-form .form-group input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+.form-group-usermanagement input:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px var(--primary-blue-light);
 }
 
-.user-form .form-group input.error {
-  border-color: var(--danger);
+.form-group-usermanagement input.error {
+  border-color: #DC2626;
 }
 
-.user-form .form-group input:disabled {
-  background: var(--bg-surface);
-  color: var(--text-muted);
-  cursor: not-allowed;
-}
-
-.user-form .form-group .error-text {
+.form-group-usermanagement small {
+  display: block;
+  color: var(--gray-500);
   font-size: 12px;
-  color: var(--danger);
+  margin-top: 4px;
 }
 
-.user-form .form-group small {
-  font-size: 12px;
-  color: var(--text-muted);
+.error-text-usermanagement {
+  display: block;
+  color: #DC2626;
+  font-size: 13px;
+  margin-top: 4px;
 }
 
-/* ============================================
-   MODAL - CONFIRMATION
-   ============================================ */
-.confirm-modal {
+/* --- Confirm Modal --- */
+.confirm-modal-usermanagement .confirm-icon-usermanagement {
   text-align: center;
-  max-width: 440px;
-}
-
-.confirm-modal .confirm-icon {
+  margin: 10px 0;
   font-size: 48px;
-  color: var(--warning);
-  margin: 8px 0 12px 0;
+  color: #f59e0b;
 }
 
-.confirm-modal h3 {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 8px 0;
+.confirm-modal-usermanagement h3 {
+  text-align: center;
 }
 
-.confirm-modal p {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin: 0 0 4px 0;
+.confirm-modal-usermanagement p {
+  text-align: center;
+  color: var(--gray-700);
 }
 
-.confirm-modal .warning-text {
-  color: var(--danger);
-  font-weight: 500;
-  margin-top: 8px;
+.confirm-modal-usermanagement .warning-text-usermanagement {
+  color: var(--gray-500);
+  font-size: 13px;
 }
 
-.confirm-modal .modal-actions {
-  justify-content: center;
-  padding-top: 20px;
-}
-
-/* ============================================
-   MODAL - PASSWORD
-   ============================================ */
-.password-modal .user-info-summary {
-  background: var(--bg-base);
-  border-radius: var(--radius-md);
-  padding: 12px 16px;
+/* --- Password Modal --- */
+.password-modal-usermanagement .user-info-summary-usermanagement {
+  background: var(--gray-50);
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--gray-200);
   margin-bottom: 16px;
 }
 
-.password-modal .user-info-summary p {
+.password-modal-usermanagement .user-info-summary-usermanagement p {
   margin: 4px 0;
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--gray-700);
 }
 
-.password-modal .user-info-summary strong {
-  color: var(--text-primary);
-}
-
-/* ============================================
-   MODAL - BUTTONS
-   ============================================ */
-.modal-actions .cancel-btn {
-  padding: 10px 24px;
-  background: var(--bg-base);
-  color: var(--text-primary);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-base);
-}
-
-.modal-actions .cancel-btn:hover {
-  background: var(--border-light);
-}
-
-.modal-actions .save-btn {
-  padding: 10px 24px;
-  background: var(--primary);
-  color: #FFFFFF;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-base);
-}
-
-.modal-actions .save-btn:hover:not(:disabled) {
-  background: var(--primary-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-}
-
-.modal-actions .save-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.modal-actions .delete-btn {
-  padding: 10px 24px;
-  background: var(--danger);
-  color: #FFFFFF;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-base);
-}
-
-.modal-actions .delete-btn:hover:not(:disabled) {
-  background: #DC2626;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-
-.modal-actions .delete-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* ============================================
-   SKELETON LOADING
-   ============================================ */
-.skeleton-line {
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 6px;
-}
-
-.skeleton-line.large {
+/* =========================================
+   SKELETON LOADERS - MATCH SITE ASSESSMENT
+   ========================================= */
+.skeleton-line-large-usermanagement {
   height: 28px;
-  width: 200px;
+  width: 250px;
+  background: var(--gray-200);
+  border-radius: 4px;
   margin-bottom: 8px;
 }
 
-.skeleton-line.medium {
-  height: 18px;
-  width: 60%;
-}
-
-.skeleton-button {
-  height: 44px;
-  width: 140px;
-  background: #F1F5F9;
-  border-radius: var(--radius-md);
-}
-
-.skeleton-tab {
-  height: 44px;
+.skeleton-button-usermanagement {
+  height: 40px;
   width: 120px;
-  background: #F1F5F9;
-  border-radius: var(--radius-md);
+  background: var(--gray-200);
+  border-radius: 8px;
 }
 
-.skeleton-search {
-  height: 44px;
-  width: 100%;
-  max-width: 400px;
-  background: #F1F5F9;
-  border-radius: var(--radius-md);
+.skeleton-tab-usermanagement {
+  height: 40px;
+  width: 100px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  margin-right: 12px;
 }
 
-.skeleton-table {
-  height: 300px;
-  background: #F1F5F9;
-  border-radius: var(--radius-xl);
+.skeleton-search-usermanagement {
+  height: 40px;
+  width: 250px;
+  background: var(--gray-200);
+  border-radius: 8px;
 }
 
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+.skeleton-table-usermanagement {
+  height: 400px;
+  background: var(--gray-200);
+  border-radius: 0;
 }
 
-/* ============================================
-   RESPONSIVE BREAKPOINTS
-   ============================================ */
+@keyframes shimmer-usermanagement {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
 
-/* Tablet and smaller laptops */
+.skeleton-line-large-usermanagement,
+.skeleton-button-usermanagement,
+.skeleton-tab-usermanagement,
+.skeleton-search-usermanagement,
+.skeleton-table-usermanagement {
+  background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
+  background-size: 200px 100%;
+  animation: shimmer-usermanagement 1.5s infinite;
+}
+
+/* =========================================
+   RESPONSIVE - MATCH SITE ASSESSMENT
+   ========================================= */
 @media (max-width: 1024px) {
-  .user-management {
-    padding: 20px;
-  }
-
-  .user-management-header h1 {
-    font-size: 24px;
-  }
-
-  .users-table {
-    min-width: 700px;
+  .user-form-usermanagement .form-row-usermanagement {
+    grid-template-columns: 1fr;
   }
 }
 
-/* Mobile Landscape & Small Tablets */
 @media (max-width: 768px) {
-  .user-management {
-    padding: 16px;
+  /* Main container */
+  .user-management-usermanagement {
+    padding: 16px !important;
   }
 
-  .user-management-header {
+  .user-management-header-usermanagement {
+    padding: 0 !important;
+  }
+
+  /* Tabs wrapper */
+  .user-tabs-wrapper-usermanagement {
+    margin: 0 0 16px 0 !important;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    gap: 8px !important;
   }
 
-  .user-management-header h1 {
-    font-size: 22px;
+  .user-tabs-usermanagement {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    gap: 0 !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    width: 100% !important;
   }
 
-  .create-user-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .user-tabs {
-    gap: 0;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-  }
-
-  .user-tabs .tab-btn {
-    padding: 10px 14px;
-    font-size: 13px;
-    white-space: nowrap;
-  }
-
-  .user-filters-section {
-    flex-direction: column;
-  }
-
-  .search-box {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .filter-role select {
-    width: 100%;
-    min-width: unset;
-  }
-
-  /* Table to Cards on Mobile */
-  .users-table-container {
-    border-radius: var(--radius-lg);
-    overflow: visible;
-    background: transparent;
-    border: none;
-    box-shadow: none;
-  }
-
-  .users-table {
-    display: block;
-    min-width: unset;
-  }
-
-  .users-table thead {
+  .user-tabs-usermanagement::-webkit-scrollbar {
     display: none;
   }
 
-  .users-table tbody {
-    display: block;
+  .tab-btn-usermanagement {
+    padding: 10px 16px !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    flex: none !important;
   }
 
-  .users-table tbody tr {
-    display: block;
-    background: var(--bg-card);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.2s;
+  .tab-btn-usermanagement.active-usermanagement::after {
+    left: 16px !important;
+    right: 16px !important;
   }
 
-  .users-table tbody tr:hover td {
-    background: transparent;
+  .tab-badge-usermanagement {
+    font-size: 10px !important;
+    padding: 1px 8px !important;
   }
 
-  .users-table tbody tr td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border-light);
-    border-bottom-style: dashed;
-    font-size: 13px;
-    background: transparent !important;
+  .user-tab-actions-usermanagement {
+    width: 100% !important;
+    flex-direction: column !important;
+    gap: 8px !important;
   }
 
-  .users-table tbody tr td:last-child {
-    border-bottom: none;
+  .create-user-btn-usermanagement,
+  .refresh-btn-usermanagement {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 10px !important;
+    font-size: 14px !important;
   }
 
-  .users-table tbody tr td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: var(--text-muted);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    flex-shrink: 0;
+  /* Filters - full width on mobile */
+  .user-filters-section-usermanagement {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding: 0 !important;
+    margin-bottom: 12px !important;
   }
 
-  .users-table tbody tr td:first-child {
-    padding-top: 0;
+  .search-box-usermanagement {
+    flex: 1 1 auto !important;
+    max-width: 100% !important;
+    min-width: auto !important;
   }
 
-  .users-table tbody tr td:last-child {
-    padding-bottom: 0;
+  .search-box-usermanagement input {
+    font-size: 14px !important;
+    padding: 10px 14px 10px 38px !important;
   }
 
-  /* User cell - Left aligned */
-  .users-table tbody tr td[data-label="User"] {
-    justify-content: flex-start;
+  .filter-role-usermanagement {
+    width: 100% !important;
   }
 
-  .users-table tbody tr td[data-label="User"] .user-cell-content {
-    width: 100%;
-    justify-content: flex-start;
+  .filter-role-usermanagement select {
+    width: 100% !important;
+    min-width: auto !important;
+    font-size: 14px !important;
+    padding: 10px 40px 10px 14px !important;
   }
 
-  .users-table tbody tr td[data-label="User"] .user-avatar {
-    width: 32px;
-    height: 32px;
+  /* Table container */
+  .users-table-container-usermanagement {
+    margin: 0 !important;
   }
 
-  .users-table tbody tr td[data-label="User"] .user-avatar .avatar-initials {
-    width: 32px;
-    height: 32px;
-    font-size: 12px;
+  /* Mobile card view - table becomes cards */
+  .users-table-usermanagement thead {
+    display: none !important;
   }
 
-  /* Email - Left aligned */
-  .users-table tbody tr td[data-label="Email"] {
-    justify-content: flex-start;
+  .users-table-usermanagement tbody tr {
+    display: block !important;
+    border: 1px solid var(--gray-200) !important;
+    border-radius: 12px !important;
+    margin-bottom: 12px !important;
+    padding: 16px !important;
+    background: #FFFFFF !important;
   }
 
-  .users-table tbody tr td[data-label="Email"] .email-cell {
-    width: 100%;
-    justify-content: flex-start;
+  .users-table-usermanagement tbody tr:nth-child(even) {
+    background: #FFFFFF !important;
   }
 
-  /* Contact - Left aligned */
-  .users-table tbody tr td[data-label="Contact"] {
-    justify-content: flex-start;
+  .users-table-usermanagement tbody tr:hover {
+    background: #FFFFFF !important;
   }
 
-  /* Role - Left aligned */
-  .users-table tbody tr td[data-label="Role"] {
-    justify-content: flex-start;
+  .users-table-usermanagement td {
+    display: flex !important;
+    justify-content: space-between !important;
+    padding: 8px 0 !important;
+    border: none !important;
+    text-align: right !important;
+    font-size: 13px !important;
   }
 
-  /* Status - Center aligned */
-  .users-table tbody tr td[data-label="Status"] {
-    justify-content: center;
+  .users-table-usermanagement td::before {
+    content: attr(data-label) !important;
+    font-weight: 600 !important;
+    color: var(--gray-500) !important;
+    text-align: left !important;
+    padding-right: 16px !important;
+    font-size: 12px !important;
   }
 
-  /* Created - Left aligned */
-  .users-table tbody tr td[data-label="Created"] {
-    justify-content: flex-start;
+  .user-cell-content-usermanagement {
+    justify-content: flex-end !important;
   }
 
-  /* Actions - Right aligned */
-  .users-table tbody tr td[data-label="Actions"] {
-    justify-content: flex-end;
+  .user-name-usermanagement {
+    font-size: 13px !important;
   }
 
-  .action-dropdown-toggle {
-    padding: 6px 12px;
-    font-size: 12px;
-  }
-
-  .action-dropdown-menu {
-    min-width: 160px;
-  }
-
-  /* Audit logs card alignment */
-  .audit-logs-table .users-table tbody tr td[data-label="User"] {
-    justify-content: flex-start;
-  }
-
-  .audit-logs-table .users-table tbody tr td[data-label="User"] .user-cell-content {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .audit-logs-table .users-table tbody tr td[data-label="Role"] {
-    justify-content: flex-start;
-  }
-
-  .audit-logs-table .users-table tbody tr td[data-label="Module"] {
-    justify-content: flex-start;
-  }
-
-  .audit-logs-table .users-table tbody tr td[data-label="Module"] .module-badge {
-    font-size: 11px;
-  }
-
-  .audit-logs-table .users-table tbody tr td[data-label="Action"] {
-    justify-content: flex-start;
-  }
-
-  .audit-logs-table .users-table tbody tr td[data-label="Timestamp"] {
-    justify-content: flex-start;
-  }
-
-  .audit-logs-table .users-table tbody tr td[data-label="Timestamp"] .timestamp-cell {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  /* Modal */
-  .modal-content {
-    max-width: 100%;
-    margin: 10px;
-  }
-
-  .modal-content .modal-header {
-    padding: 16px 20px;
-  }
-
-  .modal-content .modal-body {
-    padding: 16px 20px;
-  }
-
-  .modal-content .modal-actions {
-    padding: 12px 20px;
-    flex-direction: column;
-  }
-
-  .modal-content .modal-actions button {
-    width: 100%;
-  }
-
-  .user-form .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .pagination {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .pagination-controls {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .user-details-view .detail-row {
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .confirm-modal {
-    max-width: 100%;
-    margin: 10px;
-  }
-}
-
-/* Mobile Portrait */
-@media (max-width: 480px) {
-  .user-management {
-    padding: 12px;
-  }
-
-  .user-management-header h1 {
-    font-size: 20px;
-  }
-
-  .user-management-header p {
-    font-size: 13px;
-  }
-
-  .create-user-btn,
-  .refresh-btn {
-    font-size: 13px;
-    padding: 8px 16px;
-  }
-
-  .user-tabs .tab-btn {
-    padding: 8px 12px;
-    font-size: 12px;
-  }
-
-  .user-tabs .tab-btn .tab-badge {
-    font-size: 10px;
-    padding: 1px 6px;
-  }
-
-  .search-box input {
-    font-size: 13px;
-    padding: 8px 12px 8px 36px;
-  }
-
-  .filter-role select {
-    font-size: 13px;
-    padding: 8px 12px;
-  }
-
-  /* Table Cards */
-  .users-table tbody tr {
-    padding: 12px;
-    margin-bottom: 10px;
-  }
-
-  .users-table tbody tr td {
-    padding: 6px 0;
-    font-size: 12px;
-  }
-
-  .users-table tbody tr td::before {
-    font-size: 11px;
-  }
-
-  .users-table tbody tr td:first-child {
-    padding-top: 0;
-  }
-
-  .users-table tbody tr td:last-child {
-    padding-bottom: 0;
-  }
-
-  .users-table tbody tr td[data-label="User"] .user-cell-content {
-    gap: 8px;
-  }
-
-  .users-table tbody tr td[data-label="User"] .user-avatar {
-    width: 28px;
-    height: 28px;
-  }
-
-  .users-table tbody tr td[data-label="User"] .user-avatar .avatar-initials {
-    width: 28px;
-    height: 28px;
-    font-size: 11px;
-  }
-
-  .users-table tbody tr td[data-label="User"] .user-name {
-    font-size: 13px;
-  }
-
-  .users-table tbody tr td[data-label="Email"] .email-text {
-    font-size: 12px;
-  }
-
-  .role-badge {
-    font-size: 10px;
-    padding: 2px 8px;
-  }
-
-  .status-badge {
-    font-size: 10px;
-    padding: 2px 8px;
-  }
-
-  .status-badge svg {
-    font-size: 10px;
-  }
-
-  /* Audit logs */
-  .audit-logs-table .module-badge {
-    font-size: 10px;
-    padding: 2px 8px;
-  }
-
-  .audit-logs-table .action-badge {
-    font-size: 10px;
-    padding: 2px 8px;
-  }
-
-  .timestamp-cell {
-    font-size: 12px;
-  }
-
-  /* Modal */
-  .modal-content .modal-header h3 {
-    font-size: 16px;
-  }
-
-  .modal-content .modal-header {
-    padding: 14px 16px;
-  }
-
-  .modal-content .modal-body {
-    padding: 14px 16px;
-  }
-
-  .modal-content .modal-actions {
-    padding: 12px 16px;
-  }
-
-  .modal-content .modal-actions .cancel-btn,
-  .modal-content .modal-actions .save-btn,
-  .modal-content .modal-actions .delete-btn {
-    padding: 8px 16px;
-    font-size: 13px;
-  }
-
-  .user-form .form-group label {
-    font-size: 12px;
-  }
-
-  .user-form .form-group input {
-    padding: 8px 12px;
-    font-size: 13px;
-  }
-
-  .user-details-view .detail-section h4 {
-    font-size: 13px;
-  }
-
-  .user-details-view .detail-row {
-    font-size: 13px;
-    padding: 4px 0;
-  }
-
-  .confirm-modal .confirm-icon {
-    font-size: 36px;
-  }
-
-  .confirm-modal h3 {
-    font-size: 18px;
-  }
-
-  .confirm-modal p {
-    font-size: 13px;
+  .email-text-usermanagement {
+    font-size: 12px !important;
   }
 
   /* Pagination */
-  .pagination-info {
-    font-size: 12px;
+  .pagination-usermanagement {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding: 12px 0 0 0 !important;
   }
 
-  .page-btn {
-    padding: 6px 10px;
-    font-size: 12px;
-    height: 32px;
+  .pagination-info-usermanagement {
+    text-align: center !important;
+    font-size: 12px !important;
   }
 
-  .page-number {
-    width: 32px;
-    height: 32px;
-    font-size: 12px;
+  .pagination-controls-usermanagement {
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
   }
 
-  /* Dropdown */
-  .action-dropdown-menu .dropdown-item {
-    padding: 10px 14px;
-    font-size: 12px;
+  .page-btn-usermanagement {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
   }
 
-  .action-dropdown-menu {
-    min-width: 160px;
+  .page-number-usermanagement {
+    min-width: 30px !important;
+    height: 30px !important;
+    font-size: 12px !important;
+    padding: 0 6px !important;
   }
 
-  .empty-state {
-    padding: 32px 16px;
+  /* Modals */
+  .modal-content-usermanagement {
+    max-width: 95% !important;
+    max-height: 95vh !important;
+    border-radius: 12px !important;
+    margin: 10px !important;
   }
 
-  .empty-state p {
-    font-size: 13px;
+  .modal-header-usermanagement {
+    padding: 16px 20px !important;
+  }
+
+  .modal-header-usermanagement h3 {
+    font-size: 17px !important;
+  }
+
+  .modal-body-usermanagement {
+    padding: 20px !important;
+  }
+
+  .modal-actions-usermanagement {
+    flex-direction: column-reverse !important;
+    padding: 16px 20px !important;
+    gap: 8px !important;
+  }
+
+  .modal-actions-usermanagement button {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 12px !important;
+    font-size: 14px !important;
+  }
+
+  .detail-row-usermanagement {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+    padding: 8px 0 !important;
+  }
+
+  .detail-row-usermanagement span {
+    font-size: 12px !important;
+  }
+
+  .detail-row-usermanagement strong {
+    font-size: 14px !important;
+  }
+
+  .user-form-usermanagement .form-row-usermanagement {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+
+  .form-group-usermanagement {
+    margin-top: 14px !important;
+  }
+
+  .form-group-usermanagement label {
+    font-size: 13px !important;
+  }
+
+  .form-group-usermanagement input {
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+  }
+
+  /* Action dropdown on mobile */
+  .action-dropdown-toggle-usermanagement {
+    padding: 4px 10px !important;
+    font-size: 12px !important;
+  }
+
+  .action-dropdown-toggle-usermanagement span {
+    display: none !important;
+  }
+
+  .action-dropdown-toggle-usermanagement svg {
+    font-size: 12px !important;
+  }
+
+  .action-dropdown-menu-usermanagement {
+    min-width: 160px !important;
+    max-width: 200px !important;
+    border-radius: 8px !important;
+  }
+
+  .dropdown-item-usermanagement {
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+  }
+
+  .dropdown-item-usermanagement svg {
+    font-size: 13px !important;
   }
 }
 
-/* Extra small devices */
-@media (max-width: 360px) {
-  .user-management {
-    padding: 10px;
+/* --- Extra small devices (phones < 480px) --- */
+@media (max-width: 480px) {
+  .user-management-usermanagement {
+    padding: 8px !important;
   }
 
-  .user-management-header h1 {
-    font-size: 18px;
+  .tab-btn-usermanagement {
+    padding: 8px 12px !important;
+    font-size: 11px !important;
   }
 
-  .user-tabs .tab-btn {
-    padding: 6px 10px;
-    font-size: 11px;
+  .tab-badge-usermanagement {
+    font-size: 9px !important;
+    padding: 1px 6px !important;
   }
 
-  .users-table tbody tr {
-    padding: 10px;
+  .users-table-usermanagement tbody tr {
+    padding: 12px !important;
   }
 
-  .users-table tbody tr td {
-    font-size: 11px;
-    padding: 5px 0;
+  .users-table-usermanagement td {
+    font-size: 12px !important;
+    padding: 6px 0 !important;
   }
 
-  .users-table tbody tr td::before {
-    font-size: 10px;
+  .users-table-usermanagement td::before {
+    font-size: 11px !important;
   }
 
-  .users-table tbody tr td[data-label="User"] .user-name {
-    font-size: 12px;
+  .modal-content-usermanagement {
+    max-width: 98% !important;
   }
 
-  .users-table tbody tr td[data-label="User"] .user-avatar {
-    width: 24px;
-    height: 24px;
+  .modal-header-usermanagement {
+    padding: 12px 16px !important;
   }
 
-  .users-table tbody tr td[data-label="User"] .user-avatar .avatar-initials {
-    width: 24px;
-    height: 24px;
-    font-size: 10px;
+  .modal-header-usermanagement h3 {
+    font-size: 15px !important;
   }
 
-  .users-table tbody tr td[data-label="Email"] .email-text {
-    font-size: 11px;
+  .modal-body-usermanagement {
+    padding: 16px !important;
   }
 
-  .role-badge {
-    font-size: 9px;
-    padding: 1px 6px;
+  .modal-actions-usermanagement {
+    padding: 12px 16px !important;
   }
 
-  .status-badge {
-    font-size: 9px;
-    padding: 1px 6px;
+  .modal-actions-usermanagement button {
+    font-size: 13px !important;
+    padding: 10px !important;
   }
 
-  .action-dropdown-toggle {
-    font-size: 11px;
-    padding: 4px 10px;
+  .page-btn-usermanagement {
+    padding: 4px 10px !important;
+    font-size: 11px !important;
   }
 
-  .page-btn {
-    font-size: 11px;
-    padding: 4px 8px;
-    height: 28px;
+  .page-number-usermanagement {
+    min-width: 28px !important;
+    height: 28px !important;
+    font-size: 11px !important;
   }
 
-  .page-number {
-    width: 28px;
-    height: 28px;
-    font-size: 11px;
+  .dropdown-item-usermanagement {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+  }
+
+  .dropdown-item-usermanagement svg {
+    font-size: 12px !important;
+  }
+
+  .user-avatar-usermanagement {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .avatar-initials-usermanagement {
+    font-size: 11px !important;
+  }
+
+  .avatar-icon-usermanagement {
+    font-size: 16px !important;
+  }
+}
+
+/* --- Touch-friendly improvements for mobile --- */
+@media (hover: none) and (pointer: coarse) {
+  .tab-btn-usermanagement {
+    padding: 12px 16px !important;
+    min-height: 44px !important;
+  }
+
+  .action-dropdown-toggle-usermanagement {
+    padding: 8px 14px !important;
+    min-height: 40px !important;
+  }
+
+  .dropdown-item-usermanagement {
+    padding: 12px 16px !important;
+    min-height: 44px !important;
+  }
+
+  .page-btn-usermanagement,
+  .page-number-usermanagement {
+    min-height: 40px !important;
+    min-width: 40px !important;
+  }
+
+  .modal-actions-usermanagement button {
+    min-height: 48px !important;
+  }
+
+  .create-user-btn-usermanagement,
+  .refresh-btn-usermanagement {
+    min-height: 44px !important;
+  }
+
+  .search-box-usermanagement input {
+    min-height: 44px !important;
+  }
+
+  .filter-role-usermanagement select {
+    min-height: 44px !important;
   }
 }

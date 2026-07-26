@@ -149,6 +149,7 @@ exports.createFreeQuote = async (req, res) => {
       clientId,
       addressId,
       monthlyBill,
+      rate,
       propertyType,
       desiredCapacity,
       systemType,
@@ -162,8 +163,8 @@ exports.createFreeQuote = async (req, res) => {
       dayPercentage,
       nightPercentage,
       totalDailyConsumption,
-      motorAppliancesWatts,      // ✅ ADD THIS
-      nonMotorAppliancesWatts,   // ✅ ADD THIS
+      motorAppliancesWatts,     
+      nonMotorAppliancesWatts,   
     } = req.body;
 
     // Find client 
@@ -185,22 +186,6 @@ exports.createFreeQuote = async (req, res) => {
       }
     }
 
-    // Calculate daily energy need - SAME AS PRE-ASSESSMENT
-    let dailyEnergyNeed = totalDailyConsumption || 0;
-    if (dailyEnergyNeed === 0 && monthlyBill > 0) {
-      const rate = 12; // Default rate
-      const monthlyKwh = monthlyBill / rate;
-      dailyEnergyNeed = monthlyKwh / 30;
-    }
-
-    // ============ CALCULATE SYSTEM SIZE (EXACTLY LIKE PRE-ASSESSMENT) ============
-    const systemCalculations = calculateSystemSize({
-      dailyEnergyNeed: dailyEnergyNeed,
-      targetSavings: targetSavings ? parseInt(targetSavings) : 100,
-      peakSunHours: 3.5,
-      systemType: systemType || 'grid-tie'
-    });
-
     // Generate quotation reference
     const date = new Date();
     const year = date.getFullYear().toString().slice(-2);
@@ -209,11 +194,12 @@ exports.createFreeQuote = async (req, res) => {
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     const quotationReference = `Q-${year}${month}${day}-${random}`;
 
-    // In createFreeQuote function, after systemCalculations
+    
     const freeQuote = new FreeQuote({
       clientId: client._id,
       addressId: addressId || null,
-      monthlyBill: parseFloat(monthlyBill),
+      monthlyBill: monthlyBill ? parseFloat(monthlyBill) : null,
+      rate: rate ? parseFloat(rate) : null,
       propertyType: propertyType,
       desiredCapacity: desiredCapacity || '',
       systemType: systemType || null,
@@ -226,22 +212,11 @@ exports.createFreeQuote = async (req, res) => {
       nightConsumption: nightConsumption ? parseFloat(nightConsumption) : null,
       dayPercentage: dayPercentage ? parseFloat(dayPercentage) : null,
       nightPercentage: nightPercentage ? parseFloat(nightPercentage) : null,
-      totalDailyConsumption: dailyEnergyNeed,
-      motorAppliancesWatts: motorAppliancesWatts ? parseFloat(motorAppliancesWatts) : 0,      // ✅ ADD THIS
-      nonMotorAppliancesWatts: nonMotorAppliancesWatts ? parseFloat(nonMotorAppliancesWatts) : 0, // ✅ ADD THIS
-      // System calculations
-      recommendedSystemSize: systemCalculations.recommendedSystemSize,
-      inverterSize: systemCalculations.inverterSize,
-      batteryCapacityKwh: systemCalculations.batteryCapacityKwh,
-      panelsNeeded: systemCalculations.panelsNeeded,
-      // ✅ NEW: Annual production and range
-      estimatedAnnualProduction: systemCalculations.estimatedAnnualProduction,
-      estimatedAnnualProductionMin: systemCalculations.estimatedAnnualProductionRange.min,
-      estimatedAnnualProductionMax: systemCalculations.estimatedAnnualProductionRange.max,
-      // ✅ NEW: CO2 offset and range
-      co2Offset: systemCalculations.co2Offset,
-      co2OffsetMin: systemCalculations.co2OffsetRange.min,
-      co2OffsetMax: systemCalculations.co2OffsetRange.max,
+      totalDailyConsumption: totalDailyConsumption
+        ? parseFloat(totalDailyConsumption)
+        : null,
+      motorAppliancesWatts: motorAppliancesWatts ? parseFloat(motorAppliancesWatts) : 0, 
+      nonMotorAppliancesWatts: nonMotorAppliancesWatts ? parseFloat(nonMotorAppliancesWatts) : 0,
       status: 'pending',
       quotationReference: quotationReference
     });
@@ -277,6 +252,7 @@ exports.createFreeQuote = async (req, res) => {
         _id: freeQuote._id,
         quotationReference: freeQuote.quotationReference,
         monthlyBill: freeQuote.monthlyBill,
+        rate: freeQuote.rate,
         propertyType: freeQuote.propertyType,
         desiredCapacity: freeQuote.desiredCapacity,
         systemType: freeQuote.systemType,
@@ -286,21 +262,14 @@ exports.createFreeQuote = async (req, res) => {
         targetSavings: freeQuote.targetSavings,
         status: freeQuote.status,
         requestedAt: freeQuote.requestedAt,
-        // System calculations
-        recommendedSystemSize: freeQuote.recommendedSystemSize,
-        inverterSize: freeQuote.inverterSize,
-        batteryCapacityKwh: freeQuote.batteryCapacityKwh,
-        panelsNeeded: freeQuote.panelsNeeded,
-        // ✅ NEW: Annual production and range
-        estimatedAnnualProduction: freeQuote.estimatedAnnualProduction,
-        estimatedAnnualProductionMin: freeQuote.estimatedAnnualProductionMin,
-        estimatedAnnualProductionMax: freeQuote.estimatedAnnualProductionMax,
-        // ✅ NEW: CO2 offset and range
-        co2Offset: freeQuote.co2Offset,
-        co2OffsetMin: freeQuote.co2OffsetMin,
-        co2OffsetMax: freeQuote.co2OffsetMax,
-        motorAppliancesWatts: freeQuote.motorAppliancesWatts,      // ✅ ADD THIS
-        nonMotorAppliancesWatts: freeQuote.nonMotorAppliancesWatts, // ✅ ADD THIS
+        monthlyConsumption: freeQuote.monthlyConsumption,
+        dayConsumption: freeQuote.dayConsumption,
+        nightConsumption: freeQuote.nightConsumption,
+        dayPercentage: freeQuote.dayPercentage,
+        nightPercentage: freeQuote.nightPercentage,
+        totalDailyConsumption: freeQuote.totalDailyConsumption,
+        motorAppliancesWatts: freeQuote.motorAppliancesWatts,      
+        nonMotorAppliancesWatts: freeQuote.nonMotorAppliancesWatts, 
         client: {
           name: `${freeQuote.clientId.contactFirstName} ${freeQuote.clientId.contactLastName}`,
           contactNumber: freeQuote.clientId.contactNumber,
@@ -958,7 +927,10 @@ exports.generateFreeQuotePDF = async (req, res) => {
       paymentTerms,
       warrantyYears,
       remarks,
-      equipmentDetails  // NEW: Include all equipment details
+      equipmentDetails,  // NEW: Include all equipment details
+      annualProduction,  // NEW: Annual production in kWh/year
+      co2Offset,         // NEW: CO2 offset in kg/year
+      roiYears           // NEW: ROI years (payback period)
     } = req.body;
 
     const quote = await FreeQuote.findById(id)
@@ -1089,7 +1061,11 @@ exports.generateFreeQuotePDF = async (req, res) => {
       costBreakdown,
       calculatedEquipmentTotal,
       calculatedInstallationTotal,
-      calculatedTotalCost
+      calculatedTotalCost,
+      // NEW FIELDS
+      annualProduction: parseFloat(annualProduction) || 0,
+      co2Offset: parseFloat(co2Offset) || 0,
+      roiYears: parseFloat(roiYears) || 0
     };
 
     // Generate PDF
@@ -1133,18 +1109,26 @@ exports.generateFreeQuotePDF = async (req, res) => {
         systemType,
         totalCost: calculatedTotalCost,
         hasEquipmentDetails: !!equipmentDetails,
+        annualProduction: parseFloat(annualProduction) || 0,
+        co2Offset: parseFloat(co2Offset) || 0,
+        roiYears: parseFloat(roiYears) || 0,
         generatedAt: new Date().toISOString()
       }
     });
 
     await fileRecord.save();
 
-    // Update quote with full equipment details
+    // Update quote with full equipment details and new fields
     quote.quotationFile = result.secure_url;
     quote.status = 'completed';
     quote.quotationSentAt = new Date();
     quote.processedBy = engineerId;
     quote.processedAt = new Date();
+
+    // Store new fields in quote
+    quote.estimatedAnnualProduction = parseFloat(annualProduction) || 0;
+    quote.co2Offset = parseFloat(co2Offset) || 0;
+    quote.roiYears = parseFloat(roiYears) || 0;
 
     // Store equipment breakdown in quote
     quote.quotationDetails = {
@@ -1157,10 +1141,14 @@ exports.generateFreeQuotePDF = async (req, res) => {
       totalCost: calculatedTotalCost,
       paymentTerms,
       warrantyYears: parseInt(warrantyYears) || 10,
-      remarks
+      remarks,
+      annualProduction: parseFloat(annualProduction) || 0,
+      co2Offset: parseFloat(co2Offset) || 0,
+      roiYears: parseFloat(roiYears) || 0
     };
 
     await quote.save();
+
     const userId = quote.clientId?.userId?._id;
     if (userId) {
       await sendNotification(
@@ -1174,11 +1162,15 @@ exports.generateFreeQuotePDF = async (req, res) => {
             quotationReference: quote.quotationReference,
             quotationNumber: quotationNumber || quote.quotationReference,
             totalCost: calculatedTotalCost,
-            systemSize: systemSize
+            systemSize: systemSize,
+            annualProduction: parseFloat(annualProduction) || 0,
+            co2Offset: parseFloat(co2Offset) || 0,
+            roiYears: parseFloat(roiYears) || 0
           }
         }
       );
     }
+
     res.json({
       success: true,
       message: 'Quotation PDF generated and uploaded successfully',
@@ -1189,6 +1181,9 @@ exports.generateFreeQuotePDF = async (req, res) => {
         totalCost: calculatedTotalCost,
         equipmentCost: calculatedEquipmentTotal,
         installationCost: calculatedInstallationTotal,
+        annualProduction: parseFloat(annualProduction) || 0,
+        co2Offset: parseFloat(co2Offset) || 0,
+        roiYears: parseFloat(roiYears) || 0,
         size: `${(pdfBuffer.length / 1024).toFixed(1)} KB`
       }
     });

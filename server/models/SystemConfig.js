@@ -12,6 +12,8 @@ const equipmentItemSchema = new mongoose.Schema({
     value: { type: Number, default: 0 },
     unit: { type: String, default: "" }
   },
+  panelArea: { type: Number, default: 0 },
+  dob:{type: Number, default: 0},
   unit: { type: String, default: 'piece' },
   isActive: { type: Boolean, default: true },
   notes: { type: String, default: '' },

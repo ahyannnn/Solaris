@@ -104,6 +104,7 @@ const ScheduleAssessment = () => {
   // Free Quote Data
   const [freeQuoteData, setFreeQuoteData] = useState({
     monthlyBill: '',
+    ratePerKwh: '',
     propertyType: 'residential',
     systemType: '',
     roofType: '',
@@ -684,7 +685,7 @@ const ScheduleAssessment = () => {
     if (!freeQuoteData.monthlyBill) {
       errors.monthlyBill = 'Monthly electricity bill is required';
     }
-  
+
     if (appliances.length === 0) {
       errors.appliances = 'Please add at least one appliance';
     }
@@ -720,14 +721,15 @@ const ScheduleAssessment = () => {
         clientId: user?._id,
         addressId: selectedAddress?._id || null,
         monthlyBill: freeQuoteData.monthlyBill,
+        rate: freeQuoteData.ratePerKwh ? parseFloat(freeQuoteData.ratePerKwh) : null,
         propertyType: freeQuoteData.propertyType,
         systemType: freeQuoteData.systemType,
         roofType: freeQuoteData.roofType,
         roofLength: freeQuoteData.roofLength,
         roofWidth: freeQuoteData.roofWidth,
         targetSavings: freeQuoteData.targetSavings,
-        monthlyConsumption: calculationResults.monthlyConsumption,
-        rate: electricBillInput.ratePerKwh,
+        monthlyConsumption: calculationResults.monthlyConsumption ? parseFloat(calculationResults.monthlyConsumption.toFixed(2)) : 0,
+
         appliances: appliances.map(app => ({
           name: app.name,
           powerWatts: app.powerWatts,
@@ -735,11 +737,11 @@ const ScheduleAssessment = () => {
           dayHours: app.dayHours,
           nightHours: app.nightHours
         })),
-        dayConsumption: calculationResults.dayConsumption,
-        nightConsumption: calculationResults.nightConsumption,
-        dayPercentage: calculationResults.dayPercentage,
-        nightPercentage: calculationResults.nightPercentage,
-        totalDailyConsumption: calculationResults.totalDailyConsumption,
+        dayConsumption: calculationResults.dayConsumption ? parseFloat(calculationResults.dayConsumption.toFixed(2)) : 0,
+        nightConsumption: calculationResults.nightConsumption ? parseFloat(calculationResults.nightConsumption.toFixed(2)) : 0,
+        dayPercentage: calculationResults.dayPercentage ? parseFloat(calculationResults.dayPercentage.toFixed(2)) : 0,
+        nightPercentage: calculationResults.nightPercentage ? parseFloat(calculationResults.nightPercentage.toFixed(2)) : 0,
+        totalDailyConsumption: calculationResults.totalDailyConsumption ? parseFloat(calculationResults.totalDailyConsumption.toFixed(2)) : 0,
         motorAppliancesWatts: motorWatts,  // Add this
         nonMotorAppliancesWatts: nonMotorWatts  // Add this
       };
@@ -753,6 +755,7 @@ const ScheduleAssessment = () => {
       await sendQuoteConfirmationEmail(
         response.data.quote.quotationReference,
         freeQuoteData.monthlyBill,
+        freeQuoteData.ratePerKwh,
         freeQuoteData.propertyType,
         freeQuoteData.systemType,
         freeQuoteData.roofType,
@@ -843,7 +846,7 @@ const ScheduleAssessment = () => {
 
   const validateForm = () => {
     const errors = {};
-    
+
     if (!selectedAddress) errors.address = 'Please select an address';
     if (appliances.length === 0) errors.appliances = 'Please add at least one appliance';
     return errors;
@@ -878,12 +881,12 @@ const ScheduleAssessment = () => {
         roofWidth: formData.roofWidth,
         monthlyBill: electricBillInput.monthlyBill,
         rate: electricBillInput.ratePerKwh,
-        consumption: calculationResults.monthlyConsumption,
-        dayConsumption: calculationResults.dayConsumption,
-        nightConsumption: calculationResults.nightConsumption,
-        dayPercentage: calculationResults.dayPercentage,
-        nightPercentage: calculationResults.nightPercentage,
-        totalDailyConsumption: calculationResults.totalDailyConsumption,
+        consumption: calculationResults.monthlyConsumption ? parseFloat(calculationResults.monthlyConsumption.toFixed(2)) : 0,
+        dayConsumption: calculationResults.dayConsumption ? parseFloat(calculationResults.dayConsumption.toFixed(2)) : 0,
+        nightConsumption: calculationResults.nightConsumption ? parseFloat(calculationResults.nightConsumption.toFixed(2)) : 0,
+        dayPercentage: calculationResults.dayPercentage ? parseFloat(calculationResults.dayPercentage.toFixed(2)) : 0,
+        nightPercentage: calculationResults.nightPercentage ? parseFloat(calculationResults.nightPercentage.toFixed(2)) : 0,
+        totalDailyConsumption: calculationResults.totalDailyConsumption ? parseFloat(calculationResults.totalDailyConsumption.toFixed(2)) : 0,
         targetSavings: formData.targetSavings ? parseInt(formData.targetSavings) : null,
         motorAppliancesWatts: motorWatts,  // Add this
         nonMotorAppliancesWatts: nonMotorWatts  // Add this
@@ -1783,6 +1786,7 @@ const ScheduleAssessment = () => {
                             <th>Qty</th>
                             <th>Day Hours</th>
                             <th>Night Hours</th>
+                            <th>Type</th>
                             <th>Day Energy (kWh)</th>
                             <th>Night Energy (kWh)</th>
                             <th>Actions</th>
@@ -1799,6 +1803,11 @@ const ScheduleAssessment = () => {
                                 <td>{appliance.quantity}</td>
                                 <td>{appliance.dayHours} hrs</td>
                                 <td>{appliance.nightHours} hrs</td>
+                                <td>
+                                  <span >
+                                    {appliance.isMotor ? 'Motor' : 'Non-Motor'}
+                                  </span>
+                                </td>
                                 <td>{dayEnergy.toFixed(2)} kWh</td>
                                 <td>{nightEnergy.toFixed(2)} kWh</td>
                                 <td>
@@ -1844,7 +1853,7 @@ const ScheduleAssessment = () => {
                         <div className="result-info">
                           <span className="result-label">Total Daily</span>
                           <span className="result-value">{calculationResults.totalDailyConsumption?.toFixed(2) || 0} kWh/day</span>
-                          <small>Based on appliance usage only</small>
+                          <small>Motor {calculateMotorNonMotorWatts().motorWatts.toFixed(0)} W  | Non-Motor {calculateMotorNonMotorWatts().nonMotorWatts.toFixed(0)} W</small>
                         </div>
                       </div>
                       <div className="result-card-cusset monthly-result" style={{ background: '#e8f5e9', borderColor: '#4caf50' }}>
@@ -1919,8 +1928,8 @@ const ScheduleAssessment = () => {
                       type="number"
                       step="0.01"
                       name="ratePerKwh"
-                      value={electricBillInput.ratePerKwh}
-                      onChange={handleElectricBillChange}
+                      value={freeQuoteData.ratePerKwh}
+                      onChange={handleInputChange}
                       placeholder="e.g., 11.50"
                       className="schedule-form-input-cusset"
                     />
@@ -2470,7 +2479,7 @@ const ScheduleAssessment = () => {
                       value={formData.propertyType}
                       className="schedule-form-input-cusset"
                       disabled
-                      
+
                     />
                     {validationErrors.propertyType && (
                       <div className="error-message-cusset">{validationErrors.propertyType}</div>

@@ -1503,7 +1503,754 @@
   color: var(--text-primary);
   text-align: right;
 }
+/* ============================================
+   CALCULATION CARDS CONTAINER
+   ============================================ */
+.calculation-cards-container {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+}
 
+.calculation-cards-header {
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.calculation-cards-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+  font-family: var(--font-family);
+}
+
+.calculation-cards-header p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.5rem 0;
+  font-family: var(--font-family);
+}
+
+.system-type-indicator {
+  display: inline-block;
+  padding: 0.2rem 0.75rem;
+  background: var(--bg-surface);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
+  font-family: var(--font-family);
+}
+
+.system-type-indicator strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.calculation-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+/* ============================================
+   INDIVIDUAL CALCULATION CARD
+   ============================================ */
+.calculation-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+  transition: border-color var(--transition-base);
+  height: 100%;
+  min-height: 420px;
+}
+
+.calculation-card:hover {
+  border-color: var(--border-medium);
+}
+
+.calculation-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+
+.calculation-card-header h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  font-family: var(--font-family);
+}
+
+.calculation-badge {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 0.15rem 0.6rem;
+  background: var(--bg-elevated);
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  font-family: var(--font-family);
+}
+
+.calculation-card-body {
+  padding: 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================
+   CONSUMPTION DISPLAY
+   ============================================ */
+.consumption-display {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.consumption-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+}
+
+.consumption-item label {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-family: var(--font-family);
+}
+
+.consumption-item strong {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-family);
+}
+
+.consumption-item small {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  font-family: var(--font-family);
+}
+
+.consumption-item.highlight {
+  background: var(--bg-surface);
+  border-color: #3b82f6;
+}
+
+.consumption-item.highlight strong {
+  color: #3b82f6;
+}
+
+/* ============================================
+   CALCULATION PARAMS
+   ============================================ */
+.calculation-params {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.param-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.param-group label {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-family: var(--font-family);
+}
+
+.param-input {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-family: var(--font-family);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  width: 100%;
+  max-width: 100px;
+  transition: border-color var(--transition-base);
+}
+
+.param-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.param-display {
+  padding: 0.3rem 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+}
+
+.param-display.read-only {
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   BATTERY AUTONOMY
+   ============================================ */
+.battery-autonomy-selector {
+  margin: 0.5rem 0;
+}
+
+.battery-autonomy-selector .form-label-enad {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.autonomy-options {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.autonomy-btn {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--border-medium);
+  border-radius: 20px;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 500;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.autonomy-btn:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.autonomy-btn.active {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+
+/* ============================================
+   SYSTEM NOTES
+   ============================================ */
+.system-note {
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--radius-sm);
+  margin: 0.5rem 0;
+  font-size: 0.7rem;
+  font-family: var(--font-family);
+  border: 1px solid var(--border-light);
+}
+
+.system-note p {
+  margin: 0;
+}
+
+.gridtie-note {
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+}
+
+.offgrid-note {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #f59e0b;
+}
+
+.netmetering-note {
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   SELECTED EQUIPMENT INFO
+   ============================================ */
+.selected-equipment-info {
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  margin: 0.5rem 0;
+}
+
+.equipment-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-family: var(--font-family);
+}
+
+.equipment-detail strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ============================================
+   FORMULA DISPLAY
+   ============================================ */
+.formula-display {
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  margin: 0.5rem 0;
+}
+
+.formula-display p {
+  margin: 0.1rem 0;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-family: var(--font-family);
+}
+
+.formula-display p strong {
+  color: var(--text-primary);
+}
+
+.formula-detail {
+  font-size: 0.6rem !important;
+  color: var(--text-muted) !important;
+}
+
+/* ============================================
+   CALCULATE BUTTON
+   ============================================ */
+.btn-calculate {
+  width: 100%;
+  padding: 0.5rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: #3b82f6;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  margin-top: auto;
+}
+
+.btn-calculate:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.btn-calculate:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   CALCULATION RESULTS CARD
+   ============================================ */
+.calculation-results-card {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  border: 2px solid #3b82f6;
+  padding: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.results-header h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  font-family: var(--font-family);
+}
+
+.results-method {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  padding: 0.15rem 0.75rem;
+  background: var(--bg-surface);
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  font-family: var(--font-family);
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.75rem;
+  
+}
+
+.result-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.6rem 0.75rem;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+}
+
+.result-item label {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-family: var(--font-family);
+  margin-bottom: 0.15rem;
+}
+
+.result-item strong {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-family);
+}
+
+.result-item small {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  font-family: var(--font-family);
+  margin-top: 0.1rem;
+}
+
+.result-item.highlight {
+  background: var(--bg-surface);
+  border-color: #3b82f6;
+}
+
+.result-item.highlight strong {
+  color: #3b82f6;
+}
+
+/* Battery Autonomy in Results */
+.result-item.battery-autonomy {
+  grid-column: span 2;
+}
+
+.battery-options {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.15rem;
+}
+
+.battery-option {
+  display: flex;
+  flex-direction: column;
+  padding: 0.2rem 0.5rem;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  min-width: 70px;
+}
+
+.battery-option span {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  font-family: var(--font-family);
+}
+
+.battery-option strong {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-family);
+}
+
+.result-item .formula-hint {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* System Info in Results */
+.result-item.system-info {
+  grid-column: span 1;
+}
+
+/* ============================================
+   RESULTS ACTIONS
+   ============================================ */
+.results-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-light);
+  margin-top: 0.25rem;
+}
+
+.btn-use-results {
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: #16a34a;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-use-results:hover {
+  background: #15803d;
+}
+
+.btn-recalculate {
+  padding: 0.5rem 1.5rem;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-recalculate:hover {
+  background: var(--bg-surface);
+  border-color: var(--text-muted);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1200px) {
+  .results-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .results-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .result-item.battery-autonomy {
+    grid-column: span 2;
+  }
+  
+  .results-actions {
+    flex-direction: column;
+  }
+  
+  .results-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .results-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .result-item.battery-autonomy {
+    grid-column: span 1;
+  }
+  
+  .battery-options {
+    flex-direction: column;
+  }
+  
+  .battery-option {
+    min-width: unset;
+  }
+}
+
+/* ============================================
+   CALCULATED RESULTS SUMMARY
+   ============================================ */
+.calculated-results-summary {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  border: 1px solid var(--border-light);
+}
+
+.calculated-results-summary h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.75rem 0;
+  font-family: var(--font-family);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.75rem;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+}
+
+.summary-item label {
+  font-size: 0.55rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-family: var(--font-family);
+}
+
+.summary-item strong {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-family);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1200px) {
+  .calculation-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .results-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .summary-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .calculation-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .results-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .calculation-card {
+    min-height: 380px;
+  }
+  
+  .consumption-display {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .calculation-params {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .result-item.battery-autonomy {
+    grid-column: span 2;
+  }
+  
+  .results-actions {
+    flex-direction: column;
+  }
+  
+  .results-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .calculation-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .results-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .consumption-display {
+    grid-template-columns: 1fr;
+  }
+  
+  .calculation-params {
+    grid-template-columns: 1fr;
+  }
+  
+  .calculation-card {
+    min-height: 340px;
+  }
+  
+  .result-item.battery-autonomy {
+    grid-column: span 1;
+  }
+  
+  .battery-options {
+    flex-direction: column;
+  }
+  
+  .battery-option {
+    min-width: unset;
+  }
+  
+  .calculation-card-header {
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-start;
+  }
+}
 .warning-box-enad {
   background: #fef3c7;
   border: 1px solid #f59e0b;

@@ -50,6 +50,9 @@ const preAssessmentSchema = new mongoose.Schema({
   co2OffsetMin: { type: Number, default: null },
   co2OffsetMax: { type: Number, default: null },
 
+  // ============ ROI DATA ============
+  roiYears: { type: Number, default: null },
+
   // ============ PAYMENT FIELDS ============
   assessmentFee: { type: Number, default: 1500 },
   bookingReference: { type: String }, // Removed unique: true

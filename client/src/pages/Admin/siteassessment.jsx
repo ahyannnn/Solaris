@@ -17,10 +17,16 @@ import {
   FaTools,
   FaWifi,
   FaChevronDown,
-  FaUpload
+  FaUpload,
+  FaSyncAlt
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/siteassessment.css';
+
+// Recharts Imports
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+} from 'recharts';
 
 const SiteAssessment = () => {
   const { toast, showToast, hideToast } = useToast();
@@ -47,7 +53,7 @@ const SiteAssessment = () => {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
+  const [itemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [engineers, setEngineers] = useState([]);
   const [devices, setDevices] = useState([]);
@@ -59,6 +65,22 @@ const SiteAssessment = () => {
     freeQuotes: { total: 0, pending: 0, assigned: 0, processing: 0, completed: 0 },
     preAssessments: { total: 0, pendingReview: 0, pendingPayment: 0, forVerification: 0, paid: 0, scheduled: 0, completed: 0, autoVerified: 0 }
   });
+
+  // --- CHART DATA ---
+  const [chartData, setChartData] = useState([
+    { name: 'Jan', quotes: 0, assessments: 0 },
+    { name: 'Feb', quotes: 0, assessments: 0 },
+    { name: 'Mar', quotes: 0, assessments: 0 },
+    { name: 'Apr', quotes: 0, assessments: 0 },
+    { name: 'May', quotes: 0, assessments: 0 },
+    { name: 'Jun', quotes: 0, assessments: 0 },
+    { name: 'Jul', quotes: 0, assessments: 0 },
+    { name: 'Aug', quotes: 0, assessments: 0 },
+    { name: 'Sep', quotes: 0, assessments: 0 },
+    { name: 'Oct', quotes: 0, assessments: 0 },
+    { name: 'Nov', quotes: 0, assessments: 0 },
+    { name: 'Dec', quotes: 0, assessments: 0 }
+  ]);
 
   useEffect(() => {
     fetchData();
@@ -145,6 +167,7 @@ const SiteAssessment = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       const quotes = freeQuotesRes.data.quotes || [];
+      
       const preAssessmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -170,6 +193,31 @@ const SiteAssessment = () => {
           autoVerified: autoVerified
         }
       });
+
+      // Process chart data
+      const monthlyQuotes = new Array(12).fill(0);
+      const monthlyAssessments = new Array(12).fill(0);
+      
+      quotes.forEach(quote => {
+        if (quote.requestedAt) {
+          const month = new Date(quote.requestedAt).getMonth();
+          monthlyQuotes[month]++;
+        }
+      });
+      
+      assessments.forEach(assessment => {
+        if (assessment.bookedAt) {
+          const month = new Date(assessment.bookedAt).getMonth();
+          monthlyAssessments[month]++;
+        }
+      });
+      
+      setChartData(chartData.map((item, index) => ({
+        ...item,
+        quotes: monthlyQuotes[index],
+        assessments: monthlyAssessments[index]
+      })));
+
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -365,7 +413,7 @@ const SiteAssessment = () => {
 
   const getStatusBadge = (status, type) => {
     const formattedStatus = formatStatusText(status);
-    return <span className="status-badge-adminasses">{formattedStatus}</span>;
+    return <span className="status-badge-adminsiteassess">{formattedStatus}</span>;
   };
 
   const getDisplayStatus = (item) => {
@@ -498,10 +546,11 @@ const SiteAssessment = () => {
   };
 
   const SkeletonLoader = () => (
-    <div className="site-assessment-adminasses">
-      <div className="assessment-header-adminasses"><div className="skeleton-title-adminasses"></div><div className="skeleton-subtitle-adminasses"></div></div>
-      <div className="assessment-tabs-adminasses"><div className="skeleton-tab-adminasses"></div><div className="skeleton-tab-adminasses"></div></div>
-      <div className="skeleton-table-adminasses"></div>
+    <div className="site-assessment-adminsiteassess">
+      <div className="header-adminsiteassess"><div className="skeleton-title-adminsiteassess"></div><div className="skeleton-subtitle-adminsiteassess"></div></div>
+      <div className="chart-area-adminsiteassess skeleton-chart-adminsiteassess"></div>
+      <div className="tabs-adminsiteassess"><div className="skeleton-tab-adminsiteassess"></div><div className="skeleton-tab-adminsiteassess"></div></div>
+      <div className="skeleton-table-adminsiteassess"></div>
     </div>
   );
 
@@ -529,35 +578,126 @@ const SiteAssessment = () => {
     return <SkeletonLoader />;
   }
 
+  /* --- Recharts Custom Tooltip --- */
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="recharts-custom-tooltip-adminsiteassess">
+          <p className="tooltip-label-adminsiteassess">{label}</p>
+          {payload.map((entry, idx) => (
+            <p key={idx} className="tooltip-item-adminsiteassess" style={{ color: entry.color }}>
+              {entry.name}: {entry.value}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <>
       <Helmet><title>Site Assessment | Admin | Salfer Engineering</title></Helmet>
 
-      <div className="site-assessment-adminasses">
-        <div className="assessment-header-adminasses">
-          
-          <p>Manage free quote requests and pre-assessment bookings</p>
+      <div className="site-assessment-adminsiteassess">
+        {/* --- Minimalist Header (No Title Text) --- */}
+        <div className="header-adminsiteassess">
+          <div></div> {/* Empty wrapper to keep padding aligned */}
         </div>
 
-        <div className="assessment-tabs-adminasses">
+        {/* --- Analytics Chart (Placed 1st) --- */}
+        <div className="chart-area-adminsiteassess">
+          <div className="chart-header-adminsiteassess">
+            <h3>Monthly Volume</h3>
+            <span className="chart-period-adminsiteassess">Free Quotes vs Pre-Assessments</span>
+          </div>
+          <div className="chart-wrapper-adminsiteassess">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  {/* FIXED: Changed to Indigo (#6366f1) */}
+                  <linearGradient id="colorQuotes" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                  </linearGradient>
+                  {/* FIXED: Changed to Emerald (#10b981) */}
+                  <linearGradient id="colorAssessments" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#E5E7EB" />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{fill: '#6B7280', fontSize: 12}} 
+                  dy={10}
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{fill: '#6B7280', fontSize: 12}} 
+                  width={30}
+                />
+                <Tooltip content={<CustomTooltip />} cursor={{stroke: '#D1D5DB', strokeWidth: 1}} />
+                <Area 
+                  type="monotone" 
+                  dataKey="quotes" 
+                  name="Free Quotes"
+                  stroke="#6366f1" 
+                  strokeWidth={2.5} 
+                  fillOpacity={1} 
+                  fill="url(#colorQuotes)" 
+                  dot={{ r: 4, fill: '#6366f1', strokeWidth: 2, stroke: '#fff' }}
+                  activeDot={{ r: 6 }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="assessments" 
+                  name="Pre-Assessments"
+                  stroke="#10b981" 
+                  strokeWidth={2.5} 
+                  fillOpacity={1} 
+                  fill="url(#colorAssessments)" 
+                  dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }}
+                  activeDot={{ r: 6 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* --- Tab Bar (Placed 2nd below chart) --- */}
+        <div className="tabs-adminsiteassess">
           <button
-            className={`tab-btn-adminasses ${activeTab === 'free-quotes' ? 'active-adminasses' : ''}`}
+            className={`tab-btn-adminsiteassess ${activeTab === 'free-quotes' ? 'active-adminsiteassess' : ''}`}
             onClick={() => { setActiveTab('free-quotes'); setFilter('all'); setCurrentPage(1); }}
           >
             Free Quotes
-            <span className="tab-badge-adminasses">{stats.freeQuotes.total}</span>
+            <span className="tab-badge-adminsiteassess">{stats.freeQuotes.total}</span>
           </button>
           <button
-            className={`tab-btn-adminasses ${activeTab === 'pre-assessments' ? 'active-adminasses' : ''}`}
+            className={`tab-btn-adminsiteassess ${activeTab === 'pre-assessments' ? 'active-adminsiteassess' : ''}`}
             onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); }}
           >
             Pre-Assessments
-            <span className="tab-badge-adminasses">{stats.preAssessments.total}</span>
+            <span className="tab-badge-adminsiteassess">{stats.preAssessments.total}</span>
           </button>
         </div>
 
-        <div className="assessment-filters-adminasses">
-          <div className="filter-group-adminasses">
+        {/* --- Toolbar --- */}
+        <div className="toolbar-adminsiteassess">
+          <div className="search-group-adminsiteassess">
+            <FaSearch className="search-icon-adminsiteassess" />
+            <input 
+              type="text" 
+              placeholder="Search by client name or reference..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+            />
+          </div>
+          <div className="filter-group-adminsiteassess">
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
               <option value="all">All Status</option>
               {activeTab === 'free-quotes' ? (
@@ -579,19 +719,16 @@ const SiteAssessment = () => {
                 </>
               )}
             </select>
+            <FaChevronDown className="select-arrow-adminsiteassess" />
           </div>
-          <div className="search-group-adminasses">
-            <input 
-              type="text" 
-              placeholder="Search by client name or reference..." 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
-            />
-          </div>
+          <button className="refresh-btn-adminsiteassess" onClick={() => { fetchData(); fetchStats(); }}>
+            <FaSyncAlt className={loading ? 'spinning-adminsiteassess' : ''} /> Refresh
+          </button>
         </div>
 
-        <div className="table-container-adminasses">
-          <table className="data-table-adminasses">
+        {/* --- Table --- */}
+        <div className="table-container-adminsiteassess">
+          <table className="data-table-adminsiteassess">
             <thead>
               <tr>
                 <th>Reference</th>
@@ -606,7 +743,7 @@ const SiteAssessment = () => {
             </thead>
             <tbody>
               {filteredItems.length === 0 ? (
-                <tr><td colSpan="9" className="empty-state-adminasses">No {activeTab === 'free-quotes' ? 'free quotes' : 'pre-assessments'} found</td></tr>
+                <tr><td colSpan="9" className="empty-state-adminsiteassess">No {activeTab === 'free-quotes' ? 'free quotes' : 'pre-assessments'} found</td></tr>
               ) : (
                 filteredItems.map(item => {
                   const actions = getAvailableActions(item);
@@ -614,35 +751,38 @@ const SiteAssessment = () => {
 
                   return (
                     <tr key={item._id}>
-                      <td className="ref-cell-adminasses">{activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference}</td>
-                      <td>{item.clientId?.contactFirstName} {item.clientId?.contactLastName}</td>
-                      <td><div>{item.clientId?.contactNumber || 'N/A'}</div><div className="email-cell-adminasses">{item.clientId?.userId?.email || 'N/A'}</div></td>
+                      <td className="ref-cell-adminsiteassess">{activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference}</td>
+                      <td className="client-cell-adminsiteassess">{item.clientId?.contactFirstName} {item.clientId?.contactLastName}</td>
+                      <td>
+                        <div className="contact-info-adminsiteassess">{item.clientId?.contactNumber || 'N/A'}</div>
+                        <div className="email-cell-adminsiteassess">{item.clientId?.userId?.email || 'N/A'}</div>
+                      </td>
                       <td>{formatDate(activeTab === 'free-quotes' ? item.requestedAt : item.bookedAt)}</td>
                       {activeTab === 'free-quotes' ? (
                         <>
-                          <td className="amount-cell-adminasses">{formatCurrency(item.monthlyBill)}</td>
+                          <td className="amount-cell-adminsiteassess">{formatCurrency(item.monthlyBill)}</td>
                           <td>{item.desiredCapacity || 'N/A'}</td>
                         </>
                       ) : (
                         <>
                           <td>{item.propertyType}</td>
-                          <td className="amount-cell-adminasses">{formatCurrency(item.assessmentFee)}</td>
+                          <td className="amount-cell-adminsiteassess">{formatCurrency(item.assessmentFee)}</td>
                         </>
                       )}
                       <td>{getStatusBadge(getDisplayStatus(item), activeTab === 'free-quotes' ? 'free-quote' : 'pre-assessment')}</td>
                       <td style={{ textAlign: 'center', position: 'relative' }}>
-                        <div className="action-dropdown-container-adminasses">
+                        <div className="action-dropdown-container-adminsiteassess">
                           <button
-                            className="action-dropdown-toggle-adminasses"
+                            className="action-dropdown-toggle-adminsiteassess"
                             ref={el => buttonRefs.current[item._id] = el}
                             onClick={(e) => handleDropdownClick(e, item._id)}
                           >
-                            Action <FaChevronDown className={`dropdown-arrow-adminasses ${isOpen ? 'open-adminasses' : ''}`} />
+                            Action <FaChevronDown className={`dropdown-arrow-adminsiteassess ${isOpen ? 'open-adminsiteassess' : ''}`} />
                           </button>
 
                           {isOpen && (
                             <div
-                              className="action-dropdown-menu-adminasses"
+                              className="action-dropdown-menu-adminsiteassess"
                               ref={dropdownRef}
                               style={{
                                 position: 'fixed',
@@ -653,13 +793,13 @@ const SiteAssessment = () => {
                             >
                               {actions.map((action, idx) => (
                                 action.disabled ? (
-                                  <div key={idx} className={`dropdown-item-adminasses disabled-adminasses ${action.color || ''}`}>
+                                  <div key={idx} className={`dropdown-item-adminsiteassess disabled-adminsiteassess ${action.color || ''}`}>
                                     {action.icon} <span>{action.label}</span>
                                   </div>
                                 ) : (
                                   <button
                                     key={idx}
-                                    className={`dropdown-item-adminasses ${action.color || ''}`}
+                                    className={`dropdown-item-adminsiteassess ${action.color || ''}`}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       action.action();
@@ -681,14 +821,15 @@ const SiteAssessment = () => {
           </table>
         </div>
 
+        {/* --- Pagination --- */}
         {totalPages > 1 && (
-          <div className="pagination-adminasses">
-            <div className="pagination-info-adminasses">
+          <div className="pagination-adminsiteassess">
+            <div className="pagination-info-adminsiteassess">
               Showing {startItem} to {endItem} of {totalItems} entries
             </div>
-            <div className="pagination-controls-adminasses">
+            <div className="pagination-controls-adminsiteassess">
               <button
-                className="page-btn-adminasses"
+                className="page-btn-adminsiteassess"
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
               >
@@ -698,7 +839,7 @@ const SiteAssessment = () => {
               {getPageNumbers().map(page => (
                 <button
                   key={page}
-                  className={`page-number-adminasses ${currentPage === page ? 'active-adminasses' : ''}`}
+                  className={`page-number-adminsiteassess ${currentPage === page ? 'active-adminsiteassess' : ''}`}
                   onClick={() => setCurrentPage(page)}
                 >
                   {page}
@@ -706,7 +847,7 @@ const SiteAssessment = () => {
               ))}
 
               <button
-                className="page-btn-adminasses"
+                className="page-btn-adminsiteassess"
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
               >
@@ -716,212 +857,108 @@ const SiteAssessment = () => {
           </div>
         )}
 
-        {/* Approve Modal */}
+        {/* --- MODALS (All business logic preserved) --- */}
         {showApproveModal && selectedItem && (
-          <div className="modal-overlay-adminasses" onClick={() => setShowApproveModal(false)}>
-            <div className="modal-adminasses" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-adminasses"><h3>Approve Booking</h3><button className="modal-close-adminasses" onClick={() => setShowApproveModal(false)}>×</button></div>
-              <div className="modal-body-adminasses">
-                <div className="detail-row-adminasses"><span>Reference:</span><strong>{selectedItem.bookingReference}</strong></div>
-                <div className="detail-row-adminasses"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
-                <div className="detail-row-adminasses"><span>Fee:</span><strong>{formatCurrency(selectedItem.assessmentFee)}</strong></div>
-                <div className="form-group-adminasses"><label>Notes (Optional)</label><textarea rows="3" value={approveNotes} onChange={(e) => setApproveNotes(e.target.value)} /></div>
-                <div className="info-box-adminasses"><FaInfoCircle /><small>Approving will generate an invoice for the customer.</small></div>
+          <div className="modal-overlay-adminsiteassess" onClick={() => setShowApproveModal(false)}>
+            <div className="modal-adminsiteassess" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-adminsiteassess"><h3>Approve Booking</h3><button className="modal-close-adminsiteassess" onClick={() => setShowApproveModal(false)}>×</button></div>
+              <div className="modal-body-adminsiteassess">
+                <div className="detail-row-adminsiteassess"><span>Reference:</span><strong>{selectedItem.bookingReference}</strong></div>
+                <div className="detail-row-adminsiteassess"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
+                <div className="detail-row-adminsiteassess"><span>Fee:</span><strong>{formatCurrency(selectedItem.assessmentFee)}</strong></div>
+                <div className="form-group-adminsiteassess"><label>Notes (Optional)</label><textarea rows="3" value={approveNotes} onChange={(e) => setApproveNotes(e.target.value)} /></div>
+                <div className="info-box-adminsiteassess"><FaInfoCircle /><small>Approving will generate an invoice for the customer.</small></div>
               </div>
-              <div className="modal-actions-adminasses">
-                <button className="cancel-btn-adminasses" onClick={() => setShowApproveModal(false)}>Cancel</button>
-                <button className="reject-btn-adminasses" onClick={() => handleApproveBooking(false)}>Reject</button>
-                <button className="approve-btn-adminasses" onClick={() => handleApproveBooking(true)} disabled={isSubmitting}>{isSubmitting ? 'Processing...' : 'Approve'}</button>
+              <div className="modal-actions-adminsiteassess">
+                <button className="cancel-btn-adminsiteassess" onClick={() => setShowApproveModal(false)}>Cancel</button>
+                <button className="reject-btn-adminsiteassess" onClick={() => handleApproveBooking(false)}>Reject</button>
+                <button className="approve-btn-adminsiteassess" onClick={() => handleApproveBooking(true)} disabled={isSubmitting}>{isSubmitting ? 'Processing...' : 'Approve'}</button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Detail Modal */}
         {showDetailModal && selectedItem && (
-          <div className="modal-overlay-adminasses" onClick={() => setShowDetailModal(false)}>
-            <div className="modal-adminasses detail-modal-adminasses" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-adminasses"><h3>Details</h3><button className="modal-close-adminasses" onClick={() => setShowDetailModal(false)}>×</button></div>
-              <div className="modal-body-adminasses">
-                <div className="detail-section-adminasses">
-                  <h4>Client</h4>
-                  <p><strong>Name:</strong> {selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</p>
-                  <p><strong>Email:</strong> {selectedItem.clientId?.userId?.email}</p>
-                  <p><strong>Contact:</strong> {selectedItem.clientId?.contactNumber}</p>
-                  <p><strong>Address:</strong> {selectedItem.addressId?.houseOrBuilding} {selectedItem.addressId?.street}, {selectedItem.addressId?.barangay}</p>
-                </div>
+          <div className="modal-overlay-adminsiteassess" onClick={() => setShowDetailModal(false)}>
+            <div className="modal-adminsiteassess detail-modal-adminsiteassess" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-adminsiteassess"><h3>Details</h3><button className="modal-close-adminsiteassess" onClick={() => setShowDetailModal(false)}>×</button></div>
+              <div className="modal-body-adminsiteassess">
+                <div className="detail-section-adminsiteassess"><h4>Client</h4><p><strong>Name:</strong> {selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</p><p><strong>Email:</strong> {selectedItem.clientId?.userId?.email}</p><p><strong>Contact:</strong> {selectedItem.clientId?.contactNumber}</p><p><strong>Address:</strong> {selectedItem.addressId?.houseOrBuilding} {selectedItem.addressId?.street}, {selectedItem.addressId?.barangay}</p></div>
                 {activeTab === 'free-quotes' ? (
-                  <div className="detail-section-adminasses">
-                    <h4>Quote Details</h4>
-                    <p><strong>Reference:</strong> {selectedItem.quotationReference}</p>
-                    <p><strong>Monthly Bill:</strong> {formatCurrency(selectedItem.monthlyBill)}</p>
-                    <p><strong>Status:</strong> {selectedItem.status}</p>
-                    <p><strong>Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p>
-                  </div>
+                  <div className="detail-section-adminsiteassess"><h4>Quote Details</h4><p><strong>Reference:</strong> {selectedItem.quotationReference}</p><p><strong>Monthly Bill:</strong> {formatCurrency(selectedItem.monthlyBill)}</p><p><strong>Status:</strong> {selectedItem.status}</p><p><strong>Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p></div>
                 ) : (
-                  <div className="detail-section-adminasses">
-                    <h4>Assessment</h4>
-                    <p><strong>Reference:</strong> {selectedItem.bookingReference}</p>
-                    <p><strong>Fee:</strong> {formatCurrency(selectedItem.assessmentFee)}</p>
-                    <p><strong>Payment:</strong> {selectedItem.paymentStatus}</p>
-                    <p><strong>Assessment:</strong> {selectedItem.assessmentStatus}</p>
-                    <p><strong>Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p>
-                    <p><strong>Device:</strong> {getDeviceId(selectedItem.assignedDeviceId || selectedItem.iotDeviceId)}</p>
-                  </div>
+                  <div className="detail-section-adminsiteassess"><h4>Assessment</h4><p><strong>Reference:</strong> {selectedItem.bookingReference}</p><p><strong>Fee:</strong> {formatCurrency(selectedItem.assessmentFee)}</p><p><strong>Payment:</strong> {selectedItem.paymentStatus}</p><p><strong>Assessment:</strong> {selectedItem.assessmentStatus}</p><p><strong>Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p><p><strong>Device:</strong> {getDeviceId(selectedItem.assignedDeviceId || selectedItem.iotDeviceId)}</p></div>
                 )}
               </div>
-              <div className="modal-actions-adminasses"><button className="cancel-btn-adminasses" onClick={() => setShowDetailModal(false)}>Close</button></div>
+              <div className="modal-actions-adminsiteassess"><button className="cancel-btn-adminsiteassess" onClick={() => setShowDetailModal(false)}>Close</button></div>
             </div>
           </div>
         )}
 
-        {/* Verify Modal */}
         {showVerifyModal && selectedItem && (
-          <div className="modal-overlay-adminasses" onClick={() => setShowVerifyModal(false)}>
-            <div className="modal-adminasses" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-adminasses"><h3>Verify Payment</h3><button className="modal-close-adminasses" onClick={() => setShowVerifyModal(false)}>×</button></div>
-              <div className="modal-body-adminasses">
-                <div className="detail-row-adminasses"><span>Reference:</span><strong>{selectedItem.bookingReference}</strong></div>
-                <div className="detail-row-adminasses"><span>Amount:</span><strong>{formatCurrency(selectedItem.assessmentFee)}</strong></div>
-                <div className="detail-row-adminasses"><span>Method:</span><strong>{selectedItem.paymentMethod?.toUpperCase()}</strong></div>
-                {selectedItem.paymentReference && <div className="detail-row-adminasses"><span>Transaction:</span><strong>{selectedItem.paymentReference}</strong></div>}
+          <div className="modal-overlay-adminsiteassess" onClick={() => setShowVerifyModal(false)}>
+            <div className="modal-adminsiteassess" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-adminsiteassess"><h3>Verify Payment</h3><button className="modal-close-adminsiteassess" onClick={() => setShowVerifyModal(false)}>×</button></div>
+              <div className="modal-body-adminsiteassess">
+                <div className="detail-row-adminsiteassess"><span>Reference:</span><strong>{selectedItem.bookingReference}</strong></div>
+                <div className="detail-row-adminsiteassess"><span>Amount:</span><strong>{formatCurrency(selectedItem.assessmentFee)}</strong></div>
+                <div className="detail-row-adminsiteassess"><span>Method:</span><strong>{selectedItem.paymentMethod?.toUpperCase()}</strong></div>
+                {selectedItem.paymentReference && <div className="detail-row-adminsiteassess"><span>Transaction:</span><strong>{selectedItem.paymentReference}</strong></div>}
                 {selectedItem.paymentMethod === 'cash' && (
-                  <>
-                    <div className="form-group-adminasses"><label>Notes</label><textarea rows="3" value={verificationNote} onChange={(e) => setVerificationNote(e.target.value)} /></div>
-                    <div className="modal-actions-adminasses">
-                      <button className="cancel-btn-adminasses" onClick={() => setShowVerifyModal(false)}>Cancel</button>
-                      <button className="verify-btn-adminasses" onClick={() => handleVerifyPayment(true)}><FaCheckCircle /> Confirm Cash Received</button>
-                    </div>
-                  </>
+                  <><div className="form-group-adminsiteassess"><label>Notes</label><textarea rows="3" value={verificationNote} onChange={(e) => setVerificationNote(e.target.value)} /></div><div className="modal-actions-adminsiteassess"><button className="cancel-btn-adminsiteassess" onClick={() => setShowVerifyModal(false)}>Cancel</button><button className="verify-btn-adminsiteassess" onClick={() => handleVerifyPayment(true)}><FaCheckCircle /> Confirm Cash Received</button></div></>
                 )}
-                {selectedItem.paymentGateway === 'paymongo' && (
-                  <div className="info-box-adminasses"><FaInfoCircle /><small>Auto-verified via PayMongo. No action needed.</small></div>
-                )}
+                {selectedItem.paymentGateway === 'paymongo' && ( <div className="info-box-adminsiteassess"><FaInfoCircle /><small>Auto-verified via PayMongo. No action needed.</small></div> )}
               </div>
-              {selectedItem.paymentGateway === 'paymongo' && (
-                <div className="modal-actions-adminasses"><button className="cancel-btn-adminasses" onClick={() => setShowVerifyModal(false)}>Close</button></div>
-              )}
+              {selectedItem.paymentGateway === 'paymongo' && ( <div className="modal-actions-adminsiteassess"><button className="cancel-btn-adminsiteassess" onClick={() => setShowVerifyModal(false)}>Close</button></div> )}
             </div>
           </div>
         )}
 
-        {/* Assign Engineer Modal - With Card Selection */}
         {showAssignEngineerModal && selectedItem && (
-          <div className="modal-overlay-adminasses" onClick={() => setShowAssignEngineerModal(false)}>
-            <div className="modal-adminasses assign-engineer-modal-adminasses" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-adminasses">
-                <h3>Assign Engineer</h3>
-                <button className="modal-close-adminasses" onClick={() => setShowAssignEngineerModal(false)}>×</button>
+          <div className="modal-overlay-adminsiteassess" onClick={() => setShowAssignEngineerModal(false)}>
+            <div className="modal-adminsiteassess assign-engineer-modal-adminsiteassess" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-adminsiteassess"><h3>Assign Engineer</h3><button className="modal-close-adminsiteassess" onClick={() => setShowAssignEngineerModal(false)}>×</button></div>
+              <div className="modal-body-adminsiteassess">
+                <div className="detail-row-adminsiteassess"><span>Reference:</span><strong>{activeTab === 'free-quotes' ? selectedItem.quotationReference : selectedItem.bookingReference}</strong></div>
+                <div className="detail-row-adminsiteassess"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
+                <div className="form-group-adminsiteassess"><label>Select Engineer</label><div className="engineer-grid-adminsiteassess">{engineers.length === 0 ? (<div className="no-engineers-adminsiteassess">No engineers available</div>) : (engineers.map(eng => (<div key={eng._id} className={`engineer-card-adminsiteassess ${engineerId === eng._id ? 'selected-adminsiteassess' : ''}`} onClick={() => setEngineerId(eng._id)}><div className="engineer-avatar-adminsiteassess"><span>{eng.fullName?.charAt(0) || 'E'}</span></div><div className="engineer-info-adminsiteassess"><div className="engineer-name-adminsiteassess">{eng.fullName || 'Engineer'}</div><div className="engineer-email-adminsiteassess">{eng.email}</div></div>{engineerId === eng._id && (<div className="engineer-selected-badge-adminsiteassess"><FaCheckCircle /></div>)}</div>)))}</div></div>
+                {activeTab !== 'free-quotes' && (<div className="form-group-adminsiteassess"><label>Site Visit Date</label><input type="date" value={siteVisitDate} onChange={(e) => setSiteVisitDate(e.target.value)} /></div>)}
+                <div className="form-group-adminsiteassess"><label>Notes</label><textarea rows="3" value={siteVisitNotes} onChange={(e) => setSiteVisitNotes(e.target.value)} placeholder="Add any special instructions or notes..." /></div>
               </div>
-              <div className="modal-body-adminasses">
-                <div className="detail-row-adminasses">
-                  <span>Reference:</span>
-                  <strong>{activeTab === 'free-quotes' ? selectedItem.quotationReference : selectedItem.bookingReference}</strong>
-                </div>
-                <div className="detail-row-adminasses">
-                  <span>Client:</span>
-                  <strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong>
-                </div>
-                
-                <div className="form-group-adminasses">
-                  <label>Select Engineer</label>
-                  <div className="engineer-grid-adminasses">
-                    {engineers.length === 0 ? (
-                      <div className="no-engineers-adminasses">No engineers available</div>
-                    ) : (
-                      engineers.map(eng => (
-                        <div 
-                          key={eng._id}
-                          className={`engineer-card-adminasses ${engineerId === eng._id ? 'selected-adminasses' : ''}`}
-                          onClick={() => setEngineerId(eng._id)}
-                        >
-                          <div className="engineer-avatar-adminasses">
-                            <span>{eng.fullName?.charAt(0) || 'E'}</span>
-                          </div>
-                          <div className="engineer-info-adminasses">
-                            <div className="engineer-name-adminasses">{eng.fullName || 'Engineer'}</div>
-                            <div className="engineer-email-adminasses">{eng.email}</div>
-                          </div>
-                          {engineerId === eng._id && (
-                            <div className="engineer-selected-badge-adminasses">
-                              <FaCheckCircle />
-                            </div>
-                          )}
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                {activeTab !== 'free-quotes' && (
-                  <div className="form-group-adminasses">
-                    <label>Site Visit Date</label>
-                    <input 
-                      type="date" 
-                      value={siteVisitDate} 
-                      onChange={(e) => setSiteVisitDate(e.target.value)} 
-                    />
-                  </div>
-                )}
-                
-                <div className="form-group-adminasses">
-                  <label>Notes</label>
-                  <textarea 
-                    rows="3" 
-                    value={siteVisitNotes} 
-                    onChange={(e) => setSiteVisitNotes(e.target.value)} 
-                    placeholder="Add any special instructions or notes..."
-                  />
-                </div>
-              </div>
-              <div className="modal-actions-adminasses">
-                <button className="cancel-btn-adminasses" onClick={() => setShowAssignEngineerModal(false)}>Cancel</button>
-                <button 
-                  className="assign-btn-adminasses" 
-                  onClick={handleAssignEngineer} 
-                  disabled={!engineerId || isSubmitting}
-                >
-                  {isSubmitting ? 'Assigning...' : 'Assign Engineer'}
-                </button>
+              <div className="modal-actions-adminsiteassess">
+                <button className="cancel-btn-adminsiteassess" onClick={() => setShowAssignEngineerModal(false)}>Cancel</button>
+                <button className="assign-btn-adminsiteassess" onClick={handleAssignEngineer} disabled={!engineerId || isSubmitting}>{isSubmitting ? 'Assigning...' : 'Assign Engineer'}</button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Assign Device Modal */}
         {showAssignDeviceModal && selectedItem && (
-          <div className="modal-overlay-adminasses" onClick={() => setShowAssignDeviceModal(false)}>
-            <div className="modal-adminasses" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-adminasses"><h3>Assign Device</h3><button className="modal-close-adminasses" onClick={() => setShowAssignDeviceModal(false)}>×</button></div>
-              <div className="modal-body-adminasses">
-                <div className="detail-row-adminasses"><span>Assessment:</span><strong>{selectedItem.bookingReference}</strong></div>
-                <div className="detail-row-adminasses"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
-                <div className="detail-row-adminasses"><span>Engineer:</span><strong>{getEngineerName(selectedItem.assignedEngineerId)}</strong></div>
-                <div className="form-group-adminasses"><label>Select Device</label><select value={deviceId} onChange={(e) => setDeviceId(e.target.value)}><option value="">Select...</option>{devices.map(device => <option key={device._id} value={device._id}>{device.deviceId} - {device.deviceName}</option>)}</select></div>
-                <div className="info-box-adminasses"><FaWifi /><small>The device will be deployed on site during the site visit.</small></div>
+          <div className="modal-overlay-adminsiteassess" onClick={() => setShowAssignDeviceModal(false)}>
+            <div className="modal-adminsiteassess" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-adminsiteassess"><h3>Assign Device</h3><button className="modal-close-adminsiteassess" onClick={() => setShowAssignDeviceModal(false)}>×</button></div>
+              <div className="modal-body-adminsiteassess">
+                <div className="detail-row-adminsiteassess"><span>Assessment:</span><strong>{selectedItem.bookingReference}</strong></div>
+                <div className="detail-row-adminsiteassess"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
+                <div className="detail-row-adminsiteassess"><span>Engineer:</span><strong>{getEngineerName(selectedItem.assignedEngineerId)}</strong></div>
+                <div className="form-group-adminsiteassess"><label>Select Device</label><select value={deviceId} onChange={(e) => setDeviceId(e.target.value)}><option value="">Select...</option>{devices.map(device => <option key={device._id} value={device._id}>{device.deviceId} - {device.deviceName}</option>)}</select></div>
+                <div className="info-box-adminsiteassess"><FaWifi /><small>The device will be deployed on site during the site visit.</small></div>
               </div>
-              <div className="modal-actions-adminasses">
-                <button className="cancel-btn-adminasses" onClick={() => setShowAssignDeviceModal(false)}>Cancel</button>
-                <button className="assign-btn-adminasses" onClick={handleAssignDevice} disabled={!deviceId || isSubmitting}>{isSubmitting ? 'Assigning...' : 'Assign'}</button>
-              </div>
+              <div className="modal-actions-adminsiteassess"><button className="cancel-btn-adminsiteassess" onClick={() => setShowAssignDeviceModal(false)}>Cancel</button><button className="assign-btn-adminsiteassess" onClick={handleAssignDevice} disabled={!deviceId || isSubmitting}>{isSubmitting ? 'Assigning...' : 'Assign'}</button></div>
             </div>
           </div>
         )}
 
-        {/* Upload Modal */}
         {showUploadModal && selectedItem && (
-          <div className="modal-overlay-adminasses" onClick={() => setShowUploadModal(false)}>
-            <div className="modal-adminasses" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-adminasses"><h3>Upload Quotation</h3><button className="modal-close-adminasses" onClick={() => setShowUploadModal(false)}>×</button></div>
-              <div className="modal-body-adminasses">
-                <div className="detail-row-adminasses"><span>Reference:</span><strong>{selectedItem.quotationReference}</strong></div>
-                <div className="detail-row-adminasses"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
-                <div className="form-group-adminasses"><label>Quotation (PDF)</label><input type="file" accept=".pdf" onChange={(e) => setQuotationFile(e.target.files[0])} /></div>
+          <div className="modal-overlay-adminsiteassess" onClick={() => setShowUploadModal(false)}>
+            <div className="modal-adminsiteassess" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-adminsiteassess"><h3>Upload Quotation</h3><button className="modal-close-adminsiteassess" onClick={() => setShowUploadModal(false)}>×</button></div>
+              <div className="modal-body-adminsiteassess">
+                <div className="detail-row-adminsiteassess"><span>Reference:</span><strong>{selectedItem.quotationReference}</strong></div>
+                <div className="detail-row-adminsiteassess"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
+                <div className="form-group-adminsiteassess"><label>Quotation (PDF)</label><input type="file" accept=".pdf" onChange={(e) => setQuotationFile(e.target.files[0])} /></div>
               </div>
-              <div className="modal-actions-adminasses">
-                <button className="cancel-btn-adminasses" onClick={() => setShowUploadModal(false)}>Cancel</button>
-                <button className="upload-btn-adminasses" onClick={handleUploadQuotation} disabled={!quotationFile || uploading}>{uploading ? 'Uploading...' : 'Upload'}</button>
-              </div>
+              <div className="modal-actions-adminsiteassess"><button className="cancel-btn-adminsiteassess" onClick={() => setShowUploadModal(false)}>Cancel</button><button className="upload-btn-adminsiteassess" onClick={handleUploadQuotation} disabled={!quotationFile || uploading}>{uploading ? 'Uploading...' : 'Upload'}</button></div>
             </div>
           </div>
         )}

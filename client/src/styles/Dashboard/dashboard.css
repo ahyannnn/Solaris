@@ -1,12 +1,10 @@
-/* dashboard.css - Fixed header with proper hamburger spacing */
-
 /* ============================================
    IMPORT POPPINS FONT FROM GOOGLE
    ============================================ */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   CSS VARIABLES - Dark Sidebar with Gold Accents
+   CSS VARIABLES - Dark Sidebar with Gold Accents + Light Gray Main
    ============================================ */
 :root {
   /* Sidebar Colors - Dark like login page branding */
@@ -22,8 +20,8 @@
   --sidebar-accent-hover: #e67e22;
   
   /* Main Content Colors */
-  --bg-base: #f8f9fa;
-  --bg-elevated: #ffffff;
+  --gray-50: #f8fafc;      /* <--- ADDED THIS for light background */
+  --bg-elevated: #ffffff;  /* Header/Modal background */
   --bg-surface: #f1f3f5;
   
   /* Text Colors */
@@ -74,17 +72,10 @@
 .dashboard-layout-dashboard {
   display: flex;
   min-height: 100vh;
-  background: var(--bg-base);
+  background: var(--gray-50);  
   font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-/* Dashboard appears instantly when ready - NO ANIMATION */
-.dashboard-layout-dashboard.dashboard-ready {
-  opacity: 1;
 }
 
 /* Remove any potential entrance animations from all dashboard elements */
@@ -95,28 +86,6 @@
 .content-area-layout-dashboard,
 .dashboard-layout-dashboard * {
   animation: none !important;
-}
-
-/* ============================================
-   VERY FAST FADE IN FOR CHILDREN (OPTIONAL)
-   ============================================ */
-.dashboard-ready .sidebar-layout-dashboard {
-  animation: dashboardFadeIn 0.1s ease forwards;
-}
-
-.dashboard-ready .main-content-layout-dashboard {
-  animation: dashboardFadeIn 0.15s ease forwards;
-}
-
-@keyframes dashboardFadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* Notification Badge Styles */
@@ -131,16 +100,6 @@
   min-width: 18px;
   text-align: center;
   font-family: var(--font-family);
-  animation: pulse-badge 2s ease-in-out infinite;
-}
-
-@keyframes pulse-badge {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
 }
 
 .nav-item-layout-dashboard.active-layout-dashboard .notification-badge-sidebar {
@@ -536,14 +495,14 @@
 }
 
 /* ============================================
-   MAIN CONTENT
+   MAIN CONTENT - UPDATED GRAY BACKGROUND
    ============================================ */
 .main-content-layout-dashboard {
   flex: 1;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg-base);
+  background: var(--gray-50); /* UPDATED: Light Gray background */
   transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -730,38 +689,16 @@
   font-size: 0.7rem;
   font-weight: 500;
   font-family: var(--font-family);
-  animation: fadeIn 0.3s ease;
   white-space: nowrap;
 }
 
 .maintenance-icon {
   font-size: 0.8rem;
-  animation: pulse-warning 1.5s infinite;
 }
 
 .maintenance-text {
   font-size: 0.7rem;
   font-family: var(--font-family);
-}
-
-@keyframes pulse-warning {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateX(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 }
 
 @media (max-width: 768px) {
@@ -832,12 +769,14 @@
   }
 }
 
-/* Content Area */
+/* ============================================
+   CONTENT AREA - UPDATED GRAY BACKGROUND
+   ============================================ */
 .content-area-layout-dashboard {
   flex: 1;
   padding: 1.5rem 2rem;
   overflow-y: auto;
-  background: var(--bg-base);
+  background: var(--gray-50); /* UPDATED: Light Gray background */
 }
 
 @media (max-width: 768px) {
@@ -1183,7 +1122,6 @@
   transform: translateY(-50%);
   color: #22C55E;
   font-size: 0.6rem;
-  animation: pulse-dot 2s ease-in-out infinite;
 }
 
 .nav-item-layout-dashboard.chatbot-sidebar-btn.active-layout-dashboard {
@@ -1193,17 +1131,6 @@
 
 .nav-item-layout-dashboard.chatbot-sidebar-btn.active-layout-dashboard::after {
   color: var(--sidebar-accent);
-}
-
-@keyframes pulse-dot {
-  0%, 100% {
-    opacity: 1;
-    transform: translateY(-50%) scale(1);
-  }
-  50% {
-    opacity: 0.5;
-    transform: translateY(-50%) scale(0.8);
-  }
 }
 
 /* ============================================
@@ -1221,18 +1148,6 @@
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  animation: modalFadeIn 0.3s ease;
-}
-
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    backdrop-filter: blur(0px);
-  }
-  to {
-    opacity: 1;
-    backdrop-filter: blur(8px);
-  }
 }
 
 .logout-modal-container {
@@ -1243,26 +1158,13 @@
   width: 90%;
   text-align: center;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: modalSlideUp 0.3s ease;
   border: 1px solid var(--border-light);
-}
-
-@keyframes modalSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 
 .logout-modal-icon {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  
   color: #d97706;
   display: flex;
   align-items: center;
@@ -1342,17 +1244,5 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-  
-  .dashboard-layout-dashboard {
-    opacity: 1 !important;
-    transition: none !important;
-  }
-  
-  .dashboard-ready .sidebar-layout-dashboard,
-  .dashboard-ready .main-content-layout-dashboard {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
   }
 }

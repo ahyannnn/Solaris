@@ -2,12 +2,14 @@ const SensorData = require("../models/SensorData");
 
 exports.receiveData = async (req, res) => {
   try {
-    const { deviceId,irradiance, temperature, humidity, gps, timestamp } = req.body;
+    const { deviceId, bookingReference, irradiance, temperature, humidity, gps, timestamp } = req.body;
 
     if (!deviceId) {
       return res.status(400).json({ message: "Device ID is required" });
     }
-
+    if (!bookingReference) {
+      return res.status(400).json({ message: "Booking reference is required" });
+    }
     const data = new SensorData({
       deviceId,
       bookingReference,

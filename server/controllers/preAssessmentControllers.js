@@ -2146,45 +2146,61 @@ exports.getMyPreAssessments = async (req, res) => {
       .populate('addressId')
       .populate('iotDeviceId')
       .populate('quotation.quotationFileId')
+      .populate('assignedEngineerId', 'fullName email') // ✅ ADD THIS - populate engineer
       .sort({ bookedAt: -1 });
 
     // Format the response to include all necessary fields
-    const formattedAssessments = assessments.map(assessment => ({
-      _id: assessment._id,
-      bookingReference: assessment.bookingReference,
-      invoiceNumber: assessment.invoiceNumber,
-      assessmentStatus: assessment.assessmentStatus,
-      paymentStatus: assessment.paymentStatus,
-      assessmentFee: assessment.assessmentFee,
-      propertyType: assessment.propertyType,
-      desiredCapacity: assessment.desiredCapacity,
-      roofType: assessment.roofType,
-      preferredDate: assessment.preferredDate,
-      bookedAt: assessment.bookedAt,
-      address: assessment.addressId,
-      iotDeviceId: assessment.iotDeviceId,
-      paymentMethod: assessment.paymentMethod,
-      paymentGateway: assessment.paymentGateway,
-      autoVerified: assessment.autoVerified,
-      paymentProof: assessment.paymentProof,
-      paymentReference: assessment.paymentReference,
-      quotation: assessment.quotation,
-      finalQuotation: assessment.finalQuotation,
-      quotationUrl: assessment.quotation?.quotationUrl || assessment.finalQuotation,
-      sitePhotos: assessment.sitePhotos || [],
-      receiptUrl: assessment.receiptUrl,
-      receiptNumber: assessment.receiptNumber,
-      // NEW FIELDS
-      monthlyBill: assessment.monthlyBill,
-      rate: assessment.rate,
-      consumption: assessment.consumption,
-      dayConsumption: assessment.dayConsumption,
-      nightConsumption: assessment.nightConsumption,
-      dayPercentage: assessment.dayPercentage,
-      nightPercentage: assessment.nightPercentage,
-      totalDailyConsumption: assessment.totalDailyConsumption,
-      targetSavings: assessment.targetSavings  // ✅ ADD TARGET SAVINGS
-    }));
+    const formattedAssessments = assessments.map(assessment => {
+      // Get engineer name from populated data
+      let engineerName = 'Not assigned yet';
+      if (assessment.assignedEngineerId) {
+        if (typeof assessment.assignedEngineerId === 'object') {
+          engineerName = assessment.assignedEngineerId.fullName || 
+                        assessment.assignedEngineerId.name || 
+                        assessment.assignedEngineerId.email || 
+                        'Not assigned yet';
+        }
+      }
+
+      return {
+        _id: assessment._id,
+        bookingReference: assessment.bookingReference,
+        invoiceNumber: assessment.invoiceNumber,
+        assessmentStatus: assessment.assessmentStatus,
+        paymentStatus: assessment.paymentStatus,
+        assessmentFee: assessment.assessmentFee,
+        propertyType: assessment.propertyType,
+        desiredCapacity: assessment.desiredCapacity,
+        roofType: assessment.roofType,
+        preferredDate: assessment.preferredDate,
+        bookedAt: assessment.bookedAt,
+        address: assessment.addressId,
+        iotDeviceId: assessment.iotDeviceId,
+        paymentMethod: assessment.paymentMethod,
+        paymentGateway: assessment.paymentGateway,
+        autoVerified: assessment.autoVerified,
+        paymentProof: assessment.paymentProof,
+        paymentReference: assessment.paymentReference,
+        quotation: assessment.quotation,
+        finalQuotation: assessment.finalQuotation,
+        quotationUrl: assessment.quotation?.quotationUrl || assessment.finalQuotation,
+        sitePhotos: assessment.sitePhotos || [],
+        receiptUrl: assessment.receiptUrl,
+        receiptNumber: assessment.receiptNumber,
+        monthlyBill: assessment.monthlyBill,
+        rate: assessment.rate,
+        consumption: assessment.consumption,
+        dayConsumption: assessment.dayConsumption,
+        nightConsumption: assessment.nightConsumption,
+        dayPercentage: assessment.dayPercentage,
+        nightPercentage: assessment.nightPercentage,
+        totalDailyConsumption: assessment.totalDailyConsumption,
+        targetSavings: assessment.targetSavings,
+        // ✅ ADD ENGINEER DATA
+        assignedEngineerId: assessment.assignedEngineerId, // Full populated object
+        engineerName: engineerName
+      };
+    });
 
     res.json({
       success: true,

@@ -210,13 +210,34 @@ const ScheduleAssessment = () => {
   }, [appliances]);
 
   const handleElectricBillChange = (e) => {
-    const { name, value } = e.target;
-    setElectricBillInput(prev => ({ ...prev, [name]: value }));
-  };
+  const { name, value } = e.target;
+  setElectricBillInput(prev => ({ ...prev, [name]: value }));
+  
+  // Clear error for this field when user types (optional)
+  if (validationErrors[name]) {
+    setValidationErrors(prev => ({ ...prev, [name]: '' }));
+  }
+};
 
   const handleApplianceFormChange = (e) => {
     const { name, value } = e.target;
+
+    // Real-time validation for appliance name
+    if (name === 'name') {
+      // Only allow letters and spaces
+      const sanitizedValue = value.replace(/[^a-zA-Z\s]/g, '');
+      setApplianceForm(prev => ({ ...prev, [name]: sanitizedValue }));
+
+      if (sanitizedValue && !/^[a-zA-Z\s]+$/.test(sanitizedValue)) {
+        setApplianceErrors(prev => ({ ...prev, name: 'Appliance name can only contain letters and spaces' }));
+      } else {
+        setApplianceErrors(prev => ({ ...prev, name: '' }));
+      }
+      return;
+    }
+
     setApplianceForm(prev => ({ ...prev, [name]: value }));
+
     // Clear error for this field when user types
     if (applianceErrors[name]) {
       setApplianceErrors(prev => ({ ...prev, [name]: '' }));
@@ -227,6 +248,8 @@ const ScheduleAssessment = () => {
     const errors = {};
     if (!applianceForm.name) {
       errors.name = 'Appliance name is required';
+    } else if (!/^[a-zA-Z\s]+$/.test(applianceForm.name)) {
+      errors.name = 'Appliance name can only contain letters and spaces';
     }
     if (!applianceForm.powerWatts) {
       errors.powerWatts = 'Power rating is required';
@@ -292,7 +315,7 @@ const ScheduleAssessment = () => {
     setApplianceErrors({});
     setShowApplianceModal(true);
   };
-  // Add this function after calculateConsumption
+
   const calculateMotorNonMotorWatts = () => {
     let motorWatts = 0;
     let nonMotorWatts = 0;
@@ -308,6 +331,7 @@ const ScheduleAssessment = () => {
 
     return { motorWatts, nonMotorWatts };
   };
+
   const deleteAppliance = (id) => {
     if (window.confirm('Are you sure you want to remove this appliance?')) {
       setAppliances(prev => prev.filter(a => a.id !== id));
@@ -446,8 +470,12 @@ const ScheduleAssessment = () => {
     try {
       const token = sessionStorage.getItem('token');
       const [freeQuotesRes, preAssessmentsRes] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes/my-quotes`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-bookings`, { headers: { Authorization: `Bearer ${token}` } })
+        axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes/my-quotes`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-bookings`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
       ]);
 
       const assessments = preAssessmentsRes.data.assessments || [];
@@ -461,48 +489,16 @@ const ScheduleAssessment = () => {
 
       setHasPendingFreeQuote(hasPending);
 
-      const assessmentsWithEngineer = await Promise.all(assessments.map(async (assessment) => {
-        let engineerName = 'Not assigned yet';
-        let engineerId = null;
-
-        if (assessment.assignedEngineerId) {
-          if (typeof assessment.assignedEngineerId === 'object') {
-            engineerId = assessment.assignedEngineerId._id || assessment.assignedEngineerId.id;
-          } else if (typeof assessment.assignedEngineerId === 'string') {
-            engineerId = assessment.assignedEngineerId;
-          }
-        }
-
-        if (engineerId) {
-          try {
-            const engineerRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users/${engineerId}`, {
-              headers: { Authorization: `Bearer ${token}` }
-            });
-            const engineer = engineerRes.data.user;
-            if (engineer) {
-              engineerName = engineer.fullName ||
-                (engineer.firstName && engineer.lastName ? `${engineer.firstName} ${engineer.lastName}` : null) ||
-                engineer.name ||
-                engineer.email ||
-                'Engineer assigned';
-            }
-          } catch (err) {
-            console.error(`Error fetching engineer:`, err);
-            engineerName = 'Engineer assigned';
-          }
-        }
-
-        return {
-          ...assessment,
-          engineerName,
-          sitePhotos: assessment.sitePhotos || []
-        };
+      const assessmentsWithEngineer = assessments.map(assessment => ({
+        ...assessment,
+        sitePhotos: assessment.sitePhotos || []
       }));
 
       setFreeQuotes(quotes);
       setPreAssessments(assessmentsWithEngineer);
     } catch (err) {
       console.error('Error fetching requests:', err);
+      showToast('Failed to load your requests', 'error');
     }
   };
 
@@ -677,27 +673,104 @@ const ScheduleAssessment = () => {
     }
   };
 
-  // ============ FREE QUOTE FUNCTIONS ============
-
-  // Validate Free Quote Form
-  const validateFreeQuoteForm = () => {
+  // ============ UNIFIED VALIDATION ============
+  const validateAssessmentForm = (type) => {
     const errors = {};
-    if (!freeQuoteData.monthlyBill) {
+
+    // Monthly Bill - REQUIRED for BOTH
+    const monthlyBill = type === 'free-quote' ? freeQuoteData.monthlyBill : electricBillInput.monthlyBill;
+    if (!monthlyBill) {
       errors.monthlyBill = 'Monthly electricity bill is required';
+    } else if (parseFloat(monthlyBill) <= 0) {
+      errors.monthlyBill = 'Monthly bill must be greater than 0';
+    } else if (parseFloat(monthlyBill) > 1000000) {
+      errors.monthlyBill = 'Monthly bill seems too high. Please check your input.';
     }
 
+    // Rate per kWh - REQUIRED for BOTH
+    const ratePerKwh = type === 'free-quote' ? freeQuoteData.ratePerKwh : electricBillInput.ratePerKwh;
+    if (!ratePerKwh) {
+      errors.ratePerKwh = 'Rate per kWh is required';
+    } else if (parseFloat(ratePerKwh) <= 0) {
+      errors.ratePerKwh = 'Rate must be greater than 0';
+    } else if (parseFloat(ratePerKwh) > 100) {
+      errors.ratePerKwh = 'Rate seems too high. Please check your input.';
+    }
+
+    // Property Type - required (already set from client data)
+    const propertyType = type === 'free-quote' ? freeQuoteData.propertyType : formData.propertyType;
+    if (!propertyType) {
+      errors.propertyType = 'Property type is required';
+    }
+
+    // System Type - REQUIRED for both
+    const systemType = type === 'free-quote' ? freeQuoteData.systemType : formData.systemType;
+    if (!systemType) {
+      errors.systemType = 'Please select a preferred system type';
+    }
+
+    // Target Savings - REQUIRED for both
+    const targetSavings = type === 'free-quote' ? freeQuoteData.targetSavings : formData.targetSavings;
+    if (!targetSavings) {
+      errors.targetSavings = 'Please select a target savings percentage';
+    }
+
+    // Roof Type - REQUIRED for both
+    const roofType = type === 'free-quote' ? freeQuoteData.roofType : formData.roofType;
+    if (!roofType) {
+      errors.roofType = 'Please select your roof type';
+    }
+
+    // Roof Dimensions - REQUIRED for both
+    const roofLength = type === 'free-quote' ? freeQuoteData.roofLength : formData.roofLength;
+    const roofWidth = type === 'free-quote' ? freeQuoteData.roofWidth : formData.roofWidth;
+
+    if (!roofLength) {
+      errors.roofLength = 'Roof length is required';
+    } else if (parseFloat(roofLength) <= 0) {
+      errors.roofLength = 'Roof length must be greater than 0';
+    } else if (parseFloat(roofLength) > 100) {
+      errors.roofLength = 'Roof length cannot exceed 100 meters.';
+    }
+
+    if (!roofWidth) {
+      errors.roofWidth = 'Roof width is required';
+    } else if (parseFloat(roofWidth) <= 0) {
+      errors.roofWidth = 'Roof width must be greater than 0';
+    } else if (parseFloat(roofWidth) > 100) {
+      errors.roofWidth = 'Roof width cannot exceed 100 meters.';
+    }
+
+    // Appliances - at least one required for both
     if (appliances.length === 0) {
       errors.appliances = 'Please add at least one appliance';
     }
+
+    // Address - required for both
     if (!selectedAddress) {
       errors.address = 'Please select an address';
     }
+
     return errors;
   };
 
-  // Handle Free Quote Submit - goes to confirmation
+  // ============ FREE QUOTE FUNCTIONS ============
+
   const handleFreeQuoteSubmit = () => {
-    const errors = validateFreeQuoteForm();
+    // Make sure values are properly formatted
+    const cleanData = {
+      monthlyBill: freeQuoteData.monthlyBill || '',
+      ratePerKwh: freeQuoteData.ratePerKwh || '',
+      propertyType: freeQuoteData.propertyType || 'residential',
+      systemType: freeQuoteData.systemType || '',
+      roofType: freeQuoteData.roofType || '',
+      roofLength: freeQuoteData.roofLength || '',
+      roofWidth: freeQuoteData.roofWidth || '',
+      targetSavings: freeQuoteData.targetSavings || ''
+    };
+    setFreeQuoteData(cleanData);
+
+    const errors = validateAssessmentForm('free-quote');
     if (Object.keys(errors).length > 0) {
       setFreeQuoteValidationErrors(errors);
       showToast('Please complete all required fields', 'warning');
@@ -706,7 +779,6 @@ const ScheduleAssessment = () => {
     setShowFreeQuoteConfirm(true);
   };
 
-  // Confirm and submit Free Quote
   const confirmFreeQuote = async () => {
     if (!freeQuoteTermsAccepted) {
       showToast('Please accept the terms and conditions to proceed', 'warning');
@@ -742,8 +814,8 @@ const ScheduleAssessment = () => {
         dayPercentage: calculationResults.dayPercentage ? parseFloat(calculationResults.dayPercentage.toFixed(2)) : 0,
         nightPercentage: calculationResults.nightPercentage ? parseFloat(calculationResults.nightPercentage.toFixed(2)) : 0,
         totalDailyConsumption: calculationResults.totalDailyConsumption ? parseFloat(calculationResults.totalDailyConsumption.toFixed(2)) : 0,
-        motorAppliancesWatts: motorWatts,  // Add this
-        nonMotorAppliancesWatts: nonMotorWatts  // Add this
+        motorAppliancesWatts: motorWatts,
+        nonMotorAppliancesWatts: nonMotorWatts
       };
 
       const response = await axios.post(
@@ -791,7 +863,6 @@ const ScheduleAssessment = () => {
     }
   };
 
-  // Send quote confirmation email
   const sendQuoteConfirmationEmail = async (
     quoteReference,
     monthlyBill,
@@ -844,16 +915,8 @@ const ScheduleAssessment = () => {
     }
   };
 
-  const validateForm = () => {
-    const errors = {};
-
-    if (!selectedAddress) errors.address = 'Please select an address';
-    if (appliances.length === 0) errors.appliances = 'Please add at least one appliance';
-    return errors;
-  };
-
   const handleSubmitClick = () => {
-    const errors = validateForm();
+    const errors = validateAssessmentForm('pre-assessment');
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       showToast('Please complete all required fields', 'warning');
@@ -888,8 +951,8 @@ const ScheduleAssessment = () => {
         nightPercentage: calculationResults.nightPercentage ? parseFloat(calculationResults.nightPercentage.toFixed(2)) : 0,
         totalDailyConsumption: calculationResults.totalDailyConsumption ? parseFloat(calculationResults.totalDailyConsumption.toFixed(2)) : 0,
         targetSavings: formData.targetSavings ? parseInt(formData.targetSavings) : null,
-        motorAppliancesWatts: motorWatts,  // Add this
-        nonMotorAppliancesWatts: nonMotorWatts  // Add this
+        motorAppliancesWatts: motorWatts,
+        nonMotorAppliancesWatts: nonMotorWatts
       };
 
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, bookingPayload, {
@@ -924,19 +987,28 @@ const ScheduleAssessment = () => {
   const handleProfileClick = () => navigate('/app/customer/settings?tab=profile');
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    if (currentStep === 'free-quote-form') {
-      setFreeQuoteData(prev => ({ ...prev, [name]: value }));
-      if (freeQuoteValidationErrors[name]) {
-        setFreeQuoteValidationErrors(prev => ({ ...prev, [name]: '' }));
-      }
-    } else if (currentStep === 'service-selection') {
-      setFreeQuoteData(prev => ({ ...prev, [name]: value }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-      if (validationErrors[name]) setValidationErrors(prev => ({ ...prev, [name]: '' }));
+  const { name, value } = e.target;
+
+  if (currentStep === 'free-quote-form') {
+    // Just update the data, NO validation here
+    setFreeQuoteData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error for this field when user types (optional - improves UX)
+    if (freeQuoteValidationErrors[name]) {
+      setFreeQuoteValidationErrors(prev => ({ ...prev, [name]: '' }));
     }
-  };
+  } else if (currentStep === 'service-selection') {
+    setFreeQuoteData(prev => ({ ...prev, [name]: value }));
+  } else {
+    // Pre-Assessment form - just update data
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error for this field when user types (optional - improves UX)
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  }
+};
 
   const getFullName = () => [formData.firstName, formData.middleName, formData.lastName].filter(p => p).join(' ');
 
@@ -1072,7 +1144,6 @@ const ScheduleAssessment = () => {
             </div>
           </div>
 
-          {/* Filter Tabs */}
           <div className="request-filter-tabs-page-cusset">
             <button
               className={`filter-tab-page-cusset ${requestFilter === 'all' ? 'active' : ''}`}
@@ -1094,7 +1165,6 @@ const ScheduleAssessment = () => {
             </button>
           </div>
 
-          {/* Requests List */}
           <div className="requests-list-page-cusset">
             {!hasRequests ? (
               <div className="empty-requests-page-cusset">
@@ -1110,7 +1180,6 @@ const ScheduleAssessment = () => {
               </div>
             ) : (
               <>
-                {/* Free Quotes */}
                 {filteredFreeQuotes.map(quote => {
                   const hasQuotation = quote.quotationFile || quote.quotationUrl;
                   const isAccepted = quote.status === 'accepted';
@@ -1143,6 +1212,7 @@ const ScheduleAssessment = () => {
                           {quote.targetSavings && <div><span>Target Savings:</span> <strong>{quote.targetSavings}%</strong></div>}
                           {quote.recommendedSystemSize && <div><span>System Size:</span> <strong>{quote.recommendedSystemSize} kW</strong></div>}
                           <div><span>Date:</span> <strong>{formatDate(quote.requestedAt)}</strong></div>
+                          <div><span>Engineer:</span> <strong>{quote.engineerName || 'Not assigned yet'}</strong></div>
                           <div className="full-width"><span>Address:</span> <strong>{getRequestAddress(quote)}</strong></div>
                         </div>
 
@@ -1185,7 +1255,6 @@ const ScheduleAssessment = () => {
                   );
                 })}
 
-                {/* Pre Assessments */}
                 {filteredPreAssessments.map(assessment => {
                   const hasPhotos = assessment.sitePhotos && assessment.sitePhotos.length > 0;
                   const hasQuotation = assessment.finalQuotation || assessment.quotation?.quotationUrl;
@@ -1221,7 +1290,6 @@ const ScheduleAssessment = () => {
                           <div className="full-width"><span>Address:</span> <strong>{getRequestAddress(assessment)}</strong></div>
                         </div>
 
-                        {/* Site Photos */}
                         {hasPhotos && (
                           <div className="request-card-photos-cusset">
                             <div className="photos-preview-cusset">
@@ -1286,7 +1354,6 @@ const ScheduleAssessment = () => {
           </div>
         </div>
 
-        {/* Photo Modal */}
         {showPhotoModal && selectedPhotos.length > 0 && (
           <div className="photo-modal-overlay-cusset" onClick={closePhotoModal}>
             <div className="photo-modal-content-cusset" onClick={(e) => e.stopPropagation()}>
@@ -1351,7 +1418,6 @@ const ScheduleAssessment = () => {
             </div>
 
             <div className="accept-quotation-content-cusset">
-              {/* Quotation Summary */}
               <div className="quotation-summary-page-cusset">
                 <h3>Quotation Summary</h3>
                 <div className="summary-grid-cusset">
@@ -1389,7 +1455,6 @@ const ScheduleAssessment = () => {
                   )}
                 </div>
 
-                {/* Equipment Breakdown */}
                 {acceptingQuotation.quotation?.systemDetails?.equipmentBreakdown && (
                   <div className="equipment-breakdown-cusset">
                     <h4>Equipment Breakdown</h4>
@@ -1417,11 +1482,9 @@ const ScheduleAssessment = () => {
                 )}
               </div>
 
-              {/* Payment Preference */}
               <div className="payment-preference-page-cusset">
                 <h3>Choose Payment Option</h3>
                 <div className="preference-options-page-cusset">
-                  {/* 50% - 50% Installment */}
                   <div
                     className={`preference-option-page ${selectedPaymentPreference === 'fifty_fifty' ? 'selected' : ''}`}
                     onClick={() => setSelectedPaymentPreference('fifty_fifty')}
@@ -1436,7 +1499,6 @@ const ScheduleAssessment = () => {
                     </div>
                   </div>
 
-                  {/* 30% - 60% - 10% with Retention */}
                   <div
                     className={`preference-option-page ${selectedPaymentPreference === 'thirty_sixty_ten' ? 'selected' : ''}`}
                     onClick={() => setSelectedPaymentPreference('thirty_sixty_ten')}
@@ -1452,9 +1514,6 @@ const ScheduleAssessment = () => {
                     </div>
                   </div>
 
-                  
-
-                  {/* Full Payment */}
                   <div
                     className={`preference-option-page ${selectedPaymentPreference === 'full' ? 'selected' : ''}`}
                     onClick={() => setSelectedPaymentPreference('full')}
@@ -1470,7 +1529,6 @@ const ScheduleAssessment = () => {
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="accept-quotation-actions-cusset">
                 <button
                   className="cancel-btn-page-cusset"
@@ -1499,6 +1557,8 @@ const ScheduleAssessment = () => {
     );
   }
 
+  // ============ LOADING, ERROR, SUBMITTED STATES ============
+
   if (loading) return <><Helmet><title>Get Solar Service | Salfer Engineering</title></Helmet><SkeletonLoader /></>;
 
   if (error) return (
@@ -1524,9 +1584,6 @@ const ScheduleAssessment = () => {
               <p><strong>Reference Number:</strong> {submittedData.reference}</p>
               <p><strong>Status:</strong> Pending Review</p>
             </div>
-
-
-
             <div className="schedule-next-steps-cusset">
               <h3>What's Next?</h3>
               <ul>
@@ -1605,7 +1662,6 @@ const ScheduleAssessment = () => {
           </div>
 
           <div className="service-selection-grid-cusset">
-            {/* Free Quote Card */}
             <div className="service-card-cusset">
               <div className="service-card-header-cusset">
                 <h2>Free Quotation</h2>
@@ -1633,7 +1689,6 @@ const ScheduleAssessment = () => {
               </div>
             </div>
 
-            {/* Pre Assessment Card */}
             <div className="service-card-cusset paid-cusset">
               <div className="service-card-header-cusset">
                 <h2>Pre Assessment</h2>
@@ -1695,7 +1750,6 @@ const ScheduleAssessment = () => {
           )}
 
           <div className="form-main-card-cusset">
-            {/* Contact and Address Section */}
             <div className="form-section-cusset">
               <div className="form-section-header-cusset">
                 <div className="form-section-icon-cusset">
@@ -1723,7 +1777,6 @@ const ScheduleAssessment = () => {
               </div>
             </div>
 
-            {/* ============ APPLIANCES SECTION ============ */}
             <div className="form-section-cusset">
               <div className="form-section-header-cusset">
                 <div className="form-section-icon-cusset">
@@ -1790,7 +1843,7 @@ const ScheduleAssessment = () => {
                                 <td>{appliance.dayHours} hrs</td>
                                 <td>{appliance.nightHours} hrs</td>
                                 <td>
-                                  <span >
+                                  <span>
                                     {appliance.isMotor ? 'Motor' : 'Non-Motor'}
                                   </span>
                                 </td>
@@ -1813,7 +1866,6 @@ const ScheduleAssessment = () => {
                   )}
                 </div>
 
-                {/* Consumption Results */}
                 {appliances.length > 0 && (
                   <div className="consumption-results-cusset">
                     <h4>Your Energy Profile</h4>
@@ -1839,7 +1891,7 @@ const ScheduleAssessment = () => {
                         <div className="result-info">
                           <span className="result-label">Total Daily</span>
                           <span className="result-value">{calculationResults.totalDailyConsumption?.toFixed(2) || 0} kWh/day</span>
-                          <small>Motor {calculateMotorNonMotorWatts().motorWatts.toFixed(0)} W  | Non-Motor {calculateMotorNonMotorWatts().nonMotorWatts.toFixed(0)} W</small>
+                          <small>Motor {calculateMotorNonMotorWatts().motorWatts.toFixed(0)} W | Non-Motor {calculateMotorNonMotorWatts().nonMotorWatts.toFixed(0)} W</small>
                         </div>
                       </div>
                       <div className="result-card-cusset monthly-result" style={{ background: '#e8f5e9', borderColor: '#4caf50' }}>
@@ -1850,7 +1902,6 @@ const ScheduleAssessment = () => {
                           <small>Total Daily × 30 days</small>
                         </div>
                       </div>
-
                     </div>
                   </div>
                 )}
@@ -1863,7 +1914,6 @@ const ScheduleAssessment = () => {
               </div>
             </div>
 
-            {/* ============ ASSESSMENT DETAILS ============ */}
             <div className="form-section-cusset">
               <div className="form-section-header-cusset">
                 <div className="form-section-icon-cusset">
@@ -1882,6 +1932,9 @@ const ScheduleAssessment = () => {
                       type="number"
                       step="0.01"
                       name="monthlyBill"
+                     
+                      min="0.01"
+                      max="1000000"
                       value={freeQuoteData.monthlyBill}
                       onChange={handleInputChange}
                       placeholder="e.g., 5000"
@@ -1901,7 +1954,6 @@ const ScheduleAssessment = () => {
                       value={freeQuoteData.propertyType}
                       className="schedule-form-input-cusset"
                       disabled
-
                     />
                     {freeQuoteValidationErrors.propertyType && (
                       <div className="error-message-cusset">{freeQuoteValidationErrors.propertyType}</div>
@@ -1909,89 +1961,113 @@ const ScheduleAssessment = () => {
                   </div>
 
                   <div className="schedule-form-group-cusset">
-                    <label>Rate per kWh (₱)</label>
+                    <label>Rate per kWh (₱) *</label>
                     <input
                       type="number"
                       step="0.01"
+                      min="0.01"
+                      max="1000000"
                       name="ratePerKwh"
                       value={freeQuoteData.ratePerKwh}
                       onChange={handleInputChange}
                       placeholder="e.g., 11.50"
-                      className="schedule-form-input-cusset"
+                      className={`schedule-form-input-cusset ${freeQuoteValidationErrors.ratePerKwh ? 'error' : ''}`}
                     />
-                    <small>Check your electric bill for the rate (optional)</small>
+                    {freeQuoteValidationErrors.ratePerKwh && (
+                      <div className="error-message-cusset">{freeQuoteValidationErrors.ratePerKwh}</div>
+                    )}
+                    <small>Check your electric bill for the rate</small>
                   </div>
                 </div>
 
                 <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset">
-                    <label>Preferred System Type</label>
+                    <label>Preferred System Type *</label>
                     <select
                       name="systemType"
                       value={freeQuoteData.systemType}
                       onChange={handleInputChange}
-                      className="schedule-form-select-cusset"
+                      className={`schedule-form-select-cusset ${freeQuoteValidationErrors.systemType ? 'error' : ''}`}
                     >
-                      <option value="">Select (optional)</option>
+                      <option value="">Select system type</option>
                       {SYSTEM_TYPES.map(type => <option key={type.value} value={type.value}>{type.label}</option>)}
                     </select>
+                    {freeQuoteValidationErrors.systemType && (
+                      <div className="error-message-cusset">{freeQuoteValidationErrors.systemType}</div>
+                    )}
                   </div>
 
                   <div className="schedule-form-group-cusset">
-                    <label>Target Savings (%)</label>
+                    <label>Target Savings (%) *</label>
                     <select
                       name="targetSavings"
                       value={freeQuoteData.targetSavings}
                       onChange={handleInputChange}
-                      className="schedule-form-select-cusset"
+                      className={`schedule-form-select-cusset ${freeQuoteValidationErrors.targetSavings ? 'error' : ''}`}
                     >
-                      <option value="">Select target savings (optional)</option>
+                      <option value="">Select target savings</option>
                       <option value="100">100% - Fully offset my bill</option>
                       <option value="75">75% - Significant reduction</option>
                       <option value="50">50% - Balanced approach</option>
                       <option value="25">25% - Basic savings</option>
                     </select>
+                    {freeQuoteValidationErrors.targetSavings && (
+                      <div className="error-message-cusset">{freeQuoteValidationErrors.targetSavings}</div>
+                    )}
                     <small>Help us size your system based on your savings goal</small>
                   </div>
 
                   <div className="schedule-form-group-cusset">
-                    <label>Roof Type</label>
+                    <label>Roof Type *</label>
                     <select
                       name="roofType"
                       value={freeQuoteData.roofType}
                       onChange={handleInputChange}
-                      className="schedule-form-select-cusset"
+                      className={`schedule-form-select-cusset ${freeQuoteValidationErrors.roofType ? 'error' : ''}`}
                     >
-                      <option value="">Select (optional)</option>
+                      <option value="">Select roof type</option>
                       <option value="concrete">Concrete</option>
                       <option value="metal">Metal</option>
                       <option value="tile">Tile</option>
                       <option value="other">Other</option>
                     </select>
+                    {freeQuoteValidationErrors.roofType && (
+                      <div className="error-message-cusset">{freeQuoteValidationErrors.roofType}</div>
+                    )}
                   </div>
 
                   <div className="schedule-form-group-cusset" style={{ gridColumn: '1 / -1' }}>
-                    <label>Roof Dimensions</label>
+                    <label>Roof Dimensions (meters) *</label>
                     <div className="dimension-row-cusset">
                       <input
                         type="number"
                         step="0.1"
+                        min="0.1"
+                        max="1000000"
                         name="roofLength"
                         value={freeQuoteData.roofLength}
                         onChange={handleInputChange}
                         placeholder="Length (m)"
-                        className="schedule-form-input-cusset"
+                        className={`schedule-form-input-cusset ${freeQuoteValidationErrors.roofLength ? 'error' : ''}`}
                       />
                       <input
                         type="number"
                         step="0.1"
+                        min="0.1"
+                        max="1000000"
                         name="roofWidth"
                         value={freeQuoteData.roofWidth}
                         onChange={handleInputChange}
                         placeholder="Width (m)"
-                        className="schedule-form-input-cusset"
+                        className={`schedule-form-input-cusset ${freeQuoteValidationErrors.roofWidth ? 'error' : ''}`}
                       />
                     </div>
+                    {freeQuoteValidationErrors.roofLength && (
+                      <div className="error-message-cusset">{freeQuoteValidationErrors.roofLength}</div>
+                    )}
+                    {freeQuoteValidationErrors.roofWidth && (
+                      <div className="error-message-cusset">{freeQuoteValidationErrors.roofWidth}</div>
+                    )}
                   </div>
                 </div>
 
@@ -2050,6 +2126,9 @@ const ScheduleAssessment = () => {
                       value={applianceForm.powerWatts}
                       onChange={handleApplianceFormChange}
                       placeholder="e.g., 1500"
+                      step="0.1"
+                      min="0.1"
+                      max="1000000"
                       className={`schedule-form-input-cusset ${applianceErrors.powerWatts ? 'error' : ''}`}
                     />
                     {applianceErrors.powerWatts && (
@@ -2065,6 +2144,8 @@ const ScheduleAssessment = () => {
                       value={applianceForm.quantity}
                       onChange={handleApplianceFormChange}
                       placeholder="e.g., 2"
+                      step="0.1"
+                      min="0.1"
                       className={`schedule-form-input-cusset ${applianceErrors.quantity ? 'error' : ''}`}
                     />
                     {applianceErrors.quantity && (
@@ -2106,7 +2187,7 @@ const ScheduleAssessment = () => {
                       <div className="error-message-cusset">{applianceErrors.nightHours}</div>
                     )}
                     <small>Hours used during nighttime (0-12 hours, 6 PM - 6 AM)</small>
-                  </div>{/* Inside the modal-body-cusset div, after the night hours field */}
+                  </div>
                   <div className="schedule-form-group-cusset">
                     <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                       <input
@@ -2260,7 +2341,6 @@ const ScheduleAssessment = () => {
           </div>
 
           <div className="form-main-card-cusset">
-            {/* Contact and Address Section */}
             <div className="form-section-cusset">
               <div className="form-section-header-cusset">
                 <div className="form-section-icon-cusset">
@@ -2288,7 +2368,6 @@ const ScheduleAssessment = () => {
               </div>
             </div>
 
-            {/* ============ APPLIANCES SECTION ============ */}
             <div className="form-section-cusset">
               <div className="form-section-header-cusset">
                 <div className="form-section-icon-cusset">
@@ -2330,7 +2409,6 @@ const ScheduleAssessment = () => {
                   ) : (
                     <div className="appliances-table-container-cusset">
                       <table className="appliances-table-cusset">
-                        {/* In the free quote form appliance table - around line 1240 */}
                         <thead>
                           <tr>
                             <th>Appliance</th>
@@ -2338,7 +2416,7 @@ const ScheduleAssessment = () => {
                             <th>Qty</th>
                             <th>Day Hours</th>
                             <th>Night Hours</th>
-                            <th>Type</th>  {/* ADD THIS COLUMN */}
+                            <th>Type</th>
                             <th>Day Energy (kWh)</th>
                             <th>Night Energy (kWh)</th>
                             <th>Actions</th>
@@ -2356,7 +2434,7 @@ const ScheduleAssessment = () => {
                                 <td>{appliance.dayHours} hrs</td>
                                 <td>{appliance.nightHours} hrs</td>
                                 <td>
-                                  <span >
+                                  <span>
                                     {appliance.isMotor ? 'Motor' : 'Non-Motor'}
                                   </span>
                                 </td>
@@ -2379,7 +2457,6 @@ const ScheduleAssessment = () => {
                   )}
                 </div>
 
-                {/* Consumption Results */}
                 {appliances.length > 0 && (
                   <div className="consumption-results-cusset">
                     <h4>Your Energy Profile</h4>
@@ -2405,7 +2482,7 @@ const ScheduleAssessment = () => {
                         <div className="result-info">
                           <span className="result-label">Total Daily</span>
                           <span className="result-value">{calculationResults.totalDailyConsumption?.toFixed(2) || 0} kWh/day</span>
-                          <small>Motor {calculateMotorNonMotorWatts().motorWatts.toFixed(0)} W  | Non-Motor {calculateMotorNonMotorWatts().nonMotorWatts.toFixed(0)} W</small>
+                          <small>Motor {calculateMotorNonMotorWatts().motorWatts.toFixed(0)} W | Non-Motor {calculateMotorNonMotorWatts().nonMotorWatts.toFixed(0)} W</small>
                         </div>
                       </div>
                       <div className="result-card-cusset monthly-result" style={{ background: '#e8f5e9', borderColor: '#4caf50' }}>
@@ -2416,8 +2493,6 @@ const ScheduleAssessment = () => {
                           <small>Total Daily × 30 days</small>
                         </div>
                       </div>
-
-
                     </div>
                   </div>
                 )}
@@ -2430,7 +2505,6 @@ const ScheduleAssessment = () => {
               </div>
             </div>
 
-            {/* ============ ASSESSMENT DETAILS ============ */}
             <div className="form-section-cusset">
               <div className="form-section-header-cusset">
                 <div className="form-section-icon-cusset">
@@ -2444,17 +2518,23 @@ const ScheduleAssessment = () => {
               <div className="form-section-body-cusset">
                 <div className="schedule-form-grid-cusset">
                   <div className="schedule-form-group-cusset">
-                    <label>Monthly Electricity Bill (₱)</label>
+                    <label>Monthly Electricity Bill (₱) *</label>
                     <input
                       type="number"
                       step="0.01"
                       name="monthlyBill"
+                      step="0.01"
+                      min="1"
+                      max="1000000"
                       value={electricBillInput.monthlyBill}
                       onChange={handleElectricBillChange}
                       placeholder="e.g., 5000"
-                      className="schedule-form-input-cusset"
+                      className={`schedule-form-input-cusset ${validationErrors.monthlyBill ? 'error' : ''}`}
                     />
-                    <small>Your average monthly electricity bill amount (optional)</small>
+                    {validationErrors.monthlyBill && (
+                      <div className="error-message-cusset">{validationErrors.monthlyBill}</div>
+                    )}
+                    <small>Your average monthly electricity bill amount</small>
                   </div>
 
                   <div className="schedule-form-group-cusset">
@@ -2465,7 +2545,6 @@ const ScheduleAssessment = () => {
                       value={formData.propertyType}
                       className="schedule-form-input-cusset"
                       disabled
-
                     />
                     {validationErrors.propertyType && (
                       <div className="error-message-cusset">{validationErrors.propertyType}</div>
@@ -2473,63 +2552,113 @@ const ScheduleAssessment = () => {
                   </div>
 
                   <div className="schedule-form-group-cusset">
-                    <label>Rate per kWh (₱)</label>
+                    <label>Rate per kWh (₱) *</label>
                     <input
                       type="number"
                       step="0.01"
+                      min="1"
+                      max="1000000"
                       name="ratePerKwh"
                       value={electricBillInput.ratePerKwh}
                       onChange={handleElectricBillChange}
                       placeholder="e.g., 11.50"
-                      className="schedule-form-input-cusset"
+                      className={`schedule-form-input-cusset ${validationErrors.ratePerKwh ? 'error' : ''}`}
                     />
-                    <small>Check your electric bill for the rate (optional)</small>
+                    {validationErrors.ratePerKwh && (
+                      <div className="error-message-cusset">{validationErrors.ratePerKwh}</div>
+                    )}
+                    <small>Check your electric bill for the rate</small>
                   </div>
                 </div>
 
                 <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset">
-                    <label>Preferred System Type</label>
-                    <select name="systemType" value={formData.systemType} onChange={handleInputChange} className="schedule-form-select-cusset">
-                      <option value="">Select (optional)</option>
+                    <label>Preferred System Type *</label>
+                    <select
+                      name="systemType"
+                      value={formData.systemType}
+                      onChange={handleInputChange}
+                      className={`schedule-form-select-cusset ${validationErrors.systemType ? 'error' : ''}`}
+                    >
+                      <option value="">Select system type</option>
                       {SYSTEM_TYPES.map(type => <option key={type.value} value={type.value}>{type.label}</option>)}
                     </select>
+                    {validationErrors.systemType && (
+                      <div className="error-message-cusset">{validationErrors.systemType}</div>
+                    )}
                   </div>
 
                   <div className="schedule-form-group-cusset">
-                    <label>Target Savings (%)</label>
+                    <label>Target Savings (%) *</label>
                     <select
                       name="targetSavings"
                       value={formData.targetSavings}
                       onChange={handleInputChange}
-                      className="schedule-form-select-cusset"
+                      className={`schedule-form-select-cusset ${validationErrors.targetSavings ? 'error' : ''}`}
                     >
-                      <option value="">Select target savings (optional)</option>
+                      <option value="">Select target savings</option>
                       <option value="100">100% - Fully offset my bill</option>
                       <option value="75">75% - Significant reduction</option>
                       <option value="50">50% - Balanced approach</option>
                       <option value="25">25% - Basic savings</option>
                     </select>
+                    {validationErrors.targetSavings && (
+                      <div className="error-message-cusset">{validationErrors.targetSavings}</div>
+                    )}
                     <small>Help us size your system based on your savings goal</small>
                   </div>
 
                   <div className="schedule-form-group-cusset">
-                    <label>Roof Type</label>
-                    <select name="roofType" value={formData.roofType} onChange={handleInputChange} className="schedule-form-select-cusset">
-                      <option value="">Select</option>
+                    <label>Roof Type *</label>
+                    <select
+                      name="roofType"
+                      value={formData.roofType}
+                      onChange={handleInputChange}
+                      className={`schedule-form-select-cusset ${validationErrors.roofType ? 'error' : ''}`}
+                    >
+                      <option value="">Select roof type</option>
                       <option value="concrete">Concrete</option>
                       <option value="metal">Metal</option>
                       <option value="tile">Tile</option>
                       <option value="other">Other</option>
                     </select>
+                    {validationErrors.roofType && (
+                      <div className="error-message-cusset">{validationErrors.roofType}</div>
+                    )}
                   </div>
 
                   <div className="schedule-form-group-cusset" style={{ gridColumn: '1 / -1' }}>
-                    <label>Roof Dimensions</label>
+                    <label>Roof Dimensions (meters) *</label>
                     <div className="dimension-row-cusset">
-                      <input type="number" step="0.1" name="roofLength" value={formData.roofLength} onChange={handleInputChange} placeholder="Length (m)" className="schedule-form-input-cusset" />
-                      <input type="number" step="0.1" name="roofWidth" value={formData.roofWidth} onChange={handleInputChange} placeholder="Width (m)" className="schedule-form-input-cusset" />
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="1"
+                        max="1000000"
+                        name="roofLength"
+                        value={formData.roofLength}
+                        onChange={handleInputChange}
+                        placeholder="Length (m)"
+                        className={`schedule-form-input-cusset ${validationErrors.roofLength ? 'error' : ''}`}
+                      />
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="1"
+                        max="1000000"
+                        name="roofWidth"
+                        value={formData.roofWidth}
+                        onChange={handleInputChange}
+                        placeholder="Width (m)"
+                        className={`schedule-form-input-cusset ${validationErrors.roofWidth ? 'error' : ''}`}
+                      />
                     </div>
+                    {validationErrors.roofLength && (
+                      <div className="error-message-cusset">{validationErrors.roofLength}</div>
+                    )}
+                    {validationErrors.roofWidth && (
+                      <div className="error-message-cusset">{validationErrors.roofWidth}</div>
+                    )}
                   </div>
                 </div>
 
@@ -2586,6 +2715,9 @@ const ScheduleAssessment = () => {
                       type="number"
                       name="powerWatts"
                       value={applianceForm.powerWatts}
+                      step="1"
+                      min="1"
+                      max="1000000"
                       onChange={handleApplianceFormChange}
                       placeholder="e.g., 1500"
                       className={`schedule-form-input-cusset ${applianceErrors.powerWatts ? 'error' : ''}`}
@@ -2644,7 +2776,7 @@ const ScheduleAssessment = () => {
                       <div className="error-message-cusset">{applianceErrors.nightHours}</div>
                     )}
                     <small>Hours used during nighttime (0-12 hours, 6 PM - 6 AM)</small>
-                  </div>{/* Inside the modal-body-cusset div, after the night hours field */}
+                  </div>
                   <div className="schedule-form-group-cusset">
                     <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                       <input

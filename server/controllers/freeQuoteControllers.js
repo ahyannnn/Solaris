@@ -354,18 +354,35 @@ exports.getMyFreeQuotes = async (req, res) => {
 
     const quotes = await FreeQuote.find({ clientId: client._id })
       .populate('addressId')
+      .populate('assignedEngineerId', 'fullName email') // ✅ ADD THIS - populate engineer
       .sort({ requestedAt: -1 });
 
-    // ✅ NEW: Format quotes with calculated fields
-    const formattedQuotes = quotes.map(quote => ({
-      ...quote.toObject(),
-      estimatedAnnualProduction: quote.estimatedAnnualProduction,
-      estimatedAnnualProductionMin: quote.estimatedAnnualProductionMin,
-      estimatedAnnualProductionMax: quote.estimatedAnnualProductionMax,
-      co2Offset: quote.co2Offset,
-      co2OffsetMin: quote.co2OffsetMin,
-      co2OffsetMax: quote.co2OffsetMax
-    }));
+    // Format quotes with calculated fields
+    const formattedQuotes = quotes.map(quote => {
+      // Get engineer name from populated data
+      let engineerName = 'Not assigned yet';
+      if (quote.assignedEngineerId) {
+        if (typeof quote.assignedEngineerId === 'object') {
+          engineerName = quote.assignedEngineerId.fullName || 
+                        quote.assignedEngineerId.name || 
+                        quote.assignedEngineerId.email || 
+                        'Not assigned yet';
+        }
+      }
+
+      return {
+        ...quote.toObject(),
+        estimatedAnnualProduction: quote.estimatedAnnualProduction,
+        estimatedAnnualProductionMin: quote.estimatedAnnualProductionMin,
+        estimatedAnnualProductionMax: quote.estimatedAnnualProductionMax,
+        co2Offset: quote.co2Offset,
+        co2OffsetMin: quote.co2OffsetMin,
+        co2OffsetMax: quote.co2OffsetMax,
+        // ✅ ADD ENGINEER DATA
+        assignedEngineerId: quote.assignedEngineerId, // Full populated object
+        engineerName: engineerName
+      };
+    });
 
     res.json({
       success: true,

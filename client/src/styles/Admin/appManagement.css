@@ -1,415 +1,835 @@
-/* styles/Admin/appManagement.css */
+/* src/styles/Admin/appManagement.css */
 
-.app-management-integrated {
-  padding: 20px 0;
+:root {
+  --primary-blue: #2563eb;
+  --primary-blue-light: #dbeafe;
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-500: #64748b;
+  --gray-700: #334155;
+  --gray-900: #0f172a;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --border-radius: 16px;
 }
 
-.app-management-header {
+.app-management-app-admin {
+  background: #FFFFFF;
+  border-radius: 0;
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--card-shadow);
+  margin-top: 0;
+  padding: 0;
+}
+
+/* --- Header --- */
+.app-header-app-admin {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
-  padding: 16px;
-  background: var(--bg-card, #fff);
-  border-radius: 8px;
-  border: 1px solid var(--border-color, #e0e0e0);
+  align-items: center;
+  padding: 20px 24px 16px 24px;
+  border-bottom: 1px solid var(--gray-100);
 }
 
-.app-management-header .header-info h4 {
-  margin: 0 0 4px 0;
+.app-header-info-app-admin h4 {
   font-size: 16px;
-  color: var(--text-primary, #333);
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: var(--gray-900);
 }
 
-.app-management-header .header-info p {
+.app-header-info-app-admin p {
+  font-size: 13px;
+  color: var(--gray-500);
   margin: 0;
-  font-size: 14px;
-  color: var(--text-secondary, #666);
 }
 
-.btn-add-app {
+.fab-add-app-app-admin {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
-  background: #4CAF50;
-  color: white;
+  padding: 10px 20px;
+  background: var(--primary-blue);
+  color: #FFFFFF;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s;
-  white-space: nowrap;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.15);
 }
 
-.btn-add-app:hover:not(:disabled) {
-  background: #45a049;
-  transform: translateY(-1px);
+.fab-add-app-app-admin:hover {
+  background: #1d4ed8;
+  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.25);
 }
 
-.btn-add-app:disabled {
+.fab-add-app-app-admin:disabled {
   opacity: 0.6;
-  cursor: not-allowed;
+  cursor: default;
 }
 
-/* Empty State */
-.empty-apps {
+/* --- Empty State --- */
+.app-empty-app-admin {
   text-align: center;
-  padding: 60px 20px;
-  background: var(--bg-card, #fff);
-  border-radius: 8px;
-  border: 1px solid var(--border-color, #e0e0e0);
+  padding: 48px 20px;
+  color: var(--gray-500);
 }
 
-.empty-apps svg {
+.empty-icon-app-admin {
   font-size: 48px;
-  color: var(--text-secondary, #999);
-  margin-bottom: 16px;
+  color: var(--gray-300);
+  margin-bottom: 12px;
 }
 
-.empty-apps p {
-  margin: 8px 0;
-  color: var(--text-primary, #333);
-  font-size: 16px;
+.app-empty-app-admin h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin: 0 0 8px 0;
 }
 
-.empty-apps .empty-sub {
-  color: var(--text-secondary, #666);
+.app-empty-app-admin p {
   font-size: 14px;
+  color: var(--gray-500);
+  margin: 0;
 }
 
-/* Table Styles */
-.apps-table-wrapper {
-  background: var(--bg-card, #fff);
-  border-radius: 8px;
-  border: 1px solid var(--border-color, #e0e0e0);
-  overflow: hidden;
+/* --- Table --- */
+.app-table-wrapper-app-admin {
+  overflow-x: auto;
+  padding: 0 24px 20px 24px;
 }
 
-.apps-table {
+.app-table-app-admin {
   width: 100%;
   border-collapse: collapse;
-}
-
-.apps-table thead {
-  background: var(--bg-secondary, #f5f5f5);
-}
-
-.apps-table th {
-  padding: 12px 16px;
-  text-align: left;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-secondary, #666);
-  border-bottom: 2px solid var(--border-color, #e0e0e0);
-}
-
-.apps-table td {
-  padding: 12px 16px;
   font-size: 14px;
-  border-bottom: 1px solid var(--border-color, #f0f0f0);
+}
+
+.app-table-app-admin thead th {
+  text-align: left;
+  padding: 12px 12px 12px 0;
+  font-weight: 600;
+  color: var(--gray-500);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.app-table-app-admin thead th.actions-col-app-admin {
+  text-align: right;
+  padding-right: 0;
+}
+
+.app-table-app-admin tbody tr {
+  border-bottom: 1px solid var(--gray-100);
+  transition: background 0.15s ease;
+}
+
+.app-table-app-admin tbody tr:last-child {
+  border-bottom: none;
+}
+
+.app-table-app-admin tbody tr:hover {
+  background: var(--gray-50);
+}
+
+.app-table-app-admin tbody td {
+  padding: 14px 12px 14px 0;
+  color: var(--gray-700);
   vertical-align: middle;
+  text-align: left;
 }
 
-.apps-table tbody tr:hover {
-  background: var(--bg-hover, #f8f9fa);
+.published-row-app-admin {
+  background: rgba(16, 185, 129, 0.03);
 }
 
-.apps-table tbody tr.published-row {
-  background: #f0f7ff;
-}
-
-.apps-table tbody tr.published-row:hover {
-  background: #e8f0fa;
-}
-
-/* Version Cell */
-.version-cell {
+.version-cell-app-admin {
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 500;
-  color: var(--text-primary, #333);
+  color: var(--gray-900);
 }
 
-.version-cell svg {
-  color: #4CAF50;
-  font-size: 14px;
+.version-icon-app-admin {
+  color: #3DDC84;
+  font-size: 16px;
 }
 
-/* Release Notes Cell */
-.release-notes-cell {
-  max-width: 200px;
+.release-notes-cell-app-admin {
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--text-primary, #333);
+  max-width: 200px;
 }
 
-/* Date Cell */
-.date-cell {
+.date-cell-app-admin {
   display: flex;
   align-items: center;
   gap: 6px;
+  color: var(--gray-500);
   font-size: 13px;
-  color: var(--text-secondary, #666);
 }
 
-.date-cell svg {
-  font-size: 12px;
-}
-
-/* Status Badge */
-.status-badge {
+/* --- Status Badges --- */
+.status-badge-app-admin {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.status-badge.published {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.status-badge.draft {
-  background: #f5f5f5;
-  color: #666;
-}
-
-.status-badge svg {
-  font-size: 12px;
-}
-
-/* Action Buttons */
-.action-buttons {
-  display: flex;
   gap: 6px;
-  flex-wrap: wrap;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
-.action-btn {
+.status-badge-app-admin.published {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.status-badge-app-admin.draft {
+  background: var(--gray-100);
+  color: var(--gray-500);
+}
+
+/* --- Action Dropdown --- */
+.action-dropdown-container-app-admin {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  text-align: right;
+}
+
+.action-dropdown-toggle-app-admin {
   display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-dropdown-toggle-app-admin:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+  color: var(--gray-900);
+}
+
+.dropdown-arrow-app-admin {
+  font-size: 10px;
+  transition: transform 0.2s ease;
+}
+
+.dropdown-arrow-app-admin.open-app-admin {
+  transform: rotate(180deg);
+}
+
+.action-dropdown-menu-app-admin {
+  min-width: 180px;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+  padding: 6px 0;
+  overflow: hidden;
+}
+
+.dropdown-item-app-admin {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  text-align: left;
+}
+
+.dropdown-item-app-admin:hover:not(.disabled) {
+  background: var(--gray-50);
+}
+
+.dropdown-item-app-admin svg {
+  font-size: 14px;
+  color: var(--gray-500);
+  width: 16px;
+  text-align: center;
+}
+
+.dropdown-item-app-admin.primary {
+  color: #1E40AF;
+}
+
+.dropdown-item-app-admin.primary svg {
+  color: #1E40AF;
+}
+
+.dropdown-item-app-admin.success {
+  color: #065F46;
+}
+
+.dropdown-item-app-admin.success svg {
+  color: #065F46;
+}
+
+.dropdown-item-app-admin.danger {
+  color: #991B1B;
+}
+
+.dropdown-item-app-admin.danger svg {
+  color: #991B1B;
+}
+
+.dropdown-item-app-admin.disabled {
+  color: var(--gray-300);
+  cursor: default;
+}
+
+.dropdown-item-app-admin.disabled svg {
+  color: var(--gray-300);
+}
+
+/* --- Old action buttons (hidden, replaced by dropdown) --- */
+.action-buttons-app-admin {
+  display: none;
+}
+
+.action-btn-app-admin {
+  display: none;
+}
+
+/* =========================================
+   MODALS
+   ========================================= */
+.modal-overlay-app-admin {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 9998;
+}
+
+.modal-content-app-admin {
+  background: #FFFFFF;
+  border-radius: var(--border-radius);
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
+  padding: 0;
+}
+
+.modal-header-app-admin {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.modal-header-app-admin h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.modal-close-app-admin {
+  background: var(--gray-100);
+  border: none;
   width: 32px;
   height: 32px;
-  border: none;
-  border-radius: 6px;
+  border-radius: 50%;
+  font-size: 18px;
+  color: var(--gray-500);
   cursor: pointer;
-  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.modal-close-app-admin:hover {
+  background: var(--gray-200);
+  color: var(--gray-900);
+}
+
+.modal-body-app-admin {
+  padding: 28px;
+}
+
+.modal-actions-app-admin {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 28px;
+  border-top: 1px solid var(--gray-200);
+}
+
+.modal-actions-app-admin button {
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid var(--gray-200);
+  background: #FFFFFF;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-actions-app-admin button:hover:not(:disabled) {
+  background: var(--gray-50);
+}
+
+.modal-actions-app-admin button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.btn-cancel-app-admin {
+  background: #FFFFFF;
+}
+
+.btn-confirm-app-admin {
+  background: var(--primary-blue) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary-blue) !important;
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.15) !important;
+}
+
+.btn-confirm-app-admin:hover {
+  background: #1d4ed8 !important;
+  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.25) !important;
+}
+
+.btn-confirm-app-admin.btn-danger-app-admin {
+  background: #DC2626 !important;
+  border-color: #DC2626 !important;
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.15) !important;
+}
+
+.btn-confirm-app-admin.btn-danger-app-admin:hover {
+  background: #B91C1C !important;
+  box-shadow: 0 6px 12px rgba(220, 38, 38, 0.25) !important;
+}
+
+/* --- Spinner --- */
+@keyframes spin-app-admin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinner-app-admin {
+  display: inline-block;
+  animation: spin-app-admin 1s linear infinite !important;
+}
+
+.spinner-large-app-admin {
+  display: inline-block;
+  font-size: 32px;
+  color: var(--primary-blue);
+  animation: spin-app-admin 1s linear infinite !important;
+}
+
+.loading-state-app-admin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px;
+  color: var(--gray-500);
   font-size: 14px;
 }
 
-.action-btn.edit {
-  background: #e3f2fd;
-  color: #1976d2;
+/* --- Form --- */
+.form-group-app-admin {
+  margin-bottom: 20px;
 }
 
-.action-btn.edit:hover {
-  background: #bbdefb;
-}
-
-.action-btn.delete {
-  background: #fce4ec;
-  color: #c62828;
-}
-
-.action-btn.delete:hover {
-  background: #f8bbd0;
-}
-
-.action-btn.publish {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.action-btn.publish:hover {
-  background: #c8e6c9;
-}
-
-/* App Modal */
-.app-modal .modal-body {
-  padding: 20px 0;
-}
-
-.app-modal .form-group {
-  margin-bottom: 16px;
-}
-
-.app-modal .form-group label {
+.form-group-app-admin label {
   display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-700);
   margin-bottom: 6px;
-  font-weight: 500;
-  color: var(--text-primary, #333);
-  font-size: 14px;
 }
 
-.app-modal .form-group input,
-.app-modal .form-group textarea,
-.app-modal .form-group select {
+.form-group-app-admin input,
+.form-group-app-admin textarea,
+.form-group-app-admin select {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--border-color, #d0d0d0);
-  border-radius: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
   font-size: 14px;
-  transition: border-color 0.2s;
-}
-
-.app-modal .form-group input:focus,
-.app-modal .form-group textarea:focus,
-.app-modal .form-group select:focus {
+  background: #FFFFFF;
+  color: var(--gray-900);
   outline: none;
-  border-color: #4CAF50;
-  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
-.app-modal .form-group textarea {
-  resize: vertical;
-  min-height: 80px;
-  font-family: inherit;
+.form-group-app-admin input:focus,
+.form-group-app-admin textarea:focus,
+.form-group-app-admin select:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px var(--primary-blue-light);
 }
 
-/* File Upload */
-.file-upload-wrapper {
+.form-group-app-admin small {
+  display: block;
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-top: 4px;
+}
+
+/* --- File Upload --- */
+.file-upload-wrapper-app-admin {
   position: relative;
   margin-top: 4px;
 }
 
-.file-input {
+.file-input-app-admin {
   position: absolute;
-  width: 0.1px;
-  height: 0.1px;
-  opacity: 0;
-  overflow: hidden;
-  z-index: -1;
-}
-
-.file-upload-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: var(--bg-secondary, #f5f5f5);
-  border: 2px dashed var(--border-color, #d0d0d0);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
   width: 100%;
-  color: var(--text-secondary, #666);
-  font-size: 14px;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
 }
 
-.file-upload-label:hover {
-  background: #e8f0fe;
-  border-color: #4CAF50;
-}
-
-.file-upload-label svg {
-  font-size: 18px;
-}
-
-.file-size {
-  display: inline-block;
-  margin-left: 8px;
-  font-size: 12px;
-  color: var(--text-secondary, #666);
-}
-
-.file-hint {
-  display: block;
-  margin-top: 4px;
-  font-size: 12px;
-  color: var(--text-secondary, #666);
-}
-
-/* Current APK Info */
-.current-apk-info {
+.file-upload-label-app-admin {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: var(--bg-secondary, #f5f5f5);
-  border-radius: 6px;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 2px dashed var(--gray-200);
+  border-radius: 10px;
+  background: var(--gray-50);
+  color: var(--gray-500);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-upload-label-app-admin:hover {
+  border-color: var(--primary-blue);
+  background: var(--primary-blue-light);
+}
+
+.file-size-app-admin {
+  display: block;
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-top: 4px;
+}
+
+.current-apk-info-app-admin {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
   margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--gray-700);
 }
 
-.current-apk-info svg {
-  color: #4CAF50;
-}
-
-.current-apk-info .download-link {
-  color: #1976d2;
-  text-decoration: none;
-  font-weight: 500;
+.current-apk-info-app-admin a.download-link-app-admin {
   margin-left: auto;
+  color: var(--primary-blue);
+  font-weight: 500;
+  text-decoration: none;
 }
 
-.current-apk-info .download-link:hover {
+.current-apk-info-app-admin a.download-link-app-admin:hover {
   text-decoration: underline;
 }
 
-/* Loading State */
-.app-management-loading {
+.file-hint-app-admin {
+  color: var(--gray-500);
+  font-size: 12px;
+}
+
+/* --- Upload Status --- */
+.upload-status-app-admin {
+  margin-top: 20px;
+  padding: 24px;
+  background: var(--gray-50);
+  border-radius: 10px;
+  border: 1px solid var(--gray-200);
+}
+
+.status-container-app-admin {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  min-height: 80px;
+}
+
+.status-content-app-admin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 12px;
-  padding: 40px 20px;
-  color: var(--text-secondary, #666);
 }
 
-.app-management-loading .spinner {
-  animation: spin 1s linear infinite;
+.status-text-app-admin {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--gray-700);
+  margin: 0;
 }
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.status-subtext-app-admin {
+  font-size: 13px;
+  color: var(--gray-500);
+  margin: 0;
 }
 
-/* Responsive */
+.success-state-app-admin .success-icon-app-admin {
+  font-size: 48px;
+  color: #10b981;
+}
+
+.success-state-app-admin .success-text-app-admin {
+  color: #10b981;
+}
+
+/* --- Responsive --- */
 @media (max-width: 768px) {
-  .app-management-header {
+  .app-header-app-admin {
     flex-direction: column;
+    align-items: stretch;
     gap: 12px;
+    padding: 16px;
   }
 
-  .btn-add-app {
+  .app-header-info-app-admin h4 {
+    font-size: 14px;
+  }
+
+  .app-header-info-app-admin p {
+    font-size: 12px;
+  }
+
+  .fab-add-app-app-admin {
     width: 100%;
     justify-content: center;
   }
 
-  .apps-table-wrapper {
-    overflow-x: auto;
+  .app-table-wrapper-app-admin {
+    padding: 0 16px 16px 16px;
   }
 
-  .apps-table {
-    min-width: 600px;
+  .app-table-app-admin thead th {
+    font-size: 10px;
+    padding: 8px 8px 8px 0;
   }
 
-  .release-notes-cell {
+  .app-table-app-admin tbody td {
+    padding: 10px 8px 10px 0;
+    font-size: 13px;
+  }
+
+  .release-notes-cell-app-admin {
     max-width: 120px;
+  }
+
+  .action-dropdown-toggle-app-admin {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+
+  .action-dropdown-toggle-app-admin span:not(.dropdown-arrow-app-admin) {
+    display: none;
+  }
+
+  .modal-content-app-admin {
+    max-width: 95%;
+    margin: 10px;
+  }
+
+  .modal-header-app-admin {
+    padding: 16px 20px;
+  }
+
+  .modal-header-app-admin h3 {
+    font-size: 17px;
+  }
+
+  .modal-body-app-admin {
+    padding: 20px;
+  }
+
+  .modal-actions-app-admin {
+    flex-direction: column-reverse;
+    padding: 16px 20px;
+  }
+
+  .modal-actions-app-admin button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .action-dropdown-menu-app-admin {
+    min-width: 160px;
+    max-width: 200px;
+    border-radius: 8px;
+  }
+
+  .dropdown-item-app-admin {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .upload-status-app-admin {
+    padding: 16px;
+  }
+
+  .spinner-large-app-admin {
+    font-size: 24px;
+  }
+
+  .status-text-app-admin {
+    font-size: 14px;
+  }
+
+  .success-state-app-admin .success-icon-app-admin {
+    font-size: 36px;
   }
 }
 
 @media (max-width: 480px) {
-  .action-buttons {
-    flex-direction: column;
-    gap: 4px;
+  .app-header-app-admin {
+    padding: 12px;
   }
 
-  .action-btn {
-    width: 100%;
+  .app-table-wrapper-app-admin {
+    padding: 0 12px 12px 12px;
+  }
+
+  .app-table-app-admin tbody td {
+    font-size: 12px;
+    padding: 8px 6px 8px 0;
+  }
+
+  .release-notes-cell-app-admin {
+    max-width: 80px;
+  }
+
+  .version-cell-app-admin {
+    font-size: 12px;
+  }
+
+  .version-icon-app-admin {
+    font-size: 14px;
+  }
+
+  .date-cell-app-admin {
+    font-size: 11px;
+  }
+
+  .status-badge-app-admin {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+
+  .modal-content-app-admin {
+    max-width: 98%;
+  }
+
+  .modal-header-app-admin {
+    padding: 12px 16px;
+  }
+
+  .modal-header-app-admin h3 {
+    font-size: 15px;
+  }
+
+  .modal-body-app-admin {
+    padding: 16px;
+  }
+
+  .modal-actions-app-admin {
+    padding: 12px 16px;
+  }
+
+  .form-group-app-admin {
+    margin-bottom: 14px;
+  }
+
+  .form-group-app-admin input,
+  .form-group-app-admin textarea,
+  .form-group-app-admin select {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .file-upload-label-app-admin {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .dropdown-item-app-admin {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .action-dropdown-menu-app-admin {
+    min-width: 140px;
+  }
+}
+
+/* --- Touch-friendly improvements --- */
+@media (hover: none) and (pointer: coarse) {
+  .action-dropdown-toggle-app-admin {
+    padding: 8px 14px;
+    min-height: 40px;
+  }
+
+  .dropdown-item-app-admin {
+    padding: 12px 16px;
+    min-height: 44px;
+  }
+
+  .modal-actions-app-admin button {
+    min-height: 48px;
+  }
+
+  .fab-add-app-app-admin {
+    min-height: 48px;
+  }
+
+  .form-group-app-admin input,
+  .form-group-app-admin textarea,
+  .form-group-app-admin select {
+    min-height: 44px;
   }
 }

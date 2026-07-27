@@ -1,27 +1,28 @@
 // components/Admin/AppManagement.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FaPlus, 
   FaEdit, 
   FaTrash, 
   FaSpinner, 
   FaCheckCircle,
-  FaTimes,
   FaFileDownload,
   FaUpload,
   FaCloudUploadAlt,
-  FaEye,
   FaEyeSlash,
   FaCheck,
   FaCalendarAlt,
-  FaTag
+  FaTag,
+  FaAndroid,
+  FaDownload,
+  FaChevronDown
 } from 'react-icons/fa';
 import axios from 'axios';
-import { useToast } from '../../assets/toastnotification';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/appManagement.css';
 
 const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
-  const { toast, showToast } = useToast();
+  const { toast, showToast, hideToast } = useToast();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -35,9 +36,32 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
   const [uploading, setUploading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [appToDelete, setAppToDelete] = useState(null);
+  const [uploadStatus, setUploadStatus] = useState('idle');
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 20 });
+  const buttonRefs = useRef({});
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     fetchApplications();
+
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    const handleScroll = () => {
+      setOpenDropdownId(null);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, true);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
   }, []);
 
   const fetchApplications = async () => {
@@ -75,7 +99,9 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
       });
       setSelectedFile(null);
     }
+    setUploadStatus('idle');
     setShowModal(true);
+    setOpenDropdownId(null);
   };
 
   const handleCloseModal = () => {
@@ -88,18 +114,17 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
     });
     setSelectedFile(null);
     setUploading(false);
+    setUploadStatus('idle');
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Check if file is APK
       if (!file.name.endsWith('.apk')) {
         showToast('Please select an APK file', 'warning');
         e.target.value = '';
         return;
       }
-      // Check file size (max 100MB)
       if (file.size > 100 * 1024 * 1024) {
         showToast('File size must be less than 100MB', 'warning');
         e.target.value = '';
@@ -110,23 +135,22 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
   };
 
   const handleSubmit = async () => {
-    // Validate
     if (!formData.version.trim()) {
       showToast('Please enter a version number', 'warning');
       return;
     }
-
     if (!editingApp && !selectedFile) {
       showToast('Please select an APK file', 'warning');
       return;
     }
-
     if (!formData.releaseNotes.trim()) {
       showToast('Please enter release notes', 'warning');
       return;
     }
 
+    const currentCount = applications.length;
     setUploading(true);
+    setUploadStatus('uploading');
 
     try {
       const token = sessionStorage.getItem('token');
@@ -141,7 +165,6 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
 
       let response;
       if (editingApp) {
-        // Update existing app
         response = await axios.put(
           `${import.meta.env.VITE_API_URL}/api/applications/${editingApp._id}`,
           formDataToSend,
@@ -153,7 +176,6 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
           }
         );
       } else {
-        // Create new app
         response = await axios.post(
           `${import.meta.env.VITE_API_URL}/api/applications`,
           formDataToSend,
@@ -166,35 +188,79 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
         );
       }
 
-      showToast(response.data.message, 'success');
-      handleCloseModal();
-      fetchApplications();
-      
-      // If config needs refresh
-      if (onConfigUpdate) {
-        onConfigUpdate();
-      }
+      setUploadStatus('waiting');
+
+      let attempts = 0;
+      const maxAttempts = 10;
+      const pollInterval = setInterval(async () => {
+        attempts++;
+        try {
+          const verifyToken = sessionStorage.getItem('token');
+          const verifyResponse = await axios.get(
+            `${import.meta.env.VITE_API_URL}/api/applications`,
+            { headers: { Authorization: `Bearer ${verifyToken}` } }
+          );
+          
+          const newApps = verifyResponse.data.apps || [];
+          const newCount = newApps.length;
+
+          if (!editingApp && newCount === currentCount + 1) {
+            clearInterval(pollInterval);
+            setUploadStatus('success');
+            setApplications(newApps);
+            
+            setTimeout(() => {
+              handleCloseModal();
+              showToast('APK uploaded successfully!', 'success');
+              if (onConfigUpdate) onConfigUpdate();
+            }, 1500);
+          }
+          else if (editingApp) {
+            const stillExists = newApps.some(app => app._id === editingApp._id);
+            if (stillExists) {
+              clearInterval(pollInterval);
+              setUploadStatus('success');
+              setApplications(newApps);
+              
+              setTimeout(() => {
+                handleCloseModal();
+                showToast('APK updated successfully!', 'success');
+                if (onConfigUpdate) onConfigUpdate();
+              }, 1500);
+            }
+          }
+        } catch (error) {
+          console.error('Polling error:', error);
+        }
+
+        if (attempts >= maxAttempts) {
+          clearInterval(pollInterval);
+          setUploadStatus('idle');
+          showToast('Verification timeout. Please refresh the list.', 'warning');
+          handleCloseModal();
+        }
+      }, 1000);
+
     } catch (error) {
       console.error('Error saving application:', error);
       showToast(error.response?.data?.message || 'Failed to save application', 'error');
-    } finally {
       setUploading(false);
+      setUploadStatus('idle');
     }
   };
 
   const handleDelete = async () => {
     if (!appToDelete) return;
-
     try {
       const token = sessionStorage.getItem('token');
       const response = await axios.delete(
         `${import.meta.env.VITE_API_URL}/api/applications/${appToDelete._id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
       showToast(response.data.message, 'success');
       setShowDeleteModal(false);
       setAppToDelete(null);
+      setOpenDropdownId(null);
       fetchApplications();
     } catch (error) {
       console.error('Error deleting application:', error);
@@ -210,13 +276,23 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
       showToast(response.data.message, 'success');
+      setOpenDropdownId(null);
       fetchApplications();
     } catch (error) {
       console.error('Error publishing app:', error);
       showToast(error.response?.data?.message || 'Failed to publish app', 'error');
     }
+  };
+
+  const handleDropdownClick = (event, appId) => {
+    event.stopPropagation();
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+    setDropdownPosition({
+      top: buttonRect.bottom + 5,
+      right: window.innerWidth - buttonRect.right - 10,
+    });
+    setOpenDropdownId(openDropdownId === appId ? null : appId);
   };
 
   const formatDate = (date) => {
@@ -230,122 +306,188 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
 
   const getStatusBadge = (status) => {
     if (status === 'published') {
-      return <span className="status-badge published"><FaCheck /> Published</span>;
+      return <span className="status-badge-app-admin published"><FaCheck /> Published</span>;
     }
-    return <span className="status-badge draft"><FaEyeSlash /> Draft</span>;
+    return <span className="status-badge-app-admin draft"><FaEyeSlash /> Draft</span>;
+  };
+
+  // Get available actions for an app
+  const getAvailableActions = (app) => {
+    const actions = [
+      {
+        label: 'Edit',
+        icon: <FaEdit />,
+        action: () => handleOpenModal(app),
+        color: 'primary'
+      }
+    ];
+
+    // Only show download if APK URL exists
+    if (app.apkUrl) {
+      actions.push({
+        label: 'Download APK',
+        icon: <FaDownload />,
+        action: () => window.open(app.apkUrl, '_blank'),
+        color: 'primary'
+      });
+    }
+
+    // Only show publish if not already published
+    if (app.status !== 'published') {
+      actions.push({
+        label: 'Publish',
+        icon: <FaCheck />,
+        action: () => handlePublish(app),
+        color: 'success'
+      });
+    }
+
+    // Only show delete if not published
+    if (app.status !== 'published') {
+      actions.push({
+        label: 'Delete',
+        icon: <FaTrash />,
+        action: () => {
+          setAppToDelete(app);
+          setShowDeleteModal(true);
+          setOpenDropdownId(null);
+        },
+        color: 'danger'
+      });
+    }
+
+    return actions;
   };
 
   if (loading) {
     return (
-      <div className="app-management-loading">
-        <FaSpinner className="spinner" /> Loading applications...
+      <div className="app-management-app-admin loading-state-app-admin">
+        <FaSpinner className="spinner-app-admin" /> Loading applications...
       </div>
     );
   }
 
   return (
-    <div className="app-management-integrated">
-      <div className="app-management-header">
-        <div className="header-info">
+    <div className="app-management-app-admin">
+      {/* --- Header --- */}
+      <div className="app-header-app-admin">
+        <div className="app-header-info-app-admin">
           <h4>Android APK Management</h4>
           <p>Upload and manage APK versions for your mobile application</p>
         </div>
         <button 
-          className="btn-add-app" 
+          className="fab-add-app-app-admin" 
           onClick={() => handleOpenModal()}
           disabled={savingConfig}
         >
-          <FaPlus /> Upload New APK
+          <FaPlus /> New APK
         </button>
       </div>
 
+      {/* --- Empty State --- */}
       {applications.length === 0 ? (
-        <div className="empty-apps">
-          <FaCloudUploadAlt />
-          <p>No applications uploaded yet</p>
-          <p className="empty-sub">Upload your first APK to get started</p>
+        <div className="app-empty-app-admin">
+          <FaCloudUploadAlt className="empty-icon-app-admin" />
+          <h3>No Applications Uploaded</h3>
+          <p>Upload your first APK to get started</p>
         </div>
       ) : (
-        <div className="apps-table-wrapper">
-          <table className="apps-table">
+        /* --- Data Table --- */
+        <div className="app-table-wrapper-app-admin">
+          <table className="app-table-app-admin">
             <thead>
               <tr>
                 <th>Version</th>
                 <th>Release Notes</th>
                 <th>Release Date</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th className="actions-col-app-admin">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {applications.map((app) => (
-                <tr key={app._id} className={app.status === 'published' ? 'published-row' : ''}>
-                  <td>
-                    <div className="version-cell">
-                      <FaTag /> v{app.version}
-                    </div>
-                  </td>
-                  <td>
-                    <div className="release-notes-cell" title={app.releaseNotes}>
-                      {app.releaseNotes}
-                    </div>
-                  </td>
-                  <td>
-                    <div className="date-cell">
-                      <FaCalendarAlt /> {formatDate(app.releaseDate)}
-                    </div>
-                  </td>
-                  <td>{getStatusBadge(app.status)}</td>
-                  <td>
-                    <div className="action-buttons">
-                      <button 
-                        className="action-btn edit" 
-                        onClick={() => handleOpenModal(app)}
-                        title="Edit"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button 
-                        className="action-btn delete" 
-                        onClick={() => {
-                          setAppToDelete(app);
-                          setShowDeleteModal(true);
-                        }}
-                        title="Delete"
-                      >
-                        <FaTrash />
-                      </button>
-                      {app.status !== 'published' && (
-                        <button 
-                          className="action-btn publish" 
-                          onClick={() => handlePublish(app)}
-                          title="Publish"
+              {applications.map((app) => {
+                const isOpen = openDropdownId === app._id;
+                const actions = getAvailableActions(app);
+                const isPublished = app.status === 'published';
+
+                return (
+                  <tr key={app._id} className={isPublished ? 'published-row-app-admin' : ''}>
+                    <td>
+                      <div className="version-cell-app-admin">
+                        <FaAndroid className="version-icon-app-admin" /> v{app.version}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="release-notes-cell-app-admin" title={app.releaseNotes}>
+                        {app.releaseNotes}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="date-cell-app-admin">
+                        <FaCalendarAlt /> {formatDate(app.releaseDate)}
+                      </div>
+                    </td>
+                    <td>{getStatusBadge(app.status)}</td>
+                    <td>
+                      <div className="action-dropdown-container-app-admin">
+                        <button
+                          className="action-dropdown-toggle-app-admin"
+                          ref={el => buttonRefs.current[app._id] = el}
+                          onClick={(e) => handleDropdownClick(e, app._id)}
                         >
-                          <FaCheck />
+                          Actions <FaChevronDown className={`dropdown-arrow-app-admin ${isOpen ? 'open-app-admin' : ''}`} />
                         </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+
+                        {isOpen && (
+                          <div
+                            className="action-dropdown-menu-app-admin"
+                            ref={dropdownRef}
+                            style={{
+                              position: 'fixed',
+                              top: dropdownPosition.top,
+                              right: dropdownPosition.right,
+                              zIndex: 9999,
+                            }}
+                          >
+                            {actions.map((action, idx) => (
+                              <button
+                                key={idx}
+                                className={`dropdown-item-app-admin ${action.color || ''}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  action.action();
+                                }}
+                              >
+                                {action.icon} <span>{action.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
 
+      {/* ============================================
+          MODALS
+         ============================================ */}
+
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-content app-modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="modal-overlay-app-admin" onClick={handleCloseModal}>
+          <div className="modal-content-app-admin app-modal-app-admin" onClick={e => e.stopPropagation()}>
+            <div className="modal-header-app-admin">
               <h3>{editingApp ? 'Edit' : 'Upload New'} APK</h3>
-              <button className="modal-close" onClick={handleCloseModal}>
-                <FaTimes />
-              </button>
+              <button className="modal-close-app-admin" onClick={handleCloseModal}>×</button>
             </div>
             
-            <div className="modal-body">
-              <div className="form-group">
+            <div className="modal-body-app-admin">
+              <div className="form-group-app-admin">
                 <label>Version *</label>
                 <input
                   type="text"
@@ -356,55 +498,57 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
               </div>
 
               {!editingApp && (
-                <div className="form-group">
+                <div className="form-group-app-admin">
                   <label>APK File *</label>
-                  <div className="file-upload-wrapper">
+                  <div className="file-upload-wrapper-app-admin">
                     <input
                       type="file"
                       accept=".apk"
                       onChange={handleFileChange}
-                      className="file-input"
+                      className="file-input-app-admin"
                       id="apk-file-input"
                     />
-                    <label htmlFor="apk-file-input" className="file-upload-label">
+                    <label htmlFor="apk-file-input" className="file-upload-label-app-admin">
                       <FaUpload />
                       {selectedFile ? selectedFile.name : 'Choose APK file...'}
                     </label>
                     {selectedFile && (
-                      <span className="file-size">
+                      <span className="file-size-app-admin">
                         ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)
                       </span>
                     )}
                   </div>
-                  <small className="file-hint">Max file size: 100MB</small>
+                  <small className="file-hint-app-admin">Max file size: 100MB</small>
                 </div>
               )}
 
               {editingApp && (
-                <div className="form-group">
+                <div className="form-group-app-admin">
                   <label>Current APK</label>
-                  <div className="current-apk-info">
+                  <div className="current-apk-info-app-admin">
                     <FaFileDownload />
                     <span>{editingApp.fileName || 'APK file'}</span>
-                    <a 
-                      href={editingApp.apkUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="download-link"
-                    >
-                      Download
-                    </a>
+                    {editingApp.apkUrl && (
+                      <a 
+                        href={editingApp.apkUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="download-link-app-admin"
+                      >
+                        Download
+                      </a>
+                    )}
                   </div>
                   <small>Upload a new file to replace the current APK (optional)</small>
-                  <div className="file-upload-wrapper">
+                  <div className="file-upload-wrapper-app-admin">
                     <input
                       type="file"
                       accept=".apk"
                       onChange={handleFileChange}
-                      className="file-input"
+                      className="file-input-app-admin"
                       id="apk-file-input-edit"
                     />
-                    <label htmlFor="apk-file-input-edit" className="file-upload-label">
+                    <label htmlFor="apk-file-input-edit" className="file-upload-label-app-admin">
                       <FaUpload />
                       {selectedFile ? selectedFile.name : 'Choose new APK file...'}
                     </label>
@@ -412,7 +556,7 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
                 </div>
               )}
 
-              <div className="form-group">
+              <div className="form-group-app-admin">
                 <label>Release Notes *</label>
                 <textarea
                   rows="4"
@@ -422,7 +566,7 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
                 />
               </div>
 
-              <div className="form-group">
+              <div className="form-group-app-admin">
                 <label>Status</label>
                 <select
                   value={formData.status}
@@ -433,18 +577,50 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
                 </select>
                 <small>Only one version can be published at a time</small>
               </div>
+
+              {/* Upload Status */}
+              {(uploadStatus === 'uploading' || uploadStatus === 'waiting' || uploadStatus === 'success') && (
+                <div className="upload-status-app-admin">
+                  <div className="status-container-app-admin">
+                    {uploadStatus === 'uploading' && (
+                      <div className="status-content-app-admin">
+                        <FaSpinner className="spinner-large-app-admin" />
+                        <p className="status-text-app-admin">Uploading your APK...</p>
+                      </div>
+                    )}
+
+                    {uploadStatus === 'waiting' && (
+                      <div className="status-content-app-admin">
+                        <FaSpinner className="spinner-large-app-admin" />
+                        <p className="status-text-app-admin">Please wait for a moment...</p>
+                        <p className="status-subtext-app-admin">Verifying upload completion...</p>
+                      </div>
+                    )}
+
+                    {uploadStatus === 'success' && (
+                      <div className="status-content-app-admin success-state-app-admin">
+                        <FaCheckCircle className="success-icon-app-admin" />
+                        <p className="status-text-app-admin success-text-app-admin">Upload Successful!</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="modal-actions">
-              <button className="btn-cancel" onClick={handleCloseModal}>
+            <div className="modal-actions-app-admin">
+              <button 
+                className="btn-cancel-app-admin" 
+                onClick={handleCloseModal}
+                disabled={uploading || uploadStatus === 'uploading' || uploadStatus === 'waiting'}
+              >
                 Cancel
               </button>
               <button 
-                className="btn-confirm" 
+                className="btn-confirm-app-admin" 
                 onClick={handleSubmit}
-                disabled={uploading}
+                disabled={uploading || uploadStatus !== 'idle'}
               >
-                {uploading ? <FaSpinner className="spinner" /> : <FaCheckCircle />}
                 {editingApp ? 'Update' : 'Upload'}
               </button>
             </div>
@@ -454,29 +630,30 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && appToDelete && (
-        <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="modal-overlay-app-admin" onClick={() => setShowDeleteModal(false)}>
+          <div className="modal-content-app-admin" onClick={e => e.stopPropagation()}>
+            <div className="modal-header-app-admin">
               <h3>Delete Application</h3>
-              <button className="modal-close" onClick={() => setShowDeleteModal(false)}>
-                <FaTimes />
-              </button>
+              <button className="modal-close-app-admin" onClick={() => setShowDeleteModal(false)}>×</button>
             </div>
-            <p>
-              Are you sure you want to delete version <strong>v{appToDelete.version}</strong>?
-              This action cannot be undone.
-            </p>
-            <div className="modal-actions">
-              <button className="btn-cancel" onClick={() => setShowDeleteModal(false)}>
-                Cancel
-              </button>
-              <button className="btn-confirm btn-danger" onClick={handleDelete}>
+            <div className="modal-body-app-admin">
+              <p>
+                Are you sure you want to delete version <strong>v{appToDelete.version}</strong>?
+                This action cannot be undone.
+              </p>
+            </div>
+            <div className="modal-actions-app-admin">
+              <button className="btn-cancel-app-admin" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+              <button className="btn-confirm-app-admin btn-danger-app-admin" onClick={handleDelete}>
                 <FaTrash /> Confirm Delete
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Toast Notification */}
+      <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} />
     </div>
   );
 };

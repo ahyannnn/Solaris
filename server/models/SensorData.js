@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const sensorSchema = new mongoose.Schema({
   deviceId: { type: String, required: true },
-  
+  bookingReference: { type: String, required: true }, // Optional field
   irradiance: Number,
   temperature: Number,
   humidity: Number,

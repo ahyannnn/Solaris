@@ -308,13 +308,13 @@ const Reports = () => {
   // Skeleton Loader
   const SkeletonLoader = () => (
     <div className="reports-container">
-      <div className="reports-header">
-        <div className="skeleton-line large"></div>
-        <div className="skeleton-line medium"></div>
+      <div className="reports-header-reports">
+        <div className="skeleton-line-large-reports"></div>
+        <div className="skeleton-line-medium-reports"></div>
       </div>
-      <div className="report-tabs">
+      <div className="report-tabs-reports">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="skeleton-tab"></div>
+          <div key={i} className="skeleton-tab-reports"></div>
         ))}
       </div>
     </div>
@@ -330,34 +330,34 @@ const Reports = () => {
         <title>Reports | Admin | Salfer Engineering</title>
       </Helmet>
 
-      <div className="reports-container">
-        <div className="reports-header">
-          <h1>Reports & Analytics</h1>
-          <p>Generate comprehensive reports and analyze business performance</p>
+      <div className="reports-container-reports">
+        {/* --- Minimalist Header --- */}
+        <div className="reports-header-reports">
+          <div></div>
         </div>
 
         {/* Report Type Tabs */}
-        <div className="report-tabs">
+        <div className="report-tabs-reports">
           <button
-            className={`tab-btn ${activeTab === 'site-assessment' ? 'active' : ''}`}
+            className={`tab-btn-reports ${activeTab === 'site-assessment' ? 'active-reports' : ''}`}
             onClick={() => { setActiveTab('site-assessment'); setReportData(null); }}
           >
             Site Assessment
           </button>
           <button
-            className={`tab-btn ${activeTab === 'project-summary' ? 'active' : ''}`}
+            className={`tab-btn-reports ${activeTab === 'project-summary' ? 'active-reports' : ''}`}
             onClick={() => { setActiveTab('project-summary'); setReportData(null); }}
           >
             Project Summary
           </button>
           <button
-            className={`tab-btn ${activeTab === 'financial' ? 'active' : ''}`}
+            className={`tab-btn-reports ${activeTab === 'financial' ? 'active-reports' : ''}`}
             onClick={() => { setActiveTab('financial'); setReportData(null); }}
           >
             Financial
           </button>
           <button
-            className={`tab-btn ${activeTab === 'clients' ? 'active' : ''}`}
+            className={`tab-btn-reports ${activeTab === 'clients' ? 'active-reports' : ''}`}
             onClick={() => { setActiveTab('clients'); setReportData(null); }}
           >
             Clients
@@ -365,10 +365,10 @@ const Reports = () => {
         </div>
 
         {/* Report Controls */}
-        <div className="report-controls">
-          <div className="date-range">
+        <div className="report-controls-reports">
+          <div className="date-range-reports">
             <label>Date Range</label>
-            <div className="date-inputs">
+            <div className="date-inputs-reports">
               <input type="date" value={dateRange.startDate} onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })} />
               <span>to</span>
               <input type="date" value={dateRange.endDate} onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })} />
@@ -376,7 +376,7 @@ const Reports = () => {
           </div>
 
           {activeTab === 'site-assessment' && (
-            <div className="report-filter">
+            <div className="report-filter-reports">
               <label>Filter by Assessment</label>
               <select value={selectedAssessment} onChange={(e) => setSelectedAssessment(e.target.value)}>
                 <option value="">All Assessments</option>
@@ -388,7 +388,7 @@ const Reports = () => {
           )}
 
           {activeTab === 'project-summary' && (
-            <div className="report-filter">
+            <div className="report-filter-reports">
               <label>Filter by Project</label>
               <select value={selectedProject} onChange={(e) => setSelectedProject(e.target.value)}>
                 <option value="">All Projects</option>
@@ -400,7 +400,7 @@ const Reports = () => {
           )}
 
           {activeTab === 'clients' && (
-            <div className="report-filter">
+            <div className="report-filter-reports">
               <label>Filter by Client</label>
               <select value={selectedClient} onChange={(e) => setSelectedClient(e.target.value)}>
                 <option value="">All Clients</option>
@@ -415,15 +415,15 @@ const Reports = () => {
 
         {/* ============ SITE ASSESSMENT REPORTS ============ */}
         {activeTab === 'site-assessment' && (
-          <div className="report-content">
-            <div className="report-section">
+          <div className="report-content-reports">
+            <div className="report-section-reports">
               <h2>Site Assessment</h2>
               <p>Complete list of site evaluations with booking details and status.</p>
             </div>
 
-            <div className="report-section">
-              <div className="table-container">
-                <table className="reports-table">
+            <div className="report-section-reports">
+              <div className="table-container-reports">
+                <table className="reports-table-reports">
                   <thead>
                     <tr>
                       <th>Booking Ref</th>
@@ -440,16 +440,16 @@ const Reports = () => {
 
                       return (
                         <tr key={assessment._id}>
-                          <td className="ref-cell">{assessment.bookingReference}</td>
-                          <td className="client-cell">{assessment.clientName || 'N/A'}</td>
+                          <td className="ref-cell-reports">{assessment.bookingReference}</td>
+                          <td className="client-cell-reports">{assessment.clientName || 'N/A'}</td>
                           <td>{assessment.clientContact || 'N/A'}</td>
                           <td>
-                            <span className="property-type-badge">
+                            <span className="property-type-badge-reports">
                               {assessment.propertyType || 'N/A'}
                             </span>
                           </td>
                           <td>
-                            <span className="status-badge">
+                            <span className="status-badge-reports">
                               {statusDisplay}
                             </span>
                           </td>
@@ -461,11 +461,11 @@ const Reports = () => {
               </div>
             </div>
 
-            <div className="report-actions">
-              <button className="export-btn pdf" onClick={() => exportReport('pdf')} disabled={generating}>
+            <div className="report-actions-reports">
+              <button className="export-btn-reports pdf" onClick={() => exportReport('pdf')} disabled={generating}>
                 <FaFilePdf /> Export as PDF
               </button>
-              <button className="export-btn excel" onClick={() => exportReport('xlsx')} disabled={generating}>
+              <button className="export-btn-reports excel" onClick={() => exportReport('xlsx')} disabled={generating}>
                 <FaFileExcel /> Export as Excel
               </button>
             </div>
@@ -474,15 +474,15 @@ const Reports = () => {
 
         {/* ============ PROJECT SUMMARY REPORTS ============ */}
         {activeTab === 'project-summary' && (
-          <div className="report-content">
-            <div className="report-section">
+          <div className="report-content-reports">
+            <div className="report-section-reports">
               <h2>Project Summary</h2>
               <p>Overview of all projects with key details and status.</p>
             </div>
 
-            <div className="report-section">
-              <div className="table-container">
-                <table className="reports-table">
+            <div className="report-section-reports">
+              <div className="table-container-reports">
+                <table className="reports-table-reports">
                   <thead>
                     <tr>
                       <th>Project Ref</th>
@@ -496,17 +496,17 @@ const Reports = () => {
                   <tbody>
                     {(reportData?.report?.projects || []).map(project => (
                       <tr key={project._id}>
-                        <td className="ref-cell">{project.projectReference}</td>
-                        <td className="client-cell">{project.clientName || 'N/A'}</td>
+                        <td className="ref-cell-reports">{project.projectReference}</td>
+                        <td className="client-cell-reports">{project.clientName || 'N/A'}</td>
                         <td>{project.clientContact || 'N/A'}</td>
                         <td>
-                          <span className="system-type-badge">
+                          <span className="system-type-badge-reports">
                             {project.systemType || 'N/A'}
                           </span>
                         </td>
                         <td>{project.systemSize || 'N/A'} kWp</td>
                         <td>
-                          <span className={`project-status-badge ${project.status}`}>
+                          <span className={`project-status-badge-reports ${project.status}`}>
                             {project.status === 'in_progress' ? 'In Progress' :
                               project.status === 'completed' ? 'Completed' :
                                 project.status === 'full_paid' ? 'Full Payment' :
@@ -522,11 +522,11 @@ const Reports = () => {
               </div>
             </div>
 
-            <div className="report-actions">
-              <button className="export-btn pdf" onClick={() => exportReport('pdf')} disabled={generating}>
+            <div className="report-actions-reports">
+              <button className="export-btn-reports pdf" onClick={() => exportReport('pdf')} disabled={generating}>
                 <FaFilePdf /> Export as PDF
               </button>
-              <button className="export-btn excel" onClick={() => exportReport('xlsx')} disabled={generating}>
+              <button className="export-btn-reports excel" onClick={() => exportReport('xlsx')} disabled={generating}>
                 <FaFileExcel /> Export as Excel
               </button>
             </div>
@@ -535,15 +535,15 @@ const Reports = () => {
 
         {/* ============ FINANCIAL REPORTS ============ */}
         {activeTab === 'financial' && (
-          <div className="report-content">
-            <div className="report-section">
+          <div className="report-content-reports">
+            <div className="report-section-reports">
               <h2>Financial</h2>
               <p>Summary of all financial transactions including payments and status.</p>
             </div>
 
-            <div className="report-section">
-              <div className="table-container">
-                <table className="reports-table">
+            <div className="report-section-reports">
+              <div className="table-container-reports">
+                <table className="reports-table-reports">
                   <thead>
                     <tr>
                       <th>Project/Booking Ref</th>
@@ -557,16 +557,16 @@ const Reports = () => {
                   <tbody>
                     {(reportData?.report?.payments || []).map((transaction, idx) => (
                       <tr key={idx}>
-                        <td className="ref-cell">{transaction.reference || transaction.projectName}</td>
-                        <td className="client-cell">{transaction.clientName || transaction.client || 'N/A'}</td>
-                        <td className="amount">{formatCurrency(transaction.amount)}</td>
+                        <td className="ref-cell-reports">{transaction.reference || transaction.projectName}</td>
+                        <td className="client-cell-reports">{transaction.clientName || transaction.client || 'N/A'}</td>
+                        <td className="amount-reports">{formatCurrency(transaction.amount)}</td>
                         <td>
-                          <span className={`payment-method ${transaction.method?.toLowerCase()}`}>
+                          <span className={`payment-method-reports ${transaction.method?.toLowerCase()}`}>
                             {transaction.paymentMethod || transaction.method || 'N/A'}
                           </span>
                         </td>
                         <td>
-                          <span className="status-badge">
+                          <span className="status-badge-reports">
                             {transaction.status}
                           </span>
                         </td>
@@ -578,11 +578,11 @@ const Reports = () => {
               </div>
             </div>
 
-            <div className="report-actions">
-              <button className="export-btn pdf" onClick={() => exportReport('pdf')} disabled={generating}>
+            <div className="report-actions-reports">
+              <button className="export-btn-reports pdf" onClick={() => exportReport('pdf')} disabled={generating}>
                 <FaFilePdf /> Export as PDF
               </button>
-              <button className="export-btn excel" onClick={() => exportReport('xlsx')} disabled={generating}>
+              <button className="export-btn-reports excel" onClick={() => exportReport('xlsx')} disabled={generating}>
                 <FaFileExcel /> Export as Excel
               </button>
             </div>
@@ -591,15 +591,15 @@ const Reports = () => {
 
         {/* ============ CLIENTS REPORTS ============ */}
         {activeTab === 'clients' && (
-          <div className="report-content">
-            <div className="report-section">
+          <div className="report-content-reports">
+            <div className="report-section-reports">
               <h2>Clients</h2>
               <p>Complete list of all clients with their contact details and information.</p>
             </div>
 
-            <div className="report-section">
-              <div className="table-container">
-                <table className="reports-table">
+            <div className="report-section-reports">
+              <div className="table-container-reports">
+                <table className="reports-table-reports">
                   <thead>
                     <tr>
                       <th>Name</th>
@@ -613,13 +613,13 @@ const Reports = () => {
                     {(reportData?.report?.clients || []).length > 0 ? (
                       (reportData?.report?.clients || []).map(client => (
                         <tr key={client._id}>
-                          <td className="client-cell">
+                          <td className="client-cell-reports">
                             <strong>{client.clientName || 'N/A'}</strong>
                           </td>
                           <td>{client.clientContact || 'N/A'}</td>
                           <td>{client.email || 'N/A'}</td>
                           <td>
-                            <span className="client-type-badge">
+                            <span className="client-type-badge-reports">
                             {client.clientType || 'Residential'}
                             </span>
                           </td>
@@ -630,7 +630,7 @@ const Reports = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="5" className="empty-state">No clients found</td>
+                        <td colSpan="5" className="empty-state-reports">No clients found</td>
                       </tr>
                     )}
                   </tbody>
@@ -638,11 +638,11 @@ const Reports = () => {
               </div>
             </div>
 
-            <div className="report-actions">
-              <button className="export-btn pdf" onClick={() => exportReport('pdf')} disabled={generating}>
+            <div className="report-actions-reports">
+              <button className="export-btn-reports pdf" onClick={() => exportReport('pdf')} disabled={generating}>
                 <FaFilePdf /> Export as PDF
               </button>
-              <button className="export-btn excel" onClick={() => exportReport('xlsx')} disabled={generating}>
+              <button className="export-btn-reports excel" onClick={() => exportReport('xlsx')} disabled={generating}>
                 <FaFileExcel /> Export as Excel
               </button>
             </div>
@@ -651,40 +651,40 @@ const Reports = () => {
 
         {/* Report Preview Modal */}
         {false && reportData && reportData.report && (
-          <div className="report-preview-overlay" onClick={() => setReportData(null)}>
-            <div className="report-preview" onClick={e => e.stopPropagation()}>
-              <div className="preview-header">
-                <button className="close-preview" onClick={() => setReportData(null)}><FaTimes /></button>
+          <div className="report-preview-overlay-reports" onClick={() => setReportData(null)}>
+            <div className="report-preview-reports" onClick={e => e.stopPropagation()}>
+              <div className="preview-header-reports">
+                <button className="close-preview-reports" onClick={() => setReportData(null)}><FaTimes /></button>
               </div>
-              <div className="preview-content">
+              <div className="preview-content-reports">
                 {/* Company Logo and Report Header */}
-                <div className="report-header">
-                  <div className="company-info">
+                <div className="report-header-reports">
+                  <div className="company-info-reports">
                     <img
                       src={logo}
                       alt="Salfer Engineering"
-                      className="company-logo"
+                      className="company-logo-reports"
                       onError={(e) => {
                         e.target.style.display = 'none';
                         e.target.nextElementSibling.style.display = 'flex';
                       }}
                     />
-                    <div className="company-logo-placeholder" style={{ display: 'none' }}>
+                    <div className="company-logo-placeholder-reports" style={{ display: 'none' }}>
                       <span>🏢</span>
                     </div>
-                    <div className="company-details">
-                      <h2 className="company-name">Salfer Engineering</h2>
-                      <p className="company-address">San Nicolas St. Bunsuran 3rd, Pandi, Bulacan</p>
-                      <p className="company-tagline">Solar Technology Enterprise</p>
+                    <div className="company-details-reports">
+                      <h2 className="company-name-reports">Salfer Engineering</h2>
+                      <p className="company-address-reports">San Nicolas St. Bunsuran 3rd, Pandi, Bulacan</p>
+                      <p className="company-tagline-reports">Solar Technology Enterprise</p>
                     </div>
                   </div>
-                  <div className="report-title-section">
-                    <h3 className="report-title">
+                  <div className="report-title-section-reports">
+                    <h3 className="report-title-reports">
                       {activeTab === 'clients' ? 'Clients Report' : reportData.report.title || 'Report'}
                     </h3>
-                    <p className="report-generated">Generated: {new Date(reportData.report.generatedAt).toLocaleString()}</p>
+                    <p className="report-generated-reports">Generated: {new Date(reportData.report.generatedAt).toLocaleString()}</p>
                     {reportData.report.dateRange && (
-                      <p className="report-date-range">
+                      <p className="report-date-range-reports">
                         Date Range: {reportData.report.dateRange.startDate || 'All'} to {reportData.report.dateRange.endDate || 'All'}
                       </p>
                     )}
@@ -693,10 +693,10 @@ const Reports = () => {
 
                 {/* Assessment Details Table - Only for site-assessment tab */}
                 {activeTab === 'site-assessment' && reportData.report.assessments && reportData.report.assessments.length > 0 && (
-                  <div className="preview-table-section">
+                  <div className="preview-table-section-reports">
                     <h4>Assessment Details</h4>
-                    <div className="table-container">
-                      <table className="reports-table">
+                    <div className="table-container-reports">
+                      <table className="reports-table-reports">
                         <thead>
                           <tr>
                             <th>Booking Ref</th>
@@ -709,16 +709,16 @@ const Reports = () => {
                         <tbody>
                           {reportData.report.assessments.slice(0, 10).map((item, index) => (
                             <tr key={index}>
-                              <td className="ref-cell">{item.bookingReference || 'N/A'}</td>
-                              <td className="client-cell">{item.clientName || 'N/A'}</td>
+                              <td className="ref-cell-reports">{item.bookingReference || 'N/A'}</td>
+                              <td className="client-cell-reports">{item.clientName || 'N/A'}</td>
                               <td>{item.clientContact || 'N/A'}</td>
                               <td>
-                                <span className="property-type-badge">
+                                <span className="property-type-badge-reports">
                                   {item.propertyType || 'N/A'}
                                 </span>
                               </td>
                               <td>
-                                <span className="status-badge">
+                                <span className="status-badge-reports">
                                   {item.statusDisplay || item.assessmentStatus || 'N/A'}
                                 </span>
                               </td>
@@ -727,7 +727,7 @@ const Reports = () => {
                         </tbody>
                       </table>
                       {reportData.report.assessments.length > 10 && (
-                        <p className="preview-note">Showing 10 of {reportData.report.assessments.length} records</p>
+                        <p className="preview-note-reports">Showing 10 of {reportData.report.assessments.length} records</p>
                       )}
                     </div>
                   </div>
@@ -735,10 +735,10 @@ const Reports = () => {
 
                 {/* Project Details Table - Only for project-summary tab */}
                 {activeTab === 'project-summary' && reportData.report.projects && reportData.report.projects.length > 0 && (
-                  <div className="preview-table-section">
+                  <div className="preview-table-section-reports">
                     <h4>Project Details</h4>
-                    <div className="table-container">
-                      <table className="reports-table">
+                    <div className="table-container-reports">
+                      <table className="reports-table-reports">
                         <thead>
                           <tr>
                             <th>Project Ref</th>
@@ -752,17 +752,17 @@ const Reports = () => {
                         <tbody>
                           {reportData.report.projects.slice(0, 10).map((item, index) => (
                             <tr key={index}>
-                              <td className="ref-cell">{item.projectReference || 'N/A'}</td>
-                              <td className="client-cell">{item.clientName || 'N/A'}</td>
+                              <td className="ref-cell-reports">{item.projectReference || 'N/A'}</td>
+                              <td className="client-cell-reports">{item.clientName || 'N/A'}</td>
                               <td>{item.clientContact || 'N/A'}</td>
                               <td>
-                                <span className="system-type-badge">
+                                <span className="system-type-badge-reports">
                                   {item.systemType || 'N/A'}
                                 </span>
                               </td>
                               <td>{item.systemSize || 'N/A'} kWp</td>
                               <td>
-                                <span className={`project-status-badge ${item.status?.toLowerCase()}`}>
+                                <span className={`project-status-badge-reports ${item.status?.toLowerCase()}`}>
                                   {item.status || 'N/A'}
                                 </span>
                               </td>
@@ -771,7 +771,7 @@ const Reports = () => {
                         </tbody>
                       </table>
                       {reportData.report.projects.length > 10 && (
-                        <p className="preview-note">Showing 10 of {reportData.report.projects.length} records</p>
+                        <p className="preview-note-reports">Showing 10 of {reportData.report.projects.length} records</p>
                       )}
                     </div>
                   </div>
@@ -779,10 +779,10 @@ const Reports = () => {
 
                 {/* Payment Details Table - Only for financial tab */}
                 {activeTab === 'financial' && reportData.report.payments && reportData.report.payments.length > 0 && (
-                  <div className="preview-table-section">
+                  <div className="preview-table-section-reports">
                     <h4>Payment Details</h4>
-                    <div className="table-container">
-                      <table className="reports-table">
+                    <div className="table-container-reports">
+                      <table className="reports-table-reports">
                         <thead>
                           <tr>
                             <th>Reference</th>
@@ -796,16 +796,16 @@ const Reports = () => {
                         <tbody>
                           {reportData.report.payments.slice(0, 10).map((item, index) => (
                             <tr key={index}>
-                              <td className="ref-cell">{item.reference || item.projectName || 'N/A'}</td>
-                              <td className="client-cell">{item.clientName || item.client || 'N/A'}</td>
-                              <td className="amount">{formatCurrency(item.amount || 0)}</td>
+                              <td className="ref-cell-reports">{item.reference || item.projectName || 'N/A'}</td>
+                              <td className="client-cell-reports">{item.clientName || item.client || 'N/A'}</td>
+                              <td className="amount-reports">{formatCurrency(item.amount || 0)}</td>
                               <td>
-                                <span className={`payment-method ${(item.method || item.paymentMethod || '').toLowerCase()}`}>
+                                <span className={`payment-method-reports ${(item.method || item.paymentMethod || '').toLowerCase()}`}>
                                   {item.method || item.paymentMethod || 'N/A'}
                                 </span>
                               </td>
                               <td>
-                                <span className="status-badge">
+                                <span className="status-badge-reports">
                                   {item.status || 'N/A'}
                                 </span>
                               </td>
@@ -815,7 +815,7 @@ const Reports = () => {
                         </tbody>
                       </table>
                       {reportData.report.payments.length > 10 && (
-                        <p className="preview-note">Showing 10 of {reportData.report.payments.length} records</p>
+                        <p className="preview-note-reports">Showing 10 of {reportData.report.payments.length} records</p>
                       )}
                     </div>
                   </div>
@@ -823,10 +823,10 @@ const Reports = () => {
 
                 {/* Clients Details Table - Only for clients tab */}
                 {activeTab === 'clients' && reportData.report.clients && reportData.report.clients.length > 0 && (
-                  <div className="preview-table-section">
+                  <div className="preview-table-section-reports">
                     <h4>Client Details</h4>
-                    <div className="table-container">
-                      <table className="reports-table">
+                    <div className="table-container-reports">
+                      <table className="reports-table-reports">
                         <thead>
                           <tr>
                             <th>Name</th>
@@ -839,11 +839,11 @@ const Reports = () => {
                         <tbody>
                           {reportData.report.clients.slice(0, 10).map((item, index) => (
                             <tr key={index}>
-                              <td className="client-cell"><strong>{item.clientName || 'N/A'}</strong></td>
+                              <td className="client-cell-reports"><strong>{item.clientName || 'N/A'}</strong></td>
                               <td>{item.clientContact || 'N/A'}</td>
                               <td>{item.email || 'N/A'}</td>
                               <td>
-                                <span className="client-type-badge">
+                                <span className="client-type-badge-reports">
                                   {item.clientType || 'Residential'}
                                 </span>
                               </td>
@@ -855,7 +855,7 @@ const Reports = () => {
                         </tbody>
                       </table>
                       {reportData.report.clients.length > 10 && (
-                        <p className="preview-note">Showing 10 of {reportData.report.clients.length} records</p>
+                        <p className="preview-note-reports">Showing 10 of {reportData.report.clients.length} records</p>
                       )}
                     </div>
                   </div>
@@ -865,19 +865,19 @@ const Reports = () => {
                   !reportData.report.projects?.length &&
                   !reportData.report.payments?.length &&
                   !reportData.report.clients?.length && (
-                    <div className="preview-raw">
+                    <div className="preview-raw-reports">
                       <pre>{JSON.stringify(reportData.report, null, 2)}</pre>
                     </div>
                   )}
               </div>
-              <div className="preview-actions">
-                <button className="export-btn pdf" onClick={() => exportReport('pdf')}>
+              <div className="preview-actions-reports">
+                <button className="export-btn-reports pdf" onClick={() => exportReport('pdf')}>
                   <FaFilePdf /> Download PDF
                 </button>
-                <button className="export-btn excel" onClick={() => exportReport('xlsx')}>
+                <button className="export-btn-reports excel" onClick={() => exportReport('xlsx')}>
                   <FaFileExcel /> Download Excel
                 </button>
-                <button className="export-btn print" onClick={() => setReportData(null)}>
+                <button className="export-btn-reports print" onClick={() => setReportData(null)}>
                   <FaTimes /> Close
                 </button>
               </div>

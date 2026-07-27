@@ -405,97 +405,96 @@ const MaintenancePanel = () => {
   };
 
   const handleAddEquipment = async () => {
-  if (!equipmentForm.name || equipmentForm.price <= 0) {
-    showToast('Please enter name and valid price', 'warning');
-    return;
-  }
+    if (!equipmentForm.name || equipmentForm.price <= 0) {
+      showToast('Please enter name and valid price', 'warning');
+      return;
+    }
 
-  setSavingConfig(true);
-  try {
-    const token = sessionStorage.getItem('token');
-    const response = await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment`,
-      {
-        type: equipmentType,
-        ...equipmentForm,
-        dob: equipmentForm.dob || 0,  // ← ENSURE THIS IS INCLUDED
-        reason: `Added new ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}`
-      },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    setSavingConfig(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment`,
+        {
+          type: equipmentType,
+          ...equipmentForm,
+          dob: equipmentForm.dob || 0,
+          reason: `Added new ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}`
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    showToast(response.data.message, 'success');
-    setShowEquipmentModal(false);
-    fetchSystemConfig();
-  } catch (error) {
-    console.error('Error adding equipment:', error);
-    showToast(error.response?.data?.message || 'Failed to add equipment', 'error');
-  } finally {
-    setSavingConfig(false);
-  }
-};
+      showToast(response.data.message, 'success');
+      setShowEquipmentModal(false);
+      fetchSystemConfig();
+    } catch (error) {
+      console.error('Error adding equipment:', error);
+      showToast(error.response?.data?.message || 'Failed to add equipment', 'error');
+    } finally {
+      setSavingConfig(false);
+    }
+  };
 
-const handleUpdateEquipment = async () => {
-  if (!equipmentForm.name || equipmentForm.price <= 0) {
-    showToast('Please enter name and valid price', 'warning');
-    return;
-  }
+  const handleUpdateEquipment = async () => {
+    if (!equipmentForm.name || equipmentForm.price <= 0) {
+      showToast('Please enter name and valid price', 'warning');
+      return;
+    }
 
-  setSavingConfig(true);
-  try {
-    const token = sessionStorage.getItem('token');
-    const response = await axios.put(
-      `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/${equipmentType}/${editingItem._id}`,
-      { 
-        ...equipmentForm, 
-        dob: equipmentForm.dob || 0,  // ← ENSURE THIS IS INCLUDED
-        reason: `Updated ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}` 
-      },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    setSavingConfig(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/${equipmentType}/${editingItem._id}`,
+        { 
+          ...equipmentForm, 
+          dob: equipmentForm.dob || 0,
+          reason: `Updated ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}` 
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    showToast(response.data.message, 'success');
-    setShowEquipmentModal(false);
-    fetchSystemConfig();
-  } catch (error) {
-    console.error('Error updating equipment:', error);
-    showToast(error.response?.data?.message || 'Failed to update equipment', 'error');
-  } finally {
-    setSavingConfig(false);
-  }
-};
+      showToast(response.data.message, 'success');
+      setShowEquipmentModal(false);
+      fetchSystemConfig();
+    } catch (error) {
+      console.error('Error updating equipment:', error);
+      showToast(error.response?.data?.message || 'Failed to update equipment', 'error');
+    } finally {
+      setSavingConfig(false);
+    }
+  };
 
   const EquipmentCard = ({ item, type }) => {
     return (
-      <div className="equipment-card-integrated">
-        <div className="equipment-info-integrated">
-          <div className="equipment-name-integrated">{item.name}</div>
-          <div className="equipment-details-integrated">
-            <span className="price-integrated">₱{item.price.toLocaleString()}</span>
+      <div className="equipment-card-admain">
+        <div className="equipment-info-admain">
+          <div className="equipment-name-admain">{item.name}</div>
+          <div className="equipment-details-admain">
+            <span className="price-admain">₱{item.price.toLocaleString()}</span>
             {item.capacity?.value > 0 && (
-              <span className="capacity-integrated">
+              <span className="capacity-admain">
                 {item.capacity.value} {item.capacity.unit}
               </span>
             )}
             {type === "solarPanels" && item.panelArea > 0 && (
-              <span className="panel-area-integrated">
+              <span className="panel-area-admain">
                 {item.panelArea} m²
               </span>
             )}
-            {/* ADD THIS - Display DoB for batteries */}
             {type === "batteries" && item.dob > 0 && (
-              <span className="dob-integrated" >
+              <span className="dob-admain">
                 DoD: {item.dob}%
               </span>
             )}
-            {item.unit && <span className="unit-integrated">per {item.unit}</span>}
-            {item.brand && <span className="brand-integrated">{item.brand}</span>}
-            {item.warranty > 0 && <span className="warranty-integrated">{item.warranty} yrs</span>}
+            {item.unit && <span className="unit-admain">per {item.unit}</span>}
+            {item.brand && <span className="brand-admain">{item.brand}</span>}
+            {item.warranty > 0 && <span className="warranty-admain">{item.warranty} yrs</span>}
           </div>
         </div>
-        <div className="equipment-actions-integrated">
-          <button className="btn-edit-integrated" onClick={() => openEditModal(type, item)}>Edit</button>
-          <button className="btn-remove-integrated" onClick={() => openRemoveModal(type, item)}>Remove</button>
+        <div className="equipment-actions-admain">
+          <button className="btn-edit-admain" onClick={() => openEditModal(type, item)}>Edit</button>
+          <button className="btn-remove-admain" onClick={() => openRemoveModal(type, item)}>Remove</button>
         </div>
       </div>
     );
@@ -505,19 +504,19 @@ const handleUpdateEquipment = async () => {
     const activeItems = items?.filter(item => item.isActive !== false) || [];
 
     return (
-      <div className="equipment-section-integrated">
-        <div className="section-header-integrated">
-          <div className="section-title-integrated">
+      <div className="equipment-section-admain">
+        <div className="section-header-admain">
+          <div className="section-title-admain">
             <h4>{title}</h4>
-            <span className="item-count-integrated">{activeItems.length} items</span>
+            <span className="item-count-admain">{activeItems.length} items</span>
           </div>
-          <button className="btn-add-integrated" onClick={() => openAddModal(type)}>
+          <button className="btn-add-admain" onClick={() => openAddModal(type)}>
             <FaPlus /> Add {title}
           </button>
         </div>
-        <div className="equipment-list-integrated">
+        <div className="equipment-list-admain">
           {activeItems.length === 0 ? (
-            <div className="empty-equipment-integrated">No {title.toLowerCase()} added yet.</div>
+            <div className="empty-equipment-admain">No {title.toLowerCase()} added yet.</div>
           ) : (
             activeItems.map((item) => (
               <EquipmentCard key={item._id} item={item} type={type} />
@@ -537,9 +536,6 @@ const handleUpdateEquipment = async () => {
   const getSubTabLabel = () => {
     const labels = {
       equipment: 'Equipment Catalog',
-      calculations: 'Calculations',
-      financial: 'Financial',
-      taxes: 'Taxes',
       apps: 'App Management'
     };
     return labels[activeConfigTab] || 'Select Tab';
@@ -568,9 +564,9 @@ const handleUpdateEquipment = async () => {
       </Helmet>
 
       <div className="maintenance-panel-admain">
+        {/* --- Minimalist Header --- */}
         <div className="panel-header-admain">
-          <h1>Maintenance & System Configuration</h1>
-          <p>Manage maintenance mode, system parameters, and equipment catalog</p>
+          <div></div>
         </div>
 
         {/* Main Tabs */}
@@ -579,14 +575,14 @@ const handleUpdateEquipment = async () => {
             className={`main-tab-btn-admain ${activeMainTab === 'maintenance' ? 'active-admain' : ''}`}
             onClick={() => setActiveMainTab('maintenance')}
           >
-            <FaTools className="tab-icon" />
+            <FaTools className="tab-icon-admain" />
             Maintenance Mode
           </button>
           <button
             className={`main-tab-btn-admain ${activeMainTab === 'systemconfig' ? 'active-admain' : ''}`}
             onClick={() => setActiveMainTab('systemconfig')}
           >
-            <FaCog className="tab-icon" />
+            <FaCog className="tab-icon-admain" />
             System Configuration
           </button>
         </div>
@@ -751,56 +747,58 @@ const handleUpdateEquipment = async () => {
           </>
         )}
 
-        {/* SYSTEM CONFIGURATION TAB */}
+        {/* SYSTEM CONFIGURATION TAB - TABS AND RESET ALIGNED */}
         {activeMainTab === 'systemconfig' && config && (
-          <div className="system-config-integrated">
-            <div className="config-actions-header">
-              <button className="reset-config-btn" onClick={openResetModal} disabled={savingConfig}>
+          <div className="system-config-admain">
+            
+            {/* Sub-tabs & Reset Button Wrapper (Aligned Together) */}
+            <div className="config-header-tabs-wrapper-admain">
+              <div className="config-subtabs-wrapper-admain">
+                {/* Mobile Toggle Button */}
+                <button
+                  className={`mobile-subtab-toggle-admain ${isSubMenuOpen ? 'open-admain' : ''}`}
+                  onClick={() => setIsSubMenuOpen(!isSubMenuOpen)}
+                  aria-label="Toggle configuration tabs"
+                >
+                  <span className="subtab-label-admain">{getSubTabLabel()}</span>
+                  <FaChevronDown className={`toggle-arrow-admain ${isSubMenuOpen ? 'open-admain' : ''}`} />
+                </button>
+
+                {/* Sub-tabs - Desktop & Mobile Dropdown */}
+                <div className={`config-subtabs-admain ${isSubMenuOpen ? 'open-admain' : ''}`}>
+                  <button
+                    className={`subtab-btn-admain ${activeConfigTab === 'equipment' ? 'active-admain' : ''}`}
+                    onClick={() => { setActiveConfigTab('equipment'); setIsSubMenuOpen(false); }}
+                  >
+                    <span className="subtab-icon-admain"></span>
+                    Equipment Catalog
+                    <span className="subtab-badge-admain">
+                      {Object.values(config.equipmentPrices || {}).reduce((acc, items) => acc + (items?.filter(i => i.isActive !== false).length || 0), 0)}
+                    </span>
+                  </button>
+
+                  <button
+                    className={`subtab-btn-admain ${activeConfigTab === 'apps' ? 'active-admain' : ''}`}
+                    onClick={() => { setActiveConfigTab('apps'); setIsSubMenuOpen(false); }}
+                  >
+                    <span className="subtab-icon-admain"></span>
+                    App Management
+                  </button>
+                </div>
+              </div>
+
+              {/* Reset Button Moved to the right of the tabs */}
+              <button className="reset-config-btn-admain" onClick={openResetModal} disabled={savingConfig}>
                 <FaTools /> Reset to Defaults
               </button>
             </div>
 
-            {/* Sub-tabs with Progressive Disclosure */}
-            <div className="config-subtabs-wrapper">
-              {/* Mobile Toggle Button */}
-              <button
-                className={`mobile-subtab-toggle ${isSubMenuOpen ? 'open' : ''}`}
-                onClick={() => setIsSubMenuOpen(!isSubMenuOpen)}
-                aria-label="Toggle configuration tabs"
-              >
-                <span className="subtab-label">{getSubTabLabel()}</span>
-                <FaChevronDown className={`toggle-arrow ${isSubMenuOpen ? 'open' : ''}`} />
-              </button>
-
-              {/* Sub-tabs - Desktop & Mobile Dropdown */}
-              <div className={`config-subtabs ${isSubMenuOpen ? 'open' : ''}`}>
-                <button
-                  className={`subtab-btn ${activeConfigTab === 'equipment' ? 'active' : ''}`}
-                  onClick={() => { setActiveConfigTab('equipment'); setIsSubMenuOpen(false); }}
-                >
-                  <span className="subtab-icon"></span>
-                  Equipment Catalog
-                  <span className="subtab-badge">
-                    {Object.values(config.equipmentPrices || {}).reduce((acc, items) => acc + (items?.filter(i => i.isActive !== false).length || 0), 0)}
-                  </span>
-                </button>
-
-                <button
-                  className={`subtab-btn ${activeConfigTab === 'apps' ? 'active' : ''}`}
-                  onClick={() => { setActiveConfigTab('apps'); setIsSubMenuOpen(false); }}
-                >
-                  <span className="subtab-icon"></span>
-                  App Management
-                </button>
-              </div>
-            </div>
-
             {/* Tab Content */}
             {activeConfigTab === 'equipment' && (
-              <div className="equipment-catalog-integrated">
-                <div className="form-group-integrated">
+              <div className="equipment-catalog-admain">
+                <div className="form-group-admain">
                   <label>Pre-Assessment Fee</label>
-                  <div className="input-group-integrated">
+                  <div className="input-group-admain">
                     <span>₱</span>
                     <input
                       type="number"
@@ -827,8 +825,8 @@ const handleUpdateEquipment = async () => {
                 <EquipmentSection title="Meters" type="meters" items={config.equipmentPrices?.meters} />
 
                 <h4>Labor Rates</h4>
-                <div className="form-row-integrated">
-                  <div className="form-group-integrated">
+                <div className="form-row-admain">
+                  <div className="form-group-admain">
                     <label>Per kW Installation (₱)</label>
                     <input type="number" value={config.laborRates?.perKw || 5000} onChange={(e) => updateNestedValue(
                       'laborRates.perKw',
@@ -837,7 +835,7 @@ const handleUpdateEquipment = async () => {
                         : Number(e.target.value)
                     )} />
                   </div>
-                  <div className="form-group-integrated">
+                  <div className="form-group-admain">
                     <label>Per Panel Installation (₱)</label>
                     <input type="number" value={config.laborRates?.perPanel || 1000} onChange={(e) => updateNestedValue(
                       'laborRates.perPanel',
@@ -846,7 +844,7 @@ const handleUpdateEquipment = async () => {
                         : Number(e.target.value)
                     )} />
                   </div>
-                  <div className="form-group-integrated">
+                  <div className="form-group-admain">
                     <label>Minimum Labor Fee (₱)</label>
                     <input type="number" value={config.laborRates?.minimumFee || 10000} onChange={(e) => updateNestedValue(
                       'laborRates.minimumFee',
@@ -857,7 +855,7 @@ const handleUpdateEquipment = async () => {
                   </div>
                 </div>
 
-                <button className="save-config-btn" onClick={() => handleConfigSave({
+                <button className="save-config-btn-admain" onClick={() => handleConfigSave({
                   assessmentFee: config.assessmentFee,
                   equipmentPrices: config.equipmentPrices,
                   laborRates: config.laborRates
@@ -867,10 +865,8 @@ const handleUpdateEquipment = async () => {
               </div>
             )}
 
-
-
             {activeConfigTab === 'apps' && (
-              <div className="config-section-integrated">
+              <div className="config-section-admain">
                 <AppManagement
                   config={config}
                   onConfigUpdate={fetchSystemConfig}
@@ -881,206 +877,210 @@ const handleUpdateEquipment = async () => {
           </div>
         )}
 
-        {/* Equipment Modal */}
+        {/* Equipment Modal (NO X BUTTON) */}
         {showEquipmentModal && (
-          <div className="modal-overlay" onClick={() => setShowEquipmentModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
+          <div className="modal-overlay-admain" onClick={() => setShowEquipmentModal(false)}>
+            <div className="modal-content-admain" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-admain">
                 <h3>{editingItem ? 'Edit' : 'Add'} {equipmentType?.slice(0, -1)}</h3>
-                <button className="modal-close" onClick={() => setShowEquipmentModal(false)}><FaTimes /></button>
               </div>
-              <div className="form-group">
-                <label>Name *</label>
-                <input type="text" value={equipmentForm.name} onChange={(e) => setEquipmentForm({ ...equipmentForm, name: e.target.value })} />
-              </div>
-              <div className="form-group">
-                <label>Price *</label>
-                <input type="number" value={equipmentForm.price} onChange={(e) => setEquipmentForm({ ...equipmentForm, price: Number(e.target.value) || 0 })} />
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Capacity</label>
-                  <input
-                    type="number"
-                    value={equipmentForm.capacity.value}
-                    onChange={(e) =>
-                      setEquipmentForm({
-                        ...equipmentForm,
-                        capacity: {
-                          ...equipmentForm.capacity,
-                          value: Number(e.target.value)
-                        }
-                      })
-                    }
-                  />
+              <div className="modal-body-admain">
+                <div className="form-group-admain">
+                  <label>Name *</label>
+                  <input type="text" value={equipmentForm.name} onChange={(e) => setEquipmentForm({ ...equipmentForm, name: e.target.value })} />
+                </div>
+                <div className="form-group-admain">
+                  <label>Price *</label>
+                  <input type="number" value={equipmentForm.price} onChange={(e) => setEquipmentForm({ ...equipmentForm, price: Number(e.target.value) || 0 })} />
+                </div>
+                <div className="form-row-admain">
+                  <div className="form-group-admain">
+                    <label>Capacity</label>
+                    <input
+                      type="number"
+                      value={equipmentForm.capacity.value}
+                      onChange={(e) =>
+                        setEquipmentForm({
+                          ...equipmentForm,
+                          capacity: {
+                            ...equipmentForm.capacity,
+                            value: Number(e.target.value)
+                          }
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="form-group-admain">
+                    <label>Capacity Unit</label>
+                    <select
+                      value={equipmentForm.capacity.unit}
+                      onChange={(e) =>
+                        setEquipmentForm({
+                          ...equipmentForm,
+                          capacity: {
+                            ...equipmentForm.capacity,
+                            unit: e.target.value
+                          }
+                        })
+                      }
+                    >
+                      {equipmentType === "solarPanels" && (
+                        <option value="W">W</option>
+                      )}
+
+                      {equipmentType === "inverters" && (
+                        <option value="kW">kW</option>
+                      )}
+
+                      {equipmentType === "batteries" && (
+                        <option value="kWh">kWh</option>
+                      )}
+
+                      {!["solarPanels", "inverters", "batteries"].includes(equipmentType) && (
+                        <option value="">N/A</option>
+                      )}
+                    </select>
+                  </div>
                 </div>
 
-                <div className="form-group">
-                  <label>Capacity Unit</label>
-                  <select
-                    value={equipmentForm.capacity.unit}
-                    onChange={(e) =>
-                      setEquipmentForm({
-                        ...equipmentForm,
-                        capacity: {
-                          ...equipmentForm.capacity,
+                {equipmentType === "solarPanels" && (
+                  <div className="form-group-admain">
+                    <label>Panel Area (m²)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={equipmentForm.panelArea}
+                      onChange={(e) =>
+                        setEquipmentForm({
+                          ...equipmentForm,
+                          panelArea: Number(e.target.value) || 0
+                        })
+                      }
+                    />
+                  </div>
+                )}
+                {equipmentType === "batteries" && (
+                  <div className="form-group-admain">
+                    <label>Depth of Discharge (DoD) %</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value={equipmentForm.dob}
+                      onChange={(e) =>
+                        setEquipmentForm({
+                          ...equipmentForm,
+                          dob: Number(e.target.value) || 0
+                        })
+                      }
+                      placeholder="e.g., 80"
+                    />
+                    <small>Recommended: 50-80% for lead-acid, 80-100% for lithium</small>
+                  </div>
+                )}
+                <div className="form-row-admain">
+                  <div className="form-group-admain">
+                    <label>Unit</label>
+                    <select
+                      value={equipmentForm.unit}
+                      onChange={(e) =>
+                        setEquipmentForm({
+                          ...equipmentForm,
                           unit: e.target.value
-                        }
-                      })
-                    }
-                  >
-                    {equipmentType === "solarPanels" && (
-                      <option value="W">W</option>
-                    )}
-
-                    {equipmentType === "inverters" && (
-                      <option value="kW">kW</option>
-                    )}
-
-                    {equipmentType === "batteries" && (
-                      <option value="kWh">kWh</option>
-                    )}
-
-                    {!["solarPanels", "inverters", "batteries"].includes(equipmentType) && (
-                      <option value="">N/A</option>
-                    )}
-                  </select>
+                        })
+                      }
+                    >
+                      <option value="piece">Piece</option>
+                      <option value="set">Set</option>
+                      <option value="meter">Meter</option>
+                      <option value="roll">Roll</option>
+                      <option value="box">Box</option>
+                    </select>
+                  </div>
+                  <div className="form-group-admain">
+                    <label>Warranty (years)</label>
+                    <input type="number" value={equipmentForm.warranty} onChange={(e) => setEquipmentForm({ ...equipmentForm, warranty: Number(e.target.value) || 0 })} />
+                  </div>
+                </div>
+                <div className="form-group-admain">
+                  <label>Brand</label>
+                  <input type="text" value={equipmentForm.brand} onChange={(e) => setEquipmentForm({ ...equipmentForm, brand: e.target.value })} />
                 </div>
               </div>
-
-              {equipmentType === "solarPanels" && (
-                <div className="form-group">
-                  <label>Panel Area (m²)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={equipmentForm.panelArea}
-                    onChange={(e) =>
-                      setEquipmentForm({
-                        ...equipmentForm,
-                        panelArea: Number(e.target.value) || 0
-                      })
-                    }
-                  />
-                </div>
-              )}
-              {equipmentType === "batteries" && (
-                <div className="form-group">
-                  <label>Depth of Discharge (DoD) %</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="1"
-                    value={equipmentForm.dob}
-                    onChange={(e) =>
-                      setEquipmentForm({
-                        ...equipmentForm,
-                        dob: Number(e.target.value) || 0
-                      })
-                    }
-                    placeholder="e.g., 80"
-                  />
-                  <small>Recommended: 50-80% for lead-acid, 80-100% for lithium</small>
-                </div>
-              )}
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Unit</label>
-                  <select
-                    value={equipmentForm.unit}
-                    onChange={(e) =>
-                      setEquipmentForm({
-                        ...equipmentForm,
-                        unit: e.target.value
-                      })
-                    }
-                  >
-                    <option value="piece">Piece</option>
-                    <option value="set">Set</option>
-                    <option value="meter">Meter</option>
-                    <option value="roll">Roll</option>
-                    <option value="box">Box</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Warranty (years)</label>
-                  <input type="number" value={equipmentForm.warranty} onChange={(e) => setEquipmentForm({ ...equipmentForm, warranty: Number(e.target.value) || 0 })} />
-                </div>
-              </div>
-              <div className="form-group">
-                <label>Brand</label>
-                <input type="text" value={equipmentForm.brand} onChange={(e) => setEquipmentForm({ ...equipmentForm, brand: e.target.value })} />
-              </div>
-              <div className="modal-actions">
-                <button className="btn-cancel" onClick={() => setShowEquipmentModal(false)}>Cancel</button>
-                <button className="btn-confirm" onClick={editingItem ? handleUpdateEquipment : handleAddEquipment} disabled={savingConfig}>
-                  {savingConfig ? <FaSpinner className="spinner" /> : <FaCheckCircle />} {editingItem ? 'Update' : 'Add'}
+              <div className="modal-actions-admain">
+                <button className="btn-cancel-admain" onClick={() => setShowEquipmentModal(false)}>Cancel</button>
+                <button className="btn-confirm-admain" onClick={editingItem ? handleUpdateEquipment : handleAddEquipment} disabled={savingConfig}>
+                  {savingConfig ? <FaSpinner className="spinner-admain" /> : <FaCheckCircle />} {editingItem ? 'Update' : 'Add'}
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Reason Modal for Config Save */}
+        {/* Reason Modal for Config Save (NO X BUTTON) */}
         {showReasonModal && (
-          <div className="modal-overlay" onClick={() => setShowReasonModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
+          <div className="modal-overlay-admain" onClick={() => setShowReasonModal(false)}>
+            <div className="modal-content-admain" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-admain">
                 <h3>Reason for Update</h3>
-                <button className="modal-close" onClick={() => setShowReasonModal(false)}><FaTimes /></button>
               </div>
-              <textarea rows="3" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Enter reason for these changes..." />
-              <div className="modal-actions">
-                <button className="btn-cancel" onClick={() => setShowReasonModal(false)}>Cancel</button>
-                <button className="btn-confirm" onClick={confirmConfigSave} disabled={savingConfig}>
-                  {savingConfig ? <FaSpinner className="spinner" /> : <FaCheckCircle />} Confirm
+              <div className="modal-body-admain">
+                <textarea rows="3" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Enter reason for these changes..." />
+              </div>
+              <div className="modal-actions-admain">
+                <button className="btn-cancel-admain" onClick={() => setShowReasonModal(false)}>Cancel</button>
+                <button className="btn-confirm-admain" onClick={confirmConfigSave} disabled={savingConfig}>
+                  {savingConfig ? <FaSpinner className="spinner-admain" /> : <FaCheckCircle />} Confirm
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Reset Confirmation Modal */}
+        {/* Reset Confirmation Modal (NO X BUTTON) */}
         {showResetModal && (
-          <div className="modal-overlay" onClick={() => setShowResetModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
+          <div className="modal-overlay-admain" onClick={() => setShowResetModal(false)}>
+            <div className="modal-content-admain" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-admain">
                 <h3>Reset to Defaults</h3>
-                <button className="modal-close" onClick={() => setShowResetModal(false)}><FaTimes /></button>
               </div>
-              <p>Are you sure you want to reset all settings to defaults? This action cannot be undone.</p>
-              <div className="form-group">
-                <label>Reason for reset</label>
-                <textarea rows="2" value={resetReason} onChange={(e) => setResetReason(e.target.value)} placeholder="Enter reason for resetting..." />
+              <div className="modal-body-admain">
+                <p>Are you sure you want to reset all settings to defaults? This action cannot be undone.</p>
+                <div className="form-group-admain">
+                  <label>Reason for reset</label>
+                  <textarea rows="2" value={resetReason} onChange={(e) => setResetReason(e.target.value)} placeholder="Enter reason for resetting..." />
+                </div>
               </div>
-              <div className="modal-actions">
-                <button className="btn-cancel" onClick={() => setShowResetModal(false)}>Cancel</button>
-                <button className="btn-confirm" onClick={confirmResetConfig} disabled={savingConfig}>
-                  {savingConfig ? <FaSpinner className="spinner" /> : <FaCheckCircle />} Confirm Reset
+              <div className="modal-actions-admain">
+                <button className="btn-cancel-admain" onClick={() => setShowResetModal(false)}>Cancel</button>
+                <button className="btn-confirm-admain" onClick={confirmResetConfig} disabled={savingConfig}>
+                  {savingConfig ? <FaSpinner className="spinner-admain" /> : <FaCheckCircle />} Confirm Reset
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Remove Equipment Confirmation Modal */}
+        {/* Remove Equipment Confirmation Modal (NO X BUTTON) */}
         {showRemoveModal && itemToRemove && (
-          <div className="modal-overlay" onClick={() => setShowRemoveModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
+          <div className="modal-overlay-admain" onClick={() => setShowRemoveModal(false)}>
+            <div className="modal-content-admain" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-admain">
                 <h3>Remove Equipment</h3>
-                <button className="modal-close" onClick={() => setShowRemoveModal(false)}><FaTimes /></button>
               </div>
-              <p>Are you sure you want to remove <strong>{itemToRemove.item.name}</strong>? This will hide it from selection.</p>
-              <div className="form-group">
-                <label>Reason for removal</label>
-                <textarea rows="2" value={removeReason} onChange={(e) => setRemoveReason(e.target.value)} placeholder="Enter reason for removing this item..." />
+              <div className="modal-body-admain">
+                <p>Are you sure you want to remove <strong>{itemToRemove.item.name}</strong>? This will hide it from selection.</p>
+                <div className="form-group-admain">
+                  <label>Reason for removal</label>
+                  <textarea rows="2" value={removeReason} onChange={(e) => setRemoveReason(e.target.value)} placeholder="Enter reason for removing this item..." />
+                </div>
               </div>
-              <div className="modal-actions">
-                <button className="btn-cancel" onClick={() => setShowRemoveModal(false)}>Cancel</button>
-                <button className="btn-confirm btn-danger" onClick={confirmRemoveEquipment} disabled={savingConfig}>
-                  {savingConfig ? <FaSpinner className="spinner" /> : <FaTrash />} Confirm Remove
+              <div className="modal-actions-admain">
+                <button className="btn-cancel-admain" onClick={() => setShowRemoveModal(false)}>Cancel</button>
+                <button className="btn-confirm-admain btn-danger-admain" onClick={confirmRemoveEquipment} disabled={savingConfig}>
+                  {savingConfig ? <FaSpinner className="spinner-admain" /> : <FaTrash />} Confirm Remove
                 </button>
               </div>
             </div>

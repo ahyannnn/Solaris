@@ -10,7 +10,7 @@ exports.receiveData = async (req, res) => {
 
     const data = new SensorData({
       deviceId,
-      
+      bookingReference,
       irradiance,
       temperature,
       humidity,

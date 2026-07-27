@@ -167,7 +167,7 @@ const SiteAssessment = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       const quotes = freeQuotesRes.data.quotes || [];
-      
+
       const preAssessmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -197,21 +197,21 @@ const SiteAssessment = () => {
       // Process chart data
       const monthlyQuotes = new Array(12).fill(0);
       const monthlyAssessments = new Array(12).fill(0);
-      
+
       quotes.forEach(quote => {
         if (quote.requestedAt) {
           const month = new Date(quote.requestedAt).getMonth();
           monthlyQuotes[month]++;
         }
       });
-      
+
       assessments.forEach(assessment => {
         if (assessment.bookedAt) {
           const month = new Date(assessment.bookedAt).getMonth();
           monthlyAssessments[month]++;
         }
       });
-      
+
       setChartData(chartData.map((item, index) => ({
         ...item,
         quotes: monthlyQuotes[index],
@@ -617,49 +617,49 @@ const SiteAssessment = () => {
                 <defs>
                   {/* FIXED: Changed to Indigo (#6366f1) */}
                   <linearGradient id="colorQuotes" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
                   {/* FIXED: Changed to Emerald (#10b981) */}
                   <linearGradient id="colorAssessments" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#E5E7EB" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: '#6B7280', fontSize: 12}} 
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#6B7280', fontSize: 12 }}
                   dy={10}
                 />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: '#6B7280', fontSize: 12}} 
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#6B7280', fontSize: 12 }}
                   width={30}
                 />
-                <Tooltip content={<CustomTooltip />} cursor={{stroke: '#D1D5DB', strokeWidth: 1}} />
-                <Area 
-                  type="monotone" 
-                  dataKey="quotes" 
+                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#D1D5DB', strokeWidth: 1 }} />
+                <Area
+                  type="monotone"
+                  dataKey="quotes"
                   name="Free Quotes"
-                  stroke="#6366f1" 
-                  strokeWidth={2.5} 
-                  fillOpacity={1} 
-                  fill="url(#colorQuotes)" 
+                  stroke="#6366f1"
+                  strokeWidth={2.5}
+                  fillOpacity={1}
+                  fill="url(#colorQuotes)"
                   dot={{ r: 4, fill: '#6366f1', strokeWidth: 2, stroke: '#fff' }}
                   activeDot={{ r: 6 }}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="assessments" 
+                <Area
+                  type="monotone"
+                  dataKey="assessments"
                   name="Pre-Assessments"
-                  stroke="#10b981" 
-                  strokeWidth={2.5} 
-                  fillOpacity={1} 
-                  fill="url(#colorAssessments)" 
+                  stroke="#10b981"
+                  strokeWidth={2.5}
+                  fillOpacity={1}
+                  fill="url(#colorAssessments)"
                   dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }}
                   activeDot={{ r: 6 }}
                 />
@@ -690,11 +690,11 @@ const SiteAssessment = () => {
         <div className="toolbar-adminsiteassess">
           <div className="search-group-adminsiteassess">
             <FaSearch className="search-icon-adminsiteassess" />
-            <input 
-              type="text" 
-              placeholder="Search by client name or reference..." 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
+            <input
+              type="text"
+              placeholder="Search by client name or reference..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <div className="filter-group-adminsiteassess">
@@ -736,7 +736,7 @@ const SiteAssessment = () => {
                 <th>Contact</th>
                 <th>Date</th>
                 {activeTab === 'free-quotes' ? <th>Monthly Bill</th> : <th>Property</th>}
-                {activeTab === 'free-quotes' ? <th>Capacity</th> : <th>Amount</th>}
+                {activeTab === 'pre-assessments' && <th>Amount</th>}
                 <th>Status</th>
                 <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
               </tr>
@@ -759,10 +759,7 @@ const SiteAssessment = () => {
                       </td>
                       <td>{formatDate(activeTab === 'free-quotes' ? item.requestedAt : item.bookedAt)}</td>
                       {activeTab === 'free-quotes' ? (
-                        <>
-                          <td className="amount-cell-adminsiteassess">{formatCurrency(item.monthlyBill)}</td>
-                          <td>{item.desiredCapacity || 'N/A'}</td>
-                        </>
+                        <td className="amount-cell-adminsiteassess">{formatCurrency(item.monthlyBill)}</td>
                       ) : (
                         <>
                           <td>{item.propertyType}</td>
@@ -907,9 +904,9 @@ const SiteAssessment = () => {
                 {selectedItem.paymentMethod === 'cash' && (
                   <><div className="form-group-adminsiteassess"><label>Notes</label><textarea rows="3" value={verificationNote} onChange={(e) => setVerificationNote(e.target.value)} /></div><div className="modal-actions-adminsiteassess"><button className="cancel-btn-adminsiteassess" onClick={() => setShowVerifyModal(false)}>Cancel</button><button className="verify-btn-adminsiteassess" onClick={() => handleVerifyPayment(true)}><FaCheckCircle /> Confirm Cash Received</button></div></>
                 )}
-                {selectedItem.paymentGateway === 'paymongo' && ( <div className="info-box-adminsiteassess"><FaInfoCircle /><small>Auto-verified via PayMongo. No action needed.</small></div> )}
+                {selectedItem.paymentGateway === 'paymongo' && (<div className="info-box-adminsiteassess"><FaInfoCircle /><small>Auto-verified via PayMongo. No action needed.</small></div>)}
               </div>
-              {selectedItem.paymentGateway === 'paymongo' && ( <div className="modal-actions-adminsiteassess"><button className="cancel-btn-adminsiteassess" onClick={() => setShowVerifyModal(false)}>Close</button></div> )}
+              {selectedItem.paymentGateway === 'paymongo' && (<div className="modal-actions-adminsiteassess"><button className="cancel-btn-adminsiteassess" onClick={() => setShowVerifyModal(false)}>Close</button></div>)}
             </div>
           </div>
         )}

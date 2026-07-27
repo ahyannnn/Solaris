@@ -56,7 +56,7 @@ const ScheduleAssessment = () => {
   const [showQuotationModal, setShowQuotationModal] = useState(false);
   const [selectedQuotation, setSelectedQuotation] = useState(null);
   const [acceptingQuotation, setAcceptingQuotation] = useState(null);
-  const [selectedPaymentPreference, setSelectedPaymentPreference] = useState('installment');
+  const [selectedPaymentPreference, setSelectedPaymentPreference] = useState('fifty_fifty');
   const [acceptingLoading, setAcceptingLoading] = useState(false);
 
   // Photo Gallery States
@@ -627,7 +627,7 @@ const ScheduleAssessment = () => {
       assessmentFee: totalCost || 0
     });
 
-    setSelectedPaymentPreference('installment');
+    setSelectedPaymentPreference('fifty_fifty');
     setCurrentStep('accept-quotation');
   };
 
@@ -641,7 +641,7 @@ const ScheduleAssessment = () => {
       quotation: assessment.quotation,
       assessmentFee: assessment.assessmentFee || 0
     });
-    setSelectedPaymentPreference('installment');
+    setSelectedPaymentPreference('fifty_fifty');
     setCurrentStep('accept-quotation');
   };
 
@@ -1452,21 +1452,7 @@ const ScheduleAssessment = () => {
                     </div>
                   </div>
 
-                  {/* 30% - 40% - 30% Installment */}
-                  <div
-                    className={`preference-option-page ${selectedPaymentPreference === 'installment' ? 'selected' : ''}`}
-                    onClick={() => setSelectedPaymentPreference('installment')}
-                  >
-                    <input type="radio" checked={selectedPaymentPreference === 'installment'} readOnly />
-                    <div className="preference-content-page">
-                      <strong>Installment (30% - 40% - 30%)</strong>
-                      <div className="preference-details-page">
-                        <span>Initial (30%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.3)}</span>
-                        <span>Progress (40%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.4)}</span>
-                        <span>Final (30%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.3)}</span>
-                      </div>
-                    </div>
-                  </div>
+                  
 
                   {/* Full Payment */}
                   <div

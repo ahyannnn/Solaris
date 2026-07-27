@@ -4,7 +4,7 @@
    CUSTOMER QUOTATION / TRANSACTIONS
    ========================================= */
 
-:root {
+.billing-customer-root {
   --primary-blue: #2563eb;
   --primary-blue-light: #dbeafe;
   --gray-50: #f8fafc;
@@ -12,6 +12,7 @@
   --gray-200: #e2e8f0;
   --gray-300: #cbd5e1;
   --gray-500: #64748b;
+  --gray-600: #4b5563;
   --gray-700: #334155;
   --gray-900: #0f172a;
   --card-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -19,7 +20,7 @@
 }
 
 /* --- Base Layout --- */
-.quotation-container {
+.billing-customer-container {
   padding: 24px 32px;
   background-color: var(--gray-50);
   min-height: 100vh;
@@ -30,14 +31,14 @@
 /* =========================================
    TABS
    ========================================= */
-.quotation-tabs {
+.billing-customer-tabs {
   display: flex;
   gap: 0px;
   border-bottom: 1px solid var(--gray-200);
   margin-bottom: 20px;
 }
 
-.tab-btn {
+.billing-customer-tab-btn {
   background: transparent;
   border: none;
   padding: 12px 20px;
@@ -52,16 +53,16 @@
   gap: 8px;
 }
 
-.tab-btn:hover {
+.billing-customer-tab-btn:hover {
   color: var(--primary-blue);
 }
 
-.tab-btn.active {
+.billing-customer-tab-btn.active {
   color: var(--primary-blue);
   font-weight: 600;
 }
 
-.tab-btn.active::after {
+.billing-customer-tab-btn.active::after {
   content: '';
   position: absolute;
   bottom: -1px;
@@ -71,7 +72,7 @@
   background-color: var(--primary-blue);
 }
 
-.tab-badge {
+.billing-customer-tab-badge {
   background-color: var(--gray-100);
   color: var(--gray-500);
   font-size: 11px;
@@ -80,7 +81,7 @@
   border-radius: 50px;
 }
 
-.tab-btn.active .tab-badge {
+.billing-customer-tab-btn.active .billing-customer-tab-badge {
   background-color: var(--primary-blue-light);
   color: var(--primary-blue);
 }
@@ -88,7 +89,7 @@
 /* =========================================
    FILTERS / TOOLBAR
    ========================================= */
-.quotation-filters {
+.billing-customer-filters {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -96,11 +97,11 @@
   flex-wrap: wrap;
 }
 
-.filter-group {
+.billing-customer-filter-group {
   position: relative;
 }
 
-.filter-group select {
+.billing-customer-filter-group select {
   appearance: none;
   padding: 10px 36px 10px 14px;
   border: 1px solid var(--gray-200);
@@ -114,19 +115,19 @@
   min-width: 140px;
 }
 
-.filter-group select:focus {
+.billing-customer-filter-group select:focus {
   border-color: var(--primary-blue);
   box-shadow: 0 0 0 1px var(--primary-blue);
 }
 
-.search-group {
+.billing-customer-search-group {
   flex: 1;
   min-width: 250px;
   position: relative;
   max-width: 450px;
 }
 
-.search-group input {
+.billing-customer-search-group input {
   width: 100%;
   padding: 10px 36px 10px 14px;
   border: 1px solid var(--gray-200);
@@ -138,12 +139,12 @@
   transition: border-color 0.2s;
 }
 
-.search-group input:focus {
+.billing-customer-search-group input:focus {
   border-color: var(--primary-blue);
   box-shadow: 0 0 0 1px var(--primary-blue);
 }
 
-.clear-search {
+.billing-customer-clear-search {
   position: absolute;
   right: 12px;
   top: 50%;
@@ -156,7 +157,7 @@
   padding: 0;
 }
 
-.clear-filters-btn {
+.billing-customer-clear-filters-btn {
   padding: 10px 16px;
   background: var(--gray-100);
   border: 1px solid var(--gray-200);
@@ -168,14 +169,14 @@
   transition: all 0.2s ease;
 }
 
-.clear-filters-btn:hover {
+.billing-customer-clear-filters-btn:hover {
   background: var(--gray-200);
 }
 
 /* =========================================
    RESULTS COUNT
    ========================================= */
-.quotation-results-count {
+.billing-customer-results-count {
   margin-bottom: 16px;
   color: var(--gray-500);
   font-size: 14px;
@@ -184,32 +185,32 @@
 /* =========================================
    DESKTOP TABLE - SHARP HEADER
    ========================================= */
-.quotation-table-container {
+.billing-customer-table-container {
   background: #FFFFFF;
   border: 1px solid var(--gray-200);
-  border-radius: 0; /* REMOVED ROUNDED CORNERS */
+  border-radius: 0;
   overflow: hidden;
   box-shadow: var(--card-shadow);
   margin-bottom: 24px;
 }
 
-.quotation-table-wrapper {
+.billing-customer-table-wrapper {
   overflow-x: auto;
 }
 
-.quotation-table {
+.billing-customer-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
 
-.quotation-table thead {
+.billing-customer-table thead {
   background: var(--primary-blue);
   border-bottom: 1px solid var(--gray-200);
-  border-radius: 0; /* SHARP HEADER */
+  border-radius: 0;
 }
 
-.quotation-table th {
+.billing-customer-table th {
   text-align: left;
   padding: 14px 18px;
   font-weight: 600;
@@ -220,39 +221,41 @@
   white-space: nowrap;
 }
 
-.quotation-table tbody tr {
+.billing-customer-table tbody tr {
   border-bottom: 1px solid var(--gray-100);
   transition: background-color 0.15s ease;
 }
 
-.quotation-table tbody tr:last-child {
+.billing-customer-table tbody tr:last-child {
   border-bottom: none;
 }
 
-.quotation-table tbody tr:hover {
+.billing-customer-table tbody tr:hover {
   background-color: var(--gray-50);
 }
 
-.quotation-table tbody tr:nth-child(even) {
+.billing-customer-table tbody tr:nth-child(even) {
   background-color: #FAFBFC;
 }
-.quotation-table tbody tr:nth-child(even):hover {
+
+.billing-customer-table tbody tr:nth-child(even):hover {
   background-color: var(--gray-100);
 }
 
-.quotation-table td {
+.billing-customer-table td {
   padding: 14px 18px;
   color: var(--gray-700);
   vertical-align: middle;
 }
 
+
 /* --- Cells --- */
-.quotation-transaction-cell .transaction-name {
+.billing-customer-transaction-cell .billing-customer-transaction-name {
   font-weight: 500;
   color: var(--gray-900);
 }
 
-.invoice-type-label {
+.billing-customer-invoice-type-label {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 4px;
@@ -262,42 +265,67 @@
   color: var(--gray-500);
 }
 
-.quotation-reference-cell .ref-id {
+.billing-customer-invoice-type-label.initial {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.billing-customer-invoice-type-label.progress {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.billing-customer-invoice-type-label.final {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.billing-customer-invoice-type-label.retention {
+  background: #fce4ec;
+  color: #c62828;
+}
+
+.billing-customer-invoice-type-label.full {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.billing-customer-reference-cell .billing-customer-ref-id {
   font-weight: 500;
   color: var(--gray-900);
 }
 
-.quotation-amount-cell .amount-main {
+.billing-customer-amount-cell .billing-customer-amount-main {
   font-weight: 600;
   color: var(--gray-900);
 }
 
-.quotation-amount-cell .amount-balance {
+.billing-customer-amount-cell .billing-customer-amount-balance {
   display: block;
   font-size: 12px;
   color: var(--gray-500);
   margin-top: 2px;
 }
 
-/* --- Status Badges (NO COLORED BADGE BAR) --- */
-.status-badge {
+/* --- Status Badges - NO COLORS --- */
+.billing-customer-status-badge {
   display: inline-block;
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
   background: var(--gray-100);
-  color: var(--gray-500);
+  color: var(--gray-700);
   text-transform: capitalize;
 }
 
 /* --- Action Dropdown --- */
-.dropdown-menu-container {
+.billing-customer-dropdown-menu-container {
   position: relative;
   display: inline-block;
 }
 
-.dropdown-trigger-btn {
+.billing-customer-dropdown-trigger-btn {
   padding: 6px 14px;
   background: var(--gray-100);
   border: 1px solid var(--gray-200);
@@ -309,12 +337,12 @@
   transition: all 0.2s ease;
 }
 
-.dropdown-trigger-btn:hover {
+.billing-customer-dropdown-trigger-btn:hover {
   background: var(--gray-200);
   color: var(--gray-900);
 }
 
-.dropdown-menu {
+.billing-customer-dropdown-menu {
   position: fixed;
   min-width: 170px;
   background: #FFFFFF;
@@ -326,7 +354,7 @@
   z-index: 999;
 }
 
-.dropdown-item {
+.billing-customer-dropdown-item {
   display: flex;
   align-items: center;
   width: 100%;
@@ -340,16 +368,16 @@
   text-align: left;
 }
 
-.dropdown-item:hover:not(.disabled):not(.verifying) {
+.billing-customer-dropdown-item:hover:not(.disabled):not(.verifying) {
   background: var(--gray-50);
 }
 
-.dropdown-item.disabled {
+.billing-customer-dropdown-item.disabled {
   color: var(--gray-300);
   cursor: default;
 }
 
-.dropdown-item.verifying {
+.billing-customer-dropdown-item.verifying {
   color: var(--gray-500);
   cursor: default;
 }
@@ -357,39 +385,39 @@
 /* =========================================
    MOBILE CARDS
    ========================================= */
-.quotation-mobile-cards {
+.billing-customer-mobile-cards {
   display: none;
   flex-direction: column;
   gap: 12px;
   margin-bottom: 24px;
 }
 
-.quotation-empty-state {
+.billing-customer-empty-state {
   text-align: center;
   padding: 48px 20px;
   color: var(--gray-500);
   background: #FFFFFF;
   border: 1px dashed var(--gray-200);
-  border-radius: 12px; /* KEEP ROUNDED FOR CARDS */
+  border-radius: 12px;
 }
 
-.quotation-empty-state h3 {
+.billing-customer-empty-state h3 {
   font-size: 18px;
   font-weight: 600;
   color: var(--gray-700);
   margin: 0 0 8px 0;
 }
 
-.quotation-empty-state p {
+.billing-customer-empty-state p {
   font-size: 14px;
   color: var(--gray-500);
   margin: 0;
 }
 
-.quotation-mobile-card {
+.billing-customer-mobile-card {
   background: #FFFFFF;
   border: 1px solid var(--gray-200);
-  border-radius: 12px; /* KEEP ROUNDED FOR CARDS */
+  border-radius: 12px;
   box-shadow: var(--card-shadow);
   padding: 16px;
   display: flex;
@@ -397,7 +425,7 @@
   gap: 12px;
 }
 
-.quotation-mobile-card-header {
+.billing-customer-mobile-card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -405,58 +433,58 @@
   padding-bottom: 12px;
 }
 
-.quotation-mobile-card-title .ref-id {
+.billing-customer-mobile-card-title .billing-customer-ref-id {
   font-weight: 600;
   color: var(--gray-900);
 }
 
-.quotation-mobile-card-title .ref-project {
+.billing-customer-mobile-card-title .billing-customer-ref-project {
   display: block;
   font-size: 13px;
   color: var(--gray-500);
   margin-top: 2px;
 }
 
-.quotation-mobile-card-status {
+.billing-customer-mobile-card-status {
   flex-shrink: 0;
 }
 
-.quotation-mobile-card-body {
+.billing-customer-mobile-card-body {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.quotation-mobile-card-item {
+.billing-customer-mobile-card-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.quotation-mobile-card-item .label {
+.billing-customer-mobile-card-item .billing-customer-label {
   font-size: 13px;
   color: var(--gray-500);
   font-weight: 500;
 }
 
-.quotation-mobile-card-item .value {
+.billing-customer-mobile-card-item .billing-customer-value {
   font-size: 14px;
   color: var(--gray-700);
   text-align: right;
 }
 
-.quotation-mobile-card-item .value .amount-main {
+.billing-customer-mobile-card-item .billing-customer-value .billing-customer-amount-main {
   font-weight: 600;
   color: var(--gray-900);
 }
 
-.quotation-mobile-card-item .value .amount-balance {
+.billing-customer-mobile-card-item .billing-customer-value .billing-customer-amount-balance {
   display: block;
   font-size: 12px;
   color: var(--gray-500);
 }
 
-.quotation-mobile-card-footer {
+.billing-customer-mobile-card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -464,16 +492,16 @@
   padding-top: 12px;
 }
 
-.transaction-info .transaction-name {
+.billing-customer-transaction-info .billing-customer-transaction-name {
   font-size: 13px;
   font-weight: 500;
   color: var(--gray-900);
 }
 
 /* =========================================
-   MODALS
+   MODALS - IMPROVED WITH SPACING
    ========================================= */
-.modal-overlay {
+.billing-customer-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -485,23 +513,48 @@
   align-items: center;
   justify-content: center;
   z-index: 9998;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
-.modal {
+.billing-customer-modal {
   background: #FFFFFF;
-  border-radius: 12px; /* KEEP ROUNDED FOR MODALS */
+  border-radius: 12px;
   max-width: 600px;
-  width: 90%;
+  width: 100%;
   max-height: 90vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  padding: 0;
+  position: relative;
+  overflow: hidden;
 }
 
-.modal-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
+.billing-customer-modal-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px 24px;
+}
+
+.billing-customer-modal-scroll-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.billing-customer-modal-scroll-content::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 4px;
+}
+
+.billing-customer-modal-scroll-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.billing-customer-modal-close {
+  position: sticky;
+  top: 12px;
+  right: 12px;
+  float: right;
   background: var(--gray-100);
   border: none;
   width: 32px;
@@ -514,36 +567,45 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  z-index: 10;
+  margin: 0 0 0 auto;
 }
 
-.modal-close:hover {
+.billing-customer-modal-close:hover {
   background: var(--gray-200);
   color: var(--gray-900);
 }
 
-.modal h3 {
+.billing-customer-modal h3 {
   margin: 0;
-  padding: 20px 24px;
+  padding: 16px 24px;
   border-bottom: 1px solid var(--gray-200);
   font-size: 18px;
   font-weight: 600;
   color: var(--gray-900);
+  flex-shrink: 0;
   padding-right: 56px;
+  position: relative;
+  z-index: 1;
 }
 
-.modal-body {
-  padding: 24px;
+.billing-customer-modal-body {
+  padding: 0;
 }
 
-.modal-actions {
+.billing-customer-modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 24px;
   border-top: 1px solid var(--gray-200);
+  flex-shrink: 0;
+  background: #FFFFFF;
+  border-radius: 0 0 12px 12px;
+  margin-top: 16px;
 }
 
-.modal-actions button {
+.billing-customer-modal-actions button {
   padding: 8px 20px;
   border-radius: 8px;
   font-size: 14px;
@@ -555,67 +617,77 @@
   transition: all 0.2s ease;
 }
 
-.modal-actions button:hover:not(:disabled) {
+.billing-customer-modal-actions button:hover:not(:disabled) {
   background: var(--gray-50);
   color: var(--gray-900);
 }
 
-.modal-actions button:disabled {
+.billing-customer-modal-actions button:disabled {
   opacity: 0.6;
   cursor: default;
 }
 
-.cancel-btn {
+.billing-customer-cancel-btn {
   background: #FFFFFF;
 }
 
-.confirm-btn, .paymongo-btn, .submit-transfer-btn, .success-btn {
+.billing-customer-confirm-btn,
+.billing-customer-paymongo-btn,
+.billing-customer-submit-transfer-btn,
+.billing-customer-success-btn {
   background: var(--primary-blue) !important;
   color: #FFFFFF !important;
   border-color: var(--primary-blue) !important;
   box-shadow: 0 4px 8px rgba(37, 99, 235, 0.15) !important;
 }
 
-.confirm-btn:hover, .paymongo-btn:hover, .submit-transfer-btn:hover, .success-btn:hover {
+.billing-customer-confirm-btn:hover,
+.billing-customer-paymongo-btn:hover,
+.billing-customer-submit-transfer-btn:hover,
+.billing-customer-success-btn:hover {
   background: #1d4ed8 !important;
 }
 
 /* --- Payment Modal Specifics --- */
-.payment-modal .payment-summary {
-  padding: 16px 24px;
+.billing-customer-payment-modal .billing-customer-payment-summary {
+  padding: 16px 0;
+  margin-bottom: 16px;
   background: var(--gray-50);
-  border-bottom: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 12px 16px;
+  flex-shrink: 0;
 }
 
-.payment-modal .payment-summary p {
+.billing-customer-payment-modal .billing-customer-payment-summary p {
   margin: 4px 0;
   font-size: 14px;
   color: var(--gray-700);
 }
 
-.payment-modal .payment-summary p strong {
+.billing-customer-payment-modal .billing-customer-payment-summary p strong {
   color: var(--gray-900);
 }
 
-.payment-methods {
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--gray-200);
+.billing-customer-payment-methods {
+  padding: 0;
+  margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
-.payment-methods h4 {
+.billing-customer-payment-methods h4 {
   font-size: 14px;
   font-weight: 600;
   color: var(--gray-700);
   margin: 0 0 12px 0;
 }
 
-.method-options {
+.billing-customer-method-options {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.method-option {
+.billing-customer-method-option {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -626,52 +698,53 @@
   transition: all 0.2s ease;
 }
 
-.method-option:hover {
+.billing-customer-method-option:hover {
   background: var(--gray-50);
 }
 
-.method-option.selected {
+.billing-customer-method-option.selected {
   border-color: var(--primary-blue);
   background: var(--primary-blue-light);
 }
 
-.method-option input[type="radio"] {
+.billing-customer-method-option input[type="radio"] {
   accent-color: var(--primary-blue);
   width: 16px;
   height: 16px;
   margin: 0;
 }
 
-.method-option div strong {
+.billing-customer-method-option div strong {
   display: block;
   font-size: 14px;
   color: var(--gray-900);
 }
 
-.method-option div small {
+.billing-customer-method-option div small {
   font-size: 12px;
   color: var(--gray-500);
 }
 
-.payment-form {
-  padding: 16px 24px;
+/* --- Payment Forms (GCash, Card, Cash) --- */
+.billing-customer-payment-form {
+  padding: 0;
 }
 
-.payment-form .form-group {
+.billing-customer-payment-form .billing-customer-form-group {
   margin-bottom: 16px;
 }
 
-.payment-form .form-group label {
+.billing-customer-payment-form .billing-customer-form-group label {
   display: block;
   font-size: 14px;
   font-weight: 500;
   color: var(--gray-700);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
-.payment-form .form-group input,
-.payment-form .form-group select,
-.payment-form .form-group textarea {
+.billing-customer-payment-form .billing-customer-form-group input,
+.billing-customer-payment-form .billing-customer-form-group select,
+.billing-customer-payment-form .billing-customer-form-group textarea {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--gray-200);
@@ -680,25 +753,37 @@
   background: #FFFFFF;
   color: var(--gray-900);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
+  font-family: inherit;
 }
 
-.payment-form .form-group input:focus,
-.payment-form .form-group select:focus,
-.payment-form .form-group textarea:focus {
+.billing-customer-payment-form .billing-customer-form-group input:focus,
+.billing-customer-payment-form .billing-customer-form-group select:focus,
+.billing-customer-payment-form .billing-customer-form-group textarea:focus {
   border-color: var(--primary-blue);
-  box-shadow: 0 0 0 1px var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.payment-form .form-row {
+.billing-customer-payment-form .billing-customer-form-group input::placeholder,
+.billing-customer-payment-form .billing-customer-form-group textarea::placeholder {
+  color: var(--gray-400);
+}
+
+.billing-customer-payment-form .billing-customer-form-group textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.billing-customer-payment-form .billing-customer-form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  margin-bottom: 0;
 }
 
-.gcash-details,
-.cash-details {
+.billing-customer-gcash-details,
+.billing-customer-cash-details {
   background: var(--gray-50);
   padding: 12px 16px;
   border-radius: 8px;
@@ -706,269 +791,280 @@
   margin-bottom: 16px;
 }
 
-.gcash-details h4,
-.cash-details h4 {
+.billing-customer-gcash-details h4,
+.billing-customer-cash-details h4 {
   font-size: 14px;
   font-weight: 600;
   color: var(--gray-700);
   margin: 0 0 8px 0;
 }
 
-.gcash-details p,
-.cash-details p {
+.billing-customer-gcash-details p,
+.billing-customer-cash-details p {
   font-size: 14px;
   color: var(--gray-700);
   margin: 2px 0;
 }
 
-.info-box {
+.billing-customer-info-box {
   background: var(--gray-50);
   padding: 12px 16px;
   border-radius: 8px;
   border: 1px solid var(--gray-200);
 }
 
-.info-box strong {
+.billing-customer-info-box strong {
   display: block;
   font-size: 14px;
   color: var(--gray-700);
   margin-bottom: 4px;
 }
 
-.info-box p {
+.billing-customer-info-box p {
   font-size: 14px;
   color: var(--gray-500);
   margin: 2px 0;
 }
 
-/* --- Details Modal Specifics --- */
-.details-modal .details-content {
-  padding: 16px 24px;
-}
 
-.details-section {
-  margin-bottom: 20px;
-}
-
-.details-section:last-child {
-  margin-bottom: 0;
-}
-
-.details-section h4 {
-  font-size: 14px;
+/* --- GCash & Cash Payment Buttons --- */
+.billing-customer-payment-form .billing-customer-confirm-btn,
+.billing-customer-payment-form .billing-customer-paymongo-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  font-size: 15px;
   font-weight: 600;
-  color: var(--gray-500);
-  margin: 0 0 8px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.details-section p {
-  margin: 4px 0;
-  font-size: 14px;
-  color: var(--gray-700);
-}
-
-.details-section p strong {
-  color: var(--gray-900);
-  font-weight: 600;
-}
-
-/* --- Success Modal Specifics --- */
-.success-modal {
-  text-align: center;
-  padding: 40px 24px;
-}
-
-.success-modal .success-icon {
-  font-size: 48px;
-  color: #10b981;
-  margin-bottom: 16px;
-}
-
-.success-modal h3 {
-  padding: 0;
-  border: none;
-  font-size: 20px;
-  margin: 0 0 8px 0;
-}
-
-.success-content {
-  margin-bottom: 24px;
-  color: var(--gray-700);
-}
-
-.success-content p {
-  margin: 4px 0;
-  font-size: 14px;
-}
-
-.success-content .success-ref {
-  font-size: 13px;
-  color: var(--gray-500);
-}
-
-.success-modal .modal-actions {
-  justify-content: center;
-  border: none;
-  padding: 0;
 }
 
 /* =========================================
-   MANUAL BANK TRANSFER
+   MANUAL BANK TRANSFER - IMPROVED
    ========================================= */
-.manual-bank-transfer-section {
-  padding: 16px 0;
+.billing-customer-manual-bank-transfer-section {
+  padding: 0;
 }
 
-.bank-transfer-info h4 {
-  font-size: 14px;
+.billing-customer-bank-transfer-info h4 {
+  font-size: 15px;
   font-weight: 600;
-  color: var(--gray-700);
-  margin: 0 0 8px 0;
+  color: var(--gray-900);
+  margin: 0 0 6px 0;
 }
 
-.bank-transfer-info p {
+.billing-customer-bank-transfer-info > p {
   font-size: 14px;
   color: var(--gray-500);
   margin: 0 0 16px 0;
 }
 
-.bank-transfer-notice {
-  background: #FEF3C7;
-  padding: 12px 16px;
+.billing-customer-bank-transfer-notice {
+  background: #FFFBEB;
+  padding: 14px 16px;
   border-radius: 8px;
   border: 1px solid #FDE68A;
   margin-bottom: 16px;
 }
 
-.bank-transfer-notice small {
+.billing-customer-bank-transfer-notice small {
   font-size: 13px;
   color: #92400E;
+  line-height: 1.6;
 }
 
-.bank-transfer-notice ul {
-  margin: 4px 0 0 0;
+.billing-customer-bank-transfer-notice ul {
+  margin: 6px 0 0 0;
   padding-left: 20px;
 }
 
-.bank-transfer-notice li {
-  margin: 2px 0;
+.billing-customer-bank-transfer-notice li {
+  margin: 3px 0;
 }
 
-.invoice-summary-box {
+.billing-customer-invoice-summary-box {
   background: var(--gray-50);
-  padding: 12px 16px;
+  padding: 14px 16px;
   border-radius: 8px;
   border: 1px solid var(--gray-200);
   margin-bottom: 16px;
 }
 
-.summary-row {
+.billing-customer-summary-row {
   display: flex;
   justify-content: space-between;
-  padding: 4px 0;
+  padding: 5px 0;
   font-size: 14px;
   color: var(--gray-700);
+  border-bottom: 1px solid var(--gray-100);
 }
 
-.summary-row .amount-due {
+.billing-customer-summary-row:last-child {
+  border-bottom: none;
+}
+
+.billing-customer-summary-row .billing-customer-amount-due {
   color: var(--gray-900);
+  font-weight: 600;
+  font-size: 15px;
 }
 
-.bank-selection-group {
+.billing-customer-bank-selection-group {
   margin-bottom: 16px;
 }
 
-.bank-selection-group label {
+.billing-customer-bank-selection-group label {
   display: block;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--gray-700);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
-.bank-grid {
+.billing-customer-bank-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
-.bank-card {
-  padding: 12px 16px;
-  border: 1px solid var(--gray-200);
+.billing-customer-bank-card {
+  padding: 12px 14px;
+  border: 2px solid var(--gray-200);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   background: #FFFFFF;
 }
 
-.bank-card:hover {
+.billing-customer-bank-card:hover {
   background: var(--gray-50);
   border-color: var(--gray-300);
+  transform: translateY(-1px);
 }
 
-.bank-card.selected {
+.billing-customer-bank-card.selected {
   border-color: var(--primary-blue);
   background: var(--primary-blue-light);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.bank-card-header {
+.billing-customer-bank-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
-.bank-card-header .bank-name {
+.billing-customer-bank-card-header .billing-customer-bank-name {
   font-weight: 600;
   color: var(--gray-900);
+  font-size: 14px;
 }
 
-.bank-card-header .check-indicator {
+.billing-customer-bank-card-header .billing-customer-check-indicator {
   color: var(--primary-blue);
   font-weight: bold;
+  font-size: 16px;
 }
 
-.bank-card-details .detail-item {
-  font-size: 13px;
+.billing-customer-bank-card-details .billing-customer-detail-item {
+  font-size: 12px;
   color: var(--gray-500);
+  padding: 2px 0;
 }
 
-.bank-card-details .detail-item strong {
+.billing-customer-bank-card-details .billing-customer-detail-item strong {
   color: var(--gray-700);
   display: block;
+  font-size: 13px;
+  margin-top: 1px;
 }
 
-.transfer-form h5 {
-  font-size: 14px;
+.billing-customer-transfer-form {
+  margin-top: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--gray-200);
+}
+
+.billing-customer-transfer-form h5 {
+  font-size: 15px;
   font-weight: 600;
-  color: var(--gray-700);
-  margin: 0 0 12px 0;
+  color: var(--gray-900);
+  margin: 0 0 16px 0;
 }
 
-.transfer-form .form-row {
+.billing-customer-transfer-form .billing-customer-form-group {
+  margin-bottom: 16px;
+}
+
+.billing-customer-transfer-form .billing-customer-form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-700);
+  margin-bottom: 6px;
+}
+
+.billing-customer-transfer-form .billing-customer-form-group label .required {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.billing-customer-transfer-form .billing-customer-form-group input,
+.billing-customer-transfer-form .billing-customer-form-group select,
+.billing-customer-transfer-form .billing-customer-form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: 14px;
+  background: #FFFFFF;
+  color: var(--gray-900);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.billing-customer-transfer-form .billing-customer-form-group input:focus,
+.billing-customer-transfer-form .billing-customer-form-group select:focus,
+.billing-customer-transfer-form .billing-customer-form-group textarea:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.billing-customer-transfer-form .billing-customer-form-group input::placeholder,
+.billing-customer-transfer-form .billing-customer-form-group textarea::placeholder {
+  color: var(--gray-400);
+}
+
+.billing-customer-transfer-form .billing-customer-form-group textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.billing-customer-transfer-form .billing-customer-form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  margin-bottom: 0;
 }
 
-.transfer-form .file-upload-area {
+.billing-customer-transfer-form .billing-customer-file-upload-area {
   position: relative;
-  padding: 12px;
-  border: 2px dashed var(--gray-200);
+  padding: 20px 16px;
+  border: 2px dashed var(--gray-300);
   border-radius: 8px;
   background: var(--gray-50);
   text-align: center;
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
-.transfer-form .file-upload-area:hover {
-  border-color: var(--gray-300);
+.billing-customer-transfer-form .billing-customer-file-upload-area:hover {
+  border-color: var(--primary-blue);
+  background: var(--primary-blue-light);
 }
 
-.transfer-form .file-upload-area input[type="file"] {
+.billing-customer-transfer-form .billing-customer-file-upload-area input[type="file"] {
   position: absolute;
   top: 0;
   left: 0;
@@ -978,56 +1074,178 @@
   cursor: pointer;
 }
 
-.transfer-form .file-upload-area .file-name {
+.billing-customer-transfer-form .billing-customer-file-upload-area .billing-customer-file-name {
   display: block;
   font-size: 13px;
   color: var(--gray-700);
-  margin-top: 4px;
+  margin-top: 8px;
+  font-weight: 500;
 }
 
-.transfer-form .file-upload-area small {
+.billing-customer-transfer-form .billing-customer-file-upload-area small {
   display: block;
   font-size: 12px;
   color: var(--gray-500);
   margin-top: 4px;
 }
 
-.submit-transfer-btn {
+.billing-customer-transfer-form .billing-customer-file-upload-area .upload-icon {
+  font-size: 24px;
+  color: var(--gray-400);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.billing-customer-submit-transfer-btn {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   background: var(--primary-blue);
   color: #FFFFFF;
   border: none;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, transform 0.1s ease;
   margin-top: 12px;
 }
 
-.submit-transfer-btn:hover {
+.billing-customer-submit-transfer-btn:hover {
   background: #1d4ed8;
+  transform: translateY(-1px);
 }
 
-.submit-transfer-btn:disabled {
+.billing-customer-submit-transfer-btn:active {
+  transform: translateY(0);
+}
+
+.billing-customer-submit-transfer-btn:disabled {
   opacity: 0.6;
   cursor: default;
+  transform: none;
+}
+
+/* =========================================
+   DETAILS MODAL
+   ========================================= */
+.billing-customer-details-modal .billing-customer-details-content {
+  padding: 0;
+}
+
+.billing-customer-details-section {
+  margin-bottom: 20px;
+}
+
+.billing-customer-details-section:last-child {
+  margin-bottom: 0;
+}
+
+.billing-customer-details-section h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-500);
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.billing-customer-details-section p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: var(--gray-700);
+}
+
+.billing-customer-details-section p strong {
+  color: var(--gray-900);
+  font-weight: 600;
+}
+
+/* =========================================
+   SUCCESS MODAL
+   ========================================= */
+.billing-customer-success-modal {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.billing-customer-success-modal .billing-customer-success-icon {
+  font-size: 48px;
+  color: #10b981;
+  margin-bottom: 16px;
+}
+
+.billing-customer-success-modal h3 {
+  padding: 0;
+  border: none;
+  font-size: 20px;
+  margin: 0 0 8px 0;
+}
+
+.billing-customer-success-content {
+  margin-bottom: 24px;
+  color: var(--gray-700);
+}
+
+.billing-customer-success-content p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.billing-customer-success-content .billing-customer-success-ref {
+  font-size: 13px;
+  color: var(--gray-500);
+}
+
+.billing-customer-success-modal .billing-customer-modal-actions {
+  justify-content: center;
+  border: none;
+  padding: 0;
+  margin-top: 8px;
 }
 
 /* =========================================
    SKELETON LOADERS
    ========================================= */
-.skeleton-header { height: 40px; width: 200px; background: var(--gray-200); border-radius: 6px; margin-bottom: 16px; }
-.skeleton-tabs { height: 40px; width: 100%; background: var(--gray-200); border-radius: 6px; margin-bottom: 16px; }
-.skeleton-filters { height: 40px; width: 100%; background: var(--gray-200); border-radius: 6px; margin-bottom: 16px; }
-.skeleton-table { height: 400px; width: 100%; background: var(--gray-200); border-radius: 6px; }
+.billing-customer-skeleton-header {
+  height: 40px;
+  width: 200px;
+  background: var(--gray-200);
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.billing-customer-skeleton-tabs {
+  height: 40px;
+  width: 100%;
+  background: var(--gray-200);
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.billing-customer-skeleton-filters {
+  height: 40px;
+  width: 100%;
+  background: var(--gray-200);
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.billing-customer-skeleton-table {
+  height: 400px;
+  width: 100%;
+  background: var(--gray-200);
+  border-radius: 6px;
+}
 
 @keyframes shimmer-quotation {
   0% { background-position: -200px 0; }
   100% { background-position: 200px 0; }
 }
-.skeleton-header, .skeleton-tabs, .skeleton-filters, .skeleton-table {
+
+.billing-customer-skeleton-header,
+.billing-customer-skeleton-tabs,
+.billing-customer-skeleton-filters,
+.billing-customer-skeleton-table {
   background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
   background-size: 200px 100%;
   animation: shimmer-quotation 1.5s infinite;
@@ -1037,65 +1255,291 @@
    RESPONSIVE
    ========================================= */
 @media (max-width: 1024px) {
-  .bank-grid {
-    grid-template-columns: 1fr;
+  .billing-customer-bank-grid {
+    grid-template-columns: 1fr 1fr;
   }
-  .transfer-form .form-row {
-    grid-template-columns: 1fr;
+  .billing-customer-transfer-form .billing-customer-form-row {
+    grid-template-columns: 1fr 1fr;
   }
-  .payment-form .form-row {
-    grid-template-columns: 1fr;
+  .billing-customer-payment-form .billing-customer-form-row {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
 @media (max-width: 768px) {
-  .quotation-container {
+  .billing-customer-container {
     padding: 16px;
   }
-  .quotation-tabs {
+  
+  .billing-customer-tabs {
     flex-wrap: wrap;
     gap: 0;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-  .tab-btn {
+  
+  .billing-customer-tab-btn {
     flex: 1;
     justify-content: center;
     font-size: 13px;
     padding: 10px 14px;
+    min-width: auto;
   }
-  .quotation-filters {
+  
+  .billing-customer-filters {
     flex-direction: column;
     align-items: stretch;
   }
-  .search-group {
+  
+  .billing-customer-search-group {
     max-width: 100%;
   }
-  .quotation-table-container {
+  
+  .billing-customer-table-container {
     display: none;
   }
-  .quotation-mobile-cards {
+  
+  .billing-customer-mobile-cards {
     display: flex;
   }
-  .modal {
-    width: 95%;
+  
+  /* MODAL FIXES FOR MOBILE */
+  .billing-customer-modal-overlay {
+    padding: 10px;
+    align-items: flex-end;
   }
-  .modal-actions {
+  
+  .billing-customer-modal {
+    max-height: 95vh;
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    margin-bottom: 0;
+  }
+  
+  .billing-customer-modal-scroll-content {
+    max-height: calc(95vh - 60px);
+    padding: 16px 20px;
+  }
+  
+  .billing-customer-modal h3 {
+    font-size: 16px;
+    padding: 14px 20px;
+    padding-right: 52px;
+  }
+  
+  .billing-customer-modal-close {
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+    margin: 0 0 0 auto;
+  }
+  
+  .billing-customer-modal-actions {
     flex-direction: column-reverse;
+    padding: 12px 20px;
+    margin-top: 12px;
   }
-  .modal-actions button {
+  
+  .billing-customer-modal-actions button {
     width: 100%;
     justify-content: center;
+    padding: 12px;
   }
-  .method-options {
+  
+  .billing-customer-method-options {
     flex-direction: row;
     flex-wrap: wrap;
   }
-  .method-option {
+  
+  .billing-customer-method-option {
     flex: 1;
-    min-width: 120px;
+    min-width: 100px;
     flex-direction: column;
     text-align: center;
     padding: 12px;
+  }
+  
+  .billing-customer-method-option input[type="radio"] {
+    margin-bottom: 4px;
+  }
+  
+  /* Bank transfer mobile fixes */
+  .billing-customer-bank-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .billing-customer-bank-card {
+    padding: 10px 12px;
+  }
+  
+  .billing-customer-bank-card-details .billing-customer-detail-item {
+    font-size: 12px;
+  }
+  
+  .billing-customer-transfer-form .billing-customer-form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  
+  .billing-customer-transfer-form .billing-customer-form-group {
+    margin-bottom: 14px;
+  }
+  
+  .billing-customer-payment-form .billing-customer-form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  
+  .billing-customer-payment-form .billing-customer-form-group {
+    margin-bottom: 14px;
+  }
+  
+  .billing-customer-payment-form {
+    padding: 0;
+  }
+  
+  .billing-customer-payment-methods {
+    padding: 0;
+    margin-bottom: 12px;
+  }
+  
+  .billing-customer-payment-modal .billing-customer-payment-summary {
+    padding: 12px 16px;
+    margin-bottom: 12px;
+  }
+  
+  .billing-customer-manual-bank-transfer-section {
+    padding: 0;
+  }
+  
+  .billing-customer-bank-transfer-info > p {
+    font-size: 13px;
+  }
+  
+  .billing-customer-invoice-summary-box {
+    padding: 12px 14px;
+  }
+  
+  .billing-customer-summary-row {
+    font-size: 13px;
+    padding: 4px 0;
+  }
+  
+  .billing-customer-transfer-form h5 {
+    font-size: 14px;
+  }
+  
+  .billing-customer-transfer-form .billing-customer-file-upload-area {
+    padding: 16px 12px;
+  }
+  
+  .billing-customer-submit-transfer-btn {
+    padding: 14px;
+    font-size: 15px;
+  }
+  
+  /* Details modal mobile */
+  .billing-customer-details-modal .billing-customer-details-content {
+    padding: 0;
+  }
+  
+  .billing-customer-details-section h4 {
+    font-size: 13px;
+  }
+  
+  .billing-customer-details-section p {
+    font-size: 13px;
+  }
+  
+  /* Success modal mobile */
+  .billing-customer-success-modal {
+    padding: 16px 0;
+  }
+  
+  .billing-customer-success-modal .billing-customer-success-icon {
+    font-size: 40px;
+  }
+  
+  .billing-customer-success-modal h3 {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .billing-customer-container {
+    padding: 12px;
+  }
+  
+  .billing-customer-tab-btn {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+  
+  .billing-customer-tab-badge {
+    font-size: 10px;
+    padding: 1px 8px;
+  }
+  
+  .billing-customer-mobile-card {
+    padding: 12px;
+  }
+  
+  .billing-customer-mobile-card-item .billing-customer-label {
+    font-size: 12px;
+  }
+  
+  .billing-customer-mobile-card-item .billing-customer-value {
+    font-size: 13px;
+  }
+  
+  .billing-customer-bank-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .billing-customer-modal {
+    max-height: 98vh;
+  }
+  
+  .billing-customer-modal-scroll-content {
+    max-height: calc(98vh - 50px);
+    padding: 12px 16px;
+  }
+  
+  .billing-customer-modal-close {
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+  }
+  
+  .billing-customer-modal h3 {
+    font-size: 15px;
+    padding: 12px 16px;
+    padding-right: 44px;
+  }
+  
+  .billing-customer-method-option {
+    min-width: 80px;
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+  
+  .billing-customer-transfer-form .billing-customer-file-upload-area {
+    padding: 14px 10px;
+  }
+  
+  .billing-customer-transfer-form .billing-customer-file-upload-area .upload-icon {
+    font-size: 20px;
+  }
+}
+
+/* Additional fix for iOS Safari - prevents zoom on input focus */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
   }
 }

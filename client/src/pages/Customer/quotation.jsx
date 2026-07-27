@@ -1,5 +1,5 @@
 // pages/Customer/Quotation.cuspro.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -26,6 +26,11 @@ const Quotation = () => {
   const [paymentReference, setPaymentReference] = useState('');
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+
+  // Scroll container ref for modal
+  const scrollContainerRef = useRef(null);
+  // Store scroll position to prevent auto-scroll
+  const scrollPositionRef = useRef(0);
 
   // Manual Bank Transfer States
   const [selectedBankId, setSelectedBankId] = useState('');
@@ -60,6 +65,37 @@ const Quotation = () => {
     { id: 'metrobank', name: 'Metrobank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
     { id: 'security_bank', name: 'Security Bank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' }
   ];
+
+  // Save scroll position before any update that might cause re-render
+  const saveScrollPosition = useCallback(() => {
+    if (scrollContainerRef.current) {
+      scrollPositionRef.current = scrollContainerRef.current.scrollTop;
+    }
+  }, []);
+
+  // Restore scroll position after updates
+  const restoreScrollPosition = useCallback(() => {
+    if (scrollContainerRef.current) {
+      // Use requestAnimationFrame to ensure DOM is updated
+      requestAnimationFrame(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop = scrollPositionRef.current;
+        }
+      });
+    }
+  }, []);
+
+  // Listen to scroll events to save position
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      const handleScroll = () => {
+        scrollPositionRef.current = container.scrollTop;
+      };
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
 
   useEffect(() => {
     fetchUserData();
@@ -396,14 +432,19 @@ const Quotation = () => {
     return parts.length > 0 ? parts.join(', ') : 'No address provided';
   };
 
+  // FIXED: Save scroll position before update, update state, restore after
   const handleManualTransferInputChange = (e) => {
     const { name, value } = e.target;
-    setManualTransferForm(prev => {
-      const updated = { ...prev, [name]: value };
-      return updated;
-    });
+    saveScrollPosition();
+    setManualTransferForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Restore scroll after state update
+    setTimeout(restoreScrollPosition, 0);
   };
 
+  // FIXED: Save scroll position before file upload
   const handleProofFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -412,7 +453,9 @@ const Quotation = () => {
         e.target.value = '';
         return;
       }
+      saveScrollPosition();
       setProofFile(file);
+      setTimeout(restoreScrollPosition, 0);
     }
   };
 
@@ -660,6 +703,18 @@ const Quotation = () => {
     setActiveDropdown(null);
   };
 
+  const handlePaymentReferenceChange = (e) => {
+    saveScrollPosition();
+    setPaymentReference(e.target.value);
+    setTimeout(restoreScrollPosition, 0);
+  };
+
+  const handlePaymentProofChange = (e) => {
+    saveScrollPosition();
+    setPaymentProof(e.target.files[0]);
+    setTimeout(restoreScrollPosition, 0);
+  };
+
   const handlePaymentSubmit = async () => {
     if (isSubmitting) return;
 
@@ -843,28 +898,28 @@ const Quotation = () => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      'pending': <span className="status-badge pending">Pending</span>,
-      'pending_payment': <span className="status-badge pending">Pending</span>,
-      'paid': <span className="status-badge paid">Paid</span>,
-      'for_verification': <span className="status-badge for-verification">Verifying</span>,
-      'processing': <span className="status-badge processing">Processing</span>,
-      'quoted': <span className="status-badge quoted">Quoted</span>,
-      'completed': <span className="status-badge completed">Completed</span>,
-      'cancelled': <span className="status-badge cancelled">Cancelled</span>,
-      'overdue': <span className="status-badge overdue">Overdue</span>,
-      'partial': <span className="status-badge partial">Partial</span>
+      'pending': <span className="billing-customer-status-badge pending">Pending</span>,
+      'pending_payment': <span className="billing-customer-status-badge pending">Pending</span>,
+      'paid': <span className="billing-customer-status-badge paid">Paid</span>,
+      'for_verification': <span className="billing-customer-status-badge for-verification">Verifying</span>,
+      'processing': <span className="billing-customer-status-badge processing">Processing</span>,
+      'quoted': <span className="billing-customer-status-badge quoted">Quoted</span>,
+      'completed': <span className="billing-customer-status-badge completed">Completed</span>,
+      'cancelled': <span className="billing-customer-status-badge cancelled">Cancelled</span>,
+      'overdue': <span className="billing-customer-status-badge overdue">Overdue</span>,
+      'partial': <span className="billing-customer-status-badge partial">Partial</span>
     };
-    return badges[status] || <span className="status-badge">{status}</span>;
+    return badges[status] || <span className="billing-customer-status-badge">{status}</span>;
   };
 
   const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-PH', {
-    style: 'currency',
-    currency: 'PHP',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(amount || 0);
-};
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount || 0);
+  };
 
   const getFilteredItems = () => {
     let filtered = [...allItems];
@@ -907,13 +962,19 @@ const Quotation = () => {
   const ManualBankTransferSection = () => {
     const selectedBank = companyBanks.find(b => b.id === selectedBankId);
 
+    const handleBankSelect = (bankId) => {
+      saveScrollPosition();
+      setSelectedBankId(bankId);
+      setTimeout(restoreScrollPosition, 0);
+    };
+
     return (
-      <div className="manual-bank-transfer-section">
-        <div className="bank-transfer-info">
+      <div className="billing-customer-manual-bank-transfer-section">
+        <div className="billing-customer-bank-transfer-info">
           <h4>Manual Bank Transfer</h4>
           <p>Transfer the exact amount to any of our bank accounts below.</p>
 
-          <div className="bank-transfer-notice">
+          <div className="billing-customer-bank-transfer-notice">
             <small>
               <strong>Important:</strong>
               <ul>
@@ -925,42 +986,42 @@ const Quotation = () => {
             </small>
           </div>
 
-          <div className="invoice-summary-box">
-            <div className="summary-row">
+          <div className="billing-customer-invoice-summary-box">
+            <div className="billing-customer-summary-row">
               <span>Invoice:</span>
               <strong>{selectedItem?.invoiceNumber || selectedItem?.id}</strong>
             </div>
-            <div className="summary-row">
+            <div className="billing-customer-summary-row">
               <span>Amount Due:</span>
-              <strong className="amount-due">
+              <strong className="billing-customer-amount-due">
                 {formatCurrency(selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount)}
               </strong>
             </div>
-            <div className="summary-row">
+            <div className="billing-customer-summary-row">
               <span>Reference Number:</span>
               <strong>{selectedItem?.invoiceNumber || selectedItem?.id}</strong>
             </div>
           </div>
 
-          <div className="bank-selection-group">
+          <div className="billing-customer-bank-selection-group">
             <label>Select Bank Account</label>
-            <div className="bank-grid">
+            <div className="billing-customer-bank-grid">
               {companyBanks.map((bank) => (
                 <div
                   key={bank.id}
-                  className={`bank-card ${selectedBankId === bank.id ? 'selected' : ''}`}
-                  onClick={() => setSelectedBankId(bank.id)}
+                  className={`billing-customer-bank-card ${selectedBankId === bank.id ? 'selected' : ''}`}
+                  onClick={() => handleBankSelect(bank.id)}
                 >
-                  <div className="bank-card-header">
-                    <span className="bank-name">{bank.name}</span>
-                    {selectedBankId === bank.id && <span className="check-indicator">✓</span>}
+                  <div className="billing-customer-bank-card-header">
+                    <span className="billing-customer-bank-name">{bank.name}</span>
+                    {selectedBankId === bank.id && <span className="billing-customer-check-indicator">✓</span>}
                   </div>
-                  <div className="bank-card-details">
-                    <div className="detail-item">
+                  <div className="billing-customer-bank-card-details">
+                    <div className="billing-customer-detail-item">
                       <span>Account Name:</span>
                       <strong>{bank.accountName}</strong>
                     </div>
-                    <div className="detail-item">
+                    <div className="billing-customer-detail-item">
                       <span>Account Number:</span>
                       <strong>{bank.accountNumber}</strong>
                     </div>
@@ -971,11 +1032,11 @@ const Quotation = () => {
           </div>
 
           {selectedBank && (
-            <div className="transfer-form">
+            <div className="billing-customer-transfer-form">
               <h5>Payment Details</h5>
 
-              <div className="form-row">
-                <div className="form-group">
+              <div className="billing-customer-form-row">
+                <div className="billing-customer-form-group">
                   <label>Account Name (Optional)</label>
                   <input
                     type="text"
@@ -985,7 +1046,7 @@ const Quotation = () => {
                     placeholder="Your full name as shown in transfer"
                   />
                 </div>
-                <div className="form-group">
+                <div className="billing-customer-form-group">
                   <label>Reference / Transaction ID *</label>
                   <input
                     type="text"
@@ -998,8 +1059,8 @@ const Quotation = () => {
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
+              <div className="billing-customer-form-row">
+                <div className="billing-customer-form-group">
                   <label>Amount Sent *</label>
                   <input
                     type="number"
@@ -1013,8 +1074,8 @@ const Quotation = () => {
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
+              <div className="billing-customer-form-row">
+                <div className="billing-customer-form-group">
                   <label>Transfer Date *</label>
                   <input
                     type="date"
@@ -1024,7 +1085,7 @@ const Quotation = () => {
                     required
                   />
                 </div>
-                <div className="form-group">
+                <div className="billing-customer-form-group">
                   <label>Transfer Time *</label>
                   <input
                     type="time"
@@ -1036,25 +1097,29 @@ const Quotation = () => {
                 </div>
               </div>
 
-              <div className="form-group">
+              <div className="billing-customer-form-group">
                 <label>Upload Proof of Payment *</label>
-                <div className="file-upload-area">
+                <div className="billing-customer-file-upload-area">
                   <input
                     type="file"
                     accept="image/*,application/pdf"
                     onChange={handleProofFileChange}
                     required
                   />
-                  {proofFile && (
-                    <span className="file-name">
+                  {proofFile ? (
+                    <span className="billing-customer-file-name">
                       {proofFile.name} ({(proofFile.size / 1024).toFixed(1)} KB)
                     </span>
+                  ) : (
+                    <>
+                      <span className="upload-icon">📤</span>
+                      <small>Click or drag to upload</small>
+                    </>
                   )}
-                  <small>Accepted: JPG, PNG, GIF, PDF (Max 10MB)</small>
                 </div>
               </div>
 
-              <div className="form-group">
+              <div className="billing-customer-form-group">
                 <label>Remarks (Optional)</label>
                 <textarea
                   name="remarks"
@@ -1066,7 +1131,7 @@ const Quotation = () => {
               </div>
 
               <button
-                className="submit-transfer-btn"
+                className="billing-customer-submit-transfer-btn"
                 onClick={handleSubmitManualTransfer}
                 disabled={isSubmittingManual}
               >
@@ -1080,11 +1145,11 @@ const Quotation = () => {
   };
 
   const SkeletonLoader = () => (
-    <div className="quotation-container">
-      <div className="skeleton-header"></div>
-      <div className="skeleton-tabs"></div>
-      <div className="skeleton-filters"></div>
-      <div className="skeleton-table"></div>
+    <div className="billing-customer-container">
+      <div className="billing-customer-skeleton-header"></div>
+      <div className="billing-customer-skeleton-tabs"></div>
+      <div className="billing-customer-skeleton-filters"></div>
+      <div className="billing-customer-skeleton-table"></div>
     </div>
   );
 
@@ -1131,7 +1196,7 @@ const Quotation = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (activeDropdown !== null) {
-        const dropdowns = document.querySelectorAll('.dropdown-menu-container');
+        const dropdowns = document.querySelectorAll('.billing-customer-dropdown-menu-container');
         let isOutside = true;
         dropdowns.forEach(dropdown => {
           if (dropdown.contains(event.target)) {
@@ -1160,35 +1225,30 @@ const Quotation = () => {
     <>
       <Helmet><title>My Solar Journey | Salfer Engineering</title></Helmet>
 
-      <div className="quotation-container">
-        
-
-        <div className="quotation-tabs">
+      <div className="billing-customer-container">
+        <div className="billing-customer-tabs">
           <button
-            className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
+            className={`billing-customer-tab-btn ${activeTab === 'all' ? 'active' : ''}`}
             onClick={() => setActiveTab('all')}
           >
-            All <span className="tab-badge">{stats.totalItems}</span>
+            All <span className="billing-customer-tab-badge">{stats.totalItems}</span>
           </button>
           <button
-            className={`tab-btn ${activeTab === 'pre-assessment' ? 'active' : ''}`}
+            className={`billing-customer-tab-btn ${activeTab === 'pre-assessment' ? 'active' : ''}`}
             onClick={() => setActiveTab('pre-assessment')}
           >
-            Pre-Assessments <span className="tab-badge">{filteredItems.filter(i => i.type === 'pre-assessment').length}</span>
+            Pre-Assessments <span className="billing-customer-tab-badge">{filteredItems.filter(i => i.type === 'pre-assessment').length}</span>
           </button>
           <button
-            className={`tab-btn ${activeTab === 'project' ? 'active' : ''}`}
+            className={`billing-customer-tab-btn ${activeTab === 'project' ? 'active' : ''}`}
             onClick={() => setActiveTab('project')}
           >
-            Project Bills <span className="tab-badge">{filteredItems.filter(i => i.type === 'project').length}</span>
+            Project Bills <span className="billing-customer-tab-badge">{filteredItems.filter(i => i.type === 'project').length}</span>
           </button>
-          
         </div>
 
-        <div className="quotation-filters">
-          
-
-          <div className="filter-group">
+        <div className="billing-customer-filters">
+          <div className="billing-customer-filter-group">
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
@@ -1199,7 +1259,7 @@ const Quotation = () => {
             </select>
           </div>
 
-          <div className="search-group">
+          <div className="billing-customer-search-group">
             <input
               type="text"
               placeholder="Search by reference, invoice, or project..."
@@ -1207,12 +1267,12 @@ const Quotation = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             {searchTerm && (
-              <button className="clear-search" onClick={() => setSearchTerm('')}>×</button>
+              <button className="billing-customer-clear-search" onClick={() => setSearchTerm('')}>×</button>
             )}
           </div>
 
           {(typeFilter !== 'all' || statusFilter !== 'all' || searchTerm) && (
-            <button className="clear-filters-btn" onClick={() => {
+            <button className="billing-customer-clear-filters-btn" onClick={() => {
               setTypeFilter('all');
               setStatusFilter('all');
               setSearchTerm('');
@@ -1222,20 +1282,20 @@ const Quotation = () => {
           )}
         </div>
 
-        <div className="quotation-results-count">
+        <div className="billing-customer-results-count">
           <p>Showing {tabItems.length} of {filteredItems.length} transaction(s)</p>
         </div>
 
         {/* Table Container - Desktop */}
-        <div className="quotation-table-container">
-          <div className="quotation-table-wrapper">
+        <div className="billing-customer-table-container">
+          <div className="billing-customer-table-wrapper">
             {tabItems.length === 0 ? (
-              <div className="quotation-empty-state">
+              <div className="billing-customer-empty-state">
                 <h3>No transactions found</h3>
                 <p>Try adjusting your filters or search criteria.</p>
               </div>
             ) : (
-              <table className="quotation-table">
+              <table className="billing-customer-table">
                 <thead>
                   <tr>
                     <th>Transaction</th>
@@ -1252,47 +1312,43 @@ const Quotation = () => {
                     const isPreAssessment = item.type === 'pre-assessment';
                     const isPayNowButtonDisabled = isPayNowDisabled(item);
                     const disabledReason = getPayNowDisabledReason(item);
-                    const invoiceLabel = !isPreAssessment ? getInvoiceTypeLabel(item) : null;
                     const hasReceipt = item.receiptUrl;
                     const isDropdownOpen = activeDropdown === item.id;
 
                     return (
-                      <tr key={index} className={`quotation-table-row ${item.type}`}>
+                      <tr key={index} className={`billing-customer-table-row ${item.type}`}>
                         <td>
-                          <div className="quotation-transaction-cell">
+                          <div className="billing-customer-transaction-cell">
                             <div>
-                              <div className="transaction-name">{item.description}</div>
+                              <div className="billing-customer-transaction-name">{item.description}</div>
                               {!isPreAssessment && item.invoiceType && (
-                                <span className={`invoice-type-label ${item.invoiceType}`}>
-                                 
+                                <span className={`billing-customer-invoice-type-label ${item.invoiceType}`}>
                                 </span>
                               )}
-                              
                             </div>
                           </div>
                         </td>
                         <td>
-                          <div className="quotation-reference-cell">
-                            <span className="ref-id">{isPreAssessment ? item.bookingReference || item.id : item.id}</span>
-                           
+                          <div className="billing-customer-reference-cell">
+                            <span className="billing-customer-ref-id">{isPreAssessment ? item.bookingReference || item.id : item.id}</span>
                           </div>
                         </td>
                         <td>{item.date}</td>
                         <td>{item.dueDate}</td>
                         <td>
-                          <div className="quotation-amount-cell">
-                            <span className="amount-main">{formatCurrency(item.amount)}</span>
+                          <div className="billing-customer-amount-cell">
+                            <span className="billing-customer-amount-main">{formatCurrency(item.amount)}</span>
                             {item.paymentStatus === 'partial' && (
-                              <span className="amount-balance">Balance: {formatCurrency(item.balance)}</span>
+                              <span className="billing-customer-amount-balance">Balance: {formatCurrency(item.balance)}</span>
                             )}
                           </div>
                         </td>
                         <td>{getStatusBadge(item.status)}</td>
                         <td>
-                          <div className="quotation-action-cell">
-                            <div className="dropdown-menu-container">
+                          <div className="billing-customer-action-cell">
+                            <div className="billing-customer-dropdown-menu-container">
                               <button
-                                className="dropdown-trigger-btn"
+                                className="billing-customer-dropdown-trigger-btn"
                                 onClick={(e) => toggleDropdown(item.id, e)}
                               >
                                 Action ▾
@@ -1300,14 +1356,14 @@ const Quotation = () => {
 
                               {isDropdownOpen && (
                                 <div
-                                  className="dropdown-menu"
+                                  className="billing-customer-dropdown-menu"
                                   style={{
                                     top: dropdownPosition.top + 'px',
                                     left: dropdownPosition.left + 'px'
                                   }}
                                 >
                                   <button
-                                    className="dropdown-item"
+                                    className="billing-customer-dropdown-item"
                                     onClick={() => handleViewDetails(item)}
                                   >
                                     View Details
@@ -1315,7 +1371,7 @@ const Quotation = () => {
 
                                   {(item.status === 'pending' || item.status === 'pending_payment' || item.status === 'partial') && (
                                     <button
-                                      className={`dropdown-item ${isPayNowButtonDisabled ? 'disabled' : ''}`}
+                                      className={`billing-customer-dropdown-item ${isPayNowButtonDisabled ? 'disabled' : ''}`}
                                       onClick={() => handlePayNowClick(item)}
                                       disabled={isSubmitting || isPayNowButtonDisabled}
                                       title={disabledReason || ''}
@@ -1327,13 +1383,13 @@ const Quotation = () => {
                                   {item.status === 'paid' && hasReceipt && (
                                     <>
                                       <button
-                                        className="dropdown-item"
+                                        className="billing-customer-dropdown-item"
                                         onClick={() => handleViewReceipt(item)}
                                       >
                                         View Receipt
                                       </button>
                                       <button
-                                        className="dropdown-item"
+                                        className="billing-customer-dropdown-item"
                                         onClick={() => handleDownloadReceipt(item)}
                                       >
                                         Download Receipt
@@ -1342,7 +1398,7 @@ const Quotation = () => {
                                   )}
 
                                   {item.status === 'for_verification' && (
-                                    <span className="dropdown-item verifying">
+                                    <span className="billing-customer-dropdown-item verifying">
                                       Verifying...
                                     </span>
                                   )}
@@ -1361,9 +1417,9 @@ const Quotation = () => {
         </div>
 
         {/* Mobile Cards */}
-        <div className="quotation-mobile-cards">
+        <div className="billing-customer-mobile-cards">
           {tabItems.length === 0 ? (
-            <div className="quotation-empty-state">
+            <div className="billing-customer-empty-state">
               <h3>No transactions found</h3>
               <p>Try adjusting your filters or search criteria.</p>
             </div>
@@ -1372,59 +1428,52 @@ const Quotation = () => {
               const isPreAssessment = item.type === 'pre-assessment';
               const isPayNowButtonDisabled = isPayNowDisabled(item);
               const disabledReason = getPayNowDisabledReason(item);
-              const invoiceLabel = !isPreAssessment ? getInvoiceTypeLabel(item) : null;
               const hasReceipt = item.receiptUrl;
               const isDropdownOpen = activeDropdown === item.id;
 
               return (
-                <div key={index} className="quotation-mobile-card">
-                  <div className="quotation-mobile-card-header">
-                    <div className="quotation-mobile-card-title">
-                      <span className="ref-id">{isPreAssessment ? item.bookingReference || item.id : item.id}</span>
-                      {item.projectName && <span className="ref-project">{item.projectName}</span>}
+                <div key={index} className="billing-customer-mobile-card">
+                  <div className="billing-customer-mobile-card-header">
+                    <div className="billing-customer-mobile-card-title">
+                      <span className="billing-customer-ref-id">{isPreAssessment ? item.bookingReference || item.id : item.id}</span>
+                      {item.projectName && <span className="billing-customer-ref-project">{item.projectName}</span>}
                     </div>
-                    <div className="quotation-mobile-card-status">
+                    <div className="billing-customer-mobile-card-status">
                       {getStatusBadge(item.status)}
                     </div>
                   </div>
 
-                  <div className="quotation-mobile-card-body">
-                    <div className="quotation-mobile-card-item">
-                      <span className="label">Transaction</span>
-                      <span className="value">{item.description}</span>
-                      {!isPreAssessment && item.invoiceType && (
-                        <span className={`invoice-type-label ${item.invoiceType}`}>
-                          
-                        </span>
-                      )}
-                      
+                  <div className="billing-customer-mobile-card-body">
+                    <div className="billing-customer-mobile-card-item">
+                      <span className="billing-customer-label">Transaction</span>
+                      <span className="billing-customer-value">{item.description}</span>
                     </div>
-                    <div className="quotation-mobile-card-item">
-                      <span className="label">Amount</span>
-                      <span className="value">
-                        <span className="amount-main">{formatCurrency(item.amount)}</span>
+                    <div className="billing-customer-mobile-card-item">
+                      <span className="billing-customer-label">Amount</span>
+                      <span className="billing-customer-value">
+                        <span className="billing-customer-amount-main">{formatCurrency(item.amount)}</span>
                         {item.paymentStatus === 'partial' && (
-                          <span className="amount-balance">Balance: {formatCurrency(item.balance)}</span>
+                          <span className="billing-customer-amount-balance">Balance: {formatCurrency(item.balance)}</span>
                         )}
                       </span>
                     </div>
-                    <div className="quotation-mobile-card-item">
-                      <span className="label">Date</span>
-                      <span className="value">{item.date}</span>
+                    <div className="billing-customer-mobile-card-item">
+                      <span className="billing-customer-label">Date</span>
+                      <span className="billing-customer-value">{item.date}</span>
                     </div>
-                    <div className="quotation-mobile-card-item">
-                      <span className="label">Due Date</span>
-                      <span className="value">{item.dueDate}</span>
+                    <div className="billing-customer-mobile-card-item">
+                      <span className="billing-customer-label">Due Date</span>
+                      <span className="billing-customer-value">{item.dueDate}</span>
                     </div>
                   </div>
 
-                  <div className="quotation-mobile-card-footer">
-                    <div className="transaction-info">
-                      <span className="transaction-name">{item.description}</span>
+                  <div className="billing-customer-mobile-card-footer">
+                    <div className="billing-customer-transaction-info">
+                      <span className="billing-customer-transaction-name">{item.description}</span>
                     </div>
-                    <div className="dropdown-menu-container">
+                    <div className="billing-customer-dropdown-menu-container">
                       <button
-                        className="dropdown-trigger-btn"
+                        className="billing-customer-dropdown-trigger-btn"
                         onClick={(e) => toggleDropdown(item.id, e)}
                       >
                         Action ▾
@@ -1432,14 +1481,14 @@ const Quotation = () => {
 
                       {isDropdownOpen && (
                         <div
-                          className="dropdown-menu"
+                          className="billing-customer-dropdown-menu"
                           style={{
                             top: dropdownPosition.top + 'px',
                             left: dropdownPosition.left + 'px'
                           }}
                         >
                           <button
-                            className="dropdown-item"
+                            className="billing-customer-dropdown-item"
                             onClick={() => handleViewDetails(item)}
                           >
                             View Details
@@ -1447,7 +1496,7 @@ const Quotation = () => {
 
                           {(item.status === 'pending' || item.status === 'pending_payment' || item.status === 'partial') && (
                             <button
-                              className={`dropdown-item ${isPayNowButtonDisabled ? 'disabled' : ''}`}
+                              className={`billing-customer-dropdown-item ${isPayNowButtonDisabled ? 'disabled' : ''}`}
                               onClick={() => handlePayNowClick(item)}
                               disabled={isSubmitting || isPayNowButtonDisabled}
                               title={disabledReason || ''}
@@ -1459,13 +1508,13 @@ const Quotation = () => {
                           {item.status === 'paid' && hasReceipt && (
                             <>
                               <button
-                                className="dropdown-item"
+                                className="billing-customer-dropdown-item"
                                 onClick={() => handleViewReceipt(item)}
                               >
                                 View Receipt
                               </button>
                               <button
-                                className="dropdown-item"
+                                className="billing-customer-dropdown-item"
                                 onClick={() => handleDownloadReceipt(item)}
                               >
                                 Download Receipt
@@ -1474,7 +1523,7 @@ const Quotation = () => {
                           )}
 
                           {item.status === 'for_verification' && (
-                            <span className="dropdown-item verifying">
+                            <span className="billing-customer-dropdown-item verifying">
                               Verifying...
                             </span>
                           )}
@@ -1488,291 +1537,300 @@ const Quotation = () => {
           )}
         </div>
 
-        {/* Modals - keep same as before */}
+        {/* Full Payment Modal */}
         {showFullPaymentModal && selectedItem && (
-          <div className="modal-overlay" onClick={closeFullPaymentModal}>
-            <div className="modal payment-modal" onClick={e => e.stopPropagation()}>
-              <button className="modal-close" onClick={closeFullPaymentModal}>×</button>
+          <div className="billing-customer-modal-overlay" onClick={closeFullPaymentModal}>
+            <div className="billing-customer-modal billing-customer-payment-modal" onClick={e => e.stopPropagation()}>
+              <button className="billing-customer-modal-close" onClick={closeFullPaymentModal}>×</button>
               <h3>Pay Invoice</h3>
-              <div className="payment-summary">
-                <p><strong>Invoice:</strong> {selectedItem.invoiceNumber}</p>
-                <p><strong>Project:</strong> {selectedItem.projectName}</p>
-                <p><strong>Amount Due:</strong> {formatCurrency(selectedItem.balance || selectedItem.totalAmount)}</p>
-              </div>
+              <div className="billing-customer-modal-scroll-content" ref={scrollContainerRef}>
+                <div className="billing-customer-payment-summary">
+                  <p><strong>Invoice:</strong> {selectedItem.invoiceNumber}</p>
+                  <p><strong>Project:</strong> {selectedItem.projectName}</p>
+                  <p><strong>Amount Due:</strong> {formatCurrency(selectedItem.balance || selectedItem.totalAmount)}</p>
+                </div>
 
-              <div className="payment-methods">
-                <h4>Payment Method</h4>
-                <div className="method-options">
-                  <div className={`method-option ${paymentMethod === 'gcash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('gcash')}>
-                    <input type="radio" checked={paymentMethod === 'gcash'} readOnly />
-                    <div><strong>GCash</strong><small>Upload receipt</small></div>
-                  </div>
-                  <div className={`method-option ${paymentMethod === 'paymongo_card' ? 'selected' : ''}`} onClick={() => setPaymentMethod('paymongo_card')}>
-                    <input type="radio" checked={paymentMethod === 'paymongo_card'} readOnly />
-                    <div><strong>Credit/Debit Card</strong><small>Instant payment</small></div>
-                  </div>
-                  <div className={`method-option ${paymentMethod === 'manual_bank_transfer' ? 'selected' : ''}`} onClick={() => setPaymentMethod('manual_bank_transfer')}>
-                    <input type="radio" checked={paymentMethod === 'manual_bank_transfer'} readOnly />
-                    <div><strong>Bank Transfer</strong><small>Manual transfer with proof</small></div>
-                  </div>
-                  <div className={`method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
-                    <input type="radio" checked={paymentMethod === 'cash'} readOnly />
-                    <div><strong>Cash</strong><small>Pay at office</small></div>
+                <div className="billing-customer-payment-methods">
+                  <h4>Payment Method</h4>
+                  <div className="billing-customer-method-options">
+                    <div className={`billing-customer-method-option ${paymentMethod === 'gcash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('gcash')}>
+                      <input type="radio" checked={paymentMethod === 'gcash'} readOnly />
+                      <div><strong>GCash</strong><small>Upload receipt</small></div>
+                    </div>
+                    <div className={`billing-customer-method-option ${paymentMethod === 'paymongo_card' ? 'selected' : ''}`} onClick={() => setPaymentMethod('paymongo_card')}>
+                      <input type="radio" checked={paymentMethod === 'paymongo_card'} readOnly />
+                      <div><strong>Credit/Debit Card</strong><small>Instant payment</small></div>
+                    </div>
+                    <div className={`billing-customer-method-option ${paymentMethod === 'manual_bank_transfer' ? 'selected' : ''}`} onClick={() => setPaymentMethod('manual_bank_transfer')}>
+                      <input type="radio" checked={paymentMethod === 'manual_bank_transfer'} readOnly />
+                      <div><strong>Bank Transfer</strong><small>Manual transfer with proof</small></div>
+                    </div>
+                    <div className={`billing-customer-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
+                      <input type="radio" checked={paymentMethod === 'cash'} readOnly />
+                      <div><strong>Cash</strong><small>Pay at office</small></div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {paymentMethod === 'gcash' && (
-                <div className="payment-form">
-                  <div className="gcash-details">
-                    <h4>GCash Details</h4>
-                    <p>Number: <strong>0917XXXXXXX</strong></p>
-                    <p>Name: <strong>SALFER ENGINEERING CORP</strong></p>
-                  </div>
-                  <div className="form-group">
-                    <label>Reference Number</label>
-                    <input
-                      type="text"
-                      value={paymentReference}
-                      onChange={(e) => setPaymentReference(e.target.value)}
-                      placeholder="Enter reference"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Upload Screenshot</label>
-                    <input type="file" accept="image/*" onChange={(e) => setPaymentProof(e.target.files[0])} />
-                  </div>
-                  <button className="confirm-btn" onClick={handleFullPaymentSubmit} disabled={isSubmitting}>
-                    {isSubmitting ? 'Processing...' : 'Submit'}
-                  </button>
-                </div>
-              )}
-
-              {paymentMethod === 'paymongo_card' && (
-                <div className="payment-form">
-                  <div className="card-form">
-                    <div className="form-group">
-                      <label>Card Number</label>
-                      <input type="text" id="full-card-number" placeholder="1234 5678 9012 3456" />
+                {paymentMethod === 'gcash' && (
+                  <div className="billing-customer-payment-form">
+                    <div className="billing-customer-gcash-details">
+                      <h4>GCash Details</h4>
+                      <p>Number: <strong>0917XXXXXXX</strong></p>
+                      <p>Name: <strong>SALFER ENGINEERING CORP</strong></p>
                     </div>
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>Expiry</label>
-                        <input type="text" id="full-card-expiry" placeholder="MM/YY" />
-                      </div>
-                      <div className="form-group">
-                        <label>CVC</label>
-                        <input type="text" id="full-card-cvc" placeholder="123" />
-                      </div>
+                    <div className="billing-customer-form-group">
+                      <label>Reference Number</label>
+                      <input
+                        type="text"
+                        value={paymentReference}
+                        onChange={handlePaymentReferenceChange}
+                        placeholder="Enter reference"
+                      />
                     </div>
-                    <button className="paymongo-btn" onClick={handleProjectPayMongoCardPayment} disabled={isSubmitting}>
-                      {isSubmitting ? 'Processing...' : `Pay ${formatCurrency(selectedItem.balance || selectedItem.totalAmount)}`}
+                    <div className="billing-customer-form-group">
+                      <label>Upload Screenshot</label>
+                      <input type="file" accept="image/*" onChange={handlePaymentProofChange} />
+                    </div>
+                    <button className="billing-customer-confirm-btn" onClick={handleFullPaymentSubmit} disabled={isSubmitting}>
+                      {isSubmitting ? 'Processing...' : 'Submit'}
                     </button>
                   </div>
-                </div>
-              )}
-
-              {paymentMethod === 'manual_bank_transfer' && <ManualBankTransferSection />}
-
-              {paymentMethod === 'cash' && (
-                <div className="payment-form">
-                  <div className="cash-details">
-                    <div className="info-box">
-                      <strong>Office Address</strong>
-                      <p>Purok 2, Masaya, San Jose, Camarines Sur</p>
-                      <p>Mon-Fri, 8AM-5PM</p>
-                    </div>
-                    <button className="confirm-btn" onClick={handleFullPaymentSubmit} disabled={isSubmitting}>
-                      Confirm Cash Payment
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={closeFullPaymentModal}>Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {showPaymentModal && selectedItem && (
-          <div className="modal-overlay" onClick={closeModal}>
-            <div className="modal payment-modal" onClick={e => e.stopPropagation()}>
-              <button className="modal-close" onClick={closeModal}>×</button>
-              <h3>Make Payment</h3>
-              <div className="payment-summary">
-                <p><strong>Invoice:</strong> {selectedItem.invoiceNumber || selectedItem.id}</p>
-                <p><strong>Amount:</strong> {formatCurrency(selectedItem.amount)}</p>
-              </div>
-
-              <div className="payment-methods">
-                <h4>Payment Method</h4>
-                <div className="method-options">
-                  <div className={`method-option ${paymentMethod === 'gcash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('gcash')}>
-                    <input type="radio" checked={paymentMethod === 'gcash'} readOnly />
-                    <div><strong>GCash</strong><small>Upload receipt</small></div>
-                  </div>
-                  <div className={`method-option ${paymentMethod === 'paymongo_card' ? 'selected' : ''}`} onClick={() => setPaymentMethod('paymongo_card')}>
-                    <input type="radio" checked={paymentMethod === 'paymongo_card'} readOnly />
-                    <div><strong>Card</strong><small>Instant</small></div>
-                  </div>
-                  <div className={`method-option ${paymentMethod === 'manual_bank_transfer' ? 'selected' : ''}`} onClick={() => setPaymentMethod('manual_bank_transfer')}>
-                    <input type="radio" checked={paymentMethod === 'manual_bank_transfer'} readOnly />
-                    <div><strong>Bank Transfer</strong><small>Manual with proof</small></div>
-                  </div>
-                  <div className={`method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
-                    <input type="radio" checked={paymentMethod === 'cash'} readOnly />
-                    <div><strong>Cash</strong><small>Office</small></div>
-                  </div>
-                </div>
-              </div>
-
-              {paymentMethod === 'gcash' && (
-                <div className="payment-form">
-                  <div className="gcash-details">
-                    <h4>GCash Details</h4>
-                    <p>Number: <strong>0917XXXXXXX</strong></p>
-                    <p>Name: <strong>SALFER ENGINEERING CORP</strong></p>
-                  </div>
-                  <div className="form-group">
-                    <label>Reference</label>
-                    <input
-                      type="text"
-                      value={paymentReference}
-                      onChange={(e) => setPaymentReference(e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Screenshot</label>
-                    <input type="file" accept="image/*" onChange={(e) => setPaymentProof(e.target.files[0])} />
-                  </div>
-                  <button className="confirm-btn" onClick={handlePaymentSubmit} disabled={isSubmitting}>
-                    {isSubmitting ? 'Processing...' : 'Submit'}
-                  </button>
-                </div>
-              )}
-
-              {paymentMethod === 'paymongo_card' && (
-                <div className="payment-form">
-                  <div className="card-form">
-                    <div className="form-group">
-                      <label>Card Number</label>
-                      <input type="text" id="card-number" placeholder="1234 5678 9012 3456" />
-                    </div>
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>Expiry</label>
-                        <input type="text" id="card-expiry" placeholder="MM/YY" />
-                      </div>
-                      <div className="form-group">
-                        <label>CVC</label>
-                        <input type="text" id="card-cvc" placeholder="123" />
-                      </div>
-                    </div>
-                    <button className="paymongo-btn" onClick={handlePayMongoCardPayment} disabled={isSubmitting}>
-                      {isSubmitting ? 'Processing...' : `Pay ${formatCurrency(selectedItem.amount)}`}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {paymentMethod === 'manual_bank_transfer' && <ManualBankTransferSection />}
-
-              {paymentMethod === 'cash' && (
-                <div className="payment-form">
-                  <div className="cash-details">
-                    <div className="info-box">
-                      <strong>Office Address</strong>
-                      <p>Purok 2, Masaya, San Jose, Camarines Sur</p>
-                    </div>
-                    <button className="confirm-btn" onClick={handleCashPaymentSubmit} disabled={isSubmitting}>
-                      Confirm
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={closeModal}>Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {showDetailsModal && detailsItem && (
-          <div className="modal-overlay" onClick={() => setShowDetailsModal(false)}>
-            <div className="modal details-modal" onClick={e => e.stopPropagation()}>
-              <button className="modal-close" onClick={() => setShowDetailsModal(false)}>×</button>
-              <h3>Transaction Details</h3>
-              <div className="details-content">
-                {detailsItem.bookingReference ? (
-                  <>
-                    <div className="details-section">
-                      <h4>Booking Information</h4>
-                      <p><strong>Reference:</strong> {detailsItem.bookingReference}</p>
-                      <p><strong>Status:</strong> {detailsItem.paymentStatus || detailsItem.status}</p>
-                      <p><strong>Amount:</strong> {formatCurrency(detailsItem.amount)}</p>
-                      <p><strong>Date:</strong> {detailsItem.date}</p>
-                      <p><strong>Due Date:</strong> {detailsItem.dueDate}</p>
-                    </div>
-                    <div className="details-section">
-                      <h4>Assessment Details</h4>
-                      <p><strong>Property Type:</strong> {detailsItem.propertyType || 'N/A'}</p>
-                      <p><strong>Desired Capacity:</strong> {detailsItem.desiredCapacity ? `${detailsItem.desiredCapacity} kW` : 'N/A'}</p>
-                      <p><strong>Roof Type:</strong> {detailsItem.roofType || 'N/A'}</p>
-                      <p><strong>Address:</strong> {formatAddress(detailsItem.address)}</p>
-                    </div>
-                    {detailsItem.systemSize && (
-                      <div className="details-section">
-                        <h4>Quotation Details</h4>
-                        <p><strong>System Size:</strong> {detailsItem.systemSize} kWp</p>
-                        <p><strong>System Type:</strong> {detailsItem.systemType || 'N/A'}</p>
-                        <p><strong>Panels Needed:</strong> {detailsItem.panelsNeeded || 'N/A'}</p>
-                        <p><strong>Total Cost:</strong> {formatCurrency(detailsItem.totalCost)}</p>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className="details-section">
-                      <h4>Bill Information</h4>
-                      <p><strong>Invoice:</strong> {detailsItem.id}</p>
-                      <p><strong>Project:</strong> {detailsItem.projectName || 'N/A'}</p>
-                      <p><strong>Status:</strong> {detailsItem.status}</p>
-                      <p><strong>Date:</strong> {detailsItem.date}</p>
-                      <p><strong>Due Date:</strong> {detailsItem.dueDate}</p>
-                      {detailsItem.invoiceType && (
-                        <p><strong>Invoice Type:</strong> {getInvoiceTypeLabel(detailsItem)}</p>
-                      )}
-                    </div>
-                    <div className="details-section">
-                      <h4>Payment Details</h4>
-                      <p><strong>Total:</strong> {formatCurrency(detailsItem.totalAmount || detailsItem.amount)}</p>
-                      {detailsItem.amountPaid > 0 && <p><strong>Paid:</strong> {formatCurrency(detailsItem.amountPaid)}</p>}
-                      {detailsItem.balance > 0 && <p><strong>Balance:</strong> {formatCurrency(detailsItem.balance)}</p>}
-                    </div>
-                  </>
                 )}
-              </div>
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowDetailsModal(false)}>Close</button>
+
+                {paymentMethod === 'paymongo_card' && (
+                  <div className="billing-customer-payment-form">
+                    <div className="billing-customer-card-form">
+                      <div className="billing-customer-form-group">
+                        <label>Card Number</label>
+                        <input type="text" id="full-card-number" placeholder="1234 5678 9012 3456" />
+                      </div>
+                      <div className="billing-customer-form-row">
+                        <div className="billing-customer-form-group">
+                          <label>Expiry</label>
+                          <input type="text" id="full-card-expiry" placeholder="MM/YY" />
+                        </div>
+                        <div className="billing-customer-form-group">
+                          <label>CVC</label>
+                          <input type="text" id="full-card-cvc" placeholder="123" />
+                        </div>
+                      </div>
+                      <button className="billing-customer-paymongo-btn" onClick={handleProjectPayMongoCardPayment} disabled={isSubmitting}>
+                        {isSubmitting ? 'Processing...' : `Pay ${formatCurrency(selectedItem.balance || selectedItem.totalAmount)}`}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {paymentMethod === 'manual_bank_transfer' && <ManualBankTransferSection />}
+
+                {paymentMethod === 'cash' && (
+                  <div className="billing-customer-payment-form">
+                    <div className="billing-customer-cash-details">
+                      <div className="billing-customer-info-box">
+                        <strong>Office Address</strong>
+                        <p>Purok 2, Masaya, San Jose, Camarines Sur</p>
+                        <p>Mon-Fri, 8AM-5PM</p>
+                      </div>
+                      <button className="billing-customer-confirm-btn" onClick={handleFullPaymentSubmit} disabled={isSubmitting}>
+                        Confirm Cash Payment
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="billing-customer-modal-actions">
+                  <button className="billing-customer-cancel-btn" onClick={closeFullPaymentModal}>Cancel</button>
+                </div>
               </div>
             </div>
           </div>
         )}
 
+        {/* Payment Modal (Pre-assessment) */}
+        {showPaymentModal && selectedItem && (
+          <div className="billing-customer-modal-overlay" onClick={closeModal}>
+            <div className="billing-customer-modal billing-customer-payment-modal" onClick={e => e.stopPropagation()}>
+              <button className="billing-customer-modal-close" onClick={closeModal}>×</button>
+              <h3>Make Payment</h3>
+              <div className="billing-customer-modal-scroll-content" ref={scrollContainerRef}>
+                <div className="billing-customer-payment-summary">
+                  <p><strong>Invoice:</strong> {selectedItem.invoiceNumber || selectedItem.id}</p>
+                  <p><strong>Amount:</strong> {formatCurrency(selectedItem.amount)}</p>
+                </div>
+
+                <div className="billing-customer-payment-methods">
+                  <h4>Payment Method</h4>
+                  <div className="billing-customer-method-options">
+                    <div className={`billing-customer-method-option ${paymentMethod === 'gcash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('gcash')}>
+                      <input type="radio" checked={paymentMethod === 'gcash'} readOnly />
+                      <div><strong>GCash</strong><small>Upload receipt</small></div>
+                    </div>
+                    <div className={`billing-customer-method-option ${paymentMethod === 'paymongo_card' ? 'selected' : ''}`} onClick={() => setPaymentMethod('paymongo_card')}>
+                      <input type="radio" checked={paymentMethod === 'paymongo_card'} readOnly />
+                      <div><strong>Card</strong><small>Instant</small></div>
+                    </div>
+                    <div className={`billing-customer-method-option ${paymentMethod === 'manual_bank_transfer' ? 'selected' : ''}`} onClick={() => setPaymentMethod('manual_bank_transfer')}>
+                      <input type="radio" checked={paymentMethod === 'manual_bank_transfer'} readOnly />
+                      <div><strong>Bank Transfer</strong><small>Manual with proof</small></div>
+                    </div>
+                    <div className={`billing-customer-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
+                      <input type="radio" checked={paymentMethod === 'cash'} readOnly />
+                      <div><strong>Cash</strong><small>Office</small></div>
+                    </div>
+                  </div>
+                </div>
+
+                {paymentMethod === 'gcash' && (
+                  <div className="billing-customer-payment-form">
+                    <div className="billing-customer-gcash-details">
+                      <h4>GCash Details</h4>
+                      <p>Number: <strong>0917XXXXXXX</strong></p>
+                      <p>Name: <strong>SALFER ENGINEERING CORP</strong></p>
+                    </div>
+                    <div className="billing-customer-form-group">
+                      <label>Reference</label>
+                      <input
+                        type="text"
+                        value={paymentReference}
+                        onChange={handlePaymentReferenceChange}
+                      />
+                    </div>
+                    <div className="billing-customer-form-group">
+                      <label>Screenshot</label>
+                      <input type="file" accept="image/*" onChange={handlePaymentProofChange} />
+                    </div>
+                    <button className="billing-customer-confirm-btn" onClick={handlePaymentSubmit} disabled={isSubmitting}>
+                      {isSubmitting ? 'Processing...' : 'Submit'}
+                    </button>
+                  </div>
+                )}
+
+                {paymentMethod === 'paymongo_card' && (
+                  <div className="billing-customer-payment-form">
+                    <div className="billing-customer-card-form">
+                      <div className="billing-customer-form-group">
+                        <label>Card Number</label>
+                        <input type="text" id="card-number" placeholder="1234 5678 9012 3456" />
+                      </div>
+                      <div className="billing-customer-form-row">
+                        <div className="billing-customer-form-group">
+                          <label>Expiry</label>
+                          <input type="text" id="card-expiry" placeholder="MM/YY" />
+                        </div>
+                        <div className="billing-customer-form-group">
+                          <label>CVC</label>
+                          <input type="text" id="card-cvc" placeholder="123" />
+                        </div>
+                      </div>
+                      <button className="billing-customer-paymongo-btn" onClick={handlePayMongoCardPayment} disabled={isSubmitting}>
+                        {isSubmitting ? 'Processing...' : `Pay ${formatCurrency(selectedItem.amount)}`}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {paymentMethod === 'manual_bank_transfer' && <ManualBankTransferSection />}
+
+                {paymentMethod === 'cash' && (
+                  <div className="billing-customer-payment-form">
+                    <div className="billing-customer-cash-details">
+                      <div className="billing-customer-info-box">
+                        <strong>Office Address</strong>
+                        <p>Purok 2, Masaya, San Jose, Camarines Sur</p>
+                      </div>
+                      <button className="billing-customer-confirm-btn" onClick={handleCashPaymentSubmit} disabled={isSubmitting}>
+                        Confirm
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="billing-customer-modal-actions">
+                  <button className="billing-customer-cancel-btn" onClick={closeModal}>Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Details Modal */}
+        {showDetailsModal && detailsItem && (
+          <div className="billing-customer-modal-overlay" onClick={() => setShowDetailsModal(false)}>
+            <div className="billing-customer-modal billing-customer-details-modal" onClick={e => e.stopPropagation()}>
+              <button className="billing-customer-modal-close" onClick={() => setShowDetailsModal(false)}>×</button>
+              <h3>Transaction Details</h3>
+              <div className="billing-customer-modal-scroll-content" ref={scrollContainerRef}>
+                <div className="billing-customer-details-content">
+                  {detailsItem.bookingReference ? (
+                    <>
+                      <div className="billing-customer-details-section">
+                        <h4>Booking Information</h4>
+                        <p><strong>Reference:</strong> {detailsItem.bookingReference}</p>
+                        <p><strong>Status:</strong> {detailsItem.paymentStatus || detailsItem.status}</p>
+                        <p><strong>Amount:</strong> {formatCurrency(detailsItem.amount)}</p>
+                        <p><strong>Date:</strong> {detailsItem.date}</p>
+                        <p><strong>Due Date:</strong> {detailsItem.dueDate}</p>
+                      </div>
+                      <div className="billing-customer-details-section">
+                        <h4>Assessment Details</h4>
+                        <p><strong>Property Type:</strong> {detailsItem.propertyType || 'N/A'}</p>
+                        <p><strong>Desired Capacity:</strong> {detailsItem.desiredCapacity ? `${detailsItem.desiredCapacity} kW` : 'N/A'}</p>
+                        <p><strong>Roof Type:</strong> {detailsItem.roofType || 'N/A'}</p>
+                        <p><strong>Address:</strong> {formatAddress(detailsItem.address)}</p>
+                      </div>
+                      {detailsItem.systemSize && (
+                        <div className="billing-customer-details-section">
+                          <h4>Quotation Details</h4>
+                          <p><strong>System Size:</strong> {detailsItem.systemSize} kWp</p>
+                          <p><strong>System Type:</strong> {detailsItem.systemType || 'N/A'}</p>
+                          <p><strong>Panels Needed:</strong> {detailsItem.panelsNeeded || 'N/A'}</p>
+                          <p><strong>Total Cost:</strong> {formatCurrency(detailsItem.totalCost)}</p>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className="billing-customer-details-section">
+                        <h4>Bill Information</h4>
+                        <p><strong>Invoice:</strong> {detailsItem.id}</p>
+                        <p><strong>Project:</strong> {detailsItem.projectName || 'N/A'}</p>
+                        <p><strong>Status:</strong> {detailsItem.status}</p>
+                        <p><strong>Date:</strong> {detailsItem.date}</p>
+                        <p><strong>Due Date:</strong> {detailsItem.dueDate}</p>
+                        {detailsItem.invoiceType && (
+                          <p><strong>Invoice Type:</strong> {getInvoiceTypeLabel(detailsItem)}</p>
+                        )}
+                      </div>
+                      <div className="billing-customer-details-section">
+                        <h4>Payment Details</h4>
+                        <p><strong>Total:</strong> {formatCurrency(detailsItem.totalAmount || detailsItem.amount)}</p>
+                        {detailsItem.amountPaid > 0 && <p><strong>Paid:</strong> {formatCurrency(detailsItem.amountPaid)}</p>}
+                        {detailsItem.balance > 0 && <p><strong>Balance:</strong> {formatCurrency(detailsItem.balance)}</p>}
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div className="billing-customer-modal-actions">
+                  <button className="billing-customer-cancel-btn" onClick={() => setShowDetailsModal(false)}>Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Success Modal */}
         {showSuccessModal && (
-          <div className="modal-overlay" onClick={closeSuccessModal}>
-            <div className="modal success-modal" onClick={e => e.stopPropagation()}>
-              <div className="success-icon">✓</div>
+          <div className="billing-customer-modal-overlay" onClick={closeSuccessModal}>
+            <div className="billing-customer-modal billing-customer-success-modal" onClick={e => e.stopPropagation()}>
+              <div className="billing-customer-success-icon">✓</div>
               <h3>{successMessage}</h3>
-              <div className="success-content">
+              <div className="billing-customer-success-content">
                 <p><strong>{successDetails?.title}</strong></p>
                 <p>{successDetails?.message}</p>
-                {successDetails?.reference && <p className="success-ref">Reference: {successDetails.reference}</p>}
+                {successDetails?.reference && <p className="billing-customer-success-ref">Reference: {successDetails.reference}</p>}
               </div>
-              <button className="success-btn" onClick={closeSuccessModal}>Close</button>
+              <button className="billing-customer-success-btn" onClick={closeSuccessModal}>Close</button>
             </div>
           </div>
         )}

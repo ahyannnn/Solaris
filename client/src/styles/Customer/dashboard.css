@@ -7,7 +7,6 @@
 .dashboard-container-cusdash {
   padding-inline: 24px;
   margin: 0 auto;
-  max-width: 1400px;
 }
 
 /* ============================================
@@ -21,7 +20,6 @@
   border-bottom: 1px solid var(--border-light);
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
-  gap: 1rem;
 }
 
 .welcome-content-cusdash {

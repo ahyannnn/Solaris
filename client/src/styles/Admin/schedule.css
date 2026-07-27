@@ -1,505 +1,385 @@
-/* styles/Admin/schedule.css - Clean Professional Design */
+/* src/styles/Admin/schedule.css */
+
+/* =========================================
+   SCHEDULE MANAGEMENT - MATCH SITE ASSESSMENT
+   ========================================= */
 
 :root {
-  --primary: #2563EB;
-  --primary-hover: #1D4ED8;
-  --success: #22C55E;
-  --warning: #F59E0B;
-  --danger: #EF4444;
-  --bg-base: #F8FAFC;
-  --bg-card: #FFFFFF;
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #64748B;
-  --border-light: #E2E8F0;
-  --border-medium: #CBD5E1;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05);
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
-  --radius-2xl: 24px;
+  --primary-blue: #2563eb;
+  --primary-blue-light: #dbeafe;
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-500: #64748b;
+  --gray-700: #334155;
+  --gray-900: #0f172a;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  --border-radius: 16px;
 }
 
-/* ============================================
-   MAIN CONTAINER
-   ============================================ */
+/* --- Base Layout - MATCH SITE ASSESSMENT --- */
 .schedule-management-adsche {
-  padding: 24px;
-  background: var(--bg-base);
-  min-height: calc(100vh - 70px);
+  background-color: var(--gray-50);
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--gray-900);
+  padding: 0;
 }
 
-/* ============================================
-   HEADER
-   ============================================ */
+/* --- Minimalist Header - MATCH SITE ASSESSMENT --- */
 .schedule-header-adsche {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 28px;
+  align-items: flex-start;
+  height: 5px;
+  padding: 0;
+}
+
+/* =========================================
+   TABS - MATCH SITE ASSESSMENT
+   ========================================= */
+.schedule-tabs-adsche {
+  display: flex;
+  gap: 0px;
+  border-bottom: 1px solid var(--gray-200);
+  margin: 0 0 16px 0;
+  padding: 0;
   flex-wrap: wrap;
-  gap: 16px;
 }
 
-.schedule-header-adsche h1 {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 4px 0;
-  letter-spacing: -0.02em;
-}
-
-.schedule-header-adsche p {
-  font-size: 14px;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.header-actions-adsche {
+.tab-btn-adsche {
+  background: transparent;
+  border: none;
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--gray-500);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-.total-count-adsche {
-  padding: 8px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
+.tab-btn-adsche:hover {
+  color: var(--primary-blue);
 }
 
-/* ============================================
-   STATS CARDS - PLAIN
-   ============================================ */
-.schedule-stats-adsche {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
+.tab-btn-adsche.active-adsche {
+  color: var(--primary-blue);
+  font-weight: 600;
 }
 
-.stat-card-adsche {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-light);
-  padding: 16px 20px;
-  box-shadow: var(--shadow-sm);
+.tab-btn-adsche.active-adsche::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 24px;
+  right: 24px;
+  height: 3px;
+  background-color: var(--primary-blue);
+  border-radius: 10px 10px 0 0;
 }
 
-.stat-card-adsche .stat-info-adsche {
-  display: flex;
-  flex-direction: column;
+.tab-badge-adsche {
+  background-color: var(--gray-100);
+  color: var(--gray-500);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 50px;
 }
 
-.stat-card-adsche .stat-value-adsche {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text-primary);
+.tab-btn-adsche.active-adsche .tab-badge-adsche {
+  background-color: var(--primary-blue-light);
+  color: var(--primary-blue);
 }
 
-.stat-card-adsche .stat-label-adsche {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-/* ============================================
-   FILTERS
-   ============================================ */
+/* =========================================
+   TOOLBAR - MATCH SITE ASSESSMENT
+   ========================================= */
 .schedule-filters-adsche {
   display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
   align-items: center;
-}
-
-.filter-group-adsche {
-  position: relative;
-}
-
-.filter-group-adsche .filter-icon-adsche {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
-}
-
-.filter-group-adsche select {
-  padding: 10px 16px 10px 38px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  color: var(--text-primary);
-  cursor: pointer;
-  min-width: 160px;
-  transition: all 0.2s;
-  appearance: none;
-}
-
-.filter-group-adsche select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  gap: 16px;
+  padding: 0;
+  margin-bottom: 16px;
+  flex-wrap: nowrap;
 }
 
 .search-group-adsche {
-  flex: 1;
-  min-width: 200px;
+  flex: 0 0 280px;
+  max-width: 320px;
   position: relative;
 }
 
-.search-group-adsche .search-icon-adsche {
+.search-icon-adsche {
   position: absolute;
-  left: 12px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-muted);
+  color: var(--gray-500);
+  font-size: 14px;
 }
 
 .search-group-adsche input {
   width: 100%;
-  padding: 10px 16px 10px 38px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
+  padding: 12px 14px 12px 42px;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
   font-size: 14px;
-  color: var(--text-primary);
-  transition: all 0.2s;
+  background: #FFFFFF;
+  color: var(--gray-900);
+  outline: none;
+  transition: all 0.2s ease;
 }
 
 .search-group-adsche input:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px var(--primary-blue-light);
+}
+
+.search-group-adsche input::placeholder {
+  color: var(--gray-500);
+}
+
+.filter-group-adsche {
+  flex: 0 0 auto;
+  position: relative;
+}
+
+.filter-group-adsche select {
+  appearance: none;
+  padding: 12px 44px 12px 16px;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  background: #FFFFFF;
+  color: var(--gray-900);
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 150px;
 }
 
-/* ============================================
-   SCHEDULE CARDS
-   ============================================ */
-.schedule-cards-container-adsche {
+.filter-group-adsche select:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px var(--primary-blue-light);
+}
+
+.select-arrow-adsche {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-500);
+  pointer-events: none;
+  font-size: 12px;
+}
+
+.refresh-btn-adsche {
+  flex: 0 0 auto;
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 24px;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.schedule-card-adsche {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-light);
+.refresh-btn-adsche:hover {
+  background: var(--gray-100);
+  border-color: var(--gray-300);
+  color: var(--gray-900);
+}
+
+@keyframes spin-adsche {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinning-adsche {
+  animation: spin-adsche 1s linear infinite;
+}
+
+/* =========================================
+   TABLE - MATCH SITE ASSESSMENT
+   ========================================= */
+.schedule-table-container-adsche {
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s;
-}
-
-.schedule-card-adsche:hover {
-  box-shadow: var(--shadow-md);
-}
-
-/* Card Header */
-.schedule-card-header-adsche {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 16px 20px;
-  background: var(--bg-base);
-  border-bottom: 1px solid var(--border-light);
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.schedule-card-title-adsche {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.schedule-type-icon-adsche {
-  font-size: 20px;
-  margin-top: 2px;
-  color: var(--text-muted);
-}
-
-.schedule-title-adsche {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
+  box-shadow: var(--card-shadow);
   margin: 0;
 }
 
-.schedule-ref-adsche {
-  font-size: 12px;
-  color: var(--text-muted);
-  font-family: monospace;
-}
-
-.schedule-card-status-adsche {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-/* Card Body */
-.schedule-card-body-adsche {
-  padding: 16px 20px;
-}
-
-.schedule-card-info-adsche {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 24px;
-}
-
-.info-row-adsche {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 4px 0;
-}
-
-.info-label-adsche {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.info-label-adsche svg {
-  font-size: 12px;
-}
-
-.info-value-adsche {
-  font-size: 14px;
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.client-phone-adsche {
-  font-size: 12px;
-  color: var(--text-secondary);
-  font-weight: normal;
-  margin-left: 8px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* Photos Preview */
-.schedule-card-photos-adsche {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-light);
-}
-
-.photos-label-adsche {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
-}
-
-.photos-preview-adsche {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.photo-thumb-adsche {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  border: 1px solid var(--border-light);
-}
-
-.photo-thumb-adsche img {
+.schedule-table-adsche {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  border-collapse: collapse;
+  font-size: 14px;
 }
 
-.photo-more-adsche {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-md);
-  background: var(--bg-base);
-  border: 1px solid var(--border-light);
+.schedule-table-adsche thead {
+  background: var(--primary-blue);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.schedule-table-adsche th {
+  text-align: left;
+  padding: 14px 18px;
+  font-weight: 600;
+  color: #FFFFFF;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.schedule-table-adsche tbody tr {
+  border-bottom: 1px solid var(--gray-100);
+  transition: all 0.15s ease;
+}
+
+.schedule-table-adsche tbody tr:last-child {
+  border-bottom: none;
+}
+
+.schedule-table-adsche tbody tr:hover {
+  background-color: var(--gray-50);
+}
+
+.schedule-table-adsche tbody tr:nth-child(even) {
+  background-color: #FAFBFC;
+}
+
+.schedule-table-adsche tbody tr:nth-child(even):hover {
+  background-color: var(--gray-100);
+}
+
+.schedule-table-adsche td {
+  padding: 14px 18px;
+  color: var(--gray-700);
+  vertical-align: middle;
+  text-align: left;
+}
+
+.empty-state-adsche {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--gray-500);
+  font-size: 15px;
+}
+
+/* --- Table Cells --- */
+.ref-cell-adsche .schedule-title-adsche {
+  font-weight: 500;
+  color: var(--gray-900);
+}
+
+.ref-cell-adsche .schedule-id-adsche {
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+.client-cell-adsche .client-contact-adsche {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-/* Description */
-.schedule-card-description-adsche {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-light);
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.desc-icon-adsche {
-  font-size: 14px;
-  color: var(--text-muted);
+  gap: 4px;
+  font-size: 12px;
+  color: var(--gray-500);
   margin-top: 2px;
 }
 
-/* Card Footer */
-.schedule-card-footer-adsche {
+.date-cell-adsche {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 20px;
-  background: var(--bg-base);
-  border-top: 1px solid var(--border-light);
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.view-details-btn-adsche {
-  display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 20px;
-  background: var(--primary);
-  color: #FFFFFF;
-  border: none;
-  border-radius: var(--radius-md);
+}
+
+.time-cell-adsche {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
+  color: var(--gray-500);
+  margin-top: 2px;
 }
 
-.view-details-btn-adsche:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
+.cell-icon-adsche {
+  font-size: 13px;
+  color: var(--gray-500);
 }
 
-/* ============================================
-   BADGES - PLAIN TEXT
-   ============================================ */
+/* --- Badges - REMOVED ALL COLORS, PLAIN GRAY ONLY --- */
 .status-badge-adsche {
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 20px;
+  border-radius: 6px;
   font-size: 12px;
-  font-weight: 500;
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
+  font-weight: 600;
+  background: var(--gray-100);
+  color: var(--gray-700);
+  text-transform: capitalize;
 }
 
-.status-badge-adsche.scheduled {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.status-badge-adsche.confirmed {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.status-badge-adsche.in-progress {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.status-badge-adsche.completed {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.status-badge-adsche.cancelled {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.status-badge-adsche.rescheduled {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
+/* REMOVED all status color variants - keeping only plain gray */
 
 .type-badge-adsche {
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 500;
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--gray-100);
+  color: var(--gray-700);
 }
 
-.type-badge-adsche.pre-assessment {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
+/* REMOVED all type color variants - keeping only plain gray */
 
-.type-badge-adsche.site-visit {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.type-badge-adsche.installation {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.type-badge-adsche.inspection {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-/* ============================================
-   ACTION DROPDOWN
-   ============================================ */
+/* --- Action Dropdowns - MATCH SITE ASSESSMENT --- */
 .action-dropdown-container-adsche {
   position: relative;
   display: inline-block;
 }
 
 .action-dropdown-toggle-adsche {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
+  gap: 6px;
+  padding: 6px 14px;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .action-dropdown-toggle-adsche:hover {
-  background: var(--bg-base);
-  border-color: var(--border-medium);
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+  color: var(--gray-900);
 }
 
 .dropdown-arrow-adsche {
-  font-size: 11px;
-  transition: transform 0.2s;
+  font-size: 10px;
+  transition: transform 0.2s ease;
 }
 
 .dropdown-arrow-adsche.open-adsche {
@@ -507,26 +387,13 @@
 }
 
 .action-dropdown-menu-adsche {
-  position: fixed;
-  min-width: 200px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  z-index: 9999;
+  min-width: 180px;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+  padding: 6px 0;
   overflow: hidden;
-  animation: dropdownFadeIn 0.15s ease;
-}
-
-@keyframes dropdownFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
 }
 
 .dropdown-item-adsche {
@@ -534,223 +401,252 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 12px 16px;
-  background: none;
+  padding: 10px 16px;
+  background: transparent;
   border: none;
-  border-bottom: 1px solid var(--border-light);
-  font-size: 13px;
-  color: var(--text-primary);
+  font-size: 14px;
+  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s ease;
   text-align: left;
 }
 
-.dropdown-item-adsche:last-child {
-  border-bottom: none;
-}
-
 .dropdown-item-adsche:hover {
-  background: var(--bg-base);
+  background: var(--gray-50);
 }
 
-.dropdown-item-adsche.primary svg {
-  color: var(--primary);
+.dropdown-item-adsche svg {
+  font-size: 14px;
+  color: var(--gray-500);
+  width: 16px;
+  text-align: center;
 }
 
-.dropdown-item-adsche.warning svg {
-  color: var(--warning);
-}
-
-.dropdown-item-adsche.success svg {
-  color: var(--success);
-}
-
-.dropdown-item-adsche.danger svg {
-  color: var(--danger);
-}
-
-.dropdown-item-adsche.primary:hover {
-  background: var(--primary);
-  color: #FFFFFF;
-}
-.dropdown-item-adsche.primary:hover svg {
-  color: #FFFFFF;
-}
-
-.dropdown-item-adsche.warning:hover {
-  background: var(--warning);
-  color: #FFFFFF;
-}
-.dropdown-item-adsche.warning:hover svg {
-  color: #FFFFFF;
-}
-
-.dropdown-item-adsche.success:hover {
-  background: var(--success);
-  color: #FFFFFF;
-}
-.dropdown-item-adsche.success:hover svg {
-  color: #FFFFFF;
-}
-
-.dropdown-item-adsche.danger:hover {
-  background: var(--danger);
-  color: #FFFFFF;
-}
-.dropdown-item-adsche.danger:hover svg {
-  color: #FFFFFF;
-}
-
-/* ============================================
-   PAGINATION
-   ============================================ */
+/* =========================================
+   PAGINATION - MATCH SITE ASSESSMENT
+   ========================================= */
 .pagination-adsche {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
+  padding: 16px 0 0 0;
+  flex-wrap: wrap;
   gap: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-light);
+}
+
+.pagination-info-adsche {
+  color: var(--gray-500);
+  font-size: 14px;
+}
+
+.pagination-controls-adsche {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .page-btn-adsche {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   padding: 8px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  color: var(--text-secondary);
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .page-btn-adsche:hover:not(:disabled) {
-  background: var(--bg-base);
-  border-color: var(--border-medium);
+  background: var(--gray-50);
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
 }
 
 .page-btn-adsche:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  opacity: 0.5;
+  cursor: default;
+  border-color: var(--gray-100);
 }
 
-.page-info-adsche {
+.page-number-adsche {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* ============================================
-   MODAL
-   ============================================ */
+.page-number-adsche:hover:not(.active-adsche) {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+}
+
+.page-number-adsche.active-adsche {
+  background: var(--primary-blue);
+  color: #FFFFFF;
+  border-color: var(--primary-blue);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+}
+
+/* =========================================
+   DETAIL MODAL - MATCH SITE ASSESSMENT
+   ========================================= */
 .modal-overlay-adsche {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9998;
 }
 
 .modal-content-adsche {
-  background: var(--bg-card);
-  border-radius: var(--radius-2xl);
+  background: #FFFFFF;
+  border-radius: var(--border-radius);
+  max-width: 700px;
   width: 90%;
-  max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  padding: 28px 32px;
-  box-shadow: var(--shadow-lg);
-  animation: modalFadeIn 0.25s ease;
+  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
+  padding: 0;
 }
 
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(-16px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+.modal-header-adsche {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.modal-header-adsche h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin: 0;
 }
 
 .modal-close-adsche {
-  float: right;
+  background: var(--gray-100);
+  border: none;
   width: 32px;
   height: 32px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: var(--text-muted);
+  border-radius: 50%;
+  font-size: 18px;
+  color: var(--gray-500);
   cursor: pointer;
-  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .modal-close-adsche:hover {
-  background: var(--bg-base);
-  color: var(--text-primary);
+  background: var(--gray-200);
+  color: var(--gray-900);
 }
 
-.modal-content-adsche h3 {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 20px 0;
+.modal-body-adsche {
+  padding: 28px;
+}
+
+.modal-actions-adsche {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 28px;
+  border-top: 1px solid var(--gray-200);
+}
+
+.modal-actions-adsche button {
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid var(--gray-200);
+  background: #FFFFFF;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-actions-adsche button:hover:not(:disabled) {
+  background: var(--gray-50);
+}
+
+.close-btn-adsche {
+  background: var(--primary-blue) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary-blue) !important;
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.15) !important;
+}
+
+.close-btn-adsche:hover {
+  background: #1d4ed8 !important;
+  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.25) !important;
 }
 
 .detail-section-adsche {
-  margin-bottom: 20px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--gray-100);
 }
 
-.detail-section-adsche:last-child {
-  margin-bottom: 0;
+.detail-section-adsche:last-of-type {
+  border-bottom: none;
 }
 
 .detail-section-adsche h4 {
   font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 8px 0;
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--border-light);
+  font-weight: 700;
+  color: var(--gray-500);
+  margin: 0 0 14px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .detail-section-adsche p {
-  margin: 4px 0;
+  margin: 6px 0;
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--gray-700);
 }
 
-.detail-section-adsche strong {
-  color: var(--text-primary);
+.detail-section-adsche p strong {
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-right: 6px;
 }
 
-/* Site Photos Grid */
+/* --- Site Photos Grid --- */
 .site-photos-grid-adsche {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
   margin-top: 8px;
 }
 
 .site-photo-item-adsche {
   position: relative;
-  aspect-ratio: 1;
-  border-radius: var(--radius-md);
+  border-radius: 8px;
   overflow: hidden;
-  cursor: pointer;
+  aspect-ratio: 1;
+  border: 1px solid var(--gray-200);
 }
 
 .site-photo-item-adsche img {
@@ -761,308 +657,453 @@
 
 .photo-overlay-adsche {
   position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.5);
   color: #FFFFFF;
-  font-size: 24px;
-}
-
-.site-photo-item-adsche:hover .photo-overlay-adsche {
-  opacity: 1;
-}
-
-/* Modal Actions */
-.modal-actions-adsche {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-light);
-}
-
-.close-btn-adsche {
-  padding: 10px 24px;
-  background: var(--bg-base);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.close-btn-adsche:hover {
-  background: var(--border-light);
-}
-
-.status-btn-adsche {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 24px;
-  background: var(--primary);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 500;
-  color: #FFFFFF;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.status-btn-adsche:hover {
-  background: var(--primary-hover);
-}
-
-/* ============================================
-   EMPTY STATE
-   ============================================ */
-.empty-state-adsche {
+  padding: 4px 8px;
   text-align: center;
-  padding: 60px 20px;
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-light);
-  color: var(--text-muted);
+  font-size: 12px;
 }
 
-.empty-state-adsche p {
-  font-size: 16px;
-  margin: 0;
-}
-
-/* ============================================
-   SKELETON LOADER
-   ============================================ */
+/* =========================================
+   SKELETON LOADERS - MATCH SITE ASSESSMENT
+   ========================================= */
 .skeleton-line-adsche {
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 6px;
+  height: 20px;
+  background: var(--gray-200);
+  border-radius: 4px;
 }
 
 .skeleton-line-adsche.large {
-  height: 32px;
   width: 200px;
-  margin-bottom: 8px;
 }
 
 .skeleton-line-adsche.medium {
-  height: 18px;
-  width: 250px;
-  margin-bottom: 4px;
+  width: 150px;
 }
 
-.skeleton-line-adsche.small {
-  height: 14px;
-  width: 80px;
-}
-
-.skeleton-card-adsche {
-  padding: 16px 20px;
+.skeleton-tab-adsche {
+  height: 40px;
+  width: 100px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  margin-right: 12px;
 }
 
 .skeleton-select-adsche {
-  height: 44px;
-  width: 180px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: var(--radius-md);
+  height: 40px;
+  width: 160px;
+  background: var(--gray-200);
+  border-radius: 8px;
 }
 
 .skeleton-search-adsche {
-  height: 44px;
-  flex: 1;
-  min-width: 200px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: var(--radius-md);
+  height: 40px;
+  width: 250px;
+  background: var(--gray-200);
+  border-radius: 8px;
 }
 
-.schedule-card-skeleton-adsche {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-light);
-  padding: 20px;
+.skeleton-table-adsche {
+  height: 400px;
+  background: var(--gray-200);
+  border-radius: 0;
 }
 
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+@keyframes shimmer-adsche {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
 }
 
-/* ============================================
-   RESPONSIVE
-   ============================================ */
+.skeleton-line-adsche,
+.skeleton-tab-adsche,
+.skeleton-select-adsche,
+.skeleton-search-adsche,
+.skeleton-table-adsche {
+  background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
+  background-size: 200px 100%;
+  animation: shimmer-adsche 1.5s infinite;
+}
+
+/* =========================================
+   RESPONSIVE - MATCH SITE ASSESSMENT
+   ========================================= */
 @media (max-width: 1024px) {
-  .schedule-stats-adsche {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .schedule-card-info-adsche {
-    grid-template-columns: 1fr;
+  .site-photos-grid-adsche {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   }
 }
 
 @media (max-width: 768px) {
+  /* Main container */
   .schedule-management-adsche {
-    padding: 16px;
+    padding: 16px !important;
   }
 
   .schedule-header-adsche {
-    flex-direction: column;
-    align-items: flex-start;
+    padding: 0 !important;
   }
 
-  .schedule-header-adsche h1 {
-    font-size: 22px;
+  /* Tabs - scrollable on mobile */
+  .schedule-tabs-adsche {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    gap: 0 !important;
+    margin: 0 0 12px 0 !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
 
-  .schedule-stats-adsche {
-    grid-template-columns: 1fr 1fr;
+  .schedule-tabs-adsche::-webkit-scrollbar {
+    display: none;
   }
 
+  .tab-btn-adsche {
+    padding: 10px 16px !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    flex: none !important;
+  }
+
+  .tab-btn-adsche.active-adsche::after {
+    left: 16px !important;
+    right: 16px !important;
+  }
+
+  .tab-badge-adsche {
+    font-size: 10px !important;
+    padding: 1px 8px !important;
+  }
+
+  /* Toolbar - full width on mobile */
   .schedule-filters-adsche {
-    flex-direction: column;
-  }
-
-  .filter-group-adsche select {
-    width: 100%;
-    min-width: unset;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding: 0 !important;
+    margin-bottom: 12px !important;
   }
 
   .search-group-adsche {
-    width: 100%;
-    min-width: unset;
+    flex: 1 1 auto !important;
+    max-width: 100% !important;
+    min-width: auto !important;
   }
 
-  .schedule-card-header-adsche {
-    flex-direction: column;
-    align-items: flex-start;
+  .search-group-adsche input {
+    font-size: 14px !important;
+    padding: 10px 14px 10px 38px !important;
   }
 
-  .schedule-card-footer-adsche {
-    flex-direction: column;
-    align-items: stretch;
+  .filter-group-adsche {
+    width: 100% !important;
   }
 
-  .view-details-btn-adsche {
-    width: 100%;
-    justify-content: center;
+  .filter-group-adsche select {
+    width: 100% !important;
+    min-width: auto !important;
+    font-size: 14px !important;
+    padding: 10px 40px 10px 14px !important;
   }
 
-  .action-dropdown-container-adsche {
-    width: 100%;
+  .refresh-btn-adsche {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 10px !important;
+    font-size: 14px !important;
   }
 
-  .action-dropdown-toggle-adsche {
-    width: 100%;
-    justify-content: center;
+  /* Table container */
+  .schedule-table-container-adsche {
+    margin: 0 !important;
   }
 
-  .modal-content-adsche {
-    padding: 20px;
-    margin: 10px;
-    width: 95%;
+  /* Mobile card view - table becomes cards */
+  .schedule-table-adsche thead {
+    display: none !important;
   }
 
-  .site-photos-grid-adsche {
-    grid-template-columns: repeat(2, 1fr);
+  .schedule-table-adsche tbody tr {
+    display: block !important;
+    border: 1px solid var(--gray-200) !important;
+    border-radius: 12px !important;
+    margin-bottom: 12px !important;
+    padding: 16px !important;
+    background: #FFFFFF !important;
   }
 
-  .modal-actions-adsche {
-    flex-direction: column;
+  .schedule-table-adsche tbody tr:nth-child(even) {
+    background: #FFFFFF !important;
   }
 
-  .modal-actions-adsche button {
-    width: 100%;
-    justify-content: center;
+  .schedule-table-adsche tbody tr:hover {
+    background: #FFFFFF !important;
   }
 
+  .schedule-table-adsche td {
+    display: flex !important;
+    justify-content: space-between !important;
+    padding: 8px 0 !important;
+    border: none !important;
+    text-align: right !important;
+    font-size: 13px !important;
+  }
+
+  .schedule-table-adsche td::before {
+    content: attr(data-label) !important;
+    font-weight: 600 !important;
+    color: var(--gray-500) !important;
+    text-align: left !important;
+    padding-right: 16px !important;
+    font-size: 12px !important;
+  }
+
+  .ref-cell-adsche .schedule-title-adsche {
+    font-size: 13px !important;
+  }
+
+  .client-cell-adsche .client-contact-adsche {
+    font-size: 11px !important;
+  }
+
+  .date-cell-adsche {
+    font-size: 13px !important;
+  }
+
+  .time-cell-adsche {
+    font-size: 12px !important;
+  }
+
+  /* Pagination */
   .pagination-adsche {
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 480px) {
-  .schedule-stats-adsche {
-    grid-template-columns: 1fr;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding: 12px 0 0 0 !important;
   }
 
-  .stat-card-adsche .stat-value-adsche {
-    font-size: 22px;
+  .pagination-info-adsche {
+    text-align: center !important;
+    font-size: 12px !important;
   }
 
-  .schedule-title-adsche {
-    font-size: 14px;
-  }
-
-  .schedule-card-status-adsche {
-    flex-wrap: wrap;
-  }
-
-  .status-badge-adsche,
-  .type-badge-adsche {
-    font-size: 10px;
-    padding: 2px 10px;
-  }
-
-  .schedule-card-body-adsche {
-    padding: 12px 16px;
-  }
-
-  .schedule-card-footer-adsche {
-    padding: 10px 16px;
-  }
-
-  .view-details-btn-adsche {
-    font-size: 12px;
-    padding: 6px 16px;
-  }
-
-  .action-dropdown-toggle-adsche {
-    font-size: 12px;
-    padding: 6px 12px;
-  }
-
-  .modal-content-adsche h3 {
-    font-size: 18px;
-  }
-
-  .detail-section-adsche p {
-    font-size: 13px;
-  }
-
-  .site-photos-grid-adsche {
-    grid-template-columns: 1fr 1fr;
+  .pagination-controls-adsche {
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
   }
 
   .page-btn-adsche {
-    font-size: 12px;
-    padding: 6px 12px;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
   }
 
-  .page-info-adsche {
-    font-size: 12px;
+  .page-number-adsche {
+    min-width: 30px !important;
+    height: 30px !important;
+    font-size: 12px !important;
+    padding: 0 6px !important;
   }
 
-  .photo-thumb-adsche {
-    width: 44px;
-    height: 44px;
+  /* Modals */
+  .modal-content-adsche {
+    max-width: 95% !important;
+    max-height: 95vh !important;
+    border-radius: 12px !important;
+    margin: 10px !important;
   }
 
-  .photo-more-adsche {
-    width: 44px;
-    height: 44px;
-    font-size: 12px;
+  .modal-header-adsche {
+    padding: 16px 20px !important;
+  }
+
+  .modal-header-adsche h3 {
+    font-size: 17px !important;
+  }
+
+  .modal-body-adsche {
+    padding: 20px !important;
+  }
+
+  .modal-actions-adsche {
+    flex-direction: column-reverse !important;
+    padding: 16px 20px !important;
+    gap: 8px !important;
+  }
+
+  .modal-actions-adsche button {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 12px !important;
+    font-size: 14px !important;
+  }
+
+  .detail-section-adsche {
+    padding: 12px 0 !important;
+  }
+
+  .detail-section-adsche h4 {
+    font-size: 13px !important;
+  }
+
+  .detail-section-adsche p {
+    font-size: 13px !important;
+  }
+
+  .site-photos-grid-adsche {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  /* Action dropdown on mobile */
+  .action-dropdown-toggle-adsche {
+    padding: 4px 10px !important;
+    font-size: 12px !important;
+  }
+
+  .action-dropdown-toggle-adsche span {
+    display: none !important;
+  }
+
+  .action-dropdown-toggle-adsche svg {
+    font-size: 12px !important;
+  }
+
+  .action-dropdown-menu-adsche {
+    min-width: 160px !important;
+    max-width: 200px !important;
+    border-radius: 8px !important;
+  }
+
+  .dropdown-item-adsche {
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+  }
+
+  .dropdown-item-adsche svg {
+    font-size: 13px !important;
+  }
+}
+
+/* --- Extra small devices (phones < 480px) --- */
+@media (max-width: 480px) {
+  .schedule-management-adsche {
+    padding: 8px !important;
+  }
+
+  .tab-btn-adsche {
+    padding: 8px 12px !important;
+    font-size: 11px !important;
+  }
+
+  .tab-badge-adsche {
+    font-size: 9px !important;
+    padding: 1px 6px !important;
+  }
+
+  .schedule-table-adsche tbody tr {
+    padding: 12px !important;
+  }
+
+  .schedule-table-adsche td {
+    font-size: 12px !important;
+    padding: 6px 0 !important;
+  }
+
+  .schedule-table-adsche td::before {
+    font-size: 11px !important;
+  }
+
+  .modal-content-adsche {
+    max-width: 98% !important;
+  }
+
+  .modal-header-adsche {
+    padding: 12px 16px !important;
+  }
+
+  .modal-header-adsche h3 {
+    font-size: 15px !important;
+  }
+
+  .modal-body-adsche {
+    padding: 16px !important;
+  }
+
+  .modal-actions-adsche {
+    padding: 12px 16px !important;
+  }
+
+  .modal-actions-adsche button {
+    font-size: 13px !important;
+    padding: 10px !important;
+  }
+
+  .page-btn-adsche {
+    padding: 4px 10px !important;
+    font-size: 11px !important;
+  }
+
+  .page-number-adsche {
+    min-width: 28px !important;
+    height: 28px !important;
+    font-size: 11px !important;
+  }
+
+  .dropdown-item-adsche {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+  }
+
+  .dropdown-item-adsche svg {
+    font-size: 12px !important;
+  }
+
+  .site-photos-grid-adsche {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)) !important;
+    gap: 6px !important;
+  }
+}
+
+/* --- Touch-friendly improvements for mobile --- */
+@media (hover: none) and (pointer: coarse) {
+  .tab-btn-adsche {
+    padding: 12px 16px !important;
+    min-height: 44px !important;
+  }
+
+  .action-dropdown-toggle-adsche {
+    padding: 8px 14px !important;
+    min-height: 40px !important;
+  }
+
+  .dropdown-item-adsche {
+    padding: 12px 16px !important;
+    min-height: 44px !important;
+  }
+
+  .page-btn-adsche,
+  .page-number-adsche {
+    min-height: 40px !important;
+    min-width: 40px !important;
+  }
+
+  .modal-actions-adsche button {
+    min-height: 48px !important;
+  }
+
+  .refresh-btn-adsche {
+    min-height: 44px !important;
+  }
+
+  .search-group-adsche input {
+    min-height: 44px !important;
+  }
+
+  .filter-group-adsche select {
+    min-height: 44px !important;
   }
 }

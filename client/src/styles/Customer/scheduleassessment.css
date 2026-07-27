@@ -21,12 +21,15 @@
   --radius-lg: 14px;
   --radius-xl: 18px;
   --radius-2xl: 24px;
+
+  /* 👇 ADD THIS LINE TO DEFINE YOUR GRAY COLOR 👇 */
+  --gray-50: #F8FAFC; 
 }
 
 /* Container */
 .schedule-container-cusset {
   padding: 24px;
-  background: var(--bg-base);
+  background-color: var(--gray-50); /* Now this will work perfectly! */
   min-height: 100vh;
 }
 
@@ -721,6 +724,7 @@
   border-color: #A78BFA;
   background: #F5F3FF;
 }
+
 .result-card-cusset.motor-nonmotor-result .result-icon {
   color: #a3233e;
 }
@@ -730,6 +734,7 @@
   font-size: 16px;
   font-weight: 300;
 }
+
 .result-card-cusset.motor-nonmotor-result .stat-divider {
   color: #ce93d8;
 }
@@ -1445,7 +1450,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  
+
   color: #111827;
   border-radius: var(--radius-md);
   font-size: 12px;
@@ -1679,7 +1684,7 @@
   margin: 0 0 8px 0;
 }
 
-.schedule-confirmation-card-cusset > p {
+.schedule-confirmation-card-cusset>p {
   font-size: 14px;
   color: var(--text-secondary);
   margin: 0 0 16px 0;
@@ -2008,8 +2013,13 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Empty Requests */
@@ -2074,8 +2084,13 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* ============================================ */
@@ -2542,9 +2557,9 @@
   --text-muted: #64748B;
   --border-light: #E2E8F0;
   --border-medium: #CBD5E1;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.04);
-  --shadow-lg: 0 10px 25px rgba(0,0,0,0.08);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.08);
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 18px;
@@ -2943,8 +2958,15 @@
 }
 
 @keyframes modalFadeIn {
-  from { opacity: 0; transform: scale(0.95) translateY(-16px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .schedule-modal-cusset h2 {
@@ -3106,9 +3128,11 @@
   .service-selection-grid-cusset {
     grid-template-columns: 1fr;
   }
+
   .schedule-form-grid-cusset {
     grid-template-columns: 1fr;
   }
+
   .results-grid-cusset {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -3118,19 +3142,24 @@
   .schedule-container-cusset {
     padding: 16px;
   }
+
   .schedule-title-cusset {
     font-size: 22px;
   }
+
   .service-card-cusset {
     padding: 24px 20px;
     min-height: 400px;
   }
+
   .schedule-modal-cusset {
     padding: 24px 20px;
   }
+
   .results-grid-cusset {
     grid-template-columns: 1fr 1fr;
   }
+
   .dimension-row-cusset {
     grid-template-columns: 1fr;
   }
@@ -3140,22 +3169,33 @@
   .schedule-container-cusset {
     padding: 12px;
   }
+
   .schedule-title-cusset {
     font-size: 20px;
   }
+
   .service-card-cusset {
     padding: 20px 16px;
     min-height: 350px;
   }
+
   .results-grid-cusset {
     grid-template-columns: 1fr;
   }
+
   .schedule-confirmation-card-cusset {
     padding: 24px 16px;
   }
+
   .confirmation-icon {
     width: 48px;
     height: 48px;
     font-size: 24px;
   }
+}
+
+.schedule-container-cusset {
+  padding: 24px;
+  background-color: var(--gray-50); /* Now this will work perfectly! */
+  min-height: 100vh;
 }

@@ -10,7 +10,10 @@
   --warning-light: #FEF3C7;
   --danger: #EF4444;
   --danger-light: #FEE2E2;
-  --bg-base: #F8FAFC;
+  
+  /* ✅ ADDED THIS LINE TO MATCH YOUR OTHER PAGES */
+  --gray-50: #F8FAFC; 
+  
   --bg-card: #FFFFFF;
   --text-primary: #0F172A;
   --text-secondary: #475569;
@@ -27,8 +30,8 @@
 /* Page Container */
 .notif-page {
   min-height: 100vh;
-  background: var(--bg-base);
-  padding: 24px;
+  background: var(--gray-50); /* ✅ CHANGED TO var(--gray-50) */
+  
 }
 
 .notif-wrapper {
@@ -152,7 +155,7 @@
 
 .notif-select-btn:hover,
 .notif-mark-all-btn:hover {
-  background: var(--bg-base);
+  background: var(--gray-50); /* ✅ CHANGED TO var(--gray-50) */
   color: var(--text-primary);
 }
 
@@ -239,7 +242,7 @@
 
 .filter-tab:hover {
   color: var(--text-primary);
-  background: var(--bg-base);
+  background: var(--gray-50); /* ✅ CHANGED TO var(--gray-50) */
 }
 
 .filter-tab.active {
@@ -259,7 +262,7 @@
   padding: 0 10px;
   height: 22px;
   border-radius: var(--radius-full);
-  background: var(--bg-base);
+  background: var(--gray-50); /* ✅ CHANGED TO var(--gray-50) */
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 600;
@@ -326,7 +329,7 @@
   justify-content: center;
   width: 80px;
   height: 80px;
-  background: var(--bg-base);
+  background: var(--gray-50); /* ✅ CHANGED TO var(--gray-50) */
   border-radius: 50%;
   margin-bottom: 20px;
 }
@@ -368,7 +371,7 @@
 }
 
 .notif-item:hover {
-  background: var(--bg-base);
+  background: var(--gray-50); /* ✅ CHANGED TO var(--gray-50) */
 }
 
 .notif-item.unread {
@@ -472,7 +475,7 @@
 .icon-bg-warning { background: var(--warning-light); color: var(--warning); }
 .icon-bg-success { background: var(--success-light); color: var(--success); }
 .icon-bg-error { background: var(--danger-light); color: var(--danger); }
-.icon-bg-default { background: var(--bg-base); color: var(--text-muted); }
+.icon-bg-default { background: var(--gray-50); color: var(--text-muted); } /* ✅ CHANGED TO var(--gray-50) */
 
 /* Content */
 .notif-content {

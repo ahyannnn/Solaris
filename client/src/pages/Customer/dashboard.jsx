@@ -240,16 +240,7 @@ const Dashboard = () => {
           <title>Dashboard | Salfer Engineering</title>
         </Helmet>
         <div className="dashboard-container-cusdash">
-          <div className="welcome-section-cusdash">
-            <div className="welcome-content-cusdash">
-              <div className="skeleton-line-cusdash skeleton-title-cusdash"></div>
-              <div className="skeleton-line-cusdash skeleton-text-cusdash"></div>
-            </div>
-            <div className="welcome-actions-cusdash">
-              <div className="skeleton-button-cusdash"></div>
-              <div className="skeleton-button-cusdash"></div>
-            </div>
-          </div>
+          {/* Removed welcome section with skeleton */}
           <div className="stats-grid-cusdash">
             {[1, 2, 3, 4].map((item) => (
               <div key={item} className="stat-card-cusdash skeleton-card-cusdash">
@@ -287,19 +278,8 @@ const Dashboard = () => {
       </Helmet>
 
       <div className="dashboard-container-cusdash">
-        {/* Welcome Section */}
-        <div className="welcome-section-cusdash">
-          <div className="welcome-content-cusdash">
-            
-           
-          </div>
-          <div className="welcome-actions-cusdash">
-            <Link to="book-assessment" className="btn-primary-cusdash">
-              <FaCalendarAlt /> Book Quotation
-            </Link>
-           
-          </div>
-        </div>
+        {/* Welcome Section - COMPLETELY REMOVED */}
+        {/* No welcome header, no line, no buttons */}
 
         {/* Pending Payments Alert */}
         {pendingPayments.length > 0 && (
@@ -430,7 +410,6 @@ const Dashboard = () => {
                     <h3 className="project-name-cusdash">{project.projectName || project.projectReference}</h3>
                     <p className="project-system-cusdash">{project.systemSize} Solar System · {project.systemType}</p>
                   </div>
-                  
                 </div>
 
                 <div className="project-content-layout-cusdash">
@@ -444,12 +423,8 @@ const Dashboard = () => {
                       <span className="metric-label-cusdash">Amount Paid</span>
                       <span className="metric-value-cusdash">{formatCurrency(project.amountPaid)}</span>
                     </div>
-                    
                   </div>
                 </div>
-
-                {/* Project Milestones */}
-
 
                 {/* Project Milestones */}
                 <div className="milestones-section-cusdash">
@@ -499,7 +474,6 @@ const Dashboard = () => {
           <div className="activities-section-cusdash">
             <div className="section-header-cusdash">
               <h2 className="section-title-cusdash">Recent Activity</h2>
-              
             </div>
 
             <div className="activities-card-cusdash">

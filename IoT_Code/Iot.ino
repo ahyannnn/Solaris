@@ -194,14 +194,17 @@ bool connectToWiFi(String ssid, String pass) {
 }
 
 // ===================================================
-// SEND TO SERVER (with WiFi on/off)
+// SEND TO SERVER (with optional WiFi management)
 // ===================================================
 bool sendToServer(String timestamp, float lat, float lon,
-                  float irradiance, float temp, float hum) {
-  // Ensure WiFi is on for upload
-  enableWiFi();
+                  float irradiance, float temp, float hum,
+                  bool manageWiFi = true) {   // NEW: optional WiFi toggle
+  if (manageWiFi) {
+    enableWiFi();
+  }
   if (!wifiOn || WiFi.status() != WL_CONNECTED) {
     logError("Upload skipped (no WiFi)");
+    if (manageWiFi) disableWiFi();   // turn off if we enabled it
     return false;
   }
 
@@ -213,7 +216,7 @@ bool sendToServer(String timestamp, float lat, float lon,
   http.setTimeout(20000);
   String json = "{";
   json += "\"deviceId\":\"" + deviceId + "\",";
-  json += "\"bookingRef\":\"" + bookingReference + "\",";  // NEW: bookingReference in JSON
+  json += "\"bookingRef\":\"" + bookingReference + "\",";
   json += "\"timestamp\":\"" + timestamp + "\",";
   json += "\"irradiance\":" + String(irradiance) + ",";
   json += "\"temperature\":" + String(temp) + ",";
@@ -234,8 +237,9 @@ bool sendToServer(String timestamp, float lat, float lon,
     logError("Upload failed, code: " + String(code));
   }
 
-  // Turn WiFi off immediately after upload to save power
-  disableWiFi();
+  if (manageWiFi) {
+    disableWiFi();   // turn off if we enabled it
+  }
   return success;
 }
 
@@ -261,7 +265,7 @@ void appendLogToSD(String timestamp, float lat, float lon,
 }
 
 // ===================================================
-// UPLOAD SINGLE RECORD (uses sendToServer which handles WiFi)
+// UPLOAD SINGLE RECORD (uses sendToServer with WiFi management)
 // ===================================================
 bool uploadSingleRecord(String line) {
   int lastComma = line.lastIndexOf(',');
@@ -277,28 +281,67 @@ bool uploadSingleRecord(String line) {
   float irr = data.substring(p3+1, p4).toFloat();
   float temp = data.substring(p4+1, p5).toFloat();
   float hum  = data.substring(p5+1).toFloat();
-  return sendToServer(timestamp, lat, lon, irr, temp, hum);
+  return sendToServer(timestamp, lat, lon, irr, temp, hum); // manageWiFi = true by default
 }
 
 // ===================================================
-// BACKLOG SYNC (WiFi handled internally)
+// UPLOAD SINGLE RECORD WITHOUT TOGGLING WIFI (used during backlog sync)
+// ===================================================
+bool uploadSingleRecordWithWiFiOn(String line) {
+  int lastComma = line.lastIndexOf(',');
+  String data = line.substring(0, lastComma);
+  int p1 = data.indexOf(',');
+  int p2 = data.indexOf(',', p1 + 1);
+  int p3 = data.indexOf(',', p2 + 1);
+  int p4 = data.indexOf(',', p3 + 1);
+  int p5 = data.indexOf(',', p4 + 1);
+  String timestamp = data.substring(0, p1);
+  float lat = data.substring(p1+1, p2).toFloat();
+  float lon = data.substring(p2+1, p3).toFloat();
+  float irr = data.substring(p3+1, p4).toFloat();
+  float temp = data.substring(p4+1, p5).toFloat();
+  float hum  = data.substring(p5+1).toFloat();
+  return sendToServer(timestamp, lat, lon, irr, temp, hum, false); // manageWiFi = false
+}
+
+// ===================================================
+// BACKLOG SYNC (WiFi turned on once for all records)
 // ===================================================
 void syncSDBacklog() {
   if (!sdAvailable) return;
   if (backlogSyncRunning) return;
   backlogSyncRunning = true;
   logProcess("Syncing backlog...");
+
+  // Turn WiFi ON once
+  enableWiFi();
+  if (!wifiOn || WiFi.status() != WL_CONNECTED) {
+    logError("Backlog sync skipped: no WiFi");
+    backlogSyncRunning = false;
+    return;
+  }
+
   File oldFile = SD.open("/log.txt", FILE_READ);
-  if (!oldFile) { backlogSyncRunning = false; return; }
+  if (!oldFile) { 
+    disableWiFi();
+    backlogSyncRunning = false; 
+    return; 
+  }
   File newFile = SD.open("/temp.txt", FILE_WRITE);
-  if (!newFile) { oldFile.close(); backlogSyncRunning = false; return; }
+  if (!newFile) { 
+    oldFile.close(); 
+    disableWiFi();
+    backlogSyncRunning = false; 
+    return; 
+  }
+
   while (oldFile.available()) {
     String line = oldFile.readStringUntil('\n');
     line.trim();
     if (line.length() < 5) continue;
     bool uploaded = line.endsWith(",1");
     if (!uploaded) {
-      bool success = uploadSingleRecord(line);
+      bool success = uploadSingleRecordWithWiFiOn(line);   // uses already-on WiFi
       if (success) {
         logSuccess("Backlog record uploaded");
         int lastComma = line.lastIndexOf(',');
@@ -317,6 +360,9 @@ void syncSDBacklog() {
   SD.rename("/temp.txt", "/log.txt");
   logSuccess("Backlog sync complete");
   backlogSyncRunning = false;
+
+  // Turn WiFi OFF after all records processed
+  disableWiFi();
 }
 
 // ===================================================
@@ -696,12 +742,40 @@ void loop() {
 
   Ds1302::DateTime now;
   rtc.getDateTime(&now);
-  char timestamp[32];
-  snprintf(timestamp, sizeof(timestamp),
-           "20%02d-%02d-%02dT%02d:%02d:%02d",
-           now.year, now.month, now.day,
-           now.hour, now.minute, now.second);
-  latestTimestamp = String(timestamp);
+
+  // ----- RTC VALIDATION & FALLBACK -----
+  bool rtcValid = (now.year >= 0 && now.year <= 99) &&
+                  (now.month >= 1 && now.month <= 12) &&
+                  (now.day >= 1 && now.day <= 31) &&
+                  (now.hour >= 0 && now.hour <= 23) &&
+                  (now.minute >= 0 && now.minute <= 59) &&
+                  (now.second >= 0 && now.second <= 59);
+
+  if (!rtcValid) {
+    logError("RTC time invalid, attempting NTP sync...");
+    syncRTCwithNTP();                 // tries to set RTC from internet
+    rtc.getDateTime(&now);            // read again
+    // re-check after sync
+    rtcValid = (now.year >= 0 && now.year <= 99) &&
+               (now.month >= 1 && now.month <= 12) &&
+               (now.day >= 1 && now.day <= 31) &&
+               (now.hour >= 0 && now.hour <= 23) &&
+               (now.minute >= 0 && now.minute <= 59) &&
+               (now.second >= 0 && now.second <= 59);
+  }
+
+  if (rtcValid) {
+    char timestamp[32];
+    snprintf(timestamp, sizeof(timestamp),
+             "20%02d-%02d-%02dT%02d:%02d:%02d",
+             now.year, now.month, now.day,
+             now.hour, now.minute, now.second);
+    latestTimestamp = String(timestamp);
+  } else {
+    // Fallback to a fixed default (won't cause a server error)
+    latestTimestamp = "2000-01-01T00:00:00Z";
+    logError("RTC still invalid, using fallback timestamp: " + latestTimestamp);
+  }
 
   // ---------- POWER SAVING CHECK (always enabled) ----------
   if (!apRunning) {
@@ -784,7 +858,7 @@ void loop() {
   // ---------- UPLOAD & BACKLOG ----------
   if (millis() - lastUploadTime >= uploadInterval) {
     lastUploadTime = millis();
-    syncSDBacklog(); // This will enable WiFi, send, then disable it
+    syncSDBacklog(); // This will enable WiFi, send all, then disable it
   }
 
   // ---------- AP TIMEOUT ----------

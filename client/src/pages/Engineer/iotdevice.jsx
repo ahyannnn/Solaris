@@ -363,16 +363,11 @@ const IoTDevice = () => {
       </Helmet>
 
       <div className="iot-device-engineer-iotdevicead">
-        <div className="iot-header-iotdevicead">
-          <div>
-           
-            <p>Monitor environmental data from your deployed devices</p>
-          </div>
-        </div>
+
 
         <div className="iot-filters-iotdevicead">
           <div className="search-group-iotdevicead">
-            
+            <FaSearch className="search-icon-iotdevicead" />
             <input
               type="text"
               placeholder="Search by device ID, name, or client..."

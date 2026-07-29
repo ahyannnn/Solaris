@@ -1,27 +1,46 @@
-/* styles/Engineer/schedule.css - Clean Professional Design with Card Layout */
+/* src/styles/Engineer/schedule.css */
+
+/* ============================================
+   ENGINEER SCHEDULE - ALIGNED GLOBAL DESIGN
+   ============================================ */
 
 :root {
+  /* Global Admin Colors */
   --primary: #2563EB;
   --primary-hover: #1D4ED8;
+  --primary-light: #DBEAFE;
   --success: #22C55E;
+  --success-hover: #16A34A;
+  --success-light: #DCFCE7;
   --warning: #F59E0B;
+  --warning-light: #FEF3C7;
   --danger: #EF4444;
-  --bg-base: #F8FAFC;
+  --danger-light: #FEE2E2;
+  --gray-50: #F8FAFC;
+  --gray-100: #F1F5F9;
+  --gray-200: #E2E8F0;
+  --gray-300: #CBD5E1;
+  --gray-500: #64748B;
+  --gray-700: #334155;
+  --gray-900: #0F172A;
+
+  /* Legacy Variables (Kept for component compatibility) */
+  --text-primary: var(--gray-900);
+  --text-secondary: var(--gray-700);
+  --text-muted: var(--gray-500);
   --bg-card: #FFFFFF;
-  --bg-surface: #F1F5F9;
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #64748B;
-  --border-light: #E2E8F0;
-  --border-medium: #CBD5E1;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.04);
-  --shadow-lg: 0 10px 25px rgba(0,0,0,0.08);
+  --bg-surface: var(--gray-50);
+  --bg-base: var(--gray-50);
+  --border-light: var(--gray-200);
+  --border-medium: var(--gray-300);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.05);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
   --shadow-card: 0 2px 8px rgba(0,0,0,0.06);
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
   --radius-2xl: 24px;
   --transition-base: 0.2s ease;
 }
@@ -30,9 +49,10 @@
    MAIN CONTAINER
    ============================================ */
 .engineer-schedule-container-esch {
-  padding: 24px;
-  background: var(--bg-base);
+  padding: 24px 40px;
+  background: var(--gray-50);
   min-height: calc(100vh - 70px);
+  width: 100%;
 }
 
 /* ============================================
@@ -40,24 +60,26 @@
    ============================================ */
 .schedule-header-esch {
   margin-bottom: 28px;
+  padding: 0 0 20px 0;
+  border-bottom: 1px solid var(--gray-200);
 }
 
 .schedule-header-esch h1 {
-  font-size: clamp(20px, 4vw, 28px);
+  font-size: 28px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--gray-900);
   margin: 0 0 4px 0;
   letter-spacing: -0.02em;
 }
 
 .schedule-header-esch p {
-  font-size: clamp(13px, 1.5vw, 14px);
-  color: var(--text-muted);
+  font-size: 14px;
+  color: var(--gray-500);
   margin: 0;
 }
 
 /* ============================================
-   CONTROLS
+   CONTROLS (Toolbar)
    ============================================ */
 .schedule-controls-esch {
   display: flex;
@@ -70,7 +92,7 @@
 .filter-group-esch {
   position: relative;
   min-width: 180px;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
 }
 
 .filter-group-esch .filter-icon-esch {
@@ -78,63 +100,73 @@
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-muted);
+  color: var(--gray-500);
+  pointer-events: none;
 }
 
 .filter-group-esch select {
   width: 100%;
   padding: 10px 16px 10px 38px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: clamp(13px, 1.2vw, 14px);
-  color: var(--text-primary);
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--gray-900);
   cursor: pointer;
   appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 10px;
   transition: all var(--transition-base);
 }
 
 .filter-group-esch select:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
-
+.search-group-esch {
+  position: relative;
+  flex: 1;
+  min-width: 250px;
+  max-width: 450px;
+}
 
 .search-group-esch .search-icon-esch {
   position: absolute;
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-muted);
+  color: var(--gray-500);
 }
 
 .search-group-esch input {
   width: 100%;
   padding: 10px 16px 10px 40px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: clamp(13px, 1.2vw, 14px);
-  color: var(--text-primary);
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--gray-900);
   transition: all var(--transition-base);
 }
 
 .search-group-esch input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 /* ============================================
-   TABLE CONTAINER
+   TABLE CONTAINER (Blue Header)
    ============================================ */
 .table-container-esch {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-light);
-  overflow-x: auto;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: 0;
+  overflow: hidden;
   box-shadow: var(--shadow-sm);
   -webkit-overflow-scrolling: touch;
 }
@@ -142,40 +174,50 @@
 .schedules-table-esch {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px;
+  font-size: 14px;
 }
 
 .schedules-table-esch thead {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  background: var(--primary);
+  border-bottom: 1px solid var(--gray-200);
 }
 
 .schedules-table-esch th {
   text-align: left;
-  padding: clamp(10px, 1.5vw, 14px) clamp(12px, 1.5vw, 16px);
-  background: var(--bg-base);
-  font-size: clamp(10px, 1vw, 11px);
+  padding: 12px 16px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: #FFFFFF;
+  font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 2px solid var(--border-light);
+  letter-spacing: 0.05em;
+  border-bottom: none;
 }
 
 .schedules-table-esch td {
-  padding: clamp(10px, 1.5vw, 14px) clamp(12px, 1.5vw, 16px);
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--border-light);
+  padding: 14px 16px;
+  color: var(--gray-700);
+  border-bottom: 1px solid var(--gray-100);
   vertical-align: middle;
+}
+
+.schedules-table-esch tbody tr {
+  transition: background var(--transition-base);
+}
+
+.schedules-table-esch tbody tr:hover td {
+  background: var(--gray-50);
+}
+
+.schedules-table-esch tbody tr:nth-child(even) {
+  background: #FAFBFC;
+}
+
+.schedules-table-esch tbody tr:nth-child(even):hover td {
+  background: var(--gray-100);
 }
 
 .schedules-table-esch tbody tr:last-child td {
   border-bottom: none;
-}
-
-.schedules-table-esch tbody tr:hover td {
-  background: var(--bg-base);
 }
 
 .clickable-row-esch {
@@ -191,9 +233,9 @@
 }
 
 .title-text-esch {
-  font-size: clamp(13px, 1.2vw, 14px);
+  font-size: 14px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--gray-900);
 }
 
 .client-cell-esch {
@@ -203,65 +245,70 @@
 }
 
 .client-name-esch {
-  font-size: clamp(13px, 1.2vw, 14px);
+  font-size: 14px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--gray-900);
 }
 
 .client-phone-esch {
-  font-size: clamp(11px, 1vw, 12px);
-  color: var(--text-muted);
+  font-size: 12px;
+  color: var(--gray-500);
 }
 
 .date-cell-esch {
-  font-size: clamp(12px, 1.1vw, 13px);
-  color: var(--text-secondary);
+  font-size: 13px;
+  color: var(--gray-500);
 }
 
 .time-cell-esch {
-  font-size: clamp(12px, 1.1vw, 13px);
-  color: var(--text-secondary);
+  font-size: 13px;
+  color: var(--gray-500);
 }
 
 /* ============================================
-   BADGES - PLAIN TEXT
+   BADGES - PLAIN & CLEAN
    ============================================ */
 .status-badge-esch {
   display: inline-block;
-  padding: clamp(2px, 0.5vw, 4px) clamp(8px, 1vw, 12px);
+  padding: 4px 12px;
   border-radius: 20px;
-  font-size: clamp(10px, 1vw, 12px);
+  font-size: 12px;
   font-weight: 500;
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
+  background: var(--gray-100);
+  color: var(--gray-500);
+  border: none;
+  text-transform: capitalize;
 }
 
+/* All status badges are plain */
 .status-badge-esch.scheduled-esch,
 .status-badge-esch.confirmed-esch,
 .status-badge-esch.in-progress-esch,
 .status-badge-esch.completed-esch,
 .status-badge-esch.cancelled-esch,
 .status-badge-esch.rescheduled-esch {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
+  background: var(--gray-100);
+  color: var(--gray-500);
 }
 
 .type-badge-esch {
   display: inline-block;
-  padding: clamp(2px, 0.5vw, 4px) clamp(8px, 1vw, 12px);
+  padding: 4px 12px;
   border-radius: 20px;
-  font-size: clamp(10px, 0.9vw, 11px);
+  font-size: 12px;
   font-weight: 500;
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
+  background: var(--gray-100);
+  color: var(--gray-500);
+  text-transform: uppercase;
 }
 
+/* All type badges are plain */
 .type-badge-esch.pre-assessment-esch,
 .type-badge-esch.site-visit-esch,
 .type-badge-esch.installation-esch,
 .type-badge-esch.inspection-esch {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
+  background: var(--gray-100);
+  color: var(--gray-500);
 }
 
 /* ============================================
@@ -271,12 +318,12 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: clamp(6px, 0.8vw, 8px) clamp(12px, 1.5vw, 16px);
+  padding: 8px 16px;
   background: var(--primary);
   color: #FFFFFF;
   border: none;
-  border-radius: var(--radius-md);
-  font-size: clamp(12px, 1.1vw, 13px);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-base);
@@ -286,7 +333,7 @@
 .view-btn-esch:hover {
   background: var(--primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
 /* ============================================
@@ -294,26 +341,26 @@
    ============================================ */
 .empty-state-esch {
   text-align: center;
-  padding: clamp(40px, 8vw, 60px) clamp(20px, 4vw, 40px);
-  color: var(--text-muted);
+  padding: 48px 20px;
+  color: var(--gray-500);
 }
 
 .empty-state-esch p {
-  font-size: clamp(13px, 1.2vw, 14px);
+  font-size: 14px;
   margin: 0;
 }
 
 /* ============================================
-   PAGINATION
+   PAGINATION (Solid Blue Active)
    ============================================ */
 .pagination-esch {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(12px, 2vw, 16px);
+  gap: 16px;
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid var(--border-light);
+  border-top: 1px solid var(--gray-200);
   flex-wrap: wrap;
 }
 
@@ -321,19 +368,20 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: clamp(6px, 0.8vw, 8px) clamp(12px, 1.5vw, 16px);
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: clamp(12px, 1.1vw, 13px);
-  color: var(--text-primary);
+  padding: 8px 16px;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--gray-500);
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
 .page-btn-esch:hover:not(:disabled) {
-  background: var(--bg-base);
-  border-color: var(--border-medium);
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+  color: var(--gray-900);
 }
 
 .page-btn-esch:disabled {
@@ -342,8 +390,36 @@
 }
 
 .page-info-esch {
-  font-size: clamp(13px, 1.2vw, 14px);
-  color: var(--text-secondary);
+  font-size: 14px;
+  color: var(--gray-500);
+}
+
+/* Solid Blue Active Page Button */
+.page-number-esch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.page-number-esch:hover:not(.active-esch) {
+  background: var(--gray-50);
+  color: var(--gray-900);
+}
+
+.page-number-esch.active-esch {
+  background: var(--primary);
+  color: #FFFFFF;
+  border-color: var(--primary);
 }
 
 /* ============================================
@@ -355,24 +431,24 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  padding: clamp(12px, 3vw, 20px);
+  padding: 20px;
 }
 
 .modal-content-esch {
-  background: var(--bg-card);
-  border-radius: var(--radius-2xl);
+  background: #FFFFFF;
+  border-radius: var(--radius-lg);
   width: 100%;
   max-width: 560px;
   max-height: 90vh;
   overflow-y: auto;
-  padding: clamp(20px, 4vw, 28px) clamp(16px, 3vw, 32px);
-  box-shadow: var(--shadow-lg);
+  padding: 28px 32px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   animation: modalFadeIn 0.25s ease;
 }
 
@@ -387,32 +463,14 @@
   }
 }
 
-.modal-close-esch {
-  float: right;
-  width: 32px;
-  height: 32px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-base);
-}
-
-.modal-close-esch:hover {
-  background: var(--bg-base);
-  color: var(--text-primary);
-}
-
+/* No X button - we rely on Cancel/Close */
 .modal-content-esch h3 {
-  font-size: clamp(18px, 2.5vw, 20px);
+  font-size: 20px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--gray-900);
   margin: 0 0 20px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--gray-200);
 }
 
 .detail-section-esch {
@@ -424,119 +482,99 @@
 }
 
 .detail-section-esch h4 {
-  font-size: clamp(13px, 1.2vw, 14px);
+  font-size: 14px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--gray-500);
   margin: 0 0 8px 0;
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--border-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .detail-section-esch p {
   margin: 4px 0;
-  font-size: clamp(13px, 1.2vw, 14px);
-  color: var(--text-secondary);
+  font-size: 14px;
+  color: var(--gray-700);
 }
 
 .detail-section-esch strong {
-  color: var(--text-primary);
+  color: var(--gray-900);
 }
 
 .modal-actions-esch {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
-  margin-top: 24px;
+  margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid var(--border-light);
+  border-top: 1px solid var(--gray-200);
 }
 
 .cancel-btn-esch {
-  padding: clamp(8px, 1vw, 10px) clamp(16px, 2vw, 24px);
-  background: var(--bg-base);
-  color: var(--text-primary);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: clamp(13px, 1.2vw, 14px);
+  padding: 8px 20px;
+  background: #FFFFFF;
+  color: var(--gray-500);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
 .cancel-btn-esch:hover {
-  background: var(--border-light);
+  background: var(--gray-50);
+  color: var(--gray-900);
 }
 
 /* ============================================
    SKELETON LOADING
    ============================================ */
 .skeleton-line-esch {
-  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-base) 50%, var(--bg-surface) 75%);
+  background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 6px;
 }
 
 .skeleton-line-esch.large-esch {
-  height: clamp(28px, 4vw, 32px);
-  width: clamp(150px, 25vw, 250px);
+  height: 32px;
+  width: 250px;
   margin-bottom: 8px;
 }
 
 .skeleton-line-esch.medium-esch {
   height: 18px;
-  width: clamp(200px, 35vw, 350px);
+  width: 350px;
 }
 
 .skeleton-line-esch.small-esch {
   height: 14px;
-  width: clamp(60px, 10vw, 80px);
+  width: 80px;
 }
 
 .skeleton-select-esch {
   height: 44px;
-  width: clamp(150px, 20vw, 180px);
-  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-base) 50%, var(--bg-surface) 75%);
+  width: 180px;
+  background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 
 .skeleton-search-esch {
   height: 44px;
   flex: 1;
   min-width: 150px;
-  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-base) 50%, var(--bg-surface) 75%);
+  background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 
 .skeleton-table-esch {
-  height: clamp(200px, 40vw, 300px);
-  background: var(--bg-surface);
-  border-radius: var(--radius-xl);
-}
-
-.skeleton-table-header-esch {
-  height: 44px;
-  background: var(--bg-base);
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-}
-
-.skeleton-table-row-esch {
-  height: 56px;
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-light);
-}
-
-.skeleton-button-esch {
-  height: 44px;
-  width: clamp(80px, 12vw, 120px);
-  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-base) 50%, var(--bg-surface) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: var(--radius-md);
+  height: 300px;
+  background: var(--gray-200);
+  border: 1px solid var(--gray-200);
 }
 
 @keyframes shimmer {
@@ -550,12 +588,14 @@
 
 /* Large Tablets */
 @media (max-width: 1024px) {
-  .schedules-table-esch {
-    min-width: 700px;
+  .engineer-schedule-container-esch {
+    padding: 24px;
   }
-  
   .filter-group-esch {
     min-width: 150px;
+  }
+  .search-group-esch {
+    max-width: 400px;
   }
 }
 
@@ -565,6 +605,10 @@
     padding: 16px;
   }
 
+  .schedule-header-esch {
+    padding: 0 0 16px 0;
+  }
+
   .schedule-controls-esch {
     flex-direction: column;
   }
@@ -572,12 +616,12 @@
   .filter-group-esch {
     min-width: unset;
     width: 100%;
-    flex: 1 1 auto;
   }
 
   .search-group-esch {
     width: 100%;
     min-width: unset;
+    max-width: 100%;
   }
 
   /* Hide table header and convert rows to cards */
@@ -585,23 +629,11 @@
     display: none;
   }
 
-  .schedules-table-esch,
-  .schedules-table-esch tbody,
-  .schedules-table-esch tr,
-  .schedules-table-esch td {
-    display: block;
-    width: 100%;
-  }
-
-  .schedules-table-esch {
-    min-width: unset;
-  }
-
   .schedules-table-esch tbody tr {
     display: block;
-    background: var(--bg-card);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
+    background: #FFFFFF;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
     padding: 16px;
     margin-bottom: 16px;
     box-shadow: var(--shadow-card);
@@ -613,12 +645,8 @@
     margin-bottom: 0;
   }
 
-  .schedules-table-esch tbody tr:hover td {
-    background: transparent;
-  }
-
   .schedules-table-esch tbody tr:hover {
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
     transform: translateY(-2px);
   }
 
@@ -626,9 +654,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 12px;
+    padding: 8px 0;
     border: none;
-    border-bottom: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--gray-100);
     background: transparent !important;
     gap: 12px;
   }
@@ -642,14 +670,13 @@
     content: attr(data-label);
     font-size: 11px;
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--gray-500);
     text-transform: uppercase;
     letter-spacing: 0.3px;
     flex-shrink: 0;
-    min-width: 80px;
+    min-width: 70px;
   }
 
-  /* Adjust cell contents for card layout */
   .schedules-table-esch td > * {
     flex: 1;
     text-align: right;
@@ -661,21 +688,12 @@
     text-align: right;
   }
 
-  .client-phone-esch {
-    font-size: 10px;
-  }
-
-  .status-badge-esch,
-  .type-badge-esch {
-    text-align: center;
-    min-width: 60px;
-  }
-
   /* View button in card */
   .view-btn-esch {
     width: 100%;
     justify-content: center;
     padding: 10px;
+    margin-top: 4px;
   }
 
   /* Modal adjustments */
@@ -686,7 +704,7 @@
   }
 
   .modal-actions-esch {
-    flex-direction: column;
+    flex-direction: column-reverse;
   }
 
   .modal-actions-esch button {
@@ -696,35 +714,7 @@
 
   .pagination-esch {
     flex-wrap: wrap;
-  }
-
-  /* Empty state in card view */
-  .empty-state-esch {
-    padding: 40px 20px;
-  }
-
-  /* Skeleton loading for cards */
-  .skeleton-table-esch {
-    height: auto;
-    padding: 0;
-    border: none;
-    background: transparent;
-  }
-
-  .skeleton-table-row-esch {
-    height: auto;
-    padding: 16px;
-    margin-bottom: 16px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-  }
-
-  .skeleton-table-row-esch::before {
-    content: "Loading...";
-    display: block;
-    color: var(--text-muted);
-    font-size: 12px;
+    gap: 8px;
   }
 }
 
@@ -735,7 +725,7 @@
   }
 
   .schedule-header-esch h1 {
-    font-size: 20px;
+    font-size: 22px;
   }
 
   .schedules-table-esch tbody tr {
@@ -744,9 +734,8 @@
   }
 
   .schedules-table-esch td {
-    padding: 8px 10px;
+    padding: 6px 0;
     font-size: 12px;
-    flex-wrap: wrap;
   }
 
   .schedules-table-esch td::before {
@@ -755,11 +744,11 @@
   }
 
   .title-text-esch {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .client-name-esch {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .client-phone-esch {
@@ -773,8 +762,8 @@
 
   .status-badge-esch,
   .type-badge-esch {
-    font-size: 10px;
-    padding: 2px 8px;
+    font-size: 11px;
+    padding: 2px 10px;
   }
 
   .view-btn-esch {
@@ -785,7 +774,6 @@
   .modal-content-esch {
     padding: 16px;
     margin: 8px;
-    width: 98%;
   }
 
   .modal-content-esch h3 {
@@ -795,175 +783,44 @@
   .detail-section-esch p {
     font-size: 13px;
   }
-
-  .page-btn-esch {
-    font-size: 12px;
-    padding: 6px 12px;
-  }
-
-  .page-info-esch {
-    font-size: 12px;
-  }
 }
 
-/* Extra Small Mobile Phones */
-@media (max-width: 360px) {
-  .engineer-schedule-container-esch {
-    padding: 8px;
-  }
-  
-  .schedules-table-esch tbody tr {
-    padding: 10px;
-    margin-bottom: 10px;
-  }
-  
-  .schedules-table-esch td {
-    padding: 6px 8px;
-    font-size: 11px;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .schedules-table-esch td::before {
-    margin-bottom: 4px;
-  }
-  
-  .schedules-table-esch td > * {
-    text-align: left;
-    width: 100%;
-  }
-  
-  .title-cell-esch,
-  .client-cell-esch {
-    align-items: flex-start;
-    text-align: left;
-  }
-  
-  .title-text-esch {
-    font-size: 11px;
-  }
-  
-  .client-name-esch {
-    font-size: 11px;
-  }
-  
-  .view-btn-esch {
-    font-size: 11px;
-    padding: 6px 10px;
-  }
-  
-  .status-badge-esch,
-  .type-badge-esch {
-    font-size: 9px;
-    padding: 2px 6px;
-  }
-  
-  .modal-content-esch {
-    padding: 12px;
-  }
+/* ============================================
+   MODAL CLOSE BUTTON - X BUTTON STYLING
+   ============================================ */
+.modal-close-esch {
+  width: 32px;
+  height: 32px;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-radius: 50%;
+  font-size: 20px;
+  color: var(--gray-500);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+  flex-shrink: 0;
 }
 
-/* Landscape Mobile Phones */
-@media (max-width: 768px) and (orientation: landscape) {
-  .engineer-schedule-container-esch {
-    padding: 12px 16px;
-  }
-  
-  .schedule-controls-esch {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-  
-  .filter-group-esch {
-    flex: 1 1 150px;
-    min-width: 120px;
-  }
-  
-  .search-group-esch {
-    flex: 2 1 200px;
-  }
-  
-  .schedules-table-esch tbody tr {
-    padding: 12px 16px;
-  }
-  
-  .schedules-table-esch td {
-    padding: 6px 8px;
-  }
-  
-  .modal-content-esch {
-    max-height: 85vh;
-  }
+.modal-close-esch:hover {
+  background: var(--gray-200);
+  color: var(--gray-900);
+  border-color: var(--gray-300);
 }
 
-/* High DPI Screens */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .schedules-table-esch {
-    -webkit-font-smoothing: antialiased;
-  }
+.modal-close-esch:active {
+  transform: scale(0.95);
 }
 
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-base: #0F172A;
-    --bg-card: #1E293B;
-    --bg-surface: #334155;
-    --text-primary: #F1F5F9;
-    --text-secondary: #CBD5E1;
-    --text-muted: #94A3B8;
-    --border-light: #334155;
-    --border-medium: #475569;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
-    --shadow-md: 0 4px 6px rgba(0,0,0,0.2);
-    --shadow-lg: 0 10px 25px rgba(0,0,0,0.3);
-    --shadow-card: 0 2px 8px rgba(0,0,0,0.3);
-  }
-  
-  .status-badge-esch,
-  .type-badge-esch {
-    background: var(--bg-surface) !important;
-    color: var(--text-primary) !important;
-  }
-  
-  .view-btn-esch {
-    background: var(--primary);
-    color: #FFFFFF;
-  }
-  
-  .view-btn-esch:hover {
-    background: var(--primary-hover);
-  }
-  
-  .modal-overlay-esch {
-    background: rgba(0, 0, 0, 0.7);
-  }
-  
-  .schedules-table-esch tbody tr {
-    background: var(--bg-card);
-    border-color: var(--border-light);
-  }
-  
-  .skeleton-line-esch {
-    background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
-  }
-  
-  .skeleton-select-esch,
-  .skeleton-search-esch,
-  .skeleton-button-esch {
-    background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
-  }
-  
-  .skeleton-table-esch {
-    background: #1E293B;
-  }
-  
-  .skeleton-table-header-esch {
-    background: #334155;
-  }
-  
-  .skeleton-table-row-esch {
-    background: #1E293B;
-    border-color: #334155;
+/* ============================================
+   RESPONSIVE FOR MOBILE
+   ============================================ */
+@media (max-width: 768px) {
+  .modal-close-esch {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
   }
 }

@@ -170,12 +170,7 @@ const EngineerProject = () => {
       </Helmet>
 
       <div className="engineer-project-container">
-        <div className="project-header-engineerproject">
-          <div>
-           
-            <p>View and track your assigned solar installation projects</p>
-          </div>
-        </div>
+        
 
         <div className="project-filters-engineerproject">
           <div className="filter-group-engineerproject">

@@ -128,10 +128,7 @@ const EngineerSchedule = () => {
       </Helmet>
 
       <div className="engineer-schedule-container-esch">
-        <div className="schedule-header-esch">
-          
-          <p>View your upcoming site visits and assessments</p>
-        </div>
+       
 
         <div className="schedule-controls-esch">
           <div className="filter-group-esch">

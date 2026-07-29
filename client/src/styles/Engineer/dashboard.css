@@ -974,3 +974,13 @@
     font-size: 1rem;
   }
 }
+
+/* ============================================
+   WELCOME GREETING - BOLD & LARGER
+   ============================================ */
+.engdas-welcome-greeting {
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  color: var(--gray-900);
+  margin: 0;
+}

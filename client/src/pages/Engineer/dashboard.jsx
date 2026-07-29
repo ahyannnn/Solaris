@@ -266,7 +266,7 @@ const EngineerDashboard = () => {
         <div className="engdas-welcome-section">
           <div className="engdas-welcome-content">
             
-            <p className="engdas-welcome-greeting">Welcome back, {userName || 'Engineer'}!</p>
+            <p className="engdas-welcome-greeting">Good day, {userName || 'Engineer'}!</p>
           </div>
           <div className="engdas-welcome-actions">
             <Link to="/app/engineer/assessment" className="btn-primary-engdas">

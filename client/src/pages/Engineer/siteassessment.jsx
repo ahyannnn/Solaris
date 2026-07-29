@@ -1171,186 +1171,186 @@ const MyAssessments = () => {
   };
 
   // Main PDF Generation Function
-const generateQuotationPDF = async () => {
-  const isFreeQuote = selectedType === 'free_quote';
+  const generateQuotationPDF = async () => {
+    const isFreeQuote = selectedType === 'free_quote';
 
-  const systemSize = isFreeQuote ? freeQuoteForm.systemSize : quotationForm.systemSize;
-  const totalCost = isFreeQuote ? freeQuoteCalculatedCosts.totalSystemCost : calculatedCosts.totalSystemCost;
-  const annualProduction = isFreeQuote 
-    ? calculation.calculationResults.estimatedAnnualProduction || 0 
-    : calculation.calculationResults.estimatedAnnualProduction || 0;
-  const co2Offset = isFreeQuote
-    ? calculation.calculationResults.co2Offset || 0
-    : calculation.calculationResults.co2Offset || 0;
+    const systemSize = isFreeQuote ? freeQuoteForm.systemSize : quotationForm.systemSize;
+    const totalCost = isFreeQuote ? freeQuoteCalculatedCosts.totalSystemCost : calculatedCosts.totalSystemCost;
+    const annualProduction = isFreeQuote
+      ? calculation.calculationResults.estimatedAnnualProduction || 0
+      : calculation.calculationResults.estimatedAnnualProduction || 0;
+    const co2Offset = isFreeQuote
+      ? calculation.calculationResults.co2Offset || 0
+      : calculation.calculationResults.co2Offset || 0;
 
-  if (!systemSize || parseFloat(systemSize) <= 0) {
-    showToast('Please enter a valid system size (greater than 0)', 'warning');
-    return;
-  }
-
-  if (!totalCost || parseFloat(totalCost) <= 0) {
-    showToast('Please enter a valid total cost (greater than 0)', 'warning');
-    return;
-  }
-
-  setGeneratingPDF(true);
-  try {
-    const token = sessionStorage.getItem('token');
-    const endpoint = isFreeQuote
-      ? `${API_BASE_URL}/api/free-quotes/${selectedItem._id}/generate-quotation`
-      : `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/generate-quotation`;
-
-    const iotDataForPDF = !isFreeQuote ? {
-      totalReadings: assessmentResults?.totalReadings || 0,
-      peakSunHours: systemMetrics?.peakSunHours || assessmentResults?.peakSunHours || 0,
-      averageIrradiance: systemMetrics?.averageIrradiance || assessmentResults?.averageIrradiance || 0,
-      maxIrradiance: systemMetrics?.maxIrradiance || assessmentResults?.maxIrradiance || 0,
-      minIrradiance: systemMetrics?.minIrradiance || assessmentResults?.minIrradiance || 0,
-      averageTemperature: systemMetrics?.averageTemperature || assessmentResults?.averageTemperature || 0,
-      maxTemperature: systemMetrics?.maxTemperature || assessmentResults?.maxTemperature || 0,
-      minTemperature: systemMetrics?.minTemperature || assessmentResults?.minTemperature || 0,
-      temperatureDerating: systemMetrics?.temperatureDerating || 0,
-      averageHumidity: systemMetrics?.averageHumidity || assessmentResults?.averageHumidity || 0,
-      maxHumidity: systemMetrics?.maxHumidity || assessmentResults?.maxHumidity || 0,
-      minHumidity: systemMetrics?.minHumidity || assessmentResults?.minHumidity || 0,
-      shadingPercentage: systemMetrics?.shadingPercentage || 0,
-      dataCollectionStart: selectedItem?.dataCollectionStart,
-      dataCollectionEnd: selectedItem?.dataCollectionEnd,
-      gpsCoordinates: systemMetrics?.gpsLocation || assessmentResults?.gpsCoordinates,
-      optimalOrientation: systemMetrics?.optimalOrientation || 'South-facing',
-      optimalTiltAngle: systemMetrics?.optimalTilt || 15,
-      recommendedSystemSize: systemMetrics?.recommendedSystemSize || systemSize,
-      panelsNeeded: systemMetrics?.panelsNeeded || panelQuantity,
-      inverterSize: systemMetrics?.inverterSize || Math.ceil(parseFloat(systemSize) * 1.2),
-      performanceRatio: systemMetrics?.performanceRatio || 85,
-      estimatedMonthlySavings: systemMetrics?.estimatedMonthlySavings || 0,
-      estimatedAnnualSavings: systemMetrics?.estimatedAnnualSavings || 0,
-      paybackPeriod: systemMetrics?.paybackPeriod || 0,
-      estimatedAnnualProduction: systemMetrics?.estimatedAnnualProduction || (parseFloat(systemSize) * 1200),
-      co2Offset: systemMetrics?.co2Offset || (parseFloat(systemSize) * 800),
-      roofArea: systemMetrics?.availableRoofArea || (assessmentForm.roofLength * assessmentForm.roofWidth),
-      estimatedInstallationTime: systemMetrics?.estimatedInstallationTime || assessmentForm.estimatedInstallationTime || 3,
-      roofCondition: assessmentForm.roofCondition,
-      structuralIntegrity: assessmentForm.structuralIntegrity,
-      temperatureRange: systemMetrics?.temperatureRange || `${assessmentResults?.minTemperature || 25}°C - ${assessmentResults?.maxTemperature || 32}°C`,
-      irradianceLevel: systemMetrics?.averageIrradiance || 0,
-      siteSuitabilityScore: systemMetrics?.siteSuitabilityScore || 85
-    } : null;
-
-    // Calculate ROI years
-    const roiYears = annualProduction > 0 ? Number((totalCost / annualProduction).toFixed(1)) : 0;
-
-    const payload = isFreeQuote ? {
-      quotationNumber: freeQuoteForm.quotationNumber,
-      quotationExpiryDate: freeQuoteForm.quotationExpiryDate,
-      systemSize: parseFloat(freeQuoteForm.systemSize),
-      systemType: freeQuoteForm.systemType,
-      panelsNeeded: freeQuotePanelQuantity,
-      panelType: freeQuoteSelectedPanel?.name || '',
-      inverterType: freeQuoteSelectedInverter?.name || '',
-      batteryType: freeQuoteSelectedBattery?.name || '',
-      installationCost: freeQuoteCalculatedCosts.installationLaborCost,
-      equipmentCost: freeQuoteCalculatedCosts.totalEquipmentCost,
-      totalCost: freeQuoteCalculatedCosts.totalSystemCost,
-      paymentTerms: freeQuoteForm.paymentTerms,
-      warrantyYears: parseInt(freeQuoteForm.warrantyYears) || 10,
-      remarks: freeQuoteForm.remarks,
-      includeIoTData: false,
-      annualProduction: annualProduction,
-      co2Offset: co2Offset,
-      roiYears: roiYears,
-      equipmentDetails: {
-        panel: freeQuoteSelectedPanel,
-        panelQuantity: freeQuotePanelQuantity,
-        inverter: freeQuoteSelectedInverter,
-        inverterQuantity: freeQuoteInverterQuantity,
-        battery: freeQuoteSelectedBattery,
-        batteryQuantity: freeQuoteBatteryQuantity,
-        mountingStructure: freeQuoteSelectedMountingStructure,
-        mountingStructureQuantity: freeQuoteMountingStructureQuantity,
-        electricalComponents: freeQuoteSelectedElectricalComponents.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        })),
-        cables: freeQuoteSelectedCables.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, length: item.length, price: item.price, total: item.total
-        })),
-        junctionBoxes: freeQuoteSelectedJunctionBoxes.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        })),
-        disconnectSwitches: freeQuoteSelectedDisconnectSwitches.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        })),
-        meters: freeQuoteSelectedMeters.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        })),
-        additionalEquipment: freeQuoteAdditionalEquipment.map(item => ({
-          name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        }))
-      }
-    } : {
-      quotationNumber: quotationForm.quotationNumber,
-      quotationExpiryDate: quotationForm.quotationExpiryDate,
-      systemSize: parseFloat(quotationForm.systemSize),
-      systemType: quotationForm.systemType,
-      panelsNeeded: panelQuantity,
-      panelType: selectedPanel?.name || '',
-      inverterType: selectedInverter?.name || '',
-      batteryType: selectedBattery?.name || '',
-      installationCost: calculatedCosts.installationLaborCost,
-      equipmentCost: calculatedCosts.totalEquipmentCost,
-      totalCost: calculatedCosts.totalSystemCost,
-      paymentTerms: quotationForm.paymentTerms,
-      warrantyYears: parseInt(quotationForm.warrantyYears) || 10,
-      includeIoTData: includeIoTData,
-      iotData: includeIoTData ? iotDataForPDF : null,
-      annualProduction: annualProduction,
-      co2Offset: co2Offset,
-      roiYears: roiYears,
-      equipmentDetails: {
-        panel: selectedPanel,
-        panelQuantity: panelQuantity,
-        inverter: selectedInverter,
-        inverterQuantity: inverterQuantity,
-        battery: selectedBattery,
-        batteryQuantity: batteryQuantity,
-        mountingStructure: selectedMountingStructure,
-        mountingStructureQuantity: mountingStructureQuantity,
-        electricalComponents: selectedElectricalComponents.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        })),
-        cables: selectedCables.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, length: item.length, price: item.price, total: item.total
-        })),
-        junctionBoxes: selectedJunctionBoxes.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        })),
-        disconnectSwitches: selectedDisconnectSwitches.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        })),
-        meters: selectedMeters.map(item => ({
-          id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        })),
-        additionalEquipment: additionalEquipment.map(item => ({
-          name: item.name, quantity: item.quantity, price: item.price, total: item.total
-        }))
-      }
-    };
-
-    const response = await axios.post(endpoint, payload, { headers: { Authorization: `Bearer ${token}` } });
-    showToast('Quotation PDF generated and uploaded successfully!', 'success');
-
-    if (isFreeQuote) {
-      fetchFreeQuoteDetails(selectedItem._id);
-    } else {
-      fetchPreAssessmentDetails(selectedItem._id);
+    if (!systemSize || parseFloat(systemSize) <= 0) {
+      showToast('Please enter a valid system size (greater than 0)', 'warning');
+      return;
     }
-  } catch (err) {
-    console.error('Error generating PDF:', err);
-    showToast(err.response?.data?.message || 'Failed to generate PDF', 'error');
-  } finally {
-    setGeneratingPDF(false);
-  }
-};
+
+    if (!totalCost || parseFloat(totalCost) <= 0) {
+      showToast('Please enter a valid total cost (greater than 0)', 'warning');
+      return;
+    }
+
+    setGeneratingPDF(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const endpoint = isFreeQuote
+        ? `${API_BASE_URL}/api/free-quotes/${selectedItem._id}/generate-quotation`
+        : `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/generate-quotation`;
+
+      const iotDataForPDF = !isFreeQuote ? {
+        totalReadings: assessmentResults?.totalReadings || 0,
+        peakSunHours: systemMetrics?.peakSunHours || assessmentResults?.peakSunHours || 0,
+        averageIrradiance: systemMetrics?.averageIrradiance || assessmentResults?.averageIrradiance || 0,
+        maxIrradiance: systemMetrics?.maxIrradiance || assessmentResults?.maxIrradiance || 0,
+        minIrradiance: systemMetrics?.minIrradiance || assessmentResults?.minIrradiance || 0,
+        averageTemperature: systemMetrics?.averageTemperature || assessmentResults?.averageTemperature || 0,
+        maxTemperature: systemMetrics?.maxTemperature || assessmentResults?.maxTemperature || 0,
+        minTemperature: systemMetrics?.minTemperature || assessmentResults?.minTemperature || 0,
+        temperatureDerating: systemMetrics?.temperatureDerating || 0,
+        averageHumidity: systemMetrics?.averageHumidity || assessmentResults?.averageHumidity || 0,
+        maxHumidity: systemMetrics?.maxHumidity || assessmentResults?.maxHumidity || 0,
+        minHumidity: systemMetrics?.minHumidity || assessmentResults?.minHumidity || 0,
+        shadingPercentage: systemMetrics?.shadingPercentage || 0,
+        dataCollectionStart: selectedItem?.dataCollectionStart,
+        dataCollectionEnd: selectedItem?.dataCollectionEnd,
+        gpsCoordinates: systemMetrics?.gpsLocation || assessmentResults?.gpsCoordinates,
+        optimalOrientation: systemMetrics?.optimalOrientation || 'South-facing',
+        optimalTiltAngle: systemMetrics?.optimalTilt || 15,
+        recommendedSystemSize: systemMetrics?.recommendedSystemSize || systemSize,
+        panelsNeeded: systemMetrics?.panelsNeeded || panelQuantity,
+        inverterSize: systemMetrics?.inverterSize || Math.ceil(parseFloat(systemSize) * 1.2),
+        performanceRatio: systemMetrics?.performanceRatio || 85,
+        estimatedMonthlySavings: systemMetrics?.estimatedMonthlySavings || 0,
+        estimatedAnnualSavings: systemMetrics?.estimatedAnnualSavings || 0,
+        paybackPeriod: systemMetrics?.paybackPeriod || 0,
+        estimatedAnnualProduction: systemMetrics?.estimatedAnnualProduction || (parseFloat(systemSize) * 1200),
+        co2Offset: systemMetrics?.co2Offset || (parseFloat(systemSize) * 800),
+        roofArea: systemMetrics?.availableRoofArea || (assessmentForm.roofLength * assessmentForm.roofWidth),
+        estimatedInstallationTime: systemMetrics?.estimatedInstallationTime || assessmentForm.estimatedInstallationTime || 3,
+        roofCondition: assessmentForm.roofCondition,
+        structuralIntegrity: assessmentForm.structuralIntegrity,
+        temperatureRange: systemMetrics?.temperatureRange || `${assessmentResults?.minTemperature || 25}°C - ${assessmentResults?.maxTemperature || 32}°C`,
+        irradianceLevel: systemMetrics?.averageIrradiance || 0,
+        siteSuitabilityScore: systemMetrics?.siteSuitabilityScore || 85
+      } : null;
+
+      // Calculate ROI years
+      const roiYears = annualProduction > 0 ? Number((totalCost / annualProduction).toFixed(1)) : 0;
+
+      const payload = isFreeQuote ? {
+        quotationNumber: freeQuoteForm.quotationNumber,
+        quotationExpiryDate: freeQuoteForm.quotationExpiryDate,
+        systemSize: parseFloat(freeQuoteForm.systemSize),
+        systemType: freeQuoteForm.systemType,
+        panelsNeeded: freeQuotePanelQuantity,
+        panelType: freeQuoteSelectedPanel?.name || '',
+        inverterType: freeQuoteSelectedInverter?.name || '',
+        batteryType: freeQuoteSelectedBattery?.name || '',
+        installationCost: freeQuoteCalculatedCosts.installationLaborCost,
+        equipmentCost: freeQuoteCalculatedCosts.totalEquipmentCost,
+        totalCost: freeQuoteCalculatedCosts.totalSystemCost,
+        paymentTerms: freeQuoteForm.paymentTerms,
+        warrantyYears: parseInt(freeQuoteForm.warrantyYears) || 10,
+        remarks: freeQuoteForm.remarks,
+        includeIoTData: false,
+        annualProduction: annualProduction,
+        co2Offset: co2Offset,
+        roiYears: roiYears,
+        equipmentDetails: {
+          panel: freeQuoteSelectedPanel,
+          panelQuantity: freeQuotePanelQuantity,
+          inverter: freeQuoteSelectedInverter,
+          inverterQuantity: freeQuoteInverterQuantity,
+          battery: freeQuoteSelectedBattery,
+          batteryQuantity: freeQuoteBatteryQuantity,
+          mountingStructure: freeQuoteSelectedMountingStructure,
+          mountingStructureQuantity: freeQuoteMountingStructureQuantity,
+          electricalComponents: freeQuoteSelectedElectricalComponents.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          })),
+          cables: freeQuoteSelectedCables.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, length: item.length, price: item.price, total: item.total
+          })),
+          junctionBoxes: freeQuoteSelectedJunctionBoxes.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          })),
+          disconnectSwitches: freeQuoteSelectedDisconnectSwitches.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          })),
+          meters: freeQuoteSelectedMeters.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          })),
+          additionalEquipment: freeQuoteAdditionalEquipment.map(item => ({
+            name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          }))
+        }
+      } : {
+        quotationNumber: quotationForm.quotationNumber,
+        quotationExpiryDate: quotationForm.quotationExpiryDate,
+        systemSize: parseFloat(quotationForm.systemSize),
+        systemType: quotationForm.systemType,
+        panelsNeeded: panelQuantity,
+        panelType: selectedPanel?.name || '',
+        inverterType: selectedInverter?.name || '',
+        batteryType: selectedBattery?.name || '',
+        installationCost: calculatedCosts.installationLaborCost,
+        equipmentCost: calculatedCosts.totalEquipmentCost,
+        totalCost: calculatedCosts.totalSystemCost,
+        paymentTerms: quotationForm.paymentTerms,
+        warrantyYears: parseInt(quotationForm.warrantyYears) || 10,
+        includeIoTData: includeIoTData,
+        iotData: includeIoTData ? iotDataForPDF : null,
+        annualProduction: annualProduction,
+        co2Offset: co2Offset,
+        roiYears: roiYears,
+        equipmentDetails: {
+          panel: selectedPanel,
+          panelQuantity: panelQuantity,
+          inverter: selectedInverter,
+          inverterQuantity: inverterQuantity,
+          battery: selectedBattery,
+          batteryQuantity: batteryQuantity,
+          mountingStructure: selectedMountingStructure,
+          mountingStructureQuantity: mountingStructureQuantity,
+          electricalComponents: selectedElectricalComponents.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          })),
+          cables: selectedCables.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, length: item.length, price: item.price, total: item.total
+          })),
+          junctionBoxes: selectedJunctionBoxes.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          })),
+          disconnectSwitches: selectedDisconnectSwitches.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          })),
+          meters: selectedMeters.map(item => ({
+            id: item.id, name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          })),
+          additionalEquipment: additionalEquipment.map(item => ({
+            name: item.name, quantity: item.quantity, price: item.price, total: item.total
+          }))
+        }
+      };
+
+      const response = await axios.post(endpoint, payload, { headers: { Authorization: `Bearer ${token}` } });
+      showToast('Quotation PDF generated and uploaded successfully!', 'success');
+
+      if (isFreeQuote) {
+        fetchFreeQuoteDetails(selectedItem._id);
+      } else {
+        fetchPreAssessmentDetails(selectedItem._id);
+      }
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      showToast(err.response?.data?.message || 'Failed to generate PDF', 'error');
+    } finally {
+      setGeneratingPDF(false);
+    }
+  };
 
   // Utility functions
   const hasDeviceAssigned = (item) => {
@@ -1772,9 +1772,7 @@ const generateQuotationPDF = async () => {
       <>
         <Helmet><title>My Assessments | Engineer | SOLARIS</title></Helmet>
         <div className="my-assessments-enad">
-          <div className="assessments-header-enad">
-            <p>Manage free quotes and site assessments assigned to you</p>
-          </div>
+
 
           <div className="search-bar-enad">
             <input
@@ -2260,7 +2258,7 @@ const generateQuotationPDF = async () => {
                       formatCurrency={formatCurrency}
                       generateQuotationPDF={generateQuotationPDF}
                       generatingPDF={generatingPDF}
-                       annualProduction={calculation.calculationResults.estimatedAnnualProduction || 0}
+                      annualProduction={calculation.calculationResults.estimatedAnnualProduction || 0}
                     />
                   </>
                 )}

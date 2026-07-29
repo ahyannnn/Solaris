@@ -2,15 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { 
-  FaBell, 
-  FaCheck, 
-  FaCheckDouble, 
-  FaTrash, 
-  FaClock, 
-  FaExclamationCircle, 
-  FaInfoCircle, 
-  FaCheckCircle, 
+import {
+  FaBell,
+  FaCheck,
+  FaCheckDouble,
+  FaTrash,
+  FaClock,
+  FaExclamationCircle,
+  FaInfoCircle,
+  FaCheckCircle,
   FaTimes,
   FaSlidersH,
   FaInbox,
@@ -65,6 +65,10 @@ const Notifications = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      // Check if the notification was unread before marking
+      const notification = notifications.find(n => n._id === notificationId);
+      const wasUnread = notification && !notification.read;
+
       setNotifications(prev =>
         prev.map(notif =>
           notif._id === notificationId
@@ -72,7 +76,11 @@ const Notifications = () => {
             : notif
         )
       );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+
+      // Only decrement if it was actually unread
+      if (wasUnread) {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
     } catch (err) {
       console.error('Error marking as read:', err);
     }
@@ -90,7 +98,10 @@ const Notifications = () => {
       setNotifications(prev =>
         prev.map(notif => ({ ...notif, read: true }))
       );
-      setUnreadCount(0);
+      setUnreadCount(0); // Reset to 0
+
+      // Also update the unread count in the parent component (dashboard)
+      // This will be reflected when the user navigates back
     } catch (err) {
       console.error('Error marking all as read:', err);
     }
@@ -131,12 +142,16 @@ const Notifications = () => {
       );
 
       const deletedIds = new Set(selectedNotifications);
+      const deletedUnread = notifications.filter(
+        n => deletedIds.has(n._id) && !n.read
+      ).length;
+
       setNotifications(prev => prev.filter(n => !deletedIds.has(n._id)));
       setSelectedNotifications([]);
       setSelectMode(false);
-      
-      const remainingUnread = notifications.filter(n => !n.read && !deletedIds.has(n._id)).length;
-      setUnreadCount(remainingUnread);
+
+      // Decrement unread count by the number of unread notifications deleted
+      setUnreadCount(prev => Math.max(0, prev - deletedUnread));
     } catch (err) {
       console.error('Error bulk deleting:', err);
     }
@@ -251,7 +266,7 @@ const Notifications = () => {
             <div>
               <h2>Notifications</h2>
               <p className="notif-subtitle">
-                {unreadCount > 0 
+                {unreadCount > 0
                   ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`
                   : 'All caught up!'}
               </p>
@@ -260,7 +275,7 @@ const Notifications = () => {
           <div className="notif-header-right">
             {notifications.length > 0 && (
               <>
-                <button 
+                <button
                   className={`notif-select-btn ${selectMode ? 'active' : ''}`}
                   onClick={() => {
                     setSelectMode(!selectMode);

@@ -12,7 +12,8 @@ import {
   FaArrowRight,
   FaDownload,
   FaCalculator,
-  FaCalendarAlt
+  FaCalendarAlt,
+  FaExclamationTriangle
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
 import "../../styles/Auth/landingpage.css";
@@ -30,12 +31,16 @@ const LandingPage = () => {
   const [advancedEstimatorData, setAdvancedEstimatorData] = useState({
     monthlyBill: '',
     electricityRate: '11.50',
-    averageSunHours: '5',
+    averageSunHours: '3.5',
     systemType: 'grid-tie',
     usagePattern: 'daytime'
   });
   const [advancedEstimationResult, setAdvancedEstimationResult] = useState(null);
   const [calculating, setCalculating] = useState(false);
+  
+  // Validation states
+  const [validationErrors, setValidationErrors] = useState({});
+  const [touchedFields, setTouchedFields] = useState({});
 
   // Refs for animated counting
   const statsRef = useRef(null);
@@ -47,106 +52,138 @@ const LandingPage = () => {
     services: "https://www.naturalgen.co.uk/template/images/Client/NG-SolarPanelInstall-3.jpg"
   };
 
-  // Scroll animation observer
-  useEffect(() => {
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    };
+  // Validation functions
+  const validateMonthlyBill = (value) => {
+    if (!value || value === '') {
+      return 'Monthly bill is required';
+    }
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) {
+      return 'Please enter a valid number';
+    }
+    if (numValue < 50) {
+      return 'Monthly bill must be at least ₱50';
+    }
+    if (numValue > 999999) {
+      return 'Monthly bill seems too high. Please check your input';
+    }
+    if (!/^\d+(\.\d{1,2})?$/.test(value) && value !== '') {
+      return 'Please enter a valid amount (up to 2 decimal places)';
+    }
+    return '';
+  };
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('animate-in');
-        }
-      });
-    }, observerOptions);
+  const validateElectricityRate = (value) => {
+    if (!value || value === '') {
+      return 'Electricity rate is required';
+    }
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) {
+      return 'Please enter a valid number';
+    }
+    if (numValue < 1) {
+      return 'Rate must be at least ₱1.00/kWh';
+    }
+    if (numValue > 50) {
+      return 'Rate seems unusually high. Please check your input';
+    }
+    if (!/^\d+(\.\d{1,2})?$/.test(value) && value !== '') {
+      return 'Please enter a valid rate (up to 2 decimal places)';
+    }
+    return '';
+  };
 
-    const animatedElements = document.querySelectorAll('.animate-on-scroll');
-    animatedElements.forEach(el => observer.observe(el));
+  const validateAverageSunHours = (value) => {
+    if (!value || value === '') {
+      return 'Average sun hours are required';
+    }
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) {
+      return 'Please enter a valid number';
+    }
+    if (numValue < 1) {
+      return 'Sun hours must be at least 1 hour';
+    }
+    if (numValue > 24) {
+      return 'Sun hours cannot exceed 24 hours';
+    }
+    if (!/^\d+(\.\d{1,2})?$/.test(value) && value !== '') {
+      return 'Please enter a valid number (up to 2 decimal places)';
+    }
+    return '';
+  };
 
-    return () => observer.disconnect();
-  }, [advancedEstimationResult]);
+  const validateField = (fieldName, value) => {
+    switch (fieldName) {
+      case 'monthlyBill':
+        return validateMonthlyBill(value);
+      case 'electricityRate':
+        return validateElectricityRate(value);
+      case 'averageSunHours':
+        return validateAverageSunHours(value);
+      default:
+        return '';
+    }
+  };
 
-  // Stats counter animation
-  useEffect(() => {
-    const observerOptions = {
-      threshold: 0.5
-    };
+  const handleFieldBlur = (fieldName) => {
+    setTouchedFields(prev => ({ ...prev, [fieldName]: true }));
+    const value = advancedEstimatorData[fieldName];
+    const error = validateField(fieldName, value);
+    setValidationErrors(prev => ({ ...prev, [fieldName]: error }));
+  };
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && !hasAnimatedStats) {
-          setHasAnimatedStats(true);
-          animateValue('stat-2017', 2000, 2017, 1000);
-          animateValue('stat-500', 0, 500, 1500);
-          animateValue('stat-100', 0, 100, 1000);
-        }
-      });
-    }, observerOptions);
-
-    if (statsRef.current) {
-      observer.observe(statsRef.current);
+  const handleAdvancedEstimatorChange = (e) => {
+    const { name, value } = e.target;
+    
+    // For select inputs, no validation needed
+    if (name === 'systemType' || name === 'usagePattern') {
+      setAdvancedEstimatorData(prev => ({ ...prev, [name]: value }));
+      return;
     }
 
-    return () => observer.disconnect();
-  }, [hasAnimatedStats]);
-
-  const animateValue = (id, start, end, duration) => {
-    const element = document.getElementById(id);
-    if (!element) return;
-    
-    const range = end - start;
-    const increment = range / (duration / 16);
-    let current = start;
-    
-    const timer = setInterval(() => {
-      current += increment;
-      if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-        element.textContent = end;
-        clearInterval(timer);
-      } else {
-        element.textContent = Math.floor(current);
+    // For number inputs, allow empty string and numbers with decimals
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setAdvancedEstimatorData(prev => ({ ...prev, [name]: value }));
+      
+      // Clear error while typing
+      if (validationErrors[name]) {
+        setValidationErrors(prev => ({ ...prev, [name]: '' }));
       }
-    }, 16);
-  };
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-
-      const sections = ['hero', 'about', 'mission-vision', 'free-vs-paid', 'solar-estimator', 'how-it-works', 'services', 'why-us', 'download-app'];
-      const current = sections.find(section => {
-        const element = document.getElementById(section);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          return rect.top <= 150 && rect.bottom >= 150;
-        }
-        return false;
-      });
-      if (current) setActiveSection(current);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollToSection = (sectionId) => {
-    setActiveSection(sectionId);
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
-  const handleLogin = () => navigate('/login');
-  const handleSignup = () => navigate('/register');
+  const isFormValid = () => {
+    const errors = {};
+    let isValid = true;
 
-  const handleOpenTerms = () => {
-    window.open('/terms', '_blank');
+    // Validate all fields
+    Object.keys(advancedEstimatorData).forEach(key => {
+      if (key === 'systemType' || key === 'usagePattern') return;
+      const error = validateField(key, advancedEstimatorData[key]);
+      if (error) {
+        errors[key] = error;
+        isValid = false;
+      }
+    });
+
+    setValidationErrors(errors);
+    return isValid;
   };
 
   const calculateAdvancedSavings = () => {
+    // Mark all fields as touched
+    const allTouched = {};
+    Object.keys(advancedEstimatorData).forEach(key => {
+      allTouched[key] = true;
+    });
+    setTouchedFields(allTouched);
+
+    // Validate form
+    if (!isFormValid()) {
+      return;
+    }
+
     setCalculating(true);
 
     setTimeout(() => {
@@ -251,11 +288,6 @@ const LandingPage = () => {
     }, 500);
   };
 
-  const handleAdvancedEstimatorChange = (e) => {
-    const { name, value } = e.target;
-    setAdvancedEstimatorData(prev => ({ ...prev, [name]: value }));
-  };
-
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-PH', {
       style: 'currency',
@@ -273,6 +305,114 @@ const LandingPage = () => {
     setShowEstimateModal(false);
     setMonthlyBill('');
     setEstimateResult(null);
+  };
+
+  // Get input className based on validation state
+  const getInputClassName = (fieldName) => {
+    const isTouched = touchedFields[fieldName];
+    const error = validationErrors[fieldName];
+    if (isTouched && error) return 'input-error';
+    if (isTouched && !error && advancedEstimatorData[fieldName]) return 'input-valid';
+    return '';
+  };
+
+  // Scroll animation observer
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+        }
+      });
+    }, observerOptions);
+
+    const animatedElements = document.querySelectorAll('.animate-on-scroll');
+    animatedElements.forEach(el => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [advancedEstimationResult]);
+
+  // Stats counter animation
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.5
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !hasAnimatedStats) {
+          setHasAnimatedStats(true);
+          animateValue('stat-2017', 2000, 2017, 1000);
+          animateValue('stat-500', 0, 500, 1500);
+          animateValue('stat-100', 0, 100, 1000);
+        }
+      });
+    }, observerOptions);
+
+    if (statsRef.current) {
+      observer.observe(statsRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasAnimatedStats]);
+
+  const animateValue = (id, start, end, duration) => {
+    const element = document.getElementById(id);
+    if (!element) return;
+    
+    const range = end - start;
+    const increment = range / (duration / 16);
+    let current = start;
+    
+    const timer = setInterval(() => {
+      current += increment;
+      if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+        element.textContent = end;
+        clearInterval(timer);
+      } else {
+        element.textContent = Math.floor(current);
+      }
+    }, 16);
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+
+      const sections = ['hero', 'about', 'mission-vision', 'free-vs-paid', 'solar-estimator', 'how-it-works', 'services', 'why-us', 'download-app'];
+      const current = sections.find(section => {
+        const element = document.getElementById(section);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          return rect.top <= 150 && rect.bottom >= 150;
+        }
+        return false;
+      });
+      if (current) setActiveSection(current);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToSection = (sectionId) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleLogin = () => navigate('/login');
+  const handleSignup = () => navigate('/register');
+
+  const handleOpenTerms = () => {
+    window.open('/terms', '_blank');
   };
 
   return (
@@ -387,26 +527,163 @@ const LandingPage = () => {
           <p className="section-subtitle-land">Get a personalized estimate of your potential savings</p>
           <div className="estimator-card-land">
             <div className="estimator-inputs-land">
-              <div className="input-group-land"><label>Monthly Electricity Bill (₱)</label><input type="number" name="monthlyBill" value={advancedEstimatorData.monthlyBill} onChange={handleAdvancedEstimatorChange} placeholder="e.g., 5000" /></div>
-              <div className="input-group-land"><label>Electricity Rate (₱/kWh)</label><input type="number" name="electricityRate" value={advancedEstimatorData.electricityRate} onChange={handleAdvancedEstimatorChange} placeholder="e.g., 11.50" step="0.1" /><small>Meralco avg: ₱11.50/kWh</small></div>
-              <div className="input-group-land"><label>Average Sun Hours</label><input type="number" name="averageSunHours" value={advancedEstimatorData.averageSunHours} onChange={handleAdvancedEstimatorChange} placeholder="e.g., 5" step="0.5" /><small>PH average: 5-6 hours</small></div>
-              <div className="input-group-land"><label>System Type</label><select name="systemType" value={advancedEstimatorData.systemType} onChange={handleAdvancedEstimatorChange}><option value="grid-tie">Grid-tie (No battery)</option><option value="hybrid">Hybrid (With battery backup)</option><option value="off-grid">Off-grid (Complete independence)</option></select></div>
-              <div className="input-group-land"><label>Usage Pattern</label><select name="usagePattern" value={advancedEstimatorData.usagePattern} onChange={handleAdvancedEstimatorChange}><option value="daytime">Mostly Daytime</option><option value="nighttime">Mostly Nighttime</option><option value="mixed">Mixed (balanced usage)</option></select></div>
-              <button onClick={calculateAdvancedSavings} disabled={!advancedEstimatorData.monthlyBill || calculating} className="btn-calculate-land">{calculating ? 'Calculating...' : 'Calculate Savings'}</button>
+              <div className="input-group-land">
+                <label>
+                  Monthly Electricity Bill (₱)
+                  <span className="required-star">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  name="monthlyBill" 
+                  min="50"
+                  max="9999999"
+                  value={advancedEstimatorData.monthlyBill} 
+                  onChange={handleAdvancedEstimatorChange}
+                  onBlur={() => handleFieldBlur('monthlyBill')}
+                  placeholder="e.g., 5000" 
+                  className={getInputClassName('monthlyBill')}
+                />
+                {touchedFields.monthlyBill && validationErrors.monthlyBill && (
+                  <div className="error-message">
+                   <small>{validationErrors.monthlyBill}</small>
+                    
+                  </div>
+                )}
+                
+              </div>
+
+              <div className="input-group-land">
+                <label>
+                  Electricity Rate (₱/kWh)
+                  <span className="required-star">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  name="electricityRate" 
+                  value={advancedEstimatorData.electricityRate} 
+                  onChange={handleAdvancedEstimatorChange}
+                  onBlur={() => handleFieldBlur('electricityRate')}
+                  placeholder="e.g., 11.50" 
+                  className={getInputClassName('electricityRate')}
+                />
+                {touchedFields.electricityRate && validationErrors.electricityRate && (
+                  <div className="error-message">
+                    <small>{validationErrors.electricityRate}</small>
+                    
+                    
+                  </div>
+                )}
+                
+              </div>
+
+              <div className="input-group-land">
+                <label>
+                  Average Sun Hours
+                  <span className="required-star">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  name="averageSunHours" 
+                  value={advancedEstimatorData.averageSunHours} 
+                  onChange={handleAdvancedEstimatorChange}
+                  onBlur={() => handleFieldBlur('averageSunHours')}
+                  placeholder="e.g., 3.5" 
+                  className={getInputClassName('averageSunHours')}
+                />
+                {touchedFields.averageSunHours && validationErrors.averageSunHours && (
+                  <div className="error-message">
+                      <small>{validationErrors.averageSunHours}</small>
+                    
+                  </div>
+                )}
+                
+              </div>
+
+              <div className="input-group-land">
+                <label>System Type</label>
+                <select 
+                  name="systemType" 
+                  value={advancedEstimatorData.systemType} 
+                  onChange={handleAdvancedEstimatorChange}
+                >
+                  <option value="grid-tie">Grid-tie (No battery)</option>
+                  <option value="hybrid">Hybrid (With battery backup)</option>
+                  <option value="off-grid">Off-grid (Complete independence)</option>
+                </select>
+              </div>
+
+              <div className="input-group-land">
+                <label>Usage Pattern</label>
+                <select 
+                  name="usagePattern" 
+                  value={advancedEstimatorData.usagePattern} 
+                  onChange={handleAdvancedEstimatorChange}
+                >
+                  <option value="daytime">Mostly Daytime</option>
+                  <option value="nighttime">Mostly Nighttime</option>
+                  <option value="mixed">Mixed (balanced usage)</option>
+                </select>
+              </div>
+
+              <button 
+                onClick={calculateAdvancedSavings} 
+                disabled={calculating} 
+                className="btn-calculate-land"
+              >
+                {calculating ? 'Calculating...' : 'Calculate Savings'}
+              </button>
+
+              {/* Show validation summary */}
+              {Object.keys(validationErrors).length > 0 && Object.values(validationErrors).some(error => error) && (
+                <div className="validation-summary">
+                    
+                  <span>Please fix the errors above before calculating</span>
+                </div>
+              )}
             </div>
+
             {advancedEstimationResult && (
               <div className="estimator-results-land animate-on-scroll">
                 <h3>Your Personalized Solar Estimate</h3>
                 <div className="results-grid-land">
-                  <div className="result-item-land"><span className="result-label-land">Recommended System</span><strong>{advancedEstimationResult.recommendedSize} kW</strong><small>{advancedEstimationResult.systemDescription}</small></div>
-                  <div className="result-item-land highlight-land"><span className="result-label-land">Monthly Savings</span><strong>{formatCurrency(advancedEstimationResult.estimatedMonthlySavings)}</strong></div>
-                  <div className="result-item-land"><span className="result-label-land">System Cost</span><strong>{formatCurrency(advancedEstimationResult.systemCost)}</strong><small>{advancedEstimationResult.panelsNeeded} panels • {advancedEstimationResult.roofSpaceNeeded} sqm</small></div>
-                  <div className="result-item-land"><span className="result-label-land">Grid Dependency</span><strong>{advancedEstimationResult.gridDependency}%</strong></div>
-                  <div className="result-item-land"><span className="result-label-land">Payback Period</span><strong>{advancedEstimationResult.paybackPeriod} years</strong></div>
-                  <div className="result-item-land"><span className="result-label-land">CO₂ Offset/Year</span><strong>{formatNumber(advancedEstimationResult.co2OffsetPerYear)} kg</strong></div>
-                  <div className="result-item-land full-width-land"><span className="result-label-land">25-Year Savings</span><strong>{formatCurrency(advancedEstimationResult.total25YearSavings)}</strong><small>With inflation adjustment</small></div>
+                  <div className="result-item-land">
+                    <span className="result-label-land">Recommended System</span>
+                    <strong>{advancedEstimationResult.recommendedSize} kW</strong>
+                    <small>{advancedEstimationResult.systemDescription}</small>
+                  </div>
+                  <div className="result-item-land highlight-land">
+                    <span className="result-label-land">Monthly Savings</span>
+                    <strong>{formatCurrency(advancedEstimationResult.estimatedMonthlySavings)}</strong>
+                  </div>
+                  <div className="result-item-land">
+                    <span className="result-label-land">System Cost</span>
+                    <strong>{formatCurrency(advancedEstimationResult.systemCost)}</strong>
+                    <small>{advancedEstimationResult.panelsNeeded} panels • {advancedEstimationResult.roofSpaceNeeded} sqm</small>
+                  </div>
+                  <div className="result-item-land">
+                    <span className="result-label-land">Grid Dependency</span>
+                    <strong>{advancedEstimationResult.gridDependency}%</strong>
+                  </div>
+                  <div className="result-item-land">
+                    <span className="result-label-land">Payback Period</span>
+                    <strong>{advancedEstimationResult.paybackPeriod} years</strong>
+                  </div>
+                  <div className="result-item-land">
+                    <span className="result-label-land">CO₂ Offset/Year</span>
+                    <strong>{formatNumber(advancedEstimationResult.co2OffsetPerYear)} kg</strong>
+                  </div>
+                  <div className="result-item-land full-width-land">
+                    <span className="result-label-land">25-Year Savings</span>
+                    <strong>{formatCurrency(advancedEstimationResult.total25YearSavings)}</strong>
+                    <small>With inflation adjustment</small>
+                  </div>
                 </div>
-                <p className="estimator-note-land">*This is a preliminary estimate. Actual savings may vary based on site conditions.<button className="text-link-land" onClick={() => scrollToSection('free-vs-paid')}>Book a detailed site assessment for accurate results.</button></p>
+                <p className="estimator-note-land">
+                  *This is a preliminary estimate. Actual savings may vary based on site conditions.
+                  <button className="text-link-land" onClick={() => scrollToSection('free-vs-paid')}>
+                    Book a detailed site assessment for accurate results.
+                  </button>
+                </p>
               </div>
             )}
           </div>
@@ -524,15 +801,51 @@ const LandingPage = () => {
             <h2>Free Solar Estimate</h2>
             <p>Enter your average monthly electricity bill</p>
             <div className="estimate-form-land">
-              <div className="input-group-land"><span className="currency-land">₱</span><input type="number" value={monthlyBill} onChange={(e) => setMonthlyBill(e.target.value)} placeholder="e.g., 5000" /></div>
-              <button className="btn-primary-land" onClick={() => { const bill = parseFloat(monthlyBill) || 0; const estimatedSavings = Math.round(bill * 0.3); const estimatedSystemSize = Math.round((bill / 11.5 / 30) * 1.2); setEstimateResult({ monthlySavings: estimatedSavings, systemSize: estimatedSystemSize, paybackYears: (estimatedSystemSize * 70000 / (estimatedSavings * 12)).toFixed(1) }); }} disabled={!monthlyBill}>Calculate</button>
+              <div className="input-group-land">
+                <span className="currency-land">₱</span>
+                <input 
+                  type="number" 
+                  value={monthlyBill} 
+                  onChange={(e) => setMonthlyBill(e.target.value)} 
+                  placeholder="e.g., 5000" 
+                />
+              </div>
+              <button 
+                className="btn-primary-land" 
+                onClick={() => { 
+                  const bill = parseFloat(monthlyBill) || 0; 
+                  if (bill < 50) {
+                    alert('Please enter a valid monthly bill amount (minimum ₱50)');
+                    return;
+                  }
+                  const estimatedSavings = Math.round(bill * 0.3); 
+                  const estimatedSystemSize = Math.round((bill / 11.5 / 30) * 1.2); 
+                  setEstimateResult({ 
+                    monthlySavings: estimatedSavings, 
+                    systemSize: estimatedSystemSize, 
+                    paybackYears: (estimatedSystemSize * 70000 / (estimatedSavings * 12)).toFixed(1) 
+                  }); 
+                }} 
+                disabled={!monthlyBill}
+              >
+                Calculate
+              </button>
             </div>
             {estimateResult && (
               <div className="estimate-result-land">
                 <h3>Your Estimated Savings</h3>
-                <div className="result-item-simple-land"><span>Monthly Savings:</span><strong>₱{estimateResult.monthlySavings.toLocaleString()}</strong></div>
-                <div className="result-item-simple-land"><span>Recommended System Size:</span><strong>{estimateResult.systemSize} kW</strong></div>
-                <div className="result-item-simple-land"><span>Estimated Payback:</span><strong>{estimateResult.paybackYears} years</strong></div>
+                <div className="result-item-simple-land">
+                  <span>Monthly Savings:</span>
+                  <strong>₱{estimateResult.monthlySavings.toLocaleString()}</strong>
+                </div>
+                <div className="result-item-simple-land">
+                  <span>Recommended System Size:</span>
+                  <strong>{estimateResult.systemSize} kW</strong>
+                </div>
+                <div className="result-item-simple-land">
+                  <span>Estimated Payback:</span>
+                  <strong>{estimateResult.paybackYears} years</strong>
+                </div>
                 <p className="result-note-land">*This is a rough estimate. Book a site assessment for accurate results.</p>
                 <button className="btn-primary-land" onClick={() => { closeModal(); scrollToSection('free-vs-paid'); }}>Learn About Paid Assessment</button>
               </div>

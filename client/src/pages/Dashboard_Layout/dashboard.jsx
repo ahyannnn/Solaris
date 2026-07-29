@@ -55,8 +55,8 @@ const Dashboard = () => {
     requestAnimationFrame(() => {
       setDashboardReady(true);
     });
-    
-    return () => {};
+
+    return () => { };
   }, []);
 
   // Fetch unread notification count
@@ -286,11 +286,11 @@ const Dashboard = () => {
           icon: <FaTasks />,
           items: [
             { icon: <FaUsers />, label: 'User Management', path: '/app/admin/usermanagement' },
-            
+
             { icon: <FaChartBar />, label: 'Reports', path: '/app/admin/reports' },
             { icon: <FaCalendarAlt />, label: 'Schedule', path: '/app/admin/schedule' },
             { icon: <FaTools />, label: 'Maintenance', path: '/app/admin/maintenance' },
-            
+
           ]
         },
         {
@@ -320,7 +320,7 @@ const Dashboard = () => {
           items: [
             { icon: <FaMicrochip />, label: 'Device Data', path: '/app/engineer/device' },
             { icon: <FaCalendarAlt />, label: 'Schedule', path: '/app/engineer/schedule' },
-            
+
           ]
         },
         {
@@ -538,9 +538,9 @@ const Dashboard = () => {
       </button>
 
       {/* Sidebar Overlay - Click to close */}
-      <div 
-        className={`sidebar-overlay-layout-dashboard ${sidebarOpen ? 'visible' : ''}`} 
-        onClick={closeSidebar} 
+      <div
+        className={`sidebar-overlay-layout-dashboard ${sidebarOpen ? 'visible' : ''}`}
+        onClick={closeSidebar}
       />
 
       {/* Sidebar - Slides from LEFT */}

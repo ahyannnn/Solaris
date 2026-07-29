@@ -53,6 +53,13 @@ const CustomerSettings = () => {
     birthday: ''
   });
 
+  const [originalProfileData, setOriginalProfileData] = useState({
+    firstName: '', 
+    middleName: '', 
+    lastName: '', 
+    contactNumber: ''
+  });
+
   const [addresses, setAddresses] = useState([]);
   const [addressForm, setAddressForm] = useState({
     houseOrBuilding: '', 
@@ -66,6 +73,7 @@ const CustomerSettings = () => {
   });
 
   const [formErrors, setFormErrors] = useState({});
+  const [profileErrors, setProfileErrors] = useState({});
   const [memberSince, setMemberSince] = useState(null);
   const [isVerified, setIsVerified] = useState(false);
 
@@ -90,7 +98,7 @@ const CustomerSettings = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       const client = response.data.client;
-      setProfileData({
+      const data = {
         firstName: client.contactFirstName || '', 
         middleName: client.contactMiddleName || '', 
         lastName: client.contactLastName || '',
@@ -99,6 +107,13 @@ const CustomerSettings = () => {
         companyName: client.companyName || '',
         client_type: client.client_type || 'Individual', 
         birthday: client.birthday || ''
+      };
+      setProfileData(data);
+      setOriginalProfileData({
+        firstName: data.firstName,
+        middleName: data.middleName,
+        lastName: data.lastName,
+        contactNumber: data.contactNumber
       });
       setMemberSince(client.createdAt);
       setIsVerified(client.isVerified || false);
@@ -120,29 +135,109 @@ const CustomerSettings = () => {
     }
   };
 
+  // Profile validation functions
+  const validateName = (name, fieldName) => {
+    if (!name || name.trim() === '') {
+      return `${fieldName} is required`;
+    }
+    if (!/^[a-zA-Z\s.]+$/.test(name)) {
+      return `${fieldName} must contain only letters, spaces, and periods`;
+    }
+    if (name.trim().length < 2) {
+      return `${fieldName} must be at least 2 characters`;
+    }
+    return '';
+  };
+
+  const validateContactNumber = (number) => {
+    if (!number || number.trim() === '') {
+      return 'Contact number is required';
+    }
+    const cleanNumber = number.replace(/\s/g, '');
+    if (!/^09\d{9}$/.test(cleanNumber)) {
+      return 'Contact number must start with 09 and be exactly 11 digits';
+    }
+    return '';
+  };
+
+  const validateProfileForm = () => {
+    const errors = {};
+    
+    const firstNameError = validateName(profileData.firstName, 'First name');
+    if (firstNameError) errors.firstName = firstNameError;
+    
+    const lastNameError = validateName(profileData.lastName, 'Last name');
+    if (lastNameError) errors.lastName = lastNameError;
+    
+    if (profileData.middleName && profileData.middleName.trim() !== '') {
+      const middleNameError = validateName(profileData.middleName, 'Middle name');
+      if (middleNameError) errors.middleName = middleNameError;
+    }
+    
+    const contactError = validateContactNumber(profileData.contactNumber);
+    if (contactError) errors.contactNumber = contactError;
+    
+    return errors;
+  };
+
+  const hasProfileChanges = () => {
+    return (
+      profileData.firstName !== originalProfileData.firstName ||
+      profileData.middleName !== originalProfileData.middleName ||
+      profileData.lastName !== originalProfileData.lastName ||
+      profileData.contactNumber !== originalProfileData.contactNumber
+    );
+  };
+
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
     setProfileData(prev => ({ ...prev, [name]: value }));
+    // Clear error for this field when user types
+    if (profileErrors[name]) {
+      setProfileErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const saveProfile = async () => {
+    // Validate profile
+    const errors = validateProfileForm();
+    if (Object.keys(errors).length > 0) {
+      setProfileErrors(errors);
+      const firstError = Object.values(errors)[0];
+      showToast(firstError, 'warning');
+      return;
+    }
+
+    // Check if there are changes
+    if (!hasProfileChanges()) {
+      showToast('No changes to save', 'info');
+      return;
+    }
+
     setSaving(true);
     try {
       const token = sessionStorage.getItem('token');
       await axios.put(`${import.meta.env.VITE_API_URL}/api/clients/update`,
         { 
-          contactFirstName: profileData.firstName, 
-          contactMiddleName: profileData.middleName, 
-          contactLastName: profileData.lastName, 
-          contactNumber: profileData.contactNumber, 
-          companyName: profileData.companyName, 
-          birthday: profileData.birthday 
+          contactFirstName: profileData.firstName.trim(), 
+          contactMiddleName: profileData.middleName.trim(), 
+          contactLastName: profileData.lastName.trim(), 
+          contactNumber: profileData.contactNumber.replace(/\s/g, '')
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
+      // Update original data
+      setOriginalProfileData({
+        firstName: profileData.firstName.trim(),
+        middleName: profileData.middleName.trim(),
+        lastName: profileData.lastName.trim(),
+        contactNumber: profileData.contactNumber.replace(/\s/g, '')
+      });
+      
       showToast('Profile updated successfully', 'success');
     } catch (err) {
-      showToast('Failed to update profile', 'error');
+      showToast(err.response?.data?.message || 'Failed to update profile', 'error');
     } finally {
       setSaving(false);
     }
@@ -183,13 +278,16 @@ const CustomerSettings = () => {
 
   const validateAddressForm = () => {
     const errors = {};
-    if (!addressForm.houseOrBuilding.trim()) errors.houseOrBuilding = 'Required';
-    if (!addressForm.street.trim()) errors.street = 'Required';
-    if (!addressForm.barangay.trim()) errors.barangay = 'Required';
-    if (!addressForm.cityMunicipality.trim()) errors.cityMunicipality = 'Required';
-    if (!addressForm.province.trim()) errors.province = 'Required';
-    if (!addressForm.zipCode.trim()) errors.zipCode = 'Required';
-    if (addressForm.zipCode && !/^\d{4}$/.test(addressForm.zipCode)) errors.zipCode = 'Must be 4 digits';
+    if (!addressForm.houseOrBuilding.trim()) errors.houseOrBuilding = 'House/Building is required';
+    if (!addressForm.street.trim()) errors.street = 'Street is required';
+    if (!addressForm.barangay.trim()) errors.barangay = 'Barangay is required';
+    if (!addressForm.cityMunicipality.trim()) errors.cityMunicipality = 'City/Municipality is required';
+    if (!addressForm.province.trim()) errors.province = 'Province is required';
+    if (!addressForm.zipCode.trim()) {
+      errors.zipCode = 'ZIP code is required';
+    } else if (!/^\d{4}$/.test(addressForm.zipCode)) {
+      errors.zipCode = 'ZIP code must be exactly 4 digits (0-9)';
+    }
     return errors;
   };
 
@@ -198,7 +296,8 @@ const CustomerSettings = () => {
     const errors = validateAddressForm();
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
-      showToast('Please fill in all required fields', 'warning');
+      const firstError = Object.values(errors)[0];
+      showToast(firstError, 'warning');
       return;
     }
     setSaving(true);
@@ -230,7 +329,7 @@ const CustomerSettings = () => {
       await axios.patch(`${import.meta.env.VITE_API_URL}/api/clients/me/addresses/${addressId}/primary`, {}, { 
         headers: { Authorization: `Bearer ${token}` } 
       });
-      showToast('Primary address updated', 'success');
+      showToast('Primary address updated successfully', 'success');
       fetchAddresses();
     } catch (err) {
       showToast('Failed to update primary address', 'error');
@@ -243,7 +342,7 @@ const CustomerSettings = () => {
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/clients/me/addresses/${addressId}`, { 
         headers: { Authorization: `Bearer ${token}` } 
       });
-      showToast('Address deleted', 'success');
+      showToast('Address deleted successfully', 'success');
       fetchAddresses();
       setDeleteConfirm(null);
     } catch (err) {
@@ -319,12 +418,6 @@ const CustomerSettings = () => {
                   </span>
                 )}
               </div>
-              <div className="profile-status">
-                <span className={`status-badge ${isVerified ? 'verified' : 'pending'}`}>
-                  {isVerified ? <FaCheckCircle /> : <FaClock />}
-                  {isVerified ? 'Verified Account' : 'Pending Verification'}
-                </span>
-              </div>
             </div>
           </div>
 
@@ -332,7 +425,11 @@ const CustomerSettings = () => {
           <div className="cuset-form-card">
             <div className="card-header">
               <h3><FaUser /> Personal Information</h3>
-              <button className="save-btn" onClick={saveProfile} disabled={saving}>
+              <button 
+                className="save-btn" 
+                onClick={saveProfile} 
+                disabled={saving || !hasProfileChanges()}
+              >
                 <FaSave /> {saving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
@@ -340,14 +437,18 @@ const CustomerSettings = () => {
             <div className="profile-form">
               <div className="form-row">
                 <div className="form-group">
-                  <label>First Name</label>
+                  <label>First Name <span className="required">*</span></label>
                   <input 
                     type="text" 
                     name="firstName" 
                     value={profileData.firstName} 
                     onChange={handleProfileChange} 
                     placeholder="Enter first name"
+                    className={profileErrors.firstName ? 'error' : ''}
                   />
+                  {profileErrors.firstName && (
+                    <small className="error-text">{profileErrors.firstName}</small>
+                  )}
                 </div>
                 <div className="form-group">
                   <label>Middle Name</label>
@@ -357,66 +458,44 @@ const CustomerSettings = () => {
                     value={profileData.middleName} 
                     onChange={handleProfileChange} 
                     placeholder="Enter middle name"
+                    className={profileErrors.middleName ? 'error' : ''}
                   />
+                  {profileErrors.middleName && (
+                    <small className="error-text">{profileErrors.middleName}</small>
+                  )}
                 </div>
                 <div className="form-group">
-                  <label>Last Name</label>
+                  <label>Last Name <span className="required">*</span></label>
                   <input 
                     type="text" 
                     name="lastName" 
                     value={profileData.lastName} 
                     onChange={handleProfileChange} 
                     placeholder="Enter last name"
+                    className={profileErrors.lastName ? 'error' : ''}
                   />
+                  {profileErrors.lastName && (
+                    <small className="error-text">{profileErrors.lastName}</small>
+                  )}
                 </div>
               </div>
 
               <div className="form-row">
+                
                 <div className="form-group">
-                  <label><FaEnvelope /> Email</label>
-                  <input 
-                    type="email" 
-                    value={profileData.email} 
-                    disabled 
-                    className="readonly" 
-                  />
-                  <small>Email cannot be changed</small>
-                </div>
-                <div className="form-group">
-                  <label><FaPhone /> Contact Number</label>
+                  <label><FaPhone /> Contact Number <span className="required">*</span></label>
                   <input 
                     type="tel" 
                     name="contactNumber" 
                     value={profileData.contactNumber} 
                     onChange={handleProfileChange} 
-                    placeholder="Enter contact number"
+                    placeholder="09XXXXXXXXX"
+                    className={profileErrors.contactNumber ? 'error' : ''}
                   />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label><FaBuilding /> Company (Optional)</label>
-                  <input 
-                    type="text" 
-                    name="companyName" 
-                    value={profileData.companyName} 
-                    onChange={handleProfileChange} 
-                    placeholder="Enter company name"
-                    disabled={profileData.client_type === 'Individual'}
-                  />
-                  {profileData.client_type === 'Individual' && (
-                    <small>Company field is disabled for Individual accounts</small>
+                  {profileErrors.contactNumber && (
+                    <small className="error-text">{profileErrors.contactNumber}</small>
                   )}
-                </div>
-                <div className="form-group">
-                  <label><FaCalendarAlt /> Birthday</label>
-                  <input 
-                    type="date" 
-                    name="birthday" 
-                    value={profileData.birthday} 
-                    onChange={handleProfileChange} 
-                  />
+                  
                 </div>
               </div>
             </div>
@@ -577,7 +656,7 @@ const CustomerSettings = () => {
                   </div>
 
                   <div className="form-group">
-                    <label>House / Building</label>
+                    <label>House / Building <span className="required">*</span></label>
                     <input 
                       type="text" 
                       name="houseOrBuilding" 
@@ -592,7 +671,7 @@ const CustomerSettings = () => {
                   </div>
 
                   <div className="form-group">
-                    <label>Street</label>
+                    <label>Street <span className="required">*</span></label>
                     <input 
                       type="text" 
                       name="street" 
@@ -608,7 +687,7 @@ const CustomerSettings = () => {
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Barangay</label>
+                      <label>Barangay <span className="required">*</span></label>
                       <input 
                         type="text" 
                         name="barangay" 
@@ -622,7 +701,7 @@ const CustomerSettings = () => {
                       )}
                     </div>
                     <div className="form-group">
-                      <label>City / Municipality</label>
+                      <label>City / Municipality <span className="required">*</span></label>
                       <input 
                         type="text" 
                         name="cityMunicipality" 
@@ -639,7 +718,7 @@ const CustomerSettings = () => {
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Province</label>
+                      <label>Province <span className="required">*</span></label>
                       <input 
                         type="text" 
                         name="province" 
@@ -653,7 +732,7 @@ const CustomerSettings = () => {
                       )}
                     </div>
                     <div className="form-group">
-                      <label>ZIP Code</label>
+                      <label>ZIP Code <span className="required">*</span></label>
                       <input 
                         type="text" 
                         name="zipCode" 
@@ -661,11 +740,12 @@ const CustomerSettings = () => {
                         onChange={handleAddressFormChange} 
                         maxLength="4" 
                         className={formErrors.zipCode ? 'error' : ''} 
-                        placeholder="Enter ZIP code"
+                        placeholder="Enter ZIP code "
                       />
                       {formErrors.zipCode && (
                         <small className="error-text">{formErrors.zipCode}</small>
                       )}
+                      
                     </div>
                   </div>
                 </div>

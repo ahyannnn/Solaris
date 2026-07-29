@@ -16,8 +16,8 @@ import {
   FaBuilding,
   FaRoad,
   FaIndustry,
-  FaUserFriends,
-  FaUsers
+  FaExclamationTriangle,
+  FaInfoCircle
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
 import '../../styles/Customer/setupacc.css';
@@ -59,6 +59,7 @@ const SetupAccount = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [birthdayError, setBirthdayError] = useState('');
 
   // Fetch existing client data on mount
   useEffect(() => {
@@ -73,11 +74,11 @@ const SetupAccount = () => {
         if (response.ok) {
           const data = await response.json();
           setClientData(data.client);
-          
+
           if (data.client) {
             setFormData(prev => ({
               ...prev,
-              accountType: data.client.client_type ? 
+              accountType: data.client.client_type ?
                 data.client.client_type.toLowerCase() : 'residential',
               companyName: data.client.companyName || '',
               phoneNumber: data.client.contactNumber || '',
@@ -94,30 +95,172 @@ const SetupAccount = () => {
     }
   }, [token]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    if (errors[name]) setErrors({ ...errors, [name]: '' });
-    if (apiError) setApiError('');
+  // Enhanced birthday validation with detailed error messages
+  const validateBirthday = (month, day, year) => {
+    if (!month || !day || !year) {
+      return 'Please complete your birthday';
+    }
+
+    const monthNum = parseInt(month);
+    const dayNum = parseInt(day);
+    const yearNum = parseInt(year);
+
+    // Check if month is valid
+    if (monthNum < 1 || monthNum > 12) {
+      return 'Invalid month selected. Please choose a month between 1 and 12.';
+    }
+
+    // Check if day is valid for the month
+    const daysInMonth = new Date(yearNum, monthNum, 0).getDate();
+    if (dayNum < 1 || dayNum > daysInMonth) {
+      const monthName = months[monthNum - 1];
+      return `${monthName} ${yearNum} only has ${daysInMonth} days. Please select a valid day (1-${daysInMonth}).`;
+    }
+
+    // Check if year is valid
+    if (yearNum < 1900) {
+      return 'Year must be 1900 or later. Please select a valid year.';
+    }
+
+    // Check if year is in the future
+    if (yearNum > currentYear) {
+      return `Year cannot be in the future. Please select a year between 1900 and ${currentYear}.`;
+    }
+
+    const birthDate = new Date(yearNum, monthNum - 1, dayNum);
+    const today = new Date();
+
+    // Check if birthday is in the future (including same year but future month/day)
+    if (birthDate > today) {
+      return `Birthday cannot be in the future. Please select a date on or before ${today.toLocaleDateString()}.`;
+    }
+
+    // Calculate exact age
+    let age = today.getFullYear() - yearNum;
+    const monthDiff = today.getMonth() - (monthNum - 1);
+    const dayDiff = today.getDate() - dayNum;
+
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      age--;
+    }
+
+    // Check minimum age (18 years old)
+    if (age < 18) {
+      const yearsUntil18 = 18 - age;
+      return `You must be at least 18 years old to register. You are currently ${age} years old.`;
+    }
+
+    // Check maximum age (120 years old)
+    if (age > 120) {
+      return `Age (${age}) exceeds maximum allowed (120 years). Please verify your birth year.`;
+    }
+
+    return '';
   };
+
+  // Update the validateBirthdayFields function
+  const validateBirthdayFields = () => {
+    const newErrors = {};
+
+    // Check if any field is empty - show single error message
+    if (!formData.birthMonth || !formData.birthDay || !formData.birthYear) {
+      newErrors.birthday = 'Please complete your birth month, day, and year';
+    }
+
+    // If all fields are filled, validate the complete date
+    if (formData.birthMonth && formData.birthDay && formData.birthYear) {
+      const birthdayErrorMsg = validateBirthday(
+        formData.birthMonth,
+        formData.birthDay,
+        formData.birthYear
+      );
+      if (birthdayErrorMsg) {
+        newErrors.birthday = birthdayErrorMsg;
+        setBirthdayError(birthdayErrorMsg);
+      }
+    }
+
+    return newErrors;
+  };
+
+  const handleChange = (e) => {
+  const { name, value } = e.target;
+  
+  // Phone number formatting - only allow digits
+  if (name === 'phoneNumber') {
+    // Only allow numeric input
+    const numericValue = value.replace(/\D/g, '');
+    // Limit to 11 digits (09 + 9 digits)
+    if (numericValue.length <= 11) {
+      setFormData({ ...formData, [name]: numericValue });
+    }
+    // Clear phone error when typing
+    if (errors.phoneNumber) {
+      setErrors({ ...errors, phoneNumber: '' });
+    }
+  } 
+  // Zip code formatting - only allow digits
+  else if (name === 'zipCode') {
+    // Only allow numeric input
+    const numericValue = value.replace(/\D/g, '');
+    // Limit to 4 digits
+    if (numericValue.length <= 4) {
+      setFormData({ ...formData, [name]: numericValue });
+    }
+    // Clear zip error when typing
+    if (errors.zipCode) {
+      setErrors({ ...errors, zipCode: '' });
+    }
+  } 
+  else {
+    setFormData({ ...formData, [name]: value });
+  }
+  
+  // Clear other errors when user types
+  if (errors[name] && name !== 'phoneNumber' && name !== 'zipCode') {
+    setErrors({ ...errors, [name]: '' });
+  }
+  if (apiError) setApiError('');
+  
+  // Clear birthday error when any birthday field changes
+  if (name === 'birthMonth' || name === 'birthDay' || name === 'birthYear') {
+    setBirthdayError('');
+    if (errors.birthday) {
+      setErrors({ ...errors, birthday: '' });
+    }
+  }
+};
 
   const validateStep1 = () => {
     const newErrors = {};
-    if (!formData.accountType) newErrors.accountType = 'Account type is required';
+
+    // Account type validation
+    if (!formData.accountType) {
+      newErrors.accountType = 'Account type is required';
+    }
+
+    // Company name validation
     if ((formData.accountType === 'company' || formData.accountType === 'industrial') && !formData.companyName) {
       newErrors.companyName = `${formData.accountType === 'company' ? 'Company' : 'Business/Organization'} name is required`;
     }
-    if (!formData.phoneNumber) newErrors.phoneNumber = 'Phone number is required';
-    if (!formData.birthMonth) newErrors.birthMonth = 'Month is required';
-    if (!formData.birthDay) newErrors.birthDay = 'Day is required';
-    if (!formData.birthYear) newErrors.birthYear = 'Year is required';
 
-    if (formData.phoneNumber) {
-      const phoneRegex = /^(09|\+639)\d{9}$/;
-      if (!phoneRegex.test(formData.phoneNumber.replace(/\s/g, ''))) {
-        newErrors.phoneNumber = 'Enter a valid Philippine mobile number (09XXXXXXXXX or +639XXXXXXXXX)';
-      }
+    // Phone number validation - only 09xxxxxxxxx format
+    if (!formData.phoneNumber) {
+      newErrors.phoneNumber = 'Phone number is required';
+    } else if (formData.phoneNumber.length < 11) {
+      newErrors.phoneNumber = 'Phone number must be exactly 11 digits (09XXXXXXXXX)';
+    } else if (formData.phoneNumber.length > 11) {
+      newErrors.phoneNumber = 'Phone number must be exactly 11 digits (09XXXXXXXXX)';
+    } else if (!formData.phoneNumber.startsWith('09')) {
+      newErrors.phoneNumber = 'Phone number must start with 09 (e.g., 09123456789)';
+    } else if (!/^09\d{9}$/.test(formData.phoneNumber)) {
+      newErrors.phoneNumber = 'Invalid phone number format. Use 09XXXXXXXXX (11 digits)';
     }
+
+    // Birthday validation - separate error messages
+    const birthdayErrors = validateBirthdayFields();
+    Object.assign(newErrors, birthdayErrors);
+
     return newErrors;
   };
 
@@ -130,12 +273,16 @@ const SetupAccount = () => {
     if (!formData.province) newErrors.province = 'Province is required';
     if (!formData.zipCode) newErrors.zipCode = 'ZIP code is required';
     if (formData.zipCode && !/^\d{4}$/.test(formData.zipCode)) {
-      newErrors.zipCode = 'ZIP code must be 4 digits';
+      newErrors.zipCode = 'ZIP code must be exactly 4 digits (0-9)';
     }
     return newErrors;
   };
 
   const handleNext = () => {
+    // Clear previous errors
+    setErrors({});
+    setBirthdayError('');
+
     const stepErrors = validateStep1();
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
@@ -148,6 +295,10 @@ const SetupAccount = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Clear previous errors
+    setErrors({});
+
     const stepErrors = validateStep2();
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
@@ -158,6 +309,20 @@ const SetupAccount = () => {
     setApiError('');
 
     try {
+      // Final birthday validation before submission
+      const birthdayErrorMsg = validateBirthday(
+        formData.birthMonth,
+        formData.birthDay,
+        formData.birthYear
+      );
+
+      if (birthdayErrorMsg) {
+        setBirthdayError(birthdayErrorMsg);
+        setErrors(prev => ({ ...prev, birthday: birthdayErrorMsg }));
+        setIsLoading(false);
+        return;
+      }
+
       const birthday = formData.birthYear && formData.birthMonth && formData.birthDay
         ? `${formData.birthYear}-${String(formData.birthMonth).padStart(2, '0')}-${String(formData.birthDay).padStart(2, '0')}`
         : null;
@@ -165,7 +330,7 @@ const SetupAccount = () => {
       const clientUpdate = {
         contactNumber: formData.phoneNumber,
         client_type: formData.accountType === 'residential' ? 'Residential' :
-                     formData.accountType === 'company' ? 'Company' : 'Industrial',
+          formData.accountType === 'company' ? 'Company' : 'Industrial',
         companyName: (formData.accountType === 'company' || formData.accountType === 'industrial') ? formData.companyName : '',
         birthday: birthday,
         account_setup: true
@@ -273,7 +438,7 @@ const SetupAccount = () => {
 
   // Get branding content based on step
   const getBrandingContent = (step) => {
-    switch(step) {
+    switch (step) {
       case 1:
         return {
           title: 'Complete Your Profile',
@@ -383,16 +548,19 @@ const SetupAccount = () => {
                     <div className="new-setup-input-wrapper">
                       <FaPhone className="new-setup-input-icon" />
                       <input
-                        type="tel"
+                        type="text"
                         name="phoneNumber"
                         value={formData.phoneNumber}
                         onChange={handleChange}
                         className={`new-setup-form-input ${errors.phoneNumber ? 'error' : ''}`}
                         placeholder="09XXXXXXXXX"
+                        maxLength="11"
                       />
                     </div>
                     {errors.phoneNumber && <span className="new-setup-error-message">{errors.phoneNumber}</span>}
+                    <small className="new-setup-hint-text">Format: 09XXXXXXXXX (11 digits)</small>
                   </div>
+
 
                   {/* BIRTHDAY */}
                   <div className="new-setup-form-group">
@@ -404,7 +572,7 @@ const SetupAccount = () => {
                           name="birthMonth"
                           value={formData.birthMonth}
                           onChange={handleChange}
-                          className={`new-setup-select ${errors.birthMonth ? 'error' : ''}`}
+                          className={`new-setup-select ${errors.birthday ? 'error' : ''}`}
                         >
                           <option value="">Month</option>
                           {months.map((month, index) => (
@@ -418,7 +586,7 @@ const SetupAccount = () => {
                           name="birthDay"
                           value={formData.birthDay}
                           onChange={handleChange}
-                          className={`new-setup-select ${errors.birthDay ? 'error' : ''}`}
+                          className={`new-setup-select ${errors.birthday ? 'error' : ''}`}
                         >
                           <option value="">Day</option>
                           {days.map(day => (
@@ -432,7 +600,7 @@ const SetupAccount = () => {
                           name="birthYear"
                           value={formData.birthYear}
                           onChange={handleChange}
-                          className={`new-setup-select ${errors.birthYear ? 'error' : ''}`}
+                          className={`new-setup-select ${errors.birthday ? 'error' : ''}`}
                         >
                           <option value="">Year</option>
                           {years.map(year => (
@@ -441,9 +609,11 @@ const SetupAccount = () => {
                         </select>
                       </div>
                     </div>
-                    {(errors.birthMonth || errors.birthDay || errors.birthYear) && (
-                      <span className="new-setup-error-message">Complete birthday is required</span>
-                    )}
+
+                    {/* Single birthday error message */}
+                    {errors.birthday && <span className="new-setup-error-message">{errors.birthday}</span>}
+
+                    <small className="new-setup-hint-text">Select your birth month, day, and year</small>
                   </div>
 
                   <div className="new-setup-form-actions">
@@ -572,9 +742,12 @@ const SetupAccount = () => {
                         className={`new-setup-form-input ${errors.zipCode ? 'error' : ''}`}
                         placeholder="Enter ZIP code"
                         maxLength="4"
+                        pattern="[0-9]{4}"
+                        inputMode="numeric"
                       />
                     </div>
                     {errors.zipCode && <span className="new-setup-error-message">{errors.zipCode}</span>}
+                    <small className="new-setup-hint-text">Format: 4 digits (e.g., 1234)</small>
                   </div>
 
                   <div className="new-setup-form-actions">

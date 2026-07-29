@@ -27,6 +27,9 @@ const Quotation = () => {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
 
+  // Validation error states
+  const [validationErrors, setValidationErrors] = useState({});
+
   // Scroll container ref for modal
   const scrollContainerRef = useRef(null);
   // Store scroll position to prevent auto-scroll
@@ -76,7 +79,6 @@ const Quotation = () => {
   // Restore scroll position after updates
   const restoreScrollPosition = useCallback(() => {
     if (scrollContainerRef.current) {
-      // Use requestAnimationFrame to ensure DOM is updated
       requestAnimationFrame(() => {
         if (scrollContainerRef.current) {
           scrollContainerRef.current.scrollTop = scrollPositionRef.current;
@@ -432,19 +434,131 @@ const Quotation = () => {
     return parts.length > 0 ? parts.join(', ') : 'No address provided';
   };
 
-  // FIXED: Save scroll position before update, update state, restore after
+  // Validation functions
+  const validateGCashReference = (reference) => {
+    if (!reference) return 'GCash reference number is required';
+    const cleanRef = reference.replace(/\s/g, '');
+    if (!/^\d{13}$/.test(cleanRef)) {
+      return 'GCash reference must be exactly 13 digits (0-9)';
+    }
+    return '';
+  };
+
+  const validateCardNumber = (number) => {
+    const cleanNum = number?.replace(/\s/g, '') || '';
+    if (!cleanNum) return 'Card number is required';
+    if (!/^\d{16}$/.test(cleanNum)) {
+      return 'Card number must be exactly 16 digits (0-9)';
+    }
+    return '';
+  };
+
+  const validateCardExpiry = (expiry) => {
+    if (!expiry) return 'Expiry date is required';
+    const cleanExpiry = expiry.replace(/\s/g, '');
+    if (!/^\d{2}\/\d{2}$/.test(cleanExpiry)) {
+      return 'Expiry must be in MM/YY format';
+    }
+    const [month, year] = cleanExpiry.split('/');
+    const monthNum = parseInt(month);
+    const yearNum = parseInt(year);
+    if (monthNum < 1 || monthNum > 12) {
+      return 'Invalid month (must be 01-12)';
+    }
+    const currentYear = new Date().getFullYear() % 100;
+    const currentMonth = new Date().getMonth() + 1;
+    if (yearNum < currentYear || (yearNum === currentYear && monthNum < currentMonth)) {
+      return 'Card has expired';
+    }
+    if (yearNum > currentYear + 10) {
+      return 'Expiry year is too far in the future';
+    }
+    return '';
+  };
+
+  const validateCVC = (cvc) => {
+    if (!cvc) return 'CVC is required';
+    if (!/^\d{3}$/.test(cvc)) {
+      return 'CVC must be exactly 3 digits (0-9)';
+    }
+    return '';
+  };
+
+  const validateBankAccountName = (name) => {
+    if (!name) return ''; // Optional field
+    if (!/^[a-zA-Z\s.]+$/.test(name)) {
+      return 'Account name must contain only letters and spaces';
+    }
+    if (name.trim().length < 2) {
+      return 'Account name must be at least 2 characters';
+    }
+    return '';
+  };
+
+  const validateAmountSent = (amount, dueAmount) => {
+    if (!amount) return 'Amount sent is required';
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0) {
+      return 'Please enter a valid amount';
+    }
+    if (numAmount !== dueAmount) {
+      return `Amount must exactly match the due amount (${formatCurrency(dueAmount)})`;
+    }
+    return '';
+  };
+
+  const validateTransferDate = (date, invoiceDate) => {
+    if (!date) return 'Transfer date is required';
+
+    const selectedDate = new Date(date);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Get invoice creation date
+    let creationDate;
+    if (invoiceDate) {
+      creationDate = new Date(invoiceDate);
+      creationDate.setHours(0, 0, 0, 0);
+    } else {
+      // If no invoice date, use 30 days ago as fallback
+      creationDate = new Date();
+      creationDate.setDate(creationDate.getDate() - 30);
+      creationDate.setHours(0, 0, 0, 0);
+    }
+
+    // Check if date is before creation date
+    if (selectedDate < creationDate) {
+      return `Transfer date cannot be before the invoice date (${creationDate.toLocaleDateString()})`;
+    }
+
+    // Check if date is in the future
+    if (selectedDate > today) {
+      return 'Transfer date cannot be in the future';
+    }
+
+    return '';
+  };
+
+  const validateTransferTime = (time) => {
+    if (!time) return 'Transfer time is required';
+    return '';
+  };
+
+  const validateProofFile = (file) => {
+    if (!file) return 'Please upload proof of payment';
+    return '';
+  };
+
   const handleManualTransferInputChange = (e) => {
     const { name, value } = e.target;
-    saveScrollPosition();
     setManualTransferForm(prev => ({
       ...prev,
       [name]: value
     }));
-    // Restore scroll after state update
-    setTimeout(restoreScrollPosition, 0);
   };
 
-  // FIXED: Save scroll position before file upload
   const handleProofFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -453,35 +567,53 @@ const Quotation = () => {
         e.target.value = '';
         return;
       }
-      saveScrollPosition();
       setProofFile(file);
-      setTimeout(restoreScrollPosition, 0);
     }
   };
+  const validateTransactionReference = (reference) => {
+    if (!reference) return 'Transaction reference number is required';
+    return '';
+  };
+  // Update the validateTransferDate function
 
   const handleSubmitManualTransfer = async () => {
+    // Clear previous validation errors
+    setValidationErrors({});
+
+    const dueAmount = parseFloat(selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount);
+    const errors = {};
+
+    // Validate all fields
     if (!selectedBankId) {
-      showToast('Please select a bank', 'warning');
-      return;
+      errors.bank = 'Please select a bank';
     }
-    if (!manualTransferForm.transactionReference) {
-      showToast('Please enter transaction reference number', 'warning');
-      return;
-    }
-    if (!manualTransferForm.amount || parseFloat(manualTransferForm.amount) <= 0) {
-      showToast('Please enter a valid amount', 'warning');
-      return;
-    }
-    if (!manualTransferForm.transferDate) {
-      showToast('Please select transfer date', 'warning');
-      return;
-    }
-    if (!manualTransferForm.transferTime) {
-      showToast('Please select transfer time', 'warning');
-      return;
-    }
-    if (!proofFile) {
-      showToast('Please upload proof of payment', 'warning');
+
+    // Only check if transaction reference is not empty
+    const refError = validateTransactionReference(manualTransferForm.transactionReference);
+    if (refError) errors.transactionReference = refError;
+
+    const amountError = validateAmountSent(manualTransferForm.amount, dueAmount);
+    if (amountError) errors.amount = amountError;
+
+    
+    // Pass the invoice date to the validation
+    const invoiceDate = selectedItem?.date || selectedItem?.bookedAt || selectedItem?.issueDate;
+    const dateError = validateTransferDate(manualTransferForm.transferDate, invoiceDate);
+    if (dateError) errors.transferDate = dateError;
+    const timeError = validateTransferTime(manualTransferForm.transferTime);
+    if (timeError) errors.transferTime = timeError;
+
+    const proofError = validateProofFile(proofFile);
+    if (proofError) errors.proofFile = proofError;
+
+    const accountNameError = validateBankAccountName(manualTransferForm.accountName);
+    if (accountNameError) errors.accountName = accountNameError;
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      // Show first error as toast
+      const firstError = Object.values(errors)[0];
+      showToast(firstError, 'warning');
       return;
     }
 
@@ -547,6 +679,11 @@ const Quotation = () => {
     }
   };
 
+  // Update handleBankSelect to remove scroll management
+  const handleBankSelect = (bankId) => {
+    setSelectedBankId(bankId);
+  };
+
   const handlePayMongoCardPayment = async () => {
     setIsSubmitting(true);
     try {
@@ -555,8 +692,19 @@ const Quotation = () => {
       const cardExpiry = document.getElementById('card-expiry')?.value;
       const cardCvc = document.getElementById('card-cvc')?.value;
 
-      if (!cardNumber || !cardExpiry || !cardCvc) {
-        showToast('Please fill in all card details', 'warning');
+      // Validate card details
+      const errors = {};
+      const cardNumError = validateCardNumber(cardNumber);
+      if (cardNumError) errors.cardNumber = cardNumError;
+      const expiryError = validateCardExpiry(cardExpiry);
+      if (expiryError) errors.cardExpiry = expiryError;
+      const cvcError = validateCVC(cardCvc);
+      if (cvcError) errors.cardCvc = cvcError;
+
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors);
+        const firstError = Object.values(errors)[0];
+        showToast(firstError, 'warning');
         setIsSubmitting(false);
         return;
       }
@@ -630,8 +778,19 @@ const Quotation = () => {
       const cardExpiry = document.getElementById('full-card-expiry')?.value;
       const cardCvc = document.getElementById('full-card-cvc')?.value;
 
-      if (!cardNumber || !cardExpiry || !cardCvc) {
-        showToast('Please fill in all card details', 'warning');
+      // Validate card details
+      const errors = {};
+      const cardNumError = validateCardNumber(cardNumber);
+      if (cardNumError) errors.cardNumber = cardNumError;
+      const expiryError = validateCardExpiry(cardExpiry);
+      if (expiryError) errors.cardExpiry = expiryError;
+      const cvcError = validateCVC(cardCvc);
+      if (cvcError) errors.cardCvc = cvcError;
+
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors);
+        const firstError = Object.values(errors)[0];
+        showToast(firstError, 'warning');
         setIsSubmitting(false);
         return;
       }
@@ -732,6 +891,12 @@ const Quotation = () => {
         showToast('Please enter GCash reference number', 'warning');
         return;
       }
+      // Validate GCash reference
+      const refError = validateGCashReference(paymentReference);
+      if (refError) {
+        showToast(refError, 'warning');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -806,6 +971,7 @@ const Quotation = () => {
       showToast('Please select a payment method', 'warning');
       return;
     }
+
     if (paymentMethod === 'gcash') {
       if (!paymentProof) {
         showToast('Please upload payment proof', 'warning');
@@ -815,7 +981,14 @@ const Quotation = () => {
         showToast('Please enter GCash reference number', 'warning');
         return;
       }
+      // Validate GCash reference
+      const refError = validateGCashReference(paymentReference);
+      if (refError) {
+        showToast(refError, 'warning');
+        return;
+      }
     }
+
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
@@ -869,6 +1042,7 @@ const Quotation = () => {
     setPaymentReference('');
     setPaymentMethod(null);
     setShowManualTransferForm(false);
+    setValidationErrors({});
   };
 
   const closeFullPaymentModal = () => {
@@ -888,6 +1062,7 @@ const Quotation = () => {
       transferTime: '',
       remarks: ''
     });
+    setValidationErrors({});
   };
 
   const closeSuccessModal = () => {
@@ -961,10 +1136,14 @@ const Quotation = () => {
 
   const ManualBankTransferSection = () => {
     const selectedBank = companyBanks.find(b => b.id === selectedBankId);
+    const dueAmount = parseFloat(selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount);
 
     const handleBankSelect = (bankId) => {
       saveScrollPosition();
       setSelectedBankId(bankId);
+      if (validationErrors.bank) {
+        setValidationErrors(prev => ({ ...prev, bank: '' }));
+      }
       setTimeout(restoreScrollPosition, 0);
     };
 
@@ -994,7 +1173,7 @@ const Quotation = () => {
             <div className="billing-customer-summary-row">
               <span>Amount Due:</span>
               <strong className="billing-customer-amount-due">
-                {formatCurrency(selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount)}
+                {formatCurrency(dueAmount)}
               </strong>
             </div>
             <div className="billing-customer-summary-row">
@@ -1029,6 +1208,9 @@ const Quotation = () => {
                 </div>
               ))}
             </div>
+            {validationErrors.bank && (
+              <span className="billing-customer-error-message">{validationErrors.bank}</span>
+            )}
           </div>
 
           {selectedBank && (
@@ -1041,21 +1223,30 @@ const Quotation = () => {
                   <input
                     type="text"
                     name="accountName"
-                    value={manualTransferForm.accountName}
-                    onChange={handleManualTransferInputChange}
+                    defaultValue={manualTransferForm.accountName}
+                    onBlur={handleManualTransferInputChange}
                     placeholder="Your full name as shown in transfer"
+                    className={validationErrors.accountName ? 'error' : ''}
                   />
+                  {validationErrors.accountName && (
+                    <small className="billing-customer-error-message">{validationErrors.accountName}</small>
+                  )}
                 </div>
                 <div className="billing-customer-form-group">
                   <label>Reference / Transaction ID *</label>
                   <input
                     type="text"
                     name="transactionReference"
-                    value={manualTransferForm.transactionReference}
-                    onChange={handleManualTransferInputChange}
+                    defaultValue={manualTransferForm.transactionReference}
+                    onBlur={handleManualTransferInputChange}
                     placeholder="Enter transaction reference number"
                     required
+                    className={validationErrors.transactionReference ? 'error' : ''}
                   />
+                  {validationErrors.transactionReference && (
+                    <small className="billing-customer-hint-text">{validationErrors.transactionReference}</small>
+                  )}
+
                 </div>
               </div>
 
@@ -1065,12 +1256,17 @@ const Quotation = () => {
                   <input
                     type="number"
                     name="amount"
-                    value={manualTransferForm.amount}
-                    onChange={handleManualTransferInputChange}
+                    defaultValue={manualTransferForm.amount}
+                    onBlur={handleManualTransferInputChange}
                     placeholder="Enter exact amount sent"
                     step="0.01"
                     required
+                    className={validationErrors.amount ? 'error' : ''}
                   />
+                  {validationErrors.amount && (
+                    <small className="billing-customer-error-message">{validationErrors.amount}</small>
+                  )}
+
                 </div>
               </div>
 
@@ -1080,26 +1276,39 @@ const Quotation = () => {
                   <input
                     type="date"
                     name="transferDate"
-                    value={manualTransferForm.transferDate}
-                    onChange={handleManualTransferInputChange}
+                    defaultValue={manualTransferForm.transferDate}
+                    onBlur={handleManualTransferInputChange}
                     required
+                    className={validationErrors.transferDate ? 'error' : ''}
+                    max={new Date().toISOString().split('T')[0]}
+                    min={selectedItem?.date ? new Date(selectedItem.date).toISOString().split('T')[0] : undefined}
                   />
+                  {validationErrors.transferDate && (
+                    <span className="billing-customer-error-message">{validationErrors.transferDate}</span>
+                  )}
+                  <small className="billing-customer-hint-text">
+                    Must be between {selectedItem?.date || 'invoice date'} and today
+                  </small>
                 </div>
                 <div className="billing-customer-form-group">
                   <label>Transfer Time *</label>
                   <input
                     type="time"
                     name="transferTime"
-                    value={manualTransferForm.transferTime}
-                    onChange={handleManualTransferInputChange}
+                    defaultValue={manualTransferForm.transferTime}
+                    onBlur={handleManualTransferInputChange}
                     required
+                    className={validationErrors.transferTime ? 'error' : ''}
                   />
+                  {validationErrors.transferTime && (
+                    <span className="billing-customer-error-message">{validationErrors.transferTime}</span>
+                  )}
                 </div>
               </div>
 
               <div className="billing-customer-form-group">
                 <label>Upload Proof of Payment *</label>
-                <div className="billing-customer-file-upload-area">
+                <div className={`billing-customer-file-upload-area ${validationErrors.proofFile ? 'error' : ''}`}>
                   <input
                     type="file"
                     accept="image/*,application/pdf"
@@ -1117,14 +1326,17 @@ const Quotation = () => {
                     </>
                   )}
                 </div>
+                {validationErrors.proofFile && (
+                  <span className="billing-customer-error-message">{validationErrors.proofFile}</span>
+                )}
               </div>
 
               <div className="billing-customer-form-group">
                 <label>Remarks (Optional)</label>
                 <textarea
                   name="remarks"
-                  value={manualTransferForm.remarks}
-                  onChange={handleManualTransferInputChange}
+                  defaultValue={manualTransferForm.remarks}
+                  onBlur={handleManualTransferInputChange}
                   placeholder="Additional notes for the admin"
                   rows="2"
                 />
@@ -1301,7 +1513,7 @@ const Quotation = () => {
                     <th>Transaction</th>
                     <th>Reference</th>
                     <th>Date</th>
-                    <th>Due Date</th>
+
                     <th>Amount</th>
                     <th>Status</th>
                     <th>Action</th>
@@ -1334,7 +1546,7 @@ const Quotation = () => {
                           </div>
                         </td>
                         <td>{item.date}</td>
-                        <td>{item.dueDate}</td>
+
                         <td>
                           <div className="billing-customer-amount-cell">
                             <span className="billing-customer-amount-main">{formatCurrency(item.amount)}</span>
@@ -1603,7 +1815,7 @@ const Quotation = () => {
                     <div className="billing-customer-card-form">
                       <div className="billing-customer-form-group">
                         <label>Card Number</label>
-                        <input type="text" id="full-card-number" placeholder="1234 5678 9012 3456" />
+                        <input type="text" id="full-card-number" placeholder="4343 4343 4343 4345" />
                       </div>
                       <div className="billing-customer-form-row">
                         <div className="billing-customer-form-group">
@@ -1711,7 +1923,7 @@ const Quotation = () => {
                     <div className="billing-customer-card-form">
                       <div className="billing-customer-form-group">
                         <label>Card Number</label>
-                        <input type="text" id="card-number" placeholder="1234 5678 9012 3456" />
+                        <input type="text" id="card-number" placeholder="1234 5678 9012" />
                       </div>
                       <div className="billing-customer-form-row">
                         <div className="billing-customer-form-group">

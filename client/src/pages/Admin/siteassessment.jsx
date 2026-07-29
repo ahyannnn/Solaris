@@ -291,8 +291,38 @@ const SiteAssessment = () => {
     }
   };
 
+  // Validation function for site visit date
+  const validateSiteVisitDate = (date) => {
+    if (!date) {
+      return { valid: false, message: 'Site visit date is required' };
+    }
+    
+    const selectedDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to midnight for comparison
+    
+    if (selectedDate < today) {
+      return { valid: false, message: 'Site visit date cannot be in the past' };
+    }
+    
+    return { valid: true, message: '' };
+  };
+
   const handleAssignEngineer = async () => {
-    if (!selectedItem || !engineerId) return;
+    if (!selectedItem || !engineerId) {
+      showToast('Please select an engineer', 'warning');
+      return;
+    }
+
+    // Validate site visit date for pre-assessments
+    if (activeTab !== 'free-quotes') {
+      const validation = validateSiteVisitDate(siteVisitDate);
+      if (!validation.valid) {
+        showToast(validation.message, 'warning');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
@@ -595,6 +625,12 @@ const SiteAssessment = () => {
     return null;
   };
 
+  // Get today's date for min date attribute
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
   return (
     <>
       <Helmet><title>Site Assessment | Admin | Salfer Engineering</title></Helmet>
@@ -615,12 +651,10 @@ const SiteAssessment = () => {
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
-                  {/* FIXED: Changed to Indigo (#6366f1) */}
                   <linearGradient id="colorQuotes" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
-                  {/* FIXED: Changed to Emerald (#10b981) */}
                   <linearGradient id="colorAssessments" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
@@ -918,13 +952,79 @@ const SiteAssessment = () => {
               <div className="modal-body-adminsiteassess">
                 <div className="detail-row-adminsiteassess"><span>Reference:</span><strong>{activeTab === 'free-quotes' ? selectedItem.quotationReference : selectedItem.bookingReference}</strong></div>
                 <div className="detail-row-adminsiteassess"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
-                <div className="form-group-adminsiteassess"><label>Select Engineer</label><div className="engineer-grid-adminsiteassess">{engineers.length === 0 ? (<div className="no-engineers-adminsiteassess">No engineers available</div>) : (engineers.map(eng => (<div key={eng._id} className={`engineer-card-adminsiteassess ${engineerId === eng._id ? 'selected-adminsiteassess' : ''}`} onClick={() => setEngineerId(eng._id)}><div className="engineer-avatar-adminsiteassess"><span>{eng.fullName?.charAt(0) || 'E'}</span></div><div className="engineer-info-adminsiteassess"><div className="engineer-name-adminsiteassess">{eng.fullName || 'Engineer'}</div><div className="engineer-email-adminsiteassess">{eng.email}</div></div>{engineerId === eng._id && (<div className="engineer-selected-badge-adminsiteassess"><FaCheckCircle /></div>)}</div>)))}</div></div>
-                {activeTab !== 'free-quotes' && (<div className="form-group-adminsiteassess"><label>Site Visit Date</label><input type="date" value={siteVisitDate} onChange={(e) => setSiteVisitDate(e.target.value)} /></div>)}
-                <div className="form-group-adminsiteassess"><label>Notes</label><textarea rows="3" value={siteVisitNotes} onChange={(e) => setSiteVisitNotes(e.target.value)} placeholder="Add any special instructions or notes..." /></div>
+                <div className="form-group-adminsiteassess">
+                  <label>Select Engineer <span className="required-field-adminsiteassess">*</span></label>
+                  <div className="engineer-grid-adminsiteassess">
+                    {engineers.length === 0 ? (
+                      <div className="no-engineers-adminsiteassess">No engineers available</div>
+                    ) : (
+                      engineers.map(eng => (
+                        <div 
+                          key={eng._id} 
+                          className={`engineer-card-adminsiteassess ${engineerId === eng._id ? 'selected-adminsiteassess' : ''}`} 
+                          onClick={() => setEngineerId(eng._id)}
+                        >
+                          <div className="engineer-avatar-adminsiteassess">
+                            <span>{eng.fullName?.charAt(0) || 'E'}</span>
+                          </div>
+                          <div className="engineer-info-adminsiteassess">
+                            <div className="engineer-name-adminsiteassess">{eng.fullName || 'Engineer'}</div>
+                            <div className="engineer-email-adminsiteassess">{eng.email}</div>
+                          </div>
+                          {engineerId === eng._id && (
+                            <div className="engineer-selected-badge-adminsiteassess"><FaCheckCircle /></div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+                
+                {activeTab !== 'free-quotes' && (
+                  <div className="form-group-adminsiteassess">
+                    <label>
+                      Site Visit Date <span className="required-field-adminsiteassess">*</span>
+                    </label>
+                    <input 
+                      type="date" 
+                      className={`date-input-adminsiteassess ${siteVisitDate && new Date(siteVisitDate) < new Date(new Date().setHours(0,0,0,0)) ? 'invalid-date-adminsiteassess' : ''}`}
+                      value={siteVisitDate} 
+                      onChange={(e) => setSiteVisitDate(e.target.value)} 
+                      min={getTodayDate()}
+                      required
+                    />
+                    {siteVisitDate && new Date(siteVisitDate) < new Date(new Date().setHours(0,0,0,0)) && (
+                      <div className="validation-error-adminsiteassess">
+                        <label>Site visit date cannot be in the past</label>
+                      </div>
+                    )}
+                    {!siteVisitDate && (
+                      <div className="validation-hint-adminsiteassess">
+                        <label>Please select a future date for the site visit</label>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                <div className="form-group-adminsiteassess">
+                  <label>Notes</label>
+                  <textarea 
+                    rows="3" 
+                    value={siteVisitNotes} 
+                    onChange={(e) => setSiteVisitNotes(e.target.value)} 
+                    placeholder="Add any special instructions or notes..."
+                  />
+                </div>
               </div>
               <div className="modal-actions-adminsiteassess">
                 <button className="cancel-btn-adminsiteassess" onClick={() => setShowAssignEngineerModal(false)}>Cancel</button>
-                <button className="assign-btn-adminsiteassess" onClick={handleAssignEngineer} disabled={!engineerId || isSubmitting}>{isSubmitting ? 'Assigning...' : 'Assign Engineer'}</button>
+                <button 
+                  className="assign-btn-adminsiteassess" 
+                  onClick={handleAssignEngineer} 
+                  disabled={!engineerId || isSubmitting || (activeTab !== 'free-quotes' && !siteVisitDate)}
+                >
+                  {isSubmitting ? 'Assigning...' : 'Assign Engineer'}
+                </button>
               </div>
             </div>
           </div>
@@ -938,10 +1038,25 @@ const SiteAssessment = () => {
                 <div className="detail-row-adminsiteassess"><span>Assessment:</span><strong>{selectedItem.bookingReference}</strong></div>
                 <div className="detail-row-adminsiteassess"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
                 <div className="detail-row-adminsiteassess"><span>Engineer:</span><strong>{getEngineerName(selectedItem.assignedEngineerId)}</strong></div>
-                <div className="form-group-adminsiteassess"><label>Select Device</label><select value={deviceId} onChange={(e) => setDeviceId(e.target.value)}><option value="">Select...</option>{devices.map(device => <option key={device._id} value={device._id}>{device.deviceId} - {device.deviceName}</option>)}</select></div>
+                <div className="form-group-adminsiteassess">
+                  <label>Select Device <span className="required-field-adminsiteassess">*</span></label>
+                  <select value={deviceId} onChange={(e) => setDeviceId(e.target.value)}>
+                    <option value="">Select...</option>
+                    {devices.map(device => (
+                      <option key={device._id} value={device._id}>
+                        {device.deviceId} - {device.deviceName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div className="info-box-adminsiteassess"><FaWifi /><small>The device will be deployed on site during the site visit.</small></div>
               </div>
-              <div className="modal-actions-adminsiteassess"><button className="cancel-btn-adminsiteassess" onClick={() => setShowAssignDeviceModal(false)}>Cancel</button><button className="assign-btn-adminsiteassess" onClick={handleAssignDevice} disabled={!deviceId || isSubmitting}>{isSubmitting ? 'Assigning...' : 'Assign'}</button></div>
+              <div className="modal-actions-adminsiteassess">
+                <button className="cancel-btn-adminsiteassess" onClick={() => setShowAssignDeviceModal(false)}>Cancel</button>
+                <button className="assign-btn-adminsiteassess" onClick={handleAssignDevice} disabled={!deviceId || isSubmitting}>
+                  {isSubmitting ? 'Assigning...' : 'Assign'}
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -955,7 +1070,12 @@ const SiteAssessment = () => {
                 <div className="detail-row-adminsiteassess"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
                 <div className="form-group-adminsiteassess"><label>Quotation (PDF)</label><input type="file" accept=".pdf" onChange={(e) => setQuotationFile(e.target.files[0])} /></div>
               </div>
-              <div className="modal-actions-adminsiteassess"><button className="cancel-btn-adminsiteassess" onClick={() => setShowUploadModal(false)}>Cancel</button><button className="upload-btn-adminsiteassess" onClick={handleUploadQuotation} disabled={!quotationFile || uploading}>{uploading ? 'Uploading...' : 'Upload'}</button></div>
+              <div className="modal-actions-adminsiteassess">
+                <button className="cancel-btn-adminsiteassess" onClick={() => setShowUploadModal(false)}>Cancel</button>
+                <button className="upload-btn-adminsiteassess" onClick={handleUploadQuotation} disabled={!quotationFile || uploading}>
+                  {uploading ? 'Uploading...' : 'Upload'}
+                </button>
+              </div>
             </div>
           </div>
         )}

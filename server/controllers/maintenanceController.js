@@ -38,7 +38,11 @@ exports.getMaintenanceStatus = async (req, res) => {
       showProgressBar: maintenance.showProgressBar,
       contactEmail: maintenance.contactEmail,
       contactPhone: maintenance.contactPhone,
-      socialLinks: maintenance.socialLinks
+      socialLinks: maintenance.socialLinks,
+      // ADD THESE MISSING FIELDS:
+      allowedIPs: maintenance.allowedIPs || [],           // <-- ADD THIS
+      allowedRoles: maintenance.allowedRoles || ['admin'], // <-- ADD THIS
+      whitelistedRoutes: maintenance.whitelistedRoutes || ['/api/auth/login', '/api/auth/register', '/api/maintenance/status'] // <-- ADD THIS
     });
 
   } catch (error) {
@@ -527,7 +531,8 @@ exports.getConfigHistory = async (req, res) => {
 // @access  Private (Admin)
 exports.addEquipmentItem = async (req, res) => {
   try {
-    const { type, name, price, brand, capacity, panelArea, warranty, unit, notes } = req.body;
+    // FIX: Destructure dob from req.body
+    const { type, name, price, brand, capacity, panelArea, warranty, unit, notes, dob } = req.body;
     const { reason } = req.query;
     const adminId = req.user.id;
 
@@ -560,25 +565,95 @@ exports.addEquipmentItem = async (req, res) => {
       });
     }
 
+    // Validate brand (required)
+    if (!brand || !brand.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Brand is required'
+      });
+    }
+
+    // Validate warranty (required)
+    if (warranty === undefined || warranty === null || warranty === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Warranty is required'
+      });
+    }
+
+    // Validate capacity
+    if (!capacity || capacity.value === undefined || capacity.value === '' || capacity.value === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Capacity is required'
+      });
+    }
+
+    // Validate unit
+    if (!unit || !unit.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Unit is required'
+      });
+    }
+
+    // Type-specific validations
+    if (type === 'solarPanels') {
+      if (panelArea === undefined || panelArea === '' || panelArea === null) {
+        return res.status(400).json({
+          success: false,
+          message: 'Panel area is required for solar panels'
+        });
+      }
+      if (parseFloat(panelArea) < 0.01) {
+        return res.status(400).json({
+          success: false,
+          message: 'Panel area must be at least 0.01 m²'
+        });
+      }
+    }
+
+    if (type === 'batteries') {
+      if (dob === undefined || dob === '' || dob === null) {
+        return res.status(400).json({
+          success: false,
+          message: 'Depth of Discharge (DoD) is required for batteries'
+        });
+      }
+      const dobNum = parseFloat(dob);
+      if (dobNum < 0 || dobNum > 100) {
+        return res.status(400).json({
+          success: false,
+          message: 'Depth of Discharge must be between 0 and 100'
+        });
+      }
+    }
+
     let config = await SystemConfig.findOne();
     if (!config) {
       config = new SystemConfig();
       await config.save();
     }
 
+    // Prepare equipment data
+    const equipmentData = {
+      name: name.trim(),
+      price: parseFloat(price),
+      brand: brand.trim(),
+      warranty: parseFloat(warranty) || 0,
+      capacity: {
+        value: parseFloat(capacity.value) || 0,
+        unit: capacity.unit || ''
+      },
+      panelArea: type === 'solarPanels' ? parseFloat(panelArea) || 0 : 0,
+      dob: type === 'batteries' ? parseFloat(dob) || 0 : 0,
+      unit: unit || 'piece',
+      notes: notes || ''
+    };
+
     const newItem = await config.addEquipmentItem(
       type,
-      {
-        name: name.trim(),
-        price: parseFloat(price),
-        brand: brand || '',
-        warranty: warranty || 0,
-        capacity: capacity || { value: 0, unit: '' },
-        panelArea: panelArea || 0,
-        dob: dob || 0,
-        unit: unit || 'piece',
-        notes: notes || ''
-      },
+      equipmentData,
       req.user.id,
       reason || `Added new ${type.slice(0, -1)}: ${name}`
     );
@@ -630,22 +705,13 @@ exports.addEquipmentItem = async (req, res) => {
 // @access  Private (Admin)
 exports.updateEquipmentItem = async (req, res) => {
   try {
+    // FIX: Destructure dob from req.body
     const { type, itemId } = req.params;
-    const {
-      name,
-      price,
-      brand,
-      warranty,
-      capacity,
-      panelArea,
-      dob,
-      unit,
-      notes,
-      isActive
-    } = req.body;
+    const { name, price, brand, capacity, panelArea, warranty, unit, notes, dob } = req.body;
     const { reason } = req.query;
     const adminId = req.user.id;
 
+    // Validate equipment type
     const validTypes = [
       'solarPanels', 'inverters', 'batteries', 'mountingStructures',
       'electricalComponents', 'cablesAndWiring', 'safetyEquipment',
@@ -655,53 +721,138 @@ exports.updateEquipmentItem = async (req, res) => {
     if (!validTypes.includes(type)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid equipment type'
+        message: `Invalid equipment type. Must be one of: ${validTypes.join(', ')}`
       });
+    }
+
+    // Validate required fields
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Equipment name is required'
+      });
+    }
+
+    if (!price || price <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid price is required'
+      });
+    }
+
+    // Validate brand (required)
+    if (!brand || !brand.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Brand is required'
+      });
+    }
+
+    // Validate warranty (required)
+    if (warranty === undefined || warranty === null || warranty === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Warranty is required'
+      });
+    }
+
+    // Validate capacity
+    if (!capacity || capacity.value === undefined || capacity.value === '' || capacity.value === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Capacity is required'
+      });
+    }
+
+    // Validate unit
+    if (!unit || !unit.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Unit is required'
+      });
+    }
+
+    // Type-specific validations
+    if (type === 'solarPanels') {
+      if (panelArea === undefined || panelArea === '' || panelArea === null) {
+        return res.status(400).json({
+          success: false,
+          message: 'Panel area is required for solar panels'
+        });
+      }
+      if (parseFloat(panelArea) < 0.01) {
+        return res.status(400).json({
+          success: false,
+          message: 'Panel area must be at least 0.01 m²'
+        });
+      }
+    }
+
+    if (type === 'batteries') {
+      if (dob === undefined || dob === '' || dob === null) {
+        return res.status(400).json({
+          success: false,
+          message: 'Depth of Discharge (DoD) is required for batteries'
+        });
+      }
+      const dobNum = parseFloat(dob);
+      if (dobNum < 0 || dobNum > 100) {
+        return res.status(400).json({
+          success: false,
+          message: 'Depth of Discharge must be between 0 and 100'
+        });
+      }
     }
 
     let config = await SystemConfig.findOne();
     if (!config) {
       return res.status(404).json({
         success: false,
-        message: 'Configuration not found'
+        message: 'System configuration not found'
       });
     }
 
-    const updates = {};
-    if (name !== undefined) updates.name = name.trim();
-    if (price !== undefined) updates.price = parseFloat(price);
-    if (brand !== undefined) updates.brand = brand;
-    if (capacity !== undefined) {
-      updates.capacity = {
-        value: Number(capacity.value),
-        unit: capacity.unit
-      };
-    }
-    if (panelArea !== undefined) updates.panelArea = Number(panelArea || 0);
-    if (dob !== undefined) updates.dob = Number(dob || 0);
-    if (warranty !== undefined) updates.warranty = parseInt(warranty);
-    if (unit !== undefined) updates.unit = unit;
-    if (notes !== undefined) updates.notes = notes;
-    if (isActive !== undefined) updates.isActive = isActive === 'true' || isActive === true;
+    // Prepare equipment data
+    const equipmentData = {
+      name: name.trim(),
+      price: parseFloat(price),
+      brand: brand.trim(),
+      warranty: parseFloat(warranty) || 0,
+      capacity: {
+        value: parseFloat(capacity.value) || 0,
+        unit: capacity.unit || ''
+      },
+      panelArea: type === 'solarPanels' ? parseFloat(panelArea) || 0 : 0,
+      dob: type === 'batteries' ? parseFloat(dob) || 0 : 0,
+      unit: unit || 'piece',
+      notes: notes || ''
+    };
 
     const updatedItem = await config.updateEquipmentItem(
       type,
       itemId,
-      updates,
+      equipmentData,
       req.user.id,
-      reason || `Updated ${type.slice(0, -1)}: ${name || 'equipment'}`
+      reason || `Updated ${type.slice(0, -1)}: ${name}`
     );
+
+    if (!updatedItem) {
+      return res.status(404).json({
+        success: false,
+        message: 'Equipment item not found'
+      });
+    }
 
     // Create maintenance task record
     const task = new MaintenanceTask({
       taskId: generateTaskId(),
       title: `Updated ${type.slice(0, -1)}`,
-      description: `Updated ${updatedItem.name} in ${type} catalog`,
+      description: `Updated ${name} in ${type} catalog`,
       type: 'system_config',
-      taskData: { type, itemId, updates, reason },
+      taskData: { type, item: updatedItem, reason },
       results: {
         success: true,
-        message: `Updated ${updatedItem.name} successfully`
+        message: `Updated ${name} successfully`
       },
       completedAt: new Date(),
       status: 'completed',
@@ -715,12 +866,12 @@ exports.updateEquipmentItem = async (req, res) => {
       user: adminId,
       role: req.user.role,
       module: "Maintenance",
-      action: `Updated ${type.slice(0, -1)}: ${updatedItem.name}`
+      action: `Updated ${type.slice(0, -1)}: ${name}`
     });
 
     res.json({
       success: true,
-      message: 'Equipment updated successfully',
+      message: `${name} updated successfully in ${type}`,
       item: updatedItem
     });
 

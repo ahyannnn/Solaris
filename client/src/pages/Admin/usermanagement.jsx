@@ -15,6 +15,7 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaEye,
+  FaEyeSlash,
   FaEnvelope,
   FaBan,
   FaCheck,
@@ -66,53 +67,145 @@ const UserManagement = () => {
   const dropdownRef = useRef(null);
   const buttonRefs = useRef({});
 
+  // Password visibility states
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showNewConfirmPassword, setShowNewConfirmPassword] = useState(false);
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     contactNumber: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'engineer'
   });
   const [formErrors, setFormErrors] = useState({});
   const [passwordErrors, setPasswordErrors] = useState({});
 
-  useEffect(() => {
-    if (activeTab === 'users') {
-      fetchUsers();
-      fetchStats();
-    } else if (activeTab === 'audit') {
-      fetchAuditLogs();
+  // ============================================
+  // VALIDATION FUNCTIONS
+  // ============================================
+
+  const validateName = (name, fieldName) => {
+    if (!name || name.trim() === '') {
+      return `${fieldName} is required`;
+    }
+    if (!/^[a-zA-Z\s]+$/.test(name)) {
+      return `${fieldName} must contain only letters and spaces`;
+    }
+    if (name.length < 2) {
+      return `${fieldName} must be at least 2 characters`;
+    }
+    if (name.length > 50) {
+      return `${fieldName} must not exceed 50 characters`;
+    }
+    return null;
+  };
+
+  const validateEmail = (email) => {
+    if (!email || email.trim() === '') {
+      return 'Email is required';
+    }
+    if (!email.endsWith('@gmail.com')) {
+      return 'Email must be a valid Gmail address (@gmail.com)';
+    }
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    if (!emailRegex.test(email)) {
+      return 'Please enter a valid Gmail address';
+    }
+    return null;
+  };
+
+  const validateContactNumber = (contact) => {
+    if (!contact || contact.trim() === '') {
+      return null;
+    }
+    if (!/^09\d{9}$/.test(contact)) {
+      return 'Contact number must start with 09 and be exactly 11 digits';
+    }
+    return null;
+  };
+
+  const validatePassword = (password) => {
+    if (!password || password === '') {
+      return 'Password is required';
+    }
+    if (password.length < 8) {
+      return 'Password must be at least 8 characters';
+    }
+    if (password.length > 16) {
+      return 'Password must not exceed 16 characters';
+    }
+    if (!/[A-Z]/.test(password)) {
+      return 'Password must contain at least one uppercase letter';
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      return 'Password must contain at least one special character';
+    }
+    return null;
+  };
+
+  const validatePasswordMatch = (password, confirmPassword) => {
+    if (password !== confirmPassword) {
+      return 'Passwords do not match';
+    }
+    return null;
+  };
+
+  // ============================================
+  // FORM VALIDATION
+  // ============================================
+
+  const validateForm = () => {
+    const errors = {};
+
+    const firstNameError = validateName(formData.firstName, 'First name');
+    if (firstNameError) errors.firstName = firstNameError;
+
+    const lastNameError = validateName(formData.lastName, 'Last name');
+    if (lastNameError) errors.lastName = lastNameError;
+
+    if (modalMode === 'create') {
+      const emailError = validateEmail(formData.email);
+      if (emailError) errors.email = emailError;
     }
 
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdownId(null);
-      }
-    };
+    const contactError = validateContactNumber(formData.contactNumber);
+    if (contactError) errors.contactNumber = contactError;
 
-    const handleScroll = () => {
-      setOpenDropdownId(null);
-    };
+    if (modalMode === 'create') {
+      const passwordError = validatePassword(formData.password);
+      if (passwordError) errors.password = passwordError;
 
-    document.addEventListener('mousedown', handleClickOutside);
-    window.addEventListener('scroll', handleScroll, true);
+      const confirmError = validatePasswordMatch(formData.password, formData.confirmPassword);
+      if (confirmError) errors.confirmPassword = confirmError;
+    }
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('scroll', handleScroll, true);
-    };
-  }, [filterRole, currentPage, activeTab, auditCurrentPage]);
+    if (modalMode === 'create' && !formData.role) {
+      errors.role = 'Role is required';
+    }
 
-  const handleDropdownClick = (event, userId) => {
-    event.stopPropagation();
-    const buttonRect = event.currentTarget.getBoundingClientRect();
-    setDropdownPosition({
-      top: buttonRect.bottom + 5,
-      right: window.innerWidth - buttonRect.right - 10,
-    });
-    setOpenDropdownId(openDropdownId === userId ? null : userId);
+    return errors;
   };
+
+  const validatePasswordForm = () => {
+    const errors = {};
+
+    const passwordError = validatePassword(formData.password);
+    if (passwordError) errors.password = passwordError;
+
+    const confirmError = validatePasswordMatch(formData.password, formData.confirmPassword);
+    if (confirmError) errors.confirmPassword = confirmError;
+
+    return errors;
+  };
+
+  // ============================================
+  // DATA FETCHING
+  // ============================================
 
   const fetchUsers = async () => {
     try {
@@ -159,6 +252,8 @@ const UserManagement = () => {
           limit: auditItemsPerPage
         }
       });
+      
+      // Backend already paginates - use data directly
       setAuditLogs(response.data.data || []);
       setAuditTotalItems(response.data.total || 0);
     } catch (error) {
@@ -167,6 +262,66 @@ const UserManagement = () => {
     } finally {
       setAuditLoading(false);
     }
+  };
+
+  // ============================================
+  // EFFECTS
+  // ============================================
+
+  // Handle tab switching and initial data fetch
+  useEffect(() => {
+    if (activeTab === 'users') {
+      fetchUsers();
+      fetchStats();
+    } else if (activeTab === 'audit') {
+      fetchAuditLogs();
+    }
+
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    const handleScroll = () => {
+      setOpenDropdownId(null);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, true);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [activeTab]); // Only re-run when tab changes
+
+  // Fetch users when pagination or filters change
+  useEffect(() => {
+    if (activeTab === 'users') {
+      fetchUsers();
+    }
+  }, [currentPage, filterRole]);
+
+  // Fetch audit logs when audit page changes
+  useEffect(() => {
+    if (activeTab === 'audit') {
+      fetchAuditLogs();
+    }
+  }, [auditCurrentPage]);
+
+  // ============================================
+  // HANDLERS
+  // ============================================
+
+  const handleDropdownClick = (event, userId) => {
+    event.stopPropagation();
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+    setDropdownPosition({
+      top: buttonRect.bottom + 5,
+      right: window.innerWidth - buttonRect.right - 10,
+    });
+    setOpenDropdownId(openDropdownId === userId ? null : userId);
   };
 
   const handleSearch = (e) => {
@@ -186,6 +341,7 @@ const UserManagement = () => {
       user.clientInfo?.contactNumber?.includes(searchTerm);
   });
 
+  // Filter logs for display (search filter) - only client-side search
   const filteredAuditLogs = auditLogs.filter(log => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
@@ -198,14 +354,10 @@ const UserManagement = () => {
     );
   });
 
-  const auditFilteredTotal = filteredAuditLogs.length;
-  const auditTotalPages = Math.ceil(auditFilteredTotal / auditItemsPerPage);
+  // Use total from API for pagination
+  const auditTotalPages = Math.max(1, Math.ceil(auditTotalItems / auditItemsPerPage));
   const auditStartItem = (auditCurrentPage - 1) * auditItemsPerPage + 1;
-  const auditEndItem = Math.min(auditCurrentPage * auditItemsPerPage, auditFilteredTotal);
-  const paginatedAuditLogs = filteredAuditLogs.slice(
-    (auditCurrentPage - 1) * auditItemsPerPage,
-    auditCurrentPage * auditItemsPerPage
-  );
+  const auditEndItem = Math.min(auditCurrentPage * auditItemsPerPage, auditTotalItems);
 
   const combineFullName = (firstName, lastName) => {
     let fullName = firstName;
@@ -223,9 +375,12 @@ const UserManagement = () => {
       email: '',
       contactNumber: '',
       password: '',
-      confirmPassword: ''
+      confirmPassword: '',
+      role: 'engineer'
     });
     setFormErrors({});
+    setShowPassword(false);
+    setShowConfirmPassword(false);
     setShowUserModal(true);
   };
 
@@ -256,9 +411,12 @@ const UserManagement = () => {
       email: user.email || '',
       contactNumber: user.clientInfo?.contactNumber || '',
       password: '',
-      confirmPassword: ''
+      confirmPassword: '',
+      role: user.role || 'engineer'
     });
     setFormErrors({});
+    setShowPassword(false);
+    setShowConfirmPassword(false);
     setShowUserModal(true);
     setOpenDropdownId(null);
   };
@@ -274,6 +432,8 @@ const UserManagement = () => {
     setSelectedUser(user);
     setFormData({ ...formData, password: '', confirmPassword: '' });
     setPasswordErrors({});
+    setShowNewPassword(false);
+    setShowNewConfirmPassword(false);
     setShowPasswordModal(true);
     setOpenDropdownId(null);
   };
@@ -289,58 +449,6 @@ const UserManagement = () => {
     setSelectedUser(user);
     setShowDeleteConfirm(true);
     setOpenDropdownId(null);
-  };
-
-  const validateForm = () => {
-    const errors = {};
-    if (modalMode === 'create') {
-      if (!formData.email) errors.email = 'Email is required';
-      else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Email is invalid';
-      if (!formData.password) errors.password = 'Password is required';
-      if (formData.password && formData.password.length < 6) errors.password = 'Password must be at least 6 characters';
-      if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match';
-    }
-    if (!formData.firstName) errors.firstName = 'First name is required';
-    if (!formData.lastName) errors.lastName = 'Last name is required';
-    return errors;
-  };
-
-  const validatePasswordForm = () => {
-    const errors = {};
-    if (!formData.password) errors.password = 'New password is required';
-    if (formData.password && formData.password.length < 6) errors.password = 'Password must be at least 6 characters';
-    if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match';
-    return errors;
-  };
-
-  const handleResetPassword = async () => {
-    const errors = validatePasswordForm();
-    if (Object.keys(errors).length > 0) {
-      setPasswordErrors(errors);
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/admin/users/${selectedUser._id}/reset-password`,
-        { password: formData.password },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (response.data.success) {
-        showToast('Password reset successfully!', 'success');
-        setShowPasswordModal(false);
-        setFormData({ ...formData, password: '', confirmPassword: '' });
-        if (activeTab === 'audit') fetchAuditLogs();
-      }
-    } catch (error) {
-      console.error('Error resetting password:', error);
-      showToast(error.response?.data?.message || 'Failed to reset password', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const handleSaveUser = async () => {
@@ -363,7 +471,7 @@ const UserManagement = () => {
           {
             email: normalizedEmail,
             password: formData.password,
-            role: 'engineer',
+            role: formData.role,
             fullName: fullName,
             firstName: formData.firstName,
             lastName: formData.lastName,
@@ -377,7 +485,8 @@ const UserManagement = () => {
             fullName: fullName,
             firstName: formData.firstName,
             lastName: formData.lastName,
-            contactNumber: formData.contactNumber
+            contactNumber: formData.contactNumber,
+            role: formData.role
           },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -393,6 +502,38 @@ const UserManagement = () => {
     } catch (error) {
       console.error('Error saving user:', error);
       showToast(error.response?.data?.message || 'Failed to save user', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    const errors = validatePasswordForm();
+    if (Object.keys(errors).length > 0) {
+      setPasswordErrors(errors);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/admin/users/${selectedUser._id}/reset-password`,
+        { password: formData.password },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        showToast('Password reset successfully!', 'success');
+        setShowPasswordModal(false);
+        setFormData({ ...formData, password: '', confirmPassword: '' });
+        setShowNewPassword(false);
+        setShowNewConfirmPassword(false);
+        if (activeTab === 'audit') fetchAuditLogs();
+      }
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      showToast(error.response?.data?.message || 'Failed to reset password', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -453,6 +594,10 @@ const UserManagement = () => {
       setIsSubmitting(false);
     }
   };
+
+  // ============================================
+  // RENDER HELPERS
+  // ============================================
 
   const getRoleBadge = (role) => {
     const badges = {
@@ -544,7 +689,8 @@ const UserManagement = () => {
     return pages;
   };
 
-  // Get audit page numbers
+  // Get page numbers
+  const pageNumbers = getPageNumbers(totalPages, currentPage);
   const auditPageNumbers = getPageNumbers(auditTotalPages, auditCurrentPage);
 
   const SkeletonLoader = () => (
@@ -593,14 +739,24 @@ const UserManagement = () => {
           <div className="user-tabs-usermanagement">
             <button
               className={`tab-btn-usermanagement ${activeTab === 'users' ? 'active-usermanagement' : ''}`}
-              onClick={() => { setActiveTab('users'); setSearchTerm(''); setCurrentPage(1); setAuditCurrentPage(1); }}
+              onClick={() => { 
+                setActiveTab('users'); 
+                setSearchTerm(''); 
+                setCurrentPage(1); 
+                setAuditCurrentPage(1); 
+              }}
             >
               <FaUsers /> Users
               <span className="tab-badge-usermanagement">{stats.total}</span>
             </button>
             <button
               className={`tab-btn-usermanagement ${activeTab === 'audit' ? 'active-usermanagement' : ''}`}
-              onClick={() => { setActiveTab('audit'); setSearchTerm(''); setCurrentPage(1); setAuditCurrentPage(1); }}
+              onClick={() => { 
+                setActiveTab('audit'); 
+                setSearchTerm(''); 
+                setCurrentPage(1); 
+                setAuditCurrentPage(1); 
+              }}
             >
               <FaHistory /> Audit Logs
             </button>
@@ -651,7 +807,6 @@ const UserManagement = () => {
                 <tr>
                   <th style={{ width: '25%' }}>User</th>
                   <th style={{ width: '25%' }}>Email</th>
-                  <th style={{ width: '12%' }}>Contact</th>
                   <th style={{ width: '10%' }}>Role</th>
                   <th style={{ width: '10%' }}>Status</th>
                   <th style={{ width: '10%' }}>Created</th>
@@ -661,7 +816,7 @@ const UserManagement = () => {
               <tbody>
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="empty-state-usermanagement">
+                    <td colSpan="6" className="empty-state-usermanagement">
                       <p>No users found</p>
                     </td>
                   </tr>
@@ -687,9 +842,6 @@ const UserManagement = () => {
                         <td className="email-cell-usermanagement">
                           <FaEnvelope className="email-icon-usermanagement" />
                           <span className="email-text-usermanagement">{user.email}</span>
-                        </td>
-                        <td className="contact-cell-usermanagement">
-                          {user.clientInfo?.contactNumber || '—'}
                         </td>
                         <td>{getRoleBadge(user.role)}</td>
                         <td>{getStatusBadge(user.isActive)}</td>
@@ -739,6 +891,42 @@ const UserManagement = () => {
           </div>
         )}
 
+        {/* Users Pagination */}
+        {activeTab === 'users' && totalItems > itemsPerPage && (
+          <div className="pagination-usermanagement">
+            <div className="pagination-info-usermanagement">
+              Showing {startItem} to {endItem} of {totalItems} entries
+            </div>
+            <div className="pagination-controls-usermanagement">
+              <button
+                className="page-btn-usermanagement"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                <FaChevronLeft /> Previous
+              </button>
+
+              {pageNumbers.map(page => (
+                <button
+                  key={page}
+                  className={`page-number-usermanagement ${currentPage === page ? 'active-usermanagement' : ''}`}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                className="page-btn-usermanagement"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next <FaChevronRight />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Audit Logs Table */}
         {activeTab === 'audit' && (
           <div className="users-table-container-usermanagement audit-logs-table-usermanagement">
@@ -753,14 +941,14 @@ const UserManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {paginatedAuditLogs.length === 0 ? (
+                {filteredAuditLogs.length === 0 ? (
                   <tr>
                     <td colSpan="5" className="empty-state-usermanagement">
                       <p>No audit logs found</p>
                     </td>
                   </tr>
                 ) : (
-                  paginatedAuditLogs.map(log => {
+                  filteredAuditLogs.map(log => {
                     let userDisplayName = 'Unknown User';
                     let userInitials = '?';
 
@@ -811,47 +999,11 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* Pagination - Users */}
-        {activeTab === 'users' && totalPages > 1 && (
+        {/* Audit Logs Pagination */}
+        {activeTab === 'audit' && auditTotalItems > auditItemsPerPage && (
           <div className="pagination-usermanagement">
             <div className="pagination-info-usermanagement">
-              Showing {startItem} to {endItem} of {totalItems} entries
-            </div>
-            <div className="pagination-controls-usermanagement">
-              <button
-                className="page-btn-usermanagement"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-              >
-                <FaChevronLeft /> Previous
-              </button>
-
-              {getPageNumbers(totalPages, currentPage).map(page => (
-                <button
-                  key={page}
-                  className={`page-number-usermanagement ${currentPage === page ? 'active-usermanagement' : ''}`}
-                  onClick={() => setCurrentPage(page)}
-                >
-                  {page}
-                </button>
-              ))}
-
-              <button
-                className="page-btn-usermanagement"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next <FaChevronRight />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Pagination - Audit Logs */}
-        {activeTab === 'audit' && auditTotalPages > 1 && (
-          <div className="pagination-usermanagement">
-            <div className="pagination-info-usermanagement">
-              Showing {auditStartItem} to {auditEndItem} of {auditFilteredTotal} entries
+              Showing {auditStartItem} to {auditEndItem} of {auditTotalItems} entries
             </div>
             <div className="pagination-controls-usermanagement">
               <button
@@ -923,8 +1075,10 @@ const UserManagement = () => {
                           value={formData.firstName}
                           onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                           className={formErrors.firstName ? 'error' : ''}
+                          placeholder="Enter first name (letters only)"
                         />
                         {formErrors.firstName && <span className="error-text-usermanagement">{formErrors.firstName}</span>}
+                        <small>Letters and spaces only, 2-50 characters</small>
                       </div>
                       <div className="form-group-usermanagement">
                         <label>Last Name *</label>
@@ -933,8 +1087,10 @@ const UserManagement = () => {
                           value={formData.lastName}
                           onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                           className={formErrors.lastName ? 'error' : ''}
+                          placeholder="Enter last name (letters only)"
                         />
                         {formErrors.lastName && <span className="error-text-usermanagement">{formErrors.lastName}</span>}
+                        <small>Letters and spaces only, 2-50 characters</small>
                       </div>
                     </div>
                     <div className="form-row-usermanagement">
@@ -946,9 +1102,11 @@ const UserManagement = () => {
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           disabled={modalMode === 'edit'}
                           className={formErrors.email ? 'error' : ''}
+                          placeholder="name@gmail.com"
                         />
                         {formErrors.email && <span className="error-text-usermanagement">{formErrors.email}</span>}
                         {modalMode === 'edit' && <small>Email cannot be changed</small>}
+                        {modalMode === 'create' && <small>Must be a valid Gmail address (@gmail.com)</small>}
                       </div>
                       <div className="form-group-usermanagement">
                         <label>Contact Number</label>
@@ -956,30 +1114,76 @@ const UserManagement = () => {
                           type="tel"
                           value={formData.contactNumber}
                           onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
+                          className={formErrors.contactNumber ? 'error' : ''}
+                          placeholder="09XXXXXXXXX"
+                          maxLength="11"
                         />
+                        {formErrors.contactNumber && <span className="error-text-usermanagement">{formErrors.contactNumber}</span>}
+                        <small>Must start with 09 and be exactly 11 digits</small>
                       </div>
                     </div>
+
+                    <div className="form-row-usermanagement">
+                      <div className="form-group-usermanagement">
+                        <label>Role *</label>
+                        <select
+                          value={formData.role}
+                          onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                          className={formErrors.role ? 'error' : ''}
+                        >
+                          <option value="admin">Admin</option>
+                          <option value="engineer">Engineer</option>
+                        </select>
+                        {formErrors.role && <span className="error-text-usermanagement">{formErrors.role}</span>}
+                        <small>Select the user's role and permissions</small>
+                      </div>
+                      <div className="form-group-usermanagement">
+                      </div>
+                    </div>
+
                     {modalMode === 'create' && (
                       <div className="form-row-usermanagement">
                         <div className="form-group-usermanagement">
                           <label>Password *</label>
-                          <input
-                            type="password"
-                            value={formData.password}
-                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            className={formErrors.password ? 'error' : ''}
-                          />
+                          <div className="password-input-wrapper-usermanagement">
+                            <input
+                              type={showPassword ? 'text' : 'password'}
+                              value={formData.password}
+                              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                              className={formErrors.password ? 'error' : ''}
+                              placeholder="Enter password"
+                            />
+                            <button
+                              type="button"
+                              className="password-toggle-btn-usermanagement"
+                              onClick={() => setShowPassword(!showPassword)}
+                              tabIndex="-1"
+                            >
+                              {showPassword ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                          </div>
                           {formErrors.password && <span className="error-text-usermanagement">{formErrors.password}</span>}
-                          <small>Password must be at least 6 characters</small>
+                          <small>8-16 characters, 1 uppercase, 1 special character</small>
                         </div>
                         <div className="form-group-usermanagement">
                           <label>Confirm Password *</label>
-                          <input
-                            type="password"
-                            value={formData.confirmPassword}
-                            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                            className={formErrors.confirmPassword ? 'error' : ''}
-                          />
+                          <div className="password-input-wrapper-usermanagement">
+                            <input
+                              type={showConfirmPassword ? 'text' : 'password'}
+                              value={formData.confirmPassword}
+                              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                              className={formErrors.confirmPassword ? 'error' : ''}
+                              placeholder="Confirm password"
+                            />
+                            <button
+                              type="button"
+                              className="password-toggle-btn-usermanagement"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              tabIndex="-1"
+                            >
+                              {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                          </div>
                           {formErrors.confirmPassword && <span className="error-text-usermanagement">{formErrors.confirmPassword}</span>}
                         </div>
                       </div>
@@ -1015,25 +1219,47 @@ const UserManagement = () => {
                 <div className="form-row-usermanagement">
                   <div className="form-group-usermanagement">
                     <label>New Password *</label>
-                    <input
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      className={passwordErrors.password ? 'error' : ''}
-                    />
+                    <div className="password-input-wrapper-usermanagement">
+                      <input
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        className={passwordErrors.password ? 'error' : ''}
+                        placeholder="Enter new password"
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle-btn-usermanagement"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        tabIndex="-1"
+                      >
+                        {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
                     {passwordErrors.password && <span className="error-text-usermanagement">{passwordErrors.password}</span>}
-                    <small>Password must be at least 6 characters</small>
+                    <small>8-16 characters, 1 uppercase, 1 special character</small>
                   </div>
                 </div>
                 <div className="form-row-usermanagement">
                   <div className="form-group-usermanagement">
                     <label>Confirm Password *</label>
-                    <input
-                      type="password"
-                      value={formData.confirmPassword}
-                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                      className={passwordErrors.confirmPassword ? 'error' : ''}
-                    />
+                    <div className="password-input-wrapper-usermanagement">
+                      <input
+                        type={showNewConfirmPassword ? 'text' : 'password'}
+                        value={formData.confirmPassword}
+                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                        className={passwordErrors.confirmPassword ? 'error' : ''}
+                        placeholder="Confirm new password"
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle-btn-usermanagement"
+                        onClick={() => setShowNewConfirmPassword(!showNewConfirmPassword)}
+                        tabIndex="-1"
+                      >
+                        {showNewConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
                     {passwordErrors.confirmPassword && <span className="error-text-usermanagement">{passwordErrors.confirmPassword}</span>}
                   </div>
                 </div>

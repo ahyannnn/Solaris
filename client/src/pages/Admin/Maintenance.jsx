@@ -57,6 +57,7 @@ const MaintenancePanel = () => {
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [ipError, setIpError] = useState('');
 
   // System Config State
   const [config, setConfig] = useState(null);
@@ -76,30 +77,214 @@ const MaintenancePanel = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [equipmentForm, setEquipmentForm] = useState({
     name: '',
-    price: 0,
+    price: '',
     brand: '',
-    warranty: 0,
-
+    warranty: '',
     capacity: {
-      value: 0,
+      value: '',
       unit: 'W'
     },
-    panelArea: 0,
-    dob: 0,
+    panelArea: '',
+    dob: '',
     unit: 'piece',
     notes: ''
   });
+  const [equipmentErrors, setEquipmentErrors] = useState({});
 
   // Remove equipment confirmation modal states
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [itemToRemove, setItemToRemove] = useState(null);
   const [removeReason, setRemoveReason] = useState('');
 
+  // Settings validation errors
+  const [settingsErrors, setSettingsErrors] = useState({});
+
   useEffect(() => {
     fetchMaintenanceData();
     fetchHistory();
     fetchSystemConfig();
   }, []);
+
+  // ============ VALIDATION FUNCTIONS ============
+
+  // Validate email - must be @gmail.com
+  const validateEmail = (email) => {
+    if (!email || email.trim() === '') {
+      return 'Email is required';
+    }
+    if (!email.endsWith('@gmail.com')) {
+      return 'Email must be a valid Gmail address (@gmail.com)';
+    }
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    if (!emailRegex.test(email)) {
+      return 'Please enter a valid Gmail address';
+    }
+    return null;
+  };
+
+  // Validate phone - must start with 09 and be exactly 11 digits
+  const validatePhone = (phone) => {
+    if (!phone || phone.trim() === '') {
+      return 'Phone number is required';
+    }
+    const digitsOnly = phone.replace(/\D/g, '');
+    if (!/^09\d{9}$/.test(digitsOnly)) {
+      return 'Phone number must start with 09 and be exactly 11 digits';
+    }
+    return null;
+  };
+
+  // Validate IP address
+  const validateIP = (ip) => {
+    if (!ip || ip.trim() === '') {
+      return 'IP address is required';
+    }
+    const ipv4Regex = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    if (ipv4Regex.test(ip.trim())) {
+      return null;
+    }
+    const ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/;
+    if (ipv6Regex.test(ip.trim())) {
+      return null;
+    }
+    return 'Please enter a valid IP address (IPv4 or IPv6)';
+  };
+
+  // Validate estimated duration
+  const validateDuration = (duration) => {
+    if (!duration || duration.trim() === '') {
+      return 'Estimated duration is required';
+    }
+    const durationRegex = /^\d+\s*(minutes?|mins?|hours?|hrs?|days?|weeks?)/i;
+    if (!durationRegex.test(duration.trim())) {
+      return 'Please enter a valid duration (e.g., 2 hours, 30 mins, 1 day)';
+    }
+    return null;
+  };
+
+  // ============ ENHANCED EQUIPMENT VALIDATION ============
+  const validateEquipmentForm = () => {
+    const errors = {};
+
+    // --- Name Validation ---
+    if (!equipmentForm.name || equipmentForm.name.trim() === '') {
+      errors.name = 'Equipment name is required';
+    } else if (equipmentForm.name.length < 2) {
+      errors.name = 'Name must be at least 2 characters';
+    } else if (equipmentForm.name.length > 100) {
+      errors.name = 'Name must not exceed 100 characters';
+    }
+
+    // --- Price Validation ---
+    const price = parseFloat(equipmentForm.price);
+    if (!equipmentForm.price || equipmentForm.price === '') {
+      errors.price = 'Price is required';
+    } else if (isNaN(price)) {
+      errors.price = 'Please enter a valid number';
+    } else if (price < 1) {
+      errors.price = 'Price must be at least ₱1';
+    } else if (price > 999999999) {
+      errors.price = 'Price cannot exceed ₱999,999,999';
+    }
+
+    // --- Brand Validation ---
+    if (!equipmentForm.brand || equipmentForm.brand.trim() === '') {
+      errors.brand = 'Brand is required';
+    } else if (equipmentForm.brand.length > 50) {
+      errors.brand = 'Brand must not exceed 50 characters';
+    }
+
+    // --- Warranty Validation ---
+    const warranty = parseFloat(equipmentForm.warranty);
+    if (!equipmentForm.warranty || equipmentForm.warranty === '') {
+      errors.warranty = 'Warranty is required';
+    } else if (isNaN(warranty)) {
+      errors.warranty = 'Please enter a valid number';
+    } else if (warranty < 0) {
+      errors.warranty = 'Warranty cannot be negative';
+    } else if (warranty > 50) {
+      errors.warranty = 'Warranty cannot exceed 50 years';
+    }
+
+    // --- Capacity Validation ---
+    const capacityValue = parseFloat(equipmentForm.capacity.value);
+    if (!equipmentForm.capacity.value || equipmentForm.capacity.value === '') {
+      errors['capacity.value'] = 'Capacity is required';
+    } else if (isNaN(capacityValue)) {
+      errors['capacity.value'] = 'Please enter a valid number';
+    } else if (capacityValue < 0) {
+      errors['capacity.value'] = 'Capacity cannot be negative';
+    } else if (capacityValue > 999999) {
+      errors['capacity.value'] = 'Capacity cannot exceed 999,999';
+    }
+
+    // --- Unit Validation ---
+    if (!equipmentForm.unit || equipmentForm.unit === '') {
+      errors.unit = 'Unit is required';
+    }
+
+    // --- Solar Panels Specific Validation ---
+    if (equipmentType === 'solarPanels') {
+      const panelArea = parseFloat(equipmentForm.panelArea);
+      if (!equipmentForm.panelArea || equipmentForm.panelArea === '') {
+        errors.panelArea = 'Panel area is required';
+      } else if (isNaN(panelArea)) {
+        errors.panelArea = 'Please enter a valid number';
+      } else if (panelArea < 0.01) {
+        errors.panelArea = 'Panel area must be at least 0.01 m²';
+      } else if (panelArea > 1000) {
+        errors.panelArea = 'Panel area cannot exceed 1000 m²';
+      }
+    }
+
+    // --- Batteries Specific Validation ---
+    if (equipmentType === 'batteries') {
+      const dob = parseFloat(equipmentForm.dob);
+      if (!equipmentForm.dob || equipmentForm.dob === '') {
+        errors.dob = 'Depth of Discharge (DoD) is required';
+      } else if (isNaN(dob)) {
+        errors.dob = 'Please enter a valid number';
+      } else if (dob < 0) {
+        errors.dob = 'DoD cannot be negative';
+      } else if (dob > 100) {
+        errors.dob = 'DoD cannot exceed 100%';
+      }
+    }
+
+    // --- Inverters Specific Validation ---
+    if (equipmentType === 'inverters') {
+      // Inverters might have additional validation
+      // Could add efficiency rating validation if needed
+    }
+
+    return errors;
+  };
+
+  // Validate settings form
+  const validateSettings = () => {
+    const errors = {};
+
+    const emailError = validateEmail(settings.contactEmail);
+    if (emailError) errors.contactEmail = emailError;
+
+    const phoneError = validatePhone(settings.contactPhone);
+    if (phoneError) errors.contactPhone = phoneError;
+
+    const durationError = validateDuration(settings.estimatedDuration);
+    if (durationError) errors.estimatedDuration = durationError;
+
+    if (!settings.title || settings.title.trim() === '') {
+      errors.title = 'Title is required';
+    } else if (settings.title.length > 100) {
+      errors.title = 'Title must not exceed 100 characters';
+    }
+
+    if (!settings.message || settings.message.trim() === '') {
+      errors.message = 'Message is required';
+    }
+
+    return errors;
+  };
 
   // ============ MAINTENANCE FUNCTIONS ============
   const fetchMaintenanceData = async () => {
@@ -178,6 +363,15 @@ const MaintenancePanel = () => {
   };
 
   const handleSaveSettings = async () => {
+    const errors = validateSettings();
+    if (Object.keys(errors).length > 0) {
+      setSettingsErrors(errors);
+      const firstError = Object.values(errors)[0];
+      showToast(firstError, 'warning');
+      return;
+    }
+    setSettingsErrors({});
+
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
@@ -197,12 +391,23 @@ const MaintenancePanel = () => {
   };
 
   const handleAddIP = async () => {
-    if (!newIP) return;
+    const error = validateIP(newIP);
+    if (error) {
+      setIpError(error);
+      showToast(error, 'warning');
+      return;
+    }
+    setIpError('');
+
+    if (settings.allowedIPs.includes(newIP.trim())) {
+      showToast('IP address already exists', 'warning');
+      return;
+    }
 
     try {
       const token = sessionStorage.getItem('token');
       await axios.post(`${import.meta.env.VITE_API_URL}/api/maintenance/add-ip`,
-        { ip: newIP },
+        { ip: newIP.trim() },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       showToast('IP address added', 'success');
@@ -318,32 +523,25 @@ const MaintenancePanel = () => {
     setConfig(newConfig);
   };
 
-  // Equipment Management Functions
+  // ============ EQUIPMENT MANAGEMENT FUNCTIONS ============
   const openAddModal = (type) => {
     setEquipmentType(type);
     setEditingItem(null);
     setEquipmentForm({
       name: '',
-      price: 0,
+      price: '',
       brand: '',
-      warranty: 0,
-
+      warranty: '',
       capacity: {
-        value: 0,
-        unit:
-          type === "solarPanels"
-            ? "W"
-            : type === "inverters"
-              ? "kW"
-              : type === "batteries"
-                ? "kWh"
-                : ""
+        value: '',
+        unit: type === "solarPanels" ? "W" : type === "inverters" ? "kW" : type === "batteries" ? "kWh" : ""
       },
-      panelArea: 0,
-      dob: 0,
+      panelArea: '',
+      dob: '',
       unit: "piece",
-      notes: ""
+      notes: ''
     });
+    setEquipmentErrors({});
     setShowEquipmentModal(true);
   };
 
@@ -352,19 +550,19 @@ const MaintenancePanel = () => {
     setEditingItem(item);
     setEquipmentForm({
       name: item.name || "",
-      price: item.price || 0,
+      price: item.price ? String(item.price) : '',
       brand: item.brand || "",
-      warranty: item.warranty || 0,
-
+      warranty: item.warranty ? String(item.warranty) : '',
       capacity: {
-        value: item.capacity?.value || 0,
+        value: item.capacity?.value ? String(item.capacity.value) : '',
         unit: item.capacity?.unit || ""
       },
-      panelArea: item.panelArea || 0,
-      dob: item.dob || 0,
+      panelArea: item.panelArea ? String(item.panelArea) : '',
+      dob: item.dob ? String(item.dob) : '',
       unit: item.unit || "piece",
       notes: item.notes || ""
     });
+    setEquipmentErrors({});
     setShowEquipmentModal(true);
   };
 
@@ -405,22 +603,39 @@ const MaintenancePanel = () => {
   };
 
   const handleAddEquipment = async () => {
-    if (!equipmentForm.name || equipmentForm.price <= 0) {
-      showToast('Please enter name and valid price', 'warning');
+    const errors = validateEquipmentForm();
+    if (Object.keys(errors).length > 0) {
+      setEquipmentErrors(errors);
+      const firstError = Object.values(errors)[0];
+      showToast(firstError, 'warning');
       return;
     }
+    setEquipmentErrors({});
 
     setSavingConfig(true);
     try {
       const token = sessionStorage.getItem('token');
+      
+      const equipmentData = {
+        type: equipmentType,
+        name: equipmentForm.name.trim(),
+        price: parseFloat(equipmentForm.price) || 0,
+        brand: equipmentForm.brand.trim(),
+        warranty: parseFloat(equipmentForm.warranty) || 0,
+        capacity: {
+          value: parseFloat(equipmentForm.capacity.value) || 0,
+          unit: equipmentForm.capacity.unit
+        },
+        panelArea: equipmentType === 'solarPanels' ? parseFloat(equipmentForm.panelArea) || 0 : 0,
+        dob: equipmentType === 'batteries' ? parseFloat(equipmentForm.dob) || 0 : 0,
+        unit: equipmentForm.unit,
+        notes: equipmentForm.notes || '',
+        reason: `Added new ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}`
+      };
+
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment`,
-        {
-          type: equipmentType,
-          ...equipmentForm,
-          dob: equipmentForm.dob || 0,
-          reason: `Added new ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}`
-        },
+        equipmentData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -436,21 +651,38 @@ const MaintenancePanel = () => {
   };
 
   const handleUpdateEquipment = async () => {
-    if (!equipmentForm.name || equipmentForm.price <= 0) {
-      showToast('Please enter name and valid price', 'warning');
+    const errors = validateEquipmentForm();
+    if (Object.keys(errors).length > 0) {
+      setEquipmentErrors(errors);
+      const firstError = Object.values(errors)[0];
+      showToast(firstError, 'warning');
       return;
     }
+    setEquipmentErrors({});
 
     setSavingConfig(true);
     try {
       const token = sessionStorage.getItem('token');
+      
+      const equipmentData = {
+        name: equipmentForm.name.trim(),
+        price: parseFloat(equipmentForm.price) || 0,
+        brand: equipmentForm.brand.trim(),
+        warranty: parseFloat(equipmentForm.warranty) || 0,
+        capacity: {
+          value: parseFloat(equipmentForm.capacity.value) || 0,
+          unit: equipmentForm.capacity.unit
+        },
+        panelArea: equipmentType === 'solarPanels' ? parseFloat(equipmentForm.panelArea) || 0 : 0,
+        dob: equipmentType === 'batteries' ? parseFloat(equipmentForm.dob) || 0 : 0,
+        unit: equipmentForm.unit,
+        notes: equipmentForm.notes || '',
+        reason: `Updated ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}`
+      };
+
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/maintenance/config/equipment/${equipmentType}/${editingItem._id}`,
-        { 
-          ...equipmentForm, 
-          dob: equipmentForm.dob || 0,
-          reason: `Updated ${equipmentType?.slice(0, -1)}: ${equipmentForm.name}` 
-        },
+        equipmentData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -532,7 +764,6 @@ const MaintenancePanel = () => {
     return new Date(date).toLocaleString();
   };
 
-  // Get the current tab label for mobile toggle
   const getSubTabLabel = () => {
     const labels = {
       equipment: 'Equipment Catalog',
@@ -564,7 +795,6 @@ const MaintenancePanel = () => {
       </Helmet>
 
       <div className="maintenance-panel-admain">
-        {/* --- Minimalist Header --- */}
         <div className="panel-header-admain">
           <div></div>
         </div>
@@ -619,50 +849,67 @@ const MaintenancePanel = () => {
               <h3>Maintenance Page Settings</h3>
 
               <div className="form-group-admain">
-                <label>Page Title</label>
+                <label>Page Title *</label>
                 <input
                   type="text"
                   value={settings.title}
                   onChange={(e) => setSettings({ ...settings, title: e.target.value })}
+                  className={settingsErrors.title ? 'error-admain' : ''}
+                  placeholder="Enter page title"
                 />
+                {settingsErrors.title && <span className="error-text-admain">{settingsErrors.title}</span>}
               </div>
 
               <div className="form-group-admain">
-                <label>Message</label>
+                <label>Message *</label>
                 <textarea
                   rows="3"
                   value={settings.message}
                   onChange={(e) => setSettings({ ...settings, message: e.target.value })}
+                  className={settingsErrors.message ? 'error-admain' : ''}
+                  placeholder="Enter maintenance message"
                 />
+                {settingsErrors.message && <span className="error-text-admain">{settingsErrors.message}</span>}
               </div>
 
               <div className="form-row-admain">
                 <div className="form-group-admain">
-                  <label>Estimated Duration</label>
+                  <label>Estimated Duration *</label>
                   <input
                     type="text"
                     value={settings.estimatedDuration}
                     onChange={(e) => setSettings({ ...settings, estimatedDuration: e.target.value })}
+                    className={settingsErrors.estimatedDuration ? 'error-admain' : ''}
+                    placeholder="e.g., 2 hours, 30 mins, 1 day"
                   />
+                  {settingsErrors.estimatedDuration && <small className="error-text-admain">{settingsErrors.estimatedDuration}</small>}
                 </div>
               </div>
 
               <div className="form-row-admain">
                 <div className="form-group-admain">
-                  <label>Contact Email</label>
+                  <label>Contact Email *</label>
                   <input
                     type="email"
                     value={settings.contactEmail}
                     onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
+                    className={settingsErrors.contactEmail ? 'error-admain' : ''}
+                    placeholder="name@gmail.com"
                   />
+                  {settingsErrors.contactEmail && <small className="error-text-admain">{settingsErrors.contactEmail}</small>}
                 </div>
                 <div className="form-group-admain">
-                  <label>Contact Phone</label>
+                  <label>Contact Phone *</label>
                   <input
                     type="text"
                     value={settings.contactPhone}
                     onChange={(e) => setSettings({ ...settings, contactPhone: e.target.value })}
+                    className={settingsErrors.contactPhone ? 'error-admain' : ''}
+                    placeholder="09XXXXXXXXX"
+                    maxLength="11"
                   />
+                  {settingsErrors.contactPhone && <small className="error-text-admain">{settingsErrors.contactPhone}</small>}
+                  <small>Must start with 09 and be exactly 11 digits</small>
                 </div>
               </div>
 
@@ -697,12 +944,19 @@ const MaintenancePanel = () => {
             <div className="ips-card-admain">
               <h3>Allowed IP Addresses</h3>
               <div className="add-ip-admain">
-                <input
-                  type="text"
-                  value={newIP}
-                  onChange={(e) => setNewIP(e.target.value)}
-                  placeholder="Enter IP address"
-                />
+                <div className="ip-input-wrapper-admain">
+                  <input
+                    type="text"
+                    value={newIP}
+                    onChange={(e) => {
+                      setNewIP(e.target.value);
+                      setIpError('');
+                    }}
+                    className={ipError ? 'error-admain' : ''}
+                    placeholder="Enter IP address (IPv4 or IPv6)"
+                  />
+                  {ipError && <small className="error-text-admain">{ipError}</small>}
+                </div>
                 <button onClick={handleAddIP}><FaPlus /> Add IP</button>
               </div>
               <div className="ip-list-admain">
@@ -747,14 +1001,11 @@ const MaintenancePanel = () => {
           </>
         )}
 
-        {/* SYSTEM CONFIGURATION TAB - TABS AND RESET ALIGNED */}
+        {/* SYSTEM CONFIGURATION TAB */}
         {activeMainTab === 'systemconfig' && config && (
           <div className="system-config-admain">
-            
-            {/* Sub-tabs & Reset Button Wrapper (Aligned Together) */}
             <div className="config-header-tabs-wrapper-admain">
               <div className="config-subtabs-wrapper-admain">
-                {/* Mobile Toggle Button */}
                 <button
                   className={`mobile-subtab-toggle-admain ${isSubMenuOpen ? 'open-admain' : ''}`}
                   onClick={() => setIsSubMenuOpen(!isSubMenuOpen)}
@@ -764,7 +1015,6 @@ const MaintenancePanel = () => {
                   <FaChevronDown className={`toggle-arrow-admain ${isSubMenuOpen ? 'open-admain' : ''}`} />
                 </button>
 
-                {/* Sub-tabs - Desktop & Mobile Dropdown */}
                 <div className={`config-subtabs-admain ${isSubMenuOpen ? 'open-admain' : ''}`}>
                   <button
                     className={`subtab-btn-admain ${activeConfigTab === 'equipment' ? 'active-admain' : ''}`}
@@ -787,13 +1037,12 @@ const MaintenancePanel = () => {
                 </div>
               </div>
 
-              {/* Reset Button Moved to the right of the tabs */}
               <button className="reset-config-btn-admain" onClick={openResetModal} disabled={savingConfig}>
                 <FaTools /> Reset to Defaults
               </button>
             </div>
 
-            {/* Tab Content */}
+            {/* Equipment Tab Content */}
             {activeConfigTab === 'equipment' && (
               <div className="equipment-catalog-admain">
                 <div className="form-group-admain">
@@ -802,6 +1051,8 @@ const MaintenancePanel = () => {
                     <span>₱</span>
                     <input
                       type="number"
+                      min="0"
+                      step="100"
                       value={config.assessmentFee || 1500}
                       onChange={(e) => setConfig({
                         ...config, assessmentFee:
@@ -828,7 +1079,7 @@ const MaintenancePanel = () => {
                 <div className="form-row-admain">
                   <div className="form-group-admain">
                     <label>Per kW Installation (₱)</label>
-                    <input type="number" value={config.laborRates?.perKw || 5000} onChange={(e) => updateNestedValue(
+                    <input type="number" min="0" step="100" value={config.laborRates?.perKw || 5000} onChange={(e) => updateNestedValue(
                       'laborRates.perKw',
                       e.target.value === ""
                         ? ""
@@ -837,7 +1088,7 @@ const MaintenancePanel = () => {
                   </div>
                   <div className="form-group-admain">
                     <label>Per Panel Installation (₱)</label>
-                    <input type="number" value={config.laborRates?.perPanel || 1000} onChange={(e) => updateNestedValue(
+                    <input type="number" min="0" step="100" value={config.laborRates?.perPanel || 1000} onChange={(e) => updateNestedValue(
                       'laborRates.perPanel',
                       e.target.value === ""
                         ? ""
@@ -846,7 +1097,7 @@ const MaintenancePanel = () => {
                   </div>
                   <div className="form-group-admain">
                     <label>Minimum Labor Fee (₱)</label>
-                    <input type="number" value={config.laborRates?.minimumFee || 10000} onChange={(e) => updateNestedValue(
+                    <input type="number" min="0" step="100" value={config.laborRates?.minimumFee || 10000} onChange={(e) => updateNestedValue(
                       'laborRates.minimumFee',
                       e.target.value === ""
                         ? ""
@@ -877,7 +1128,7 @@ const MaintenancePanel = () => {
           </div>
         )}
 
-        {/* Equipment Modal (NO X BUTTON) */}
+        {/* Equipment Modal with Enhanced Validation */}
         {showEquipmentModal && (
           <div className="modal-overlay-admain" onClick={() => setShowEquipmentModal(false)}>
             <div className="modal-content-admain" onClick={e => e.stopPropagation()}>
@@ -885,34 +1136,81 @@ const MaintenancePanel = () => {
                 <h3>{editingItem ? 'Edit' : 'Add'} {equipmentType?.slice(0, -1)}</h3>
               </div>
               <div className="modal-body-admain">
+                {/* Name */}
                 <div className="form-group-admain">
                   <label>Name *</label>
-                  <input type="text" value={equipmentForm.name} onChange={(e) => setEquipmentForm({ ...equipmentForm, name: e.target.value })} />
+                  <input 
+                    type="text" 
+                    value={equipmentForm.name} 
+                    onChange={(e) => setEquipmentForm({ ...equipmentForm, name: e.target.value })}
+                    className={equipmentErrors.name ? 'error-admain' : ''}
+                    placeholder="Enter equipment name"
+                    maxLength="100"
+                  />
+                  {equipmentErrors.name && <span className="error-text-admain">{equipmentErrors.name}</span>}
+                 
                 </div>
+
+                {/* Price */}
                 <div className="form-group-admain">
                   <label>Price *</label>
-                  <input type="number" value={equipmentForm.price} onChange={(e) => setEquipmentForm({ ...equipmentForm, price: Number(e.target.value) || 0 })} />
+                  <input 
+                    type="text"
+                    inputMode="decimal"
+                    value={equipmentForm.price} 
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9.]/g, '');
+                      setEquipmentForm({ ...equipmentForm, price: value });
+                    }}
+                    className={equipmentErrors.price ? 'error-admain' : ''}
+                    placeholder="Enter price"
+                  />
+                  {equipmentErrors.price && <span className="error-text-admain">{equipmentErrors.price}</span>}
+                  
                 </div>
+
+                {/* Brand */}
+                <div className="form-group-admain">
+                  <label>Brand *</label>
+                  <input 
+                    type="text" 
+                    value={equipmentForm.brand} 
+                    onChange={(e) => setEquipmentForm({ ...equipmentForm, brand: e.target.value })}
+                    className={equipmentErrors.brand ? 'error-admain' : ''}
+                    placeholder="Enter brand name"
+                    maxLength="50"
+                  />
+                  {equipmentErrors.brand && <small className="error-text-admain">{equipmentErrors.brand}</small>}
+                 
+                </div>
+
+                {/* Capacity */}
                 <div className="form-row-admain">
                   <div className="form-group-admain">
-                    <label>Capacity</label>
+                    <label>Capacity *</label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       value={equipmentForm.capacity.value}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9.]/g, '');
                         setEquipmentForm({
                           ...equipmentForm,
                           capacity: {
                             ...equipmentForm.capacity,
-                            value: Number(e.target.value)
+                            value: value
                           }
-                        })
-                      }
+                        });
+                      }}
+                      className={equipmentErrors['capacity.value'] ? 'error-admain' : ''}
+                      placeholder="Enter capacity"
                     />
+                    {equipmentErrors['capacity.value'] && <small className="error-text-admain">{equipmentErrors['capacity.value']}</small>}
+                    
                   </div>
 
                   <div className="form-group-admain">
-                    <label>Capacity Unit</label>
+                    <label>Capacity Unit *</label>
                     <select
                       value={equipmentForm.capacity.unit}
                       onChange={(e) =>
@@ -924,19 +1222,17 @@ const MaintenancePanel = () => {
                           }
                         })
                       }
+                      className={equipmentErrors.unit ? 'error-admain' : ''}
                     >
                       {equipmentType === "solarPanels" && (
                         <option value="W">W</option>
                       )}
-
                       {equipmentType === "inverters" && (
                         <option value="kW">kW</option>
                       )}
-
                       {equipmentType === "batteries" && (
                         <option value="kWh">kWh</option>
                       )}
-
                       {!["solarPanels", "inverters", "batteries"].includes(equipmentType) && (
                         <option value="">N/A</option>
                       )}
@@ -944,45 +1240,56 @@ const MaintenancePanel = () => {
                   </div>
                 </div>
 
+                {/* Solar Panels - Panel Area */}
                 {equipmentType === "solarPanels" && (
                   <div className="form-group-admain">
-                    <label>Panel Area (m²)</label>
+                    <label>Panel Area (m²) *</label>
                     <input
-                      type="number"
-                      step="0.01"
+                      type="text"
+                      inputMode="decimal"
                       value={equipmentForm.panelArea}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9.]/g, '');
                         setEquipmentForm({
                           ...equipmentForm,
-                          panelArea: Number(e.target.value) || 0
-                        })
-                      }
+                          panelArea: value
+                        });
+                      }}
+                      className={equipmentErrors.panelArea ? 'error-admain' : ''}
+                      placeholder="Enter panel area in m²"
                     />
+                    {equipmentErrors.panelArea && <small className="error-text-admain">{equipmentErrors.panelArea}</small>}
+                   
                   </div>
                 )}
+
+                {/* Batteries - DoD */}
                 {equipmentType === "batteries" && (
                   <div className="form-group-admain">
-                    <label>Depth of Discharge (DoD) %</label>
+                    <label>Depth of Discharge (DoD) % *</label>
                     <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="1"
+                      type="text"
+                      inputMode="numeric"
                       value={equipmentForm.dob}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9]/g, '');
                         setEquipmentForm({
                           ...equipmentForm,
-                          dob: Number(e.target.value) || 0
-                        })
-                      }
+                          dob: value
+                        });
+                      }}
+                      className={equipmentErrors.dob ? 'error-admain' : ''}
                       placeholder="e.g., 80"
                     />
-                    <small>Recommended: 50-80% for lead-acid, 80-100% for lithium</small>
+                    {equipmentErrors.dob && <small className="error-text-admain">{equipmentErrors.dob}</small>}
+                    
                   </div>
                 )}
+
+                {/* Unit and Warranty */}
                 <div className="form-row-admain">
                   <div className="form-group-admain">
-                    <label>Unit</label>
+                    <label>Unit *</label>
                     <select
                       value={equipmentForm.unit}
                       onChange={(e) =>
@@ -991,6 +1298,7 @@ const MaintenancePanel = () => {
                           unit: e.target.value
                         })
                       }
+                      className={equipmentErrors.unit ? 'error-admain' : ''}
                     >
                       <option value="piece">Piece</option>
                       <option value="set">Set</option>
@@ -998,15 +1306,37 @@ const MaintenancePanel = () => {
                       <option value="roll">Roll</option>
                       <option value="box">Box</option>
                     </select>
+                    {equipmentErrors.unit && <small className="error-text-admain">{equipmentErrors.unit}</small>}
                   </div>
                   <div className="form-group-admain">
-                    <label>Warranty (years)</label>
-                    <input type="number" value={equipmentForm.warranty} onChange={(e) => setEquipmentForm({ ...equipmentForm, warranty: Number(e.target.value) || 0 })} />
+                    <label>Warranty (years) *</label>
+                    <input 
+                      type="text"
+                      inputMode="numeric"
+                      value={equipmentForm.warranty} 
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9]/g, '');
+                        setEquipmentForm({ ...equipmentForm, warranty: value });
+                      }}
+                      className={equipmentErrors.warranty ? 'error-admain' : ''}
+                      placeholder="Enter warranty years"
+                    />
+                    {equipmentErrors.warranty && <small className="error-text-admain">{equipmentErrors.warranty}</small>}
+                    
                   </div>
                 </div>
+
+                {/* Notes */}
                 <div className="form-group-admain">
-                  <label>Brand</label>
-                  <input type="text" value={equipmentForm.brand} onChange={(e) => setEquipmentForm({ ...equipmentForm, brand: e.target.value })} />
+                  <label>Notes</label>
+                  <textarea
+                    rows="2"
+                    value={equipmentForm.notes}
+                    onChange={(e) => setEquipmentForm({ ...equipmentForm, notes: e.target.value })}
+                    placeholder="Optional notes about this equipment"
+                    maxLength="500"
+                  />
+                 
                 </div>
               </div>
               <div className="modal-actions-admain">
@@ -1019,7 +1349,7 @@ const MaintenancePanel = () => {
           </div>
         )}
 
-        {/* Reason Modal for Config Save (NO X BUTTON) */}
+        {/* Reason Modal for Config Save */}
         {showReasonModal && (
           <div className="modal-overlay-admain" onClick={() => setShowReasonModal(false)}>
             <div className="modal-content-admain" onClick={e => e.stopPropagation()}>
@@ -1027,7 +1357,16 @@ const MaintenancePanel = () => {
                 <h3>Reason for Update</h3>
               </div>
               <div className="modal-body-admain">
-                <textarea rows="3" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Enter reason for these changes..." />
+                <div className="form-group-admain">
+                  <label>Reason *</label>
+                  <textarea 
+                    rows="3" 
+                    value={reason} 
+                    onChange={(e) => setReason(e.target.value)} 
+                    placeholder="Enter reason for these changes..." 
+                  />
+                  {!reason.trim() && <small className="error-text-admain">Reason is required</small>}
+                </div>
               </div>
               <div className="modal-actions-admain">
                 <button className="btn-cancel-admain" onClick={() => setShowReasonModal(false)}>Cancel</button>
@@ -1039,7 +1378,7 @@ const MaintenancePanel = () => {
           </div>
         )}
 
-        {/* Reset Confirmation Modal (NO X BUTTON) */}
+        {/* Reset Confirmation Modal */}
         {showResetModal && (
           <div className="modal-overlay-admain" onClick={() => setShowResetModal(false)}>
             <div className="modal-content-admain" onClick={e => e.stopPropagation()}>
@@ -1049,8 +1388,14 @@ const MaintenancePanel = () => {
               <div className="modal-body-admain">
                 <p>Are you sure you want to reset all settings to defaults? This action cannot be undone.</p>
                 <div className="form-group-admain">
-                  <label>Reason for reset</label>
-                  <textarea rows="2" value={resetReason} onChange={(e) => setResetReason(e.target.value)} placeholder="Enter reason for resetting..." />
+                  <label>Reason for reset *</label>
+                  <textarea 
+                    rows="2" 
+                    value={resetReason} 
+                    onChange={(e) => setResetReason(e.target.value)} 
+                    placeholder="Enter reason for resetting..." 
+                  />
+                  {!resetReason.trim() && <small className="error-text-admain">Reason is required</small>}
                 </div>
               </div>
               <div className="modal-actions-admain">
@@ -1063,7 +1408,7 @@ const MaintenancePanel = () => {
           </div>
         )}
 
-        {/* Remove Equipment Confirmation Modal (NO X BUTTON) */}
+        {/* Remove Equipment Confirmation Modal */}
         {showRemoveModal && itemToRemove && (
           <div className="modal-overlay-admain" onClick={() => setShowRemoveModal(false)}>
             <div className="modal-content-admain" onClick={e => e.stopPropagation()}>
@@ -1073,8 +1418,14 @@ const MaintenancePanel = () => {
               <div className="modal-body-admain">
                 <p>Are you sure you want to remove <strong>{itemToRemove.item.name}</strong>? This will hide it from selection.</p>
                 <div className="form-group-admain">
-                  <label>Reason for removal</label>
-                  <textarea rows="2" value={removeReason} onChange={(e) => setRemoveReason(e.target.value)} placeholder="Enter reason for removing this item..." />
+                  <label>Reason for removal *</label>
+                  <textarea 
+                    rows="2" 
+                    value={removeReason} 
+                    onChange={(e) => setRemoveReason(e.target.value)} 
+                    placeholder="Enter reason for removing this item..." 
+                  />
+                  {!removeReason.trim() && <small className="error-text-admain">Reason is required</small>}
                 </div>
               </div>
               <div className="modal-actions-admain">

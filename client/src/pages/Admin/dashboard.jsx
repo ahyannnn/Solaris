@@ -24,6 +24,31 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 
+// Status Configurations
+const FREE_QUOTE_STATUS = {
+  pending: { label: 'Pending', class: 'pending' },
+  assigned: { label: 'Assigned', class: 'assigned' },
+  processing: { label: 'Processing', class: 'processing' },
+  accepted: { label: 'Accepted', class: 'accepted' },
+  completed: { label: 'Completed', class: 'completed' },
+  cancelled: { label: 'Cancelled', class: 'cancelled' }
+};
+
+const PRE_ASSESSMENT_STATUS = {
+  pending_review: { label: 'Pending Review', class: 'pending' },
+  pending_payment: { label: 'Pending Payment', class: 'pending' },
+  scheduled: { label: 'Scheduled', class: 'scheduled' },
+  site_visit_ongoing: { label: 'Site Visit Ongoing', class: 'processing' },
+  device_deployed: { label: 'Device Deployed', class: 'processing' },
+  data_collecting: { label: 'Collecting Data', class: 'processing' },
+  data_analyzing: { label: 'Analyzing Data', class: 'processing' },
+  report_draft: { label: 'Report Draft', class: 'processing' },
+  quotation_generated: { label: 'Quotation Generated', class: 'processing' },
+  quotation_accepted: { label: 'Quotation Accepted', class: 'accepted' },
+  completed: { label: 'Completed', class: 'completed' },
+  cancelled: { label: 'Cancelled', class: 'cancelled' }
+};
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -174,11 +199,37 @@ const AdminDashboard = () => {
     const activities = [];
 
     freeQuotes.slice(0, 2).forEach(quote => {
+      let message = '';
+      const statusConfig = FREE_QUOTE_STATUS[quote.status] || { label: quote.status || 'Unknown' };
+      
+      switch(quote.status) {
+        case 'pending':
+          message = `New quote request: ${quote.quotationReference}`;
+          break;
+        case 'assigned':
+          message = `Quote assigned: ${quote.quotationReference}`;
+          break;
+        case 'processing':
+          message = `Processing quote: ${quote.quotationReference}`;
+          break;
+        case 'accepted':
+          message = `Quote accepted: ${quote.quotationReference}`;
+          break;
+        case 'completed':
+          message = `Quote completed: ${quote.quotationReference}`;
+          break;
+        case 'cancelled':
+          message = `Quote cancelled: ${quote.quotationReference}`;
+          break;
+        default:
+          message = `Quote update: ${quote.quotationReference}`;
+      }
+      
       activities.push({
         id: `quote-${quote._id}`,
         type: 'free-quote',
-        message: `New quote request: ${quote.quotationReference}`,
-        time: new Date(quote.requestedAt).toLocaleString(),
+        message: message,
+        time: new Date(quote.requestedAt || quote.createdAt).toLocaleString(),
         status: quote.status,
         action: '/app/admin/siteassessment'
       });
@@ -186,27 +237,60 @@ const AdminDashboard = () => {
 
     assessments.slice(0, 3).forEach(assessment => {
       let message = '';
+      const status = assessment.assessmentStatus || assessment.paymentStatus;
       
-      if (assessment.paymentStatus === 'for_verification') {
-        message = `Payment verification: ${assessment.bookingReference}`;
-      } else if (assessment.assessmentStatus === 'scheduled') {
-        message = `Assessment scheduled: ${assessment.bookingReference}`;
-      } else if (assessment.assessmentStatus === 'completed') {
-        message = `Assessment completed: ${assessment.bookingReference}`;
-      } else {
-        message = `New booking: ${assessment.bookingReference}`;
+      switch(status) {
+        case 'pending_review':
+          message = `Pending review: ${assessment.bookingReference}`;
+          break;
+        case 'pending_payment':
+          message = `Payment verification: ${assessment.bookingReference}`;
+          break;
+        case 'scheduled':
+          message = `Assessment scheduled: ${assessment.bookingReference}`;
+          break;
+        case 'site_visit_ongoing':
+          message = `Site visit ongoing: ${assessment.bookingReference}`;
+          break;
+        case 'device_deployed':
+          message = `Device deployed: ${assessment.bookingReference}`;
+          break;
+        case 'data_collecting':
+          message = `Collecting data for: ${assessment.bookingReference}`;
+          break;
+        case 'data_analyzing':
+          message = `Analyzing data for: ${assessment.bookingReference}`;
+          break;
+        case 'report_draft':
+          message = `Report draft ready: ${assessment.bookingReference}`;
+          break;
+        case 'quotation_generated':
+          message = `Quotation generated: ${assessment.bookingReference}`;
+          break;
+        case 'quotation_accepted':
+          message = `Quotation accepted: ${assessment.bookingReference}`;
+          break;
+        case 'completed':
+          message = `Assessment completed: ${assessment.bookingReference}`;
+          break;
+        case 'cancelled':
+          message = `Assessment cancelled: ${assessment.bookingReference}`;
+          break;
+        default:
+          message = `Assessment update: ${assessment.bookingReference}`;
       }
       
       activities.push({
         id: `assessment-${assessment._id}`,
         type: 'pre-assessment',
         message,
-        time: new Date(assessment.bookedAt).toLocaleString(),
-        status: assessment.assessmentStatus || assessment.paymentStatus,
+        time: new Date(assessment.bookedAt || assessment.createdAt).toLocaleString(),
+        status: status,
         action: '/app/admin/siteassessment'
       });
     });
 
+    // Sort by time (newest first)
     return activities.sort((a, b) => new Date(b.time) - new Date(a.time));
   };
 
@@ -509,33 +593,30 @@ const AdminDashboard = () => {
 
   /* --- RECENT ACTIVITY COMPONENT --- */
   const RecentActivity = () => {
-    const getStatusClass = (status) => {
-      switch(status) {
-        case 'completed': return 'completed';
-        case 'pending': return 'pending';
-        case 'for_verification': return 'verification';
-        case 'scheduled': return 'scheduled';
-        case 'paid': return 'completed';
-        default: return '';
+    const getStatusConfig = (status, type) => {
+      if (type === 'free-quote') {
+        return FREE_QUOTE_STATUS[status] || { label: status || 'Unknown', class: 'pending' };
+      } else {
+        return PRE_ASSESSMENT_STATUS[status] || { label: status?.replace(/_/g, ' ') || 'Unknown', class: 'pending' };
       }
     };
 
-    const getStatusText = (status) => {
-      switch(status) {
-        case 'completed': return 'Completed';
-        case 'pending': return 'Pending';
-        case 'for_verification': return 'Verifying';
-        case 'scheduled': return 'Scheduled';
-        case 'paid': return 'Paid';
-        default: return status;
-      }
+    const getStatusClass = (status, type) => {
+      const config = getStatusConfig(status, type);
+      return config.class;
+    };
+
+    const getStatusText = (status, type) => {
+      const config = getStatusConfig(status, type);
+      return config.label;
     };
 
     const getActivityIcon = (activity) => {
       if (activity.type === 'free-quote') return <FaFileInvoiceDollar />;
-      if (activity.message.includes('Payment')) return <FaMoneyBillWave />;
-      if (activity.message.includes('scheduled')) return <FaCalendarAlt />;
+      if (activity.message?.includes('Payment') || activity.message?.includes('payment')) return <FaMoneyBillWave />;
+      if (activity.message?.includes('scheduled') || activity.message?.includes('Scheduled')) return <FaCalendarAlt />;
       if (activity.status === 'completed') return <FaCheckCircle />;
+      if (activity.status === 'cancelled') return <FaExclamationTriangle />;
       return <FaClipboardList />;
     };
 
@@ -560,24 +641,33 @@ const AdminDashboard = () => {
               <small>Activities will appear here as they happen</small>
             </div>
           ) : (
-            recentActivities.map((activity) => (
-              <div 
-                key={activity.id} 
-                className="modern-activity-item"
-                onClick={() => navigate(activity.action)}
-              >
-                <div className={`modern-activity-icon ${getStatusClass(activity.status)}`}>
-                  {getActivityIcon(activity)}
+            recentActivities.map((activity) => {
+              const type = activity.type || 'pre-assessment';
+              const statusClass = getStatusClass(activity.status, type);
+              const statusText = getStatusText(activity.status, type);
+              
+              return (
+                <div 
+                  key={activity.id} 
+                  className="modern-activity-item"
+                  onClick={() => navigate(activity.action)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && navigate(activity.action)}
+                >
+                  <div className={`modern-activity-icon ${statusClass}`}>
+                    {getActivityIcon(activity)}
+                  </div>
+                  <div className="modern-activity-content">
+                    <p className="modern-activity-message">{activity.message}</p>
+                    <span className="modern-activity-time">{activity.time}</span>
+                  </div>
+                  <div className={`modern-activity-status ${statusClass}`}>
+                    {statusText}
+                  </div>
                 </div>
-                <div className="modern-activity-content">
-                  <p className="modern-activity-message">{activity.message}</p>
-                  <span className="modern-activity-time">{activity.time}</span>
-                </div>
-                <div className={`modern-activity-status ${getStatusClass(activity.status)}`}>
-                  {getStatusText(activity.status)}
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
@@ -673,9 +763,6 @@ const AdminDashboard = () => {
       </Helmet>
 
       <div className="modern-admin-dashboard">
-        {/* Welcome Section - Premium Hero */}
-       
-
         {/* Stats Cards with SVG Sparklines */}
         <StatsCards />
 

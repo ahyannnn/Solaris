@@ -47,7 +47,8 @@ const AdminBilling = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Pre-assessment state
-  const [assessments, setAssessments] = useState([]);
+  const [allAssessments, setAllAssessments] = useState([]);
+  const [filteredAssessments, setFilteredAssessments] = useState([]);
   const [selectedAssessment, setSelectedAssessment] = useState(null);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [showEditStatusModal, setShowEditStatusModal] = useState(false);
@@ -59,7 +60,8 @@ const AdminBilling = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
 
   // Solar Invoice state
-  const [solarInvoices, setSolarInvoices] = useState([]);
+  const [allSolarInvoices, setAllSolarInvoices] = useState([]);
+  const [filteredSolarInvoices, setFilteredSolarInvoices] = useState([]);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -83,12 +85,13 @@ const AdminBilling = () => {
   });
 
   // Bank Transfer state
-  const [bankTransfers, setBankTransfers] = useState([]);
+  const [allBankTransfers, setAllBankTransfers] = useState([]);
+  const [filteredBankTransfers, setFilteredBankTransfers] = useState([]);
   const [selectedBankTransfer, setSelectedBankTransfer] = useState(null);
   const [showBankTransferDetailModal, setShowBankTransferDetailModal] = useState(false);
   const [showBankRejectModal, setShowBankRejectModal] = useState(false);
   const [bankRejectionReason, setBankRejectionReason] = useState('');
-  const [bankTransferFilter, setBankTransferFilter] = useState('waiting_verification');
+  const [bankTransferFilter, setBankTransferFilter] = useState('all');
   const [bankTransferSearch, setBankTransferSearch] = useState('');
   const [bankTransferPage, setBankTransferPage] = useState(1);
   const [bankTransferTotalPages, setBankTransferTotalPages] = useState(1);
@@ -96,7 +99,8 @@ const AdminBilling = () => {
   const [bankTransferStats, setBankTransferStats] = useState(null);
 
   // Transaction history state
-  const [transactions, setTransactions] = useState([]);
+  const [allTransactions, setAllTransactions] = useState([]);
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [projects, setProjects] = useState([]);
   const [transactionPage, setTransactionPage] = useState(1);
   const [transactionTotalPages, setTransactionTotalPages] = useState(1);
@@ -162,6 +166,18 @@ const AdminBilling = () => {
 
   useEffect(() => {
     if (activeTab === 'pre-assessments') {
+      applyPreAssessmentFilters();
+    } else if (activeTab === 'solar-invoices') {
+      applySolarInvoiceFilters();
+    } else if (activeTab === 'bank-transfers') {
+      applyBankTransferFilters();
+    } else {
+      applyTransactionFilters();
+    }
+  }, [allAssessments, allSolarInvoices, allBankTransfers, allTransactions, filter, debouncedSearchTerm, bankTransferFilter, debouncedBankSearch]);
+
+  useEffect(() => {
+    if (activeTab === 'pre-assessments') {
       fetchPreAssessments();
     } else if (activeTab === 'solar-invoices') {
       fetchSolarInvoices();
@@ -190,7 +206,7 @@ const AdminBilling = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('scroll', handleScroll, true);
     };
-  }, [activeTab, filter, currentPage, debouncedSearchTerm, bankTransferFilter, bankTransferPage, debouncedBankSearch, transactionPage]);
+  }, [activeTab]);
 
   const handleDropdownClick = (event, itemId) => {
     event.stopPropagation();
@@ -215,6 +231,100 @@ const AdminBilling = () => {
   }, []);
 
   // ============================================
+  // FILTER FUNCTIONS
+  // ============================================
+
+  const applyPreAssessmentFilters = () => {
+    let filtered = [...allAssessments];
+
+    // Apply status filter
+    if (filter !== 'all') {
+      filtered = filtered.filter(a => a.paymentStatus === filter);
+    }
+
+    // Apply search filter
+    if (debouncedSearchTerm) {
+      const term = debouncedSearchTerm.toLowerCase();
+      filtered = filtered.filter(a => {
+        const clientName = `${a.clientId?.contactFirstName || ''} ${a.clientId?.contactLastName || ''}`.toLowerCase();
+        const reference = (a.bookingReference || '').toLowerCase();
+        const invoice = (a.invoiceNumber || '').toLowerCase();
+        return clientName.includes(term) || reference.includes(term) || invoice.includes(term);
+      });
+    }
+
+    setFilteredAssessments(filtered);
+    setTotalItems(filtered.length);
+    setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+  };
+
+  const applySolarInvoiceFilters = () => {
+    let filtered = [...allSolarInvoices];
+
+    if (filter !== 'all') {
+      filtered = filtered.filter(inv => inv.paymentStatus === filter);
+    }
+
+    if (debouncedSearchTerm) {
+      const term = debouncedSearchTerm.toLowerCase();
+      filtered = filtered.filter(inv => {
+        const clientName = `${inv.clientId?.contactFirstName || ''} ${inv.clientId?.contactLastName || ''}`.toLowerCase();
+        const invoiceNumber = (inv.invoiceNumber || '').toLowerCase();
+        const projectName = (inv.projectId?.projectName || '').toLowerCase();
+        return clientName.includes(term) || invoiceNumber.includes(term) || projectName.includes(term);
+      });
+    }
+
+    setFilteredSolarInvoices(filtered);
+    setTotalItems(filtered.length);
+    setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+  };
+
+  const applyBankTransferFilters = () => {
+    let filtered = [...allBankTransfers];
+
+    if (bankTransferFilter !== 'all') {
+      filtered = filtered.filter(p => p.status === bankTransferFilter);
+    }
+
+    if (debouncedBankSearch) {
+      const term = debouncedBankSearch.toLowerCase();
+      filtered = filtered.filter(p => {
+        const clientName = `${p.clientId?.contactFirstName || ''} ${p.clientId?.contactLastName || ''}`.toLowerCase();
+        const reference = (p.transactionReference || '').toLowerCase();
+        const invoiceNumber = (p.invoiceId?.invoiceNumber || '').toLowerCase();
+        return clientName.includes(term) || reference.includes(term) || invoiceNumber.includes(term);
+      });
+    }
+
+    setFilteredBankTransfers(filtered);
+    setBankTransferTotalItems(filtered.length);
+    setBankTransferTotalPages(Math.ceil(filtered.length / itemsPerPage));
+  };
+
+  const applyTransactionFilters = () => {
+    let filtered = [...allTransactions];
+
+    if (filter !== 'all') {
+      filtered = filtered.filter(t => t.status === filter);
+    }
+
+    if (debouncedSearchTerm) {
+      const term = debouncedSearchTerm.toLowerCase();
+      filtered = filtered.filter(t =>
+        t.reference?.toLowerCase().includes(term) ||
+        t.invoiceNumber?.toLowerCase().includes(term) ||
+        t.client?.toLowerCase().includes(term) ||
+        t.projectName?.toLowerCase().includes(term)
+      );
+    }
+
+    setFilteredTransactions(filtered);
+    setTransactionTotalItems(filtered.length);
+    setTransactionTotalPages(Math.ceil(filtered.length / itemsPerPage));
+  };
+
+  // ============================================
   // BANK TRANSFER FUNCTIONS
   // ============================================
 
@@ -224,23 +334,17 @@ const AdminBilling = () => {
       const token = sessionStorage.getItem('token');
 
       const params = {
-        status: bankTransferFilter,
-        page: bankTransferPage,
-        limit: itemsPerPage
+        page: 1,
+        limit: 999 // Fetch all for client-side filtering
       };
-
-      if (debouncedBankSearch) {
-        params.search = debouncedBankSearch;
-      }
 
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/payments/bank-transfer/pending`,
         { headers: { Authorization: `Bearer ${token}` }, params }
       );
 
-      setBankTransfers(response.data.data || []);
+      setAllBankTransfers(response.data.data || []);
       setBankTransferTotalPages(response.data.pagination?.totalPages || 1);
-      setBankTransferTotalItems(response.data.pagination?.total || 0);
     } catch (error) {
       console.error('Error fetching bank transfers:', error);
       showToast('Failed to fetch bank transfers', 'error');
@@ -341,31 +445,15 @@ const AdminBilling = () => {
       setLoading(true);
       const token = sessionStorage.getItem('token');
 
-      const params = {
-        page: currentPage,
-        limit: itemsPerPage
-      };
-
-      if (filter !== 'all') {
-        params.paymentStatus = filter;
-      }
-
-      if (debouncedSearchTerm) {
-        params.search = debouncedSearchTerm;
-      }
-
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       const assessmentsWithInvoice = (response.data.assessments || []).filter(
         assessment => assessment.invoiceNumber && assessment.invoiceNumber !== null && assessment.invoiceNumber !== ''
       );
 
-      setAssessments(assessmentsWithInvoice);
-      setTotalPages(response.data.totalPages || 1);
-      setTotalItems(response.data.total || assessmentsWithInvoice.length);
+      setAllAssessments(assessmentsWithInvoice);
     } catch (error) {
       console.error('Error fetching pre-assessments:', error);
       showToast('Failed to fetch pre-assessments', 'error');
@@ -379,27 +467,11 @@ const AdminBilling = () => {
       setLoading(true);
       const token = sessionStorage.getItem('token');
 
-      const params = {
-        page: currentPage,
-        limit: itemsPerPage
-      };
-
-      if (filter !== 'all') {
-        params.paymentStatus = filter;
-      }
-
-      if (debouncedSearchTerm) {
-        params.search = debouncedSearchTerm;
-      }
-
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/solar-invoices`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params
+        headers: { Authorization: `Bearer ${token}` }
       });
 
-      setSolarInvoices(response.data.invoices || []);
-      setTotalPages(response.data.totalPages || 1);
-      setTotalItems(response.data.total || 0);
+      setAllSolarInvoices(response.data.invoices || []);
     } catch (error) {
       console.error('Error fetching solar invoices:', error);
       showToast('Failed to fetch solar invoices', 'error');
@@ -441,7 +513,7 @@ const AdminBilling = () => {
 
       const solarPayments = solarRes.data.invoices
         .filter(i => i.paymentStatus === 'paid' || i.paymentStatus === 'partial')
-        .flatMap(i => i.payments.map(p => ({
+        .flatMap(i => (i.payments || []).map(p => ({
           id: p._id,
           type: 'Project Payment',
           reference: i.invoiceNumber,
@@ -458,25 +530,8 @@ const AdminBilling = () => {
           receiptNumber: i.receiptNumber
         })));
 
-      let allTransactions = [...prePayments, ...solarPayments].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-      if (filter !== 'all') {
-        allTransactions = allTransactions.filter(t => t.status === filter);
-      }
-
-      if (debouncedSearchTerm) {
-        const term = debouncedSearchTerm.toLowerCase();
-        allTransactions = allTransactions.filter(t =>
-          t.reference?.toLowerCase().includes(term) ||
-          t.invoiceNumber?.toLowerCase().includes(term) ||
-          t.client?.toLowerCase().includes(term) ||
-          t.projectName?.toLowerCase().includes(term)
-        );
-      }
-
-      setTransactions(allTransactions);
-      setTransactionTotalItems(allTransactions.length);
-      setTransactionTotalPages(Math.ceil(allTransactions.length / itemsPerPage));
+      const allTransactions = [...prePayments, ...solarPayments].sort((a, b) => new Date(b.date) - new Date(a.date));
+      setAllTransactions(allTransactions);
     } catch (error) {
       console.error('Error fetching transactions:', error);
       showToast('Failed to fetch transactions', 'error');
@@ -1137,11 +1192,11 @@ const AdminBilling = () => {
     return pages;
   };
 
-  // Get current page items for transactions
-  const getCurrentTransactionItems = () => {
-    const startIndex = (transactionPage - 1) * itemsPerPage;
+  // Get current page items
+  const getCurrentPageItems = (items, page) => {
+    const startIndex = (page - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return transactions.slice(startIndex, endIndex);
+    return items.slice(startIndex, endIndex);
   };
 
   // ============ CUSTOM TOOLTIPS ============
@@ -1183,7 +1238,7 @@ const AdminBilling = () => {
     </div>
   );
 
-  if (loading && assessments.length === 0 && solarInvoices.length === 0 && bankTransfers.length === 0 && activeTab !== 'transactions') {
+  if (loading && allAssessments.length === 0 && allSolarInvoices.length === 0 && allBankTransfers.length === 0 && activeTab !== 'transactions') {
     return <SkeletonLoader />;
   }
 
@@ -1230,7 +1285,7 @@ const AdminBilling = () => {
             </div>
           </div>
 
-          {/* CHART 2: Dummy Placeholder / Comparison Chart (Kept 2 charts for balance) */}
+          {/* CHART 2: Revenue Overview */}
           <div className="billing-chart-card-adminbilling">
             <div className="billing-chart-header-adminbilling">
               <h3>Revenue Overview</h3>
@@ -1317,7 +1372,14 @@ const AdminBilling = () => {
             />
           </div>
           <div className="filter-group-adminbilling">
-            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <select value={activeTab === 'bank-transfers' ? bankTransferFilter : filter} 
+                    onChange={(e) => {
+                      if (activeTab === 'bank-transfers') {
+                        setBankTransferFilter(e.target.value);
+                      } else {
+                        setFilter(e.target.value);
+                      }
+                    }}>
               <option value="all">All Status</option>
               {activeTab === 'pre-assessments' ? (
                 <>
@@ -1348,7 +1410,13 @@ const AdminBilling = () => {
             </select>
             <FaChevronDown className="select-arrow-adminbilling" />
           </div>
-          <button className="refresh-btn-adminbilling" onClick={() => { fetchData(); fetchStats(); }}>
+          <button className="refresh-btn-adminbilling" onClick={() => { 
+            if (activeTab === 'pre-assessments') fetchPreAssessments();
+            else if (activeTab === 'solar-invoices') fetchSolarInvoices();
+            else if (activeTab === 'bank-transfers') { fetchBankTransfers(); fetchBankTransferStats(); }
+            else fetchTransactions();
+            fetchStats();
+          }}>
             <FaSyncAlt className={loading ? 'spinning-adminbilling' : ''} /> Refresh
           </button>
         </div>
@@ -1372,16 +1440,16 @@ const AdminBilling = () => {
                       <th>Amount</th>
                       <th>Gateway</th>
                       <th>Payment</th>
-                      <th>Assessment</th>
+                     
                       <th>Receipt</th>
                       <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {assessments.length === 0 ? (
+                    {filteredAssessments.length === 0 ? (
                       <tr><td colSpan="10" className="empty-state-adminbilling">No pre-assessments found</td></tr>
                     ) : (
-                      assessments.map(assessment => {
+                      getCurrentPageItems(filteredAssessments, currentPage).map(assessment => {
                         const actions = getPreAssessmentActions(assessment);
                         const isOpen = openDropdownId === assessment._id;
                         const autoVerified = (assessment.paymentGateway === 'paymongo' || assessment.autoVerified === true) && assessment.paymentStatus === 'paid';
@@ -1395,7 +1463,7 @@ const AdminBilling = () => {
                             <td data-label="Amount" className="amount-adminbilling">{formatCurrency(assessment.assessmentFee)}</td>
                             <td data-label="Gateway">{getGatewayBadge(assessment)}</td>
                             <td data-label="Payment">{getPaymentStatusBadge(assessment.paymentStatus)}</td>
-                            <td data-label="Assessment">{getAssessmentStatusBadge(assessment.assessmentStatus)}</td>
+                          
                             <td data-label="Receipt" className="receipt-cell-adminbilling">
                               {assessment.receiptUrl ? (
                                 <a href={assessment.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link-adminbilling" onClick={(e) => e.stopPropagation()}>
@@ -1502,10 +1570,10 @@ const AdminBilling = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {solarInvoices.length === 0 ? (
+                    {filteredSolarInvoices.length === 0 ? (
                       <tr><td colSpan="11" className="empty-state-adminbilling">No solar invoices found</td></tr>
                     ) : (
-                      solarInvoices.map(invoice => {
+                      getCurrentPageItems(filteredSolarInvoices, currentPage).map(invoice => {
                         const actions = getSolarInvoiceActions(invoice);
                         const isOpen = openDropdownId === invoice._id;
                         const autoVerified = invoice.paymentStatus === 'paid' && invoice.payments?.some(p => p.method === 'paymongo');
@@ -1611,7 +1679,7 @@ const AdminBilling = () => {
                     <tr>
                       <th>Date</th>
                       <th>Customer</th>
-                      <th>Invoice #</th>
+                      
                       <th>Bank</th>
                       <th>Amount</th>
                       <th>Reference</th>
@@ -1620,12 +1688,12 @@ const AdminBilling = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {bankTransfers.length === 0 ? (
+                    {filteredBankTransfers.length === 0 ? (
                       <tr><td colSpan="8" className="empty-state-adminbilling">
                         <FaExclamationTriangle /> No bank transfer submissions found
                       </td></tr>
                     ) : (
-                      bankTransfers.map(payment => {
+                      getCurrentPageItems(filteredBankTransfers, bankTransferPage).map(payment => {
                         const actions = getBankTransferActions(payment);
                         const isOpen = openDropdownId === payment._id;
 
@@ -1638,10 +1706,7 @@ const AdminBilling = () => {
                                 <small>{payment.clientEmail}</small>
                               </div>
                             </td>
-                            <td data-label="Invoice #" className="invoice-cell-adminbilling">
-                              <strong>{payment.invoiceId?.invoiceNumber}</strong>
-                              <small>{payment.invoiceId?.invoiceType}</small>
-                            </td>
+                            
                             <td data-label="Bank"><span className="bank-name-adminbilling">{payment.bankName}</span></td>
                             <td data-label="Amount" className="amount-adminbilling">{formatCurrency(payment.amount)}</td>
                             <td data-label="Reference" className="ref-cell-adminbilling">{payment.transactionReference}</td>
@@ -1733,10 +1798,10 @@ const AdminBilling = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {transactions.length === 0 ? (
+                    {filteredTransactions.length === 0 ? (
                       <tr><td colSpan="9" className="empty-state-adminbilling">No transactions found</td></tr>
                     ) : (
-                      getCurrentTransactionItems().map(transaction => (
+                      getCurrentPageItems(filteredTransactions, transactionPage).map(transaction => (
                         <tr key={transaction.id}>
                           <td data-label="Date">{formatDate(transaction.date)}</td>
                           <td data-label="Type"><span className={`transaction-type-adminbilling ${transaction.type === 'Pre-Assessment' ? 'pre' : 'project'}`}>{transaction.type}</span></td>

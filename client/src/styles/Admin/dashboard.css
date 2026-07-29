@@ -439,16 +439,7 @@
   white-space: nowrap;
 }
 
-/* ACTIVITY ICON STATUSES */
-.modern-activity-icon.completed { background: var(--emerald-light); color: var(--emerald); }
-.modern-activity-icon.pending { background: var(--amber-light); color: var(--amber); }
-.modern-activity-icon.verification { background: var(--blue-light); color: var(--blue); }
 
-/* ACTIVITY STATUS COLORS */
-.modern-activity-status.completed { background: var(--emerald-light); color: #059669; }
-.modern-activity-status.pending { background: var(--amber-light); color: #d97706; }
-.modern-activity-status.verification { background: var(--blue-light); color: #2563eb; }
-.modern-activity-status.scheduled { background: var(--purple-light); color: var(--purple); }
 
 .modern-empty-activity {
   text-align: center;

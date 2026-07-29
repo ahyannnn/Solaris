@@ -122,7 +122,41 @@
   cursor: pointer;
   transition: background 0.2s ease;
 }
+.password-input-wrapper-usermanagement {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
 
+.password-input-wrapper-usermanagement input {
+  flex: 1;
+  padding-right: 40px;
+}
+
+.password-toggle-btn-usermanagement {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.password-toggle-btn-usermanagement:hover {
+  color: #4f46e5;
+}
+
+.password-toggle-btn-usermanagement:focus {
+  outline: none;
+}
 .create-user-btn-usermanagement:hover,
 .refresh-btn-usermanagement:hover {
   background: #374151;
@@ -763,6 +797,17 @@
 }
 
 .form-group-usermanagement input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  font-size: 14px;
+  background: #FFFFFF;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+.form-group-usermanagement select {
   width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--gray-200);

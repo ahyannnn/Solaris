@@ -104,7 +104,7 @@ export const AreaCalculationCard = ({
         )}
 
         <div className="formula-display">
-          <p><strong>Formula:</strong> (Roof Area × 70% × PV Power(W)) / Panel Area(m²)</p>
+          <label className="form-label-enad"><strong>Formula:</strong> (Roof Area × 70% × PV Power(W)) / Panel Area(m²)</label>
         </div>
 
         <button
@@ -290,14 +290,14 @@ export const ElectricityCalculationCard = ({
         )}
 
         <div className="formula-display">
-          <p><strong>Formula:</strong> Day Consumption × Safety Factor / PSH</p>
-          <p className="formula-detail">Safety Factor: 1.3 (default)</p>
+          <label className="form-label-enad"><strong>Formula:</strong> Day Consumption × Safety Factor / PSH</label>
+          <label className="form-label-enad">Safety Factor: 1.3 (default)</label>
         </div>
 
         <button
           className="btn-calculate"
           onClick={calculateByElectricity}
-          disabled={!isDataLoaded || totalDailyConsumption === 0}
+          disabled={!isDataLoaded || totalDailyConsumption === 0 || !selectedPanelForCalc}
         >
           Calculate System Size
         </button>
@@ -403,8 +403,8 @@ export const NetMeteringCalculationCard = ({
         )}
 
         <div className="formula-display">
-          <p><strong>Formula:</strong> (Day PV Capacity + Night PV Capacity) × Target Savings</p>
-          <p className="formula-detail">PV Capacity = Consumption × 1.3 / 3.5 PSH</p>
+          <label className="form-label-enad"><strong>Formula:</strong> (Day PV Capacity + Night PV Capacity) × Target Savings</label>
+          <label className="form-label-enad">PV Capacity = Consumption × 1.3 / 3.5 PSH</label>
         </div>
 
         
@@ -412,7 +412,7 @@ export const NetMeteringCalculationCard = ({
         <button
           className="btn-calculate"
           onClick={calculateByNetMetering}
-          disabled={!isDataLoaded || (dayConsumption === 0 && nightConsumption === 0)}
+          disabled={!isDataLoaded || (dayConsumption === 0 && nightConsumption === 0) || !selectedPanelForCalc}
         >
           Calculate System Size
         </button>

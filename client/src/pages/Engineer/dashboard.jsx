@@ -48,6 +48,21 @@ const EngineerDashboard = () => {
   const [todaySchedules, setTodaySchedules] = useState([]);
   const [allActivities, setAllActivities] = useState([]);
 
+  // Helper function to get full address
+  const getFullAddress = (address) => {
+    if (!address) return 'TBD';
+    
+    const parts = [
+      address.houseOrBuilding,
+      address.street,
+      address.barangay,
+      address.cityMunicipality,
+      address.province
+    ].filter(part => part && part.trim() !== '');
+    
+    return parts.length > 0 ? parts.join(', ') : 'TBD';
+  };
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -80,7 +95,7 @@ const EngineerDashboard = () => {
       // Fetch MY devices
       const myDevicesList = myAssessmentsList.filter(a => a.iotDeviceId).map(a => a.iotDeviceId);
       setMyDevices(myDevicesList.slice(0, 5));
-      
+
       // Fetch MY schedules (assigned to this engineer)
       const schedulesRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/schedules/engineer/my-schedules`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -265,7 +280,6 @@ const EngineerDashboard = () => {
         {/* Welcome Section */}
         <div className="engdas-welcome-section">
           <div className="engdas-welcome-content">
-            
             <p className="engdas-welcome-greeting">Good day, {userName || 'Engineer'}!</p>
           </div>
           <div className="engdas-welcome-actions">
@@ -393,22 +407,17 @@ const EngineerDashboard = () => {
                       <span className="metric-label-engdas">Property Type</span>
                       <span className="metric-value-engdas">{activeAssessment.propertyType || 'N/A'}</span>
                     </div>
-                    <div className="assessment-metric-engdas">
-                      <span className="metric-label-engdas">Preferred Date</span>
-                      <span className="metric-value-engdas">{formatDate(activeAssessment.preferredDate)}</span>
-                    </div>
+
                     <div className="assessment-metric-engdas">
                       <span className="metric-label-engdas">
                         <FaMapMarkerAlt /> Address
                       </span>
                       <span className="metric-value-engdas">
-                        {activeAssessment.address?.barangay || activeAssessment.address?.cityMunicipality || 'TBD'}
+                        {getFullAddress(activeAssessment.addressId)}
                       </span>
                     </div>
                   </div>
                 </div>
-
-                
               </div>
             ) : (
               <div className="empty-state-engdas">
@@ -451,9 +460,9 @@ const EngineerDashboard = () => {
                           </span>
                         </div>
                         <div className="activity-status-engdas">
-                          {getStatusBadge(activity.status, 
-                            activity.type === 'assessment' ? 'assessment' : 
-                            activity.type === 'schedule' ? 'schedule' : 'project'
+                          {getStatusBadge(activity.status,
+                            activity.type === 'assessment' ? 'assessment' :
+                              activity.type === 'schedule' ? 'schedule' : 'project'
                           )}
                         </div>
                       </div>

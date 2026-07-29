@@ -696,6 +696,7 @@ const MyAssessments = () => {
   const FREE_QUOTE_STATUS = {
     pending: { label: 'Pending', color: 'pending-enad' },
     assigned: { label: 'Assigned', color: 'processing-enad' },
+    accepted: { label: 'Accepted', color: 'processing-enad' },
     processing: { label: 'Processing', color: 'processing-enad' },
     completed: { label: 'Completed', color: 'completed-enad' },
     cancelled: { label: 'Cancelled', color: 'cancelled-enad' }
@@ -1703,9 +1704,10 @@ const MyAssessments = () => {
   };
 
   // Get unique statuses for dropdown
+  // NEW CODE - Gets statuses from ALL assessments
   const getUniqueStatuses = () => {
     const statuses = new Set();
-    filteredAssessments.forEach(item => {
+    allAssessments.forEach(item => {
       const status = item.type === 'free_quote' ? item.status : item.assessmentStatus;
       if (status) statuses.add(status);
     });
@@ -1813,7 +1815,8 @@ const MyAssessments = () => {
                 onChange={(e) => setActiveStatusFilter(e.target.value)}
               >
                 <option value="all">All Status</option>
-                {uniqueStatuses.map(status => {
+                {getUniqueStatuses().map(status => {
+                  // First check PRE_ASSESSMENT_STATUS, then FREE_QUOTE_STATUS
                   const statusConfig = PRE_ASSESSMENT_STATUS[status] || FREE_QUOTE_STATUS[status] || { label: status?.replace(/_/g, ' ') };
                   return (
                     <option key={status} value={status}>
@@ -1874,7 +1877,7 @@ const MyAssessments = () => {
                             </span>
                           </td>
                           <td className="date-cell-enad">
-                            {formatDate(item.preferredDate || item.requestedAt)}
+                            {formatDate(item.siteVisitDate || item.requestedAt)}
                           </td>
                           <td className="actions-cell-enad">
                             <button className="view-btn-enad" onClick={(e) => { e.stopPropagation(); handleSelectItem(item); }}>

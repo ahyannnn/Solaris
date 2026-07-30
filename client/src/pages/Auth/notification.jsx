@@ -14,7 +14,8 @@ import {
   FaTimes,
   FaSlidersH,
   FaInbox,
-  FaCircle
+  FaCircle,
+  FaExclamationTriangle
 } from 'react-icons/fa';
 import '../../styles/Auth/notification.css';
 
@@ -27,6 +28,12 @@ const Notifications = () => {
   const [filter, setFilter] = useState('all');
   const [selectedNotifications, setSelectedNotifications] = useState([]);
   const [selectMode, setSelectMode] = useState(false);
+
+  // Modal State
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [modalAction, setModalAction] = useState(null); // 'single' or 'bulk'
+  const [modalTargetId, setModalTargetId] = useState(null);
+  const [modalCount, setModalCount] = useState(0);
 
   const getToken = () => {
     return localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -65,7 +72,6 @@ const Notifications = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Check if the notification was unread before marking
       const notification = notifications.find(n => n._id === notificationId);
       const wasUnread = notification && !notification.read;
 
@@ -77,7 +83,6 @@ const Notifications = () => {
         )
       );
 
-      // Only decrement if it was actually unread
       if (wasUnread) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
@@ -98,63 +103,76 @@ const Notifications = () => {
       setNotifications(prev =>
         prev.map(notif => ({ ...notif, read: true }))
       );
-      setUnreadCount(0); // Reset to 0
-
-      // Also update the unread count in the parent component (dashboard)
-      // This will be reflected when the user navigates back
+      setUnreadCount(0);
     } catch (err) {
       console.error('Error marking all as read:', err);
     }
   };
 
-  const deleteNotification = async (notificationId) => {
-    if (!window.confirm('Are you sure you want to delete this notification?')) return;
+  // ---- DELETE LOGIC WITH MODAL ----
+  const openDeleteModal = (notificationId) => {
+    setModalAction('single');
+    setModalTargetId(notificationId);
+    setModalCount(1);
+    setShowConfirmModal(true);
+  };
 
+  const openBulkDeleteModal = () => {
+    if (selectedNotifications.length === 0) return;
+    setModalAction('bulk');
+    setModalTargetId(null);
+    setModalCount(selectedNotifications.length);
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
     try {
       const token = getToken();
-      await axios.delete(
-        `${import.meta.env.VITE_API_URL}/api/notifications/${notificationId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
 
-      const deleted = notifications.find(n => n._id === notificationId);
-      setNotifications(prev => prev.filter(notif => notif._id !== notificationId));
-      if (deleted && !deleted.read) {
-        setUnreadCount(prev => Math.max(0, prev - 1));
+      if (modalAction === 'single') {
+        await axios.delete(
+          `${import.meta.env.VITE_API_URL}/api/notifications/${modalTargetId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const deleted = notifications.find(n => n._id === modalTargetId);
+        setNotifications(prev => prev.filter(notif => notif._id !== modalTargetId));
+        if (deleted && !deleted.read) {
+          setUnreadCount(prev => Math.max(0, prev - 1));
+        }
+      } else if (modalAction === 'bulk') {
+        await Promise.all(
+          selectedNotifications.map(id =>
+            axios.delete(`${import.meta.env.VITE_API_URL}/api/notifications/${id}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            })
+          )
+        );
+
+        const deletedIds = new Set(selectedNotifications);
+        const deletedUnread = notifications.filter(
+          n => deletedIds.has(n._id) && !n.read
+        ).length;
+
+        setNotifications(prev => prev.filter(n => !deletedIds.has(n._id)));
+        setSelectedNotifications([]);
+        setSelectMode(false);
+        setUnreadCount(prev => Math.max(0, prev - deletedUnread));
       }
     } catch (err) {
-      console.error('Error deleting notification:', err);
+      console.error('Error deleting notification(s):', err);
+    } finally {
+      setShowConfirmModal(false);
+      setModalAction(null);
+      setModalTargetId(null);
+      setModalCount(0);
     }
   };
 
-  const bulkDelete = async () => {
-    if (selectedNotifications.length === 0) return;
-    if (!window.confirm(`Delete ${selectedNotifications.length} notification(s)?`)) return;
-
-    try {
-      const token = getToken();
-      await Promise.all(
-        selectedNotifications.map(id =>
-          axios.delete(`${import.meta.env.VITE_API_URL}/api/notifications/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-        )
-      );
-
-      const deletedIds = new Set(selectedNotifications);
-      const deletedUnread = notifications.filter(
-        n => deletedIds.has(n._id) && !n.read
-      ).length;
-
-      setNotifications(prev => prev.filter(n => !deletedIds.has(n._id)));
-      setSelectedNotifications([]);
-      setSelectMode(false);
-
-      // Decrement unread count by the number of unread notifications deleted
-      setUnreadCount(prev => Math.max(0, prev - deletedUnread));
-    } catch (err) {
-      console.error('Error bulk deleting:', err);
-    }
+  const closeModal = () => {
+    setShowConfirmModal(false);
+    setModalAction(null);
+    setModalTargetId(null);
+    setModalCount(0);
   };
 
   const toggleSelection = (id) => {
@@ -301,7 +319,7 @@ const Notifications = () => {
           <div className="notif-bulk-actions">
             <span className="bulk-count">{selectedNotifications.length} selected</span>
             <div className="bulk-actions-group">
-              <button onClick={bulkDelete} className="bulk-delete-btn">
+              <button onClick={openBulkDeleteModal} className="bulk-delete-btn">
                 <FaTrash /> Delete selected
               </button>
               <button onClick={selectAll} className="bulk-select-btn">
@@ -416,7 +434,7 @@ const Notifications = () => {
                   <div className="notif-actions">
                     <button
                       className="notif-delete-btn"
-                      onClick={() => deleteNotification(notification._id)}
+                      onClick={() => openDeleteModal(notification._id)}
                       title="Delete"
                     >
                       <FaTrash />
@@ -437,6 +455,36 @@ const Notifications = () => {
           </div>
         )}
       </div>
+
+      {/* ============================================
+          DELETE CONFIRMATION MODAL
+         ============================================ */}
+      {showConfirmModal && (
+        <div className="notif-modal-overlay" onClick={closeModal}>
+          <div className="notif-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="notif-modal-header">
+              <h3>Confirm Delete</h3>
+            </div>
+            <div className="notif-modal-body">
+              <div className="notif-modal-icon-wrapper">
+                <FaExclamationTriangle className="notif-modal-icon" />
+              </div>
+              <p className="notif-modal-text">
+                Are you sure you want to delete <strong>{modalCount}</strong> notification{modalCount > 1 ? 's' : ''}?
+              </p>
+              <p className="notif-modal-subtext">This action cannot be undone.</p>
+            </div>
+            <div className="notif-modal-actions">
+              <button className="notif-modal-cancel-btn" onClick={closeModal}>
+                Cancel
+              </button>
+              <button className="notif-modal-confirm-btn" onClick={handleConfirmDelete}>
+                <FaTrash /> Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

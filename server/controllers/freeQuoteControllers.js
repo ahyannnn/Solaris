@@ -944,10 +944,10 @@ exports.generateFreeQuotePDF = async (req, res) => {
       paymentTerms,
       warrantyYears,
       remarks,
-      equipmentDetails,  // NEW: Include all equipment details
-      annualProduction,  // NEW: Annual production in kWh/year
-      co2Offset,         // NEW: CO2 offset in kg/year
-      roiYears           // NEW: ROI years (payback period)
+      equipmentDetails,
+      annualProduction,
+      co2Offset,
+      roiYears  // ✅ This is the ROI years value
     } = req.body;
 
     const quote = await FreeQuote.findById(id)
@@ -968,7 +968,6 @@ exports.generateFreeQuotePDF = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    // Get system type label
     const systemTypeObj = SYSTEM_TYPES.find(t => t.value === systemType);
     const systemTypeLabel = systemTypeObj ? systemTypeObj.label : systemType;
 
@@ -1055,7 +1054,7 @@ exports.generateFreeQuotePDF = async (req, res) => {
     const calculatedInstallationTotal = costBreakdown.installation.total;
     const calculatedTotalCost = calculatedEquipmentTotal + calculatedInstallationTotal;
 
-    // Prepare data for PDF
+    // Prepare data for PDF - ✅ FIXED: Include roiYears
     const pdfData = {
       quotationReference: quote.quotationReference,
       clientName: `${quote.clientId.contactFirstName} ${quote.clientId.contactLastName}`,
@@ -1079,10 +1078,11 @@ exports.generateFreeQuotePDF = async (req, res) => {
       calculatedEquipmentTotal,
       calculatedInstallationTotal,
       calculatedTotalCost,
-      // NEW FIELDS
       annualProduction: parseFloat(annualProduction) || 0,
       co2Offset: parseFloat(co2Offset) || 0,
-      roiYears: parseFloat(roiYears) || 0
+      roiYears: parseFloat(roiYears) || 0,  // ✅ ROI years passed here
+      // Also pass as roiData for backward compatibility
+      roiData: parseFloat(roiYears) || 0
     };
 
     // Generate PDF
@@ -1128,7 +1128,7 @@ exports.generateFreeQuotePDF = async (req, res) => {
         hasEquipmentDetails: !!equipmentDetails,
         annualProduction: parseFloat(annualProduction) || 0,
         co2Offset: parseFloat(co2Offset) || 0,
-        roiYears: parseFloat(roiYears) || 0,
+        roiYears: parseFloat(roiYears) || 0,  // ✅ Store in metadata
         generatedAt: new Date().toISOString()
       }
     });
@@ -1145,7 +1145,7 @@ exports.generateFreeQuotePDF = async (req, res) => {
     // Store new fields in quote
     quote.estimatedAnnualProduction = parseFloat(annualProduction) || 0;
     quote.co2Offset = parseFloat(co2Offset) || 0;
-    quote.roiYears = parseFloat(roiYears) || 0;
+    quote.roiYears = parseFloat(roiYears) || 0;  // ✅ Store in quote
 
     // Store equipment breakdown in quote
     quote.quotationDetails = {
@@ -1161,7 +1161,7 @@ exports.generateFreeQuotePDF = async (req, res) => {
       remarks,
       annualProduction: parseFloat(annualProduction) || 0,
       co2Offset: parseFloat(co2Offset) || 0,
-      roiYears: parseFloat(roiYears) || 0
+      roiYears: parseFloat(roiYears) || 0  // ✅ Store in quotationDetails
     };
 
     await quote.save();
@@ -1182,7 +1182,7 @@ exports.generateFreeQuotePDF = async (req, res) => {
             systemSize: systemSize,
             annualProduction: parseFloat(annualProduction) || 0,
             co2Offset: parseFloat(co2Offset) || 0,
-            roiYears: parseFloat(roiYears) || 0
+            roiYears: parseFloat(roiYears) || 0  // ✅ Include in notification
           }
         }
       );
@@ -1200,7 +1200,7 @@ exports.generateFreeQuotePDF = async (req, res) => {
         installationCost: calculatedInstallationTotal,
         annualProduction: parseFloat(annualProduction) || 0,
         co2Offset: parseFloat(co2Offset) || 0,
-        roiYears: parseFloat(roiYears) || 0,
+        roiYears: parseFloat(roiYears) || 0,  // ✅ Return in response
         size: `${(pdfBuffer.length / 1024).toFixed(1)} KB`
       }
     });

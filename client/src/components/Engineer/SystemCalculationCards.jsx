@@ -1,5 +1,6 @@
 // components/Engineer/SystemCalculationCards.jsx
 import React from 'react';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 
 // Safe number formatting helper - now defaults to 2 decimal places
 const safeToFixed = (value, decimals = 2) => {
@@ -34,10 +35,31 @@ export const AreaCalculationCard = ({
   selectedPanelForCalc, setSelectedPanelForCalc,
   availablePanels,
   calculateByArea,
-  isDataLoaded
+  isDataLoaded,
+  showToast // Add showToast prop
 }) => {
+
   const panelWattage = getPanelWattage(selectedPanelForCalc);
   const panelArea = getPanelArea(selectedPanelForCalc);
+
+  const handleCalculate = () => {
+    if (!isDataLoaded || roofArea === 0 || !selectedPanelForCalc) {
+      if (!selectedPanelForCalc) {
+        showToast('Please select a solar panel first', 'warning');
+      } else if (!isDataLoaded) {
+        showToast('No roof dimension data available. Please check client data.', 'error');
+      } else if (roofArea === 0) {
+        showToast('Roof dimensions not provided by client.', 'error');
+      }
+      return;
+    }
+    calculateByArea();
+
+    // Show success toast after calculation
+    setTimeout(() => {
+      showToast('Area calculation completed!', 'success', 3000);
+    }, 300);
+  };
 
   return (
     <div className="calculation-card">
@@ -109,7 +131,7 @@ export const AreaCalculationCard = ({
 
         <button
           className="btn-calculate"
-          onClick={calculateByArea}
+          onClick={handleCalculate}
           disabled={!isDataLoaded || roofArea === 0 || !selectedPanelForCalc}
         >
           Calculate System Size
@@ -134,7 +156,7 @@ export const ElectricityCalculationCard = ({
   ratePerKwh,
   monthlyBill,
   pshValue, setPshValue,
-  targetSavings,        // Read-only - comes from database
+  targetSavings,
   selectedPanelForCalc, setSelectedPanelForCalc,
   availablePanels,
   calculateByElectricity,
@@ -142,13 +164,28 @@ export const ElectricityCalculationCard = ({
   selectedBatteryForCalc,
   batteryAutonomy,
   setBatteryAutonomy,
-  systemType
+  systemType,
+  showToast // Add showToast prop
 }) => {
   const panelWattage = getPanelWattage(selectedPanelForCalc);
   const dod = getDepthOfDischarge(selectedBatteryForCalc);
 
   // Only show battery autonomy for Hybrid (not for Grid-Tie or Off-Grid)
   const showBatteryAutonomy = systemType === 'hybrid';
+
+  const handleCalculate = () => {
+    if (!isDataLoaded || totalDailyConsumption === 0 || !selectedPanelForCalc) {
+      if (!selectedPanelForCalc) {
+        showToast('Please select a solar panel first', 'warning');
+      } else if (!isDataLoaded) {
+        showToast('No consumption data available. Please check client data.', 'error');
+      } else if (totalDailyConsumption === 0) {
+        showToast('Consumption data not provided by client.', 'error');
+      }
+      return;
+    }
+    calculateByElectricity();
+  };
 
   return (
     <div className="calculation-card">
@@ -296,7 +333,7 @@ export const ElectricityCalculationCard = ({
 
         <button
           className="btn-calculate"
-          onClick={calculateByElectricity}
+          onClick={handleCalculate}
           disabled={!isDataLoaded || totalDailyConsumption === 0 || !selectedPanelForCalc}
         >
           Calculate System Size
@@ -324,9 +361,24 @@ export const NetMeteringCalculationCard = ({
   availablePanels,
   calculateByNetMetering,
   isDataLoaded,
-  targetSavings        // Read-only - comes from database
+  targetSavings,
+  showToast // Add showToast prop
 }) => {
   const panelWattage = getPanelWattage(selectedPanelForCalc);
+
+  const handleCalculate = () => {
+    if (!isDataLoaded || (dayConsumption === 0 && nightConsumption === 0) || !selectedPanelForCalc) {
+      if (!selectedPanelForCalc) {
+        showToast('Please select a solar panel first', 'warning');
+      } else if (!isDataLoaded) {
+        showToast('No consumption data available. Please check client data.', 'error');
+      } else if (dayConsumption === 0 && nightConsumption === 0) {
+        showToast('Consumption data not provided by client.', 'error');
+      }
+      return;
+    }
+    calculateByNetMetering();
+  };
 
   return (
     <div className="calculation-card">
@@ -407,11 +459,9 @@ export const NetMeteringCalculationCard = ({
           <label className="form-label-enad">PV Capacity = Consumption × 1.3 / 3.5 PSH</label>
         </div>
 
-        
-
         <button
           className="btn-calculate"
-          onClick={calculateByNetMetering}
+          onClick={handleCalculate}
           disabled={!isDataLoaded || (dayConsumption === 0 && nightConsumption === 0) || !selectedPanelForCalc}
         >
           Calculate System Size
@@ -434,10 +484,25 @@ export const CalculationResultsCard = ({
   selectedCalculationMethod,
   applyCalculationResults,
   resetCalculationCards,
-  systemType
+  systemType,
+  showToast // Add showToast prop
 }) => {
   // Only show battery results for Hybrid and Off-Grid
   const showBattery = systemType === 'hybrid' || systemType === 'off-grid';
+
+  const handleApplyResults = () => {
+    if (calculationResults.recommendedSystemSize === 0) {
+      showToast('No calculation results to apply. Please calculate first.', 'warning');
+      return;
+    }
+    applyCalculationResults();
+    showToast('Configuration applied successfully!', 'success');
+  };
+
+  const handleRecalculate = () => {
+    resetCalculationCards();
+    showToast('Calculation reset. You can try a different method.', 'info');
+  };
 
   return (
     <div className="calculation-results-card">
@@ -516,10 +581,10 @@ export const CalculationResultsCard = ({
         </div>
       </div>
       <div className="results-actions">
-        <button className="btn-use-results" onClick={applyCalculationResults}>
+        <button className="btn-use-results" onClick={handleApplyResults}>
           Use This Configuration
         </button>
-        <button className="btn-recalculate" onClick={resetCalculationCards}>
+        <button className="btn-recalculate" onClick={handleRecalculate}>
           Recalculate
         </button>
       </div>

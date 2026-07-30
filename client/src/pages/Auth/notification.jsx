@@ -17,10 +17,12 @@ import {
   FaCircle,
   FaExclamationTriangle
 } from 'react-icons/fa';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Auth/notification.css';
 
 const Notifications = () => {
   const navigate = useNavigate();
+  const { toast, showToast, hideToast } = useToast();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -139,6 +141,7 @@ const Notifications = () => {
         if (deleted && !deleted.read) {
           setUnreadCount(prev => Math.max(0, prev - 1));
         }
+        showToast('Notification deleted successfully.', 'success');
       } else if (modalAction === 'bulk') {
         await Promise.all(
           selectedNotifications.map(id =>
@@ -157,9 +160,11 @@ const Notifications = () => {
         setSelectedNotifications([]);
         setSelectMode(false);
         setUnreadCount(prev => Math.max(0, prev - deletedUnread));
+        showToast(`${modalCount} notification(s) deleted successfully.`, 'success');
       }
     } catch (err) {
       console.error('Error deleting notification(s):', err);
+      showToast('Failed to delete notification(s).', 'error');
     } finally {
       setShowConfirmModal(false);
       setModalAction(null);
@@ -485,6 +490,14 @@ const Notifications = () => {
           </div>
         </div>
       )}
+
+      <ToastNotification 
+        show={toast.show} 
+        message={toast.message} 
+        type={toast.type} 
+        onClose={hideToast} 
+        position="bottom-left"
+      />
     </div>
   );
 };

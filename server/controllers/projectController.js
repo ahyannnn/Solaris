@@ -481,10 +481,13 @@ exports.createProjectFromAcceptance = async (req, res) => {
         sourceData.desiredCapacity ||
         5;
 
-      const totalCost = sourceData.quotationDetails?.totalCost ||
+      const baseTotalCost = sourceData.quotationDetails?.totalCost ||
         (sourceData.quotationDetails?.equipmentCost || 0) +
         (sourceData.quotationDetails?.installationCost || 0) ||
         0;
+
+      // Apply 12% VAT to total cost
+      const totalCostWithVAT = baseTotalCost * 1.12;
 
       const systemType = sourceData.quotationDetails?.systemType ||
         sourceData.systemType ||
@@ -497,7 +500,7 @@ exports.createProjectFromAcceptance = async (req, res) => {
       const inverterType = sourceData.quotationDetails?.equipmentBreakdown?.inverter?.name || null;
       const batteryType = sourceData.quotationDetails?.equipmentBreakdown?.battery?.name || null;
 
-      // Calculate payment schedule based on preference
+      // Calculate payment schedule based on preference (with VAT)
       let paymentSchedule = [];
       let initialPayment = 0;
       let progressPayment = 0;
@@ -506,13 +509,13 @@ exports.createProjectFromAcceptance = async (req, res) => {
       if (paymentPreference === 'full') {
         paymentSchedule.push({
           type: 'full',
-          amount: totalCost,
+          amount: totalCostWithVAT,
           dueDate: new Date(),
           status: 'pending'
         });
       } else if (paymentPreference === 'fifty_fifty') {
-        initialPayment = totalCost * 0.5;
-        finalPayment = totalCost * 0.5;
+        initialPayment = totalCostWithVAT * 0.5;
+        finalPayment = totalCostWithVAT * 0.5;
 
         paymentSchedule.push({
           type: 'initial',
@@ -527,9 +530,9 @@ exports.createProjectFromAcceptance = async (req, res) => {
           status: 'pending'
         });
       } else if (paymentPreference === 'thirty_sixty_ten') {
-        initialPayment = totalCost * 0.3;
-        progressPayment = totalCost * 0.6;
-        finalPayment = totalCost * 0.1;
+        initialPayment = totalCostWithVAT * 0.3;
+        progressPayment = totalCostWithVAT * 0.6;
+        finalPayment = totalCostWithVAT * 0.1;
 
         paymentSchedule.push({
           type: 'initial',
@@ -551,9 +554,9 @@ exports.createProjectFromAcceptance = async (req, res) => {
         });
       } else {
         // Default: 30% - 40% - 30%
-        initialPayment = totalCost * 0.3;
-        progressPayment = totalCost * 0.4;
-        finalPayment = totalCost * 0.3;
+        initialPayment = totalCostWithVAT * 0.3;
+        progressPayment = totalCostWithVAT * 0.4;
+        finalPayment = totalCostWithVAT * 0.3;
 
         paymentSchedule.push({
           type: 'initial',
@@ -585,12 +588,12 @@ exports.createProjectFromAcceptance = async (req, res) => {
         panelsNeeded: parseInt(panelsNeeded) || 0,
         inverterType: inverterType,
         batteryType: batteryType,
-        totalCost: totalCost,
+        totalCost: totalCostWithVAT,
         initialPayment: initialPayment,
         progressPayment: progressPayment,
         finalPayment: finalPayment,
         amountPaid: 0,
-        balance: totalCost,
+        balance: totalCostWithVAT,
         paymentSchedule: paymentSchedule,
         quotationFile: sourceData.quotationFile || sourceData.quotationUrl,
         status: 'quoted',
@@ -598,7 +601,9 @@ exports.createProjectFromAcceptance = async (req, res) => {
         sourceType: 'free-quote',
         sourceId: sourceData._id,
         paymentPreference: paymentPreference || 'installment',
-        fullPaymentCompleted: false
+        fullPaymentCompleted: false,
+        vatRate: 0.12,
+        baseCost: baseTotalCost
       };
 
       console.log(`✅ Free quote accepted: ${sourceData.quotationReference} with payment: ${paymentPreference}`);
@@ -613,7 +618,10 @@ exports.createProjectFromAcceptance = async (req, res) => {
       }
 
       const systemDetails = sourceData.quotation?.systemDetails || {};
-      const totalCost = systemDetails.totalCost || sourceData.finalSystemCost || 0;
+      const baseTotalCost = systemDetails.totalCost || sourceData.finalSystemCost || 0;
+
+      // Apply 12% VAT to total cost
+      const totalCostWithVAT = baseTotalCost * 1.12;
 
       let paymentSchedule = [];
       let initialPayment = 0;
@@ -623,13 +631,13 @@ exports.createProjectFromAcceptance = async (req, res) => {
       if (paymentPreference === 'full') {
         paymentSchedule.push({
           type: 'full',
-          amount: totalCost,
+          amount: totalCostWithVAT,
           dueDate: new Date(),
           status: 'pending'
         });
       } else if (paymentPreference === 'fifty_fifty') {
-        initialPayment = totalCost * 0.5;
-        finalPayment = totalCost * 0.5;
+        initialPayment = totalCostWithVAT * 0.5;
+        finalPayment = totalCostWithVAT * 0.5;
 
         paymentSchedule.push({
           type: 'initial',
@@ -644,9 +652,9 @@ exports.createProjectFromAcceptance = async (req, res) => {
           status: 'pending'
         });
       } else if (paymentPreference === 'thirty_sixty_ten') {
-        initialPayment = totalCost * 0.3;
-        progressPayment = totalCost * 0.6;
-        finalPayment = totalCost * 0.1;
+        initialPayment = totalCostWithVAT * 0.3;
+        progressPayment = totalCostWithVAT * 0.6;
+        finalPayment = totalCostWithVAT * 0.1;
 
         paymentSchedule.push({
           type: 'initial',
@@ -668,9 +676,9 @@ exports.createProjectFromAcceptance = async (req, res) => {
         });
       } else {
         // Default: 30% - 40% - 30%
-        initialPayment = totalCost * 0.3;
-        progressPayment = totalCost * 0.4;
-        finalPayment = totalCost * 0.3;
+        initialPayment = totalCostWithVAT * 0.3;
+        progressPayment = totalCostWithVAT * 0.4;
+        finalPayment = totalCostWithVAT * 0.3;
 
         paymentSchedule.push({
           type: 'initial',
@@ -703,20 +711,22 @@ exports.createProjectFromAcceptance = async (req, res) => {
         panelsNeeded: parseSafeNumber(systemDetails.panelsNeeded) || sourceData.panelsNeeded || null,
         inverterType: systemDetails.inverterType || null,
         batteryType: systemDetails.batteryType || null,
-        totalCost: totalCost,
+        totalCost: totalCostWithVAT,
         initialPayment: initialPayment,
         progressPayment: progressPayment,
         finalPayment: finalPayment,
         amountPaid: 0,
-        balance: totalCost,
+        balance: totalCostWithVAT,
         paymentSchedule: paymentSchedule,
         quotationFile: sourceData.finalQuotation || sourceData.quotation?.quotationUrl,
-        status: paymentPreference === 'full' ? 'approved' : 'quoted',
+        status: 'quoted',
         projectName: `${client.contactFirstName} ${client.contactLastName} - Solar Installation`,
         sourceType: 'pre-assessment',
         sourceId: sourceData._id,
         paymentPreference: paymentPreference || 'installment',
-        fullPaymentCompleted: false
+        fullPaymentCompleted: false,
+        vatRate: 0.12,
+        baseCost: baseTotalCost
       };
 
       console.log(`✅ Pre-assessment accepted: ${sourceData.bookingReference} with payment: ${paymentPreference}`);
@@ -738,7 +748,7 @@ exports.createProjectFromAcceptance = async (req, res) => {
     await sendNotification(
       userId,
       'Project Created',
-      'Your project ' + project.projectReference + ' has been created from your accepted ' + sourceType + '. Total cost: PHP ' + project.totalCost.toFixed(2),
+      'Your project ' + project.projectReference + ' has been created from your accepted ' + sourceType + '. Total cost (incl. VAT): PHP ' + project.totalCost.toFixed(2),
       'success',
       '/projects/' + project._id,
       {
@@ -746,7 +756,9 @@ exports.createProjectFromAcceptance = async (req, res) => {
           projectReference: project.projectReference,
           totalCost: project.totalCost,
           sourceType: sourceType,
-          status: project.status
+          status: project.status,
+          vatRate: project.vatRate,
+          baseCost: project.baseCost
         }
       }
     );
@@ -771,6 +783,8 @@ exports.createProjectFromAcceptance = async (req, res) => {
         projectReference: project.projectReference,
         projectName: project.projectName,
         totalCost: project.totalCost,
+        baseCost: project.baseCost,
+        vatRate: project.vatRate,
         status: project.status,
         paymentPreference: project.paymentPreference,
         sourceType: project.sourceType,

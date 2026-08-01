@@ -1447,7 +1447,12 @@ const ScheduleAssessment = () => {
                   </div>
                   <div className="summary-item-cusset">
                     <span>Total Cost:</span>
-                    <strong className="total-cost-cusset">{formatCurrency(acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee)}</strong>
+                    <strong>
+                      {formatCurrency(acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee)} + 12% VAT
+                    </strong>
+                    <strong className="total-cost-cusset">
+                      = {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 1.12)}
+                    </strong>
                   </div>
                   <div className="summary-item-cusset">
                     <span>System Type:</span>
@@ -1509,8 +1514,9 @@ const ScheduleAssessment = () => {
                     <div className="preference-content-page">
                       <strong>50% - 50% Installment</strong>
                       <div className="preference-details-page">
-                        <span>Downpayment (50%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.5)}</span>
-                        <span>Final Payment (50%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.5)}</span>
+                        <span>Downpayment (50%): {formatCurrency(((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.5) * 1.12)}</span>
+                        <span>Final Payment (50%): {formatCurrency(((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.5) * 1.12)}</span>
+                        <span className="total-vat-note-page">Total (incl. VAT): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 1.12)}</span>
                       </div>
                     </div>
                   </div>
@@ -1523,9 +1529,10 @@ const ScheduleAssessment = () => {
                     <div className="preference-content-page">
                       <strong>Installment with Retention (30% - 60% - 10%)</strong>
                       <div className="preference-details-page">
-                        <span>Downpayment (30%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.3)}</span>
-                        <span>Progress Payment (60%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.6)}</span>
-                        <span className="retention-note-page">Retention Fee (10%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.1)}</span>
+                        <span>Downpayment (30%): {formatCurrency(((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.3) * 1.12)}</span>
+                        <span>Progress Payment (60%): {formatCurrency(((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.6) * 1.12)}</span>
+                        <span className="retention-note-page">Retention Fee (10%): {formatCurrency(((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.1) * 1.12)}</span>
+                        <span className="total-vat-note-page">Total (incl. VAT): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 1.12)}</span>
                       </div>
                     </div>
                   </div>
@@ -1538,7 +1545,9 @@ const ScheduleAssessment = () => {
                     <div className="preference-content-page">
                       <strong>Full Payment</strong>
                       <div className="preference-details-page full-payment-page">
-                        <span>Amount: {formatCurrency(acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee)}</span>
+                        <span>Amount (excl. VAT): {formatCurrency(acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee)}</span>
+                        <span>VAT (12%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.12)}</span>
+                        <span className="total-vat-note-page">Total (incl. VAT): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 1.12)}</span>
                       </div>
                     </div>
                   </div>

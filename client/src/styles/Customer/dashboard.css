@@ -1891,3 +1891,97 @@
     transition: none !important;
   }
 }
+
+/* ============================================
+   WELCOME SECTION - ENHANCED WITH GREETING
+   ============================================ */
+.welcome-section-cusdash {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 0 1.5rem 0;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.welcome-content-cusdash {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.page-title-cusdash {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.welcome-greeting-cusdash {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.welcome-actions-cusdash {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* ============================================
+   RESPONSIVE - WELCOME SECTION
+   ============================================ */
+@media (max-width: 768px) {
+  .welcome-section-cusdash {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 0 1rem 0;
+  }
+
+  .page-title-cusdash {
+    font-size: 1.3rem;
+  }
+
+  .welcome-greeting-cusdash {
+    font-size: 0.9rem;
+  }
+  
+  .welcome-actions-cusdash {
+    width: 100%;
+    gap: 0.5rem;
+  }
+  
+  .welcome-actions-cusdash .btn-primary-cusdash,
+  .welcome-actions-cusdash .btn-secondary-cusdash {
+    flex: 1;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-actions-cusdash {
+    flex-direction: column;
+  }
+  
+  .welcome-actions-cusdash .btn-primary-cusdash,
+  .welcome-actions-cusdash .btn-secondary-cusdash {
+    width: 100%;
+    justify-content: center;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .page-title-cusdash {
+    font-size: 1.1rem;
+  }
+
+  .welcome-greeting-cusdash {
+    font-size: 0.8rem;
+  }
+}

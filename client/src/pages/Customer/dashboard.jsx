@@ -33,6 +33,18 @@ const Dashboard = () => {
   const [projectsList, setProjectsList] = useState([]);
   const [allActivities, setAllActivities] = useState([]);
 
+  // ====== Function to get time-based greeting (only 3) ======
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      return 'Good Morning';
+    } else if (hour >= 12 && hour < 17) {
+      return 'Good Afternoon';
+    } else {
+      return 'Good Evening'; // 5 PM - 4:59 AM
+    }
+  };
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -240,7 +252,6 @@ const Dashboard = () => {
           <title>Dashboard | Salfer Engineering</title>
         </Helmet>
         <div className="dashboard-container-cusdash">
-          {/* Removed welcome section with skeleton */}
           <div className="stats-grid-cusdash">
             {[1, 2, 3, 4].map((item) => (
               <div key={item} className="stat-card-cusdash skeleton-card-cusdash">
@@ -271,6 +282,10 @@ const Dashboard = () => {
     );
   }
 
+  // ====== Get greeting and full name ======
+  const greeting = getTimeBasedGreeting();
+  const fullName = getFullName();
+
   return (
     <>
       <Helmet>
@@ -278,8 +293,22 @@ const Dashboard = () => {
       </Helmet>
 
       <div className="dashboard-container-cusdash">
-        {/* Welcome Section - COMPLETELY REMOVED */}
-        {/* No welcome header, no line, no buttons */}
+        {/* ====== Welcome Section with Time-based Greeting - NO SUPPORT BUTTON ====== */}
+        <div className="welcome-section-cusdash">
+          <div className="welcome-content-cusdash">
+            <h1 className="page-title-cusdash">
+              {greeting}{fullName ? `, ${fullName}` : ''}! 👋
+            </h1>
+            <p className="welcome-greeting-cusdash">
+              Welcome to your Salfer Engineering dashboard
+            </p>
+          </div>
+          <div className="welcome-actions-cusdash">
+            <Link to="/app/customer/book-assessment" className="btn-primary-cusdash">
+              <FaCalendarAlt /> Book Assessment
+            </Link>
+          </div>
+        </div>
 
         {/* Pending Payments Alert */}
         {pendingPayments.length > 0 && (

@@ -6,6 +6,40 @@ import axios from 'axios';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/quotation.css';
 
+// =========================================
+// CARD INPUT FORMATTING HELPERS
+// =========================================
+
+// Format card number with spaces every 4 digits, max 16 digits
+const formatCardNumber = (value) => {
+  // Remove all non-digit characters
+  const cleaned = value.replace(/\D/g, '');
+  // Limit to 16 digits
+  const limited = cleaned.slice(0, 16);
+  // Add space every 4 digits
+  const formatted = limited.replace(/(.{4})/g, '$1 ').trim();
+  return formatted;
+};
+
+// Format expiry date: auto-add "/" after 2 digits, restrict to MM/YY
+const formatExpiryDate = (value) => {
+  // Remove all non-digit characters
+  const cleaned = value.replace(/\D/g, '');
+  // Limit to 4 digits (MMYY)
+  const limited = cleaned.slice(0, 4);
+  
+  if (limited.length === 0) return '';
+  if (limited.length <= 2) return limited;
+  
+  // Add slash after first 2 digits
+  return `${limited.slice(0, 2)}/${limited.slice(2)}`;
+};
+
+// Format CVC - max 3 digits
+const formatCVC = (value) => {
+  return value.replace(/\D/g, '').slice(0, 3);
+};
+
 const Quotation = () => {
   const navigate = useNavigate();
   const { toast, showToast, hideToast } = useToast();
@@ -14,10 +48,12 @@ const Quotation = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showSuccessPage, setShowSuccessPage] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [successDetails, setSuccessDetails] = useState(null);
   const [showFullPaymentModal, setShowFullPaymentModal] = useState(false);
+  const [showProcessingModal, setShowProcessingModal] = useState(false);
+  const [processingMessage, setProcessingMessage] = useState('');
   const [pdfLoading, setPdfLoading] = useState(false);
   const [detailsItem, setDetailsItem] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -574,7 +610,6 @@ const Quotation = () => {
     if (!reference) return 'Transaction reference number is required';
     return '';
   };
-  // Update the validateTransferDate function
 
   const handleSubmitManualTransfer = async () => {
     // Clear previous validation errors
@@ -652,7 +687,7 @@ const Quotation = () => {
           message: 'Your payment has been submitted and is now pending verification by our finance team.',
           reference: selectedItem.invoiceNumber || selectedItem.id
         });
-        setShowSuccessModal(true);
+        setShowSuccessPage(true);
 
         setSelectedBankId('');
         setManualTransferForm({
@@ -679,13 +714,14 @@ const Quotation = () => {
     }
   };
 
-  // Update handleBankSelect to remove scroll management
   const handleBankSelect = (bankId) => {
     setSelectedBankId(bankId);
   };
 
   const handlePayMongoCardPayment = async () => {
-    setIsSubmitting(true);
+    setShowProcessingModal(true);
+    setProcessingMessage('Processing your card payment...');
+    
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const cardNumber = document.getElementById('card-number')?.value.replace(/\s/g, '');
@@ -705,7 +741,7 @@ const Quotation = () => {
         setValidationErrors(errors);
         const firstError = Object.values(errors)[0];
         showToast(firstError, 'warning');
-        setIsSubmitting(false);
+        setShowProcessingModal(false);
         return;
       }
 
@@ -738,17 +774,18 @@ const Quotation = () => {
           message: 'Your payment has been successfully processed.',
           reference: selectedItem.bookingReference
         });
-        setShowSuccessModal(true);
+        setShowProcessingModal(false);
+        setShowSuccessPage(true);
         closeModal();
         fetchData();
       } else {
+        setShowProcessingModal(false);
         showToast(paymentResponse.data.message || 'Payment failed', 'error');
       }
     } catch (err) {
+      setShowProcessingModal(false);
       console.error('Card payment error:', err);
       showToast(err.response?.data?.message || 'Failed to process card payment', 'error');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -771,7 +808,9 @@ const Quotation = () => {
   };
 
   const handleProjectPayMongoCardPayment = async () => {
-    setIsSubmitting(true);
+    setShowProcessingModal(true);
+    setProcessingMessage('Processing your card payment...');
+    
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const cardNumber = document.getElementById('full-card-number')?.value.replace(/\s/g, '');
@@ -791,7 +830,7 @@ const Quotation = () => {
         setValidationErrors(errors);
         const firstError = Object.values(errors)[0];
         showToast(firstError, 'warning');
-        setIsSubmitting(false);
+        setShowProcessingModal(false);
         return;
       }
 
@@ -823,17 +862,18 @@ const Quotation = () => {
           message: 'Your payment has been successfully processed.',
           reference: selectedItem.invoiceNumber
         });
-        setShowSuccessModal(true);
+        setShowProcessingModal(false);
+        setShowSuccessPage(true);
         closeFullPaymentModal();
         fetchData();
       } else {
+        setShowProcessingModal(false);
         showToast(paymentResponse.data.message || 'Payment failed', 'error');
       }
     } catch (err) {
+      setShowProcessingModal(false);
       console.error('Project card payment error:', err);
       showToast(err.response?.data?.message || 'Failed to process card payment', 'error');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -874,6 +914,49 @@ const Quotation = () => {
     setTimeout(restoreScrollPosition, 0);
   };
 
+  // Card number input handler with auto-format
+  const handleCardNumberInput = (e) => {
+    const input = e.target;
+    const oldValue = input.value;
+    const newValue = formatCardNumber(oldValue);
+    
+    if (newValue !== oldValue) {
+      const cursorPos = input.selectionStart;
+      input.value = newValue;
+      // Adjust cursor position
+      const diff = newValue.length - oldValue.length;
+      const newCursorPos = cursorPos + diff;
+      input.setSelectionRange(newCursorPos, newCursorPos);
+    }
+  };
+
+  // Expiry date input handler with auto-format
+  const handleExpiryInput = (e) => {
+    const input = e.target;
+    const oldValue = input.value;
+    const newValue = formatExpiryDate(oldValue);
+    
+    if (newValue !== oldValue) {
+      const cursorPos = input.selectionStart;
+      input.value = newValue;
+      // Adjust cursor position
+      const diff = newValue.length - oldValue.length;
+      const newCursorPos = cursorPos + diff;
+      input.setSelectionRange(newCursorPos, newCursorPos);
+    }
+  };
+
+  // CVC input handler - only numbers, max 3 digits
+  const handleCVCInput = (e) => {
+    const input = e.target;
+    const oldValue = input.value;
+    const newValue = formatCVC(oldValue);
+    
+    if (newValue !== oldValue) {
+      input.value = newValue;
+    }
+  };
+
   const handlePaymentSubmit = async () => {
     if (isSubmitting) return;
 
@@ -899,7 +982,10 @@ const Quotation = () => {
       }
     }
 
+    setShowProcessingModal(true);
+    setProcessingMessage('Processing your payment...');
     setIsSubmitting(true);
+    
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       if (paymentMethod === 'gcash') {
@@ -911,30 +997,33 @@ const Quotation = () => {
         await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/submit-payment`, formData, {
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
         });
+        setShowProcessingModal(false);
         setSuccessMessage('Payment Submitted!');
         setSuccessDetails({
           title: 'Payment Submitted for Verification',
           message: 'Your payment has been submitted and is now pending verification.',
           reference: selectedItem.bookingReference
         });
-        setShowSuccessModal(true);
+        setShowSuccessPage(true);
         closeModal();
         await fetchData();
       } else if (paymentMethod === 'cash') {
         await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/cash-payment`, {
           bookingReference: selectedItem.bookingReference
         }, { headers: { Authorization: `Bearer ${token}` } });
+        setShowProcessingModal(false);
         setSuccessMessage('Cash Payment Selected!');
         setSuccessDetails({
           title: 'Cash Payment Option',
           message: 'Please visit our office to complete your payment.',
           reference: selectedItem.bookingReference
         });
-        setShowSuccessModal(true);
+        setShowSuccessPage(true);
         closeModal();
         await fetchData();
       }
     } catch (err) {
+      setShowProcessingModal(false);
       console.error('Payment error:', err);
       showToast(err.response?.data?.message || 'Failed to process payment', 'error');
     } finally {
@@ -943,22 +1032,27 @@ const Quotation = () => {
   };
 
   const handleCashPaymentSubmit = async () => {
+    setShowProcessingModal(true);
+    setProcessingMessage('Processing your payment...');
     setIsSubmitting(true);
+    
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/cash-payment`, {
         bookingReference: selectedItem.bookingReference
       }, { headers: { Authorization: `Bearer ${token}` } });
+      setShowProcessingModal(false);
       setSuccessMessage('Cash Payment Selected!');
       setSuccessDetails({
         title: 'Cash Payment Option',
         message: 'Please visit our office to complete your payment.',
         reference: selectedItem.bookingReference
       });
-      setShowSuccessModal(true);
+      setShowSuccessPage(true);
       closeModal();
       fetchData();
     } catch (err) {
+      setShowProcessingModal(false);
       console.error('Cash payment error:', err);
       showToast(err.response?.data?.message || 'Failed to process cash payment', 'error');
     } finally {
@@ -989,7 +1083,10 @@ const Quotation = () => {
       }
     }
 
+    setShowProcessingModal(true);
+    setProcessingMessage('Processing your payment...');
     setIsSubmitting(true);
+    
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const fullAmount = parseFloat(selectedItem.totalAmount);
@@ -1004,30 +1101,33 @@ const Quotation = () => {
         await axios.post(`${import.meta.env.VITE_API_URL}/api/solar-invoices/${selectedItem.invoiceId}/pay`, formData, {
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
         });
+        setShowProcessingModal(false);
         setSuccessMessage('Payment Submitted!');
         setSuccessDetails({
           title: 'Payment Submitted for Verification',
           message: 'Your payment has been submitted and is now pending verification.',
           reference: selectedItem.invoiceNumber
         });
-        setShowSuccessModal(true);
+        setShowSuccessPage(true);
         closeFullPaymentModal();
         fetchData();
       } else if (paymentMethod === 'cash') {
         await axios.post(`${import.meta.env.VITE_API_URL}/api/solar-invoices/${selectedItem.invoiceId}/pay-cash`, {
           amount: fullAmount
         }, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } });
+        setShowProcessingModal(false);
         setSuccessMessage('Cash Payment Selected!');
         setSuccessDetails({
           title: 'Cash Payment Option',
           message: 'Please visit our office to complete your payment.',
           reference: selectedItem.invoiceNumber
         });
-        setShowSuccessModal(true);
+        setShowSuccessPage(true);
         closeFullPaymentModal();
         fetchData();
       }
     } catch (err) {
+      setShowProcessingModal(false);
       console.error('Payment error:', err);
       showToast(err.response?.data?.message || 'Failed to process payment', 'error');
     } finally {
@@ -1065,10 +1165,11 @@ const Quotation = () => {
     setValidationErrors({});
   };
 
-  const closeSuccessModal = () => {
-    setShowSuccessModal(false);
+  const closeSuccessPage = () => {
+    setShowSuccessPage(false);
     setSuccessMessage('');
     setSuccessDetails(null);
+    navigate('/app/customer/billing');
   };
 
   const getStatusBadge = (status) => {
@@ -1424,6 +1525,64 @@ const Quotation = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [activeDropdown]);
 
+  // Success Page Component (now rendered inside dashboard content)
+  const SuccessPageContent = () => (
+    <div className="billing-customer-success-page-content">
+      <Helmet>
+        <title>Payment Successful | Salfer Engineering</title>
+      </Helmet>
+      
+      <div className="billing-customer-success-page-card">
+        <div className="billing-customer-success-page-icon">
+          <span className="billing-customer-success-page-checkmark">✓</span>
+        </div>
+        
+        <h1 className="billing-customer-success-page-title">
+          {successMessage}
+        </h1>
+        
+        <div className="billing-customer-success-page-details">
+          <h2 className="billing-customer-success-page-subtitle">
+            {successDetails?.title}
+          </h2>
+          <p className="billing-customer-success-page-message">
+            {successDetails?.message}
+          </p>
+          {successDetails?.reference && (
+            <div className="billing-customer-success-page-reference">
+              <span className="billing-customer-success-page-ref-label">Reference Number:</span>
+              <span className="billing-customer-success-page-ref-value">{successDetails.reference}</span>
+            </div>
+          )}
+        </div>
+        
+        <div className="billing-customer-success-page-actions">
+          <button 
+            className="billing-customer-success-page-btn"
+            onClick={closeSuccessPage}
+          >
+            Return to Billing
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Processing Modal - FIXED SPINNER (no double circle)
+  const ProcessingModal = () => (
+    <div className="billing-customer-processing-overlay">
+      <div className="billing-customer-processing-modal">
+        <div className="billing-customer-processing-spinner-circle"></div>
+        <p className="billing-customer-processing-message">{processingMessage}</p>
+        <p className="billing-customer-processing-submessage">Please do not close this window</p>
+      </div>
+    </div>
+  );
+
+  if (showSuccessPage) {
+    return <SuccessPageContent />;
+  }
+
   if (loading) {
     return (
       <>
@@ -1436,6 +1595,9 @@ const Quotation = () => {
   return (
     <>
       <Helmet><title>My Solar Journey | Salfer Engineering</title></Helmet>
+
+      {/* Processing Modal */}
+      {showProcessingModal && <ProcessingModal />}
 
       <div className="billing-customer-container">
         <div className="billing-customer-tabs">
@@ -1513,7 +1675,6 @@ const Quotation = () => {
                     <th>Transaction</th>
                     <th>Reference</th>
                     <th>Date</th>
-
                     <th>Amount</th>
                     <th>Status</th>
                     <th>Action</th>
@@ -1522,6 +1683,8 @@ const Quotation = () => {
                 <tbody>
                   {tabItems.map((item, index) => {
                     const isPreAssessment = item.type === 'pre-assessment';
+                    const isPaid = item.status === 'paid';
+                    const isPending = item.status === 'pending' || item.status === 'pending_payment';
                     const isPayNowButtonDisabled = isPayNowDisabled(item);
                     const disabledReason = getPayNowDisabledReason(item);
                     const hasReceipt = item.receiptUrl;
@@ -1546,7 +1709,6 @@ const Quotation = () => {
                           </div>
                         </td>
                         <td>{item.date}</td>
-
                         <td>
                           <div className="billing-customer-amount-cell">
                             <span className="billing-customer-amount-main">{formatCurrency(item.amount)}</span>
@@ -1558,65 +1720,61 @@ const Quotation = () => {
                         <td>{getStatusBadge(item.status)}</td>
                         <td>
                           <div className="billing-customer-action-cell">
-                            <div className="billing-customer-dropdown-menu-container">
+                            {isPending ? (
                               <button
-                                className="billing-customer-dropdown-trigger-btn"
-                                onClick={(e) => toggleDropdown(item.id, e)}
+                                className={`billing-customer-paynow-btn ${isPayNowButtonDisabled ? 'disabled' : ''}`}
+                                onClick={() => handlePayNowClick(item)}
+                                disabled={isSubmitting || isPayNowButtonDisabled}
+                                title={disabledReason || ''}
                               >
-                                Action ▾
+                                {isPayNowButtonDisabled ? 'Unavailable' : 'Pay Now'}
                               </button>
-
-                              {isDropdownOpen && (
-                                <div
-                                  className="billing-customer-dropdown-menu"
-                                  style={{
-                                    top: dropdownPosition.top + 'px',
-                                    left: dropdownPosition.left + 'px'
-                                  }}
+                            ) : isPaid ? (
+                              <div className="billing-customer-dropdown-menu-container">
+                                <button
+                                  className="billing-customer-dropdown-trigger-btn"
+                                  onClick={(e) => toggleDropdown(item.id, e)}
                                 >
-                                  <button
-                                    className="billing-customer-dropdown-item"
-                                    onClick={() => handleViewDetails(item)}
+                                  Action ▾
+                                </button>
+
+                                {isDropdownOpen && (
+                                  <div
+                                    className="billing-customer-dropdown-menu"
+                                    style={{
+                                      top: dropdownPosition.top + 'px',
+                                      left: dropdownPosition.left + 'px'
+                                    }}
                                   >
-                                    View Details
-                                  </button>
-
-                                  {(item.status === 'pending' || item.status === 'pending_payment' || item.status === 'partial') && (
                                     <button
-                                      className={`billing-customer-dropdown-item ${isPayNowButtonDisabled ? 'disabled' : ''}`}
-                                      onClick={() => handlePayNowClick(item)}
-                                      disabled={isSubmitting || isPayNowButtonDisabled}
-                                      title={disabledReason || ''}
+                                      className="billing-customer-dropdown-item"
+                                      onClick={() => handleViewDetails(item)}
                                     >
-                                      {isPayNowButtonDisabled ? 'Unavailable' : 'Pay Now'}
+                                      View Details
                                     </button>
-                                  )}
 
-                                  {item.status === 'paid' && hasReceipt && (
-                                    <>
-                                      <button
-                                        className="billing-customer-dropdown-item"
-                                        onClick={() => handleViewReceipt(item)}
-                                      >
-                                        View Receipt
-                                      </button>
-                                      <button
-                                        className="billing-customer-dropdown-item"
-                                        onClick={() => handleDownloadReceipt(item)}
-                                      >
-                                        Download Receipt
-                                      </button>
-                                    </>
-                                  )}
-
-                                  {item.status === 'for_verification' && (
-                                    <span className="billing-customer-dropdown-item verifying">
-                                      Verifying...
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
+                                    {hasReceipt && (
+                                      <>
+                                        <button
+                                          className="billing-customer-dropdown-item"
+                                          onClick={() => handleViewReceipt(item)}
+                                        >
+                                          View Receipt
+                                        </button>
+                                        <button
+                                          className="billing-customer-dropdown-item"
+                                          onClick={() => handleDownloadReceipt(item)}
+                                        >
+                                          Download Receipt
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="billing-customer-status-text">{item.status}</span>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -1638,6 +1796,8 @@ const Quotation = () => {
           ) : (
             tabItems.map((item, index) => {
               const isPreAssessment = item.type === 'pre-assessment';
+              const isPaid = item.status === 'paid';
+              const isPending = item.status === 'pending' || item.status === 'pending_payment';
               const isPayNowButtonDisabled = isPayNowDisabled(item);
               const disabledReason = getPayNowDisabledReason(item);
               const hasReceipt = item.receiptUrl;
@@ -1683,65 +1843,61 @@ const Quotation = () => {
                     <div className="billing-customer-transaction-info">
                       <span className="billing-customer-transaction-name">{item.description}</span>
                     </div>
-                    <div className="billing-customer-dropdown-menu-container">
+                    {isPending ? (
                       <button
-                        className="billing-customer-dropdown-trigger-btn"
-                        onClick={(e) => toggleDropdown(item.id, e)}
+                        className={`billing-customer-paynow-btn ${isPayNowButtonDisabled ? 'disabled' : ''}`}
+                        onClick={() => handlePayNowClick(item)}
+                        disabled={isSubmitting || isPayNowButtonDisabled}
+                        title={disabledReason || ''}
                       >
-                        Action ▾
+                        {isPayNowButtonDisabled ? 'Unavailable' : 'Pay Now'}
                       </button>
-
-                      {isDropdownOpen && (
-                        <div
-                          className="billing-customer-dropdown-menu"
-                          style={{
-                            top: dropdownPosition.top + 'px',
-                            left: dropdownPosition.left + 'px'
-                          }}
+                    ) : isPaid ? (
+                      <div className="billing-customer-dropdown-menu-container">
+                        <button
+                          className="billing-customer-dropdown-trigger-btn"
+                          onClick={(e) => toggleDropdown(item.id, e)}
                         >
-                          <button
-                            className="billing-customer-dropdown-item"
-                            onClick={() => handleViewDetails(item)}
+                          Action ▾
+                        </button>
+
+                        {isDropdownOpen && (
+                          <div
+                            className="billing-customer-dropdown-menu"
+                            style={{
+                              top: dropdownPosition.top + 'px',
+                              left: dropdownPosition.left + 'px'
+                            }}
                           >
-                            View Details
-                          </button>
-
-                          {(item.status === 'pending' || item.status === 'pending_payment' || item.status === 'partial') && (
                             <button
-                              className={`billing-customer-dropdown-item ${isPayNowButtonDisabled ? 'disabled' : ''}`}
-                              onClick={() => handlePayNowClick(item)}
-                              disabled={isSubmitting || isPayNowButtonDisabled}
-                              title={disabledReason || ''}
+                              className="billing-customer-dropdown-item"
+                              onClick={() => handleViewDetails(item)}
                             >
-                              {isPayNowButtonDisabled ? 'Unavailable' : 'Pay Now'}
+                              View Details
                             </button>
-                          )}
 
-                          {item.status === 'paid' && hasReceipt && (
-                            <>
-                              <button
-                                className="billing-customer-dropdown-item"
-                                onClick={() => handleViewReceipt(item)}
-                              >
-                                View Receipt
-                              </button>
-                              <button
-                                className="billing-customer-dropdown-item"
-                                onClick={() => handleDownloadReceipt(item)}
-                              >
-                                Download Receipt
-                              </button>
-                            </>
-                          )}
-
-                          {item.status === 'for_verification' && (
-                            <span className="billing-customer-dropdown-item verifying">
-                              Verifying...
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                            {hasReceipt && (
+                              <>
+                                <button
+                                  className="billing-customer-dropdown-item"
+                                  onClick={() => handleViewReceipt(item)}
+                                >
+                                  View Receipt
+                                </button>
+                                <button
+                                  className="billing-customer-dropdown-item"
+                                  onClick={() => handleDownloadReceipt(item)}
+                                >
+                                  Download Receipt
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="billing-customer-status-text">{item.status}</span>
+                    )}
                   </div>
                 </div>
               );
@@ -1815,16 +1971,37 @@ const Quotation = () => {
                     <div className="billing-customer-card-form">
                       <div className="billing-customer-form-group">
                         <label>Card Number</label>
-                        <input type="text" id="full-card-number" placeholder="4343 4343 4343 4345" />
+                        <input 
+                          type="text" 
+                          id="full-card-number" 
+                          placeholder="4343 4343 4343 4345"
+                          maxLength="19"
+                          onInput={handleCardNumberInput}
+                          autoComplete="cc-number"
+                        />
                       </div>
                       <div className="billing-customer-form-row">
                         <div className="billing-customer-form-group">
                           <label>Expiry</label>
-                          <input type="text" id="full-card-expiry" placeholder="MM/YY" />
+                          <input 
+                            type="text" 
+                            id="full-card-expiry" 
+                            placeholder="MM/YY"
+                            maxLength="5"
+                            onInput={handleExpiryInput}
+                            autoComplete="cc-exp"
+                          />
                         </div>
                         <div className="billing-customer-form-group">
                           <label>CVC</label>
-                          <input type="text" id="full-card-cvc" placeholder="123" />
+                          <input 
+                            type="text" 
+                            id="full-card-cvc" 
+                            placeholder="123"
+                            maxLength="3"
+                            onInput={handleCVCInput}
+                            autoComplete="cc-csc"
+                          />
                         </div>
                       </div>
                       <button className="billing-customer-paymongo-btn" onClick={handleProjectPayMongoCardPayment} disabled={isSubmitting}>
@@ -1923,16 +2100,37 @@ const Quotation = () => {
                     <div className="billing-customer-card-form">
                       <div className="billing-customer-form-group">
                         <label>Card Number</label>
-                        <input type="text" id="card-number" placeholder="1234 5678 9012" />
+                        <input 
+                          type="text" 
+                          id="card-number" 
+                          placeholder="1234 5678 9012 3456"
+                          maxLength="19"
+                          onInput={handleCardNumberInput}
+                          autoComplete="cc-number"
+                        />
                       </div>
                       <div className="billing-customer-form-row">
                         <div className="billing-customer-form-group">
                           <label>Expiry</label>
-                          <input type="text" id="card-expiry" placeholder="MM/YY" />
+                          <input 
+                            type="text" 
+                            id="card-expiry" 
+                            placeholder="MM/YY"
+                            maxLength="5"
+                            onInput={handleExpiryInput}
+                            autoComplete="cc-exp"
+                          />
                         </div>
                         <div className="billing-customer-form-group">
                           <label>CVC</label>
-                          <input type="text" id="card-cvc" placeholder="123" />
+                          <input 
+                            type="text" 
+                            id="card-cvc" 
+                            placeholder="123"
+                            maxLength="3"
+                            onInput={handleCVCInput}
+                            autoComplete="cc-csc"
+                          />
                         </div>
                       </div>
                       <button className="billing-customer-paymongo-btn" onClick={handlePayMongoCardPayment} disabled={isSubmitting}>
@@ -2027,22 +2225,6 @@ const Quotation = () => {
                   <button className="billing-customer-cancel-btn" onClick={() => setShowDetailsModal(false)}>Close</button>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Success Modal */}
-        {showSuccessModal && (
-          <div className="billing-customer-modal-overlay" onClick={closeSuccessModal}>
-            <div className="billing-customer-modal billing-customer-success-modal" onClick={e => e.stopPropagation()}>
-              <div className="billing-customer-success-icon">✓</div>
-              <h3>{successMessage}</h3>
-              <div className="billing-customer-success-content">
-                <p><strong>{successDetails?.title}</strong></p>
-                <p>{successDetails?.message}</p>
-                {successDetails?.reference && <p className="billing-customer-success-ref">Reference: {successDetails.reference}</p>}
-              </div>
-              <button className="billing-customer-success-btn" onClick={closeSuccessModal}>Close</button>
             </div>
           </div>
         )}

@@ -29,6 +29,413 @@
 }
 
 /* =========================================
+   PAY NOW BUTTON - UNIFIED
+   ========================================= */
+.billing-customer-paynow-btn,
+.billing-customer-confirm-btn,
+.billing-customer-paymongo-btn,
+.billing-customer-submit-transfer-btn,
+.billing-customer-success-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 28px;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  min-width: 100px;
+  white-space: nowrap;
+}
+
+.billing-customer-paynow-btn::before,
+.billing-customer-confirm-btn::before,
+.billing-customer-paymongo-btn::before,
+.billing-customer-submit-transfer-btn::before,
+.billing-customer-success-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transition: left 0.6s ease;
+}
+
+.billing-customer-paynow-btn:hover:not(:disabled)::before,
+.billing-customer-confirm-btn:hover:not(:disabled)::before,
+.billing-customer-paymongo-btn:hover:not(:disabled)::before,
+.billing-customer-submit-transfer-btn:hover:not(:disabled)::before,
+.billing-customer-success-btn:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.billing-customer-paynow-btn:hover:not(:disabled),
+.billing-customer-confirm-btn:hover:not(:disabled),
+.billing-customer-paymongo-btn:hover:not(:disabled),
+.billing-customer-submit-transfer-btn:hover:not(:disabled),
+.billing-customer-success-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.45);
+}
+
+.billing-customer-paynow-btn:active:not(:disabled),
+.billing-customer-confirm-btn:active:not(:disabled),
+.billing-customer-paymongo-btn:active:not(:disabled),
+.billing-customer-submit-transfer-btn:active:not(:disabled),
+.billing-customer-success-btn:active:not(:disabled) {
+  transform: translateY(0px) scale(0.98);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.billing-customer-paynow-btn:disabled,
+.billing-customer-confirm-btn:disabled,
+.billing-customer-paymongo-btn:disabled,
+.billing-customer-submit-transfer-btn:disabled,
+.billing-customer-success-btn:disabled {
+  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%) !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
+  opacity: 0.7;
+}
+
+.billing-customer-paynow-btn:disabled::before,
+.billing-customer-confirm-btn:disabled::before,
+.billing-customer-paymongo-btn:disabled::before,
+.billing-customer-submit-transfer-btn:disabled::before,
+.billing-customer-success-btn:disabled::before {
+  display: none;
+}
+
+.billing-customer-paynow-btn.disabled {
+  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%) !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
+  opacity: 0.7;
+}
+
+.billing-customer-paynow-btn.disabled::before {
+  display: none;
+}
+
+.billing-customer-paymongo-btn {
+  width: 100%;
+}
+
+.billing-customer-submit-transfer-btn {
+  width: 100%;
+}
+
+.billing-customer-success-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
+}
+
+.billing-customer-success-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45) !important;
+}
+
+.billing-customer-cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 28px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  min-width: 100px;
+  white-space: nowrap;
+}
+
+.billing-customer-cancel-btn:hover:not(:disabled) {
+  background: #e2e8f0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.billing-customer-cancel-btn:active:not(:disabled) {
+  transform: translateY(0px) scale(0.98);
+}
+
+/* =========================================
+   PROCESSING MODAL - FIXED SPINNER
+   ========================================= */
+.billing-customer-processing-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  animation: billing-customer-processing-fade 0.3s ease-out;
+}
+
+.billing-customer-processing-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px 48px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: billing-customer-processing-scale 0.4s ease-out;
+}
+
+/* SINGLE SPINNER - NO DOUBLE CIRCLE */
+.billing-customer-processing-spinner-circle {
+  width: 56px;
+  height: 56px;
+  border: 5px solid #e2e8f0;
+  border-top: 5px solid #2563eb;
+  border-right: 5px solid #2563eb;
+  border-radius: 50%;
+  animation: billing-customer-processing-spin 0.8s cubic-bezier(0.6, 0, 0.4, 1) infinite;
+  margin: 0 auto 20px;
+  box-sizing: border-box;
+}
+
+.billing-customer-processing-message {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+}
+
+.billing-customer-processing-submessage {
+  font-size: 14px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* KEYFRAME ANIMATIONS */
+@keyframes billing-customer-processing-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes billing-customer-processing-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes billing-customer-processing-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* =========================================
+   SUCCESS PAGE INSIDE DASHBOARD
+   ========================================= */
+.billing-customer-success-page-content {
+  padding: 40px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  color: var(--gray-900);
+  border-radius: 12px;
+}
+
+.billing-customer-success-page-content .billing-customer-success-page-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 48px 40px 40px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(37, 99, 235, 0.15), 0 8px 24px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  border: 1px solid rgba(37, 99, 235, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.billing-customer-success-page-content .billing-customer-success-page-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #2563eb, #3b82f6, #60a5fa);
+}
+
+.billing-customer-success-page-content .billing-customer-success-page-icon {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+
+.billing-customer-success-page-content .billing-customer-success-page-icon::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 3px solid rgba(16, 185, 129, 0.2);
+  animation: billing-customer-success-page-pulse 2s ease-in-out infinite;
+}
+
+.billing-customer-success-page-content .billing-customer-success-page-checkmark {
+  font-size: 36px;
+  color: #ffffff;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.billing-customer-success-page-content .billing-customer-success-page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+}
+
+.billing-customer-success-page-content .billing-customer-success-page-details {
+  padding: 18px 0 22px;
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  margin: 6px 0 24px;
+}
+
+.billing-customer-success-page-content .billing-customer-success-page-subtitle {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 6px 0;
+}
+
+.billing-customer-success-page-content .billing-customer-success-page-message {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0 0 14px 0;
+}
+
+.billing-customer-success-page-content .billing-customer-success-page-reference {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #f8fafc;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+}
+
+.billing-customer-success-page-content .billing-customer-success-page-ref-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.billing-customer-success-page-content .billing-customer-success-page-ref-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
+}
+
+.billing-customer-success-page-content .billing-customer-success-page-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.billing-customer-success-page-content .billing-customer-success-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 28px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  text-decoration: none;
+  width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.billing-customer-success-page-content .billing-customer-success-page-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
+}
+
+.billing-customer-success-page-content .billing-customer-success-page-btn:active {
+  transform: translateY(0);
+}
+
+@keyframes billing-customer-success-page-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* =========================================
    TABS
    ========================================= */
 .billing-customer-tabs {
@@ -183,7 +590,7 @@
 }
 
 /* =========================================
-   DESKTOP TABLE - SHARP HEADER
+   DESKTOP TABLE
    ========================================= */
 .billing-customer-table-container {
   background: #FFFFFF;
@@ -248,7 +655,6 @@
   vertical-align: middle;
 }
 
-
 /* --- Cells --- */
 .billing-customer-transaction-cell .billing-customer-transaction-name {
   font-weight: 500;
@@ -266,17 +672,14 @@
 }
 
 .billing-customer-invoice-type-label.initial {
-  
   color: #1e40af;
 }
 
 .billing-customer-invoice-type-label.progress {
- 
   color: #92400e;
 }
 
 .billing-customer-invoice-type-label.final {
-  
   color: #065f46;
 }
 
@@ -307,7 +710,7 @@
   margin-top: 2px;
 }
 
-/* --- Status Badges - NO COLORS --- */
+/* --- Status Badges --- */
 .billing-customer-status-badge {
   display: inline-block;
   padding: 4px 12px;
@@ -499,7 +902,7 @@
 }
 
 /* =========================================
-   MODALS - IMPROVED WITH SPACING
+   MODALS
    ========================================= */
 .billing-customer-modal-overlay {
   position: fixed;
@@ -607,45 +1010,23 @@
 
 .billing-customer-modal-actions button {
   padding: 8px 20px;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 14px;
-  font-weight: 500;
-  border: 1px solid var(--gray-200);
-  background: #FFFFFF;
-  color: var(--gray-500);
-  cursor: pointer;
-  transition: all 0.2s ease;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.billing-customer-modal-actions button:hover:not(:disabled) {
-  background: var(--gray-50);
-  color: var(--gray-900);
+.billing-customer-modal-actions .billing-customer-cancel-btn {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
 }
 
-.billing-customer-modal-actions button:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.billing-customer-cancel-btn {
-  background: #FFFFFF;
-}
-
-.billing-customer-confirm-btn,
-.billing-customer-paymongo-btn,
-.billing-customer-submit-transfer-btn,
-.billing-customer-success-btn {
-  background: var(--primary-blue) !important;
-  color: #FFFFFF !important;
-  border-color: var(--primary-blue) !important;
-  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.15) !important;
-}
-
-.billing-customer-confirm-btn:hover,
-.billing-customer-paymongo-btn:hover,
-.billing-customer-submit-transfer-btn:hover,
-.billing-customer-success-btn:hover {
-  background: #1d4ed8 !important;
+.billing-customer-modal-actions .billing-customer-cancel-btn:hover {
+  background: #e2e8f0;
+  transform: translateY(-2px);
 }
 
 /* --- Payment Modal Specifics --- */
@@ -725,7 +1106,7 @@
   color: var(--gray-500);
 }
 
-/* --- Payment Forms (GCash, Card, Cash) --- */
+/* --- Payment Forms --- */
 .billing-customer-payment-form {
   padding: 0;
 }
@@ -826,19 +1207,17 @@
   margin: 2px 0;
 }
 
-
-/* --- GCash & Cash Payment Buttons --- */
 .billing-customer-payment-form .billing-customer-confirm-btn,
 .billing-customer-payment-form .billing-customer-paymongo-btn {
   width: 100%;
   padding: 12px;
   margin-top: 8px;
   font-size: 15px;
-  font-weight: 600;
+  border-radius: 6px;
 }
 
 /* =========================================
-   MANUAL BANK TRANSFER - IMPROVED
+   MANUAL BANK TRANSFER
    ========================================= */
 .billing-customer-manual-bank-transfer-section {
   padding: 0;
@@ -1003,11 +1382,6 @@
   margin-bottom: 6px;
 }
 
-.billing-customer-transfer-form .billing-customer-form-group label .required {
-  color: #ef4444;
-  margin-left: 2px;
-}
-
 .billing-customer-transfer-form .billing-customer-form-group input,
 .billing-customer-transfer-form .billing-customer-form-group select,
 .billing-customer-transfer-form .billing-customer-form-group textarea {
@@ -1029,11 +1403,6 @@
 .billing-customer-transfer-form .billing-customer-form-group textarea:focus {
   border-color: var(--primary-blue);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.billing-customer-transfer-form .billing-customer-form-group input::placeholder,
-.billing-customer-transfer-form .billing-customer-form-group textarea::placeholder {
-  color: var(--gray-400);
 }
 
 .billing-customer-transfer-form .billing-customer-form-group textarea {
@@ -1082,18 +1451,18 @@
   font-weight: 500;
 }
 
-.billing-customer-transfer-form .billing-customer-file-upload-area small {
-  display: block;
-  font-size: 12px;
-  color: var(--gray-500);
-  margin-top: 4px;
-}
-
 .billing-customer-transfer-form .billing-customer-file-upload-area .upload-icon {
   font-size: 24px;
   color: var(--gray-400);
   display: block;
   margin-bottom: 4px;
+}
+
+.billing-customer-transfer-form .billing-customer-file-upload-area small {
+  display: block;
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-top: 4px;
 }
 
 .billing-customer-submit-transfer-btn {
@@ -1102,21 +1471,19 @@
   background: var(--primary-blue);
   color: #FFFFFF;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.1s ease;
   margin-top: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .billing-customer-submit-transfer-btn:hover {
   background: #1d4ed8;
   transform: translateY(-1px);
-}
-
-.billing-customer-submit-transfer-btn:active {
-  transform: translateY(0);
 }
 
 .billing-customer-submit-transfer-btn:disabled {
@@ -1158,49 +1525,6 @@
 .billing-customer-details-section p strong {
   color: var(--gray-900);
   font-weight: 600;
-}
-
-/* =========================================
-   SUCCESS MODAL
-   ========================================= */
-.billing-customer-success-modal {
-  text-align: center;
-  padding: 20px 0;
-}
-
-.billing-customer-success-modal .billing-customer-success-icon {
-  font-size: 48px;
-  color: #10b981;
-  margin-bottom: 16px;
-}
-
-.billing-customer-success-modal h3 {
-  padding: 0;
-  border: none;
-  font-size: 20px;
-  margin: 0 0 8px 0;
-}
-
-.billing-customer-success-content {
-  margin-bottom: 24px;
-  color: var(--gray-700);
-}
-
-.billing-customer-success-content p {
-  margin: 4px 0;
-  font-size: 14px;
-}
-
-.billing-customer-success-content .billing-customer-success-ref {
-  font-size: 13px;
-  color: var(--gray-500);
-}
-
-.billing-customer-success-modal .billing-customer-modal-actions {
-  justify-content: center;
-  border: none;
-  padding: 0;
-  margin-top: 8px;
 }
 
 /* =========================================
@@ -1249,6 +1573,14 @@
   background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
   background-size: 200px 100%;
   animation: shimmer-quotation 1.5s infinite;
+}
+
+/* Status text for non-pending/non-paid */
+.billing-customer-status-text {
+  font-size: 13px;
+  color: #94a3b8;
+  font-weight: 500;
+  text-transform: capitalize;
 }
 
 /* =========================================
@@ -1301,6 +1633,81 @@
   
   .billing-customer-mobile-cards {
     display: flex;
+  }
+
+  /* Success Page Mobile */
+  .billing-customer-success-page-content {
+    padding: 20px 12px;
+    min-height: 50vh;
+  }
+
+  .billing-customer-success-page-content .billing-customer-success-page-card {
+    padding: 32px 20px 28px;
+  }
+
+  .billing-customer-success-page-content .billing-customer-success-page-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .billing-customer-success-page-content .billing-customer-success-page-checkmark {
+    font-size: 30px;
+  }
+
+  .billing-customer-success-page-content .billing-customer-success-page-title {
+    font-size: 20px;
+  }
+
+  .billing-customer-success-page-content .billing-customer-success-page-subtitle {
+    font-size: 15px;
+  }
+
+  .billing-customer-success-page-content .billing-customer-success-page-reference {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .billing-customer-success-page-content .billing-customer-success-page-btn {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  /* Processing Modal Mobile */
+  .billing-customer-processing-modal {
+    padding: 32px 24px;
+  }
+
+  .billing-customer-processing-spinner-circle {
+    width: 44px;
+    height: 44px;
+    border-width: 4px;
+  }
+
+  .billing-customer-processing-message {
+    font-size: 16px;
+  }
+
+  /* Pay Now Button Mobile */
+  .billing-customer-paynow-btn,
+  .billing-customer-confirm-btn,
+  .billing-customer-paymongo-btn,
+  .billing-customer-submit-transfer-btn,
+  .billing-customer-success-btn,
+  .billing-customer-cancel-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+    min-width: 80px;
+  }
+
+  .billing-customer-payment-form .billing-customer-confirm-btn,
+  .billing-customer-payment-form .billing-customer-paymongo-btn {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .billing-customer-modal-actions button {
+    padding: 12px 20px;
+    font-size: 13px;
   }
   
   /* MODAL FIXES FOR MOBILE */
@@ -1436,9 +1843,8 @@
     padding: 16px 12px;
   }
   
-  .billing-customer-submit-transfer-btn {
-    padding: 14px;
-    font-size: 15px;
+  .billing-customer-transfer-form .billing-customer-file-upload-area .upload-icon {
+    font-size: 20px;
   }
   
   /* Details modal mobile */
@@ -1452,19 +1858,6 @@
   
   .billing-customer-details-section p {
     font-size: 13px;
-  }
-  
-  /* Success modal mobile */
-  .billing-customer-success-modal {
-    padding: 16px 0;
-  }
-  
-  .billing-customer-success-modal .billing-customer-success-icon {
-    font-size: 40px;
-  }
-  
-  .billing-customer-success-modal h3 {
-    font-size: 18px;
   }
 }
 
@@ -1535,6 +1928,14 @@
   .billing-customer-transfer-form .billing-customer-file-upload-area .upload-icon {
     font-size: 20px;
   }
+
+  /* Pay Now Button Extra Small */
+  .billing-customer-paynow-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+    min-width: 60px;
+    border-radius: 4px;
+  }
 }
 
 /* Additional fix for iOS Safari - prevents zoom on input focus */
@@ -1542,4 +1943,168 @@
   input, select, textarea {
     font-size: 16px !important;
   }
+}
+
+/* =========================================
+   PROCESSING MODAL - WORKING SPINNER
+   ========================================= */
+.billing-customer-processing-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  animation: billing-customer-processing-fade 0.3s ease-out;
+}
+
+.billing-customer-processing-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px 48px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: billing-customer-processing-scale 0.4s ease-out;
+}
+
+/* SPINNER - SIMPLE AND RELIABLE */
+.billing-customer-processing-spinner-circle {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  border: 5px solid #e2e8f0;
+  border-top: 5px solid #2563eb;
+  border-right: 5px solid #2563eb;
+  animation: billing-customer-spin 0.8s linear infinite;
+  box-sizing: border-box;
+}
+
+.billing-customer-processing-message {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+}
+
+.billing-customer-processing-submessage {
+  font-size: 14px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* KEYFRAME ANIMATION - MUST BE AT ROOT LEVEL */
+@keyframes billing-customer-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes billing-customer-processing-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes billing-customer-processing-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* =========================================
+   PROCESSING MODAL - WORKING SPINNER
+   ========================================= */
+.billing-customer-processing-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  animation: billing-customer-processing-fade 0.3s ease-out;
+}
+
+.billing-customer-processing-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px 48px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: billing-customer-processing-scale 0.4s ease-out;
+}
+
+/* SPINNER - FIXED ANIMATION */
+.billing-customer-processing-spinner-circle {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  border: 5px solid #e2e8f0;
+  border-top: 5px solid #2563eb;
+  border-right: 5px solid #2563eb;
+  /* IMPORTANT: Add animation property with infinite duration */
+  animation: billing-customer-spin 0.8s linear infinite !important;
+  box-sizing: border-box;
+  display: block; /* Ensure it's displayed as a block */
+}
+
+/* Make sure the keyframe is properly defined */
+@keyframes billing-customer-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes billing-customer-processing-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes billing-customer-processing-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Remove blue border from success card */
+.billing-customer-success-page-content .billing-customer-success-page-card::before {
+  content: none;
 }

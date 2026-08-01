@@ -18,7 +18,10 @@ import { SystemEquipmentSelection } from '../../components/Engineer/SystemEquipm
 // Import Calculation Hook
 import { useSystemCalculation } from '../../hooks/useSystemCalculation.js';
 
+import { useToast, ToastNotification } from '../../assets/toastnotification'; // Add this import
+
 const MyAssessments = () => {
+  const { toast, showToast, hideToast } = useToast();
   const [freeQuotes, setFreeQuotes] = useState([]);
   const [preAssessments, setPreAssessments] = useState([]);
   const [allAssessments, setAllAssessments] = useState([]);
@@ -213,9 +216,7 @@ const MyAssessments = () => {
     return date.toISOString().split('T')[0];
   };
 
-  const showToast = (message, type) => {
-    alert(message);
-  };
+
 
   // Use the calculation hook
   const calculation = useSystemCalculation();
@@ -1773,6 +1774,14 @@ const MyAssessments = () => {
     return (
       <>
         <Helmet><title>My Assessments | Engineer | SOLARIS</title></Helmet>
+        {/* ADD THIS - Toast Notification at the top level */}
+        <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          position="bottom-left"
+        />
         <div className="my-assessments-enad">
 
 
@@ -1948,6 +1957,13 @@ const MyAssessments = () => {
     return (
       <>
         <Helmet><title>Free Quote Details | Engineer | SOLARIS</title></Helmet>
+        <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          position="bottom-left"
+        />
         <div className="my-assessments-enad">
           <div className="detail-view-enad">
             <div className="detail-content-enad">
@@ -2093,6 +2109,7 @@ const MyAssessments = () => {
                           availablePanels={availablePanels}
                           calculateByArea={() => calculation.calculateByArea(freeQuoteForm.systemType)}
                           isDataLoaded={calculation.isDataLoaded}
+                          showToast={showToast}
                         />
                       )}
 
@@ -2114,6 +2131,7 @@ const MyAssessments = () => {
                         selectedBatteryForCalc={calculation.selectedBatteryForCalc}
                         batteryAutonomy={calculation.batteryAutonomy}
                         setBatteryAutonomy={calculation.setBatteryAutonomy}
+                        showToast={showToast}
                       />
 
                       {/* Based on Net Metering - Show for Grid-Tie only */}
@@ -2130,6 +2148,7 @@ const MyAssessments = () => {
                           calculateByNetMetering={calculation.calculateByNetMetering}
                           isDataLoaded={calculation.isDataLoaded}
                           targetSavings={calculation.targetSavings}
+                          showToast={showToast}
                         />
                       )}
                     </div>
@@ -2153,6 +2172,7 @@ const MyAssessments = () => {
                           showToast
                         )}
                         resetCalculationCards={calculation.resetCalculationCards}
+                        showToast={showToast}
                       />
                     )}
                   </div>
@@ -2197,6 +2217,7 @@ const MyAssessments = () => {
                     )}
 
                     <SystemEquipmentSelection
+                      showToast={showToast}
                       availablePanels={availablePanels}
                       freeQuoteSelectedPanel={freeQuoteSelectedPanel}
                       setFreeQuoteSelectedPanel={setFreeQuoteSelectedPanel}
@@ -2289,6 +2310,13 @@ const MyAssessments = () => {
   return (
     <>
       <Helmet><title>Pre-Assessment Details | Engineer | SOLARIS</title></Helmet>
+      <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          position="bottom-left"
+        />
       <div className="my-assessments-enad">
         <div className="detail-view-enad">
           <div className="detail-content-enad">
@@ -2574,7 +2602,7 @@ const MyAssessments = () => {
                 {calculation.showCalculationCards && (
                   <div className="calculation-cards-container">
                     <div className="calculation-cards-header">
-                      <h3>📊 System Size Calculation</h3>
+                      <h3>System Size Calculation</h3>
                       <p>Select a calculation method to determine the optimal system size</p>
                       <div className="system-type-indicator">
                         <span>System Type: </span>
@@ -2594,6 +2622,7 @@ const MyAssessments = () => {
                           availablePanels={availablePanels}
                           calculateByArea={() => calculation.calculateByArea(selectedItem.systemType || 'grid-tie')}
                           isDataLoaded={calculation.isDataLoaded}
+                          showToast={showToast}
                         />
                       )}
 
@@ -2616,6 +2645,7 @@ const MyAssessments = () => {
                         batteryAutonomy={calculation.batteryAutonomy}
                         setBatteryAutonomy={calculation.setBatteryAutonomy}
                         systemType={selectedItem.systemType || 'grid-tie'}
+                        showToast={showToast}
                       />
 
                       {/* Based on Net Metering - Show for Grid-Tie only */}
@@ -2632,6 +2662,7 @@ const MyAssessments = () => {
                           calculateByNetMetering={calculation.calculateByNetMetering}
                           isDataLoaded={calculation.isDataLoaded}
                           targetSavings={calculation.targetSavings}
+                          showToast={showToast}
                         />
                       )}
                     </div>
@@ -2656,6 +2687,7 @@ const MyAssessments = () => {
                         )}
                         resetCalculationCards={calculation.resetCalculationCards}
                         systemType={selectedItem.systemType || 'grid-tie'}
+                        showToast={showToast}
                       />
                     )}
                   </div>
@@ -2700,6 +2732,7 @@ const MyAssessments = () => {
                     )}
 
                     <SystemEquipmentSelection
+                      showToast={showToast}
                       availablePanels={availablePanels}
                       freeQuoteSelectedPanel={selectedPanel}
                       setFreeQuoteSelectedPanel={setSelectedPanel}

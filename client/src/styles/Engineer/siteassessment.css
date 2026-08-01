@@ -1916,7 +1916,426 @@
   border-radius: 20px;
   animation: skeleton-pulse 1.5s ease-in-out infinite;
 }
+/* src/styles/Engineer/SystemEquipmentSelection.css */
 
+/* ============================================
+   SYSTEM EQUIPMENT SELECTION - ALIGNED WITH SITE ASSESSMENT
+   ============================================ */
+
+/* Inherits all root variables from siteassessment.css */
+
+/* -------------------- Quotation Sections -------------------- */
+.quotation-section {
+  background: var(--gray-50);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--gray-200);
+}
+
+.quotation-section h4 {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin: 0 0 0.75rem 0;
+}
+
+/* -------------------- Equipment Selection Row -------------------- */
+.equipment-selection-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.equipment-selection-row .form-group-enad {
+  flex: 1 1 180px;
+  margin-bottom: 0;
+}
+
+.equipment-selection-row .cost-display {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.75rem;
+  background: #FFFFFF;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  min-width: 100px;
+  min-height: 38px;
+}
+
+.cost-value {
+  font-weight: 600;
+  color: var(--gray-900);
+  font-size: 0.88rem;
+}
+
+/* -------------------- Form Elements -------------------- */
+.assessment-form-select-enad,
+.assessment-form-input-enad {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  background: #FFFFFF;
+  color: var(--gray-900);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.assessment-form-select-enad:focus,
+.assessment-form-input-enad:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.assessment-form-select-enad:disabled,
+.assessment-form-input-enad:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--gray-100);
+}
+
+.assessment-form-textarea-enad {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  background: #FFFFFF;
+  color: var(--gray-900);
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.assessment-form-textarea-enad:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.form-group-enad {
+  margin-bottom: 1rem;
+}
+
+.form-label-enad {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: 0.35rem;
+}
+
+.form-hint-enad {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--gray-500);
+  margin-top: 0.2rem;
+}
+
+/* -------------------- Add / Remove Buttons -------------------- */
+.btn-add-item {
+  padding: 0.25rem 1rem;
+  border: 1px dashed var(--gray-300);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--gray-500);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  margin-bottom: 0.5rem;
+}
+
+.btn-add-item:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.btn-remove {
+  padding: 0.2rem 0.75rem;
+  border: none;
+  border-radius: 20px;
+  background: var(--danger-light);
+  color: var(--danger);
+  font-size: 0.7rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+}
+
+.btn-remove:hover {
+  background: var(--danger);
+  color: #ffffff;
+}
+
+/* -------------------- Additional Item Row -------------------- */
+.additional-item-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.additional-item-row:last-child {
+  border-bottom: none;
+}
+
+.additional-item-row .assessment-form-select-enad,
+.additional-item-row .assessment-form-input-enad {
+  flex: 1 1 120px;
+  min-width: 80px;
+}
+
+.additional-item-row .item-total {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--gray-900);
+  min-width: 70px;
+  padding: 0.25rem 0;
+}
+
+/* -------------------- Labor & Cost Controls -------------------- */
+.labor-percentage-control,
+.cost-percentage-control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.labor-control-group,
+.cost-percentage-control > div {
+  flex: 1 1 200px;
+}
+
+.labor-input,
+.overhead-input,
+.profit-input {
+  max-width: 120px;
+}
+
+/* -------------------- Labor & Cost Calculations -------------------- */
+.labor-calculation,
+.cost-calculation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0;
+}
+
+.labor-detail,
+.cost-detail {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--gray-700);
+  padding: 0.15rem 0;
+}
+
+.labor-detail span:last-child,
+.cost-detail span:last-child {
+  font-weight: 500;
+  color: var(--gray-900);
+}
+
+.labor-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  padding-top: 0.35rem;
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.labor-total strong {
+  color: var(--gray-900);
+}
+
+/* -------------------- Cost Summary Large -------------------- */
+.cost-summary-large {
+  background: #FFFFFF;
+  border-radius: var(--radius-sm);
+  padding: 1.25rem;
+  margin: 1.25rem 0;
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
+}
+
+.cost-summary-large h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin: 0 0 0.75rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  font-size: 0.85rem;
+  color: var(--gray-700);
+  border-bottom: 1px solid var(--gray-50);
+}
+
+.summary-row span:last-child {
+  font-weight: 500;
+  color: var(--gray-900);
+}
+
+.summary-row.total {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  padding-top: 0.5rem;
+  margin-top: 0.25rem;
+  border-top: 2px solid var(--gray-200);
+  border-bottom: none;
+}
+
+.summary-row.total span:last-child {
+  color: var(--primary);
+}
+
+/* -------------------- ROI Section -------------------- */
+.roi-section .highlight-roi {
+  background: var(--primary-light);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  margin-top: 0.25rem;
+  font-weight: 600;
+}
+
+.roi-section .highlight-roi span:last-child {
+  color: var(--primary);
+}
+
+/* -------------------- Action Buttons -------------------- */
+.action-buttons-enad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.btn-primary-enad {
+  padding: 0.6rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-primary-enad:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: scale(1.02);
+}
+
+.btn-primary-enad:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* -------------------- Responsive -------------------- */
+@media (max-width: 768px) {
+  .equipment-selection-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .equipment-selection-row .form-group-enad {
+    flex: 1 1 auto;
+  }
+
+  .equipment-selection-row .cost-display {
+    min-height: 36px;
+    justify-content: center;
+  }
+
+  .additional-item-row {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.75rem 0;
+  }
+
+  .additional-item-row .assessment-form-select-enad,
+  .additional-item-row .assessment-form-input-enad {
+    flex: 1 1 auto;
+    min-width: unset;
+  }
+
+  .additional-item-row .item-total {
+    text-align: right;
+  }
+
+  .labor-percentage-control,
+  .cost-percentage-control {
+    flex-direction: column;
+  }
+
+  .labor-input,
+  .overhead-input,
+  .profit-input {
+    max-width: 100%;
+  }
+
+  .cost-summary-large {
+    padding: 0.75rem;
+  }
+
+  .summary-row {
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .summary-row.total {
+    font-size: 0.9rem;
+  }
+
+  .action-buttons-enad {
+    flex-direction: column;
+  }
+
+  .action-buttons-enad button {
+    width: 100%;
+  }
+
+  .btn-add-item {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .quotation-section {
+    padding: 0.75rem;
+  }
+
+  .cost-summary-large {
+    padding: 0.5rem;
+  }
+
+  .summary-row {
+    font-size: 0.75rem;
+  }
+
+  .btn-remove {
+    align-self: flex-end;
+  }
+}
 @keyframes skeleton-pulse {
 
   0%,

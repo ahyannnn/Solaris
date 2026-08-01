@@ -43,6 +43,7 @@ const IoTDevice = () => {
   const [retrieving, setRetrieving] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [hasStats, setHasStats] = useState(false);
 
   const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_URL || '';
@@ -213,16 +214,25 @@ const IoTDevice = () => {
         averageHumidity: stats.averageHumidity || 0,
         minHumidity: stats.minHumidity || 0,
         maxHumidity: stats.maxHumidity || 0,
-        totalReadings: stats.totalReadings || readings.length
+        totalReadings: stats.totalReadings || readings.length,
+        dataCollectionStart: stats.dataCollectionStart,
+        dataCollectionEnd: stats.dataCollectionEnd,
+        gps: stats.gps || null
       });
       setGpsData(stats.gps || null);
       setLastUpdated(new Date());
+      
+      // Check if stats have valid data
+      const hasValidStats = stats.totalReadings > 0 && stats.peakSunHours > 0;
+      setHasStats(hasValidStats);
+      
     } catch (error) {
       console.error('Error fetching sensor data:', error);
       showToast('Failed to fetch sensor data', 'error');
       setSensorData([]);
       setSensorStats({});
       setGpsData(null);
+      setHasStats(false);
     }
   };
 
@@ -231,6 +241,7 @@ const IoTDevice = () => {
     setSensorStats({});
     setGpsData(null);
     setLastUpdated(null);
+    setHasStats(false);
 
     setSelectedDevice(device);
     setShowDataModal(true);
@@ -239,11 +250,34 @@ const IoTDevice = () => {
   };
 
   const openConfirmModal = () => {
+    // Validate that stats exist before opening confirm modal
+    if (!hasStats || Object.keys(sensorStats).length === 0) {
+      showToast('No data available to retrieve. Please wait for data collection.', 'warning');
+      return;
+    }
+    
+    // Validate specific fields
+    if (!sensorStats.totalReadings || sensorStats.totalReadings === 0) {
+      showToast('No readings available. Device may not have collected data yet.', 'warning');
+      return;
+    }
+    
+    if (!sensorStats.peakSunHours && sensorStats.peakSunHours !== 0) {
+      showToast('Peak sun hours data is missing. Please try again later.', 'warning');
+      return;
+    }
+    
     setShowConfirmModal(true);
   };
 
   const handleRetrieveDevice = async () => {
     if (!selectedDevice) return;
+
+    // Double-check stats before sending
+    if (!sensorStats || Object.keys(sensorStats).length === 0) {
+      showToast('No data to save. Please refresh and try again.', 'error');
+      return;
+    }
 
     setRetrieving(true);
     setShowConfirmModal(false);
@@ -251,9 +285,42 @@ const IoTDevice = () => {
     try {
       const token = sessionStorage.getItem('token');
 
+      // Prepare stats payload with all fields (matching what getIoTData returns)
+      const statsPayload = {
+        totalReadings: sensorStats.totalReadings || 0,
+        dataCollectionStart: sensorStats.dataCollectionStart || null,
+        dataCollectionEnd: sensorStats.dataCollectionEnd || null,
+        
+        // Irradiance Metrics
+        averageIrradiance: sensorStats.averageIrradiance || 0,
+        maxIrradiance: sensorStats.maxIrradiance || 0,
+        minIrradiance: sensorStats.minIrradiance || 0,
+        peakSunHours: sensorStats.peakSunHours || 0,
+        
+        // Temperature Metrics
+        averageTemperature: sensorStats.averageTemperature || 0,
+        maxTemperature: sensorStats.maxTemperature || 0,
+        minTemperature: sensorStats.minTemperature || 0,
+        
+        // Humidity Metrics
+        averageHumidity: sensorStats.averageHumidity || 0,
+        maxHumidity: sensorStats.maxHumidity || 0,
+        minHumidity: sensorStats.minHumidity || 0,
+        
+        // GPS
+        gps: sensorStats.gps || null
+      };
+
+      // Validate payload before sending
+      if (statsPayload.totalReadings === 0) {
+        showToast('Cannot retrieve device: No readings found.', 'error');
+        setRetrieving(false);
+        return;
+      }
+
       const response = await axios.put(
         `${API_BASE_URL}/api/pre-assessments/${selectedDevice.assessmentId}/retrieve-device`,
-        {},
+        { stats: statsPayload },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -261,6 +328,9 @@ const IoTDevice = () => {
 
       setShowDataModal(false);
       setSelectedDevice(null);
+      setSensorStats({});
+      setSensorData([]);
+      setHasStats(false);
       fetchMyDevices();
 
     } catch (error) {
@@ -364,7 +434,6 @@ const IoTDevice = () => {
 
       <div className="iot-device-engineer-iotdevicead">
 
-
         <div className="iot-filters-iotdevicead">
           <div className="search-group-iotdevicead">
             <FaSearch className="search-icon-iotdevicead" />
@@ -392,7 +461,6 @@ const IoTDevice = () => {
                     <th>Device</th>
                     <th>Client</th>
                     <th>Reference</th>
-                    <th>Last Heartbeat</th>
                     <th style={{ textAlign: 'center' }}>Action</th>
                   </tr>
                 </thead>
@@ -413,11 +481,6 @@ const IoTDevice = () => {
                         </td>
                         <td>
                           <div className="ref-cell-iotdevicead">{device.bookingReference}</div>
-                        </td>
-                        <td>
-                          <div className="heartbeat-cell-iotdevicead">
-                            {device.lastHeartbeat ? formatPhilippineDateShort(device.lastHeartbeat) : 'N/A'}
-                          </div>
                         </td>
                         <td style={{ textAlign: 'center' }}>
                           <button
@@ -456,7 +519,7 @@ const IoTDevice = () => {
           </>
         )}
 
-        {/* Device Data Modal - Keep existing modal */}
+        {/* Device Data Modal */}
         {showDataModal && selectedDevice && (
           <div className="modal-overlay-iotdevicead" onClick={() => setShowDataModal(false)}>
             <div className="modal-content-iotdevicead data-modal-iotdevicead" onClick={e => e.stopPropagation()}>
@@ -497,7 +560,7 @@ const IoTDevice = () => {
                     <div className="stat-card-iotdevicead irradiance-iotdevicead">
                       <FaSun />
                       <div>
-                        <span className="stat-value-iotdevicead">{sensorStats.peakSunHours?.toFixed(1) || 0} h/day</span>
+                        <span className="stat-value-iotdevicead">{sensorStats.peakSunHours?.toFixed(2) || 0} h/day</span>
                         <span className="stat-label-iotdevicead">Peak Sun Hours</span>
                       </div>
                     </div>
@@ -661,7 +724,12 @@ const IoTDevice = () => {
               <div className="modal-actions-iotdevicead">
                 <button className="close-btn-iotdevicead" onClick={() => setShowDataModal(false)}>Close</button>
                 {(selectedDevice.assessmentStatus === 'data_collecting' || selectedDevice.status === 'deployed') && (
-                  <button className="retrieve-btn-iotdevicead" onClick={openConfirmModal} disabled={retrieving}>
+                  <button 
+                    className="retrieve-btn-iotdevicead" 
+                    onClick={openConfirmModal} 
+                    disabled={retrieving || !hasStats}
+                    title={!hasStats ? 'No data available to retrieve' : ''}
+                  >
                     {retrieving ? <FaSpinner className="spinner-enad" /> : <FaArrowCircleUp />}
                     {retrieving ? 'Retrieving...' : 'Retrieve Device'}
                   </button>
@@ -689,12 +757,27 @@ const IoTDevice = () => {
                   <div className="detail-row-iotdevicead"><span className="detail-label-iotdevicead">Client:</span><span className="detail-value-iotdevicead">{selectedDevice.clientName}</span></div>
                 </div>
 
+                {/* Show stats summary in confirmation */}
+                {sensorStats && hasStats && (
+                  <div className="stats-summary-confirm-iotdevicead">
+                    <p><strong>Data Summary:</strong></p>
+                    <ul>
+                      <li>Total Readings: {sensorStats.totalReadings || 0}</li>
+                      <li>Peak Sun Hours: {sensorStats.peakSunHours?.toFixed(2) || 0} h/day</li>
+                      <li>Avg Irradiance: {sensorStats.averageIrradiance?.toFixed(0) || 0} W/m²</li>
+                      <li>Avg Temperature: {sensorStats.averageTemperature?.toFixed(1) || 0}°C</li>
+                      <li>Avg Humidity: {sensorStats.averageHumidity?.toFixed(0) || 0}%</li>
+                    </ul>
+                  </div>
+                )}
+
                 <div className="info-message-iotdevicead">
                   <p>This will:</p>
                   <ul>
                     <li>Mark the assessment status as "Data Analyzing"</li>
                     <li>Mark the device status as "Retrieved"</li>
                     <li>The device will no longer collect data for this assessment</li>
+                    <li>Save all collected data to the assessment</li>
                   </ul>
                 </div>
               </div>

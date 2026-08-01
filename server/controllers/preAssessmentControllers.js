@@ -2791,44 +2791,51 @@ exports.getIoTData = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to view this data' });
     }
 
-    // Get the actual deviceId from the populated iotDeviceId object
+    // Get the booking reference and deviceId
+    const bookingReference = assessment.bookingReference;
     const deviceId = assessment.iotDeviceId?.deviceId;
 
-    if (!deviceId) {
-      return res.status(404).json({ message: 'No device associated with this assessment' });
+    if (!bookingReference || !deviceId) {
+      return res.status(404).json({ 
+        message: 'Missing booking reference or device ID for this assessment',
+        details: {
+          hasBookingReference: !!bookingReference,
+          hasDeviceId: !!deviceId
+        }
+      });
     }
 
-    console.log('✅ Using deviceId:', deviceId);
+    console.log('✅ Looking for data with:', { bookingReference, deviceId });
 
     // Build date range query
-    let dateQuery = {};
-    const now = new Date();
+    const getDateRange = (range) => {
+      const date = new Date();
+      switch (range) {
+        case '24h':
+          return { timestamp: { $gte: new Date(date.setHours(date.getHours() - 24)) } };
+        case '7days':
+          return { timestamp: { $gte: new Date(date.setDate(date.getDate() - 7)) } };
+        case '30days':
+          return { timestamp: { $gte: new Date(date.setDate(date.getDate() - 30)) } };
+        case 'all':
+        default:
+          return {};
+      }
+    };
 
-    switch (range) {
-      case '24h':
-        dateQuery = { timestamp: { $gte: new Date(now.setHours(now.getHours() - 24)) } };
-        break;
-      case '7days':
-        dateQuery = { timestamp: { $gte: new Date(now.setDate(now.getDate() - 7)) } };
-        break;
-      case '30days':
-        dateQuery = { timestamp: { $gte: new Date(now.setDate(now.getDate() - 30)) } };
-        break;
-      case 'all':
-      default:
-        dateQuery = {};
-        break;
-    }
+    const dateQuery = getDateRange(range);
 
-    // Get IoT data from SensorData table
+    // IMPORTANT: Query MUST match BOTH bookingReference AND deviceId
+    // This ensures we only get data that belongs to this specific assessment
     const sensorData = await SensorData.find({
+      bookingReference: bookingReference,
       deviceId: deviceId,
       ...dateQuery
     })
-      .sort({ timestamp: 1 })  // Ascending for calculations
+      .sort({ timestamp: 1 })
       .limit(parseInt(limit));
 
-    console.log(`📊 Found ${sensorData.length} sensor readings`);
+    console.log(`📊 Found ${sensorData.length} sensor readings matching both bookingReference and deviceId`);
 
     // ============ CALCULATE STATISTICS ============
     const stats = {
@@ -2836,23 +2843,19 @@ exports.getIoTData = async (req, res) => {
       dataCollectionStart: assessment.dataCollectionStart,
       dataCollectionEnd: assessment.dataCollectionEnd,
 
-      // Irradiance Metrics
       averageIrradiance: 0,
       maxIrradiance: 0,
       minIrradiance: 0,
       peakSunHours: 0,
 
-      // Temperature Metrics
       averageTemperature: 0,
       minTemperature: 0,
       maxTemperature: 0,
 
-      // Humidity Metrics
       averageHumidity: 0,
       minHumidity: 0,
       maxHumidity: 0,
 
-      // GPS
       gps: null
     };
 
@@ -2867,16 +2870,14 @@ exports.getIoTData = async (req, res) => {
       stats.maxIrradiance = Math.max(...irradianceValues);
       stats.minIrradiance = positiveIrradiance.length > 0 ? Math.min(...positiveIrradiance) : 0;
 
-      // ============ PEAK SUN HOURS (≥1000 W/m²) - AVERAGE PER DAY ============
-      const INTERVAL_HOURS = 0.25; // 15 minutes = 0.25 hours
+      // ============ PEAK SUN HOURS ============
+      const INTERVAL_HOURS = 0.25;
       let totalPeakSunHoursOverPeriod = 0;
       let intervalsAbove1000 = 0;
 
       if (sensorData.length >= 2) {
         for (let i = 0; i < sensorData.length - 1; i++) {
           const avgIrradiance = (sensorData[i].irradiance + sensorData[i + 1].irradiance) / 2;
-
-          // Only count when irradiance reaches 1000 W/m² (full sun condition)
           if (avgIrradiance >= 1000) {
             totalPeakSunHoursOverPeriod += INTERVAL_HOURS;
             intervalsAbove1000++;
@@ -2884,7 +2885,6 @@ exports.getIoTData = async (req, res) => {
         }
       }
 
-      // Calculate number of days in the data collection period
       let numberOfDays = 1;
       if (sensorData.length > 0) {
         const firstTimestamp = new Date(sensorData[0].timestamp);
@@ -2893,9 +2893,7 @@ exports.getIoTData = async (req, res) => {
         numberOfDays = Math.max(1, Math.ceil(timeDiffMs / (1000 * 60 * 60 * 24)));
       }
 
-      // Average Peak Sun Hours PER DAY
-      const averagePeakSunHoursPerDay = totalPeakSunHoursOverPeriod / numberOfDays;
-      stats.peakSunHours = Math.round(averagePeakSunHoursPerDay * 10) / 10;
+      stats.peakSunHours = Math.round((totalPeakSunHoursOverPeriod / numberOfDays) * 100) / 100;
 
       // ============ TEMPERATURE METRICS ============
       const tempValues = sensorData
@@ -2927,25 +2925,25 @@ exports.getIoTData = async (req, res) => {
 
       console.log('Calculated stats:', {
         totalReadings: stats.totalReadings,
-        totalPeakSunHoursOverPeriod: totalPeakSunHoursOverPeriod.toFixed(1) + ' hours',
-        numberOfDays: numberOfDays,
         peakSunHours: stats.peakSunHours + ' hours/day',
-        intervalsAbove1000: intervalsAbove1000,
         avgIrradiance: stats.averageIrradiance,
         avgTemp: stats.averageTemperature,
         avgHumidity: stats.averageHumidity
       });
+    } else {
+      console.log('⚠️ No sensor data found matching both criteria');
     }
 
-    // Format readings for frontend (only needed data)
+    // Format readings for frontend
     const formattedReadings = sensorData.map(reading => ({
       timestamp: reading.timestamp,
       irradiance: reading.irradiance || 0,
       temperature: reading.temperature || 0,
-      humidity: reading.humidity || 0
+      humidity: reading.humidity || 0,
+      deviceId: reading.deviceId,
+      bookingReference: reading.bookingReference
     }));
 
-    // Return only what frontend needs
     res.json({
       success: true,
       readings: formattedReadings,
@@ -2954,7 +2952,13 @@ exports.getIoTData = async (req, res) => {
         deviceId: assessment.iotDeviceId?.deviceId,
         deviceName: assessment.iotDeviceId?.deviceName,
         batteryLevel: assessment.iotDeviceId?.batteryLevel,
-        lastHeartbeat: assessment.iotDeviceId?.lastHeartbeat
+        lastHeartbeat: assessment.iotDeviceId?.lastHeartbeat,
+        bookingReference: bookingReference
+      },
+      matchCriteria: {
+        bookingReference: bookingReference,
+        deviceId: deviceId,
+        bothMatched: true
       }
     });
 
@@ -2971,9 +2975,13 @@ exports.retrieveDevice = async (req, res) => {
   try {
     const { id } = req.params;
     const engineerId = req.user.id;
+    
+    // Get the stats sent from frontend (ALREADY CALCULATED by getIoTData)
+    const { stats } = req.body;
 
     console.log('=== RETRIEVE DEVICE STARTED ===');
     console.log('Assessment ID:', id);
+    console.log('Stats received from frontend:', stats);
 
     const assessment = await PreAssessment.findById(id);
     if (!assessment) {
@@ -2996,194 +3004,88 @@ exports.retrieveDevice = async (req, res) => {
       return res.status(404).json({ message: 'IoT Device not found' });
     }
 
-    const deviceId = device.deviceId;
-    console.log('Device ID:', deviceId);
-
-    // ============ FIX: Get ALL sensor data first (no date filter) ============
-    let sensorData = await SensorData.find({
-      deviceId: deviceId
-    }).sort({ timestamp: 1 });
-
-    console.log(`Total sensor readings found for device ${deviceId}: ${sensorData.length}`);
-
-    // If still no data, try case-insensitive or partial match
-    if (sensorData.length === 0) {
-      // Try to find any sensor data with similar deviceId
-      const allSensorData = await SensorData.find().limit(5);
-      console.log('Sample deviceIds in SensorData:', allSensorData.map(s => s.deviceId));
-
-      return res.status(404).json({
-        message: 'No sensor data found for this device.',
-        deviceId: deviceId,
-        hint: 'Check if the device has sent any data yet. The device may still be collecting data.'
-      });
-    }
-
-    console.log(`✅ Processing ${sensorData.length} sensor readings`);
-
-    // ============ Calculate actual date range from the data ============
-    const actualStartDate = sensorData[0].timestamp;
-    const actualEndDate = sensorData[sensorData.length - 1].timestamp;
-
-    // Calculate number of days from actual data
-    const timeDiffMs = new Date(actualEndDate) - new Date(actualStartDate);
-    const numberOfDays = Math.max(1, Math.ceil(timeDiffMs / (1000 * 60 * 60 * 24)));
-
-    console.log(`Data range: ${actualStartDate} to ${actualEndDate} (${numberOfDays} days)`);
-
-    // ============ PROCESS IRRADIANCE METRICS ============
-    const irradianceValues = sensorData.map(d => d.irradiance || 0);
-    const positiveIrradiance = irradianceValues.filter(v => v > 0);
-
-    const averageIrradiance = positiveIrradiance.length > 0
-      ? positiveIrradiance.reduce((a, b) => a + b, 0) / positiveIrradiance.length
-      : 0;
-    const maxIrradiance = irradianceValues.length > 0 ? Math.max(...irradianceValues) : 0;
-    const minIrradiance = positiveIrradiance.length > 0 ? Math.min(...positiveIrradiance) : 0;
-
-    // ============ PEAK SUN HOURS (≥1000 W/m²) - AVERAGE PER DAY ============
-    const INTERVAL_HOURS = 0.25; // 15 minutes = 0.25 hours
-    let totalPeakSunHoursOverPeriod = 0;
-    let intervalsAbove1000 = 0;
-
-    if (sensorData.length >= 2) {
-      for (let i = 0; i < sensorData.length - 1; i++) {
-        const avgIrradiance = (sensorData[i].irradiance + sensorData[i + 1].irradiance) / 2;
-
-        if (avgIrradiance >= 1000) {
-          totalPeakSunHoursOverPeriod += INTERVAL_HOURS;
-          intervalsAbove1000++;
-        }
-      }
-    }
-
-    // Average Peak Sun Hours PER DAY
-    const averagePeakSunHoursPerDay = totalPeakSunHoursOverPeriod / numberOfDays;
-    const peakSunHours = Math.round(averagePeakSunHoursPerDay * 10) / 10;
-
-    // ============ PROCESS TEMPERATURE METRICS ============
-    const tempValues = sensorData
-      .map(d => d.temperature)
-      .filter(t => t !== null && t !== undefined && t !== 0 && t > 0 && t < 60);
-
-    const averageTemperature = tempValues.length > 0
-      ? tempValues.reduce((a, b) => a + b, 0) / tempValues.length
-      : 0;
-    const maxTemperature = tempValues.length > 0 ? Math.max(...tempValues) : 0;
-    const minTemperature = tempValues.length > 0 ? Math.min(...tempValues) : 0;
-
-    // ============ PROCESS HUMIDITY METRICS ============
-    const humidityValues = sensorData
-      .map(d => d.humidity)
-      .filter(h => h !== null && h !== undefined && h !== 0 && h > 0 && h <= 100);
-
-    const averageHumidity = humidityValues.length > 0
-      ? humidityValues.reduce((a, b) => a + b, 0) / humidityValues.length
-      : 0;
-    const maxHumidity = humidityValues.length > 0 ? Math.max(...humidityValues) : 0;
-    const minHumidity = humidityValues.length > 0 ? Math.min(...humidityValues) : 0;
-
-    // ============ PROCESS GPS DATA ============
-    const readingWithGps = sensorData.find(r => r.gps && (r.gps.latitude || r.gps.longitude));
-    const gpsCoordinates = readingWithGps?.gps || null;
-
-    console.log('Processed data:', {
-      totalReadings: sensorData.length,
-      totalPeakSunHoursOverPeriod: totalPeakSunHoursOverPeriod.toFixed(1) + ' hours',
-      numberOfDays: numberOfDays,
-      peakSunHours: peakSunHours + ' hours/day',
-      intervalsAbove1000: intervalsAbove1000,
-      averageIrradiance: averageIrradiance.toFixed(1) + ' W/m²',
-      maxIrradiance: maxIrradiance + ' W/m²',
-      averageTemperature: averageTemperature.toFixed(1) + '°C',
-      temperatureRange: `${minTemperature.toFixed(1)}°C - ${maxTemperature.toFixed(1)}°C`,
-      averageHumidity: averageHumidity.toFixed(0) + '%',
-    });
-
-    // Save data to assessment
+    // ============ SAVE THE EXACT SAME FIELDS FROM FRONTEND ============
+    // Just save what getIoTData already calculated - NO RENAMING!
     assessment.assessmentResults = {
-      dataCollectionStart: assessment.dataCollectionStart || actualStartDate,
+      dataCollectionStart: assessment.dataCollectionStart || stats?.dataCollectionStart || new Date(),
       dataCollectionEnd: new Date(),
-      totalReadings: sensorData.length,
+      totalReadings: stats?.totalReadings || 0,
 
-      // Irradiance Metrics
-      averageIrradiance: Math.round(averageIrradiance * 10) / 10,
-      maxIrradiance: maxIrradiance,
-      minIrradiance: minIrradiance,
-      peakSunHours: peakSunHours,
-      intervalsAbove1000: intervalsAbove1000,
+      // ============ IRRADIANCE METRICS (from getIoTData) ============
+      averageIrradiance: stats?.averageIrradiance || 0,
+      maxIrradiance: stats?.maxIrradiance || 0,
+      minIrradiance: stats?.minIrradiance || 0,
+      peakSunHours: stats?.peakSunHours || 0,  // ✅ Uses same name as getIoTData!
+      
+      // ============ TEMPERATURE METRICS (from getIoTData) ============
+      averageTemperature: stats?.averageTemperature || 0,
+      maxTemperature: stats?.maxTemperature || 0,
+      minTemperature: stats?.minTemperature || 0,
 
-      // Temperature Metrics
-      averageTemperature: Math.round(averageTemperature * 10) / 10,
-      maxTemperature: maxTemperature,
-      minTemperature: minTemperature,
+      // ============ HUMIDITY METRICS (from getIoTData) ============
+      averageHumidity: stats?.averageHumidity || 0,
+      maxHumidity: stats?.maxHumidity || 0,
+      minHumidity: stats?.minHumidity || 0,
 
-      // Humidity Metrics
-      averageHumidity: Math.round(averageHumidity),
-      maxHumidity: maxHumidity,
-      minHumidity: minHumidity,
-
-      // GPS Location
-      gpsCoordinates: {
-        latitude: gpsCoordinates?.latitude || null,
-        longitude: gpsCoordinates?.longitude || null
+      // ============ GPS LOCATION (from getIoTData) ============
+      gpsCoordinates: stats?.gps || {
+        latitude: null,
+        longitude: null
       }
     };
 
     // Update assessment main fields
     assessment.assessmentStatus = 'data_analyzing';
     assessment.dataCollectionEnd = new Date();
-    assessment.totalReadings = sensorData.length;
+    assessment.totalReadings = stats?.totalReadings || 0;
     assessment.deviceRetrievedAt = new Date();
     assessment.deviceRetrievedBy = engineerId;
-
-    if (!assessment.dataCollectionStart && sensorData.length > 0) {
-      assessment.dataCollectionStart = actualStartDate;
-    }
+    
+    // Save peakSunHours at root level too (for easy access)
+    assessment.peakSunHours = stats?.peakSunHours || 0;
 
     // Update device status
     if (device) {
       device.status = 'retrieved';
       device.retrievedAt = new Date();
       device.retrievedBy = engineerId;
-      device.retrievalNotes = `Device retrieved. Readings: ${sensorData.length}, PSH: ${peakSunHours} hours/day, ${intervalsAbove1000} intervals ≥1000 W/m²`;
+      device.retrievalNotes = `Device retrieved. Readings: ${stats?.totalReadings || 0}, PSH: ${stats?.peakSunHours || 0} hours/day`;
 
       if (!device.deploymentHistory) device.deploymentHistory = [];
       device.deploymentHistory.push({
         preAssessmentId: assessment._id,
         retrievedAt: new Date(),
         retrievedBy: engineerId,
-        notes: `Total readings: ${sensorData.length}. Peak Sun Hours: ${peakSunHours} hours/day (${intervalsAbove1000} intervals)`
+        notes: `Total readings: ${stats?.totalReadings || 0}. Peak Sun Hours: ${stats?.peakSunHours || 0} hours/day`
       });
 
       await device.save();
     }
 
     await assessment.save();
-    // Add this after await assessment.save();
-    // After await assessment.save();
-// FIX: Check if userId exists before sending notification
-const userId = assessment.clientId?.userId?._id;
-if (userId) {
-  await sendNotification(
-    userId,
-    'Data Collection Complete',
-    'Data collection for ' + assessment.bookingReference + ' is complete. ' + sensorData.length + ' readings were collected over ' + numberOfDays + ' days.',
-    'success',
-    '/pre-assessment/' + assessment._id,
-    {
-      metadata: {
-        bookingReference: assessment.bookingReference,
-        totalReadings: sensorData.length,
-        daysCollected: numberOfDays,
-        peakSunHours: peakSunHours
-      }
+
+    // Send notification
+    const userId = assessment.clientId?.userId?._id;
+    if (userId) {
+      await sendNotification(
+        userId,
+        'Data Collection Complete',
+        'Data collection for ' + assessment.bookingReference + ' is complete. ' + (stats?.totalReadings || 0) + ' readings were collected.',
+        'success',
+        '/pre-assessment/' + assessment._id,
+        {
+          metadata: {
+            bookingReference: assessment.bookingReference,
+            totalReadings: stats?.totalReadings || 0,
+            peakSunHours: stats?.peakSunHours || 0
+          }
+        }
+      );
     }
-  );
-}
+
     res.json({
       success: true,
-      message: `Device retrieved successfully. Processed ${sensorData.length} readings over ${numberOfDays} days. Average Peak Sun Hours: ${peakSunHours} hours/day (${intervalsAbove1000} intervals ≥1000 W/m²)`,
+      message: `Device retrieved successfully. Processed ${stats?.totalReadings || 0} readings. Peak Sun Hours: ${stats?.peakSunHours || 0} hours/day`,
       assessment: {
         id: assessment._id,
         status: assessment.assessmentStatus,

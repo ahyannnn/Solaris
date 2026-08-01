@@ -210,14 +210,14 @@ const ScheduleAssessment = () => {
   }, [appliances]);
 
   const handleElectricBillChange = (e) => {
-  const { name, value } = e.target;
-  setElectricBillInput(prev => ({ ...prev, [name]: value }));
-  
-  // Clear error for this field when user types (optional)
-  if (validationErrors[name]) {
-    setValidationErrors(prev => ({ ...prev, [name]: '' }));
-  }
-};
+    const { name, value } = e.target;
+    setElectricBillInput(prev => ({ ...prev, [name]: value }));
+
+    // Clear error for this field when user types (optional)
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
 
   const handleApplianceFormChange = (e) => {
     const { name, value } = e.target;
@@ -825,18 +825,17 @@ const ScheduleAssessment = () => {
       );
 
       await sendQuoteConfirmationEmail(
-        response.data.quote.quotationReference,
-        freeQuoteData.monthlyBill,
-        freeQuoteData.ratePerKwh,
-        freeQuoteData.propertyType,
-        freeQuoteData.systemType,
-        freeQuoteData.roofType,
-        freeQuoteData.roofLength,
-        freeQuoteData.roofWidth,
-        freeQuoteData.targetSavings,
-        calculationResults.monthlyConsumption,
-        appliances,
-        getFullAddress()
+        response.data.quote.quotationReference,  // quoteReference
+        freeQuoteData.monthlyBill,               // monthlyBill
+        freeQuoteData.propertyType,              // propertyType
+        freeQuoteData.systemType,                // systemType
+        freeQuoteData.roofType,                  // roofType
+        freeQuoteData.roofLength,                // roofLength
+        freeQuoteData.roofWidth,                 // roofWidth
+        freeQuoteData.targetSavings,             // targetSavings
+        calculationResults.monthlyConsumption,   // monthlyConsumption
+        appliances,                              // appliancesList
+        getFullAddress()                         // address
       );
 
       setShowFreeQuoteConfirm(false);
@@ -877,9 +876,18 @@ const ScheduleAssessment = () => {
     address
   ) => {
     try {
+      // Get user data from component scope
+      const userEmail = user?.email;
+      const userName = getFullName();
+
+      if (!userEmail) {
+        console.error('User email not found');
+        return;
+      }
+
       await axios.post(`${import.meta.env.VITE_API_URL}/api/email/send-free-quote-confirmation`, {
-        email: user.email,
-        name: getFullName(),
+        email: userEmail,
+        name: userName,
         quoteReference,
         monthlyBill,
         propertyType,
@@ -901,9 +909,17 @@ const ScheduleAssessment = () => {
 
   const sendPreAssessmentConfirmationEmail = async (invoiceNumber, amount, propertyType, roofType, address) => {
     try {
+      const userEmail = user?.email;
+      const userName = getFullName();
+
+      if (!userEmail) {
+        console.error('User email not found');
+        return;
+      }
+
       await axios.post(`${import.meta.env.VITE_API_URL}/api/email/send-pre-assessment-confirmation`, {
-        email: user.email,
-        name: getFullName(),
+        email: userEmail,
+        name: userName,
         invoiceNumber,
         amount,
         propertyType,
@@ -960,11 +976,11 @@ const ScheduleAssessment = () => {
       });
 
       await sendPreAssessmentConfirmationEmail(
-        response.data.booking.invoiceNumber,
-        response.data.booking.assessmentFee,
-        formData.propertyType,
-        formData.roofType,
-        getFullAddress()
+        response.data.booking.invoiceNumber,  // invoiceNumber
+        response.data.booking.assessmentFee,  // amount
+        formData.propertyType,                // propertyType
+        formData.roofType,                    // roofType
+        getFullAddress()                      // address
       );
 
       setShowConfirmDialog(false);
@@ -987,28 +1003,28 @@ const ScheduleAssessment = () => {
   const handleProfileClick = () => navigate('/app/customer/settings?tab=profile');
 
   const handleInputChange = (e) => {
-  const { name, value } = e.target;
+    const { name, value } = e.target;
 
-  if (currentStep === 'free-quote-form') {
-    // Just update the data, NO validation here
-    setFreeQuoteData(prev => ({ ...prev, [name]: value }));
-    
-    // Clear error for this field when user types (optional - improves UX)
-    if (freeQuoteValidationErrors[name]) {
-      setFreeQuoteValidationErrors(prev => ({ ...prev, [name]: '' }));
+    if (currentStep === 'free-quote-form') {
+      // Just update the data, NO validation here
+      setFreeQuoteData(prev => ({ ...prev, [name]: value }));
+
+      // Clear error for this field when user types (optional - improves UX)
+      if (freeQuoteValidationErrors[name]) {
+        setFreeQuoteValidationErrors(prev => ({ ...prev, [name]: '' }));
+      }
+    } else if (currentStep === 'service-selection') {
+      setFreeQuoteData(prev => ({ ...prev, [name]: value }));
+    } else {
+      // Pre-Assessment form - just update data
+      setFormData(prev => ({ ...prev, [name]: value }));
+
+      // Clear error for this field when user types (optional - improves UX)
+      if (validationErrors[name]) {
+        setValidationErrors(prev => ({ ...prev, [name]: '' }));
+      }
     }
-  } else if (currentStep === 'service-selection') {
-    setFreeQuoteData(prev => ({ ...prev, [name]: value }));
-  } else {
-    // Pre-Assessment form - just update data
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Clear error for this field when user types (optional - improves UX)
-    if (validationErrors[name]) {
-      setValidationErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  }
-};
+  };
 
   const getFullName = () => [formData.firstName, formData.middleName, formData.lastName].filter(p => p).join(' ');
 
@@ -1932,7 +1948,7 @@ const ScheduleAssessment = () => {
                       type="number"
                       step="0.01"
                       name="monthlyBill"
-                     
+
                       min="0.01"
                       max="1000000"
                       value={freeQuoteData.monthlyBill}

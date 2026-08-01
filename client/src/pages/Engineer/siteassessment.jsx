@@ -2364,7 +2364,7 @@ const MyAssessments = () => {
                       </span>
                     </div>
                   )}
-                  <div className="info-item-enad"><span className="info-label-enad">Desired Capacity</span><span className="info-value-enad">{selectedItem.desiredCapacity || 'Not specified'}</span></div>
+                  
                   <div className="info-item-enad"><span className="info-label-enad">Monthly Bill</span><span className="info-value-enad">{formatCurrency(selectedItem.monthlyBill || 0)}</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Monthly Consumption</span><span className="info-value-enad">{selectedItem.consumption || 0} kWh</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Rate per kWh</span><span className="info-value-enad">₱{(selectedItem.rate || 0).toFixed(2)}</span></div>
@@ -2403,14 +2403,14 @@ const MyAssessments = () => {
                     </div>
                   )}
                   <div className="info-item-enad"><span className="info-label-enad">Booked Date</span><span className="info-value-enad">{formatDate(selectedItem.bookedAt)}</span></div>
-                  <div className="info-item-enad"><span className="info-label-enad">Preferred Date</span><span className="info-value-enad">{formatDate(selectedItem.preferredDate)}</span></div>
+                  
                   {selectedItem.siteVisitDate && <div className="info-item-enad"><span className="info-label-enad">Site Visit Date</span><span className="info-value-enad">{formatDate(selectedItem.siteVisitDate)}</span></div>}
                   {selectedItem.deviceDeployedAt && <div className="info-item-enad"><span className="info-label-enad">Device Deployed</span><span className="info-value-enad">{formatDateTime(selectedItem.deviceDeployedAt)}</span></div>}
                   {selectedItem.dataCollectionStart && <div className="info-item-enad"><span className="info-label-enad">Data Collection Start</span><span className="info-value-enad">{formatDateTime(selectedItem.dataCollectionStart)}</span></div>}
                   {selectedItem.dataCollectionEnd && <div className="info-item-enad"><span className="info-label-enad">Data Collection End</span><span className="info-value-enad">{formatDateTime(selectedItem.dataCollectionEnd)}</span></div>}
                   {selectedItem.totalReadings > 0 && <div className="info-item-enad"><span className="info-label-enad">Total Readings</span><span className="info-value-enad">{selectedItem.totalReadings}</span></div>}
                   <div className="info-item-enad"><span className="info-label-enad">Assessment Fee</span><span className="info-value-enad">{formatCurrency(selectedItem.assessmentFee)}</span></div>
-                  <div className="info-item-enad"><span className="info-label-enad">Payment Status</span><span className={`status-badge-enad ${selectedItem.paymentStatus === 'paid' ? 'completed-enad' : 'pending-enad'}`}>{selectedItem.paymentStatus}</span></div>
+                  <div className="info-item-enad"><span className="info-label-enad">Payment Status</span><span className="info-value-enad">{selectedItem.paymentStatus === 'paid' ? 'Completed' : 'Pending'}</span></div>
                 </div>
 
                 {deviceAssigned ? (

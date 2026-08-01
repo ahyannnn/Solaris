@@ -1,83 +1,434 @@
 from datetime import datetime, timedelta
 import json
+import random
+import math
 
 # ============================================
 # ⚙️ CONFIGURATION SECTION - EDIT THESE VALUES
 # ============================================
 
 # Device settings
-device_id = "IOT-260423-0001"
+device_id = "IOT-260801-0014"
+booking_reference = "PA-260801-288"
+
 gps_latitude = 14.769973
 gps_longitude = 120.939806
 
-# Date range (format: year, month, day)
+# Date range - Philippine local date
 START_YEAR = 2026
-START_MONTH = 4
-START_DAY = 16
+START_MONTH = 7
+START_DAY = 26
 
 END_YEAR = 2026
-END_MONTH = 4
-END_DAY = 22
+END_MONTH = 8
+END_DAY = 1
 
-# Time range (24-hour format)
-START_HOUR = 6      # 6 AM
+# Time range - Philippine local time
+START_HOUR = 6
 START_MINUTE = 0
-END_HOUR = 18       # 6 PM
+
+END_HOUR = 18
 END_MINUTE = 0
 
 # Interval in minutes
 INTERVAL_MINUTES = 15
 
-# Timezone offset (Manila is UTC+8)
-UTC_OFFSET_HOURS = 8
 
 # ============================================
 # DON'T EDIT BELOW THIS LINE
 # ============================================
 
-gps = {"latitude": gps_latitude, "longitude": gps_longitude}
+gps = {
+    "latitude": gps_latitude,
+    "longitude": gps_longitude
+}
 
-# Create start datetime at the specified time
-start_date_local = datetime(START_YEAR, START_MONTH, START_DAY, START_HOUR, START_MINUTE)
+# ============================================
+# CREATE DATE RANGE
+# ============================================
 
-# Create end datetime at the specified time
-end_date_local = datetime(END_YEAR, END_MONTH, END_DAY, END_HOUR, END_MINUTE)
+start_date = datetime(
+    START_YEAR,
+    START_MONTH,
+    START_DAY,
+    START_HOUR,
+    START_MINUTE
+)
 
-utc_offset = timedelta(hours=UTC_OFFSET_HOURS)
+end_date = datetime(
+    END_YEAR,
+    END_MONTH,
+    END_DAY,
+    END_HOUR,
+    END_MINUTE
+)
 
 data = []
-current = start_date_local
 
-while current <= end_date_local:
-    # Calculate hour of the day
-    hour = current.hour + current.minute/60
-    
-    # Only generate data if within the specified time range
+current = start_date
+
+
+# ============================================
+# DAILY WEATHER CONDITIONS
+# ============================================
+
+daily_conditions = {}
+
+day = start_date.date()
+last_day = end_date.date()
+
+while day <= last_day:
+
+    # ----------------------------------------
+    # Solar variation
+    #
+    # Controls how strong the day is.
+    #
+    # 0.96 = slightly cloudy
+    # 1.02 = very good sunlight
+    #
+    # This helps keep PSH around 3.5-5.
+    # according to your backend calculation.
+    # ----------------------------------------
+
+    solar_multiplier = random.uniform(
+        0.96,
+        1.02
+    )
+
+    # Temperature variation between days
+    temperature_offset = random.uniform(
+        -1.0,
+        1.0
+    )
+
+    # Humidity variation between days
+    humidity_offset = random.uniform(
+        -4,
+        4
+    )
+
+    daily_conditions[day] = {
+        "solar_multiplier": solar_multiplier,
+        "temperature_offset": temperature_offset,
+        "humidity_offset": humidity_offset
+    }
+
+    day += timedelta(days=1)
+
+
+# ============================================
+# GENERATE SENSOR DATA
+# ============================================
+
+while current <= end_date:
+
+    # Hour including minutes
+    hour = (
+        current.hour
+        + current.minute / 60
+    )
+
+    # Only generate readings from
+    # 6:00 AM up to 5:45 PM
     if START_HOUR <= hour < END_HOUR:
-        # Simulate realistic daily variation
-        # Irradiance peaks around 12pm-1pm
-        irradiance = int(150 + 1000 * (1 - ((hour - 12)/6)**2))
-        irradiance = max(50, min(1150, irradiance))
-        
-        # Temperature rises with sun, lags slightly
-        temp = round(25.5 + 7 * (1 - ((hour - 14)/8)**2), 1)
-        
-        # Humidity inverse of temp
-        humidity = int(80 - 0.5 * (temp - 25))
-        humidity = max(45, min(85, humidity))
-        
-        # Add to data array
+
+        condition = daily_conditions[
+            current.date()
+        ]
+
+        solar_multiplier = condition[
+            "solar_multiplier"
+        ]
+
+        temperature_offset = condition[
+            "temperature_offset"
+        ]
+
+        humidity_offset = condition[
+            "humidity_offset"
+        ]
+
+
+        # ====================================
+        # ☀️ IRRADIANCE
+        # ====================================
+
+        if hour < 7:
+
+            # 6:00-6:45 AM
+            irradiance = 70
+
+        elif hour < 8:
+
+            # 7:00-7:45 AM
+            progress = hour - 7
+
+            irradiance = (
+                70
+                + (250 * progress)
+            )
+
+        elif hour < 9:
+
+            # 8:00-8:45 AM
+            progress = hour - 8
+
+            irradiance = (
+                320
+                + (380 * progress)
+            )
+
+        elif hour < 10:
+
+            # 9:00-9:45 AM
+            progress = hour - 9
+
+            irradiance = (
+                700
+                + (330 * progress)
+            )
+
+        elif hour < 14:
+
+            # 10:00 AM - 1:45 PM
+            #
+            # Main high-sun period.
+            #
+            # Values generally stay around
+            # 1000-1100 W/m².
+
+            solar_wave = math.sin(
+                (
+                    (hour - 10) / 4
+                ) * math.pi
+            )
+
+            irradiance = (
+                1030
+                + (70 * solar_wave)
+            )
+
+        elif hour < 15:
+
+            # 2:00-2:45 PM
+            progress = hour - 14
+
+            irradiance = (
+                1030
+                - (250 * progress)
+            )
+
+        elif hour < 16:
+
+            # 3:00-3:45 PM
+            progress = hour - 15
+
+            irradiance = (
+                780
+                - (300 * progress)
+            )
+
+        elif hour < 17:
+
+            # 4:00-4:45 PM
+            progress = hour - 16
+
+            irradiance = (
+                480
+                - (250 * progress)
+            )
+
+        else:
+
+            # 5:00-5:45 PM
+            progress = hour - 17
+
+            irradiance = (
+                230
+                - (180 * progress)
+            )
+
+
+        # ------------------------------------
+        # Daily sunlight variation
+        # ------------------------------------
+
+        irradiance *= solar_multiplier
+
+
+        # ------------------------------------
+        # 15-minute sensor fluctuation
+        # ------------------------------------
+
+        irradiance *= random.uniform(
+            0.97,
+            1.03
+        )
+
+
+        # ------------------------------------
+        # Occasional passing cloud
+        # ------------------------------------
+
+        if random.random() < 0.07:
+
+            irradiance *= random.uniform(
+                0.88,
+                0.96
+            )
+
+
+        # ------------------------------------
+        # Keep irradiance within realistic
+        # sensor range
+        # ------------------------------------
+
+        irradiance = int(
+            max(
+                30,
+                min(
+                    1150,
+                    irradiance
+                )
+            )
+        )
+
+
+        # ====================================
+        # 🌡️ TEMPERATURE
+        # ====================================
+
+        # Temperature rises during the day
+        # and peaks around 1-2 PM.
+
+        temperature_curve = (
+            25.0
+            + 7.5 * math.exp(
+                -(
+                    (hour - 14) / 4.5
+                ) ** 2
+            )
+        )
+
+        temp = (
+            temperature_curve
+            + temperature_offset
+        )
+
+
+        # ------------------------------------
+        # 15-minute temperature fluctuation
+        # ------------------------------------
+
+        temp += random.uniform(
+            -0.6,
+            0.6
+        )
+
+
+        # ------------------------------------
+        # Small sunlight influence
+        # ------------------------------------
+
+        temp += (
+            irradiance / 1000
+        ) * random.uniform(
+            0,
+            0.4
+        )
+
+
+        temp = round(
+            temp,
+            1
+        )
+
+
+        # ====================================
+        # 💧 HUMIDITY
+        # ====================================
+
+        # Higher humidity in the morning
+        # and lower during hotter periods.
+
+        humidity = (
+            83
+            - (
+                (temp - 25)
+                * 1.5
+            )
+            + humidity_offset
+        )
+
+
+        # ------------------------------------
+        # 15-minute humidity fluctuation
+        # ------------------------------------
+
+        humidity += random.uniform(
+            -3,
+            3
+        )
+
+
+        # ------------------------------------
+        # Lower sunlight = slightly higher
+        # humidity
+        # ------------------------------------
+
+        if irradiance < 500:
+
+            humidity += random.uniform(
+                0,
+                2
+            )
+
+
+        humidity = int(
+            max(
+                50,
+                min(
+                    90,
+                    humidity
+                )
+            )
+        )
+
+
+        # ====================================
+        # 📊 ADD SENSOR READING
+        # ====================================
+
         data.append({
             "deviceId": device_id,
+            "bookingReference": booking_reference,
             "irradiance": irradiance,
             "temperature": temp,
             "humidity": humidity,
             "gps": gps,
-            "timestamp": {"$date": (current - utc_offset).isoformat().replace('+00:00', 'Z')}
+            "timestamp": {
+                "$date": current.isoformat()
+            }
         })
-    
-    # Move to next interval
-    current += timedelta(minutes=INTERVAL_MINUTES)
 
-# Output JSON array format (starts with [ and ends with ])
-print(json.dumps(data, indent=2))
+
+    # ========================================
+    # MOVE TO NEXT 15-MINUTE INTERVAL
+    # ========================================
+
+    current += timedelta(
+        minutes=INTERVAL_MINUTES
+    )
+
+
+# ============================================
+# OUTPUT ONLY JSON
+# ============================================
+
+print(
+    json.dumps(
+        data,
+        indent=2
+    )
+)

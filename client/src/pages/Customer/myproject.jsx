@@ -156,27 +156,35 @@ const MyProject = () => {
   };
 
   const getProjectProgress = (project) => {
-    if (project.paymentPreference === 'full') {
-      if (project.status === 'completed') return 100;
-      if (project.status === 'in_progress') return 60;
-      if (project.status === 'full_paid') return 40;
-      if (project.status === 'approved') return 15;
-      return 5;
-    }
-
+  let progress = 0;
+  
+  if (project.paymentPreference === 'full') {
+    if (project.status === 'completed') progress = 100;
+    else if (project.status === 'in_progress') progress = 60;
+    else if (project.status === 'full_paid') progress = 40;
+    else if (project.status === 'approved') progress = 15;
+    else progress = 5;
+  } else {
     const initialPaid = isPaymentPaid(project, 'initial');
     const progressPaid = isPaymentPaid(project, 'progress');
     const finalPaid = isPaymentPaid(project, 'final');
 
     if (finalPaid) {
-      if (project.status === 'completed') return 100;
-      return 90;
+      progress = project.status === 'completed' ? 100 : 90;
+    } else if (progressPaid) {
+      progress = 75;
+    } else if (initialPaid) {
+      progress = 30;
+    } else if (project.status === 'approved') {
+      progress = 15;
+    } else {
+      progress = 5;
     }
-    if (progressPaid) return 75;
-    if (initialPaid) return 30;
-    if (project.status === 'approved') return 15;
-    return 5;
-  };
+  }
+  
+  // Cap progress at 100%
+  return Math.min(progress, 100);
+};
 
   const getNextStepMessage = (project) => {
     const initialPaid = isPaymentPaid(project, 'initial');

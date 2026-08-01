@@ -593,7 +593,7 @@ exports.createProjectFromAcceptance = async (req, res) => {
         balance: totalCost,
         paymentSchedule: paymentSchedule,
         quotationFile: sourceData.quotationFile || sourceData.quotationUrl,
-        status: paymentPreference === 'full' ? 'approved' : 'quoted',
+        status: 'quoted',
         projectName: `${client.contactFirstName} ${client.contactLastName} - Solar Installation`,
         sourceType: 'free-quote',
         sourceId: sourceData._id,

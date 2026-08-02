@@ -875,7 +875,11 @@ const MyAssessments = () => {
 
       setFreeQuotes(formattedFreeQuotes);
       setPreAssessments(formattedPreAssessments);
-      setAllAssessments([...formattedFreeQuotes, ...formattedPreAssessments]);
+      const sortedPreAssessments = formattedPreAssessments.sort((a, b) =>
+        new Date(b.createdAt || b.requestedAt) - new Date(a.createdAt || a.requestedAt)
+      );
+
+      setAllAssessments([...formattedFreeQuotes, ...sortedPreAssessments]);
       setError(null);
     } catch (err) {
       console.error('Error fetching assessments:', err);
@@ -2311,12 +2315,12 @@ const MyAssessments = () => {
     <>
       <Helmet><title>Pre-Assessment Details | Engineer | SOLARIS</title></Helmet>
       <ToastNotification
-          show={toast.show}
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-          position="bottom-left"
-        />
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={hideToast}
+        position="bottom-left"
+      />
       <div className="my-assessments-enad">
         <div className="detail-view-enad">
           <div className="detail-content-enad">
@@ -2364,7 +2368,7 @@ const MyAssessments = () => {
                       </span>
                     </div>
                   )}
-                  
+
                   <div className="info-item-enad"><span className="info-label-enad">Monthly Bill</span><span className="info-value-enad">{formatCurrency(selectedItem.monthlyBill || 0)}</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Monthly Consumption</span><span className="info-value-enad">{selectedItem.consumption || 0} kWh</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Rate per kWh</span><span className="info-value-enad">₱{(selectedItem.rate || 0).toFixed(2)}</span></div>
@@ -2403,7 +2407,7 @@ const MyAssessments = () => {
                     </div>
                   )}
                   <div className="info-item-enad"><span className="info-label-enad">Booked Date</span><span className="info-value-enad">{formatDate(selectedItem.bookedAt)}</span></div>
-                  
+
                   {selectedItem.siteVisitDate && <div className="info-item-enad"><span className="info-label-enad">Site Visit Date</span><span className="info-value-enad">{formatDate(selectedItem.siteVisitDate)}</span></div>}
                   {selectedItem.deviceDeployedAt && <div className="info-item-enad"><span className="info-label-enad">Device Deployed</span><span className="info-value-enad">{formatDateTime(selectedItem.deviceDeployedAt)}</span></div>}
                   {selectedItem.dataCollectionStart && <div className="info-item-enad"><span className="info-label-enad">Data Collection Start</span><span className="info-value-enad">{formatDateTime(selectedItem.dataCollectionStart)}</span></div>}

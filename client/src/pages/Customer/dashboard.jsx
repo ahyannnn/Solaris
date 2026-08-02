@@ -297,7 +297,7 @@ const Dashboard = () => {
         <div className="welcome-section-cusdash">
           <div className="welcome-content-cusdash">
             <h1 className="page-title-cusdash">
-              {greeting}{fullName ? `, ${fullName}` : ''}! 👋
+              {greeting}{fullName ? `, ${fullName}` : ''}! 
             </h1>
             <p className="welcome-greeting-cusdash">
               Welcome to your Salfer Engineering dashboard

@@ -111,10 +111,10 @@ const EngineerProject = () => {
       // Clear the new photo states
       setNewPhotoFiles([]);
       setNewPhotoPreviews([]);
-      
+
       // Refresh the project data to show new photos
       await fetchProjects();
-      
+
       showToast(`${uploadedPhotoUrls.length} photo(s) uploaded successfully!`, 'success');
     } catch (uploadError) {
       console.error('Error uploading photos:', uploadError);
@@ -180,10 +180,10 @@ const EngineerProject = () => {
   const removePhoto = (index) => {
     // Revoke the object URL to avoid memory leaks
     URL.revokeObjectURL(newPhotoPreviews[index]);
-    
+
     // Remove from previews
     setNewPhotoPreviews(prev => prev.filter((_, i) => i !== index));
-    
+
     // Remove from files to upload
     setNewPhotoFiles(prev => prev.filter((_, i) => i !== index));
   };
@@ -248,8 +248,20 @@ const EngineerProject = () => {
   };
 
   // Helper to check if engineer can start installation
-  const canStartInstallation = (status) => {
-    return ['approved', 'initial_paid', 'full_paid'].includes(status);
+  const canStartInstallation = (status, paymentPreference) => {
+    // Full payment preference: can start when status is full_paid
+    if (paymentPreference === 'full' && status === 'full_paid') {
+      return true;
+    }
+
+    // Fifty-fifty or thirty-sixty-ten payment preferences: can start when status is initial_paid
+    if ((paymentPreference === 'fifty_fifty' || paymentPreference === 'thirty_sixty_ten') && status === 'initial_paid') {
+      return true;
+    }
+
+    
+
+    return false;
   };
 
   const filteredProjects = projects.filter(project => {
@@ -338,7 +350,7 @@ const EngineerProject = () => {
             </div>
           ) : (
             filteredProjects.map(project => {
-              const canStart = canStartInstallation(project.status);
+              const canStart = canStartInstallation(project.status, project.paymentPreference);
               const isInProgress = project.status === 'in_progress';
               const isProgressPaid = project.status === 'progress_paid';
               const isFullPaid = project.status === 'full_paid';
@@ -376,12 +388,7 @@ const EngineerProject = () => {
                       <FaMoneyBillWave />
                       <span>{getPaymentTypeLabel(project.paymentPreference)}</span>
                     </div>
-                    {isFullPaid && (
-                      <div className="detail-item full-paid-badge">
-                        <FaMoneyBillWaveAlt />
-                        <span className="full-paid-text">Full Payment Completed - Ready for Installation</span>
-                      </div>
-                    )}
+                    
                   </div>
 
                   {/* Payment Info Section */}
@@ -576,7 +583,7 @@ const EngineerProject = () => {
               }}>×</button>
               <h3>Update Project Progress</h3>
               <p><strong>Project:</strong> {selectedProject.projectName}</p>
-              
+
               {/* Show existing photos count */}
               {selectedProject.sitePhotos && selectedProject.sitePhotos.length > 0 && (
                 <div className="existing-photos-info">
@@ -622,8 +629,8 @@ const EngineerProject = () => {
                     <FaCamera /> Select photos to upload
                   </label>
                   <p className="upload-hint">
-                    {newPhotoFiles.length > 0 
-                      ? `${newPhotoFiles.length} new photo(s) selected` 
+                    {newPhotoFiles.length > 0
+                      ? `${newPhotoFiles.length} new photo(s) selected`
                       : 'Select new photos to add to this project'}
                   </p>
                 </div>
@@ -648,8 +655,8 @@ const EngineerProject = () => {
               </div>
 
               <div className="modal-actions-side-by-side">
-                <button 
-                  className="cancel-btn" 
+                <button
+                  className="cancel-btn"
                   onClick={() => {
                     setShowProgressModal(false);
                     setProgressForm({ installationNotes: '', status: '' });
@@ -660,17 +667,17 @@ const EngineerProject = () => {
                   Cancel
                 </button>
                 <div className="action-buttons-group">
-                  <button 
-                    className="upload-photos-btn" 
-                    onClick={uploadPhotos} 
+                  <button
+                    className="upload-photos-btn"
+                    onClick={uploadPhotos}
                     disabled={uploadingPhotos || newPhotoFiles.length === 0}
                   >
                     {uploadingPhotos ? <FaSpinner className="spinning" /> : <FaUpload />}
                     {uploadingPhotos ? 'Uploading...' : 'Upload Photos'}
                   </button>
-                  <button 
-                    className="update-btn" 
-                    onClick={updateProgress} 
+                  <button
+                    className="update-btn"
+                    onClick={updateProgress}
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? <FaSpinner className="spinning" /> : null}

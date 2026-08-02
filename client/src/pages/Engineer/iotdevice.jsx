@@ -96,13 +96,14 @@ const IoTDevice = () => {
   };
 
   const formatAxisDate = (timestamp) => {
-    if (!timestamp) return '';
-    const adjustedDate = subtract8Hours(timestamp);
-    return adjustedDate.toLocaleDateString('en-PH', {
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  });
+};  
 
   // ==================== CUSTOM TOOLTIP ====================
   const CustomChartTooltip = ({ active, payload, label }) => {
@@ -538,20 +539,7 @@ const IoTDevice = () => {
                       <p>{selectedDevice.deviceId}</p>
                     </div>
                   </div>
-                  <div className="summary-item-iotdevicead">
-                    <FaCalendarAlt />
-                    <div>
-                      <label>Deployed</label>
-                      <p>{formatPhilippineDateShort(selectedDevice.deployedAt)}</p>
-                    </div>
-                  </div>
-                  <div className="summary-item-iotdevicead">
-                    <FaClock />
-                    <div>
-                      <label>Last Data</label>
-                      <p>{lastUpdated ? formatPhilippineDateShort(lastUpdated) : 'N/A'}</p>
-                    </div>
-                  </div>
+                  
                 </div>
 
                 {/* Stats Cards */}
@@ -600,77 +588,77 @@ const IoTDevice = () => {
                   </div>
                 )}
 
-                {/* CHARTS */}
-                {chartData.length > 0 && hasValidSensorData && (
-                  <>
-                    <div className="chart-container-iotdevicead">
-                      <h4>Solar Irradiance (W/m²)</h4>
-                      <div className="chart-iotdevicead">
-                        <ResponsiveContainer width="100%" height={300}>
-                          <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="timestamp" tickFormatter={formatAxisDate} domain={['auto', 'auto']} tick={{ fontSize: 11 }} />
-                            <YAxis
-                              domain={[0, 'auto']}
-                              label={{ value: 'Irradiance (W/m²)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }}
-                              tick={{ fontSize: 11 }}
-                            />
-                            <Tooltip content={<CustomChartTooltip />} cursor={{ stroke: '#f97316', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
-                            <Legend wrapperStyle={{ fontSize: '12px' }} />
-                            <Area type="monotone" dataKey="irradiance" stroke="#f97316" fill="#fed7aa" name="Irradiance" isAnimationActive={false} activeDot={{ r: 6, strokeWidth: 2 }} />
-                          </AreaChart>
-                        </ResponsiveContainer>
+                  {/* CHARTS */}
+                  {chartData.length > 0 && hasValidSensorData && (
+                    <>
+                      <div className="chart-container-iotdevicead">
+                        <h4>Solar Irradiance (W/m²)</h4>
+                        <div className="chart-iotdevicead">
+                          <ResponsiveContainer width="100%" height={300}>
+                            <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="timestamp" tickFormatter={formatAxisDate} domain={['auto', 'auto']} tick={{ fontSize: 11 }} />
+                              <YAxis
+                                domain={[0, 'auto']}
+                                label={{ value: 'Irradiance (W/m²)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }}
+                                tick={{ fontSize: 11 }}
+                              />
+                              <Tooltip content={<CustomChartTooltip />} cursor={{ stroke: '#f97316', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
+                              <Legend wrapperStyle={{ fontSize: '12px' }} />
+                              <Area type="monotone" dataKey="irradiance" stroke="#f97316" fill="#fed7aa" name="Irradiance" isAnimationActive={false} activeDot={{ r: 6, strokeWidth: 2 }} />
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="chart-container-iotdevicead">
-                      <h4>Temperature (°C) & Humidity (%)</h4>
-                      <div className="chart-iotdevicead">
-                        <ResponsiveContainer width="100%" height={300}>
-                          <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="timestamp" tickFormatter={formatAxisDate} domain={['auto', 'auto']} tick={{ fontSize: 11 }} />
-                            <YAxis
-                              yAxisId="left"
-                              domain={[0, 50]}
-                              label={{ value: 'Temperature (°C)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }}
-                              tick={{ fontSize: 11 }}
-                            />
-                            <YAxis
-                              yAxisId="right"
-                              orientation="right"
-                              domain={[0, 100]}
-                              label={{ value: 'Humidity (%)', angle: 90, position: 'insideRight', style: { fontSize: '11px', fill: '#64748b' } }}
-                              tick={{ fontSize: 11 }}
-                            />
-                            <Tooltip content={<CustomChartTooltip />} cursor={{ stroke: '#94a3b8', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
-                            <Legend wrapperStyle={{ fontSize: '12px' }} />
-                            <Line
-                              yAxisId="left"
-                              type="monotone"
-                              dataKey="temperature"
-                              stroke="#ef4444"
-                              name="Temperature"
-                              dot={false}
-                              isAnimationActive={false}
-                              activeDot={{ r: 6, strokeWidth: 2 }}
-                            />
-                            <Line
-                              yAxisId="right"
-                              type="monotone"
-                              dataKey="humidity"
-                              stroke="#3b82f6"
-                              name="Humidity"
-                              dot={false}
-                              isAnimationActive={false}
-                              activeDot={{ r: 6, strokeWidth: 2 }}
-                            />
-                          </ComposedChart>
-                        </ResponsiveContainer>
+                      <div className="chart-container-iotdevicead">
+                        <h4>Temperature (°C) & Humidity (%)</h4>
+                        <div className="chart-iotdevicead">
+                          <ResponsiveContainer width="100%" height={300}>
+                            <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="timestamp" tickFormatter={formatAxisDate} domain={['auto', 'auto']} tick={{ fontSize: 11 }} />
+                              <YAxis
+                                yAxisId="left"
+                                domain={[0, 50]}
+                                label={{ value: 'Temperature (°C)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }}
+                                tick={{ fontSize: 11 }}
+                              />
+                              <YAxis
+                                yAxisId="right"
+                                orientation="right"
+                                domain={[0, 100]}
+                                label={{ value: 'Humidity (%)', angle: 90, position: 'insideRight', style: { fontSize: '11px', fill: '#64748b' } }}
+                                tick={{ fontSize: 11 }}
+                              />
+                              <Tooltip content={<CustomChartTooltip />} cursor={{ stroke: '#94a3b8', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
+                              <Legend wrapperStyle={{ fontSize: '12px' }} />
+                              <Line
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="temperature"
+                                stroke="#ef4444"
+                                name="Temperature"
+                                dot={false}
+                                isAnimationActive={false}
+                                activeDot={{ r: 6, strokeWidth: 2 }}
+                              />
+                              <Line
+                                yAxisId="right"
+                                type="monotone"
+                                dataKey="humidity"
+                                stroke="#3b82f6"
+                                name="Humidity"
+                                dot={false}
+                                isAnimationActive={false}
+                                activeDot={{ r: 6, strokeWidth: 2 }}
+                              />
+                            </ComposedChart>
+                          </ResponsiveContainer>
+                        </div>
                       </div>
-                    </div>
-                  </>
-                )}
+                    </>
+                  )}
 
                 {/* Recent Readings Table */}
                 {sensorData.length > 0 && hasValidSensorData && (

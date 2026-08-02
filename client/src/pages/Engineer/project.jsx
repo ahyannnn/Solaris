@@ -259,8 +259,6 @@ const EngineerProject = () => {
       return true;
     }
 
-    
-
     return false;
   };
 
@@ -283,15 +281,35 @@ const EngineerProject = () => {
         <div className="skeleton-select"></div>
         <div className="skeleton-search"></div>
       </div>
-      <div className="projects-grid-engineerproject">
-        {[1, 2, 3, 4, 5, 6].map(i => (
-          <div key={i} className="project-card-engineerproject skeleton-card">
-            <div className="skeleton-line"></div>
-            <div className="skeleton-line small"></div>
-            <div className="skeleton-line"></div>
-            <div className="skeleton-button"></div>
-          </div>
-        ))}
+      <div className="projects-table-container-engineerproject">
+        <table className="projects-table-engineerproject">
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>Client</th>
+              <th>System</th>
+              <th>Address</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th>Financial</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[1, 2, 3, 4, 5].map(i => (
+              <tr key={i} className="skeleton-row">
+                <td><div className="skeleton-cell"></div></td>
+                <td><div className="skeleton-cell"></div></td>
+                <td><div className="skeleton-cell"></div></td>
+                <td><div className="skeleton-cell"></div></td>
+                <td><div className="skeleton-cell"></div></td>
+                <td><div className="skeleton-cell"></div></td>
+                <td><div className="skeleton-cell"></div></td>
+                <td><div className="skeleton-cell"></div></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -340,136 +358,151 @@ const EngineerProject = () => {
           </div>
         </div>
 
-        {/* Projects Grid */}
-        <div className="projects-grid-engineerproject">
-          {filteredProjects.length === 0 ? (
-            <div className="empty-state-engineerproject">
-              <FaTools className="empty-icon" />
-              <h3>No projects assigned</h3>
-              <p>You haven't been assigned to any projects yet.</p>
-            </div>
-          ) : (
-            filteredProjects.map(project => {
-              const canStart = canStartInstallation(project.status, project.paymentPreference);
-              const isInProgress = project.status === 'in_progress';
-              const isProgressPaid = project.status === 'progress_paid';
-              const isFullPaid = project.status === 'full_paid';
-
-              return (
-                <div key={project._id} className="project-card-engineerproject">
-                  <div className="card-header-engineerproject">
-                    <div>
-                      <h3>{project.projectName}</h3>
-                      <p className="project-ref">{project.projectReference}</p>
-                    </div>
-                    {getStatusBadge(project.status, project.paymentPreference)}
-                  </div>
-
-                  <div className="card-details-engineerproject">
-                    <div className="detail-item">
-                      <FaUser />
-                      <span>{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</span>
-                    </div>
-                    <div className="detail-item">
-                      <FaSolarPanel />
-                      <span>{project.systemSize} kWp | {project.systemType}</span>
-                    </div>
-                    <div className="detail-item">
-                      <FaMapMarkerAlt />
-                      <span className="truncate">
-                        {project.addressId?.houseOrBuilding} {project.addressId?.street}, {project.addressId?.barangay}
-                      </span>
-                    </div>
-                    <div className="detail-item">
-                      <FaCalendarAlt />
-                      <span>Started: {formatDate(project.startDate)}</span>
-                    </div>
-                    <div className="detail-item">
-                      <FaMoneyBillWave />
-                      <span>{getPaymentTypeLabel(project.paymentPreference)}</span>
-                    </div>
-                    
-                  </div>
-
-                  {/* Payment Info Section */}
-                  <div className="payment-info-engineerproject">
-                    <div className="payment-stats">
-                      <span className="paid-amount">Paid: {formatCurrency(project.amountPaid)}</span>
-                      <span className="total-amount">Total: {formatCurrency(project.totalCost)}</span>
-                    </div>
-                  </div>
-
-                  <div className="card-actions-engineerproject">
-                    <button
-                      className="action-btn view"
-                      onClick={() => { setSelectedProject(project); setShowDetailModal(true); }}
-                    >
-                      <FaEye /> View Details
-                    </button>
-
-                    {/* Start Installation button - for approved, initial_paid, OR full_paid */}
-                    {canStart && (
-                      <button
-                        className="action-btn start"
-                        onClick={() => {
-                          setSelectedProject(project);
-                          setProgressForm({
-                            installationNotes: '',
-                            status: 'in_progress',
-                          });
-                          setNewPhotoFiles([]);
-                          setNewPhotoPreviews([]);
-                          setShowProgressModal(true);
-                        }}
-                      >
-                        <FaTools /> Start Installation
-                      </button>
-                    )}
-
-                    {/* Update Progress button - for in_progress or progress_paid */}
-                    {(isInProgress || isProgressPaid) && (
-                      <button
-                        className="action-btn update"
-                        onClick={() => {
-                          setSelectedProject(project);
-                          setProgressForm({
-                            installationNotes: project.installationNotes || '',
-                            status: project.status,
-                          });
-                          setNewPhotoFiles([]);
-                          setNewPhotoPreviews([]);
-                          setShowProgressModal(true);
-                        }}
-                      >
-                        <FaCheckCircle /> Update Progress
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="pagination-engineerproject">
-            <button
-              className="page-btn"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-            >
-              <FaChevronLeft /> Previous
-            </button>
-            <span className="page-info">Page {currentPage} of {totalPages}</span>
-            <button
-              className="page-btn"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-            >
-              Next <FaChevronRight />
-            </button>
+        {/* Projects Table */}
+        {filteredProjects.length === 0 ? (
+          <div className="empty-state-engineerproject">
+            <FaTools className="empty-icon" />
+            <h3>No projects assigned</h3>
+            <p>You haven't been assigned to any projects yet.</p>
           </div>
+        ) : (
+          <>
+            <div className="projects-table-container-engineerproject">
+              <table className="projects-table-engineerproject">
+                <thead>
+                  <tr>
+                    <th>Project</th>
+                    <th>Client</th>
+                    <th>System</th>
+                    <th>Address</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th>Financial</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredProjects.map(project => {
+                    const canStart = canStartInstallation(project.status, project.paymentPreference);
+                    const isInProgress = project.status === 'in_progress';
+                    const isProgressPaid = project.status === 'progress_paid';
+
+                    return (
+                      <tr key={project._id}>
+                        <td data-label="Project">
+                          <div className="project-name-cell">{project.projectName}</div>
+                          <div className="project-ref-cell">{project.projectReference}</div>
+                        </td>
+                        <td data-label="Client">
+                          <div className="client-cell">
+                            <span className="client-name">{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</span>
+                            <span className="client-contact">{project.clientId?.contactNumber}</span>
+                          </div>
+                        </td>
+                        <td data-label="System">
+                          <div className="system-cell">
+                            <span className="system-size">{project.systemSize} kWp</span>
+                            <span className="system-type">{project.systemType}</span>
+                          </div>
+                        </td>
+                        <td data-label="Address">
+                          <div className="address-cell">
+                            <span className="address-text" title={`${project.addressId?.houseOrBuilding || ''} ${project.addressId?.street || ''}, ${project.addressId?.barangay || ''}, ${project.addressId?.cityMunicipality || ''}`}>
+                              {project.addressId?.houseOrBuilding} {project.addressId?.street}, {project.addressId?.barangay}
+                            </span>
+                          </div>
+                        </td>
+                        <td data-label="Payment">
+                          <div className="payment-cell">
+                            <span className="payment-label">{getPaymentTypeLabel(project.paymentPreference)}</span>
+                            <span className="payment-desc">{getPaymentTypeDescription(project.paymentPreference)}</span>
+                          </div>
+                        </td>
+                        <td data-label="Status">
+                          {getStatusBadge(project.status, project.paymentPreference)}
+                        </td>
+                        <td data-label="Financial">
+                          <div className="financial-cell">
+                            <span className="amount-paid">Paid: {formatCurrency(project.amountPaid)}</span>
+                            <span className="total-amount">Total: {formatCurrency(project.totalCost)}</span>
+                          </div>
+                        </td>
+                        <td data-label="Actions">
+                          <div className="actions-cell">
+                            <button
+                              className="action-btn view"
+                              onClick={() => { setSelectedProject(project); setShowDetailModal(true); }}
+                            >
+                              <FaEye /> View
+                            </button>
+
+                            {/* Start Installation button */}
+                            {canStart && (
+                              <button
+                                className="action-btn start"
+                                onClick={() => {
+                                  setSelectedProject(project);
+                                  setProgressForm({
+                                    installationNotes: '',
+                                    status: 'in_progress',
+                                  });
+                                  setNewPhotoFiles([]);
+                                  setNewPhotoPreviews([]);
+                                  setShowProgressModal(true);
+                                }}
+                              >
+                                <FaTools /> Start
+                              </button>
+                            )}
+
+                            {/* Update Progress button */}
+                            {(isInProgress || isProgressPaid) && (
+                              <button
+                                className="action-btn update"
+                                onClick={() => {
+                                  setSelectedProject(project);
+                                  setProgressForm({
+                                    installationNotes: project.installationNotes || '',
+                                    status: project.status,
+                                  });
+                                  setNewPhotoFiles([]);
+                                  setNewPhotoPreviews([]);
+                                  setShowProgressModal(true);
+                                }}
+                              >
+                                <FaCheckCircle /> Update
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="pagination-engineerproject">
+                <button
+                  className="page-btn"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <FaChevronLeft /> Previous
+                </button>
+                <span className="page-info">Page {currentPage} of {totalPages}</span>
+                <button
+                  className="page-btn"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next <FaChevronRight />
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         {/* Detail Modal */}

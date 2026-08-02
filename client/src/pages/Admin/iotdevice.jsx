@@ -51,7 +51,8 @@ const IoTDevice = () => {
     model: '',
     manufacturer: 'Salfer Engineering',
     serialNumber: '',
-    firmwareVersion: '1.0.0'
+    firmwareVersion: '1.0.0',
+    status: 'available'
   });
   const [stats, setStats] = useState({
     total: 0,
@@ -68,6 +69,31 @@ const IoTDevice = () => {
     { name: 'Deployed', count: 0 },
     { name: 'Maintenance', count: 0 }
   ]);
+
+  // Status options for dropdown
+  const STATUS_OPTIONS = [
+    { value: 'available', label: 'Available' },
+    { value: 'assigned', label: 'Assigned' },
+    { value: 'deployed', label: 'Deployed' },
+    { value: 'data_collecting', label: 'Data Collecting' },
+    { value: 'maintenance', label: 'Maintenance' },
+    { value: 'retired', label: 'Retired' },
+    { value: 'retrieved', label: 'Retrieved' }
+  ];
+
+  // Get status badge class
+  const getStatusBadgeClass = (status) => {
+    const statusMap = {
+      available: 'available',
+      assigned: 'assigned',
+      deployed: 'deployed',
+      data_collecting: 'data_collecting',
+      maintenance: 'maintenance',
+      retired: 'retired',
+      retrieved: 'retrieved'
+    };
+    return statusMap[status] || status;
+  };
 
   useEffect(() => {
     fetchDevices();
@@ -174,15 +200,32 @@ const IoTDevice = () => {
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
+      
+      // Check if status is being changed
+      const statusChanged = formData.status !== selectedDevice.status;
+      
+      const payload = {
+        deviceName: formData.deviceName,
+        model: formData.model,
+        manufacturer: formData.manufacturer,
+        serialNumber: formData.serialNumber,
+        firmwareVersion: formData.firmwareVersion
+      };
+      
+      // Only include status if it's changed and allowed
+      if (statusChanged) {
+        // Don't allow changing status of deployed/assigned devices
+        if (['deployed', 'data_collecting'].includes(selectedDevice.status)) {
+          showToast(`Cannot change status of a ${selectedDevice.status} device`, 'error');
+          setIsSubmitting(false);
+          return;
+        }
+        payload.status = formData.status;
+      }
+      
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/admin/devices/${selectedDevice._id}`,
-        {
-          deviceName: formData.deviceName,
-          model: formData.model,
-          manufacturer: formData.manufacturer,
-          serialNumber: formData.serialNumber,
-          firmwareVersion: formData.firmwareVersion
-        },
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -227,7 +270,8 @@ const IoTDevice = () => {
       model: '',
       manufacturer: 'Salfer Engineering',
       serialNumber: '',
-      firmwareVersion: '1.0.0'
+      firmwareVersion: '1.0.0',
+      status: 'available'
     });
   };
 
@@ -238,7 +282,8 @@ const IoTDevice = () => {
       model: device.model || '',
       manufacturer: device.manufacturer || 'Salfer Engineering',
       serialNumber: device.serialNumber || '',
-      firmwareVersion: device.firmwareVersion || '1.0.0'
+      firmwareVersion: device.firmwareVersion || '1.0.0',
+      status: device.status || 'available'
     });
     setModalMode('edit');
     setShowDeviceModal(true);
@@ -272,7 +317,8 @@ const IoTDevice = () => {
       deployed: 'deployed',
       data_collecting: 'data_collecting',
       maintenance: 'maintenance',
-      retired: 'retired'
+      retired: 'retired',
+      retrieved: 'retrieved'
     };
     const className = statusMap[status] || status;
     return <span className={`status-badge-iotdevice ${className}`}>
@@ -295,8 +341,8 @@ const IoTDevice = () => {
       { label: 'View', icon: <FaEye />, action: () => openViewModal(device), color: 'primary' }
     ];
 
-    // Allow edit for available and maintenance devices
-    if (device.status === 'available' || device.status === 'maintenance' || device.status === 'retrieved') {
+    // Allow edit for available, maintenance, and retrieved devices
+    if (['available', 'maintenance', 'retrieved'].includes(device.status)) {
       actions.push({ 
         label: 'Edit', 
         icon: <FaEdit />, 
@@ -305,8 +351,8 @@ const IoTDevice = () => {
       });
     }
 
-    // Allow delete only for available devices
-    if (device.status === 'available' || device.status === 'maintenance' || device.status === 'retrieved') {
+    // Allow delete only for available, maintenance, and retrieved devices
+    if (['available', 'maintenance', 'retrieved'].includes(device.status)) {
       actions.push({ 
         label: 'Delete', 
         icon: <FaTrash />, 
@@ -894,6 +940,30 @@ const IoTDevice = () => {
                       />
                     </div>
                   </div>
+
+                  {/* Status Dropdown - Only show in Edit mode */}
+                  {modalMode === 'edit' && (
+                    <div className="iot-form-group-iotdevice">
+                      <label>Status</label>
+                      <select
+                        value={formData.status}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                        className="iot-form-select-iotdevice"
+                        disabled={isSubmitting || ['deployed', 'data_collecting'].includes(selectedDevice?.status)}
+                      >
+                        {STATUS_OPTIONS.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      {['deployed', 'data_collecting'].includes(selectedDevice?.status) && (
+                        <small className="iot-status-warning-iotdevice">
+                          <FaExclamationTriangle /> Status cannot be changed for {selectedDevice?.status} devices
+                        </small>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
               

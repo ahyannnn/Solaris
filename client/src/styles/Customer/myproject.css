@@ -173,10 +173,23 @@
   font-size: 0.85rem;
 }
 
-.full-payment-tag {
+/* Payment Plan Tags */
+.payment-plan-tag {
   background: var(--sidebar-accent) !important;
   color: #FFFFFF !important;
   font-weight: 600;
+}
+
+.payment-plan-tag.full {
+  background: #10B981 !important;
+}
+
+.payment-plan-tag.fifty-fifty {
+  background: #3B82F6 !important;
+}
+
+.payment-plan-tag.thirty-sixty-ten {
+  background: #8B5CF6 !important;
 }
 
 /* ============================================
@@ -275,6 +288,35 @@
 
 .cuspro-stat .solar-amount {
   color: var(--sidebar-accent);
+}
+
+/* Payment Plan Info in Progress Card */
+.cuspro-payment-plan-info {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cuspro-payment-plan-info .plan-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.cuspro-payment-plan-info .plan-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cuspro-payment-plan-info .plan-detail {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 
 /* ============================================
@@ -430,6 +472,12 @@
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+.cuspro-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
 }
 
 /* ============================================
@@ -911,7 +959,7 @@
   transition: all var(--transition-base);
 }
 
-.cuspro-btn-primary:hover {
+.cuspro-btn-primary:hover:not(:disabled) {
   background: var(--sidebar-accent-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
@@ -1281,6 +1329,14 @@
     font-size: 0.65rem;
   }
 
+  .cuspro-payment-plan-info .plan-name {
+    font-size: 0.8rem;
+  }
+
+  .cuspro-payment-plan-info .plan-detail {
+    font-size: 0.7rem;
+  }
+
   .cuspro-photos-card {
     padding: 1.25rem;
   }
@@ -1525,6 +1581,24 @@
 
   .cuspro-stat strong {
     font-size: 0.95rem;
+  }
+
+  .cuspro-payment-plan-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .cuspro-payment-plan-info .plan-label {
+    font-size: 0.65rem;
+  }
+
+  .cuspro-payment-plan-info .plan-name {
+    font-size: 0.8rem;
+  }
+
+  .cuspro-payment-plan-info .plan-detail {
+    font-size: 0.7rem;
   }
 
   .cuspro-photos-card {

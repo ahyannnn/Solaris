@@ -236,9 +236,12 @@ export const useSystemCalculation = () => {
   };
 
   const calculateByElectricity = (systemType) => {
-    const day = parseFloat(dayConsumption) || 0;
-    const night = parseFloat(nightConsumption) || 0;
-    const total = day + night;
+    const monthlybill = parseFloat(monthlyBill) || 0;
+    const rate = parseFloat(ratePerKwh) || 12;
+    const total = monthlybill / (rate * 30); // Convert monthly bill to daily consumption in kWh
+    console.log('===== Electricity Calculation Debug =====');
+    console.log('monthlyBill:', monthlyBill);
+    console.log('ratePerKwh:', ratePerKwh);
 
     if (total === 0) {
       alert('No consumption data available. Please check client data.');

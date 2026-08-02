@@ -156,58 +156,78 @@ const MyProject = () => {
   };
 
   const getProjectProgress = (project) => {
-  let progress = 0;
-  
-  if (project.paymentPreference === 'full') {
-    if (project.status === 'completed') progress = 100;
-    else if (project.status === 'in_progress') progress = 60;
-    else if (project.status === 'full_paid') progress = 40;
-    else if (project.status === 'approved') progress = 15;
-    else progress = 5;
-  } else {
-    const initialPaid = isPaymentPaid(project, 'initial');
-    const progressPaid = isPaymentPaid(project, 'progress');
-    const finalPaid = isPaymentPaid(project, 'final');
+    let progress = 0;
+    const paymentPreference = project.paymentPreference || 'full';
+    
+    if (paymentPreference === 'full') {
+      if (project.status === 'completed') progress = 100;
+      else if (project.status === 'in_progress') progress = 60;
+      else if (project.status === 'full_paid') progress = 40;
+      else if (project.status === 'approved') progress = 15;
+      else progress = 5;
+    } else if (paymentPreference === 'fifty_fifty') {
+      const initialPaid = isPaymentPaid(project, 'initial');
+      const finalPaid = isPaymentPaid(project, 'final');
 
-    if (finalPaid) {
-      progress = project.status === 'completed' ? 100 : 90;
-    } else if (progressPaid) {
-      progress = 75;
-    } else if (initialPaid) {
-      progress = 30;
-    } else if (project.status === 'approved') {
-      progress = 15;
-    } else {
-      progress = 5;
+      if (finalPaid) {
+        progress = project.status === 'completed' ? 100 : 90;
+      } else if (initialPaid) {
+        progress = 45;
+      } else if (project.status === 'approved') {
+        progress = 15;
+      } else {
+        progress = 5;
+      }
+    } else if (paymentPreference === 'thirty_sixty_ten') {
+      const initialPaid = isPaymentPaid(project, 'initial');
+      const progressPaid = isPaymentPaid(project, 'progress');
+      const finalPaid = isPaymentPaid(project, 'final');
+
+      if (finalPaid) {
+        progress = project.status === 'completed' ? 100 : 90;
+      } else if (progressPaid) {
+        progress = 75;
+      } else if (initialPaid) {
+        progress = 30;
+      } else if (project.status === 'approved') {
+        progress = 15;
+      } else {
+        progress = 5;
+      }
     }
-  }
-  
-  // Cap progress at 100%
-  return Math.min(progress, 100);
-};
+    
+    return Math.min(progress, 100);
+  };
 
   const getNextStepMessage = (project) => {
     const initialPaid = isPaymentPaid(project, 'initial');
     const progressPaid = isPaymentPaid(project, 'progress');
     const finalPaid = isPaymentPaid(project, 'final');
     const fullPaid = isPaymentPaid(project, 'full');
+    const paymentPreference = project.paymentPreference || 'full';
 
     if (project.status === 'quoted') {
       return { message: 'Waiting for admin approval', action: 'Admin will review your project soon' };
     }
-    if (project.status === 'approved' && !initialPaid && !fullPaid) {
+    if (project.status === 'approved' && !initialPaid && !fullPaid && paymentPreference !== 'full') {
       return { message: 'Ready for payment', action: 'Complete initial payment to start installation' };
     }
-    if (fullPaid && project.paymentPreference === 'full') {
+    if (project.status === 'approved' && !fullPaid && paymentPreference === 'full') {
+      return { message: 'Ready for full payment', action: 'Complete full payment to start installation' };
+    }
+    if (fullPaid && paymentPreference === 'full') {
       return { message: 'Payment completed', action: 'Installation will begin soon' };
     }
     if (finalPaid && project.status !== 'completed') {
       return { message: 'Final payment received', action: 'Engineer will complete the installation shortly' };
     }
-    if (initialPaid && !progressPaid && !finalPaid) {
+    if (initialPaid && !progressPaid && !finalPaid && paymentPreference === 'thirty_sixty_ten') {
       return { message: 'Installation starting soon', action: 'Engineer will be assigned shortly' };
     }
-    if (progressPaid && !finalPaid) {
+    if (initialPaid && !finalPaid && paymentPreference === 'fifty_fifty') {
+      return { message: 'Installation starting soon', action: 'Engineer will be assigned shortly' };
+    }
+    if (progressPaid && !finalPaid && paymentPreference === 'thirty_sixty_ten') {
       return { message: 'Installation in progress', action: 'Your solar system is being installed' };
     }
     if (project.status === 'completed') {
@@ -237,16 +257,21 @@ const MyProject = () => {
         { key: 'installation', title: 'Installation', completed: ['full_paid', 'in_progress', 'completed'].includes(project.status), date: project.startDate },
         { key: 'complete', title: 'Completion', completed: project.status === 'completed', date: project.actualCompletionDate }
       ];
-    } else {
-      const isProgressCompleted = progressPaid || finalPaid;
-      const isInitialCompleted = initialPaid || finalPaid;
-      
+    } else if (project.paymentPreference === 'fifty_fifty') {
       return [
         { key: 'quotation', title: 'Quotation', completed: true, date: project.createdAt },
-        { key: 'initial', title: 'Initial (30%)', completed: isInitialCompleted, date: project.paymentSchedule?.find(p => p.type === 'initial')?.paidAt },
+        { key: 'initial', title: 'Initial (50%)', completed: initialPaid || finalPaid, date: project.paymentSchedule?.find(p => p.type === 'initial')?.paidAt },
+        { key: 'installation', title: 'Installation', completed: ['in_progress', 'full_paid', 'completed'].includes(project.status) || finalPaid, date: project.startDate },
+        { key: 'final', title: 'Final (50%)', completed: finalPaid, date: project.paymentSchedule?.find(p => p.type === 'final')?.paidAt },
+        { key: 'complete', title: 'Handover', completed: project.status === 'completed', date: project.actualCompletionDate }
+      ];
+    } else { // thirty_sixty_ten
+      return [
+        { key: 'quotation', title: 'Quotation', completed: true, date: project.createdAt },
+        { key: 'initial', title: 'Initial (30%)', completed: initialPaid || finalPaid, date: project.paymentSchedule?.find(p => p.type === 'initial')?.paidAt },
         { key: 'installation', title: 'Installation', completed: ['in_progress', 'progress_paid', 'full_paid', 'completed'].includes(project.status) || finalPaid, date: project.startDate },
-        { key: 'progress', title: 'Progress (40%)', completed: isProgressCompleted, date: project.paymentSchedule?.find(p => p.type === 'progress')?.paidAt },
-        { key: 'final', title: 'Final (30%)', completed: finalPaid, date: project.paymentSchedule?.find(p => p.type === 'final')?.paidAt },
+        { key: 'progress', title: 'Progress (60%)', completed: progressPaid || finalPaid, date: project.paymentSchedule?.find(p => p.type === 'progress')?.paidAt },
+        { key: 'final', title: 'Final (10%)', completed: finalPaid, date: project.paymentSchedule?.find(p => p.type === 'final')?.paidAt },
         { key: 'complete', title: 'Handover', completed: project.status === 'completed', date: project.actualCompletionDate }
       ];
     }
@@ -268,6 +293,24 @@ const MyProject = () => {
       return 'Engineer assigned';
     }
     return null;
+  };
+
+  const getPaymentTypeLabel = (paymentPreference) => {
+    const labels = {
+      'full': 'Full Payment',
+      'fifty_fifty': '50% - 50% Installment',
+      'thirty_sixty_ten': '30% - 60% - 10% Installment'
+    };
+    return labels[paymentPreference] || 'Installment Plan';
+  };
+
+  const getPaymentTypeDetails = (paymentPreference) => {
+    const details = {
+      'full': 'One-time payment',
+      'fifty_fifty': '50% downpayment, 50% final',
+      'thirty_sixty_ten': '30% downpayment, 60% progress, 10% retention'
+    };
+    return details[paymentPreference] || '';
   };
 
   const openPhotoModal = (photos, index) => {
@@ -373,8 +416,6 @@ const MyProject = () => {
       </Helmet>
 
       <div className="cuspro-page">
-        
-
         {/* Project Selector */}
         {projects.length > 1 && (
           <div className="cuspro-selector-card">
@@ -385,7 +426,7 @@ const MyProject = () => {
             >
               {projects.map(project => (
                 <option key={project._id} value={project._id}>
-                  {project.projectName} {project.paymentPreference === 'full' ? '· Full Payment' : '· Installment'}
+                  {project.projectName} {getPaymentTypeLabel(project.paymentPreference)}
                 </option>
               ))}
             </select>
@@ -409,9 +450,7 @@ const MyProject = () => {
                 <span><FaSolarPanel /> {selectedProject.systemSize} kWp</span>
                 <span>{selectedProject.systemType === 'grid-tie' ? 'Grid-Tie' : selectedProject.systemType === 'hybrid' ? 'Hybrid' : 'Off-Grid'}</span>
                 <span><FaMapMarkerAlt /> {selectedProject.addressId?.barangay || 'Location TBD'}</span>
-                {selectedProject.paymentPreference === 'full' && (
-                  <span className="full-payment-tag">Full Payment</span>
-                )}
+                <span className="payment-plan-tag">{getPaymentTypeLabel(selectedProject.paymentPreference)}</span>
               </div>
             </div>
 
@@ -442,7 +481,6 @@ const MyProject = () => {
                         strokeDashoffset={`${2 * Math.PI * 52 * (1 - animatedProgress / 100)}`}
                         transform="rotate(-90 60 60)"
                       />
-                      {/* Text group with reverse rotation to keep text horizontal */}
                       <g transform="rotate(90 60 60)">
                         <text 
                           x="60" 
@@ -483,6 +521,11 @@ const MyProject = () => {
                       <strong>{formatCurrency(selectedProject.balance)}</strong>
                     </div>
                   </div>
+                  <div className="cuspro-payment-plan-info">
+                    <span className="plan-label">Payment Plan:</span>
+                    <span className="plan-name">{getPaymentTypeLabel(selectedProject.paymentPreference)}</span>
+                    <span className="plan-detail">({getPaymentTypeDetails(selectedProject.paymentPreference)})</span>
+                  </div>
                 </div>
 
                 {/* Site Photos */}
@@ -517,14 +560,23 @@ const MyProject = () => {
                     <p>{nextStep.action}</p>
                   </div>
                   <div className="cuspro-next-actions">
-                    {selectedProject.status === 'approved' && !isPaymentPaid(selectedProject, 'initial') && !isPaymentPaid(selectedProject, 'full') && (
-                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Payment</button>
+                    {selectedProject.status === 'approved' && !isPaymentPaid(selectedProject, 'initial') && !isPaymentPaid(selectedProject, 'full') && selectedProject.paymentPreference !== 'full' && (
+                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Initial Payment</button>
                     )}
-                    {(selectedProject.status === 'in_progress' && !isPaymentPaid(selectedProject, 'progress') && !isPaymentPaid(selectedProject, 'final')) && (
+                    {selectedProject.status === 'approved' && !isPaymentPaid(selectedProject, 'full') && selectedProject.paymentPreference === 'full' && (
+                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Full Payment</button>
+                    )}
+                    {(selectedProject.status === 'in_progress' && !isPaymentPaid(selectedProject, 'progress') && !isPaymentPaid(selectedProject, 'final') && selectedProject.paymentPreference === 'thirty_sixty_ten') && (
                       <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Progress Payment</button>
                     )}
-                    {(selectedProject.status === 'progress_paid' && !isPaymentPaid(selectedProject, 'final')) && (
+                    {(selectedProject.status === 'in_progress' && !isPaymentPaid(selectedProject, 'final') && selectedProject.paymentPreference === 'fifty_fifty') && (
                       <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Final Payment</button>
+                    )}
+                    {(selectedProject.status === 'progress_paid' && !isPaymentPaid(selectedProject, 'final') && selectedProject.paymentPreference === 'thirty_sixty_ten') && (
+                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Final Payment</button>
+                    )}
+                    {selectedProject.status === 'in_progress' && selectedProject.paymentPreference === 'full' && (
+                      <button className="cuspro-btn-primary" disabled>Installation in Progress</button>
                     )}
                   </div>
                 </div>
@@ -611,10 +663,16 @@ const MyProject = () => {
                       <div className="cuspro-payment-mini">
                         {selectedProject.paymentSchedule?.map((payment) => {
                           const status = getPaymentStatus(selectedProject, payment.type);
+                          const paymentLabels = {
+                            'full': 'Full (100%)',
+                            'initial': selectedProject.paymentPreference === 'fifty_fifty' ? 'Initial (50%)' : 'Initial (30%)',
+                            'progress': 'Progress (60%)',
+                            'final': selectedProject.paymentPreference === 'fifty_fifty' ? 'Final (50%)' : 'Final (10%)'
+                          };
                           return (
                             <div key={payment.type} className="cuspro-payment-mini-item">
                               <div>
-                                <span>{payment.type === 'initial' ? 'Initial (30%)' : payment.type === 'progress' ? 'Progress (40%)' : payment.type === 'final' ? 'Final (30%)' : 'Full (100%)'}</span>
+                                <span>{paymentLabels[payment.type] || payment.type}</span>
                                 <strong>{formatCurrency(payment.amount)}</strong>
                               </div>
                               <span className={`cuspro-payment-mini-status ${status.status}`}>{status.text}</span>
@@ -644,11 +702,17 @@ const MyProject = () => {
                   {selectedProject.paymentSchedule?.length > 0 ? (
                     selectedProject.paymentSchedule.map((payment) => {
                       const status = getPaymentStatus(selectedProject, payment.type);
+                      const paymentLabels = {
+                        'full': 'Full Payment (100%)',
+                        'initial': selectedProject.paymentPreference === 'fifty_fifty' ? 'Initial Deposit (50%)' : 'Initial Deposit (30%)',
+                        'progress': 'Progress Payment (60%)',
+                        'final': selectedProject.paymentPreference === 'fifty_fifty' ? 'Final Payment (50%)' : 'Final Payment (10%)'
+                      };
                       return (
                         <div key={payment.type} className="cuspro-payment-full-item">
                           <div className="cuspro-payment-full-header">
                             <div>
-                              <h4>{payment.type === 'initial' ? 'Initial Deposit (30%)' : payment.type === 'progress' ? 'Progress Payment (40%)' : payment.type === 'final' ? 'Final Payment (30%)' : 'Full Payment (100%)'}</h4>
+                              <h4>{paymentLabels[payment.type] || payment.type}</h4>
                               <p>Due: {formatDate(payment.dueDate)}</p>
                             </div>
                             <span className={`cuspro-payment-full-status ${status.status}`}>{status.text}</span>

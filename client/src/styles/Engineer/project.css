@@ -1,4 +1,4 @@
-/* src/styles/Engineer/project.css - ALIGNED GLOBAL DESIGN */
+/* src/styles/Engineer/project.css - TABLE DESIGN WITH PHOTO UPLOAD */
 
 :root {
   /* Global Admin Colors */
@@ -156,180 +156,173 @@
 }
 
 /* ============================================
-   TABLE CONTAINER (Blue Header, Sharp)
+   PROJECTS GRID - CARD LAYOUT
    ============================================ */
-.table-container-engineerproject {
+.projects-grid-engineerproject {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.project-card-engineerproject {
   background: #FFFFFF;
   border: 1px solid var(--gray-200);
-  border-radius: 0;
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-card);
 }
 
-.projects-table-engineerproject {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 1000px;
-  font-size: 14px;
+.project-card-engineerproject:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
-.projects-table-engineerproject thead {
-  background: var(--primary);
-  border-bottom: 1px solid var(--gray-200);
-}
-
-.projects-table-engineerproject th {
-  text-align: left;
-  padding: 12px 16px;
-  font-weight: 600;
-  color: #FFFFFF;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: none;
-}
-
-.projects-table-engineerproject td {
-  padding: 14px 16px;
-  color: var(--gray-700);
-  border-bottom: 1px solid var(--gray-100);
-  vertical-align: middle;
-}
-
-.projects-table-engineerproject tbody tr {
-  transition: background var(--transition-base);
-}
-
-.projects-table-engineerproject tbody tr:hover td {
-  background: var(--gray-50);
-}
-
-.projects-table-engineerproject tbody tr:nth-child(even) {
-  background: #FAFBFC;
-}
-
-.projects-table-engineerproject tbody tr:nth-child(even):hover td {
-  background: var(--gray-100);
-}
-
-.projects-table-engineerproject tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.clickable-row {
-  cursor: pointer;
-}
-
-/* ============================================
-   CELL STYLES
-   ============================================ */
-.project-cell {
+/* Card Header */
+.card-header-engineerproject {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--gray-100);
 }
 
-.project-name {
-  font-size: 14px;
-  font-weight: 500;
+.card-header-engineerproject h3 {
+  font-size: 16px;
+  font-weight: 600;
   color: var(--gray-900);
+  margin: 0 0 4px 0;
 }
 
-.project-ref {
+.card-header-engineerproject .project-ref {
   font-size: 12px;
   color: var(--gray-500);
   font-family: monospace;
+  margin: 0;
 }
 
-.client-cell {
+/* Card Details */
+.card-details-engineerproject {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
-.client-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--gray-900);
-}
-
-.client-email {
-  font-size: 12px;
-  color: var(--gray-500);
-}
-
-.system-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.system-cell span:first-child {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--gray-900);
-}
-
-.system-type {
-  font-size: 12px;
-  color: var(--gray-500);
-}
-
-.payment-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.payment-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--gray-900);
-}
-
-.payment-detail {
-  font-size: 11px;
-  color: var(--gray-500);
-}
-
-.amount-cell,
-.paid-cell {
-  font-weight: 600;
-  color: var(--gray-900);
-  font-size: 14px;
-}
-
-/* ============================================
-   PROGRESS BAR
-   ============================================ */
-.progress-bar-cell {
+.detail-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 80px;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--gray-700);
 }
 
-.progress-bar-bg {
-  flex: 1;
-  height: 6px;
-  background: var(--gray-100);
-  border-radius: 3px;
+.detail-item svg {
+  color: var(--gray-500);
+  font-size: 14px;
+  min-width: 16px;
+}
+
+.detail-item .truncate {
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.progress-bar-fill {
-  height: 100%;
-  background: var(--primary);
-  border-radius: 3px;
-  transition: width 0.5s ease;
+.full-paid-badge {
+  background: var(--success-light);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  margin-top: 4px;
 }
 
-.progress-percent {
+.full-paid-text {
+  color: var(--success);
+  font-weight: 500;
   font-size: 12px;
+}
+
+/* Payment Info */
+.payment-info-engineerproject {
+  background: var(--gray-50);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.payment-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.paid-amount {
   font-weight: 600;
+  color: var(--success);
+  font-size: 14px;
+}
+
+.total-amount {
+  font-weight: 500;
+  color: var(--gray-700);
+  font-size: 14px;
+}
+
+/* Card Actions */
+.card-actions-engineerproject {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  flex: 1;
+  justify-content: center;
+  min-width: 100px;
+}
+
+.action-btn.view {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+.action-btn.view:hover {
+  background: var(--gray-200);
   color: var(--gray-900);
-  min-width: 35px;
+}
+
+.action-btn.start {
+  background: var(--primary);
+  color: #FFFFFF;
+}
+
+.action-btn.start:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.action-btn.update {
+  background: var(--success);
+  color: #FFFFFF;
+}
+
+.action-btn.update:hover {
+  background: var(--success-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
 }
 
 /* ============================================
@@ -380,34 +373,29 @@
 }
 
 /* ============================================
-   VIEW BUTTON
+   EXISTING PHOTOS INFO
    ============================================ */
-.view-btn-engineerproject {
-  display: inline-flex;
+.existing-photos-info {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: var(--primary);
-  color: #FFFFFF;
-  border: none;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--gray-50);
   border-radius: var(--radius-sm);
+  margin-bottom: 16px;
   font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-base);
-  white-space: nowrap;
+  color: var(--gray-500);
 }
 
-.view-btn-engineerproject:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+.existing-photos-info svg {
+  color: var(--gray-400);
 }
 
 /* ============================================
    EMPTY STATE
    ============================================ */
 .empty-state-engineerproject {
+  grid-column: 1 / -1;
   text-align: center;
   padding: 48px 20px;
   color: var(--gray-500);
@@ -475,36 +463,8 @@
   color: var(--gray-500);
 }
 
-/* Solid Blue Active Page Button */
-.page-number {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 36px;
-  height: 36px;
-  padding: 0 8px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  color: var(--gray-500);
-  cursor: pointer;
-  transition: all var(--transition-base);
-}
-
-.page-number:hover:not(.active) {
-  background: var(--gray-50);
-  color: var(--gray-900);
-}
-
-.page-number.active {
-  background: var(--primary);
-  color: #FFFFFF;
-  border-color: var(--primary);
-}
-
 /* ============================================
-   MODAL (No X Button)
+   MODAL - DETAIL VIEW
    ============================================ */
 .modal-overlay-engineerproject {
   position: fixed;
@@ -531,6 +491,7 @@
   padding: 28px 32px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   animation: modalFadeIn 0.25s ease;
+  position: relative;
 }
 
 @keyframes modalFadeIn {
@@ -547,7 +508,22 @@
   border-bottom: 1px solid var(--gray-200);
 }
 
-/* X button removed — only close buttons */
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: color var(--transition-base);
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: var(--gray-900);
+}
 
 .detail-section {
   margin-bottom: 20px;
@@ -611,7 +587,7 @@
   color: var(--gray-900);
 }
 
-/* Photo Grid */
+/* Photo Grid - Detail Modal */
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 120px), 1fr));
@@ -680,6 +656,276 @@
 }
 
 /* ============================================
+   PROGRESS MODAL - WITH PHOTO UPLOAD
+   ============================================ */
+.progress-modal {
+  max-width: 640px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 6px;
+}
+
+.form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--gray-900);
+  resize: vertical;
+  transition: border-color var(--transition-base);
+  min-height: 100px;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.form-group select {
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--gray-900);
+  background: #FFFFFF;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 10px;
+  transition: all var(--transition-base);
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* Photo Upload Area */
+.photo-upload-area {
+  border: 2px dashed var(--gray-200);
+  border-radius: var(--radius-sm);
+  padding: 24px;
+  text-align: center;
+  transition: all var(--transition-base);
+  background: var(--gray-50);
+}
+
+.photo-upload-area:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+/* WHITE UPLOAD BUTTON */
+.upload-white-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 24px;
+  background: #FFFFFF;
+  color: var(--gray-700);
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.upload-white-btn:hover {
+  background: var(--gray-50);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+}
+
+.upload-white-btn svg {
+  color: var(--gray-500);
+}
+
+.upload-white-btn:hover svg {
+  color: var(--primary);
+}
+
+.upload-white-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+/* Photo Preview Grid */
+.photo-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 100px), 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.photo-preview-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--gray-200);
+}
+
+.photo-preview-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-photo-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  background: rgba(239, 68, 68, 0.9);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-size: 10px;
+}
+
+.remove-photo-btn:hover {
+  background: var(--danger);
+  transform: scale(1.1);
+}
+
+/* Modal Actions - Side by Side */
+.modal-actions-side-by-side {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--gray-200);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.action-buttons-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Upload Photos Button */
+.upload-photos-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: var(--gray-100);
+  color: var(--gray-700);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.upload-photos-btn:hover:not(:disabled) {
+  background: var(--gray-200);
+  color: var(--gray-900);
+  border-color: var(--gray-300);
+}
+
+.upload-photos-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.upload-photos-btn svg {
+  font-size: 14px;
+}
+
+/* Cancel Button in Progress Modal */
+.cancel-btn {
+  padding: 10px 24px;
+  background: #FFFFFF;
+  color: var(--gray-500);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.cancel-btn:hover {
+  background: var(--gray-50);
+  color: var(--gray-900);
+}
+
+/* Update Button */
+.update-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 28px;
+  background: var(--primary);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.update-btn:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.update-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spinning {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
    SKELETON LOADING
    ============================================ */
 .skeleton-line {
@@ -698,6 +944,11 @@
 .skeleton-line.medium {
   height: 18px;
   width: 350px;
+}
+
+.skeleton-line.small {
+  height: 14px;
+  width: 120px;
 }
 
 .skeleton-select {
@@ -719,25 +970,21 @@
   border-radius: var(--radius-sm);
 }
 
-.skeleton-table {
-  height: 400px;
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
-  padding: 16px;
+.skeleton-card {
+  height: 280px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.skeleton-table-header {
-  height: 44px;
-  background: var(--gray-200);
+.skeleton-button {
+  height: 36px;
+  background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
   border-radius: var(--radius-sm);
-  margin-bottom: 12px;
-}
-
-.skeleton-table-row {
-  height: 56px;
-  background: var(--gray-100);
-  border-radius: var(--radius-sm);
-  margin-bottom: 8px;
+  margin-top: auto;
 }
 
 @keyframes shimmer {
@@ -746,7 +993,7 @@
 }
 
 /* ============================================
-   RESPONSIVE CARD LAYOUT
+   RESPONSIVE - KEEP TABLE ON MOBILE
    ============================================ */
 
 /* Tablets */
@@ -754,18 +1001,21 @@
   .engineer-project-container {
     padding: 24px;
   }
-  .projects-table-engineerproject {
-    min-width: 900px;
+  
+  .projects-grid-engineerproject {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   }
+  
   .filter-group-engineerproject {
     min-width: 150px;
   }
+  
   .search-group-engineerproject {
     max-width: 400px;
   }
 }
 
-/* Mobile - Convert to Cards */
+/* Mobile */
 @media (max-width: 768px) {
   .engineer-project-container {
     padding: 16px;
@@ -775,8 +1025,13 @@
     padding: 0 0 16px 0;
   }
 
+  .project-header-engineerproject h1 {
+    font-size: 22px;
+  }
+
   .project-filters-engineerproject {
     flex-direction: column;
+    gap: 12px;
   }
 
   .filter-group-engineerproject {
@@ -790,114 +1045,21 @@
     max-width: 100%;
   }
 
-  /* Hide table header and convert rows to cards */
-  .projects-table-engineerproject thead {
-    display: none;
+  .projects-grid-engineerproject {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
-  .projects-table-engineerproject tbody tr {
-    display: block;
-    background: #FFFFFF;
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-sm);
+  .project-card-engineerproject {
     padding: 16px;
-    margin-bottom: 16px;
-    box-shadow: var(--shadow-card);
-    transition: all var(--transition-base);
-    position: relative;
   }
 
-  .projects-table-engineerproject tbody tr:last-child {
-    margin-bottom: 0;
+  .card-actions-engineerproject {
+    flex-direction: column;
   }
 
-  .projects-table-engineerproject tbody tr:hover {
-    box-shadow: var(--shadow-sm);
-    transform: translateY(-2px);
-  }
-
-  .projects-table-engineerproject td {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 0;
-    border: none;
-    border-bottom: 1px solid var(--gray-100);
-    background: transparent !important;
-    gap: 12px;
-  }
-
-  .projects-table-engineerproject td:last-child {
-    border-bottom: none;
-  }
-
-  /* Add labels before each cell content */
-  .projects-table-engineerproject td::before {
-    content: attr(data-label);
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--gray-500);
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    flex-shrink: 0;
-    min-width: 70px;
-  }
-
-  .projects-table-engineerproject td > * {
-    flex: 1;
-    text-align: right;
-  }
-
-  .project-cell,
-  .client-cell,
-  .system-cell,
-  .payment-cell {
-    align-items: flex-end;
-    text-align: right;
-  }
-
-  .project-ref {
-    font-size: 10px;
-  }
-
-  .client-email {
-    font-size: 10px;
-  }
-
-  .system-type {
-    font-size: 10px;
-  }
-
-  .payment-detail {
-    font-size: 10px;
-  }
-
-  .status-badge-engineerproject,
-  .payment-status-badge {
-    text-align: center;
-    min-width: 60px;
-  }
-
-  .progress-bar-cell {
-    justify-content: flex-end;
-    min-width: 100px;
-  }
-
-  .progress-bar-cell .progress-bar-bg {
-    max-width: 100px;
-  }
-
-  /* View button in card */
-  .view-btn-engineerproject {
+  .action-btn {
     width: 100%;
-    justify-content: center;
-    padding: 10px;
-    margin-top: 4px;
-  }
-
-  /* Empty state in card view */
-  .empty-state-engineerproject {
-    padding: 40px 20px;
   }
 
   /* Modal adjustments */
@@ -911,11 +1073,24 @@
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 100px), 1fr));
   }
 
-  .modal-actions {
-    flex-direction: column-reverse;
+  .photo-preview-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 80px), 1fr));
   }
 
-  .modal-actions button {
+  .modal-actions-side-by-side {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .action-buttons-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .upload-photos-btn,
+  .update-btn,
+  .cancel-btn {
     width: 100%;
     justify-content: center;
   }
@@ -938,53 +1113,40 @@
   }
 
   .project-header-engineerproject h1 {
-    font-size: 22px;
+    font-size: 20px;
   }
 
-  .projects-table-engineerproject tbody tr {
+  .project-card-engineerproject {
     padding: 12px;
-    margin-bottom: 12px;
   }
 
-  .projects-table-engineerproject td {
-    padding: 6px 0;
+  .card-header-engineerproject h3 {
+    font-size: 14px;
+  }
+
+  .detail-item {
     font-size: 12px;
-    flex-wrap: wrap;
   }
 
-  .projects-table-engineerproject td::before {
-    font-size: 10px;
-    min-width: 60px;
+  .payment-stats {
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
   }
 
-  .project-name,
-  .client-name,
-  .system-cell span:first-child {
+  .paid-amount,
+  .total-amount {
     font-size: 13px;
   }
 
-  .payment-label {
-    font-size: 12px;
-  }
-
-  .amount-cell,
-  .paid-cell {
-    font-size: 12px;
-  }
-
-  .view-btn-engineerproject {
-    font-size: 12px;
-    padding: 8px 12px;
-  }
-
   .status-badge-engineerproject {
-    font-size: 11px;
-    padding: 2px 10px;
-  }
-
-  .payment-status-badge {
     font-size: 10px;
     padding: 2px 8px;
+  }
+
+  .action-btn {
+    font-size: 12px;
+    padding: 8px 12px;
   }
 
   .modal-content-engineerproject {
@@ -1006,13 +1168,9 @@
     gap: 6px;
   }
 
-  .progress-bar-cell {
-    min-width: 60px;
-  }
-
-  .progress-percent {
-    font-size: 10px;
-    min-width: 28px;
+  .photo-preview-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 70px), 1fr));
+    gap: 6px;
   }
 
   .payment-schedule-table td {
@@ -1031,5 +1189,39 @@
 
   .page-info {
     font-size: 12px;
+  }
+
+  .upload-white-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .upload-photos-btn,
+  .update-btn,
+  .cancel-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  .photo-upload-area {
+    padding: 16px;
+  }
+
+  .form-group textarea {
+    font-size: 13px;
+    min-height: 80px;
+  }
+
+  .form-group select {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .modal-close {
+    top: 12px;
+    right: 16px;
+    font-size: 24px;
   }
 }

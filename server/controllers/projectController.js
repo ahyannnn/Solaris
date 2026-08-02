@@ -28,6 +28,11 @@ const formatCurrency = (amount) => {
   }).format(amount || 0);
 };
 
+// Helper function to round to 2 decimal places
+const roundToTwo = (num) => {
+  if (typeof num !== 'number' || isNaN(num)) return 0;
+  return Math.round(num * 100) / 100;
+};
 // Helper function to generate project reference
 const generateProjectReference = () => {
   const date = new Date();
@@ -140,7 +145,7 @@ exports.uploadProjectPhotos = async (req, res) => {
         const fileRecord = new File({
           filename: result.public_id.split('/').pop(),
           originalName: file.originalname,
-          fileType: 'project_photo',
+          fileType: 'site_photo',
           mimeType: file.mimetype,
           size: file.size,
           url: result.secure_url,
@@ -486,8 +491,8 @@ exports.createProjectFromAcceptance = async (req, res) => {
         (sourceData.quotationDetails?.installationCost || 0) ||
         0;
 
-      // Apply 12% VAT to total cost
-      const totalCostWithVAT = baseTotalCost * 1.12;
+      // ⭐ Apply 12% VAT to total cost and round to 2 decimal places
+      const totalCostWithVAT = roundToTwo(baseTotalCost * 1.12);
 
       const systemType = sourceData.quotationDetails?.systemType ||
         sourceData.systemType ||
@@ -500,7 +505,7 @@ exports.createProjectFromAcceptance = async (req, res) => {
       const inverterType = sourceData.quotationDetails?.equipmentBreakdown?.inverter?.name || null;
       const batteryType = sourceData.quotationDetails?.equipmentBreakdown?.battery?.name || null;
 
-      // Calculate payment schedule based on preference (with VAT)
+      // Calculate payment schedule based on preference (with VAT) - rounded to 2 decimal places
       let paymentSchedule = [];
       let initialPayment = 0;
       let progressPayment = 0;
@@ -509,13 +514,13 @@ exports.createProjectFromAcceptance = async (req, res) => {
       if (paymentPreference === 'full') {
         paymentSchedule.push({
           type: 'full',
-          amount: totalCostWithVAT,
+          amount: roundToTwo(totalCostWithVAT),
           dueDate: new Date(),
           status: 'pending'
         });
       } else if (paymentPreference === 'fifty_fifty') {
-        initialPayment = totalCostWithVAT * 0.5;
-        finalPayment = totalCostWithVAT * 0.5;
+        initialPayment = roundToTwo(totalCostWithVAT * 0.5);
+        finalPayment = roundToTwo(totalCostWithVAT * 0.5);
 
         paymentSchedule.push({
           type: 'initial',
@@ -530,9 +535,9 @@ exports.createProjectFromAcceptance = async (req, res) => {
           status: 'pending'
         });
       } else if (paymentPreference === 'thirty_sixty_ten') {
-        initialPayment = totalCostWithVAT * 0.3;
-        progressPayment = totalCostWithVAT * 0.6;
-        finalPayment = totalCostWithVAT * 0.1;
+        initialPayment = roundToTwo(totalCostWithVAT * 0.3);
+        progressPayment = roundToTwo(totalCostWithVAT * 0.6);
+        finalPayment = roundToTwo(totalCostWithVAT * 0.1);
 
         paymentSchedule.push({
           type: 'initial',
@@ -554,9 +559,9 @@ exports.createProjectFromAcceptance = async (req, res) => {
         });
       } else {
         // Default: 30% - 40% - 30%
-        initialPayment = totalCostWithVAT * 0.3;
-        progressPayment = totalCostWithVAT * 0.4;
-        finalPayment = totalCostWithVAT * 0.3;
+        initialPayment = roundToTwo(totalCostWithVAT * 0.3);
+        progressPayment = roundToTwo(totalCostWithVAT * 0.4);
+        finalPayment = roundToTwo(totalCostWithVAT * 0.3);
 
         paymentSchedule.push({
           type: 'initial',
@@ -578,6 +583,12 @@ exports.createProjectFromAcceptance = async (req, res) => {
         });
       }
 
+      // ⭐ Verify sum of payments matches total cost (with rounding tolerance)
+      const sumPayments = initialPayment + progressPayment + finalPayment;
+      if (Math.abs(sumPayments - totalCostWithVAT) > 0.01) {
+        console.warn(`⚠️ Payment sum (${sumPayments.toFixed(2)}) does not match total cost (${totalCostWithVAT.toFixed(2)})`);
+      }
+
       projectData = {
         projectReference: generateProjectReference(),
         clientId: client._id,
@@ -588,12 +599,12 @@ exports.createProjectFromAcceptance = async (req, res) => {
         panelsNeeded: parseInt(panelsNeeded) || 0,
         inverterType: inverterType,
         batteryType: batteryType,
-        totalCost: totalCostWithVAT,
+        totalCost: roundToTwo(totalCostWithVAT),
         initialPayment: initialPayment,
         progressPayment: progressPayment,
         finalPayment: finalPayment,
         amountPaid: 0,
-        balance: totalCostWithVAT,
+        balance: roundToTwo(totalCostWithVAT),
         paymentSchedule: paymentSchedule,
         quotationFile: sourceData.quotationFile || sourceData.quotationUrl,
         status: 'quoted',
@@ -603,7 +614,7 @@ exports.createProjectFromAcceptance = async (req, res) => {
         paymentPreference: paymentPreference || 'installment',
         fullPaymentCompleted: false,
         vatRate: 0.12,
-        baseCost: baseTotalCost
+        baseCost: roundToTwo(baseTotalCost)
       };
 
       console.log(`✅ Free quote accepted: ${sourceData.quotationReference} with payment: ${paymentPreference}`);
@@ -620,8 +631,8 @@ exports.createProjectFromAcceptance = async (req, res) => {
       const systemDetails = sourceData.quotation?.systemDetails || {};
       const baseTotalCost = systemDetails.totalCost || sourceData.finalSystemCost || 0;
 
-      // Apply 12% VAT to total cost
-      const totalCostWithVAT = baseTotalCost * 1.12;
+      // ⭐ Apply 12% VAT to total cost and round to 2 decimal places
+      const totalCostWithVAT = roundToTwo(baseTotalCost * 1.12);
 
       let paymentSchedule = [];
       let initialPayment = 0;
@@ -631,13 +642,13 @@ exports.createProjectFromAcceptance = async (req, res) => {
       if (paymentPreference === 'full') {
         paymentSchedule.push({
           type: 'full',
-          amount: totalCostWithVAT,
+          amount: roundToTwo(totalCostWithVAT),
           dueDate: new Date(),
           status: 'pending'
         });
       } else if (paymentPreference === 'fifty_fifty') {
-        initialPayment = totalCostWithVAT * 0.5;
-        finalPayment = totalCostWithVAT * 0.5;
+        initialPayment = roundToTwo(totalCostWithVAT * 0.5);
+        finalPayment = roundToTwo(totalCostWithVAT * 0.5);
 
         paymentSchedule.push({
           type: 'initial',
@@ -652,9 +663,9 @@ exports.createProjectFromAcceptance = async (req, res) => {
           status: 'pending'
         });
       } else if (paymentPreference === 'thirty_sixty_ten') {
-        initialPayment = totalCostWithVAT * 0.3;
-        progressPayment = totalCostWithVAT * 0.6;
-        finalPayment = totalCostWithVAT * 0.1;
+        initialPayment = roundToTwo(totalCostWithVAT * 0.3);
+        progressPayment = roundToTwo(totalCostWithVAT * 0.6);
+        finalPayment = roundToTwo(totalCostWithVAT * 0.1);
 
         paymentSchedule.push({
           type: 'initial',
@@ -676,9 +687,9 @@ exports.createProjectFromAcceptance = async (req, res) => {
         });
       } else {
         // Default: 30% - 40% - 30%
-        initialPayment = totalCostWithVAT * 0.3;
-        progressPayment = totalCostWithVAT * 0.4;
-        finalPayment = totalCostWithVAT * 0.3;
+        initialPayment = roundToTwo(totalCostWithVAT * 0.3);
+        progressPayment = roundToTwo(totalCostWithVAT * 0.4);
+        finalPayment = roundToTwo(totalCostWithVAT * 0.3);
 
         paymentSchedule.push({
           type: 'initial',
@@ -700,6 +711,12 @@ exports.createProjectFromAcceptance = async (req, res) => {
         });
       }
 
+      // ⭐ Verify sum of payments matches total cost (with rounding tolerance)
+      const sumPayments = initialPayment + progressPayment + finalPayment;
+      if (Math.abs(sumPayments - totalCostWithVAT) > 0.01) {
+        console.warn(`⚠️ Payment sum (${sumPayments.toFixed(2)}) does not match total cost (${totalCostWithVAT.toFixed(2)})`);
+      }
+
       projectData = {
         projectReference: generateProjectReference(),
         clientId: client._id,
@@ -711,12 +728,12 @@ exports.createProjectFromAcceptance = async (req, res) => {
         panelsNeeded: parseSafeNumber(systemDetails.panelsNeeded) || sourceData.panelsNeeded || null,
         inverterType: systemDetails.inverterType || null,
         batteryType: systemDetails.batteryType || null,
-        totalCost: totalCostWithVAT,
+        totalCost: roundToTwo(totalCostWithVAT),
         initialPayment: initialPayment,
         progressPayment: progressPayment,
         finalPayment: finalPayment,
         amountPaid: 0,
-        balance: totalCostWithVAT,
+        balance: roundToTwo(totalCostWithVAT),
         paymentSchedule: paymentSchedule,
         quotationFile: sourceData.finalQuotation || sourceData.quotation?.quotationUrl,
         status: 'quoted',
@@ -726,7 +743,7 @@ exports.createProjectFromAcceptance = async (req, res) => {
         paymentPreference: paymentPreference || 'installment',
         fullPaymentCompleted: false,
         vatRate: 0.12,
-        baseCost: baseTotalCost
+        baseCost: roundToTwo(baseTotalCost)
       };
 
       console.log(`✅ Pre-assessment accepted: ${sourceData.bookingReference} with payment: ${paymentPreference}`);
@@ -801,7 +818,6 @@ exports.createProjectFromAcceptance = async (req, res) => {
     });
   }
 };
-
 // =============================================
 // RECORD PAYMENT (Customer)
 // =============================================
@@ -910,7 +926,7 @@ exports.updateProjectProgress = async (req, res) => {
         select: 'email _id'
       }
     });
-    
+
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
@@ -962,7 +978,7 @@ exports.updateProjectProgress = async (req, res) => {
 
       // FIX: Check if userId exists before sending notifications
       const userId = project.clientId?.userId?._id;
-      
+
       if (status === 'in_progress' && userId) {
         await sendNotification(
           userId,
@@ -1057,13 +1073,16 @@ exports.getAllProjects = async (req, res) => {
 };
 
 // =============================================
-// ⭐ FIXED: INVOICE FUNCTIONS - SUPPORTS ALL PAYMENT PLANS
+// ⭐ FIXED: INVOICE FUNCTIONS - NO DOUBLE VAT WITH 2 DECIMAL ROUNDING
 // =============================================
 
 const createSolarInvoice = async (project, invoiceType, amount, adminId, customDueDate = null) => {
   try {
     const clientId = project.clientId._id || project.clientId;
     const userId = project.userId;
+
+    // ⭐ Round amount to 2 decimal places
+    const roundedAmount = roundToTwo(amount);
 
     let dueDate = customDueDate;
     if (!dueDate) {
@@ -1080,9 +1099,11 @@ const createSolarInvoice = async (project, invoiceType, amount, adminId, customD
       }
     }
 
-    const subtotal = amount;
-    const tax = subtotal * 0.12;
-    const totalAmount = subtotal + tax;
+    // ⭐ Amount already includes VAT from project.totalCost
+    // No additional VAT calculation needed
+    const subtotal = roundedAmount;      // Amount already includes VAT
+    const tax = 0;                       // ⭐ No VAT added here (already included)
+    const totalAmount = roundedAmount;   // ⭐ Total is the same as amount
 
     // Get payment preference for display
     const paymentPref = project.paymentPreference || 'installment';
@@ -1104,10 +1125,10 @@ const createSolarInvoice = async (project, invoiceType, amount, adminId, customD
 
     const invoiceItems = [{
       name: `${getInvoiceTypeLabel(invoiceType)}${percentageLabel} - ${project.projectName}`,
-      description: `${getInvoiceTypeLabel(invoiceType)} payment${percentageLabel} for solar installation`,
+      description: `${getInvoiceTypeLabel(invoiceType)} payment${percentageLabel} for solar installation (VAT inclusive)`,
       quantity: 1,
-      unitPrice: amount,
-      total: amount
+      unitPrice: roundedAmount,
+      total: roundedAmount
     }];
 
     const invoice = new SolarInvoice({
@@ -1117,12 +1138,12 @@ const createSolarInvoice = async (project, invoiceType, amount, adminId, customD
       invoiceNumber: generateInvoiceNumber(),
       quotationReference: project.projectReference,
       invoiceType: invoiceType,
-      description: `${getInvoiceTypeLabel(invoiceType)}${percentageLabel} for ${project.projectName}`,
+      description: `${getInvoiceTypeLabel(invoiceType)}${percentageLabel} for ${project.projectName} (VAT inclusive)`,
       items: invoiceItems,
       subtotal: subtotal,
-      tax: tax,
+      tax: tax,                         // ⭐ Tax = 0 (VAT already included)
       discount: 0,
-      totalAmount: totalAmount,
+      totalAmount: totalAmount,         // ⭐ Same as amount (VAT inclusive)
       dueDate: dueDate,
       issueDate: new Date(),
       paymentStatus: 'pending',
@@ -1130,7 +1151,7 @@ const createSolarInvoice = async (project, invoiceType, amount, adminId, customD
       amountPaid: 0,
       balance: totalAmount,
       createdBy: adminId,
-      notes: `Auto-generated upon project approval (${paymentPref})`
+      notes: `Auto-generated upon project approval (${paymentPref}) - VAT already included in total amount`
     });
 
     await invoice.save();
@@ -1143,7 +1164,7 @@ const createSolarInvoice = async (project, invoiceType, amount, adminId, customD
       issuedAt: new Date()
     });
 
-    console.log(`✅ Invoice created: ${invoice.invoiceNumber} (${invoiceType}) for project ${project.projectReference}`);
+    console.log(`✅ Invoice created: ${invoice.invoiceNumber} (${invoiceType}) for project ${project.projectReference} - Amount: ${totalAmount.toFixed(2)} (VAT inclusive)`);
     return invoice;
 
   } catch (error) {
@@ -1318,7 +1339,7 @@ exports.updateProjectStatus = async (req, res) => {
       try {
         const invoicesCreated = await generateProjectInvoices(project, adminId);
         console.log(`✅ ${invoicesCreated.length} invoices auto-generated for project ${project.projectReference}`);
-        
+
         // FIX: Check if userId exists before sending notification
         const userId = project.clientId?.userId?._id;
         if (userId) {
@@ -1351,7 +1372,7 @@ exports.updateProjectStatus = async (req, res) => {
 
     if (status === 'completed') {
       project.actualCompletionDate = new Date();
-      
+
       // FIX: Check if userId exists before sending notification
       const userId = project.clientId?.userId?._id;
       if (userId) {
@@ -1419,7 +1440,7 @@ exports.assignEngineerToProject = async (req, res) => {
         select: 'email _id'
       }
     });
-    
+
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }

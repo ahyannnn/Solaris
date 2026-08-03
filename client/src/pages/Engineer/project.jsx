@@ -456,7 +456,7 @@ const EngineerProject = () => {
                             )}
 
                             {/* Update Progress button */}
-                            {(isInProgress || isProgressPaid) && (
+                            {project.status !== 'completed' && (
                               <button
                                 className="action-btn update"
                                 onClick={() => {

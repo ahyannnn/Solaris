@@ -14,7 +14,7 @@ import {
 
 // Import Equipment Selection Component
 import { SystemEquipmentSelection } from '../../components/Engineer/SystemEquipmentSelection.jsx';
-
+import SiteInspectionTab from '../../components/Engineer/SiteInspectionTab.jsx';
 // Import Calculation Hook
 import { useSystemCalculation } from '../../hooks/useSystemCalculation.js';
 
@@ -47,6 +47,21 @@ const MyAssessments = () => {
   const [assessmentResults, setAssessmentResults] = useState(null);
   const [systemMetrics, setSystemMetrics] = useState(null);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
+
+
+
+  // ✅ MOVE THIS HERE - Appliance modal states
+  const [editingAppliance, setEditingAppliance] = useState(null);
+  const [applianceForm, setApplianceForm] = useState({
+    name: '',
+    powerWatts: '',
+    quantity: '',
+    dayHours: '',
+    nightHours: '',
+    isMotor: false
+  });
+  const [showApplianceModal, setShowApplianceModal] = useState(false);
+  const [applianceErrors, setApplianceErrors] = useState({});
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -141,8 +156,57 @@ const MyAssessments = () => {
     totalSystemCost: 0
   });
 
+  // ✅ MOVE THIS HERE - Site Inspection Data State
+  const [siteInspectionData, setSiteInspectionData] = useState({
+    appliances: [],
+    monthlyBill: '',
+    ratePerKwh: '',
+    systemType: '',
+    roofType: ''
+  });
+  const saveSiteInspectionData = async () => {
+    // Validate only the required fields
+    if (!validateAssessmentForm()) return;
 
+    setSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
 
+      const payload = {
+        // From assessmentForm (existing fields)
+        roofCondition: assessmentForm.roofCondition,
+        roofLength: parseFloat(assessmentForm.roofLength) || 0,
+        roofWidth: parseFloat(assessmentForm.roofWidth) || 0,
+        structuralIntegrity: assessmentForm.structuralIntegrity,
+        estimatedInstallationTime: assessmentForm.estimatedInstallationTime,
+        recommendations: assessmentForm.recommendations,
+        technicalFindings: assessmentForm.technicalFindings,
+        siteVisitNotes: assessmentForm.siteVisitNotes,
+
+        // From siteInspectionData (new fields)
+        appliances: siteInspectionData.appliances,
+        monthlyBill: parseFloat(siteInspectionData.monthlyBill) || 0,
+        rate: parseFloat(siteInspectionData.ratePerKwh) || 0,
+        systemType: siteInspectionData.systemType || 'grid-tie',
+        roofType: siteInspectionData.roofType || ''
+      };
+
+      const response = await axios.put(
+        `${API_BASE_URL}/api/pre-assessments/${selectedItem._id}/update-assessment`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      showToast('Site inspection data saved successfully!', 'success');
+      await fetchPreAssessmentDetails(selectedItem._id);
+
+    } catch (err) {
+      console.error('Error saving assessment:', err);
+      showToast(err.response?.data?.message || 'Failed to save assessment', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
   // Free Quote Form State
   const [freeQuoteForm, setFreeQuoteForm] = useState({
     quotationNumber: '',
@@ -1006,7 +1070,13 @@ const MyAssessments = () => {
 
       // Extract IoT data from assessmentResults
       const iotData = assessment.assessmentResults || {};
-
+      setSiteInspectionData({
+        appliances: assessment.appliances || [],
+        monthlyBill: assessment.monthlyBill || '',
+        ratePerKwh: assessment.rate || '',
+        systemType: assessment.systemType || 'grid-tie',
+        roofType: assessment.roofType || ''
+      });
       // Ensure all IoT fields are properly parsed with defaults
       const formattedAssessment = {
         ...assessment,
@@ -2448,70 +2518,45 @@ const MyAssessments = () => {
                 )}
               </div>
             )}
-
             {/* Site Inspection Tab */}
             {activeTab === 'site-inspection' && (
-              <div>
-                <div className="action-buttons-enad">
-                  <button onClick={saveSiteAssessment} disabled={submitting} className="btn-secondary-enad">{submitting ? 'Saving...' : 'Save Draft'}</button>
-                  {selectedItem.assessmentStatus !== 'device_deployed' && selectedItem.assessmentStatus !== 'data_collecting' && deviceAssigned && (
-                    <button onClick={openDeployConfirmModal} disabled={submitting || !deployNotes || deployNotes.trim() === ''} className="btn-success-enad">
-                      {submitting ? 'Deploying...' : 'Deploy Device (Start 7-day Monitoring)'}
-                    </button>
-                  )}
-                </div>
-                <div className="form-group-enad">
-                  <label className="form-label-enad">Roof Condition</label>
-                  <div className="options-group-enad">
-                    {ROOF_CONDITIONS.map(condition => (
-                      <button key={condition.value} type="button" onClick={() => handleAssessmentFormChange('roofCondition', condition.value)} className={`option-btn-enad ${assessmentForm.roofCondition === condition.value ? 'active-enad' : ''}`}>{condition.label}</button>
-                    ))}
-                  </div>
-                </div>
-                <div className="form-group-enad">
-                  <label className="form-label-enad">Roof Dimensions (meters) *</label>
-                  <div className="form-row-enad">
-                    <div className="dimension-input-enad">
-                      <input type="number" step="0.1" className="assessment-form-input-enad" value={assessmentForm.roofLength || ''} onChange={(e) => handleAssessmentFormChange('roofLength', parseFloat(e.target.value))} placeholder="Length (m)" required />
-                    </div>
-                    <div className="dimension-input-enad">
-                      <input type="number" step="0.1" className="assessment-form-input-enad" value={assessmentForm.roofWidth || ''} onChange={(e) => handleAssessmentFormChange('roofWidth', parseFloat(e.target.value))} placeholder="Width (m)" required />
-                    </div>
-                  </div>
-                  <small className="form-hint-enad">Measured during site inspection (Required)</small>
-                </div>
-                <div className="form-group-enad">
-                  <label className="form-label-enad">Structural Integrity</label>
-                  <div className="options-group-enad">
-                    {STRUCTURAL_INTEGRITY.map(integrity => (
-                      <button key={integrity.value} type="button" onClick={() => handleAssessmentFormChange('structuralIntegrity', integrity.value)} className={`option-btn-enad ${assessmentForm.structuralIntegrity === integrity.value ? 'active-enad' : ''}`}>{integrity.label}</button>
-                    ))}
-                  </div>
-                </div>
-                <div className="form-group-enad">
-                  <label className="form-label-enad">Estimated Installation Time (days)</label>
-                  <input type="number" className="assessment-form-input-enad" value={assessmentForm.estimatedInstallationTime} onChange={(e) => handleAssessmentFormChange('estimatedInstallationTime', e.target.value)} required />
-                </div>
-                {deviceAssigned && (
-                  <div className="form-group-enad">
-                    <label className="form-label-enad">Deployment Notes *</label>
-                    <textarea className="assessment-form-textarea-enad" value={deployNotes} onChange={(e) => setDeployNotes(e.target.value)} rows={3} placeholder="Enter deployment notes, device placement location, etc... (Required)" required />
-                    {!deployNotes && (<small className="form-hint-enad error-hint">Deployment notes are required before deploying the device</small>)}
-                  </div>
-                )}
-                <div className="form-group-enad">
-                  <label className="form-label-enad">Site Visit Notes</label>
-                  <textarea className="assessment-form-textarea-enad" value={assessmentForm.siteVisitNotes} onChange={(e) => handleAssessmentFormChange('siteVisitNotes', e.target.value)} rows={4} placeholder="Additional notes, observations, recommendations..." required />
-                </div>
-                <div className="form-group-enad">
-                  <label className="form-label-enad">Engineer Recommendations</label>
-                  <textarea className="assessment-form-textarea-enad" value={assessmentForm.recommendations} onChange={(e) => handleAssessmentFormChange('recommendations', e.target.value)} rows={3} placeholder="Summary of recommendations for the client..." required />
-                </div>
-                <div className="form-group-enad">
-                  <label className="form-label-enad">Technical Findings</label>
-                  <textarea className="assessment-form-textarea-enad" value={assessmentForm.technicalFindings} onChange={(e) => handleAssessmentFormChange('technicalFindings', e.target.value)} rows={3} placeholder="Technical observations, electrical assessment, structural findings..." required />
-                </div>
-              </div>
+              <SiteInspectionTab
+                // Assessment form data
+                assessmentForm={assessmentForm}
+                onAssessmentFormChange={handleAssessmentFormChange}
+
+                // Site inspection data
+                siteInspectionData={siteInspectionData}
+                onSiteInspectionDataChange={(field, value) => {
+                  setSiteInspectionData(prev => ({ ...prev, [field]: value }));
+                }}
+
+                // Device and status props
+                deviceAssigned={deviceAssigned}
+                assessmentStatus={selectedItem?.assessmentStatus}
+                deployNotes={deployNotes}
+                onDeployNotesChange={setDeployNotes}
+
+                // Actions
+                onSave={saveSiteInspectionData}
+                onDeploy={openDeployConfirmModal}
+                isSubmitting={submitting}
+
+                // Constants
+                ROOF_CONDITIONS={ROOF_CONDITIONS}
+                STRUCTURAL_INTEGRITY={STRUCTURAL_INTEGRITY}
+
+                // ✅ ENERGY PROFILE DATA
+                appliances={selectedItem?.appliances || []}
+                initialCalculationResults={{
+                  totalDailyConsumption: selectedItem?.totalDailyConsumption || 0,
+                  dayConsumption: selectedItem?.dayConsumption || 0,
+                  nightConsumption: selectedItem?.nightConsumption || 0,
+                  dayPercentage: selectedItem?.dayPercentage || 0,
+                  nightPercentage: selectedItem?.nightPercentage || 0,
+                  monthlyConsumption: selectedItem?.consumption || 0
+                }}
+              />
             )}
 
             {/* Quotation Tab */}

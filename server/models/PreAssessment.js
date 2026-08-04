@@ -222,6 +222,14 @@ const preAssessmentSchema = new mongoose.Schema({
     commentedAt: Date,
     isPublic: { type: Boolean, default: true }
   }],
+  appliances: [{
+    name: { type: String, required: true },
+    powerWatts: { type: Number, required: true },
+    quantity: { type: Number, required: true, default: 1 },
+    dayHours: { type: Number, default: 0 },
+    nightHours: { type: Number, default: 0 },
+    isMotor: { type: Boolean, default: false }
+  }],
 
   // ============ RECEIPT ============
   receiptUrl: { type: String },

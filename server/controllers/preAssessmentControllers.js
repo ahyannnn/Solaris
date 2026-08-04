@@ -905,8 +905,11 @@ exports.createPreAssessment = async (req, res) => {
       nightPercentage,
       totalDailyConsumption,
       targetSavings,  
-      motorAppliancesWatts,      // ✅ ADD THIS
-      nonMotorAppliancesWatts,   // ✅ ADD THIS
+      motorAppliancesWatts,
+      nonMotorAppliancesWatts,
+      
+      // ✅ ADD THIS - Appliances array from frontend
+      appliances = [],  // Default to empty array
     } = req.body;
 
     const client = await Client.findOne({ userId });
@@ -930,7 +933,7 @@ exports.createPreAssessment = async (req, res) => {
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     const bookingReference = `PA-${year}${month}${day}-${random}`;
 
-    // Prepare the pre-assessment data with new fields (rounded to 2 decimals)
+    // Prepare the pre-assessment data with appliances
     const preAssessmentData = {
       clientId: client._id,
       addressId,
@@ -944,7 +947,8 @@ exports.createPreAssessment = async (req, res) => {
       paymentStatus: 'pending',
       assessmentStatus: 'pending_review',
       bookingReference,
-      // NEW FIELDS - rounded to 2 decimal places
+      
+      // New fields
       monthlyBill: roundTo2Decimals(monthlyBill),
       rate: roundTo2Decimals(rate),
       consumption: roundTo2Decimals(consumption),
@@ -954,13 +958,23 @@ exports.createPreAssessment = async (req, res) => {
       nightPercentage: roundTo2Decimals(nightPercentage),
       totalDailyConsumption: roundTo2Decimals(totalDailyConsumption),
       targetSavings: targetSavings ? parseInt(targetSavings) : null,
-      motorAppliancesWatts: motorAppliancesWatts ? parseFloat(motorAppliancesWatts) : 0,      // ✅ ADD THIS
-      nonMotorAppliancesWatts: nonMotorAppliancesWatts ? parseFloat(nonMotorAppliancesWatts) : 0, // ✅ ADD THIS
+      motorAppliancesWatts: motorAppliancesWatts ? parseFloat(motorAppliancesWatts) : 0,
+      nonMotorAppliancesWatts: nonMotorAppliancesWatts ? parseFloat(nonMotorAppliancesWatts) : 0,
+      
+      // ✅ ADD THIS - Save the appliances array
+      appliances: appliances.map(app => ({
+        name: app.name,
+        powerWatts: parseFloat(app.powerWatts) || 0,
+        quantity: parseInt(app.quantity) || 1,
+        dayHours: parseFloat(app.dayHours) || 0,
+        nightHours: parseFloat(app.nightHours) || 0,
+        isMotor: app.isMotor || false
+      })),
     };
 
     const preAssessment = new PreAssessment(preAssessmentData);
     await preAssessment.save();
-    // Add this after await preAssessment.save();
+
     await sendNotification(
       userId,
       'Booking Submitted',
@@ -975,6 +989,7 @@ exports.createPreAssessment = async (req, res) => {
         }
       }
     );
+    
     res.status(201).json({
       success: true,
       message: 'Pre-assessment booking submitted for admin approval',
@@ -987,7 +1002,7 @@ exports.createPreAssessment = async (req, res) => {
         paymentStatus: preAssessment.paymentStatus,
         roofLength: preAssessment.roofLength,
         roofWidth: preAssessment.roofWidth,
-        // NEW FIELDS in response (already rounded)
+        
         monthlyBill: preAssessment.monthlyBill,
         rate: preAssessment.rate,
         consumption: preAssessment.consumption,
@@ -995,8 +1010,11 @@ exports.createPreAssessment = async (req, res) => {
         nightPercentage: preAssessment.nightPercentage,
         totalDailyConsumption: preAssessment.totalDailyConsumption,
         targetSavings: preAssessment.targetSavings,  
-        motorAppliancesWatts: preAssessment.motorAppliancesWatts,      // ✅ ADD THIS
-        nonMotorAppliancesWatts: preAssessment.nonMotorAppliancesWatts, // ✅ ADD THIS
+        motorAppliancesWatts: preAssessment.motorAppliancesWatts,
+        nonMotorAppliancesWatts: preAssessment.nonMotorAppliancesWatts,
+        
+        // ✅ ADD THIS - Return appliances in the response
+        appliances: preAssessment.appliances,
       }
     });
 
@@ -1616,9 +1634,10 @@ exports.updateSiteAssessment = async (req, res) => {
     const { id } = req.params;
     const engineerId = req.user.id;
     const {
+      // Engineer Assessment fields
       roofCondition,
-      roofLength,                    // Add this
-      roofWidth,                     // Add this
+      roofLength,
+      roofWidth,
       structuralIntegrity,
       shadingAnalysis,
       recommendedPanelPlacement,
@@ -1626,7 +1645,25 @@ exports.updateSiteAssessment = async (req, res) => {
       additionalMaterials,
       safetyConsiderations,
       recommendations,
-      technicalFindings
+      technicalFindings,
+      siteVisitNotes,
+      
+      // Site Inspection Data fields
+      appliances,
+      monthlyBill,
+      rate,
+      systemType,
+      roofType,
+      
+      // Consumption fields
+      consumption,
+      dayConsumption,
+      nightConsumption,
+      dayPercentage,
+      nightPercentage,
+      totalDailyConsumption,
+      motorAppliancesWatts,
+      nonMotorAppliancesWatts
     } = req.body;
 
     const assessment = await PreAssessment.findById(id);
@@ -1634,35 +1671,180 @@ exports.updateSiteAssessment = async (req, res) => {
       return res.status(404).json({ message: 'Pre-assessment not found' });
     }
 
-    if (assessment.assignedEngineerId.toString() !== engineerId) {
+    // Check if engineer is assigned to this assessment
+    if (assessment.assignedEngineerId && assessment.assignedEngineerId.toString() !== engineerId) {
       return res.status(403).json({ message: 'Not authorized for this assessment' });
     }
 
-    if (!assessment.engineerAssessment) assessment.engineerAssessment = {};
+    // Initialize engineerAssessment if it doesn't exist
+    if (!assessment.engineerAssessment) {
+      assessment.engineerAssessment = {};
+    }
 
-    assessment.engineerAssessment.roofCondition = roofCondition;
-    assessment.engineerAssessment.roofLength = roofLength ? parseFloat(roofLength) : null;        // Add this
-    assessment.engineerAssessment.roofWidth = roofWidth ? parseFloat(roofWidth) : null;          // Add this
-    assessment.engineerAssessment.structuralIntegrity = structuralIntegrity;
-    assessment.engineerAssessment.shadingAnalysis = shadingAnalysis;
-    assessment.engineerAssessment.recommendedPanelPlacement = recommendedPanelPlacement;
-    assessment.engineerAssessment.estimatedInstallationTime = estimatedInstallationTime;
-    assessment.engineerAssessment.additionalMaterials = additionalMaterials;
-    assessment.engineerAssessment.safetyConsiderations = safetyConsiderations;
-    assessment.engineerAssessment.recommendations = recommendations;
-    assessment.technicalFindings = technicalFindings;
+    // ============ UPDATE ENGINEER ASSESSMENT FIELDS ============
+    if (roofCondition !== undefined) {
+      assessment.engineerAssessment.roofCondition = roofCondition;
+    }
+    if (roofLength !== undefined) {
+      assessment.engineerAssessment.roofLength = roofLength ? parseFloat(roofLength) : null;
+    }
+    if (roofWidth !== undefined) {
+      assessment.engineerAssessment.roofWidth = roofWidth ? parseFloat(roofWidth) : null;
+    }
+    if (structuralIntegrity !== undefined) {
+      assessment.engineerAssessment.structuralIntegrity = structuralIntegrity;
+    }
+    if (shadingAnalysis !== undefined) {
+      assessment.engineerAssessment.shadingAnalysis = shadingAnalysis;
+    }
+    if (recommendedPanelPlacement !== undefined) {
+      assessment.engineerAssessment.recommendedPanelPlacement = recommendedPanelPlacement;
+    }
+    if (estimatedInstallationTime !== undefined) {
+      assessment.engineerAssessment.estimatedInstallationTime = estimatedInstallationTime;
+    }
+    if (additionalMaterials !== undefined) {
+      assessment.engineerAssessment.additionalMaterials = additionalMaterials;
+    }
+    if (safetyConsiderations !== undefined) {
+      assessment.engineerAssessment.safetyConsiderations = safetyConsiderations;
+    }
+    if (recommendations !== undefined) {
+      assessment.engineerAssessment.recommendations = recommendations;
+    }
+    if (siteVisitNotes !== undefined) {
+      assessment.engineerAssessment.inspectionNotes = siteVisitNotes;
+    }
+
+    // ============ UPDATE TECHNICAL FINDINGS ============
+    if (technicalFindings !== undefined) {
+      assessment.technicalFindings = technicalFindings;
+    }
+
+    // ============ UPDATE APPLIANCES ============
+    if (appliances !== undefined) {
+      if (Array.isArray(appliances)) {
+        assessment.appliances = appliances.map(app => ({
+          name: app.name || '',
+          powerWatts: parseFloat(app.powerWatts) || 0,
+          quantity: parseInt(app.quantity) || 1,
+          dayHours: parseFloat(app.dayHours) || 0,
+          nightHours: parseFloat(app.nightHours) || 0,
+          isMotor: app.isMotor || false
+        }));
+      }
+    }
+
+    // ============ UPDATE MONTHLY BILL & RATE ============
+    if (monthlyBill !== undefined) {
+      assessment.monthlyBill = parseFloat(monthlyBill) || 0;
+    }
+
+    if (rate !== undefined) {
+      assessment.rate = parseFloat(rate) || 0;
+    }
+
+    // ============ UPDATE SYSTEM TYPE ============
+    if (systemType !== undefined) {
+      const validSystemTypes = ['grid-tie', 'hybrid', 'off-grid'];
+      if (validSystemTypes.includes(systemType)) {
+        assessment.systemType = systemType;
+      } else {
+        assessment.systemType = 'grid-tie';
+      }
+    }
+
+    // ============ UPDATE ROOF TYPE ============
+    if (roofType !== undefined) {
+      const validRoofTypes = ['concrete', 'metal', 'tile', 'other'];
+      if (validRoofTypes.includes(roofType)) {
+        assessment.roofType = roofType;
+      } else {
+        assessment.roofType = roofType || '';
+      }
+    }
+
+    // ============ UPDATE CONSUMPTION FIELDS ============
+    if (consumption !== undefined) {
+      assessment.consumption = parseFloat(consumption) || 0;
+    }
+
+    if (dayConsumption !== undefined) {
+      assessment.dayConsumption = parseFloat(dayConsumption) || 0;
+    }
+
+    if (nightConsumption !== undefined) {
+      assessment.nightConsumption = parseFloat(nightConsumption) || 0;
+    }
+
+    if (dayPercentage !== undefined) {
+      assessment.dayPercentage = parseFloat(dayPercentage) || 0;
+    }
+
+    if (nightPercentage !== undefined) {
+      assessment.nightPercentage = parseFloat(nightPercentage) || 0;
+    }
+
+    if (totalDailyConsumption !== undefined) {
+      assessment.totalDailyConsumption = parseFloat(totalDailyConsumption) || 0;
+    }
+
+    if (motorAppliancesWatts !== undefined) {
+      assessment.motorAppliancesWatts = parseFloat(motorAppliancesWatts) || 0;
+    }
+
+    if (nonMotorAppliancesWatts !== undefined) {
+      assessment.nonMotorAppliancesWatts = parseFloat(nonMotorAppliancesWatts) || 0;
+    }
 
     await assessment.save();
 
+    // Return the updated assessment with all fields
     res.json({
       success: true,
-      message: 'Assessment updated successfully',
-      assessment
+      message: 'Site assessment updated successfully',
+      assessment: {
+        _id: assessment._id,
+        bookingReference: assessment.bookingReference,
+        assessmentStatus: assessment.assessmentStatus,
+        paymentStatus: assessment.paymentStatus,
+        
+        // Engineer assessment fields
+        engineerAssessment: assessment.engineerAssessment,
+        technicalFindings: assessment.technicalFindings,
+        
+        // Site inspection data
+        appliances: assessment.appliances,
+        monthlyBill: assessment.monthlyBill,
+        rate: assessment.rate,
+        systemType: assessment.systemType,
+        roofType: assessment.roofType,
+        roofLength: assessment.roofLength,
+        roofWidth: assessment.roofWidth,
+        
+        // Consumption fields
+        consumption: assessment.consumption,
+        dayConsumption: assessment.dayConsumption,
+        nightConsumption: assessment.nightConsumption,
+        dayPercentage: assessment.dayPercentage,
+        nightPercentage: assessment.nightPercentage,
+        totalDailyConsumption: assessment.totalDailyConsumption,
+        motorAppliancesWatts: assessment.motorAppliancesWatts,
+        nonMotorAppliancesWatts: assessment.nonMotorAppliancesWatts,
+        
+        // Existing fields for reference
+        propertyType: assessment.propertyType,
+        targetSavings: assessment.targetSavings
+      }
     });
 
   } catch (error) {
     console.error('Update assessment error:', error);
-    res.status(500).json({ message: 'Failed to update assessment', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to update assessment', 
+      error: error.message 
+    });
   }
 };
 

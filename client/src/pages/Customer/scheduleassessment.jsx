@@ -907,7 +907,7 @@ const ScheduleAssessment = () => {
 
   // ============ PRE ASSESSMENT FUNCTIONS ============
 
-  const sendPreAssessmentConfirmationEmail = async (invoiceNumber, amount, propertyType, roofType, address) => {
+  const sendPreAssessmentConfirmationEmail = async (bookingReference, amount, propertyType, roofType, address) => {
     try {
       const userEmail = user?.email;
       const userName = getFullName();
@@ -920,7 +920,7 @@ const ScheduleAssessment = () => {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/email/send-pre-assessment-confirmation`, {
         email: userEmail,
         name: userName,
-        invoiceNumber,
+        bookingReference, // ✅ Changed from invoiceNumber to bookingReference
         amount,
         propertyType,
         roofType,
@@ -950,6 +950,8 @@ const ScheduleAssessment = () => {
     try {
       const token = sessionStorage.getItem('token');
       const { motorWatts, nonMotorWatts } = calculateMotorNonMotorWatts();
+
+      // ✅ FIX: Include the appliances array in the payload
       const bookingPayload = {
         clientId: user?._id,
         addressId: selectedAddress?._id || null,
@@ -968,7 +970,17 @@ const ScheduleAssessment = () => {
         totalDailyConsumption: calculationResults.totalDailyConsumption ? parseFloat(calculationResults.totalDailyConsumption.toFixed(2)) : 0,
         targetSavings: formData.targetSavings ? parseInt(formData.targetSavings) : null,
         motorAppliancesWatts: motorWatts,
-        nonMotorAppliancesWatts: nonMotorWatts
+        nonMotorAppliancesWatts: nonMotorWatts,
+
+        // ✅ ADD THIS - Send the actual appliances list
+        appliances: appliances.map(app => ({
+          name: app.name,
+          powerWatts: parseFloat(app.powerWatts),
+          quantity: parseInt(app.quantity),
+          dayHours: parseFloat(app.dayHours) || 0,
+          nightHours: parseFloat(app.nightHours) || 0,
+          isMotor: app.isMotor || false
+        }))
       };
 
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, bookingPayload, {
@@ -976,11 +988,11 @@ const ScheduleAssessment = () => {
       });
 
       await sendPreAssessmentConfirmationEmail(
-        response.data.booking.invoiceNumber,  // invoiceNumber
-        response.data.booking.assessmentFee,  // amount
-        formData.propertyType,                // propertyType
-        formData.roofType,                    // roofType
-        getFullAddress()                      // address
+        response.data.booking.bookingReference,
+        response.data.booking.assessmentFee,
+        formData.propertyType,
+        formData.roofType,
+        getFullAddress()
       );
 
       setShowConfirmDialog(false);

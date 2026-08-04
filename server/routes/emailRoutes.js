@@ -414,7 +414,7 @@ const freeQuoteTemplate = (name, quoteReference, monthlyBill, propertyType, addr
 `;
 
 // =============== PRE-ASSESSMENT BOOKING ===============
-const preAssessmentTemplate = (name, invoiceNumber, amount, propertyType,  roofType, address) => `
+const preAssessmentTemplate = (name, bookingReference, amount, propertyType, roofType, address) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -428,35 +428,32 @@ const preAssessmentTemplate = (name, invoiceNumber, amount, propertyType,  roofT
     <div class="email-container">
       ${getHeaderHtml()}
       <div class="content">
-        <h2 class="title">Booking confirmation</h2>
+        <h2 class="title">Booking Confirmation</h2>
         <p class="text">Hello ${name},</p>
         <p class="text-secondary">Your pre-assessment booking has been created. Please complete the payment to secure your schedule.</p>
         <div class="info-box">
-          <p><strong>Invoice Number:</strong> ${invoiceNumber}</p>
+          <p><strong>Booking Reference:</strong> ${bookingReference}</p>
           <p><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
           <p><strong>Property Type:</strong> ${propertyType}</p>
-         
           ${roofType ? `<p><strong>Roof Type:</strong> ${roofType}</p>` : ''}
-          
           <p><strong>Address:</strong> ${address}</p>
         </div>
         <div class="warning-box">
-          <p><strong>Payment instructions</strong></p>
-          <p>1. Log in to your Salfare Engineering dashboard</p>
+          <p><strong>Payment Instructions</strong></p>
+          <p>1. Log in to your Salfer Engineering dashboard</p>
           <p>2. Navigate to Billing section</p>
-          <p>3. Pay invoice <strong>${invoiceNumber}</strong> using available methods</p>
+          <p>3. Pay for booking reference <strong>${bookingReference}</strong> using available methods</p>
         </div>
         <p class="text-small">Booking will be confirmed after payment verification.</p>
       </div>
       <div class="footer">
-        <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
+        <p>© ${new Date().getFullYear()} Salfer Engineering — Solar Technology Enterprise</p>
         <p>Professional Solar Site Pre-Assessment System</p>
       </div>
     </div>
   </div>
 </body>
-</html>
-`;
+</html>`;
 
 // =============== PAYMENT SUBMISSION CONFIRMATION ===============
 const paymentSubmissionTemplate = (name, invoiceNumber, amount, referenceNumber, propertyType) => `
@@ -742,9 +739,14 @@ router.post("/send-reset-success", async (req, res) => {
 
 router.post("/send-free-quote-confirmation", async (req, res) => {
   try {
-    const { email, name, quoteReference, monthlyBill, propertyType,  address } = req.body;
+    const { email, name, quoteReference, monthlyBill, propertyType, address } = req.body;
+    
+    // ✅ Make sure all fields are validated
     if (!email || !name || !quoteReference) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
+      return res.status(400).json({ 
+        success: false, 
+        message: "Missing required fields: email, name, and quoteReference are required" 
+      });
     }
 
     await axios.post('https://api.brevo.com/v3/smtp/email', {
@@ -765,16 +767,24 @@ router.post("/send-free-quote-confirmation", async (req, res) => {
 
 router.post("/send-pre-assessment-confirmation", async (req, res) => {
   try {
-    const { email, name, invoiceNumber, amount, propertyType,  roofType,address } = req.body;
-    if (!email || !name || !invoiceNumber) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
+    // ✅ CHANGE: Expect bookingReference instead of invoiceNumber
+    const { email, name, bookingReference, amount, propertyType, roofType, address } = req.body;
+    
+    // ✅ CHANGE: Validate bookingReference instead of invoiceNumber
+    if (!email || !name || !bookingReference) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Missing required fields: email, name, and bookingReference are required" 
+      });
     }
 
     await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "Salfare Engineering" },
       to: [{ email }],
-      subject: `Booking confirmation - ${invoiceNumber}`,
-      htmlContent: preAssessmentTemplate(name, invoiceNumber, amount, propertyType,roofType, address)
+      // ✅ CHANGE: Use bookingReference in subject
+      subject: `Booking confirmation - ${bookingReference}`,
+      // ✅ CHANGE: Pass bookingReference to template
+      htmlContent: preAssessmentTemplate(name, bookingReference, amount, propertyType, roofType, address)
     }, {
       headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json" }
     });

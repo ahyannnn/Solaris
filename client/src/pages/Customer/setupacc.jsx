@@ -862,39 +862,7 @@ const SetupAccount = () => {
                 )}
 
                 <form onSubmit={handleSubmit} className="new-setup-form">
-                  {/* HOUSE/BUILDING NUMBER */}
-                  <div className="new-setup-form-group">
-                    <label className="new-setup-form-label">House/Building No. <span className="new-setup-required">*</span></label>
-                    <div className="new-setup-input-wrapper">
-                      <FaHome className="new-setup-input-icon" />
-                      <input
-                        type="text"
-                        name="houseOrBuilding"
-                        value={formData.houseOrBuilding}
-                        onChange={handleChange}
-                        className={`new-setup-form-input ${errors.houseOrBuilding ? 'error' : ''}`}
-                        placeholder="Enter house/building number"
-                      />
-                    </div>
-                    {errors.houseOrBuilding && <span className="new-setup-error-message">{errors.houseOrBuilding}</span>}
-                  </div>
-
-                  {/* STREET */}
-                  <div className="new-setup-form-group">
-                    <label className="new-setup-form-label">Street <span className="new-setup-required">*</span></label>
-                    <div className="new-setup-input-wrapper">
-                      <FaRoad className="new-setup-input-icon" />
-                      <input
-                        type="text"
-                        name="street"
-                        value={formData.street}
-                        onChange={handleChange}
-                        className={`new-setup-form-input ${errors.street ? 'error' : ''}`}
-                        placeholder="Enter street name"
-                      />
-                    </div>
-                    {errors.street && <span className="new-setup-error-message">{errors.street}</span>}
-                  </div>
+                  
 
                   {/* REGION - Dropdown */}
                   <div className="new-setup-form-group">

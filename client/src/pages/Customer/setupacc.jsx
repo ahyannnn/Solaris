@@ -41,6 +41,17 @@ const SetupAccount = () => {
   ];
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
+  // RootScratch API States
+  const [regions, setRegions] = useState([]);
+  const [provinces, setProvinces] = useState([]);
+  const [citiesMunicipalities, setCitiesMunicipalities] = useState([]);
+  const [barangays, setBarangays] = useState([]);
+
+  const [loadingRegions, setLoadingRegions] = useState(false);
+  const [loadingProvinces, setLoadingProvinces] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [loadingBarangays, setLoadingBarangays] = useState(false);
+
   // Form Data
   const [formData, setFormData] = useState({
     accountType: 'residential',
@@ -52,9 +63,10 @@ const SetupAccount = () => {
     // Address fields
     houseOrBuilding: '',
     street: '',
-    barangay: '',
-    cityMunicipality: '',
+    region: '',
     province: '',
+    cityMunicipality: '',
+    barangay: '',
     zipCode: ''
   });
 
@@ -94,6 +106,210 @@ const SetupAccount = () => {
       fetchClientData();
     }
   }, [token]);
+
+  // Fetch Regions on component mount
+  useEffect(() => {
+    const fetchRegions = async () => {
+      setLoadingRegions(true);
+      try {
+        const response = await fetch('https://rootscratch.com/api/psgc/regions?limit=20', {
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch regions');
+        }
+
+        const data = await response.json();
+        setRegions(data.data || []);
+      } catch (error) {
+        console.error('Error fetching regions:', error);
+        setApiError('Failed to load regions. Please refresh the page.');
+      } finally {
+        setLoadingRegions(false);
+      }
+    };
+
+    fetchRegions();
+  }, []);
+
+  // Fetch Provinces when Region changes
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      if (!formData.region) {
+        setProvinces([]);
+        setCitiesMunicipalities([]);
+        setBarangays([]);
+        // Reset dependent fields
+        setFormData(prev => ({
+          ...prev,
+          province: '',
+          cityMunicipality: '',
+          barangay: ''
+        }));
+        return;
+      }
+
+      // Extract region code from selected region
+      const selectedRegion = regions.find(r => r.name === formData.region);
+      if (!selectedRegion) {
+        setProvinces([]);
+        return;
+      }
+
+      // Region code is like "1200000000", we need to extract the numeric part
+      // The API expects region_code like "12" from "1200000000"
+      const regionCode = selectedRegion.code.replace(/0+$/, '');
+
+      setLoadingProvinces(true);
+      try {
+        const response = await fetch(
+          `https://rootscratch.com/api/psgc/provinces?region_code=${regionCode}&limit=500`,
+          {
+            headers: {
+              'Accept': 'application/json'
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch provinces');
+        }
+
+        const data = await response.json();
+        setProvinces(data.data || []);
+        setCitiesMunicipalities([]);
+        setBarangays([]);
+        setFormData(prev => ({
+          ...prev,
+          province: '',
+          cityMunicipality: '',
+          barangay: ''
+        }));
+      } catch (error) {
+        console.error('Error fetching provinces:', error);
+        setApiError('Failed to load provinces. Please try again.');
+      } finally {
+        setLoadingProvinces(false);
+      }
+    };
+
+    fetchProvinces();
+  }, [formData.region, regions]);
+
+  // Fetch Cities/Municipalities when Province changes
+  useEffect(() => {
+    const fetchCitiesMunicipalities = async () => {
+      if (!formData.province) {
+        setCitiesMunicipalities([]);
+        setBarangays([]);
+        setFormData(prev => ({
+          ...prev,
+          cityMunicipality: '',
+          barangay: ''
+        }));
+        return;
+      }
+
+      // Find the selected province
+      const selectedProvince = provinces.find(p => p.name === formData.province);
+      if (!selectedProvince) {
+        setCitiesMunicipalities([]);
+        return;
+      }
+
+      // Province code like "1206300000" - remove trailing zeros to get "12063"
+      const provinceCode = selectedProvince.code.replace(/0+$/, '');
+
+      setLoadingCities(true);
+      try {
+        const response = await fetch(
+          `https://rootscratch.com/api/psgc/cities-municipalities?province_code=${provinceCode}&limit=500`,
+          {
+            headers: {
+              'Accept': 'application/json'
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch cities/municipalities');
+        }
+
+        const data = await response.json();
+        setCitiesMunicipalities(data.data || []);
+        setBarangays([]);
+        setFormData(prev => ({
+          ...prev,
+          cityMunicipality: '',
+          barangay: ''
+        }));
+      } catch (error) {
+        console.error('Error fetching cities/municipalities:', error);
+        setApiError('Failed to load cities/municipalities. Please try again.');
+      } finally {
+        setLoadingCities(false);
+      }
+    };
+
+    fetchCitiesMunicipalities();
+  }, [formData.province, provinces]);
+
+  // Fetch Barangays when City/Municipality changes
+  useEffect(() => {
+    const fetchBarangays = async () => {
+      if (!formData.cityMunicipality) {
+        setBarangays([]);
+        setFormData(prev => ({
+          ...prev,
+          barangay: ''
+        }));
+        return;
+      }
+
+      // Find the selected city/municipality
+      const selectedCity = citiesMunicipalities.find(c => c.name === formData.cityMunicipality);
+      if (!selectedCity) {
+        setBarangays([]);
+        return;
+      }
+
+      // City code like "1206306000" - remove trailing zeros to get "1206306"
+      const cityCode = selectedCity.code.replace(/0+$/, '');
+
+      setLoadingBarangays(true);
+      try {
+        const response = await fetch(
+          `https://rootscratch.com/api/psgc/barangays?city_municipality_code=${cityCode}&limit=100`,
+          {
+            headers: {
+              'Accept': 'application/json'
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch barangays');
+        }
+
+        const data = await response.json();
+        setBarangays(data.data || []);
+        setFormData(prev => ({
+          ...prev,
+          barangay: ''
+        }));
+      } catch (error) {
+        console.error('Error fetching barangays:', error);
+        setApiError('Failed to load barangays. Please try again.');
+      } finally {
+        setLoadingBarangays(false);
+      }
+    };
+
+    fetchBarangays();
+  }, [formData.cityMunicipality, citiesMunicipalities]);
 
   // Enhanced birthday validation with detailed error messages
   const validateBirthday = (month, day, year) => {
@@ -184,52 +400,52 @@ const SetupAccount = () => {
   };
 
   const handleChange = (e) => {
-  const { name, value } = e.target;
-  
-  // Phone number formatting - only allow digits
-  if (name === 'phoneNumber') {
-    // Only allow numeric input
-    const numericValue = value.replace(/\D/g, '');
-    // Limit to 11 digits (09 + 9 digits)
-    if (numericValue.length <= 11) {
-      setFormData({ ...formData, [name]: numericValue });
+    const { name, value } = e.target;
+
+    // Phone number formatting - only allow digits
+    if (name === 'phoneNumber') {
+      // Only allow numeric input
+      const numericValue = value.replace(/\D/g, '');
+      // Limit to 11 digits (09 + 9 digits)
+      if (numericValue.length <= 11) {
+        setFormData({ ...formData, [name]: numericValue });
+      }
+      // Clear phone error when typing
+      if (errors.phoneNumber) {
+        setErrors({ ...errors, phoneNumber: '' });
+      }
     }
-    // Clear phone error when typing
-    if (errors.phoneNumber) {
-      setErrors({ ...errors, phoneNumber: '' });
+    // Zip code formatting - only allow digits
+    else if (name === 'zipCode') {
+      // Only allow numeric input
+      const numericValue = value.replace(/\D/g, '');
+      // Limit to 4 digits
+      if (numericValue.length <= 4) {
+        setFormData({ ...formData, [name]: numericValue });
+      }
+      // Clear zip error when typing
+      if (errors.zipCode) {
+        setErrors({ ...errors, zipCode: '' });
+      }
     }
-  } 
-  // Zip code formatting - only allow digits
-  else if (name === 'zipCode') {
-    // Only allow numeric input
-    const numericValue = value.replace(/\D/g, '');
-    // Limit to 4 digits
-    if (numericValue.length <= 4) {
-      setFormData({ ...formData, [name]: numericValue });
+    else {
+      setFormData({ ...formData, [name]: value });
     }
-    // Clear zip error when typing
-    if (errors.zipCode) {
-      setErrors({ ...errors, zipCode: '' });
+
+    // Clear other errors when user types
+    if (errors[name] && name !== 'phoneNumber' && name !== 'zipCode') {
+      setErrors({ ...errors, [name]: '' });
     }
-  } 
-  else {
-    setFormData({ ...formData, [name]: value });
-  }
-  
-  // Clear other errors when user types
-  if (errors[name] && name !== 'phoneNumber' && name !== 'zipCode') {
-    setErrors({ ...errors, [name]: '' });
-  }
-  if (apiError) setApiError('');
-  
-  // Clear birthday error when any birthday field changes
-  if (name === 'birthMonth' || name === 'birthDay' || name === 'birthYear') {
-    setBirthdayError('');
-    if (errors.birthday) {
-      setErrors({ ...errors, birthday: '' });
+    if (apiError) setApiError('');
+
+    // Clear birthday error when any birthday field changes
+    if (name === 'birthMonth' || name === 'birthDay' || name === 'birthYear') {
+      setBirthdayError('');
+      if (errors.birthday) {
+        setErrors({ ...errors, birthday: '' });
+      }
     }
-  }
-};
+  };
 
   const validateStep1 = () => {
     const newErrors = {};
@@ -268,9 +484,10 @@ const SetupAccount = () => {
     const newErrors = {};
     if (!formData.houseOrBuilding) newErrors.houseOrBuilding = 'House/Building number is required';
     if (!formData.street) newErrors.street = 'Street is required';
-    if (!formData.barangay) newErrors.barangay = 'Barangay is required';
-    if (!formData.cityMunicipality) newErrors.cityMunicipality = 'City/Municipality is required';
+    if (!formData.region) newErrors.region = 'Region is required';
     if (!formData.province) newErrors.province = 'Province is required';
+    if (!formData.cityMunicipality) newErrors.cityMunicipality = 'City/Municipality is required';
+    if (!formData.barangay) newErrors.barangay = 'Barangay is required';
     if (!formData.zipCode) newErrors.zipCode = 'ZIP code is required';
     if (formData.zipCode && !/^\d{4}$/.test(formData.zipCode)) {
       newErrors.zipCode = 'ZIP code must be exactly 4 digits (0-9)';
@@ -354,9 +571,10 @@ const SetupAccount = () => {
       const addressData = {
         houseOrBuilding: formData.houseOrBuilding,
         street: formData.street,
-        barangay: formData.barangay,
-        cityMunicipality: formData.cityMunicipality,
+        region: formData.region,
         province: formData.province,
+        cityMunicipality: formData.cityMunicipality,
+        barangay: formData.barangay,
         zipCode: formData.zipCode,
         label: 'Primary',
         isPrimary: true
@@ -678,56 +896,138 @@ const SetupAccount = () => {
                     {errors.street && <span className="new-setup-error-message">{errors.street}</span>}
                   </div>
 
-                  {/* BARANGAY */}
+                  {/* REGION - Dropdown */}
                   <div className="new-setup-form-group">
-                    <label className="new-setup-form-label">Barangay <span className="new-setup-required">*</span></label>
-                    <div className="new-setup-input-wrapper">
-                      <FaCity className="new-setup-input-icon" />
-                      <input
-                        type="text"
-                        name="barangay"
-                        value={formData.barangay}
+                    <label className="new-setup-form-label">Region <span className="new-setup-required">*</span></label>
+                    <div className="new-setup-select-wrapper">
+                      <FaGlobe className="new-setup-select-icon" />
+                      <select
+                        name="region"
+                        value={formData.region}
                         onChange={handleChange}
-                        className={`new-setup-form-input ${errors.barangay ? 'error' : ''}`}
-                        placeholder="Enter barangay"
-                      />
+                        className={`new-setup-select ${errors.region ? 'error' : ''}`}
+                        disabled={loadingRegions}
+                      >
+                        <option value="">Select Region</option>
+                        {regions.map((region) => (
+                          <option key={region.code} value={region.name}>
+                            {region.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                    {errors.barangay && <span className="new-setup-error-message">{errors.barangay}</span>}
+                    {loadingRegions && <small className="new-setup-hint-text">Loading regions...</small>}
+                    {errors.region && <span className="new-setup-error-message">{errors.region}</span>}
                   </div>
 
-                  {/* CITY/MUNICIPALITY */}
-                  <div className="new-setup-form-group">
-                    <label className="new-setup-form-label">City/Municipality <span className="new-setup-required">*</span></label>
-                    <div className="new-setup-input-wrapper">
-                      <FaCity className="new-setup-input-icon" />
-                      <input
-                        type="text"
-                        name="cityMunicipality"
-                        value={formData.cityMunicipality}
-                        onChange={handleChange}
-                        className={`new-setup-form-input ${errors.cityMunicipality ? 'error' : ''}`}
-                        placeholder="Enter city/municipality"
-                      />
-                    </div>
-                    {errors.cityMunicipality && <span className="new-setup-error-message">{errors.cityMunicipality}</span>}
-                  </div>
-
-                  {/* PROVINCE */}
+                  {/* PROVINCE - Dropdown */}
                   <div className="new-setup-form-group">
                     <label className="new-setup-form-label">Province <span className="new-setup-required">*</span></label>
-                    <div className="new-setup-input-wrapper">
-                      <FaGlobe className="new-setup-input-icon" />
-                      <input
-                        type="text"
+                    <div className="new-setup-select-wrapper">
+                      <FaGlobe className="new-setup-select-icon" />
+                      <select
                         name="province"
                         value={formData.province}
                         onChange={handleChange}
-                        className={`new-setup-form-input ${errors.province ? 'error' : ''}`}
-                        placeholder="Enter province"
-                      />
+                        className={`new-setup-select ${errors.province ? 'error' : ''}`}
+                        disabled={!formData.region || loadingProvinces}
+                      >
+                        <option value="">Select Province</option>
+                        {provinces.map((province) => (
+                          <option key={province.code} value={province.name}>
+                            {province.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
+                    {loadingProvinces && <small className="new-setup-hint-text">Loading provinces...</small>}
+                    {!formData.region && <small className="new-setup-hint-text">Please select a region first</small>}
                     {errors.province && <span className="new-setup-error-message">{errors.province}</span>}
                   </div>
+
+                  {/* CITY/MUNICIPALITY - Dropdown */}
+                  <div className="new-setup-form-group">
+                    <label className="new-setup-form-label">City/Municipality <span className="new-setup-required">*</span></label>
+                    <div className="new-setup-select-wrapper">
+                      <FaCity className="new-setup-select-icon" />
+                      <select
+                        name="cityMunicipality"
+                        value={formData.cityMunicipality}
+                        onChange={handleChange}
+                        className={`new-setup-select ${errors.cityMunicipality ? 'error' : ''}`}
+                        disabled={!formData.province || loadingCities}
+                      >
+                        <option value="">Select City/Municipality</option>
+                        {citiesMunicipalities.map((city) => (
+                          <option key={city.code} value={city.name}>
+                            {city.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {loadingCities && <small className="new-setup-hint-text">Loading cities/municipalities...</small>}
+                    {!formData.province && <small className="new-setup-hint-text">Please select a province first</small>}
+                    {errors.cityMunicipality && <span className="new-setup-error-message">{errors.cityMunicipality}</span>}
+                  </div>
+
+                  {/* BARANGAY - Dropdown */}
+                  <div className="new-setup-form-group">
+                    <label className="new-setup-form-label">Barangay <span className="new-setup-required">*</span></label>
+                    <div className="new-setup-select-wrapper">
+                      <FaCity className="new-setup-select-icon" />
+                      <select
+                        name="barangay"
+                        value={formData.barangay}
+                        onChange={handleChange}
+                        className={`new-setup-select ${errors.barangay ? 'error' : ''}`}
+                        disabled={!formData.cityMunicipality || loadingBarangays}
+                      >
+                        <option value="">Select Barangay</option>
+                        {barangays.map((barangay) => (
+                          <option key={barangay.code} value={barangay.name}>
+                            {barangay.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {loadingBarangays && <small className="new-setup-hint-text">Loading barangays...</small>}
+                    {!formData.cityMunicipality && <small className="new-setup-hint-text">Please select a city/municipality first</small>}
+                    {errors.barangay && <span className="new-setup-error-message">{errors.barangay}</span>}
+                  </div>
+                  {/* STREET */}
+                  <div className="new-setup-form-group">
+                    <label className="new-setup-form-label">Street <span className="new-setup-required">*</span></label>
+                    <div className="new-setup-input-wrapper">
+                      <FaRoad className="new-setup-input-icon" />
+                      <input
+                        type="text"
+                        name="street"
+                        value={formData.street}
+                        onChange={handleChange}
+                        className={`new-setup-form-input ${errors.street ? 'error' : ''}`}
+                        placeholder="Enter street name"
+                      />
+                    </div>
+                    {errors.street && <span className="new-setup-error-message">{errors.street}</span>}
+                  </div>
+                  {/* HOUSE/BUILDING NUMBER */}
+                  <div className="new-setup-form-group">
+                    <label className="new-setup-form-label">House/Building No. <span className="new-setup-required">*</span></label>
+                    <div className="new-setup-input-wrapper">
+                      <FaHome className="new-setup-input-icon" />
+                      <input
+                        type="text"
+                        name="houseOrBuilding"
+                        value={formData.houseOrBuilding}
+                        onChange={handleChange}
+                        className={`new-setup-form-input ${errors.houseOrBuilding ? 'error' : ''}`}
+                        placeholder="Enter house/building number"
+                      />
+                    </div>
+                    {errors.houseOrBuilding && <span className="new-setup-error-message">{errors.houseOrBuilding}</span>}
+                  </div>
+
+
 
                   {/* ZIP CODE */}
                   <div className="new-setup-form-group">

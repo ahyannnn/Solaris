@@ -23,7 +23,10 @@ import {
   FaTimes,
   FaStar,
   FaArrowLeft,
-  FaCog
+  FaCog,
+  FaGlobe,
+  FaCity,
+  FaRoad
 } from 'react-icons/fa';
 import '../../styles/Customer/customersettings.css';
 
@@ -41,6 +44,17 @@ const CustomerSettings = () => {
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+
+  // RootScratch API States
+  const [regions, setRegions] = useState([]);
+  const [provinces, setProvinces] = useState([]);
+  const [citiesMunicipalities, setCitiesMunicipalities] = useState([]);
+  const [barangays, setBarangays] = useState([]);
+  
+  const [loadingRegions, setLoadingRegions] = useState(false);
+  const [loadingProvinces, setLoadingProvinces] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [loadingBarangays, setLoadingBarangays] = useState(false);
 
   const [profileData, setProfileData] = useState({
     firstName: '', 
@@ -64,9 +78,10 @@ const CustomerSettings = () => {
   const [addressForm, setAddressForm] = useState({
     houseOrBuilding: '', 
     street: '', 
-    barangay: '', 
-    cityMunicipality: '', 
+    region: '',
     province: '', 
+    cityMunicipality: '', 
+    barangay: '', 
     zipCode: '', 
     label: 'Home', 
     isPrimary: false
@@ -76,6 +91,209 @@ const CustomerSettings = () => {
   const [profileErrors, setProfileErrors] = useState({});
   const [memberSince, setMemberSince] = useState(null);
   const [isVerified, setIsVerified] = useState(false);
+
+  // Fetch Regions on component mount
+  useEffect(() => {
+    const fetchRegions = async () => {
+      setLoadingRegions(true);
+      try {
+        const response = await fetch('https://rootscratch.com/api/psgc/regions?limit=20', {
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch regions');
+        }
+        
+        const data = await response.json();
+        setRegions(data.data || []);
+      } catch (error) {
+        console.error('Error fetching regions:', error);
+        showToast('Failed to load regions. Please refresh the page.', 'error');
+      } finally {
+        setLoadingRegions(false);
+      }
+    };
+
+    fetchRegions();
+  }, []);
+
+  // Fetch Provinces when Region changes
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      if (!addressForm.region) {
+        setProvinces([]);
+        setCitiesMunicipalities([]);
+        setBarangays([]);
+        // Reset dependent fields
+        setAddressForm(prev => ({
+          ...prev,
+          province: '',
+          cityMunicipality: '',
+          barangay: ''
+        }));
+        return;
+      }
+
+      // Extract region code from selected region
+      const selectedRegion = regions.find(r => r.name === addressForm.region);
+      if (!selectedRegion) {
+        setProvinces([]);
+        return;
+      }
+
+      // Region code is like "1200000000", we need to extract the numeric part
+      const regionCode = selectedRegion.code.replace(/0+$/, '');
+      
+      setLoadingProvinces(true);
+      try {
+        const response = await fetch(
+          `https://rootscratch.com/api/psgc/provinces?region_code=${regionCode}&limit=500`,
+          {
+            headers: {
+              'Accept': 'application/json'
+            }
+          }
+        );
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch provinces');
+        }
+        
+        const data = await response.json();
+        setProvinces(data.data || []);
+        setCitiesMunicipalities([]);
+        setBarangays([]);
+        setAddressForm(prev => ({
+          ...prev,
+          province: '',
+          cityMunicipality: '',
+          barangay: ''
+        }));
+      } catch (error) {
+        console.error('Error fetching provinces:', error);
+        showToast('Failed to load provinces. Please try again.', 'error');
+      } finally {
+        setLoadingProvinces(false);
+      }
+    };
+
+    fetchProvinces();
+  }, [addressForm.region, regions]);
+
+  // Fetch Cities/Municipalities when Province changes
+  useEffect(() => {
+    const fetchCitiesMunicipalities = async () => {
+      if (!addressForm.province) {
+        setCitiesMunicipalities([]);
+        setBarangays([]);
+        setAddressForm(prev => ({
+          ...prev,
+          cityMunicipality: '',
+          barangay: ''
+        }));
+        return;
+      }
+
+      // Find the selected province
+      const selectedProvince = provinces.find(p => p.name === addressForm.province);
+      if (!selectedProvince) {
+        setCitiesMunicipalities([]);
+        return;
+      }
+
+      // Province code like "1206300000" - remove trailing zeros to get "12063"
+      const provinceCode = selectedProvince.code.replace(/0+$/, '');
+      
+      setLoadingCities(true);
+      try {
+        const response = await fetch(
+          `https://rootscratch.com/api/psgc/cities-municipalities?province_code=${provinceCode}&limit=500`,
+          {
+            headers: {
+              'Accept': 'application/json'
+            }
+          }
+        );
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch cities/municipalities');
+        }
+        
+        const data = await response.json();
+        setCitiesMunicipalities(data.data || []);
+        setBarangays([]);
+        setAddressForm(prev => ({
+          ...prev,
+          cityMunicipality: '',
+          barangay: ''
+        }));
+      } catch (error) {
+        console.error('Error fetching cities/municipalities:', error);
+        showToast('Failed to load cities/municipalities. Please try again.', 'error');
+      } finally {
+        setLoadingCities(false);
+      }
+    };
+
+    fetchCitiesMunicipalities();
+  }, [addressForm.province, provinces]);
+
+  // Fetch Barangays when City/Municipality changes
+  useEffect(() => {
+    const fetchBarangays = async () => {
+      if (!addressForm.cityMunicipality) {
+        setBarangays([]);
+        setAddressForm(prev => ({
+          ...prev,
+          barangay: ''
+        }));
+        return;
+      }
+
+      // Find the selected city/municipality
+      const selectedCity = citiesMunicipalities.find(c => c.name === addressForm.cityMunicipality);
+      if (!selectedCity) {
+        setBarangays([]);
+        return;
+      }
+
+      // City code like "1206306000" - remove trailing zeros to get "1206306"
+      const cityCode = selectedCity.code.replace(/0+$/, '');
+      
+      setLoadingBarangays(true);
+      try {
+        const response = await fetch(
+          `https://rootscratch.com/api/psgc/barangays?city_municipality_code=${cityCode}&limit=100`,
+          {
+            headers: {
+              'Accept': 'application/json'
+            }
+          }
+        );
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch barangays');
+        }
+        
+        const data = await response.json();
+        setBarangays(data.data || []);
+        setAddressForm(prev => ({
+          ...prev,
+          barangay: ''
+        }));
+      } catch (error) {
+        console.error('Error fetching barangays:', error);
+        showToast('Failed to load barangays. Please try again.', 'error');
+      } finally {
+        setLoadingBarangays(false);
+      }
+    };
+
+    fetchBarangays();
+  }, [addressForm.cityMunicipality, citiesMunicipalities]);
 
   useEffect(() => {
     fetchAllData();
@@ -246,11 +464,20 @@ const CustomerSettings = () => {
   const handleAddAddress = () => {
     setEditingAddress(null);
     setAddressForm({ 
-      houseOrBuilding: '', street: '', barangay: '', 
-      cityMunicipality: '', province: '', zipCode: '', 
-      label: 'Home', isPrimary: addresses.length === 0 
+      houseOrBuilding: '', 
+      street: '', 
+      region: '',
+      province: '', 
+      cityMunicipality: '', 
+      barangay: '', 
+      zipCode: '', 
+      label: 'Home', 
+      isPrimary: addresses.length === 0 
     });
     setFormErrors({});
+    setProvinces([]);
+    setCitiesMunicipalities([]);
+    setBarangays([]);
     setShowAddressModal(true);
   };
 
@@ -259,14 +486,63 @@ const CustomerSettings = () => {
     setAddressForm({
       houseOrBuilding: address.houseOrBuilding || '', 
       street: address.street || '', 
-      barangay: address.barangay || '',
-      cityMunicipality: address.cityMunicipality || '', 
+      region: address.region || '',
       province: address.province || '', 
+      cityMunicipality: address.cityMunicipality || '', 
+      barangay: address.barangay || '',
       zipCode: address.zipCode || '',
       label: address.label || 'Home', 
       isPrimary: address.isPrimary || false
     });
     setFormErrors({});
+    
+    // Fetch provinces, cities, and barangays based on existing address data
+    if (address.region) {
+      // Trigger province fetch
+      const selectedRegion = regions.find(r => r.name === address.region);
+      if (selectedRegion) {
+        const regionCode = selectedRegion.code.replace(/0+$/, '');
+        fetch(`https://rootscratch.com/api/psgc/provinces?region_code=${regionCode}&limit=500`, {
+          headers: { 'Accept': 'application/json' }
+        })
+          .then(res => res.json())
+          .then(data => {
+            setProvinces(data.data || []);
+            // If province exists, fetch cities
+            if (address.province) {
+              const selectedProvince = data.data.find(p => p.name === address.province);
+              if (selectedProvince) {
+                const provinceCode = selectedProvince.code.replace(/0+$/, '');
+                fetch(`https://rootscratch.com/api/psgc/cities-municipalities?province_code=${provinceCode}&limit=500`, {
+                  headers: { 'Accept': 'application/json' }
+                })
+                  .then(res => res.json())
+                  .then(cityData => {
+                    setCitiesMunicipalities(cityData.data || []);
+                    // If city exists, fetch barangays
+                    if (address.cityMunicipality) {
+                      const selectedCity = cityData.data.find(c => c.name === address.cityMunicipality);
+                      if (selectedCity) {
+                        const cityCode = selectedCity.code.replace(/0+$/, '');
+                        fetch(`https://rootscratch.com/api/psgc/barangays?city_municipality_code=${cityCode}&limit=100`, {
+                          headers: { 'Accept': 'application/json' }
+                        })
+                          .then(res => res.json())
+                          .then(barangayData => {
+                            setBarangays(barangayData.data || []);
+                          })
+                          .catch(err => console.error('Error fetching barangays:', err));
+                      }
+                    }
+                  })
+                  .catch(err => console.error('Error fetching cities:', err));
+              }
+            }
+          })
+          .catch(err => console.error('Error fetching provinces:', err));
+      }
+    }
+    
     setShowAddressModal(true);
   };
 
@@ -274,15 +550,45 @@ const CustomerSettings = () => {
     const { name, value, type, checked } = e.target;
     setAddressForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: '' }));
+    
+    // Clear dependent dropdown values when parent changes
+    if (name === 'region') {
+      setProvinces([]);
+      setCitiesMunicipalities([]);
+      setBarangays([]);
+      setAddressForm(prev => ({
+        ...prev,
+        province: '',
+        cityMunicipality: '',
+        barangay: ''
+      }));
+    }
+    if (name === 'province') {
+      setCitiesMunicipalities([]);
+      setBarangays([]);
+      setAddressForm(prev => ({
+        ...prev,
+        cityMunicipality: '',
+        barangay: ''
+      }));
+    }
+    if (name === 'cityMunicipality') {
+      setBarangays([]);
+      setAddressForm(prev => ({
+        ...prev,
+        barangay: ''
+      }));
+    }
   };
 
   const validateAddressForm = () => {
     const errors = {};
     if (!addressForm.houseOrBuilding.trim()) errors.houseOrBuilding = 'House/Building is required';
     if (!addressForm.street.trim()) errors.street = 'Street is required';
-    if (!addressForm.barangay.trim()) errors.barangay = 'Barangay is required';
-    if (!addressForm.cityMunicipality.trim()) errors.cityMunicipality = 'City/Municipality is required';
-    if (!addressForm.province.trim()) errors.province = 'Province is required';
+    if (!addressForm.region) errors.region = 'Region is required';
+    if (!addressForm.province) errors.province = 'Province is required';
+    if (!addressForm.cityMunicipality) errors.cityMunicipality = 'City/Municipality is required';
+    if (!addressForm.barangay) errors.barangay = 'Barangay is required';
     if (!addressForm.zipCode.trim()) {
       errors.zipCode = 'ZIP code is required';
     } else if (!/^\d{4}$/.test(addressForm.zipCode)) {
@@ -303,13 +609,25 @@ const CustomerSettings = () => {
     setSaving(true);
     try {
       const token = sessionStorage.getItem('token');
+      const addressData = {
+        houseOrBuilding: addressForm.houseOrBuilding.trim(),
+        street: addressForm.street.trim(),
+        region: addressForm.region,
+        province: addressForm.province,
+        cityMunicipality: addressForm.cityMunicipality,
+        barangay: addressForm.barangay,
+        zipCode: addressForm.zipCode.trim(),
+        label: addressForm.label,
+        isPrimary: addressForm.isPrimary
+      };
+
       if (editingAddress) {
-        await axios.put(`${import.meta.env.VITE_API_URL}/api/clients/me/addresses/${editingAddress._id}`, addressForm, { 
+        await axios.put(`${import.meta.env.VITE_API_URL}/api/clients/me/addresses/${editingAddress._id}`, addressData, { 
           headers: { Authorization: `Bearer ${token}` } 
         });
         showToast('Address updated successfully', 'success');
       } else {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/clients/me/addresses`, addressForm, { 
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/clients/me/addresses`, addressData, { 
           headers: { Authorization: `Bearer ${token}` } 
         });
         showToast('Address added successfully', 'success');
@@ -655,21 +973,114 @@ const CustomerSettings = () => {
                     </div>
                   </div>
 
+                  
+
+                  {/* REGION - Dropdown */}
                   <div className="form-group">
-                    <label>House / Building <span className="required">*</span></label>
-                    <input 
-                      type="text" 
-                      name="houseOrBuilding" 
-                      value={addressForm.houseOrBuilding} 
-                      onChange={handleAddressFormChange} 
-                      className={formErrors.houseOrBuilding ? 'error' : ''} 
-                      placeholder="Enter house number or building name"
-                    />
-                    {formErrors.houseOrBuilding && (
-                      <small className="error-text">{formErrors.houseOrBuilding}</small>
+                    <label>Region <span className="required">*</span></label>
+                    <div className="select-wrapper">
+                     
+                      <select
+                        name="region"
+                        value={addressForm.region}
+                        onChange={handleAddressFormChange}
+                        className={formErrors.region ? 'error' : ''}
+                        disabled={loadingRegions}
+                      >
+                        <option value="">Select Region</option>
+                        {regions.map((region) => (
+                          <option key={region.code} value={region.name}>
+                            {region.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {loadingRegions && <small className="hint-text">Loading regions...</small>}
+                    {formErrors.region && (
+                      <small className="error-text">{formErrors.region}</small>
                     )}
                   </div>
 
+                  {/* PROVINCE - Dropdown */}
+                  <div className="form-group">
+                    <label>Province <span className="required">*</span></label>
+                    <div className="select-wrapper">
+                     
+                      <select
+                        name="province"
+                        value={addressForm.province}
+                        onChange={handleAddressFormChange}
+                        className={formErrors.province ? 'error' : ''}
+                        disabled={!addressForm.region || loadingProvinces}
+                      >
+                        <option value="">Select Province</option>
+                        {provinces.map((province) => (
+                          <option key={province.code} value={province.name}>
+                            {province.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {loadingProvinces && <small className="hint-text">Loading provinces...</small>}
+                    {!addressForm.region && <small className="hint-text">Please select a region first</small>}
+                    {formErrors.province && (
+                      <small className="error-text">{formErrors.province}</small>
+                    )}
+                  </div>
+
+                  {/* CITY/MUNICIPALITY - Dropdown */}
+                  <div className="form-group">
+                    <label>City / Municipality <span className="required">*</span></label>
+                    <div className="select-wrapper">
+                      
+                      <select
+                        name="cityMunicipality"
+                        value={addressForm.cityMunicipality}
+                        onChange={handleAddressFormChange}
+                        className={formErrors.cityMunicipality ? 'error' : ''}
+                        disabled={!addressForm.province || loadingCities}
+                      >
+                        <option value="">Select City/Municipality</option>
+                        {citiesMunicipalities.map((city) => (
+                          <option key={city.code} value={city.name}>
+                            {city.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {loadingCities && <small className="hint-text">Loading cities/municipalities...</small>}
+                    {!addressForm.province && <small className="hint-text">Please select a province first</small>}
+                    {formErrors.cityMunicipality && (
+                      <small className="error-text">{formErrors.cityMunicipality}</small>
+                    )}
+                  </div>
+
+                  {/* BARANGAY - Dropdown */}
+                  <div className="form-group">
+                    <label>Barangay <span className="required">*</span></label>
+                    <div className="select-wrapper">
+                      
+                      <select
+                        name="barangay"
+                        value={addressForm.barangay}
+                        onChange={handleAddressFormChange}
+                        className={formErrors.barangay ? 'error' : ''}
+                        disabled={!addressForm.cityMunicipality || loadingBarangays}
+                      >
+                        <option value="">Select Barangay</option>
+                        {barangays.map((barangay) => (
+                          <option key={barangay.code} value={barangay.name}>
+                            {barangay.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {loadingBarangays && <small className="hint-text">Loading barangays...</small>}
+                    {!addressForm.cityMunicipality && <small className="hint-text">Please select a city/municipality first</small>}
+                    {formErrors.barangay && (
+                      <small className="error-text">{formErrors.barangay}</small>
+                    )}
+                  </div>
                   <div className="form-group">
                     <label>Street <span className="required">*</span></label>
                     <input 
@@ -685,68 +1096,38 @@ const CustomerSettings = () => {
                     )}
                   </div>
 
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Barangay <span className="required">*</span></label>
-                      <input 
-                        type="text" 
-                        name="barangay" 
-                        value={addressForm.barangay} 
-                        onChange={handleAddressFormChange} 
-                        className={formErrors.barangay ? 'error' : ''} 
-                        placeholder="Enter barangay"
-                      />
-                      {formErrors.barangay && (
-                        <small className="error-text">{formErrors.barangay}</small>
-                      )}
-                    </div>
-                    <div className="form-group">
-                      <label>City / Municipality <span className="required">*</span></label>
-                      <input 
-                        type="text" 
-                        name="cityMunicipality" 
-                        value={addressForm.cityMunicipality} 
-                        onChange={handleAddressFormChange} 
-                        className={formErrors.cityMunicipality ? 'error' : ''} 
-                        placeholder="Enter city"
-                      />
-                      {formErrors.cityMunicipality && (
-                        <small className="error-text">{formErrors.cityMunicipality}</small>
-                      )}
-                    </div>
+                  <div className="form-group">
+                    <label>House / Building <span className="required">*</span></label>
+                    <input 
+                      type="text" 
+                      name="houseOrBuilding" 
+                      value={addressForm.houseOrBuilding} 
+                      onChange={handleAddressFormChange} 
+                      className={formErrors.houseOrBuilding ? 'error' : ''} 
+                      placeholder="Enter house number or building name"
+                    />
+                    {formErrors.houseOrBuilding && (
+                      <small className="error-text">{formErrors.houseOrBuilding}</small>
+                    )}
                   </div>
 
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Province <span className="required">*</span></label>
-                      <input 
-                        type="text" 
-                        name="province" 
-                        value={addressForm.province} 
-                        onChange={handleAddressFormChange} 
-                        className={formErrors.province ? 'error' : ''} 
-                        placeholder="Enter province"
-                      />
-                      {formErrors.province && (
-                        <small className="error-text">{formErrors.province}</small>
-                      )}
-                    </div>
-                    <div className="form-group">
-                      <label>ZIP Code <span className="required">*</span></label>
-                      <input 
-                        type="text" 
-                        name="zipCode" 
-                        value={addressForm.zipCode} 
-                        onChange={handleAddressFormChange} 
-                        maxLength="4" 
-                        className={formErrors.zipCode ? 'error' : ''} 
-                        placeholder="Enter ZIP code "
-                      />
-                      {formErrors.zipCode && (
-                        <small className="error-text">{formErrors.zipCode}</small>
-                      )}
-                      
-                    </div>
+                  
+
+                  <div className="form-group">
+                    <label>ZIP Code <span className="required">*</span></label>
+                    <input 
+                      type="text" 
+                      name="zipCode" 
+                      value={addressForm.zipCode} 
+                      onChange={handleAddressFormChange} 
+                      maxLength="4" 
+                      className={formErrors.zipCode ? 'error' : ''} 
+                      placeholder="Enter ZIP code"
+                    />
+                    {formErrors.zipCode && (
+                      <small className="error-text">{formErrors.zipCode}</small>
+                    )}
+                    <small className="hint-text">Format: 4 digits (e.g., 1234)</small>
                   </div>
                 </div>
 

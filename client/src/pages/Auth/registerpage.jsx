@@ -34,14 +34,14 @@ const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState('');
   const [modal, setModal] = useState({ show: false, message: '', type: '' });
-  
+
   // Email validation states
   const [emailChecking, setEmailChecking] = useState(false);
   const [isEmailTaken, setIsEmailTaken] = useState(false);
-  
+
   // Debounce timer refs
   const emailDebounceTimerRef = useRef(null);
-  
+
   // Add a ref to prevent double verification
   const isVerifyingRef = useRef(false);
 
@@ -75,45 +75,75 @@ const RegisterPage = () => {
 
   // ==================== VALIDATION FUNCTIONS ====================
 
-  // First name validation
   const validateFirstName = (firstName) => {
     if (!firstName) return null;
     if (firstName.length < 2) return 'First name must be at least 2 characters';
     if (firstName.length > 50) return 'First name must be less than 50 characters';
-    if (!/^[a-zA-Z\s'-]+$/.test(firstName)) return 'First name can only contain letters, spaces, apostrophes, and hyphens';
+    // Updated regex to include ñ and Ñ
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/.test(firstName)) {
+      return 'First name can only contain letters, spaces, apostrophes, and hyphens';
+    }
     return null;
   };
 
-  // Last name validation
   const validateLastName = (lastName) => {
     if (!lastName) return null;
     if (lastName.length < 2) return 'Last name must be at least 2 characters';
     if (lastName.length > 50) return 'Last name must be less than 50 characters';
-    if (!/^[a-zA-Z\s'-]+$/.test(lastName)) return 'Last name can only contain letters, spaces, apostrophes, and hyphens';
+    // Updated regex to include ñ and Ñ
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/.test(lastName)) {
+      return 'Last name can only contain letters, spaces, apostrophes, and hyphens';
+    }
     return null;
   };
 
-  // Middle name validation (optional)
   const validateMiddleName = (middleName) => {
     if (!middleName) return null;
     if (middleName.length > 50) return 'Middle name must be less than 50 characters';
-    if (!/^[a-zA-Z\s'-]+$/.test(middleName)) return 'Middle name can only contain letters, spaces, apostrophes, and hyphens';
+    // Updated regex to include ñ and Ñ
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/.test(middleName)) {
+      return 'Middle name can only contain letters, spaces, apostrophes, and hyphens';
+    }
     return null;
   };
 
-  // Password validation
-  const validatePassword = (password) => {
-    if (!password) return null;
-    
-    if (password.length < 8) return 'Password must be at least 8 characters';
-    if (password.length > 16) return 'Password must be less than 16 characters';
-    if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
-    if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter';
-    if (!/[0-9]/.test(password)) return 'Password must contain at least one number';
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return 'Password must contain at least one special character (!@#$%^&* etc.)';
-    
-    return null;
-  };
+  const validatePassword = () => {
+  const newErrors = {};
+
+  if (!password) {
+    newErrors.password = 'Password is required';
+  } else {
+    // Minimum length check (8-16 characters)
+    if (password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    } else if (password.length > 16) {
+      newErrors.password = 'Password must be less than 16 characters';
+    }
+    // At least one uppercase letter
+    else if (!/[A-Z]/.test(password)) {
+      newErrors.password = 'Password must contain at least one uppercase letter';
+    }
+    // At least one lowercase letter
+    else if (!/[a-z]/.test(password)) {
+      newErrors.password = 'Password must contain at least one lowercase letter';
+    }
+    // At least one number
+    else if (!/[0-9]/.test(password)) {
+      newErrors.password = 'Password must contain at least one number';
+    }
+    // At least one special character
+    else if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      newErrors.password = 'Password must contain at least one special character (!@#$%^&* etc.)';
+    }
+  }
+
+  // Confirm password validation
+  if (password !== confirmPassword) {
+    newErrors.confirmPassword = 'Passwords do not match';
+  }
+
+  return newErrors;
+};
 
   // Email validation
   const validateEmail = (email) => {
@@ -140,7 +170,7 @@ const RegisterPage = () => {
       });
 
       const data = await response.json();
-      
+
       if (data.exists) {
         setIsEmailTaken(true);
         setErrors(prev => ({ ...prev, email: 'Email is already taken' }));
@@ -164,15 +194,15 @@ const RegisterPage = () => {
     if (emailDebounceTimerRef.current) {
       clearTimeout(emailDebounceTimerRef.current);
     }
-    
+
     if (!email || !email.endsWith('@gmail.com')) {
       setIsEmailTaken(false);
       setEmailChecking(false);
       return;
     }
-    
+
     setEmailChecking(true);
-    
+
     emailDebounceTimerRef.current = setTimeout(() => {
       checkEmailExists(email);
     }, 3000);
@@ -181,49 +211,49 @@ const RegisterPage = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    
+
     if (name === 'firstName') {
       const firstNameError = validateFirstName(value);
       setErrors(prev => ({ ...prev, firstName: firstNameError || '' }));
     }
-    
+
     if (name === 'middleName') {
       const middleNameError = validateMiddleName(value);
       setErrors(prev => ({ ...prev, middleName: middleNameError || '' }));
     }
-    
+
     if (name === 'lastName') {
       const lastNameError = validateLastName(value);
       setErrors(prev => ({ ...prev, lastName: lastNameError || '' }));
     }
-    
+
     if (name === 'email') {
       const emailError = validateEmail(value);
       setErrors(prev => ({ ...prev, email: emailError || '' }));
-      
+
       setIsEmailTaken(false);
       setEmailChecking(false);
-      
+
       if (emailDebounceTimerRef.current) {
         clearTimeout(emailDebounceTimerRef.current);
       }
-      
+
       if (value && value.endsWith('@gmail.com') && !emailError) {
         debouncedEmailCheck(value);
       }
     }
-    
+
     if (name === 'password') {
       const passwordError = validatePassword(value);
       setErrors(prev => ({ ...prev, password: passwordError || '' }));
-      
+
       if (formData.confirmPassword && value !== formData.confirmPassword) {
         setErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }));
       } else if (formData.confirmPassword && value === formData.confirmPassword) {
         setErrors(prev => ({ ...prev, confirmPassword: '' }));
       }
     }
-    
+
     if (name === 'confirmPassword') {
       if (value !== formData.password) {
         setErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }));
@@ -231,7 +261,7 @@ const RegisterPage = () => {
         setErrors(prev => ({ ...prev, confirmPassword: '' }));
       }
     }
-    
+
     if (errors.general) {
       setErrors(prev => ({ ...prev, general: '' }));
     }
@@ -277,24 +307,24 @@ const RegisterPage = () => {
 
   const validateStep1 = () => {
     const newErrors = {};
-    
+
     if (!formData.firstName) {
       newErrors.firstName = 'First name is required';
     } else {
       const firstNameError = validateFirstName(formData.firstName);
       if (firstNameError) newErrors.firstName = firstNameError;
     }
-    
+
     if (!formData.lastName) {
       newErrors.lastName = 'Last name is required';
     } else {
       const lastNameError = validateLastName(formData.lastName);
       if (lastNameError) newErrors.lastName = lastNameError;
     }
-    
+
     const middleNameError = validateMiddleName(formData.middleName);
     if (middleNameError) newErrors.middleName = middleNameError;
-    
+
     if (!formData.email) {
       newErrors.email = 'Email is required';
     } else {
@@ -302,24 +332,24 @@ const RegisterPage = () => {
       if (emailError) newErrors.email = emailError;
       else if (isEmailTaken) newErrors.email = 'Email is already taken';
     }
-    
+
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else {
       const passwordError = validatePassword(formData.password);
       if (passwordError) newErrors.password = passwordError;
     }
-    
+
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
-    
+
     if (!termsAccepted) {
       newErrors.terms = 'You must agree to the Terms and Conditions';
     }
-    
+
     return newErrors;
   };
 
@@ -339,7 +369,7 @@ const RegisterPage = () => {
     }
 
     const isEmailTakenCheck = await checkEmailExists(formData.email);
-    
+
     if (isEmailTakenCheck) {
       return;
     }
@@ -378,12 +408,12 @@ const RegisterPage = () => {
 
   const handleVerifyCode = async (e) => {
     e.preventDefault();
-    
+
     if (isVerifyingRef.current) {
       console.log('Already verifying, skipping...');
       return;
     }
-    
+
     const newErrors = validateStep2();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -582,17 +612,17 @@ const RegisterPage = () => {
 
   const parseGoogleName = (displayName) => {
     if (!displayName) return { firstName: '', middleName: '', lastName: '' };
-    
+
     const parts = displayName.trim().split(/\s+/);
-    
+
     if (parts.length === 0) return { firstName: '', middleName: '', lastName: '' };
     if (parts.length === 1) return { firstName: parts[0], middleName: '', lastName: '' };
     if (parts.length === 2) return { firstName: parts[0], middleName: '', lastName: parts[1] };
-    
+
     const firstName = parts[0];
     const lastName = parts[parts.length - 1];
     const middleName = parts.slice(1, -1).join(' ');
-    
+
     return { firstName, middleName, lastName };
   };
 
@@ -611,23 +641,23 @@ const RegisterPage = () => {
 
   const isFormValid = () => {
     return (
-      formData.firstName && 
+      formData.firstName &&
       !validateFirstName(formData.firstName) &&
-      formData.lastName && 
+      formData.lastName &&
       !validateLastName(formData.lastName) &&
-      formData.email && 
+      formData.email &&
       !validateEmail(formData.email) &&
       !isEmailTaken &&
-      formData.password && 
+      formData.password &&
       !validatePassword(formData.password) &&
-      formData.confirmPassword && 
+      formData.confirmPassword &&
       formData.password === formData.confirmPassword &&
       termsAccepted
     );
   };
 
   const getBrandingContent = (step) => {
-    switch(step) {
+    switch (step) {
       case 1:
         return {
           title: 'Create Account',
@@ -719,7 +749,7 @@ const RegisterPage = () => {
 
         {/* ===== FORM SECTION ===== */}
         {/* Step 2: Left | Steps 1 & 3: Right */}
-        <div 
+        <div
           key={currentStep} // Force re-render when step changes
           className={`new-register-form-container ${isStep2 ? 'form-left' : 'form-right'}`}
         >

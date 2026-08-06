@@ -317,46 +317,7 @@
   text-transform: capitalize;
 }
 
-/* Status color overrides - keep your existing colors */
-.status-badge-projectmanagement.quoted {
-  background: #FEF3C7;
-  color: #92400E;
-}
 
-.status-badge-projectmanagement.approved {
-  background: #DBEAFE;
-  color: #1E40AF;
-}
-
-.status-badge-projectmanagement.initial-paid {
-  background: #DBEAFE;
-  color: #1E40AF;
-}
-
-.status-badge-projectmanagement.full-paid {
-  background: #D1FAE5;
-  color: #065F46;
-}
-
-.status-badge-projectmanagement.in-progress {
-  background: #FEF3C7;
-  color: #92400E;
-}
-
-.status-badge-projectmanagement.progress-paid {
-  background: #DBEAFE;
-  color: #1E40AF;
-}
-
-.status-badge-projectmanagement.completed {
-  background: #D1FAE5;
-  color: #065F46;
-}
-
-.status-badge-projectmanagement.cancelled {
-  background: #FEE2E2;
-  color: #991B1B;
-}
 
 /* --- Action Dropdown - MATCH SITE ASSESSMENT --- */
 .action-dropdown-container-projectmanagement {

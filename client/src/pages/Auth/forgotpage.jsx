@@ -193,22 +193,42 @@ const ForgotPasswordPage = () => {
   };
 
   const validatePassword = () => {
-    const newErrors = {};
+  const newErrors = {};
 
-    if (!password) {
-      newErrors.password = 'Password is required';
-    } else if (password.length < 8) {
+  if (!password) {
+    newErrors.password = 'Password is required';
+  } else {
+    // Minimum length check (8-16 characters)
+    if (password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[0-9])/.test(password)) {
+    } else if (password.length > 16) {
+      newErrors.password = 'Password must be less than 16 characters';
+    }
+    // At least one uppercase letter
+    else if (!/[A-Z]/.test(password)) {
+      newErrors.password = 'Password must contain at least one uppercase letter';
+    }
+    // At least one lowercase letter
+    else if (!/[a-z]/.test(password)) {
+      newErrors.password = 'Password must contain at least one lowercase letter';
+    }
+    // At least one number
+    else if (!/[0-9]/.test(password)) {
       newErrors.password = 'Password must contain at least one number';
     }
-
-    if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+    // At least one special character
+    else if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      newErrors.password = 'Password must contain at least one special character (!@#$%^&* etc.)';
     }
+  }
 
-    return newErrors;
-  };
+  // Confirm password validation
+  if (password !== confirmPassword) {
+    newErrors.confirmPassword = 'Passwords do not match';
+  }
+
+  return newErrors;
+};
 
   // Format cooldown time
   const formatCooldown = () => {

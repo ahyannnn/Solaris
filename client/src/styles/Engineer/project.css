@@ -302,7 +302,7 @@
 
 .amount-paid {
   font-size: 13px;
-  color: var(--success);
+  
   font-weight: 500;
 }
 
@@ -335,45 +335,9 @@
   color: var(--gray-500);
 }
 
-.status-badge-engineerproject.approved {
-  background: #DBEAFE;
-  color: #2563EB;
-}
 
-.status-badge-engineerproject.initial-paid {
-  background: #FEF3C7;
-  color: #D97706;
-}
 
-.status-badge-engineerproject.full-paid {
-  background: #D1FAE5;
-  color: #059669;
-}
 
-.status-badge-engineerproject.full-paid-installment {
-  background: #D1FAE5;
-  color: #059669;
-}
-
-.status-badge-engineerproject.in-progress {
-  background: #EDE9FE;
-  color: #7C3AED;
-}
-
-.status-badge-engineerproject.progress-paid {
-  background: #FEF3C7;
-  color: #D97706;
-}
-
-.status-badge-engineerproject.completed {
-  background: var(--success-light);
-  color: var(--success);
-}
-
-.status-badge-engineerproject.cancelled {
-  background: var(--danger-light);
-  color: var(--danger);
-}
 
 /* ============================================
    ACTION BUTTONS - Centered

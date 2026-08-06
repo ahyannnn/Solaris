@@ -608,26 +608,7 @@
   text-transform: capitalize;
 }
 
-/* Status color overrides */
-.status-badge-iotdevice.available {
-  background: #D1FAE5;
-  color: #065F46;
-}
 
-.status-badge-iotdevice.assigned {
-  background: #DBEAFE;
-  color: #1E40AF;
-}
-
-.status-badge-iotdevice.deployed {
-  background: #FEF3C7;
-  color: #92400E;
-}
-
-.status-badge-iotdevice.maintenance {
-  background: #FEE2E2;
-  color: #991B1B;
-}
 
 /* --- Action Dropdown - MATCH SITE ASSESSMENT --- */
 .iot-action-dropdown-container-iotdevice {

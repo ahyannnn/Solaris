@@ -2560,7 +2560,7 @@ const ScheduleAssessment = () => {
                       type="number"
                       step="0.01"
                       name="monthlyBill"
-                      step="0.01"
+                      
                       min="1"
                       max="1000000"
                       value={electricBillInput.monthlyBill}

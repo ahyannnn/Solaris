@@ -667,45 +667,7 @@
   color: var(--text-primary);
 }
 
-.status-badge-engdas.scheduled-engdas {
-  background: #DBEAFE;
-}
 
-.status-badge-engdas.pending-engdas {
-  background: #FEF3C7;
-}
-
-.status-badge-engdas.confirmed-engdas {
-  background: #EDE9FE;
-}
-
-.status-badge-engdas.in-progress-engdas {
-  background: #FEF3C7;
-}
-
-.status-badge-engdas.deployed-engdas {
-  background: #D1FAE5;
-}
-
-.status-badge-engdas.collecting-engdas {
-  background: #DBEAFE;
-}
-
-.status-badge-engdas.analyzing-engdas {
-  background: #EDE9FE;
-}
-
-.status-badge-engdas.completed-engdas {
-  background: #DCFCE7;
-}
-
-.status-badge-engdas.cancelled-engdas {
-  background: #FEE2E2;
-}
-
-.status-badge-engdas.approved-engdas {
-  background: #D1FAE5;
-}
 
 /* ============================================
    EMPTY STATES

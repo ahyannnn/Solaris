@@ -27,10 +27,10 @@ const formatExpiryDate = (value) => {
   const cleaned = value.replace(/\D/g, '');
   // Limit to 4 digits (MMYY)
   const limited = cleaned.slice(0, 4);
-  
+
   if (limited.length === 0) return '';
   if (limited.length <= 2) return limited;
-  
+
   // Add slash after first 2 digits
   return `${limited.slice(0, 2)}/${limited.slice(2)}`;
 };
@@ -296,6 +296,7 @@ const Quotation = () => {
 
     const invoiceType = item.invoiceType;
     const projectId = item.projectId;
+    const projectStatus = item.status;
     const paymentPlan = getProjectPaymentPlan(projectId);
 
     if (paymentPlan === 'full') {
@@ -630,7 +631,7 @@ const Quotation = () => {
     const amountError = validateAmountSent(manualTransferForm.amount, dueAmount);
     if (amountError) errors.amount = amountError;
 
-    
+
     // Pass the invoice date to the validation
     const invoiceDate = selectedItem?.date || selectedItem?.bookedAt || selectedItem?.issueDate;
     const dateError = validateTransferDate(manualTransferForm.transferDate, invoiceDate);
@@ -721,7 +722,7 @@ const Quotation = () => {
   const handlePayMongoCardPayment = async () => {
     setShowProcessingModal(true);
     setProcessingMessage('Processing your card payment...');
-    
+
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const cardNumber = document.getElementById('card-number')?.value.replace(/\s/g, '');
@@ -810,7 +811,7 @@ const Quotation = () => {
   const handleProjectPayMongoCardPayment = async () => {
     setShowProcessingModal(true);
     setProcessingMessage('Processing your card payment...');
-    
+
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const cardNumber = document.getElementById('full-card-number')?.value.replace(/\s/g, '');
@@ -919,7 +920,7 @@ const Quotation = () => {
     const input = e.target;
     const oldValue = input.value;
     const newValue = formatCardNumber(oldValue);
-    
+
     if (newValue !== oldValue) {
       const cursorPos = input.selectionStart;
       input.value = newValue;
@@ -935,7 +936,7 @@ const Quotation = () => {
     const input = e.target;
     const oldValue = input.value;
     const newValue = formatExpiryDate(oldValue);
-    
+
     if (newValue !== oldValue) {
       const cursorPos = input.selectionStart;
       input.value = newValue;
@@ -951,7 +952,7 @@ const Quotation = () => {
     const input = e.target;
     const oldValue = input.value;
     const newValue = formatCVC(oldValue);
-    
+
     if (newValue !== oldValue) {
       input.value = newValue;
     }
@@ -985,7 +986,7 @@ const Quotation = () => {
     setShowProcessingModal(true);
     setProcessingMessage('Processing your payment...');
     setIsSubmitting(true);
-    
+
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       if (paymentMethod === 'gcash') {
@@ -1035,7 +1036,7 @@ const Quotation = () => {
     setShowProcessingModal(true);
     setProcessingMessage('Processing your payment...');
     setIsSubmitting(true);
-    
+
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/cash-payment`, {
@@ -1086,7 +1087,7 @@ const Quotation = () => {
     setShowProcessingModal(true);
     setProcessingMessage('Processing your payment...');
     setIsSubmitting(true);
-    
+
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       const fullAmount = parseFloat(selectedItem.totalAmount);
@@ -1479,7 +1480,25 @@ const Quotation = () => {
     return filteredItems;
   };
 
-  const tabItems = getTabItems(activeTab);
+  
+  // Add this function after your other helper functions
+  const getVisibleItems = (items) => {
+    return items.filter(item => {
+      // For project items, hide if Pay Now is disabled
+      if (item.type === 'project' && (item.status === 'pending' || item.status === 'pending_payment')) {
+        return !isPayNowDisabled(item);
+      }
+      // For pre-assessments, always show
+      if (item.type === 'pre-assessment' && (item.status === 'pending' || item.status === 'pending_payment')) {
+        return true;
+      }
+      // For non-pending items, always show
+      return true;
+    });
+  };
+
+  // Replace the tabItems declaration
+  const tabItems = getVisibleItems(getTabItems(activeTab));
 
   const toggleDropdown = (itemId, event) => {
     if (activeDropdown === itemId) {
@@ -1531,16 +1550,16 @@ const Quotation = () => {
       <Helmet>
         <title>Payment Successful | Salfer Engineering</title>
       </Helmet>
-      
+
       <div className="billing-customer-success-page-card">
         <div className="billing-customer-success-page-icon">
           <span className="billing-customer-success-page-checkmark">✓</span>
         </div>
-        
+
         <h1 className="billing-customer-success-page-title">
           {successMessage}
         </h1>
-        
+
         <div className="billing-customer-success-page-details">
           <h2 className="billing-customer-success-page-subtitle">
             {successDetails?.title}
@@ -1555,9 +1574,9 @@ const Quotation = () => {
             </div>
           )}
         </div>
-        
+
         <div className="billing-customer-success-page-actions">
-          <button 
+          <button
             className="billing-customer-success-page-btn"
             onClick={closeSuccessPage}
           >
@@ -1721,18 +1740,23 @@ const Quotation = () => {
                         <td>
                           <div className="billing-customer-action-cell">
                             {isPending ? (
-                              <button
-                                className={`billing-customer-paynow-btn ${isPayNowButtonDisabled ? 'disabled' : ''}`}
-                                onClick={() => handlePayNowClick(item)}
-                                disabled={isSubmitting || isPayNowButtonDisabled}
-                                title={disabledReason || ''}
-                              >
-                                {isPayNowButtonDisabled ? 'Unavailable' : 'Pay Now'}
-                              </button>
+                              // Only show Pay Now button if NOT disabled
+                              !isPayNowButtonDisabled ? (
+                                <button
+                                  className="billing-customer-paynow-btn"
+                                  onClick={() => handlePayNowClick(item)}
+                                  disabled={isSubmitting}
+                                >
+                                  Pay Now
+                                </button>
+                              ) : (
+                                // Show nothing when disabled (empty cell)
+                                <span className="billing-customer-no-action">—</span>
+                              )
                             ) : isPaid ? (
                               <div className="billing-customer-dropdown-menu-container">
                                 <button
-                                  className="billing-customer-dropdown-trigger-btn"
+                                  className="billing-customer-paynow-btn"
                                   onClick={(e) => toggleDropdown(item.id, e)}
                                 >
                                   Action ▾
@@ -1844,14 +1868,19 @@ const Quotation = () => {
                       <span className="billing-customer-transaction-name">{item.description}</span>
                     </div>
                     {isPending ? (
-                      <button
-                        className={`billing-customer-paynow-btn ${isPayNowButtonDisabled ? 'disabled' : ''}`}
-                        onClick={() => handlePayNowClick(item)}
-                        disabled={isSubmitting || isPayNowButtonDisabled}
-                        title={disabledReason || ''}
-                      >
-                        {isPayNowButtonDisabled ? 'Unavailable' : 'Pay Now'}
-                      </button>
+                      // Only show Pay Now button if NOT disabled
+                      !isPayNowButtonDisabled ? (
+                        <button
+                          className="billing-customer-paynow-btn"
+                          onClick={() => handlePayNowClick(item)}
+                          disabled={isSubmitting}
+                        >
+                          Pay Now
+                        </button>
+                      ) : (
+                        // Show nothing when disabled
+                        <span className="billing-customer-no-action">—</span>
+                      )
                     ) : isPaid ? (
                       <div className="billing-customer-dropdown-menu-container">
                         <button
@@ -1971,9 +2000,9 @@ const Quotation = () => {
                     <div className="billing-customer-card-form">
                       <div className="billing-customer-form-group">
                         <label>Card Number</label>
-                        <input 
-                          type="text" 
-                          id="full-card-number" 
+                        <input
+                          type="text"
+                          id="full-card-number"
                           placeholder="4343 4343 4343 4345"
                           maxLength="19"
                           onInput={handleCardNumberInput}
@@ -1983,9 +2012,9 @@ const Quotation = () => {
                       <div className="billing-customer-form-row">
                         <div className="billing-customer-form-group">
                           <label>Expiry</label>
-                          <input 
-                            type="text" 
-                            id="full-card-expiry" 
+                          <input
+                            type="text"
+                            id="full-card-expiry"
                             placeholder="MM/YY"
                             maxLength="5"
                             onInput={handleExpiryInput}
@@ -1994,9 +2023,9 @@ const Quotation = () => {
                         </div>
                         <div className="billing-customer-form-group">
                           <label>CVC</label>
-                          <input 
-                            type="text" 
-                            id="full-card-cvc" 
+                          <input
+                            type="text"
+                            id="full-card-cvc"
                             placeholder="123"
                             maxLength="3"
                             onInput={handleCVCInput}
@@ -2100,9 +2129,9 @@ const Quotation = () => {
                     <div className="billing-customer-card-form">
                       <div className="billing-customer-form-group">
                         <label>Card Number</label>
-                        <input 
-                          type="text" 
-                          id="card-number" 
+                        <input
+                          type="text"
+                          id="card-number"
                           placeholder="1234 5678 9012 3456"
                           maxLength="19"
                           onInput={handleCardNumberInput}
@@ -2112,9 +2141,9 @@ const Quotation = () => {
                       <div className="billing-customer-form-row">
                         <div className="billing-customer-form-group">
                           <label>Expiry</label>
-                          <input 
-                            type="text" 
-                            id="card-expiry" 
+                          <input
+                            type="text"
+                            id="card-expiry"
                             placeholder="MM/YY"
                             maxLength="5"
                             onInput={handleExpiryInput}
@@ -2123,9 +2152,9 @@ const Quotation = () => {
                         </div>
                         <div className="billing-customer-form-group">
                           <label>CVC</label>
-                          <input 
-                            type="text" 
-                            id="card-cvc" 
+                          <input
+                            type="text"
+                            id="card-cvc"
                             placeholder="123"
                             maxLength="3"
                             onInput={handleCVCInput}

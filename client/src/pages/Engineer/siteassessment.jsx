@@ -9,6 +9,7 @@ import {
   AreaCalculationCard,
   ElectricityCalculationCard,
   NetMeteringCalculationCard,
+  LoadProfileCalculationCard,
   CalculationResultsCard
 } from '../../components/Engineer/SystemCalculationCards.jsx';
 
@@ -70,6 +71,7 @@ const MyAssessments = () => {
   const [laborCostPercentage, setLaborCostPercentage] = useState(20);
   const [overheadContingencyPercentage, setOverheadContingencyPercentage] = useState(15);
   const [contractorProfitPercentage, setContractorProfitPercentage] = useState(10);
+  const [discountPercentage, setDiscountPercentage] = useState(0);
   const [isEditingLaborCost, setIsEditingLaborCost] = useState(false);
   const [manualLaborCost, setManualLaborCost] = useState(0);
 
@@ -135,7 +137,9 @@ const MyAssessments = () => {
     subtotalCost: 0,
     overheadContingencyCost: 0,
     contractorProfitCost: 0,
-    totalSystemCost: 0
+    totalSystemCost: 0,
+    discountAmount: 0,  // ✅ ADD THIS
+    finalAmount: 0      // ✅ ADD THIS
   });
   const [calculatedCosts, setCalculatedCosts] = useState({
     panelCost: 0,
@@ -153,9 +157,15 @@ const MyAssessments = () => {
     subtotalCost: 0,
     overheadContingencyCost: 0,
     contractorProfitCost: 0,
-    totalSystemCost: 0
+    totalSystemCost: 0,
+    discountAmount: 0,  // ✅ ADD THIS
+    finalAmount: 0
   });
+const [roiYears, setRoiYears] = useState(0);
 
+const handleROIChange = (value) => {
+  setRoiYears(value);
+};
   // ✅ MOVE THIS HERE - Site Inspection Data State
   const [siteInspectionData, setSiteInspectionData] = useState({
     appliances: [],
@@ -497,6 +507,8 @@ const MyAssessments = () => {
     const overheadContingencyCost = subtotalCost * (overheadContingencyPercentage / 100);
     const contractorProfitCost = subtotalCost * (contractorProfitPercentage / 100);
     const totalSystemCost = subtotalCost + overheadContingencyCost + contractorProfitCost;
+    const discountAmount = totalSystemCost * (discountPercentage / 100);
+    const finalAmount = totalSystemCost - discountAmount;
 
     setFreeQuoteCalculatedCosts({
       panelCost,
@@ -514,7 +526,9 @@ const MyAssessments = () => {
       subtotalCost,
       overheadContingencyCost,
       contractorProfitCost,
-      totalSystemCost
+      totalSystemCost,
+      discountAmount,  // ✅ ADD THIS
+      finalAmount      // ✅ ADD THIS
     });
 
     setFreeQuoteForm(prev => ({
@@ -716,6 +730,8 @@ const MyAssessments = () => {
     const overheadContingencyCost = subtotalCost * (overheadContingencyPercentage / 100);
     const contractorProfitCost = subtotalCost * (contractorProfitPercentage / 100);
     const totalSystemCost = subtotalCost + overheadContingencyCost + contractorProfitCost;
+    const discountAmount = totalSystemCost * (discountPercentage / 100);
+    const finalAmount = totalSystemCost - discountAmount;
 
     setCalculatedCosts({
       panelCost,
@@ -733,7 +749,9 @@ const MyAssessments = () => {
       subtotalCost,
       overheadContingencyCost,
       contractorProfitCost,
-      totalSystemCost
+      totalSystemCost,
+      discountAmount,  // ✅ ADD THIS
+      finalAmount      // ✅ ADD THIS
     });
 
     setQuotationForm(prev => ({
@@ -1258,12 +1276,17 @@ const MyAssessments = () => {
     const co2Offset = isFreeQuote
       ? calculation.calculationResults.co2Offset || 0
       : calculation.calculationResults.co2Offset || 0;
-
+    const discountAmount = isFreeQuote
+      ? freeQuoteCalculatedCosts.discountAmount
+      : calculatedCosts.discountAmount;
+    const finalAmount = isFreeQuote
+      ? freeQuoteCalculatedCosts.finalAmount
+      : calculatedCosts.finalAmount;
     if (!systemSize || parseFloat(systemSize) <= 0) {
       showToast('Please enter a valid system size (greater than 0)', 'warning');
       return;
     }
-
+    
     if (!totalCost || parseFloat(totalCost) <= 0) {
       showToast('Please enter a valid total cost (greater than 0)', 'warning');
       return;
@@ -1313,8 +1336,7 @@ const MyAssessments = () => {
         siteSuitabilityScore: systemMetrics?.siteSuitabilityScore || 85
       } : null;
 
-      // Calculate ROI years
-      const roiYears = annualProduction > 0 ? Number((totalCost / annualProduction).toFixed(1)) : 0;
+      
 
       const payload = isFreeQuote ? {
         quotationNumber: freeQuoteForm.quotationNumber,
@@ -1335,6 +1357,9 @@ const MyAssessments = () => {
         annualProduction: annualProduction,
         co2Offset: co2Offset,
         roiYears: roiYears,
+        discountPercentage: discountPercentage,
+        discountAmount: discountAmount,
+        finalAmount: finalAmount,
         equipmentDetails: {
           panel: freeQuoteSelectedPanel,
           panelQuantity: freeQuotePanelQuantity,
@@ -1382,6 +1407,9 @@ const MyAssessments = () => {
         annualProduction: annualProduction,
         co2Offset: co2Offset,
         roiYears: roiYears,
+        discountPercentage: discountPercentage,
+        discountAmount: discountAmount,
+        finalAmount: finalAmount,
         equipmentDetails: {
           panel: selectedPanel,
           panelQuantity: panelQuantity,
@@ -2159,7 +2187,6 @@ const MyAssessments = () => {
                   </div>
                 </div>
 
-                {/* ===== CALCULATION CARDS SECTION ===== */}
                 {calculation.showCalculationCards && (
                   <div className="calculation-cards-container">
                     <div className="calculation-cards-header">
@@ -2172,22 +2199,44 @@ const MyAssessments = () => {
                     </div>
 
                     <div className="calculation-cards-grid">
-                      {/* Based on Area - Show for Grid-Tie and Off-Grid */}
-                      {(freeQuoteForm.systemType === 'grid-tie' || freeQuoteForm.systemType === 'off-grid') && (
-                        <AreaCalculationCard
-                          roofLength={calculation.roofLength}
-                          roofWidth={calculation.roofWidth}
-                          roofArea={calculation.roofArea}
-                          selectedPanelForCalc={calculation.selectedPanelForCalc}
-                          setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
-                          availablePanels={availablePanels}
-                          calculateByArea={() => calculation.calculateByArea(freeQuoteForm.systemType)}
-                          isDataLoaded={calculation.isDataLoaded}
-                          showToast={showToast}
-                        />
-                      )}
+                      {/* Based on Area - Show for ALL system types (Grid-Tie, Hybrid, Off-Grid) */}
+                      <AreaCalculationCard
+                        roofLength={calculation.roofLength}
+                        roofWidth={calculation.roofWidth}
+                        roofArea={calculation.roofArea}
+                        selectedPanelForCalc={calculation.selectedPanelForCalc}
+                        setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                        availablePanels={availablePanels}
+                        targetSavings={calculation.targetSavings}
+                        calculateByArea={() => calculation.calculateByArea(freeQuoteForm.systemType)}
+                        isDataLoaded={calculation.isDataLoaded}
+                        showToast={showToast}
+                      />
 
-                      {/* Based on Electricity - Show for all system types */}
+                      {/* Based on Load Profile - Show for Hybrid and Off-Grid ONLY */}
+
+                      <LoadProfileCalculationCard
+                        totalDailyConsumption={calculation.totalDailyConsumption}
+                        dayConsumption={calculation.dayConsumption}
+                        nightConsumption={calculation.nightConsumption}
+                        pshValue={calculation.pshValue}
+                        setPshValue={calculation.setPshValue}
+                        targetSavings={calculation.targetSavings}
+                        selectedPanelForCalc={calculation.selectedPanelForCalc}
+                        setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                        availablePanels={availablePanels}
+                        calculateByLoadProfile={calculation.calculateByLoadProfile}
+                        isDataLoaded={calculation.isDataLoaded}
+                        selectedBatteryForCalc={calculation.selectedBatteryForCalc}
+                        batteryAutonomy={calculation.batteryAutonomy}
+                        setBatteryAutonomy={calculation.setBatteryAutonomy}
+                        systemType={freeQuoteForm.systemType}
+                        showToast={showToast}
+                      />
+
+
+                      {/* Based on Electricity - Show for Grid-Tie ONLY */}
+
                       <ElectricityCalculationCard
                         totalDailyConsumption={calculation.totalDailyConsumption}
                         dayConsumption={calculation.dayConsumption}
@@ -2205,21 +2254,28 @@ const MyAssessments = () => {
                         selectedBatteryForCalc={calculation.selectedBatteryForCalc}
                         batteryAutonomy={calculation.batteryAutonomy}
                         setBatteryAutonomy={calculation.setBatteryAutonomy}
+                        systemType={freeQuoteForm.systemType}
                         showToast={showToast}
                       />
 
-                      {/* Based on Net Metering - Show for Grid-Tie only */}
+
+                      {/* Based on Net Metering - Show for Grid-Tie ONLY */}
                       {freeQuoteForm.systemType === 'grid-tie' && (
                         <NetMeteringCalculationCard
                           dayConsumption={calculation.dayConsumption}
                           nightConsumption={calculation.nightConsumption}
                           dayPvCapacity={calculation.dayPvCapacity}
+                          pshValue={calculation.pshValue}
+                          setExportRate={calculation.setExportRate}
+                          exportRate={calculation.exportRate}
+                          ratePerKwh={calculation.ratePerKwh}
                           nightPvCapacity={calculation.nightPvCapacity}
                           totalPvCapacity={calculation.totalPvCapacity}
                           selectedPanelForCalc={calculation.selectedPanelForCalc}
                           setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
                           availablePanels={availablePanels}
                           calculateByNetMetering={calculation.calculateByNetMetering}
+                          exportRate={calculation.exportRate}
                           isDataLoaded={calculation.isDataLoaded}
                           targetSavings={calculation.targetSavings}
                           showToast={showToast}
@@ -2246,6 +2302,7 @@ const MyAssessments = () => {
                           showToast
                         )}
                         resetCalculationCards={calculation.resetCalculationCards}
+                        systemType={freeQuoteForm.systemType}
                         showToast={showToast}
                       />
                     )}
@@ -2298,6 +2355,8 @@ const MyAssessments = () => {
                       freeQuotePanelQuantity={freeQuotePanelQuantity}
                       setFreeQuotePanelQuantity={setFreeQuotePanelQuantity}
                       freeQuoteCalculatedCosts={freeQuoteCalculatedCosts}
+                      discountPercentage={discountPercentage}
+                      setDiscountPercentage={setDiscountPercentage}
                       availableInverters={availableInverters}
                       freeQuoteSelectedInverter={freeQuoteSelectedInverter}
                       setFreeQuoteSelectedInverter={setFreeQuoteSelectedInverter}
@@ -2445,7 +2504,8 @@ const MyAssessments = () => {
                   <div className="info-item-enad"><span className="info-label-enad">Day Consumption</span><span className="info-value-enad">{selectedItem.dayConsumption?.toFixed(2) || 0} kWh</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Night Consumption</span><span className="info-value-enad">{selectedItem.nightConsumption?.toFixed(2) || 0} kWh</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Day/Night Usage</span><span className="info-value-enad">{selectedItem.dayPercentage || 0}% / {selectedItem.nightPercentage || 0}%</span></div>
-                  <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption</span><span className="info-value-enad">{selectedItem.totalDailyConsumption || 0} kWh/day</span></div>
+                  <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption (Load Profile)</span><span className="info-value-enad">{selectedItem.totalDailyConsumption || 0} kWh/day</span></div>
+                  <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption (Electric Bill)</span><span className="info-value-enad">{(selectedItem.monthlyBill / (selectedItem.rate * 30)).toFixed(2) || 0} kWh/day</span></div>
                   {selectedItem.targetSavings && (
                     <div className="info-item-enad">
                       <span className="info-label-enad">Target Savings</span>
@@ -2647,7 +2707,6 @@ const MyAssessments = () => {
                   </div>
                 )}
 
-                {/* ===== CALCULATION CARDS SECTION ===== */}
                 {calculation.showCalculationCards && (
                   <div className="calculation-cards-container">
                     <div className="calculation-cards-header">
@@ -2660,22 +2719,44 @@ const MyAssessments = () => {
                     </div>
 
                     <div className="calculation-cards-grid">
-                      {/* Based on Area - Show for Grid-Tie and Off-Grid */}
-                      {(selectedItem.systemType === 'grid-tie' || selectedItem.systemType === 'off-grid') && (
-                        <AreaCalculationCard
-                          roofLength={calculation.roofLength}
-                          roofWidth={calculation.roofWidth}
-                          roofArea={calculation.roofArea}
-                          selectedPanelForCalc={calculation.selectedPanelForCalc}
-                          setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
-                          availablePanels={availablePanels}
-                          calculateByArea={() => calculation.calculateByArea(selectedItem.systemType || 'grid-tie')}
-                          isDataLoaded={calculation.isDataLoaded}
-                          showToast={showToast}
-                        />
-                      )}
+                      {/* Based on Area - Show for ALL system types (Grid-Tie, Hybrid, Off-Grid) */}
+                      <AreaCalculationCard
+                        roofLength={calculation.roofLength}
+                        roofWidth={calculation.roofWidth}
+                        roofArea={calculation.roofArea}
+                        selectedPanelForCalc={calculation.selectedPanelForCalc}
+                        setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                        availablePanels={availablePanels}
+                        targetSavings={calculation.targetSavings}
+                        calculateByArea={() => calculation.calculateByArea(selectedItem.systemType || 'grid-tie')}
+                        isDataLoaded={calculation.isDataLoaded}
+                        showToast={showToast}
+                      />
 
-                      {/* Based on Electricity - Show for all system types */}
+                      {/* Based on Load Profile - Show for Hybrid and Off-Grid ONLY */}
+
+                      <LoadProfileCalculationCard
+                        totalDailyConsumption={calculation.totalDailyConsumption}
+                        dayConsumption={calculation.dayConsumption}
+                        nightConsumption={calculation.nightConsumption}
+                        pshValue={calculation.pshValue}
+                        setPshValue={calculation.setPshValue}
+                        targetSavings={calculation.targetSavings}
+                        selectedPanelForCalc={calculation.selectedPanelForCalc}
+                        setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                        availablePanels={availablePanels}
+                        calculateByLoadProfile={calculation.calculateByLoadProfile}
+                        isDataLoaded={calculation.isDataLoaded}
+                        selectedBatteryForCalc={calculation.selectedBatteryForCalc}
+                        batteryAutonomy={calculation.batteryAutonomy}
+                        setBatteryAutonomy={calculation.setBatteryAutonomy}
+                        systemType={selectedItem.systemType || 'grid-tie'}
+                        showToast={showToast}
+                      />
+
+
+                      {/* all*/}
+
                       <ElectricityCalculationCard
                         totalDailyConsumption={calculation.totalDailyConsumption}
                         dayConsumption={calculation.dayConsumption}
@@ -2697,13 +2778,18 @@ const MyAssessments = () => {
                         showToast={showToast}
                       />
 
-                      {/* Based on Net Metering - Show for Grid-Tie only */}
+
+                      {/* Based on Net Metering - Show for Grid-Tie ONLY */}
                       {selectedItem.systemType === 'grid-tie' && (
                         <NetMeteringCalculationCard
                           dayConsumption={calculation.dayConsumption}
+                          pshValue={calculation.pshValue}
+                          setExportRate={calculation.setExportRate}
                           nightConsumption={calculation.nightConsumption}
                           dayPvCapacity={calculation.dayPvCapacity}
+                          exportRate={calculation.exportRate}
                           nightPvCapacity={calculation.nightPvCapacity}
+                          ratePerKwh={calculation.ratePerKwh}
                           totalPvCapacity={calculation.totalPvCapacity}
                           selectedPanelForCalc={calculation.selectedPanelForCalc}
                           setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
@@ -2792,6 +2878,8 @@ const MyAssessments = () => {
                       freeQuoteSelectedInverter={selectedInverter}
                       setFreeQuoteSelectedInverter={setSelectedInverter}
                       freeQuoteInverterQuantity={inverterQuantity}
+                      discountPercentage={discountPercentage}
+                      setDiscountPercentage={setDiscountPercentage}
                       setFreeQuoteInverterQuantity={setInverterQuantity}
                       availableBatteries={availableBatteries}
                       freeQuoteSelectedBattery={selectedBattery}

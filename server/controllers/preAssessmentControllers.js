@@ -232,7 +232,10 @@ exports.generateQuotationPDF = async (req, res) => {
       co2Offset,
       co2OffsetMin,
       co2OffsetMax,
-      roiYears  // NEW: ROI years
+      roiYears,
+      discountPercentage,
+      discountAmount,
+      finalAmount
     } = req.body;
 
     const assessment = await PreAssessment.findById(id)
@@ -423,6 +426,9 @@ exports.generateQuotationPDF = async (req, res) => {
       co2OffsetMin: co2OffsetMin || 0,
       co2OffsetMax: co2OffsetMax || 0,
       roiYears: roiYears || 0,  // NEW: ROI years
+      discountPercentage: parseFloat(discountPercentage) || 0,
+      discountAmount: parseFloat(discountAmount) || 0,
+      finalAmount: parseFloat(finalAmount) || 0,
       siteAssessment: {
         roofCondition: assessment.engineerAssessment?.roofCondition,
         roofLength: assessment.engineerAssessment?.roofLength,
@@ -506,7 +512,10 @@ exports.generateQuotationPDF = async (req, res) => {
         co2Offset: co2Offset || 0,
         co2OffsetMin: co2OffsetMin || 0,
         co2OffsetMax: co2OffsetMax || 0,
-        roiYears: roiYears || 0,  // NEW: ROI years
+        roiYears: roiYears || 0,
+        discountPercentage: parseFloat(discountPercentage) || 0,
+        discountAmount: parseFloat(discountAmount) || 0,
+        finalAmount: parseFloat(finalAmount) || 0,  
         generatedAt: new Date().toISOString()
       }
     });
@@ -547,7 +556,10 @@ exports.generateQuotationPDF = async (req, res) => {
         // ✅ NEW: Add to systemDetails
         annualProduction: estimatedAnnualProduction || 0,
         co2Offset: co2Offset || 0,
-        roiYears: roiYears || 0
+        roiYears: roiYears || 0,
+        discountPercentage: parseFloat(discountPercentage) || 0,
+        discountAmount: parseFloat(discountAmount) || 0,
+        finalAmount: parseFloat(finalAmount) || 0
       },
       generatedAt: new Date(),
       generatedBy: engineerId
@@ -564,6 +576,11 @@ exports.generateQuotationPDF = async (req, res) => {
     assessment.co2OffsetMin = co2OffsetMin || null;
     assessment.co2OffsetMax = co2OffsetMax || null;
     assessment.roiYears = roiYears || null;  // NEW: ROI years
+
+    assessment.discountPercentage = parseFloat(discountPercentage) || 0;
+    assessment.discountAmount = parseFloat(discountAmount) || 0;
+    assessment.finalAmount = parseFloat(finalAmount) || 0;
+
 
     await assessment.save();
 
@@ -795,7 +812,7 @@ exports.approveBooking = async (req, res) => {
       assessment.paymentStatus = 'pending';
       assessment.assessmentStatus = 'pending_payment'; // After approval, goes to pending payment
       assessment.adminRemarks = notes || 'Booking approved';
-      
+
       const userId = assessment.clientId?.userId?._id;
       if (userId) {
         await sendNotification(
@@ -825,7 +842,7 @@ exports.approveBooking = async (req, res) => {
     } else {
       assessment.assessmentStatus = 'cancelled';
       assessment.adminRemarks = notes || 'Booking rejected by admin';
-      
+
       const userId = assessment.clientId?.userId?._id;
       if (userId) {
         await sendNotification(
@@ -894,7 +911,7 @@ exports.createPreAssessment = async (req, res) => {
       roofLength,
       roofWidth,
       systemType,
-      
+
       // NEW FIELDS
       monthlyBill,
       rate,
@@ -904,10 +921,10 @@ exports.createPreAssessment = async (req, res) => {
       dayPercentage,
       nightPercentage,
       totalDailyConsumption,
-      targetSavings,  
+      targetSavings,
       motorAppliancesWatts,
       nonMotorAppliancesWatts,
-      
+
       // ✅ ADD THIS - Appliances array from frontend
       appliances = [],  // Default to empty array
     } = req.body;
@@ -943,11 +960,11 @@ exports.createPreAssessment = async (req, res) => {
       roofType: roofType || '',
       roofLength: roofLength ? parseFloat(roofLength) : null,
       roofWidth: roofWidth ? parseFloat(roofWidth) : null,
-      
+
       paymentStatus: 'pending',
       assessmentStatus: 'pending_review',
       bookingReference,
-      
+
       // New fields
       monthlyBill: roundTo2Decimals(monthlyBill),
       rate: roundTo2Decimals(rate),
@@ -960,7 +977,7 @@ exports.createPreAssessment = async (req, res) => {
       targetSavings: targetSavings ? parseInt(targetSavings) : null,
       motorAppliancesWatts: motorAppliancesWatts ? parseFloat(motorAppliancesWatts) : 0,
       nonMotorAppliancesWatts: nonMotorAppliancesWatts ? parseFloat(nonMotorAppliancesWatts) : 0,
-      
+
       // ✅ ADD THIS - Save the appliances array
       appliances: appliances.map(app => ({
         name: app.name,
@@ -989,7 +1006,7 @@ exports.createPreAssessment = async (req, res) => {
         }
       }
     );
-    
+
     res.status(201).json({
       success: true,
       message: 'Pre-assessment booking submitted for admin approval',
@@ -997,22 +1014,22 @@ exports.createPreAssessment = async (req, res) => {
         _id: preAssessment._id,
         bookingReference: preAssessment.bookingReference,
         assessmentFee: preAssessment.assessmentFee,
-        
+
         assessmentStatus: preAssessment.assessmentStatus,
         paymentStatus: preAssessment.paymentStatus,
         roofLength: preAssessment.roofLength,
         roofWidth: preAssessment.roofWidth,
-        
+
         monthlyBill: preAssessment.monthlyBill,
         rate: preAssessment.rate,
         consumption: preAssessment.consumption,
         dayPercentage: preAssessment.dayPercentage,
         nightPercentage: preAssessment.nightPercentage,
         totalDailyConsumption: preAssessment.totalDailyConsumption,
-        targetSavings: preAssessment.targetSavings,  
+        targetSavings: preAssessment.targetSavings,
         motorAppliancesWatts: preAssessment.motorAppliancesWatts,
         nonMotorAppliancesWatts: preAssessment.nonMotorAppliancesWatts,
-        
+
         // ✅ ADD THIS - Return appliances in the response
         appliances: preAssessment.appliances,
       }
@@ -1312,22 +1329,22 @@ exports.verifyPayment = async (req, res) => {
         preAssessment.receiptUrl = receipt.receiptUrl;
         preAssessment.receiptNumber = receipt.receiptNumber;
         const userId = preAssessment.clientId?.userId?._id;
-      if (userId) {
-        await sendNotification(
-          userId,
-          'Payment Verified',
-          'Your payment for ' + preAssessment.bookingReference + ' has been verified. Your site assessment is now scheduled.',
-          'success',
-          '/pre-assessment/' + preAssessment._id,
-          {
-            metadata: {
-              bookingReference: preAssessment.bookingReference,
-              invoiceNumber: preAssessment.invoiceNumber,
-              receiptNumber: preAssessment.receiptNumber
+        if (userId) {
+          await sendNotification(
+            userId,
+            'Payment Verified',
+            'Your payment for ' + preAssessment.bookingReference + ' has been verified. Your site assessment is now scheduled.',
+            'success',
+            '/pre-assessment/' + preAssessment._id,
+            {
+              metadata: {
+                bookingReference: preAssessment.bookingReference,
+                invoiceNumber: preAssessment.invoiceNumber,
+                receiptNumber: preAssessment.receiptNumber
+              }
             }
-          }
-        );
-      }
+          );
+        }
         console.log(`✅ Receipt generated for pre-assessment ${preAssessment.bookingReference}: ${receipt.receiptNumber}`);
       } catch (receiptError) {
         console.error('Receipt generation error:', receiptError);
@@ -1647,14 +1664,14 @@ exports.updateSiteAssessment = async (req, res) => {
       recommendations,
       technicalFindings,
       siteVisitNotes,
-      
+
       // Site Inspection Data fields
       appliances,
       monthlyBill,
       rate,
       systemType,
       roofType,
-      
+
       // Consumption fields
       consumption,
       dayConsumption,
@@ -1808,11 +1825,11 @@ exports.updateSiteAssessment = async (req, res) => {
         bookingReference: assessment.bookingReference,
         assessmentStatus: assessment.assessmentStatus,
         paymentStatus: assessment.paymentStatus,
-        
+
         // Engineer assessment fields
         engineerAssessment: assessment.engineerAssessment,
         technicalFindings: assessment.technicalFindings,
-        
+
         // Site inspection data
         appliances: assessment.appliances,
         monthlyBill: assessment.monthlyBill,
@@ -1821,7 +1838,7 @@ exports.updateSiteAssessment = async (req, res) => {
         roofType: assessment.roofType,
         roofLength: assessment.roofLength,
         roofWidth: assessment.roofWidth,
-        
+
         // Consumption fields
         consumption: assessment.consumption,
         dayConsumption: assessment.dayConsumption,
@@ -1831,7 +1848,7 @@ exports.updateSiteAssessment = async (req, res) => {
         totalDailyConsumption: assessment.totalDailyConsumption,
         motorAppliancesWatts: assessment.motorAppliancesWatts,
         nonMotorAppliancesWatts: assessment.nonMotorAppliancesWatts,
-        
+
         // Existing fields for reference
         propertyType: assessment.propertyType,
         targetSavings: assessment.targetSavings
@@ -1840,10 +1857,10 @@ exports.updateSiteAssessment = async (req, res) => {
 
   } catch (error) {
     console.error('Update assessment error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Failed to update assessment', 
-      error: error.message 
+      message: 'Failed to update assessment',
+      error: error.message
     });
   }
 };
@@ -2337,10 +2354,10 @@ exports.getMyPreAssessments = async (req, res) => {
       let engineerName = 'Not assigned yet';
       if (assessment.assignedEngineerId) {
         if (typeof assessment.assignedEngineerId === 'object') {
-          engineerName = assessment.assignedEngineerId.fullName || 
-                        assessment.assignedEngineerId.name || 
-                        assessment.assignedEngineerId.email || 
-                        'Not assigned yet';
+          engineerName = assessment.assignedEngineerId.fullName ||
+            assessment.assignedEngineerId.name ||
+            assessment.assignedEngineerId.email ||
+            'Not assigned yet';
         }
       }
 
@@ -2608,24 +2625,24 @@ exports.deployDevice = async (req, res) => {
     await assessment.save();
     // Add this after await assessment.save();
     // After await assessment.save();
-// FIX: Check if userId exists before sending notification
-const userId = assessment.clientId?.userId?._id;
-if (userId) {
-  await sendNotification(
-    userId,
-    'Device Deployed',
-    'A monitoring device has been deployed at your property for ' + assessment.bookingReference + '. Data collection has started.',
-    'info',
-    '/pre-assessment/' + assessment._id,
-    {
-      metadata: {
-        bookingReference: assessment.bookingReference,
-        deviceName: device.deviceName,
-        dataCollectionStart: assessment.dataCollectionStart
-      }
+    // FIX: Check if userId exists before sending notification
+    const userId = assessment.clientId?.userId?._id;
+    if (userId) {
+      await sendNotification(
+        userId,
+        'Device Deployed',
+        'A monitoring device has been deployed at your property for ' + assessment.bookingReference + '. Data collection has started.',
+        'info',
+        '/pre-assessment/' + assessment._id,
+        {
+          metadata: {
+            bookingReference: assessment.bookingReference,
+            deviceName: device.deviceName,
+            dataCollectionStart: assessment.dataCollectionStart
+          }
+        }
+      );
     }
-  );
-}
     res.json({
       success: true,
       message: 'Device deployed successfully on site',
@@ -2978,7 +2995,7 @@ exports.getIoTData = async (req, res) => {
     const deviceId = assessment.iotDeviceId?.deviceId;
 
     if (!bookingReference || !deviceId) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         message: 'Missing booking reference or device ID for this assessment',
         details: {
           hasBookingReference: !!bookingReference,
@@ -3157,7 +3174,7 @@ exports.retrieveDevice = async (req, res) => {
   try {
     const { id } = req.params;
     const engineerId = req.user.id;
-    
+
     // Get the stats sent from frontend (ALREADY CALCULATED by getIoTData)
     const { stats } = req.body;
 
@@ -3198,7 +3215,7 @@ exports.retrieveDevice = async (req, res) => {
       maxIrradiance: stats?.maxIrradiance || 0,
       minIrradiance: stats?.minIrradiance || 0,
       peakSunHours: stats?.peakSunHours || 0,  // ✅ Uses same name as getIoTData!
-      
+
       // ============ TEMPERATURE METRICS (from getIoTData) ============
       averageTemperature: stats?.averageTemperature || 0,
       maxTemperature: stats?.maxTemperature || 0,
@@ -3222,7 +3239,7 @@ exports.retrieveDevice = async (req, res) => {
     assessment.totalReadings = stats?.totalReadings || 0;
     assessment.deviceRetrievedAt = new Date();
     assessment.deviceRetrievedBy = engineerId;
-    
+
     // Save peakSunHours at root level too (for easy access)
     assessment.peakSunHours = stats?.peakSunHours || 0;
 
@@ -3419,28 +3436,28 @@ exports.getSystemRecommendations = async (req, res) => {
 
     // Calculate financial metrics
     const electricityRate = rate;
-    
+
     // ✅ Annual Production = System Size × Peak Sun Hours ÷ 1.3 (safety factor)
     const annualProduction = (recommendedSystemSize * peakSunHours * 365) / 1.3;
     const estimatedAnnualProduction = Math.round(annualProduction);
-    
+
     // ✅ Annual production range (Min: 3 PSH, Max: 4.5 PSH)
     const MIN_PSH = 3;
     const MAX_PSH = 4.5;
-    
+
     const annualProductionMin = (recommendedSystemSize * MIN_PSH * 365) / 1.3;
     const annualProductionMax = (recommendedSystemSize * MAX_PSH * 365) / 1.3;
-    
+
     const estimatedAnnualProductionMin = Math.round(annualProductionMin);
     const estimatedAnnualProductionMax = Math.round(annualProductionMax);
-    
+
     // Calculate savings based on actual PSH
     const estimatedMonthlySavings = Math.round((annualProduction * electricityRate) / 12);
     const estimatedAnnualSavings = Math.round(estimatedMonthlySavings * 12);
 
     // ✅ Calculate CO2 offset
     const co2Offset = Math.round(annualProduction * 0.5);
-    
+
     // ✅ CO2 offset range
     const co2OffsetMin = Math.round(annualProductionMin * 0.5);
     const co2OffsetMax = Math.round(annualProductionMax * 0.5);

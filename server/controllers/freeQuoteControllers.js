@@ -163,8 +163,8 @@ exports.createFreeQuote = async (req, res) => {
       dayPercentage,
       nightPercentage,
       totalDailyConsumption,
-      motorAppliancesWatts,     
-      nonMotorAppliancesWatts,   
+      motorAppliancesWatts,
+      nonMotorAppliancesWatts,
     } = req.body;
 
     // Find client 
@@ -194,7 +194,7 @@ exports.createFreeQuote = async (req, res) => {
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     const quotationReference = `Q-${year}${month}${day}-${random}`;
 
-    
+
     const freeQuote = new FreeQuote({
       clientId: client._id,
       addressId: addressId || null,
@@ -215,7 +215,7 @@ exports.createFreeQuote = async (req, res) => {
       totalDailyConsumption: totalDailyConsumption
         ? parseFloat(totalDailyConsumption)
         : null,
-      motorAppliancesWatts: motorAppliancesWatts ? parseFloat(motorAppliancesWatts) : 0, 
+      motorAppliancesWatts: motorAppliancesWatts ? parseFloat(motorAppliancesWatts) : 0,
       nonMotorAppliancesWatts: nonMotorAppliancesWatts ? parseFloat(nonMotorAppliancesWatts) : 0,
       status: 'pending',
       quotationReference: quotationReference
@@ -268,8 +268,8 @@ exports.createFreeQuote = async (req, res) => {
         dayPercentage: freeQuote.dayPercentage,
         nightPercentage: freeQuote.nightPercentage,
         totalDailyConsumption: freeQuote.totalDailyConsumption,
-        motorAppliancesWatts: freeQuote.motorAppliancesWatts,      
-        nonMotorAppliancesWatts: freeQuote.nonMotorAppliancesWatts, 
+        motorAppliancesWatts: freeQuote.motorAppliancesWatts,
+        nonMotorAppliancesWatts: freeQuote.nonMotorAppliancesWatts,
         client: {
           name: `${freeQuote.clientId.contactFirstName} ${freeQuote.clientId.contactLastName}`,
           contactNumber: freeQuote.clientId.contactNumber,
@@ -363,10 +363,10 @@ exports.getMyFreeQuotes = async (req, res) => {
       let engineerName = 'Not assigned yet';
       if (quote.assignedEngineerId) {
         if (typeof quote.assignedEngineerId === 'object') {
-          engineerName = quote.assignedEngineerId.fullName || 
-                        quote.assignedEngineerId.name || 
-                        quote.assignedEngineerId.email || 
-                        'Not assigned yet';
+          engineerName = quote.assignedEngineerId.fullName ||
+            quote.assignedEngineerId.name ||
+            quote.assignedEngineerId.email ||
+            'Not assigned yet';
         }
       }
 
@@ -947,7 +947,10 @@ exports.generateFreeQuotePDF = async (req, res) => {
       equipmentDetails,
       annualProduction,
       co2Offset,
-      roiYears  // ✅ This is the ROI years value
+      roiYears,  // ✅ This is the ROI years value
+      discountPercentage,
+      discountAmount,
+      finalAmount
     } = req.body;
 
     const quote = await FreeQuote.findById(id)
@@ -1081,7 +1084,9 @@ exports.generateFreeQuotePDF = async (req, res) => {
       annualProduction: parseFloat(annualProduction) || 0,
       co2Offset: parseFloat(co2Offset) || 0,
       roiYears: parseFloat(roiYears) || 0,  // ✅ ROI years passed here
-      // Also pass as roiData for backward compatibility
+      discountPercentage: parseFloat(discountPercentage) || 0,
+      discountAmount: parseFloat(discountAmount) || 0,
+      finalAmount: parseFloat(finalAmount) || 0,
       roiData: parseFloat(roiYears) || 0
     };
 
@@ -1129,6 +1134,9 @@ exports.generateFreeQuotePDF = async (req, res) => {
         annualProduction: parseFloat(annualProduction) || 0,
         co2Offset: parseFloat(co2Offset) || 0,
         roiYears: parseFloat(roiYears) || 0,  // ✅ Store in metadata
+        discountPercentage: parseFloat(discountPercentage) || 0,
+        discountAmount: parseFloat(discountAmount) || 0,
+        finalAmount: parseFloat(finalAmount) || 0,
         generatedAt: new Date().toISOString()
       }
     });
@@ -1147,6 +1155,9 @@ exports.generateFreeQuotePDF = async (req, res) => {
     quote.co2Offset = parseFloat(co2Offset) || 0;
     quote.roiYears = parseFloat(roiYears) || 0;  // ✅ Store in quote
 
+    quote.discountPercentage = parseFloat(discountPercentage) || 0;
+    quote.discountAmount = parseFloat(discountAmount) || 0;
+    quote.finalAmount = parseFloat(finalAmount) || 0;
     // Store equipment breakdown in quote
     quote.quotationDetails = {
       quotationNumber: quotationNumber || `Q-${quote.quotationReference}`,
@@ -1161,7 +1172,10 @@ exports.generateFreeQuotePDF = async (req, res) => {
       remarks,
       annualProduction: parseFloat(annualProduction) || 0,
       co2Offset: parseFloat(co2Offset) || 0,
-      roiYears: parseFloat(roiYears) || 0  // ✅ Store in quotationDetails
+      roiYears: parseFloat(roiYears) || 0,  // ✅ Store in quotationDetails
+      discountPercentage: parseFloat(discountPercentage) || 0,
+      discountAmount: parseFloat(discountAmount) || 0,
+      finalAmount: parseFloat(finalAmount) || 0
     };
 
     await quote.save();

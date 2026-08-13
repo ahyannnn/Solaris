@@ -37,6 +37,7 @@ export const useSystemCalculation = () => {
   const [dayPvCapacity, setDayPvCapacity] = useState(0);
   const [nightPvCapacity, setNightPvCapacity] = useState(0);
   const [totalPvCapacity, setTotalPvCapacity] = useState(0);
+  const [exportRate, setExportRate] = useState(6);
 
   const [calculationResults, setCalculationResults] = useState({
     recommendedSystemSize: 0,
@@ -64,7 +65,6 @@ export const useSystemCalculation = () => {
       return;
     }
 
-    // Get roof dimensions - ensure they're numbers
     const length = parseFloat(selectedItem.roofLength) || 0;
     const width = parseFloat(selectedItem.roofWidth) || 0;
     const area = length * width;
@@ -73,12 +73,15 @@ export const useSystemCalculation = () => {
     setRoofWidth(width);
     setRoofArea(area);
 
-    // Get consumption data - ensure they're numbers
     const day = parseFloat(selectedItem.dayConsumption) || 0;
     const night = parseFloat(selectedItem.nightConsumption) || 0;
     const total = day + night;
     const rate = parseFloat(selectedItem.rate) || 12;
     const bill = parseFloat(selectedItem.monthlyBill) || 0;
+
+    // Get target savings from selected item or use default
+    const target = parseFloat(selectedItem.targetSavings) || 100;
+    setTargetSavings(target);
 
     setTotalDailyConsumption(total);
     setDayConsumption(day);
@@ -86,14 +89,12 @@ export const useSystemCalculation = () => {
     setMonthlyBill(bill);
     setRatePerKwh(rate);
 
-    // Get motor and non-motor appliance data
     const motor = parseFloat(selectedItem.motorAppliancesWatts) || 0;
     const nonMotor = parseFloat(selectedItem.nonMotorAppliancesWatts) || 0;
 
     setMotorAppliancesWatts(motor);
     setNonMotorAppliancesWatts(nonMotor);
 
-    // Auto-calculate PV capacities for net metering
     const safetyFactor = 1.3;
     const psh = 3.5;
     const dayPv = day > 0 ? (day * safetyFactor) / psh : 0;
@@ -102,7 +103,6 @@ export const useSystemCalculation = () => {
     setNightPvCapacity(nightPv);
     setTotalPvCapacity(dayPv + nightPv);
 
-    // Check if we have enough data
     const hasData = (area > 0) || (total > 0);
     setIsDataLoaded(hasData);
 
@@ -115,13 +115,13 @@ export const useSystemCalculation = () => {
       totalDailyConsumption: total,
       monthlyBill: bill,
       ratePerKwh: rate,
+      targetSavings: target,
       motorAppliancesWatts: motor,
       nonMotorAppliancesWatts: nonMotor,
       isDataLoaded: hasData
     });
   };
 
-  // Set PSH from IoT data (for pre-assessments)
   const setPshFromIoT = (peakSunHours) => {
     if (peakSunHours && peakSunHours > 0) {
       setPshValue(peakSunHours);
@@ -133,14 +133,11 @@ export const useSystemCalculation = () => {
     return roofArea;
   };
 
-  // Get panel values from equipment
   const getPanelWattage = (panel) => {
     if (!panel) return 0.55;
-    // capacity.value is in Watts, convert to kW for system size calculations
     return panel.capacity?.value ? panel.capacity.value / 1000 : (panel.power || 0.55);
   };
 
-  // Get panel wattage in Watts (for panelsNeeded calculation)
   const getPanelWattageInWatts = (panel) => {
     if (!panel) return 550;
     return panel.capacity?.value || panel.power || 550;
@@ -156,7 +153,6 @@ export const useSystemCalculation = () => {
     return battery.dob || 0.8;
   };
 
-  // Calculate inverter size based on motor and non-motor appliances
   const calculateInverterSize = () => {
     const motor = parseFloat(motorAppliancesWatts) || 0;
     const nonMotor = parseFloat(nonMotorAppliancesWatts) || 0;
@@ -165,13 +161,13 @@ export const useSystemCalculation = () => {
     return Math.ceil(inverterKva * 100) / 100;
   };
 
-  // Calculate battery capacity with autonomy
   const calculateBatteryCapacity = (totalDailyConsumption, autonomyDays, depthOfDischarge) => {
     if (totalDailyConsumption <= 0) return 0;
     const capacity = (totalDailyConsumption * autonomyDays) / depthOfDischarge;
     return Math.round(capacity * 100) / 100;
   };
 
+  // ===== CALCULATION 1: Based on Area × Target Savings =====
   const calculateByArea = (systemType) => {
     const area = roofArea;
     if (area === 0) {
@@ -184,21 +180,20 @@ export const useSystemCalculation = () => {
       return;
     }
 
-    const PANEL_WATTAGE_KW = getPanelWattage(selectedPanelForCalc); // in kW
-    const PANEL_WATTAGE_W = getPanelWattageInWatts(selectedPanelForCalc); // in Watts
+    const target = parseFloat(targetSavings) || 100;
+    const PANEL_WATTAGE_KW = getPanelWattage(selectedPanelForCalc);
+    const PANEL_WATTAGE_W = getPanelWattageInWatts(selectedPanelForCalc);
     const panelArea = getPanelArea(selectedPanelForCalc);
     const DEPTH_OF_DISCHARGE = selectedBatteryForCalc
       ? getDepthOfDischarge(selectedBatteryForCalc)
       : 0.8;
 
     const usableArea = area * 0.7;
+    // Formula: ((Usable Area / Panel Area) * Panel Wattage) * (Target Savings / 100)
+    const baseSystemSize = (usableArea / panelArea) * PANEL_WATTAGE_KW;
+    const recommendedSystemSize = Math.round((baseSystemSize * (target / 100)) * 100) / 100;
     
-    // Calculate system size from area: (Usable Area / Panel Area) * Panel Wattage (kW)
-    const recommendedSystemSize = Math.round(((usableArea / panelArea) * PANEL_WATTAGE_KW) * 100) / 100;
-    
-    // Calculate panels needed: (System Size kWp × 1000) / Panel Wattage (W)
     const panelsNeeded = Math.ceil((recommendedSystemSize * 1000) / PANEL_WATTAGE_W);
-    
     const inverterSize = Math.ceil(calculateInverterSize() * 100) / 100;
 
     const totalConsumption = totalDailyConsumption || (recommendedSystemSize * pshValue * 0.85);
@@ -235,16 +230,26 @@ export const useSystemCalculation = () => {
     setHasCalculated(true);
   };
 
+  // ===== CALCULATION 2: Based on Electricity Bill × Target Savings =====
   const calculateByElectricity = (systemType) => {
     const monthlybill = parseFloat(monthlyBill) || 0;
     const rate = parseFloat(ratePerKwh) || 12;
-    const total = monthlybill / (rate * 30); // Convert monthly bill to daily consumption in kWh
+    const total = monthlybill / (rate * 30);
+    const target = parseFloat(targetSavings) || 100;
+
     console.log('===== Electricity Calculation Debug =====');
     console.log('monthlyBill:', monthlyBill);
     console.log('ratePerKwh:', ratePerKwh);
+    console.log('total daily consumption:', total);
+    console.log('targetSavings:', target);
 
     if (total === 0) {
       alert('No consumption data available. Please check client data.');
+      return;
+    }
+
+    if (!selectedPanelForCalc) {
+      alert('Please select a solar panel');
       return;
     }
 
@@ -255,26 +260,15 @@ export const useSystemCalculation = () => {
       : 0.8;
     const safetyFactor = 1.3;
     
-    let adjustedDailyEnergyNeed;
-    if (systemType === 'off-grid') {
-      adjustedDailyEnergyNeed = total;
-    } else {
-      adjustedDailyEnergyNeed = total * (targetSavings / 100);
-    }
+    // Formula: ((total daily consumption * safety factor) / psh) * target savings
+    const baseSystemSize = (total * safetyFactor) / pshValue;
+    const recommendedSystemSize = Math.round((baseSystemSize * (target / 100)) * 100) / 100;
 
-    let recommendedSystemSize = 0;
-
-    if (systemType === 'grid-tie') {
-      recommendedSystemSize = Math.round(((adjustedDailyEnergyNeed * safetyFactor) / pshValue) * 100) / 100;
-    } else if (systemType === 'hybrid') {
-      recommendedSystemSize = Math.round(((adjustedDailyEnergyNeed * safetyFactor) / pshValue) * 100) / 100;
-    } else if (systemType === 'off-grid') {
-      recommendedSystemSize = Math.round(((adjustedDailyEnergyNeed * safetyFactor) / pshValue) * 100) / 100;
-    }
+    console.log('baseSystemSize:', baseSystemSize);
+    console.log('recommendedSystemSize:', recommendedSystemSize);
+    console.log('=========================================');
 
     const inverterSize = Math.ceil(calculateInverterSize() * 100) / 100;
-    
-    // Calculate panels needed: (System Size kWp × 1000) / Panel Wattage (W)
     const panelsNeeded = Math.ceil((recommendedSystemSize * 1000) / PANEL_WATTAGE_W);
     
     let batteryCapacity1Day = 0;
@@ -317,21 +311,24 @@ export const useSystemCalculation = () => {
     setHasCalculated(true);
   };
 
-  const calculateByNetMetering = () => {
-    const day = parseFloat(dayConsumption) || 0;
-    const night = (parseFloat(nightConsumption) * 12) / ratePerKwh || 0;
-
-    console.log('===== Net Metering Calculation Debug =====');
-    console.log('dayConsumption:', dayConsumption);
-    console.log('nightConsumption:', nightConsumption);
-    console.log('ratePerKwh:', ratePerKwh);
-    console.log('day:', day);
-    console.log('night (calculated):', night);
-    console.log('pshValue:', pshValue);
+  // ===== CALCULATION 3: Based on Load Profile × Target Savings =====
+  const calculateByLoadProfile = () => {
+    const total = parseFloat(totalDailyConsumption) || 0;
+    const target = parseFloat(targetSavings) || 100;
+    
+    console.log('===== Load Profile Calculation Debug =====');
+    console.log('totalDailyConsumption:', totalDailyConsumption);
     console.log('targetSavings:', targetSavings);
+    console.log('pshValue:', pshValue);
+    console.log('selectedPanelForCalc:', selectedPanelForCalc);
 
-    if (day === 0 && night === 0) {
+    if (total === 0) {
       alert('No consumption data available. Please check client data.');
+      return;
+    }
+
+    if (!selectedPanelForCalc) {
+      alert('Please select a solar panel');
       return;
     }
 
@@ -341,30 +338,29 @@ export const useSystemCalculation = () => {
       ? getDepthOfDischarge(selectedBatteryForCalc)
       : 0.8;
     const safetyFactor = 1.3;
-    const psh = 3.5;
-
-    const adjustedDay = day * (targetSavings / 100);
-    const adjustedNight = night * (targetSavings / 100);
-
-    const dayPv = (adjustedDay * safetyFactor) / psh;
-    const nightPv = (adjustedNight * safetyFactor) / psh;
-    const totalPv = dayPv + nightPv;
-
-    console.log('adjustedDay:', adjustedDay);
-    console.log('adjustedNight:', adjustedNight);
-    console.log('dayPv:', dayPv);
-    console.log('nightPv:', nightPv);
-    console.log('totalPv:', totalPv);
-
-    const recommendedSystemSize = Math.round(totalPv * 100) / 100;
+    
+    // Formula: ((total daily consumption * safety factor) / psh) * target savings
+    const baseSystemSize = (total * safetyFactor) / pshValue;
+    const recommendedSystemSize = Math.round((baseSystemSize * (target / 100)) * 100) / 100;
+    
+    console.log('baseSystemSize (before target savings):', baseSystemSize);
+    console.log('targetSavings:', target);
     console.log('recommendedSystemSize:', recommendedSystemSize);
     console.log('=========================================');
 
     const inverterSize = Math.ceil(calculateInverterSize() * 100) / 100;
-    
-    // Calculate panels needed: (System Size kWp × 1000) / Panel Wattage (W)
     const panelsNeeded = Math.ceil((recommendedSystemSize * 1000) / PANEL_WATTAGE_W);
-    const batteryCapacityKwh = 0;
+    
+    let batteryCapacity1Day = 0;
+    let batteryCapacity2Day = 0;
+    let batteryCapacity3Day = 0;
+    let batteryCapacityKwh = 0;
+
+    // Use original total consumption for battery sizing
+    batteryCapacity1Day = calculateBatteryCapacity(total, 1, DEPTH_OF_DISCHARGE);
+    batteryCapacity2Day = calculateBatteryCapacity(total, 2, DEPTH_OF_DISCHARGE);
+    batteryCapacity3Day = calculateBatteryCapacity(total, 3, DEPTH_OF_DISCHARGE);
+    batteryCapacityKwh = batteryCapacity1Day;
 
     const MIN_PSH = 3, MAX_PSH = 4.5;
     const annualProduction = Math.round((recommendedSystemSize * pshValue * 365) / 1.3);
@@ -376,9 +372,9 @@ export const useSystemCalculation = () => {
       inverterSize,
       panelsNeeded,
       batteryCapacityKwh,
-      batteryCapacity1Day: 0,
-      batteryCapacity2Day: 0,
-      batteryCapacity3Day: 0,
+      batteryCapacity1Day,
+      batteryCapacity2Day,
+      batteryCapacity3Day,
       estimatedAnnualProduction: annualProduction,
       estimatedAnnualProductionMin: annualProductionMin,
       estimatedAnnualProductionMax: annualProductionMax,
@@ -390,9 +386,88 @@ export const useSystemCalculation = () => {
       depthOfDischarge: DEPTH_OF_DISCHARGE
     });
 
-    setSelectedCalculationMethod('netmetering');
+    setSelectedCalculationMethod('loadprofile');
     setHasCalculated(true);
   };
+
+  // hooks/useSystemCalculation.js
+
+const calculateByNetMetering = () => {
+  const day = parseFloat(dayConsumption) || 0;
+  const night = parseFloat(nightConsumption) || 0;
+  const target = parseFloat(targetSavings) || 100;
+  const exportRateValue = parseFloat(exportRate) || 12;
+  
+  const psh = parseFloat(pshValue) || 3.5;
+  
+  console.log('===== Net Metering Calculation Debug =====');
+  console.log('dayConsumption:', dayConsumption);
+  console.log('nightConsumption:', nightConsumption);
+  console.log('exportRate:', exportRateValue);
+  console.log('pshValue:', psh);
+  console.log('targetSavings:', targetSavings);
+
+  if (day === 0 && night === 0) {
+    alert('No consumption data available. Please check client data.');
+    return;
+  }
+
+  if (!selectedPanelForCalc) {
+    alert('Please select a solar panel');
+    return;
+  }
+
+  const PANEL_WATTAGE_KW = getPanelWattage(selectedPanelForCalc);
+  const PANEL_WATTAGE_W = getPanelWattageInWatts(selectedPanelForCalc);
+  const DEPTH_OF_DISCHARGE = selectedBatteryForCalc
+    ? getDepthOfDischarge(selectedBatteryForCalc)
+    : 0.8;
+  const safetyFactor = 1.3;
+
+  // Formula: (day consumption * safety factor / psh) + (night consumption * 12 / exportRate * safety factor / psh) * target savings
+  const dayPv = (day * safetyFactor) / psh;
+  const nightPv = ((night * 12 / exportRateValue) * safetyFactor) / psh;
+  const totalPv = dayPv + nightPv;
+  const recommendedSystemSize = Math.round((totalPv * (target / 100)) * 100) / 100;
+
+  console.log('dayPv:', dayPv);
+  console.log('nightPv:', nightPv);
+  console.log('totalPv:', totalPv);
+  console.log('targetSavings:', target);
+  console.log('recommendedSystemSize:', recommendedSystemSize);
+  console.log('=========================================');
+
+  const inverterSize = Math.ceil(calculateInverterSize() * 100) / 100;
+  const panelsNeeded = Math.ceil((recommendedSystemSize * 1000) / PANEL_WATTAGE_W);
+  const batteryCapacityKwh = 0;
+
+  const MIN_PSH = 3, MAX_PSH = 4.5;
+  const annualProduction = Math.round((recommendedSystemSize * psh * 365) / 1.3);
+  const annualProductionMin = Math.round((recommendedSystemSize * MIN_PSH * 365) / 1.3);
+  const annualProductionMax = Math.round((recommendedSystemSize * MAX_PSH * 365) / 1.3);
+
+  setCalculationResults({
+    recommendedSystemSize,
+    inverterSize,
+    panelsNeeded,
+    batteryCapacityKwh,
+    batteryCapacity1Day: 0,
+    batteryCapacity2Day: 0,
+    batteryCapacity3Day: 0,
+    estimatedAnnualProduction: annualProduction,
+    estimatedAnnualProductionMin: annualProductionMin,
+    estimatedAnnualProductionMax: annualProductionMax,
+    co2Offset: Math.round(annualProduction * 0.5),
+    co2OffsetMin: Math.round(annualProductionMin * 0.5),
+    co2OffsetMax: Math.round(annualProductionMax * 0.5),
+    panelWattage: PANEL_WATTAGE_W,
+    panelArea: getPanelArea(selectedPanelForCalc),
+    depthOfDischarge: DEPTH_OF_DISCHARGE
+  });
+
+  setSelectedCalculationMethod('netmetering');
+  setHasCalculated(true);
+};
 
   const applyCalculationResults = (
     setFreeQuoteForm,
@@ -477,13 +552,11 @@ export const useSystemCalculation = () => {
   };
 
   return {
-    // States with setters
     showCalculationCards, setShowCalculationCards,
     showEquipmentSelection, setShowEquipmentSelection,
     selectedCalculationMethod, setSelectedCalculationMethod,
     hasCalculated, setHasCalculated,
-    
-    // States without setters (read-only)
+    exportRate, setExportRate,
     roofLength, setRoofLength,
     roofWidth, setRoofWidth,
     roofArea,
@@ -505,11 +578,11 @@ export const useSystemCalculation = () => {
     isDataLoaded,
     calculationResults,
     
-    // Functions
     initializeFromData,
     setPshFromIoT,
     calculateByArea,
     calculateByElectricity,
+    calculateByLoadProfile,
     calculateByNetMetering,
     applyCalculationResults,
     resetCalculationCards,
@@ -518,6 +591,6 @@ export const useSystemCalculation = () => {
     getDepthOfDischarge,
     calculateInverterSize,
     calculateBatteryCapacity,
-    getPanelWattageInWatts // Export the new helper function
+    getPanelWattageInWatts
   };
 };

@@ -35,8 +35,9 @@ export const AreaCalculationCard = ({
   selectedPanelForCalc, setSelectedPanelForCalc,
   availablePanels,
   calculateByArea,
+  targetSavings,
   isDataLoaded,
-  showToast // Add showToast prop
+  showToast
 }) => {
 
   const panelWattage = getPanelWattage(selectedPanelForCalc);
@@ -55,7 +56,6 @@ export const AreaCalculationCard = ({
     }
     calculateByArea();
 
-    // Show success toast after calculation
     setTimeout(() => {
       showToast('Area calculation completed!', 'success', 3000);
     }, 300);
@@ -65,34 +65,9 @@ export const AreaCalculationCard = ({
     <div className="calculation-card">
       <div className="calculation-card-header">
         <h4>Based on Area</h4>
-        <span className="calculation-badge">Grid-Tie • Off-Grid</span>
+        <span className="calculation-badge">Grid-Tie • Off-Grid • Hybrid</span>
       </div>
       <div className="calculation-card-body">
-        <div className="consumption-display">
-          <div className="consumption-item">
-            <label>Roof Length</label>
-            <strong>{safeToFixed(roofLength)} m</strong>
-            <small>From client data</small>
-          </div>
-          <div className="consumption-item">
-            <label>Roof Width</label>
-            <strong>{safeToFixed(roofWidth)} m</strong>
-            <small>From client data</small>
-          </div>
-          <div className="consumption-item highlight">
-            <label>Total Roof Area</label>
-            <strong>{safeToFixed(roofArea)} m²</strong>
-            <small>Length × Width</small>
-          </div>
-          {roofArea > 0 && (
-            <div className="consumption-item">
-              <label>Usable Area (70%)</label>
-              <strong>{safeToFixed(roofArea * 0.7)} m²</strong>
-              <small>70% of total roof area</small>
-            </div>
-          )}
-        </div>
-
         <div className="form-group-enad">
           <label className="form-label-enad">Select Solar Panel</label>
           <select
@@ -124,9 +99,40 @@ export const AreaCalculationCard = ({
             </div>
           </div>
         )}
+        <div className="consumption-display">
+          <div className="consumption-item">
+            <label>Roof Length</label>
+            <strong>{safeToFixed(roofLength)} m</strong>
+            <small>From client data</small>
+          </div>
+          <div className="consumption-item">
+            <label>Roof Width</label>
+            <strong>{safeToFixed(roofWidth)} m</strong>
+            <small>From client data</small>
+          </div>
+          <div className="consumption-item ">
+            <label>Total Roof Area</label>
+            <strong>{safeToFixed(roofArea)} m²</strong>
+            <small>Length × Width</small>
+          </div>
+          <div className="consumption-item ">
+            <label>Target Savings</label>
+            <strong>{safeToFixed(targetSavings)}%</strong>
+            <small>From client's energy profile</small>
+          </div>
+          {roofArea > 0 && (
+            <div className="consumption-item highlight">
+              <label>Usable Area (70%)</label>
+              <strong>{safeToFixed(roofArea * 0.7)} m²</strong>
+              <small>70% of total roof area</small>
+            </div>
+          )}
+        </div>
+
+
 
         <div className="formula-display">
-          <label className="form-label-enad"><strong>Formula:</strong> (Roof Area × 70% × PV Power(W)) / Panel Area(m²)</label>
+          <label className="form-label-enad"><strong>Formula:</strong> ((Roof Area × 70% × PV Power(W)) / Panel Area(m²)) * Target Savings</label>
         </div>
 
         <button
@@ -165,12 +171,11 @@ export const ElectricityCalculationCard = ({
   batteryAutonomy,
   setBatteryAutonomy,
   systemType,
-  showToast // Add showToast prop
+  showToast
 }) => {
   const panelWattage = getPanelWattage(selectedPanelForCalc);
   const dod = getDepthOfDischarge(selectedBatteryForCalc);
 
-  // Only show battery autonomy for Hybrid (not for Grid-Tie or Off-Grid)
   const showBatteryAutonomy = systemType === 'hybrid';
 
   const handleCalculate = () => {
@@ -194,64 +199,6 @@ export const ElectricityCalculationCard = ({
         <span className="calculation-badge">Grid-Tie • Hybrid • Off-Grid</span>
       </div>
       <div className="calculation-card-body">
-        <div className="consumption-display">
-          <div className="consumption-item">
-            <label>Total Daily Consumption</label>
-            <strong>{safeToFixed(totalDailyConsumption)} kWh/day</strong>
-            <small>From client data</small>
-          </div>
-          <div className="consumption-item">
-            <label>Day Consumption</label>
-            <strong>{safeToFixed(dayConsumption)} kWh</strong>
-            <small>From client data</small>
-          </div>
-          <div className="consumption-item">
-            <label>Night Consumption</label>
-            <strong>{safeToFixed(nightConsumption)} kWh</strong>
-            <small>From client data</small>
-          </div>
-          <div className="consumption-item">
-            <label>Rate per kWh</label>
-            <strong>₱{safeToFixed(ratePerKwh, 2)}</strong>
-            <small>From client data</small>
-          </div>
-          <div className="consumption-item highlight">
-            <label>Monthly Bill</label>
-            <strong>₱{safeToFixed(monthlyBill, 2)}</strong>
-            <small>From client data</small>
-          </div>
-        </div>
-
-        <div className="calculation-params">
-          <div className="param-group">
-            <label>PSH (Peak Sun Hours)</label>
-            <input
-              type="number"
-              step="0.1"
-              value={pshValue}
-              onChange={(e) => setPshValue(parseFloat(e.target.value) || 3.5)}
-              className="param-input"
-            />
-            <small className="form-hint-enad">Default: 3.5 for Philippines</small>
-          </div>
-          {/* Target Savings - Read-only (from database) */}
-          {(systemType === 'grid-tie' || systemType === 'hybrid') && (
-            <div className="param-group">
-              <label>Target Savings (%)</label>
-              <div className="param-display read-only">{targetSavings}%</div>
-              <small className="form-hint-enad">From client's energy profile</small>
-            </div>
-          )}
-          {systemType === 'off-grid' && (
-            <div className="param-group">
-              <label>Target Savings</label>
-              <div className="param-display read-only">100% (Required)</div>
-              <small className="form-hint-enad">Off-grid systems must cover 100% of consumption</small>
-            </div>
-          )}
-        </div>
-
-        {/* Battery Autonomy - Only for Hybrid */}
         {showBatteryAutonomy && (
           <div className="battery-autonomy-selector">
             <label className="form-label-enad">Battery Autonomy (Days)</label>
@@ -276,20 +223,6 @@ export const ElectricityCalculationCard = ({
               </button>
             </div>
             <small className="form-hint-enad">Number of days the battery can power the load without solar input</small>
-          </div>
-        )}
-
-        {/* Grid-Tie Note */}
-        {systemType === 'grid-tie' && (
-          <div className="system-note gridtie-note">
-            <p>Grid-tie systems do not require battery storage. They use the grid as backup.</p>
-          </div>
-        )}
-
-        {/* Off-Grid Note */}
-        {systemType === 'off-grid' && (
-          <div className="system-note offgrid-note">
-            <p>⚠️ Off-grid systems require battery storage. Battery size will be calculated based on total daily consumption.</p>
           </div>
         )}
 
@@ -325,10 +258,50 @@ export const ElectricityCalculationCard = ({
             </div>
           </div>
         )}
+        <div className="calculation-params">
+          <div className="param-group">
+            <label>PSH (Peak Sun Hours)</label>
+            <input
+              type="number"
+              step="0.1"
+              value={pshValue}
+              onChange={(e) => setPshValue(parseFloat(e.target.value) || 3.5)}
+              className="param-input"
+            />
+            <small className="form-hint-enad">Default: 3.5 for Philippines</small>
+          </div>
+
+        </div>
+        <div className="consumption-display">
+          <div className="consumption-item ">
+            <label>Monthly Bill</label>
+            <strong>₱{safeToFixed(monthlyBill, 2)}</strong>
+            <small>From client data</small>
+          </div>
+          <div className="consumption-item">
+            <label>Rate per kWh</label>
+            <strong>₱{safeToFixed(ratePerKwh, 2)}</strong>
+            <small>From client data</small>
+          </div>
+          <div className="consumption-item">
+            <label>Target Savings</label>
+            <strong>{safeToFixed(targetSavings)}%</strong>
+            <small>From client data</small>
+          </div>
+          <div className="consumption-item highlight">
+            <label>Total Daily Consumption (Electricity Bill)</label>
+            <strong>{safeToFixed(monthlyBill / (ratePerKwh * 30))} kWh/day</strong>
+            <small>From client data</small>
+          </div>
+        </div>
+
+
+
+
 
         <div className="formula-display">
-          <label className="form-label-enad"><strong>Formula:</strong> Day Consumption × Safety Factor / PSH</label>
-          <label className="form-label-enad">Safety Factor: 1.3 (default)</label>
+          <label className="form-label-enad"><strong>Formula:</strong> ((Total Daily Consumption (Electric Bill) × Safety Factor) / PSH) × Target Savings</label>
+          
         </div>
 
         <button
@@ -350,6 +323,182 @@ export const ElectricityCalculationCard = ({
   );
 };
 
+// Load Profile Calculation Card
+export const LoadProfileCalculationCard = ({
+  totalDailyConsumption,
+  dayConsumption,
+  nightConsumption,
+  pshValue,
+  setPshValue,
+  targetSavings,
+  selectedPanelForCalc,
+  setSelectedPanelForCalc,
+  availablePanels,
+  calculateByLoadProfile,
+  isDataLoaded,
+  selectedBatteryForCalc,
+  batteryAutonomy,
+  setBatteryAutonomy,
+  systemType,
+  showToast
+}) => {
+  const panelWattage = getPanelWattage(selectedPanelForCalc);
+  const dod = getDepthOfDischarge(selectedBatteryForCalc);
+
+  const showBatteryAutonomy = systemType === 'hybrid' || systemType === 'off-grid';
+
+  const handleCalculate = () => {
+    if (!isDataLoaded || totalDailyConsumption === 0 || !selectedPanelForCalc) {
+      if (!selectedPanelForCalc) {
+        showToast('Please select a solar panel first', 'warning');
+      } else if (!isDataLoaded) {
+        showToast('No consumption data available. Please check client data.', 'error');
+      } else if (totalDailyConsumption === 0) {
+        showToast('Consumption data not provided by client.', 'error');
+      }
+      return;
+    }
+    calculateByLoadProfile();
+
+    setTimeout(() => {
+      showToast('Load Profile calculation completed!', 'success', 3000);
+    }, 300);
+  };
+
+  return (
+    <div className="calculation-card">
+      <div className="calculation-card-header">
+        <h4>Based on Load Profile</h4>
+        <span className="calculation-badge">Grid-Tie • Hybrid • Off-Grid</span>
+      </div>
+      <div className="calculation-card-body">
+
+
+        {showBatteryAutonomy && (
+          <div className="battery-autonomy-selector">
+            <label className="form-label-enad">Battery Autonomy (Days)</label>
+            <div className="autonomy-options">
+              <button
+                className={`autonomy-btn ${batteryAutonomy === 1 ? 'active' : ''}`}
+                onClick={() => setBatteryAutonomy(1)}
+              >
+                1 Day
+              </button>
+              <button
+                className={`autonomy-btn ${batteryAutonomy === 2 ? 'active' : ''}`}
+                onClick={() => setBatteryAutonomy(2)}
+              >
+                2 Days
+              </button>
+              <button
+                className={`autonomy-btn ${batteryAutonomy === 3 ? 'active' : ''}`}
+                onClick={() => setBatteryAutonomy(3)}
+              >
+                3 Days
+              </button>
+            </div>
+            <small className="form-hint-enad">Number of days the battery can power the load without solar input</small>
+          </div>
+        )}
+
+        <div className="form-group-enad">
+          <label className="form-label-enad">Select Solar Panel</label>
+          <select
+            className="assessment-form-select-enad"
+            value={selectedPanelForCalc?._id || ''}
+            onChange={(e) => {
+              const panel = availablePanels.find(p => p._id === e.target.value);
+              setSelectedPanelForCalc(panel);
+            }}
+          >
+            <option value="">-- Select Panel --</option>
+            {availablePanels.filter(p => p.isActive).map(panel => {
+              const wattage = getPanelWattage(panel);
+              const area = getPanelArea(panel);
+              return (
+                <option key={panel._id} value={panel._id}>
+                  {panel.name} - {wattage}W - {safeToFixed(area)}m²
+                </option>
+              );
+            })}
+          </select>
+        </div>
+
+        {selectedPanelForCalc && (
+          <div className="selected-equipment-info">
+            <div className="equipment-detail">
+              <span>Panel Power: <strong>{panelWattage}W</strong></span>
+              {selectedBatteryForCalc && showBatteryAutonomy && (
+                <span>Battery DOD: <strong>{safeToFixed(dod * 100, 0)}%</strong></span>
+              )}
+            </div>
+          </div>
+        )}
+        <div className="calculation-params">
+          <div className="param-group">
+            <label>PSH (Peak Sun Hours)</label>
+            <input
+              type="number"
+              step="0.1"
+              value={pshValue}
+              onChange={(e) => setPshValue(parseFloat(e.target.value) || 3.5)}
+              className="param-input"
+            />
+            <small className="form-hint-enad">Default: 3.5 for Philippines</small>
+          </div>
+
+        </div>
+        <div className="consumption-display">
+          <div className="consumption-item">
+            <label>Day Consumption</label>
+            <strong>{safeToFixed(dayConsumption)} kWh</strong>
+            <small>From client data</small>
+          </div>
+          <div className="consumption-item">
+            <label>Night Consumption</label>
+            <strong>{safeToFixed(nightConsumption)} kWh</strong>
+            <small>From client data</small>
+          </div>
+          <div className="consumption-item">
+            <label>Target Savings</label>
+            <strong>{safeToFixed(targetSavings)}%</strong>
+            <small>From client's energy profile</small>
+          </div>
+          <div className="consumption-item highlight">
+            <label>Total Daily Consumption</label>
+            <strong>{safeToFixed(totalDailyConsumption)} kWh</strong>
+            <small>Day + Night consumption</small>
+          </div>
+        </div>
+
+
+
+        <div className="formula-display">
+          <label className="form-label-enad"><strong>Formula:</strong> (Total Daily Consumption × Safety Factor / PSH) × Target Savings</label>
+         
+        </div>
+
+        <button
+          className="btn-calculate"
+          onClick={handleCalculate}
+          disabled={!isDataLoaded || totalDailyConsumption === 0 || !selectedPanelForCalc}
+        >
+          Calculate System Size
+        </button>
+
+        {!isDataLoaded && (
+          <small className="form-hint-enad error-hint">No consumption data available. Please check client data.</small>
+        )}
+        {isDataLoaded && totalDailyConsumption === 0 && (
+          <small className="form-hint-enad error-hint">Consumption data not provided by client.</small>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// components/Engineer/SystemCalculationCards.jsx
+
 // Net Metering Calculation Card - Read-only Target Savings
 export const NetMeteringCalculationCard = ({
   dayConsumption,
@@ -357,14 +506,26 @@ export const NetMeteringCalculationCard = ({
   dayPvCapacity,
   nightPvCapacity,
   totalPvCapacity,
-  selectedPanelForCalc, setSelectedPanelForCalc,
+  selectedPanelForCalc, 
+  setSelectedPanelForCalc,
   availablePanels,
   calculateByNetMetering,
   isDataLoaded,
   targetSavings,
-  showToast // Add showToast prop
+  exportRate,
+  setExportRate,
+  pshValue, // Add pshValue prop
+  showToast
 }) => {
   const panelWattage = getPanelWattage(selectedPanelForCalc);
+  // Use pshValue if available, otherwise default to 3.5
+  console.log('pshValue:', pshValue); // Debugging line to check the value of pshValue
+  const psh = parseFloat(pshValue) || 3.5;
+
+  // Use exportRate instead of ratePerKwh for net metering calculation
+  const dayNetMeteringConsumption = (dayConsumption * 1.3 )/ psh;
+  const nightNetMeteringConsumption = nightConsumption * 12 / exportRate;
+  const nightNetMeteringPvCapacity = nightNetMeteringConsumption * 1.3 / psh;
 
   const handleCalculate = () => {
     if (!isDataLoaded || (dayConsumption === 0 && nightConsumption === 0) || !selectedPanelForCalc) {
@@ -384,46 +545,9 @@ export const NetMeteringCalculationCard = ({
     <div className="calculation-card">
       <div className="calculation-card-header">
         <h4>Based on Net Metering</h4>
-        <span className="calculation-badge">Grid-Tie Only</span>
+        <span className="calculation-badge">Grid-Tie</span>
       </div>
       <div className="calculation-card-body">
-        <div className="consumption-display">
-          <div className="consumption-item">
-            <label>Day Consumption</label>
-            <strong>{safeToFixed(dayConsumption)} kWh</strong>
-            <small>From client data</small>
-          </div>
-          <div className="consumption-item">
-            <label>Day PV Capacity</label>
-            <strong>{safeToFixed(dayPvCapacity, 2)} kWp</strong>
-            <small>Formula: Day × 1.3 / 3.5</small>
-          </div>
-          <div className="consumption-item">
-            <label>Night Consumption</label>
-            <strong>{safeToFixed(nightConsumption)} kWh</strong>
-            <small>From client data</small>
-          </div>
-          <div className="consumption-item">
-            <label>Night PV Capacity</label>
-            <strong>{safeToFixed(nightPvCapacity, 2)} kWp</strong>
-            <small>Formula: Night × 1.3 / 3.5</small>
-          </div>
-          <div className="consumption-item highlight">
-            <label>Total PV Capacity</label>
-            <strong>{safeToFixed(totalPvCapacity, 2)} kWp</strong>
-            <small>Day PV + Night PV</small>
-          </div>
-        </div>
-
-        {/* Target Savings - Read-only (from database) */}
-        <div className="calculation-params">
-          <div className="param-group">
-            <label>Target Savings (%)</label>
-            <div className="param-display read-only">{targetSavings}%</div>
-            <small className="form-hint-enad">From client's energy profile</small>
-          </div>
-        </div>
-
         <div className="form-group-enad">
           <label className="form-label-enad">Select Solar Panel</label>
           <select
@@ -454,15 +578,59 @@ export const NetMeteringCalculationCard = ({
           </div>
         )}
 
+        {/* Export Rate Input */}
+        <div className="calculation-params">
+          <div className="param-group">
+            <label>Export Rate (₱/kWh)</label>
+            <input
+              type="number"
+              step="0.01"
+              value={exportRate}
+              onChange={(e) => setExportRate(parseFloat(e.target.value) || '')}
+              className="param-input"
+            />
+            <small className="form-hint-enad">Used for net metering calculation</small>
+          </div>
+        </div>
+
+        <div className="consumption-display">
+          <div className="consumption-item">
+            <label>Day Consumption</label>
+            <strong>{safeToFixed(dayConsumption)} kWh</strong>
+            <small>From client data</small>
+          </div>
+          <div className="consumption-item">
+            <label>Day PV Capacity</label>
+            <strong>{safeToFixed(dayNetMeteringConsumption, 2)} kWp</strong>
+            <small>Day × 1.3 / {psh}</small>
+          </div>
+          <div className="consumption-item">
+            <label>Night Consumption</label>
+            <strong>{safeToFixed(nightNetMeteringConsumption)} kWh</strong>
+            <small>Night × 12 / Export Rate</small>
+          </div>
+          <div className="consumption-item">
+            <label>Night PV Capacity</label>
+            <strong>{safeToFixed(nightNetMeteringPvCapacity, 2)} kWp</strong>
+            <small>Night × 1.3 / {psh}</small>
+          </div>
+          <div className="consumption-item">
+            <label>Target Savings</label>
+            <strong>{safeToFixed(targetSavings)}%</strong>
+            <small>From client's energy profile</small>
+          </div>
+          
+        </div>
+
         <div className="formula-display">
           <label className="form-label-enad"><strong>Formula:</strong> (Day PV Capacity + Night PV Capacity) × Target Savings</label>
-          <label className="form-label-enad">PV Capacity = Consumption × 1.3 / 3.5 PSH</label>
+          
         </div>
 
         <button
           className="btn-calculate"
           onClick={handleCalculate}
-          disabled={!isDataLoaded || (dayConsumption === 0 && nightConsumption === 0) || !selectedPanelForCalc}
+          disabled={!isDataLoaded || (dayConsumption === 0 && nightConsumption === 0) || !selectedPanelForCalc || exportRate <= 0}
         >
           Calculate System Size
         </button>
@@ -477,7 +645,6 @@ export const NetMeteringCalculationCard = ({
     </div>
   );
 };
-
 // Results Card - Battery only shown for Hybrid and Off-Grid (NOT Grid-Tie)
 export const CalculationResultsCard = ({
   calculationResults,
@@ -485,9 +652,8 @@ export const CalculationResultsCard = ({
   applyCalculationResults,
   resetCalculationCards,
   systemType,
-  showToast // Add showToast prop
+  showToast
 }) => {
-  // Only show battery results for Hybrid and Off-Grid
   const showBattery = systemType === 'hybrid' || systemType === 'off-grid';
 
   const handleApplyResults = () => {
@@ -511,6 +677,7 @@ export const CalculationResultsCard = ({
         <span className="results-method">
           {selectedCalculationMethod === 'area' && 'Based on Area'}
           {selectedCalculationMethod === 'electricity' && 'Based on Electricity'}
+          {selectedCalculationMethod === 'loadprofile' && 'Based on Load Profile'}
           {selectedCalculationMethod === 'netmetering' && 'Based on Net Metering'}
         </span>
       </div>
@@ -528,7 +695,6 @@ export const CalculationResultsCard = ({
           <strong>{calculationResults.panelsNeeded || 0} pcs</strong>
         </div>
 
-        {/* Battery Capacity - Only for Hybrid and Off-Grid (NOT Grid-Tie) */}
         {showBattery && (calculationResults.batteryCapacity1Day > 0 || calculationResults.batteryCapacity2Day > 0 || calculationResults.batteryCapacity3Day > 0) && (
           <div className="result-item battery-autonomy">
             <label>Battery Capacity</label>
@@ -551,7 +717,6 @@ export const CalculationResultsCard = ({
           </div>
         )}
 
-        {/* Grid-Tie Note in Results */}
         {systemType === 'grid-tie' && (
           <div className="result-item system-info">
             <label>System Type</label>

@@ -141,7 +141,20 @@ const freeQuoteSchema = new mongoose.Schema({
     type: Number,
     default: null
   },
-
+ discountPercentage: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100
+  },
+  discountAmount: {
+    type: Number,
+    default: 0
+  },
+  finalAmount: {
+    type: Number,
+    default: 0
+  },
   // ============ STATUS ============
   status: {
     type: String,

@@ -59,6 +59,7 @@ export const SystemEquipmentSelection = ({
   laborCostPercentage, setLaborCostPercentage,
   overheadContingencyPercentage, setOverheadContingencyPercentage,
   contractorProfitPercentage, setContractorProfitPercentage,
+  discountPercentage, setDiscountPercentage, // NEW: Discount percentage props
   freeQuoteCalculateTotalCosts,
   // Form
   freeQuoteForm,
@@ -73,11 +74,12 @@ export const SystemEquipmentSelection = ({
   formatCurrency,
   generateQuotationPDF,
   generatingPDF,
+  onDiscountValuesChange,
 }) => {
   // Validation state for error messages
   const [fieldErrors, setFieldErrors] = useState({});
-  
-  // Use the toast hook - CORRECTED
+
+  // Use the toast hook
   const { toast, showToast, hideToast } = useToast();
 
   // Validate all equipment selections and quantities
@@ -291,7 +293,7 @@ export const SystemEquipmentSelection = ({
     }
 
     setFieldErrors(fieldErrorMap);
-    
+
     // Return true if there are any errors
     return Object.values(fieldErrorMap).some(error => error && error.length > 0);
   };
@@ -299,15 +301,15 @@ export const SystemEquipmentSelection = ({
   // Handle PDF generation with validation
   const handleGeneratePDF = () => {
     const hasErrors = validateEquipment();
-    
+
     if (hasErrors) {
       // Find the first error message
       const firstErrorKey = Object.keys(fieldErrors).find(key => fieldErrors[key] && fieldErrors[key].length > 0);
       const errorMessage = firstErrorKey ? fieldErrors[firstErrorKey] : 'Please fix all validation errors';
-      
+
       // Show toast notification with the first error
       showToast(errorMessage, 'error', 5000);
-      
+
       // Scroll to first error
       const firstErrorElement = document.querySelector('.error-border');
       if (firstErrorElement) {
@@ -315,7 +317,7 @@ export const SystemEquipmentSelection = ({
       }
       return;
     }
-    
+
     setFieldErrors({});
     generateQuotationPDF();
   };
@@ -352,6 +354,9 @@ export const SystemEquipmentSelection = ({
   const getError = (fieldName) => {
     return fieldErrors[fieldName] || '';
   };
+
+  // Calculate discounted total
+  const { discountAmount, finalAmount } = freeQuoteCalculatedCosts;
 
   return (
     <>
@@ -859,6 +864,47 @@ export const SystemEquipmentSelection = ({
         </div>
       </div>
 
+      {/* ===== NEW: DISCOUNT SECTION ===== */}
+      <div className="quotation-section discount-section">
+        <h4>Discount</h4>
+        <div className="cost-percentage-control">
+          <div>
+            <label className="form-label-enad">Discount (% of Total System Cost)</label>
+            <input
+              type="number"
+              step="1"
+              min="0"
+              max="100"
+              className="assessment-form-input-enad discount-input"
+              value={discountPercentage}
+              onChange={(e) => {
+                const value = parseInt(e.target.value) || 0;
+                setDiscountPercentage(Math.min(100, Math.max(0, value)));
+                setTimeout(() => freeQuoteCalculateTotalCosts(), 0);
+              }}
+            />
+            <small className="form-hint-enad">Enter discount percentage to apply to the total system cost</small>
+          </div>
+        </div>
+
+        {discountPercentage > 0 && (
+          <div className="cost-calculation discount-calculation">
+            <div className="cost-detail">
+              <span>Total System Cost:</span>
+              <span>{formatCurrency(freeQuoteCalculatedCosts.totalSystemCost)}</span>
+            </div>
+            <div className="cost-detail discount-amount">
+              <span>Discount ({discountPercentage}%):</span>
+              <span className="discount-value">-{formatCurrency(discountAmount)}</span>
+            </div>
+            <div className="cost-detail highlight-discount">
+              <strong>Discounted Total:</strong>
+              <strong>{formatCurrency(finalAmount)}</strong>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Complete Cost Summary */}
       <div className="cost-summary-large">
         <h3>Complete Cost Summary</h3>
@@ -878,6 +924,21 @@ export const SystemEquipmentSelection = ({
         <div className="summary-row"><span>Overhead & Contingency ({overheadContingencyPercentage}%):</span><span>{formatCurrency(freeQuoteCalculatedCosts.overheadContingencyCost)}</span></div>
         <div className="summary-row"><span>Contractor Profit ({contractorProfitPercentage}%):</span><span>{formatCurrency(freeQuoteCalculatedCosts.contractorProfitCost)}</span></div>
         <div className="summary-row total"><span>TOTAL SYSTEM COST:</span><span>{formatCurrency(freeQuoteCalculatedCosts.totalSystemCost)}</span></div>
+
+        {/* Discount in Summary */}
+        {discountPercentage > 0 && (
+          <>
+            <div className="summary-row discount-row">
+              <span>Discount ({discountPercentage}%):</span>
+              <span className="discount-value">-{formatCurrency(discountAmount)}</span>
+            </div>
+            <div className="summary-row grand-total">
+              <span>FINAL TOTAL (After Discount):</span>
+              <span>{formatCurrency(finalAmount)}</span>
+            </div>
+          </>
+        )}
+
         {hasError('totalCost') && (
           <small className="form-hint-enad error-hint" style={{ marginTop: '0.5rem', display: 'block' }}>{getError('totalCost')}</small>
         )}
@@ -890,7 +951,7 @@ export const SystemEquipmentSelection = ({
           <div className="cost-calculation">
             <div className="cost-detail">
               <span>Total Cost:</span>
-              <span>{formatCurrency(freeQuoteCalculatedCosts.totalSystemCost)}</span>
+              <span>{formatCurrency(discountPercentage > 0 ? finalAmount : freeQuoteCalculatedCosts.totalSystemCost)}</span>
             </div>
             <div className="cost-detail">
               <span>Annual Production:</span>
@@ -899,8 +960,8 @@ export const SystemEquipmentSelection = ({
             <div className="cost-detail highlight-roi">
               <span>ROI (Payback Period):</span>
               <span>
-                {freeQuoteCalculatedCosts.totalSystemCost > 0 && annualProduction > 0
-                  ? (freeQuoteCalculatedCosts.totalSystemCost / annualProduction).toFixed(1)
+                {(discountPercentage > 0 ? finalAmount : freeQuoteCalculatedCosts.totalSystemCost) > 0 && annualProduction > 0
+                  ? ((discountPercentage > 0 ? finalAmount : freeQuoteCalculatedCosts.totalSystemCost) / annualProduction).toFixed(1)
                   : '—'} years
               </span>
             </div>

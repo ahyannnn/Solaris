@@ -52,7 +52,20 @@ const preAssessmentSchema = new mongoose.Schema({
 
   // ============ ROI DATA ============
   roiYears: { type: Number, default: null },
-
+discountPercentage: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100
+  },
+  discountAmount: {
+    type: Number,
+    default: 0
+  },
+  finalAmount: {
+    type: Number,
+    default: 0
+  },
   // ============ PAYMENT FIELDS ============
   assessmentFee: { type: Number, default: 1500 },
   bookingReference: { type: String }, // Removed unique: true

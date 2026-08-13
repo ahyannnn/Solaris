@@ -448,139 +448,146 @@ class QuotationGenerator {
    }
 
    // ==========================================================
-// 3. FLEXIBLE PRICING - Supports both document types
-// ==========================================================
-_drawPricing(doc, data, y) {
-    const leftX = this.margins.left;
-    const rightX = doc.page.width - this.margins.right;
-    const tableWidth = rightX - leftX;
-    const labelWidth = tableWidth * 0.60;
-    const valueWidth = tableWidth * 0.40;
+   // 3. FLEXIBLE PRICING - Supports both document types
+   // ==========================================================
+   _drawPricing(doc, data, y) {
+      const leftX = this.margins.left;
+      const rightX = doc.page.width - this.margins.right;
+      const tableWidth = rightX - leftX;
+      const labelWidth = tableWidth * 0.60;
+      const valueWidth = tableWidth * 0.40;
 
-    y += 10;
+      y += 10;
 
-    // Currency from data or default
-    const currency = data.currency || '₱';
+      // Currency from data or default
+      const currency = data.currency || '₱';
 
-    // Calculate values - supports both data structures
-    const equipmentTotal = data.calculatedEquipmentTotal ||
-        data.costBreakdown?.equipment?.panels?.total ||
-        data.equipmentCost || 0;
+      // Calculate values - supports both data structures
+      const equipmentTotal = data.calculatedEquipmentTotal ||
+         data.costBreakdown?.equipment?.panels?.total ||
+         data.equipmentCost || 0;
 
-    const installationTotal = data.calculatedInstallationTotal ||
-        data.costBreakdown?.installation?.total ||
-        data.installationCost || 0;
+      const installationTotal = data.calculatedInstallationTotal ||
+         data.costBreakdown?.installation?.total ||
+         data.installationCost || 0;
 
-    const totalCost = equipmentTotal + installationTotal;
-    const discount = data.discount || data.lessDiscount || 0;
-    const totalPackagePrice = totalCost - discount;
+      const totalCost = equipmentTotal + installationTotal;
+      const discount = data.discount || data.lessDiscount || 0;
+      const totalPackagePrice = totalCost - discount;
 
-    // ROI Section (configurable)
-    if (data.showROI !== false) {
-        doc.font('Roboto-Bold')
+      // ROI Section (configurable)
+      if (data.showROI !== false) {
+         doc.font('Roboto-Bold')
             .fontSize(10)
             .text('Return of Investment', leftX, y);
 
-        y += 15;
+         y += 15;
 
-        const roiValue = data.roiYears || data.calculatedRoiYears || data.roiData || 'N/A';
-        doc.font('Roboto')
+         const roiValue = data.roiYears || data.calculatedRoiYears || data.roiData || 'N/A';
+         doc.font('Roboto')
             .fontSize(9)
             .text(`ROI: ${typeof roiValue === 'number' ? roiValue.toFixed(1) + ' years' : roiValue}`, leftX + 5, y);
 
-        //line here - FULL LINE from left to right
-        doc.moveTo(leftX, y + 12)
+         //line here - FULL LINE from left to right
+         doc.moveTo(leftX, y + 12)
             .lineTo(rightX, y + 12)
             .stroke();
 
-        y += 20;
-    }
+         y += 20;
+      }
 
-    // Header
-    doc.font('Roboto-Bold')
-        .fontSize(10)
-        .text('TOTAL SOLAR PACKAGE COST OPTIONS (VAT EX)', leftX, y);
+      // Header
+      doc.font('Roboto-Bold')
+         .fontSize(10)
+         .text('TOTAL SOLAR PACKAGE COST OPTIONS (VAT EX)', leftX, y);
 
-    y += 15;
+      y += 15;
 
-    // Pricing items - exactly as requested
-    const pricingItems = [];
+      // Pricing items - exactly as requested
+      const pricingItems = [];
 
-    // Total Cost (Equipment + Installation)
-    pricingItems.push({
-        label: 'Total Cost',
-        value: data.calculatedTotalCost,
-        isTotal: false
-    });
+      // Total Cost (Equipment + Installation)
+      pricingItems.push({
+         label: 'Total Cost',
+         value: data.calculatedTotalCost,
+         isTotal: false
+      });
 
-    // Less Discount - Always show with ₱0.00 if null/undefined
-    pricingItems.push({
-        label: 'Less Discount',
-        value: discount, // Will be 0 if null/undefined
-        isTotal: false
-    });
+      // Less Discount - Always show with ₱0.00 if null/undefined
+      pricingItems.push({
+         label: 'Less Discount',
+         value: data.discountAmount || 0, // Will be 0 if null/undefined
+         isTotal: false,
+         isDiscount: true
+      });
 
-    // TOTAL PACKAGE PRICE
-    pricingItems.push({
-        label: 'TOTAL PACKAGE PRICE',
-        value: data.calculatedTotalCost,
-        isTotal: true
-    });
+      // TOTAL PACKAGE PRICE
+      pricingItems.push({
+         label: 'TOTAL PACKAGE PRICE',
+         value: data.finalAmount,
+         isTotal: true
+      });
 
-    // Draw pricing items
-    for (const item of pricingItems) {
-        if (y > doc.page.height - this.margins.bottom - 50) {
+      // Draw pricing items
+      for (const item of pricingItems) {
+         if (y > doc.page.height - this.margins.bottom - 50) {
             doc.addPage();
             this._drawPageLogo(doc);
             y = this.margins.top + 60;
-        }
+         }
 
-        const formattedValue = `${currency}${item.value.toFixed(2)}`;
+         const formattedValue = `${currency}${item.value.toFixed(2)}`;
 
-        doc.font(item.isTotal ? 'Roboto-Bold' : 'Roboto')
+         if (item.isDiscount && item.value > 0) {
+            doc.fillColor('#FF0000'); // Red color for discount
+         } else {
+            doc.fillColor(this.colors.black);
+         }
+
+         doc.font(item.isTotal ? 'Roboto-Bold' : 'Roboto')
             .fontSize(item.isTotal ? 10 : 9)
             .text(item.label, leftX, y, { width: labelWidth });
 
-        if (item.isTotal) {
+         if (item.isTotal) {
             const x = leftX + labelWidth;
-            
-            doc.fillColor(this.colors.black)
-                .font('Roboto-Bold')
-                .fontSize(10)
-                .text(formattedValue, x, y, {
-                    width: valueWidth,
-                    align: 'right'
-                });
-        } else {
-            doc.text(formattedValue, leftX + labelWidth, y, {
-                width: valueWidth,
-                align: 'right'
-            });
-        }
 
-        //line here - FULL LINE from left to right
-        doc.moveTo(leftX, y + (item.isTotal ? 18 : 16))
+            doc.fillColor(this.colors.black)
+               .font('Roboto-Bold')
+               .fontSize(10)
+               .text(formattedValue, x, y, {
+                  width: valueWidth,
+                  align: 'right'
+               });
+         } else {
+            doc.text(formattedValue, leftX + labelWidth, y, {
+               width: valueWidth,
+               align: 'right'
+            });
+         }
+
+         //line here - FULL LINE from left to right
+         doc.moveTo(leftX, y + (item.isTotal ? 18 : 16))
             .lineTo(rightX, y + (item.isTotal ? 18 : 16))
             .stroke();
 
-        y += item.isTotal ? 20 : 18;
-    }
+         y += item.isTotal ? 20 : 18;
+      }
 
-    // Additional notes
-    if (data.pricingNotes) {
-        y += 10;
-        doc.font('Roboto')
+      // Additional notes
+      if (data.pricingNotes) {
+         y += 10;
+         doc.font('Roboto')
             .fontSize(8)
             .text(data.pricingNotes, leftX, y, {
-                width: tableWidth,
-                align: 'left',
-                color: '#666666'
+               width: tableWidth,
+               align: 'left',
+               color: '#666666'
             });
-        y += 15;
-    }
+         y += 15;
+      }
 
-    return y + 10;
-}
+      return y + 10;
+   }
    // ==========================================================
    // HELPER METHODS
    // ==========================================================
@@ -929,7 +936,6 @@ _drawPricing(doc, data, y) {
          '12 years product warranty / 25 years life span in Solar Panels',
          '5 years product warranty on inverter',
          '5 years product warranty on batteries with 8 to 12 years lifespan',
-         'No battery warranty applicable',
          '1 year workmanship warranty'
       ];
 

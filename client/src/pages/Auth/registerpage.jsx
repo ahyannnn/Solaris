@@ -107,43 +107,44 @@ const RegisterPage = () => {
     return null;
   };
 
-  const validatePassword = () => {
-  const newErrors = {};
+  // FIXED: validatePassword now accepts parameters
+  const validatePassword = (password, confirmPassword) => {
+    const newErrors = {};
 
-  if (!password) {
-    newErrors.password = 'Password is required';
-  } else {
-    // Minimum length check (8-16 characters)
-    if (password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    } else if (password.length > 16) {
-      newErrors.password = 'Password must be less than 16 characters';
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else {
+      // Minimum length check (8-16 characters)
+      if (password.length < 8) {
+        newErrors.password = 'Password must be at least 8 characters';
+      } else if (password.length > 16) {
+        newErrors.password = 'Password must be less than 16 characters';
+      }
+      // At least one uppercase letter
+      else if (!/[A-Z]/.test(password)) {
+        newErrors.password = 'Password must contain at least one uppercase letter';
+      }
+      // At least one lowercase letter
+      else if (!/[a-z]/.test(password)) {
+        newErrors.password = 'Password must contain at least one lowercase letter';
+      }
+      // At least one number
+      else if (!/[0-9]/.test(password)) {
+        newErrors.password = 'Password must contain at least one number';
+      }
+      // At least one special character
+      else if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+        newErrors.password = 'Password must contain at least one special character (!@#$%^&* etc.)';
+      }
     }
-    // At least one uppercase letter
-    else if (!/[A-Z]/.test(password)) {
-      newErrors.password = 'Password must contain at least one uppercase letter';
-    }
-    // At least one lowercase letter
-    else if (!/[a-z]/.test(password)) {
-      newErrors.password = 'Password must contain at least one lowercase letter';
-    }
-    // At least one number
-    else if (!/[0-9]/.test(password)) {
-      newErrors.password = 'Password must contain at least one number';
-    }
-    // At least one special character
-    else if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      newErrors.password = 'Password must contain at least one special character (!@#$%^&* etc.)';
-    }
-  }
 
-  // Confirm password validation
-  if (password !== confirmPassword) {
-    newErrors.confirmPassword = 'Passwords do not match';
-  }
+    // Confirm password validation
+    if (confirmPassword !== undefined && password !== confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
 
-  return newErrors;
-};
+    return newErrors;
+  };
 
   // Email validation
   const validateEmail = (email) => {
@@ -243,9 +244,10 @@ const RegisterPage = () => {
       }
     }
 
+    // FIXED: Updated to use the corrected validatePassword function
     if (name === 'password') {
-      const passwordError = validatePassword(value);
-      setErrors(prev => ({ ...prev, password: passwordError || '' }));
+      const passwordErrors = validatePassword(value, formData.confirmPassword);
+      setErrors(prev => ({ ...prev, password: passwordErrors.password || '' }));
 
       if (formData.confirmPassword && value !== formData.confirmPassword) {
         setErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }));
@@ -254,9 +256,11 @@ const RegisterPage = () => {
       }
     }
 
+    // FIXED: Updated to use the corrected validatePassword function
     if (name === 'confirmPassword') {
-      if (value !== formData.password) {
-        setErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }));
+      const passwordErrors = validatePassword(formData.password, value);
+      if (passwordErrors.confirmPassword) {
+        setErrors(prev => ({ ...prev, confirmPassword: passwordErrors.confirmPassword }));
       } else {
         setErrors(prev => ({ ...prev, confirmPassword: '' }));
       }
@@ -333,11 +337,12 @@ const RegisterPage = () => {
       else if (isEmailTaken) newErrors.email = 'Email is already taken';
     }
 
+    // FIXED: Updated to use the corrected validatePassword function
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else {
-      const passwordError = validatePassword(formData.password);
-      if (passwordError) newErrors.password = passwordError;
+      const passwordErrors = validatePassword(formData.password, formData.confirmPassword);
+      if (passwordErrors.password) newErrors.password = passwordErrors.password;
     }
 
     if (!formData.confirmPassword) {
@@ -639,7 +644,10 @@ const RegisterPage = () => {
     return `${seconds}s`;
   };
 
+  // FIXED: Updated isFormValid to use the corrected validatePassword function
   const isFormValid = () => {
+    const passwordErrors = validatePassword(formData.password, formData.confirmPassword);
+    
     return (
       formData.firstName &&
       !validateFirstName(formData.firstName) &&
@@ -649,7 +657,7 @@ const RegisterPage = () => {
       !validateEmail(formData.email) &&
       !isEmailTaken &&
       formData.password &&
-      !validatePassword(formData.password) &&
+      !passwordErrors.password &&
       formData.confirmPassword &&
       formData.password === formData.confirmPassword &&
       termsAccepted

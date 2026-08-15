@@ -9,7 +9,7 @@ import {
 } from 'react-icons/fa';
 
 // ============================================================
-// TOAST NOTIFICATION COMPONENT
+// TOAST NOTIFICATION COMPONENT — CLEAN STYLE
 // ============================================================
 
 const ToastNotification = ({
@@ -19,7 +19,6 @@ const ToastNotification = ({
   duration = 5000,
   onClose,
 }) => {
-
   const [progress, setProgress] = useState(100);
   const [isPaused, setIsPaused] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
@@ -29,10 +28,10 @@ const ToastNotification = ({
   const elapsedRef = useRef(0);
 
   // ============================================================
-  // GET BORDER COLOR
+  // GET COLOR
   // ============================================================
 
-  const getBorderColor = () => {
+  const getColor = () => {
     switch (type) {
       case 'success':
         return '#2ecc71';
@@ -47,7 +46,7 @@ const ToastNotification = ({
     }
   };
 
-  const borderColor = getBorderColor();
+  const color = getColor();
 
   // ============================================================
   // GET ICON
@@ -94,7 +93,7 @@ const ToastNotification = ({
   }, [show, duration]);
 
   // ============================================================
-  // PROGRESS ANIMATION - FUSE BURNING EFFECT
+  // PROGRESS ANIMATION
   // ============================================================
 
   const animateProgress = (timestamp) => {
@@ -112,11 +111,10 @@ const ToastNotification = ({
     if (newProgress > 0) {
       animationRef.current = requestAnimationFrame(animateProgress);
     } else {
-      // Start exit animation before closing
       setIsExiting(true);
       setTimeout(() => {
         onClose();
-      }, 300);
+      }, 400);
     }
   };
 
@@ -162,7 +160,7 @@ const ToastNotification = ({
     setIsExiting(true);
     setTimeout(() => {
       onClose();
-    }, 300);
+    }, 400);
   };
 
   // ============================================================
@@ -179,13 +177,16 @@ const ToastNotification = ({
 
   return (
     <div
-      className={`toast-notification toast-${type} ${isExiting ? 'exit' : ''}`}
+      className={`toast-notification type-${type} ${isExiting ? 'exit' : ''}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{
-        borderLeft: `4px solid ${borderColor}`,
+        borderColor: color,
       }}
     >
+      {/* FULL BORDER GLOW */}
+      <div className="toast-border-glow" />
+
       {/* ======================================================
           TOAST CONTENT
       ====================================================== */}
@@ -195,16 +196,14 @@ const ToastNotification = ({
         <div
           className="toast-icon-wrapper"
           style={{
-            color: borderColor,
+            color: color,
           }}
         >
           {getIcon()}
         </div>
 
         {/* MESSAGE */}
-        <span className="toast-message">
-          {message}
-        </span>
+        <span className="toast-message">{message}</span>
       </div>
 
       {/* ======================================================
@@ -220,30 +219,18 @@ const ToastNotification = ({
       </button>
 
       {/* ======================================================
-          PROGRESS BAR - FUSE BURNING EFFECT
+          PROGRESS BAR
       ====================================================== */}
 
       <div className="toast-progress-track">
         <div
-          className="toast-progress"
+          className="toast-progress-fuse"
           style={{
             width: `${progress}%`,
-            background: borderColor,
-            boxShadow: `0 0 12px ${borderColor}`,
+            background: color,
           }}
         />
       </div>
-
-      {/* ======================================================
-          BORDER GLOW EFFECT
-      ====================================================== */}
-
-      <div
-        className="toast-border-glow"
-        style={{
-          background: `linear-gradient(90deg, ${borderColor}40, transparent)`,
-        }}
-      />
     </div>
   );
 };
@@ -262,10 +249,6 @@ const useToast = (
 ) => {
   const [toast, setToast] = useState(initialState);
 
-  // ==========================================================
-  // SHOW TOAST
-  // ==========================================================
-
   const showToast = (message, type = 'success', duration = 5000) => {
     setToast({
       show: true,
@@ -274,10 +257,6 @@ const useToast = (
       duration,
     });
   };
-
-  // ==========================================================
-  // HIDE TOAST
-  // ==========================================================
 
   const hideToast = () => {
     setToast({
@@ -301,9 +280,8 @@ const useToast = (
 // ============================================================
 
 const toastStyles = `
-
 /* ============================================================
-   MAIN TOAST
+   MAIN TOAST — CLEAN STYLE
 ============================================================ */
 
 .toast-notification {
@@ -326,16 +304,14 @@ const toastStyles = `
   background: #0d0d0d !important;
   background-color: #0d0d0d !important;
 
-  /* MAKE SURE TOAST IS NOT TRANSPARENT */
   opacity: 1 !important;
 
-  border-radius: 12px;
+  border-radius: 16px;
 
-  /* VISIBLE BORDER */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-left-width: 4px;
+  /* FULL BORDER */
+  border: 2px solid;
 
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
 
   z-index: 999999;
 
@@ -343,9 +319,10 @@ const toastStyles = `
 
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  animation: slideInRight 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* SLIDE IN ANIMATION */
+  animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.25s ease, box-shadow 0.3s ease;
 }
 
 /* ============================================================
@@ -354,13 +331,21 @@ const toastStyles = `
 
 .toast-border-glow {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 60px;
-  height: 100%;
-  opacity: 0.15;
+  inset: -2px;
+  border-radius: 18px;
+  padding: 2px;
+  background: conic-gradient(from 0deg, #f39c12, #e67e22, #f1c40f, #d35400, #f39c12);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
   pointer-events: none;
-  z-index: 0;
+  opacity: 0.4;
+  animation: borderPulse 2s infinite alternate;
+  transition: opacity 0.3s;
+}
+
+.toast-notification:hover .toast-border-glow {
+  opacity: 0.8;
 }
 
 /* ============================================================
@@ -369,7 +354,7 @@ const toastStyles = `
 
 .toast-notification:hover {
   transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 16px 64px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.95);
 }
 
 /* ============================================================
@@ -393,8 +378,8 @@ const toastStyles = `
 ============================================================ */
 
 .toast-icon-wrapper {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
 
   flex-shrink: 0;
 
@@ -404,7 +389,6 @@ const toastStyles = `
 
   border-radius: 50%;
 
-  /* DARK ICON BACKGROUND */
   background: rgba(255, 255, 255, 0.06) !important;
 
   font-size: 1.25rem;
@@ -413,12 +397,8 @@ const toastStyles = `
 }
 
 .toast-notification:hover .toast-icon-wrapper {
-  transform: scale(1.1);
+  transform: scale(1.1) rotate(4deg);
 }
-
-/* ============================================================
-   ICON
-============================================================ */
 
 .toast-icon {
   font-size: 1.125rem;
@@ -430,15 +410,10 @@ const toastStyles = `
 
 .toast-message {
   color: #ffffff;
-
   font-size: 0.875rem;
-
   font-weight: 500;
-
   line-height: 1.5;
-
   letter-spacing: 0.01em;
-
   word-break: break-word;
 }
 
@@ -447,8 +422,8 @@ const toastStyles = `
 ============================================================ */
 
 .toast-close {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
 
   flex-shrink: 0;
 
@@ -466,7 +441,7 @@ const toastStyles = `
 
   cursor: pointer;
 
-  border-radius: 6px;
+  border-radius: 8px;
 
   font-size: 0.875rem;
 
@@ -476,10 +451,6 @@ const toastStyles = `
   transition: all 0.3s ease;
 }
 
-/* ============================================================
-   CLOSE HOVER
-============================================================ */
-
 .toast-close:hover {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.12) !important;
@@ -487,7 +458,7 @@ const toastStyles = `
 }
 
 /* ============================================================
-   PROGRESS BAR TRACK - FUSE BACKGROUND
+   PROGRESS BAR TRACK
 ============================================================ */
 
 .toast-progress-track {
@@ -496,12 +467,11 @@ const toastStyles = `
   left: 0;
   right: 0;
 
-  height: 3px;
+  height: 4px;
 
-  /* SOLID BLACK BACKGROUND */
   background: rgba(255, 255, 255, 0.05) !important;
 
-  border-radius: 0 0 12px 12px;
+  border-radius: 0 0 16px 16px;
 
   overflow: hidden;
 
@@ -511,84 +481,57 @@ const toastStyles = `
 }
 
 /* ============================================================
-   PROGRESS BAR - FUSE BURNING EFFECT
-   This is the colored bar that shrinks from 100% to 0%
-   like a burning fuse
+   PROGRESS BAR
 ============================================================ */
 
-.toast-progress {
+.toast-progress-fuse {
   height: 100%;
 
-  transition: width 0.1s linear;
+  transition: width 0.08s linear;
 
-  /* GLOW EFFECT - LIKE A BURNING FUSE */
-  box-shadow: 0 0 20px currentColor;
+  border-radius: 0 0 16px 16px;
 }
 
 /* ============================================================
-   SUCCESS
+   TYPE VARIANTS
 ============================================================ */
 
 .toast-success {
-  border-left-color: #2ecc71 !important;
+  border-color: #2ecc71 !important;
 }
-
-.toast-success .toast-progress {
+.toast-success .toast-progress-fuse {
   background: #2ecc71 !important;
-  color: #2ecc71;
 }
-
 .toast-success .toast-icon-wrapper {
   color: #2ecc71 !important;
 }
 
-/* ============================================================
-   ERROR
-============================================================ */
-
 .toast-error {
-  border-left-color: #e74c3c !important;
+  border-color: #e74c3c !important;
 }
-
-.toast-error .toast-progress {
+.toast-error .toast-progress-fuse {
   background: #e74c3c !important;
-  color: #e74c3c;
 }
-
 .toast-error .toast-icon-wrapper {
   color: #e74c3c !important;
 }
 
-/* ============================================================
-   WARNING
-============================================================ */
-
 .toast-warning {
-  border-left-color: #f39c12 !important;
+  border-color: #f39c12 !important;
 }
-
-.toast-warning .toast-progress {
+.toast-warning .toast-progress-fuse {
   background: #f39c12 !important;
-  color: #f39c12;
 }
-
 .toast-warning .toast-icon-wrapper {
   color: #f39c12 !important;
 }
 
-/* ============================================================
-   INFO
-============================================================ */
-
 .toast-info {
-  border-left-color: #3498db !important;
+  border-color: #3498db !important;
 }
-
-.toast-info .toast-progress {
+.toast-info .toast-progress-fuse {
   background: #3498db !important;
-  color: #3498db;
 }
-
 .toast-info .toast-icon-wrapper {
   color: #3498db !important;
 }
@@ -597,46 +540,51 @@ const toastStyles = `
    SLIDE IN ANIMATION
 ============================================================ */
 
-@keyframes slideInRight {
+@keyframes slideIn {
   0% {
-    transform: translateX(120%) scale(0.8);
     opacity: 0;
-  }
-  60% {
-    transform: translateX(-10%) scale(1.02);
-    opacity: 1;
+    transform: translateX(40px) scale(0.95);
   }
   100% {
-    transform: translateX(0) scale(1);
     opacity: 1;
+    transform: translateX(0) scale(1);
   }
 }
 
 /* ============================================================
-   SLIDE OUT ANIMATION
+   EXIT ANIMATION
 ============================================================ */
 
-@keyframes slideOutRight {
+@keyframes slideOut {
   0% {
-    transform: translateX(0) scale(1);
     opacity: 1;
+    transform: translateX(0) scale(1);
   }
   100% {
-    transform: translateX(120%) scale(0.8);
     opacity: 0;
+    transform: translateX(40px) scale(0.95);
   }
 }
-
-/* ============================================================
-   EXIT
-============================================================ */
 
 .toast-notification.exit {
-  animation: slideOutRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: slideOut 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* ============================================================
-   TABLET
+   BORDER PULSE
+============================================================ */
+
+@keyframes borderPulse {
+  0% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE
 ============================================================ */
 
 @media (max-width: 768px) {
@@ -652,14 +600,10 @@ const toastStyles = `
   }
 }
 
-/* ============================================================
-   MOBILE
-============================================================ */
-
 @media (max-width: 480px) {
   .toast-notification {
     padding: 0.75rem 0.875rem;
-    border-radius: 10px;
+    border-radius: 14px;
   }
 
   .toast-message {
@@ -667,8 +611,8 @@ const toastStyles = `
   }
 
   .toast-icon-wrapper {
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
     font-size: 1rem;
   }
 
@@ -677,12 +621,11 @@ const toastStyles = `
   }
 
   .toast-close {
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     font-size: 0.75rem;
   }
 }
-
 `;
 
 // ============================================================

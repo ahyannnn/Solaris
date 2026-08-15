@@ -432,8 +432,8 @@ const LandingPage = () => {
             <nav className="desktop-nav-land">
               <button className={`nav-link-land ${activeSection === 'about' ? 'active-land' : ''}`} onClick={() => scrollToSection('about')}>About</button>
               <button className={`nav-link-land ${activeSection === 'free-vs-paid' ? 'active-land' : ''}`} onClick={() => scrollToSection('free-vs-paid')}>Services</button>
-              <button className={`nav-link-land ${activeSection === 'how-it-works' ? 'active-land' : ''}`} onClick={() => scrollToSection('how-it-works')}>How It Works</button>
               <button className={`nav-link-land ${activeSection === 'solar-estimator' ? 'active-land' : ''}`} onClick={() => scrollToSection('solar-estimator')}>Estimator</button>
+              <button className={`nav-link-land ${activeSection === 'how-it-works' ? 'active-land' : ''}`} onClick={() => scrollToSection('how-it-works')}>How It Works</button>
               <button className={`nav-link-land ${activeSection === 'why-us' ? 'active-land' : ''}`} onClick={() => scrollToSection('why-us')}>Why Us</button>
               <button className={`nav-link-land ${activeSection === 'download-app' ? 'active-land' : ''}`} onClick={() => scrollToSection('download-app')}>
                 <FaDownload /> Download
@@ -520,7 +520,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Solar Savings Estimator Section */}
+      {/* Solar Savings Estimator Section - MOVED BEFORE How It Works */}
       <section id="solar-estimator" className="estimator-section-land animate-on-scroll">
         <div className="container-land">
           <h2 className="section-title-land">Solar Savings Estimator</h2>
@@ -690,7 +690,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* How It Works Section */}
+      {/* How It Works Section - MOVED AFTER Estimator */}
       <section id="how-it-works" className="howitworks-section-land animate-on-scroll">
         <div className="container-land">
           <h2 className="section-title-land">How It Works</h2>

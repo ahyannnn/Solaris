@@ -175,7 +175,7 @@
   top: 0;
   left: 0;
   bottom: 0;
-  z-index: 1000;
+  z-index: 1001;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   transform: translateX(0);
 }
@@ -208,23 +208,31 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
+  z-index: 1000;
   display: none;
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
 @media (max-width: 768px) {
   .sidebar-overlay-layout-dashboard {
-    display: block;
+    display: block !important;
     pointer-events: none;
+    opacity: 0;
   }
   
   /* Show overlay when sidebar is open */
-  .sidebar-layout-dashboard.open-layout-dashboard ~ .sidebar-overlay-layout-dashboard {
-    opacity: 1;
-    pointer-events: all;
+  .sidebar-overlay-layout-dashboard.visible {
+    opacity: 1 !important;
+    pointer-events: all !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .sidebar-overlay-layout-dashboard {
+    display: none !important;
   }
 }
 
@@ -291,6 +299,26 @@
   gap: 0.8rem;
 }
 
+.sidebar-nav-layout-dashboard::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-nav-layout-dashboard::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-nav-layout-dashboard::-webkit-scrollbar-thumb {
+  background: var(--sidebar-border);
+  border-radius: 4px;
+}
+
+.sidebar-nav-layout-dashboard::-webkit-scrollbar-thumb:hover {
+  background: var(--sidebar-accent);
+}
+
+/* ============================================
+   SIDEBAR SECTION
+   ============================================ */
 .sidebar-section-layout-dashboard {
   display: flex;
   flex-direction: column;
@@ -298,13 +326,19 @@
 }
 
 .sidebar-section-header-layout-dashboard {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.35rem 0.5rem 0.35rem 0.75rem;
-  margin-bottom: 0.15rem;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.6rem !important;
+  padding: 0.35rem 0.75rem 0.35rem 0.75rem !important;
+  width: 100% !important;
+  min-height: 36px !important;
+  margin: 0 !important;
   opacity: 0.7;
   user-select: none;
+}
+
+.sidebar-section-header-layout-dashboard .sidebar-section-title-layout-dashboard {
+  flex: 1 !important;
 }
 
 .sidebar-section-icon-layout-dashboard {
@@ -326,6 +360,112 @@
   letter-spacing: 0.8px;
 }
 
+/* ============================================
+   DROPDOWN STYLES
+   ============================================ */
+
+/* Clickable section header */
+.sidebar-section-header-layout-dashboard.clickable {
+  cursor: pointer !important;
+  user-select: none !important;
+  transition: background-color 0.2s ease !important;
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.75rem 0.35rem 0.75rem !important;
+  margin: 0 !important;
+}
+
+.sidebar-section-header-layout-dashboard.clickable:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Arrow icon container */
+.sidebar-section-arrow-layout-dashboard {
+  margin-left: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+  transition: transform 0.3s ease !important;
+  font-size: 0.7rem !important;
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0 !important;
+}
+
+.sidebar-section-arrow-layout-dashboard svg {
+  transition: transform 0.3s ease !important;
+}
+
+/* Dropdown container */
+.sidebar-section-items-layout-dashboard .dropdown-container {
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Dropdown items wrapper with animation */
+.dropdown-items-wrapper {
+  max-height: 0 !important;
+  overflow: hidden !important;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.dropdown-items-wrapper.open {
+  max-height: 500px !important;
+}
+
+.dropdown-items-wrapper.closed {
+  max-height: 0 !important;
+}
+
+/* Individual dropdown item */
+.nav-item-layout-dashboard.dropdown-item {
+  padding-left: 2.5rem !important;
+  font-size: 0.85rem !important;
+  padding-top: 0.6rem !important;
+  padding-bottom: 0.6rem !important;
+  margin: 0 !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+.nav-item-layout-dashboard.dropdown-item:first-of-type {
+  margin-top: 0.15rem !important;
+}
+
+.nav-item-layout-dashboard.dropdown-item:last-of-type {
+  margin-bottom: 0.15rem !important;
+}
+
+.nav-item-layout-dashboard.dropdown-item:hover {
+  background: var(--sidebar-hover) !important;
+  color: var(--sidebar-text-hover) !important;
+}
+
+.nav-item-layout-dashboard.dropdown-item.active-layout-dashboard {
+  background: var(--sidebar-active) !important;
+  color: var(--sidebar-text-active) !important;
+}
+
+.nav-item-layout-dashboard.dropdown-item .nav-icon-layout-dashboard {
+  font-size: 0.9rem !important;
+  width: 22px !important;
+}
+
+.nav-item-layout-dashboard.dropdown-item .nav-label-layout-dashboard {
+  font-size: 0.85rem !important;
+}
+
+.nav-item-layout-dashboard.dropdown-item .notification-badge-sidebar {
+  font-size: 9px !important;
+  padding: 1px 6px !important;
+  min-width: 16px !important;
+}
+
+/* ============================================
+   SIDEBAR NAV ITEMS
+   ============================================ */
 .sidebar-section-items-layout-dashboard {
   display: flex;
   flex-direction: column;
@@ -484,7 +624,7 @@
   
   /* When sidebar is open, reset padding-left */
   .sidebar-layout-dashboard.open-layout-dashboard ~ .main-content-layout-dashboard .dashboard-header-layout-dashboard {
-    padding-left: var(--header-padding-right);
+    padding-left: var(--header-padding-right) !important;
   }
 }
 
@@ -703,26 +843,6 @@
 }
 
 /* ============================================
-   SCROLLBAR STYLING
-   ============================================ */
-.sidebar-nav-layout-dashboard::-webkit-scrollbar {
-  width: 4px;
-}
-
-.sidebar-nav-layout-dashboard::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.sidebar-nav-layout-dashboard::-webkit-scrollbar-thumb {
-  background: var(--sidebar-border);
-  border-radius: 4px;
-}
-
-.sidebar-nav-layout-dashboard::-webkit-scrollbar-thumb:hover {
-  background: var(--sidebar-accent);
-}
-
-/* ============================================
    RESPONSIVE ADJUSTMENTS
    ============================================ */
 
@@ -840,6 +960,22 @@
     margin-bottom: 0.5rem;
     font-size: 0.88rem;
   }
+
+  /* Mobile dropdown adjustments */
+  .nav-item-layout-dashboard.dropdown-item {
+    padding-left: 2rem !important;
+    font-size: 0.82rem !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+  
+  .nav-item-layout-dashboard.dropdown-item .nav-label-layout-dashboard {
+    font-size: 0.82rem !important;
+  }
+  
+  .dropdown-items-wrapper.open {
+    max-height: 350px !important;
+  }
 }
 
 /* Small Mobile Devices */
@@ -924,23 +1060,20 @@
     font-size: 0.85rem;
   }
 
-  .logout-modal-container {
-    padding: 2rem 1.5rem 1.5rem;
-    max-width: 340px;
+  /* Small mobile dropdown adjustments */
+  .nav-item-layout-dashboard.dropdown-item {
+    padding-left: 1.75rem !important;
+    font-size: 0.78rem !important;
+    padding-top: 0.45rem !important;
+    padding-bottom: 0.45rem !important;
   }
-
-  .logout-modal-title {
-    font-size: 1.1rem;
+  
+  .nav-item-layout-dashboard.dropdown-item .nav-label-layout-dashboard {
+    font-size: 0.78rem !important;
   }
-
-  .logout-modal-message {
-    font-size: 0.88rem;
-  }
-
-  .logout-modal-btn {
-    padding: 0.5rem 1.25rem;
-    font-size: 0.82rem;
-    min-width: 80px;
+  
+  .dropdown-items-wrapper.open {
+    max-height: 300px !important;
   }
 }
 
@@ -955,6 +1088,7 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1035,6 +1169,27 @@
   transform: scale(1.02);
 }
 
+@media (max-width: 480px) {
+  .logout-modal-container {
+    padding: 2rem 1.5rem 1.5rem;
+    max-width: 340px;
+  }
+
+  .logout-modal-title {
+    font-size: 1.1rem;
+  }
+
+  .logout-modal-message {
+    font-size: 0.88rem;
+  }
+
+  .logout-modal-btn {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.82rem;
+    min-width: 80px;
+  }
+}
+
 /* ============================================
    REDUCED MOTION PREFERENCES
    ============================================ */
@@ -1047,48 +1202,8 @@
 }
 
 /* ============================================
-   ADDITIONAL MOBILE FIXES - ADD AT END OF FILE
+   ADDITIONAL FIXES
    ============================================ */
-
-/* Fix for overlay visibility on mobile */
-@media (max-width: 768px) {
-  .sidebar-overlay-layout-dashboard {
-    display: block !important;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-  }
-  
-  .sidebar-overlay-layout-dashboard.visible {
-    opacity: 1 !important;
-    pointer-events: all !important;
-  }
-}
-
-/* Ensure hamburger button stays on top of everything except sidebar */
-.mobile-hamburger-btn {
-  z-index: 1100 !important;
-}
-
-/* Sidebar z-index to be above overlay */
-.sidebar-layout-dashboard {
-  z-index: 1001 !important;
-}
-
-/* Overlay z-index between hamburger and sidebar */
-.sidebar-overlay-layout-dashboard {
-  z-index: 1000 !important;
-}
-
-/* Ensure overlay doesn't show on desktop */
-@media (min-width: 769px) {
-  .sidebar-overlay-layout-dashboard {
-    display: none !important;
-  }
-}
 
 /* Fix for body scroll when sidebar is open on mobile */
 @media (max-width: 768px) {
@@ -1102,13 +1217,6 @@
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* Fix for mobile header padding when sidebar is open */
-@media (max-width: 768px) {
-  .sidebar-layout-dashboard.open-layout-dashboard ~ .main-content-layout-dashboard .dashboard-header-layout-dashboard {
-    padding-left: var(--header-padding-right) !important;
-  }
-}
-
 /* Ensure hamburger lines are visible on all backgrounds */
 .hamburger-line {
   background: var(--text-primary) !important;
@@ -1118,10 +1226,22 @@
   background: var(--sidebar-accent) !important;
 }
 
-/* Fix for small screens */
-@media (max-width: 480px) {
-  .sidebar-overlay-layout-dashboard {
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-  }
+/* Fix for section header layout - ensure consistent spacing */
+.sidebar-section-header-layout-dashboard {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.6rem !important;
+  padding: 0.35rem 0.75rem 0.35rem 0.75rem !important;
+  width: 100% !important;
+  min-height: 36px !important;
+}
+
+/* Ensure section header title takes available space */
+.sidebar-section-header-layout-dashboard .sidebar-section-title-layout-dashboard {
+  flex: 1 !important;
+}
+
+/* Smooth hover transition for section header */
+.sidebar-section-header-layout-dashboard.clickable {
+  transition: background-color 0.2s ease !important;
 }

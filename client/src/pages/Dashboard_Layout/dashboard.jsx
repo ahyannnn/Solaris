@@ -28,7 +28,11 @@ import {
   FaBook,
   FaUser,
   FaAddressCard,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaChevronDown,
+  FaChevronUp,
+  FaLifeRing,
+  FaUserCog
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
 import profileImage from '../../assets/profile.png';
@@ -48,16 +52,36 @@ const Dashboard = () => {
   const [userRole, setUserRole] = useState('user');
   const [userName, setUserName] = useState('Customer User');
   const [userPhoto, setUserPhoto] = useState(null);
+  
+  // Dropdown states
+  const [openDropdowns, setOpenDropdowns] = useState({
+    support: false,
+    settingsSub: false
+  });
 
-  // OPTIMIZED: Set dashboard as ready immediately - triggers animations
+  // OPTIMIZED: Set dashboard as ready immediately
   useEffect(() => {
-    // Use requestAnimationFrame for immediate paint
     requestAnimationFrame(() => {
       setDashboardReady(true);
     });
-
     return () => { };
   }, []);
+
+  // Auto-open dropdowns based on current path
+  useEffect(() => {
+    const currentPath = location.pathname;
+    
+    const isInSupport = currentPath.includes('/app/customer/support');
+    const isInSettings = currentPath.includes('/app/customer/settings');
+    
+    if (isInSupport || isInSettings) {
+      setOpenDropdowns(prev => ({
+        ...prev,
+        support: isInSupport,
+        settingsSub: isInSettings
+      }));
+    }
+  }, [location]);
 
   // Fetch unread notification count
   const fetchUnreadCount = async () => {
@@ -266,13 +290,31 @@ const Dashboard = () => {
 
   const pageInfo = getPageInfo();
 
-  // Categorized menu items
+  // Toggle dropdown - only toggle dropdown, not navigation
+  const toggleDropdown = (key, e) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    setOpenDropdowns(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  // Handle navigation for dropdown items
+  const handleDropdownItemClick = (path) => {
+    handleNavigation(path);
+  };
+
+  // Menu items
   const menuItems = {
     admin: {
       sections: [
         {
+          key: 'main',
           title: 'Main Navigation',
           icon: <FaThLarge />,
+          isDropdown: false,
           items: [
             { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/app/admin' },
             { icon: <FaClipboardList />, label: 'Site Assessments', path: '/app/admin/siteassessment' },
@@ -282,20 +324,22 @@ const Dashboard = () => {
           ]
         },
         {
+          key: 'management',
           title: 'Management',
           icon: <FaTasks />,
+          isDropdown: false,
           items: [
             { icon: <FaUsers />, label: 'User Management', path: '/app/admin/usermanagement' },
-
             { icon: <FaChartBar />, label: 'Reports', path: '/app/admin/reports' },
             { icon: <FaCalendarAlt />, label: 'Schedule', path: '/app/admin/schedule' },
             { icon: <FaTools />, label: 'Maintenance', path: '/app/admin/maintenance' },
-
           ]
         },
         {
+          key: 'notifications',
           title: 'Notifications',
           icon: <FaBell />,
+          isDropdown: false,
           items: [
             { icon: <FaBell />, label: 'Notifications', path: '/app/admin/notifications', badge: true },
           ]
@@ -306,8 +350,10 @@ const Dashboard = () => {
     engineer: {
       sections: [
         {
+          key: 'main',
           title: 'Main Navigation',
           icon: <FaThLarge />,
+          isDropdown: false,
           items: [
             { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/app/engineer' },
             { icon: <FaClipboardCheck />, label: 'My Assessments', path: '/app/engineer/assessment' },
@@ -315,17 +361,20 @@ const Dashboard = () => {
           ]
         },
         {
+          key: 'management',
           title: 'Management',
           icon: <FaTasks />,
+          isDropdown: false,
           items: [
             { icon: <FaMicrochip />, label: 'Device Data', path: '/app/engineer/device' },
             { icon: <FaCalendarAlt />, label: 'Schedule', path: '/app/engineer/schedule' },
-
           ]
         },
         {
+          key: 'notifications',
           title: 'Notifications',
           icon: <FaBell />,
+          isDropdown: false,
           items: [
             { icon: <FaBell />, label: 'Notifications', path: '/app/engineer/notifications', badge: true },
           ]
@@ -336,8 +385,10 @@ const Dashboard = () => {
     user: {
       sections: [
         {
+          key: 'main',
           title: 'Main Navigation',
           icon: <FaThLarge />,
+          isDropdown: false,
           items: [
             { icon: <FaHome />, label: 'Dashboard', path: '/app/customer' },
             { icon: <FaProjectDiagram />, label: 'My Project', path: '/app/customer/project' },
@@ -346,25 +397,44 @@ const Dashboard = () => {
           ]
         },
         {
-          title: 'Support',
-          icon: <FaHeadset />,
-          items: [
-            { icon: <FaQuestionCircle />, label: 'FAQs', path: '/app/customer/support?tab=faq' },
-            { icon: <FaInfoCircle />, label: 'Contact Info', path: '/app/customer/support?tab=info' },
-            { icon: <FaBook />, label: 'Guides', path: '/app/customer/support?tab=guides' },
-          ]
-        },
-        {
+          key: 'settings',
           title: 'Settings',
           icon: <FaCog />,
+          isDropdown: false,
+          isNested: true,
           items: [
-            { icon: <FaUser />, label: 'Profile', path: '/app/customer/settings?tab=profile' },
-            { icon: <FaAddressCard />, label: 'Addresses', path: '/app/customer/settings?tab=addresses' },
+            {
+              type: 'dropdown',
+              key: 'support',
+              icon: <FaLifeRing />,
+              label: 'Support',
+              isDropdown: true,
+              path: '/app/customer/support',
+              items: [
+                { icon: <FaQuestionCircle />, label: 'FAQs', path: '/app/customer/support?tab=faq' },
+                { icon: <FaInfoCircle />, label: 'Contact Info', path: '/app/customer/support?tab=info' },
+                { icon: <FaBook />, label: 'Guides', path: '/app/customer/support?tab=guides' },
+              ]
+            },
+            {
+              type: 'dropdown',
+              key: 'settingsSub',
+              icon: <FaUserCog />,
+              label: 'Settings',
+              isDropdown: true,
+              path: '/app/customer/settings',
+              items: [
+                { icon: <FaUser />, label: 'Profile', path: '/app/customer/settings?tab=profile' },
+                { icon: <FaAddressCard />, label: 'Addresses', path: '/app/customer/settings?tab=addresses' },
+              ]
+            }
           ]
         },
         {
+          key: 'notifications',
           title: 'Notifications',
           icon: <FaBell />,
+          isDropdown: false,
           items: [
             { icon: <FaBell />, label: 'Notifications', path: '/app/customer/notifications', badge: true },
           ]
@@ -373,7 +443,6 @@ const Dashboard = () => {
     }
   };
 
-  const isCustomer = userRole === 'user';
   const isAdmin = userRole === 'admin';
   const isEngineer = userRole === 'engineer';
   const isMobile = () => window.innerWidth <= 768;
@@ -416,7 +485,6 @@ const Dashboard = () => {
 
     if (!initialized && location.pathname === '/app') {
       setInitialized(true);
-      // Use requestAnimationFrame for immediate navigation
       requestAnimationFrame(() => {
         if (role === 'user') {
           navigate('/app/customer', { replace: true });
@@ -462,6 +530,7 @@ const Dashboard = () => {
 
   const currentMenu = menuItems[userRole] || menuItems.admin;
 
+  // Check if a path is active
   const isActive = (itemPath) => {
     const currentPath = location.pathname;
     const currentSearch = location.search;
@@ -487,6 +556,14 @@ const Dashboard = () => {
     }
 
     return false;
+  };
+
+  // Check if a dropdown button should be highlighted
+  const isDropdownActive = (item) => {
+    if (!item || !item.items) return false;
+    
+    // Check if any sub-item path matches current location
+    return item.items.some(subItem => isActive(subItem.path));
   };
 
   const handleLogoutClick = () => {
@@ -526,7 +603,7 @@ const Dashboard = () => {
 
   return (
     <div className={`dashboard-layout-dashboard ${dashboardReady ? 'dashboard-ready' : ''}`}>
-      {/* Mobile Hamburger Button - 3 lines only */}
+      {/* Mobile Hamburger Button */}
       <button
         className={`mobile-hamburger-btn ${sidebarOpen ? 'hidden' : ''}`}
         onClick={() => setSidebarOpen(true)}
@@ -537,13 +614,13 @@ const Dashboard = () => {
         <span className="hamburger-line"></span>
       </button>
 
-      {/* Sidebar Overlay - Click to close */}
+      {/* Sidebar Overlay */}
       <div
         className={`sidebar-overlay-layout-dashboard ${sidebarOpen ? 'visible' : ''}`}
         onClick={closeSidebar}
       />
 
-      {/* Sidebar - Slides from LEFT */}
+      {/* Sidebar */}
       <aside className={`sidebar-layout-dashboard ${sidebarOpen ? 'open-layout-dashboard' : ''}`}>
         <div className="sidebar-header-layout-dashboard">
           <div className="logo-container-layout-dashboard">
@@ -557,28 +634,93 @@ const Dashboard = () => {
         <nav className="sidebar-nav-layout-dashboard">
           {currentMenu.sections.map((section, sectionIndex) => (
             <div key={sectionIndex} className="sidebar-section-layout-dashboard">
+              {/* Section Header */}
               <div className="sidebar-section-header-layout-dashboard">
                 <span className="sidebar-section-icon-layout-dashboard">{section.icon}</span>
                 <span className="sidebar-section-title-layout-dashboard">{section.title}</span>
               </div>
+              
+              {/* Section Items */}
               <div className="sidebar-section-items-layout-dashboard">
-                {section.items.map((item, itemIndex) => (
-                  <button
-                    key={itemIndex}
-                    onClick={() => {
-                      handleNavigation(item.path);
-                      if (isMobile()) setSidebarOpen(false);
-                    }}
-                    className={`nav-item-layout-dashboard ${isActive(item.path) ? 'active-layout-dashboard' : ''}`}
-                    disabled={isNavigating}
-                  >
-                    <span className="nav-icon-layout-dashboard">{item.icon}</span>
-                    <span className="nav-label-layout-dashboard">{item.label}</span>
-                    {item.badge && unreadCount > 0 && (
-                      <span className="notification-badge-sidebar">{unreadCount}</span>
-                    )}
-                  </button>
-                ))}
+                {section.isNested ? (
+                  // Settings section - render Support and Settings as buttons with dropdowns
+                  section.items.map((item, itemIndex) => {
+                    if (item.type === 'dropdown') {
+                      const isDropdownOpen = openDropdowns[item.key] || false;
+                      const isDropdownHighlighted = isDropdownActive(item);
+                      
+                      return (
+                        <div key={itemIndex} className="sidebar-dropdown-wrapper">
+                          {/* Button that toggles dropdown - highlight if any sub-item is active */}
+                          <button
+                            className={`nav-item-layout-dashboard ${isDropdownHighlighted ? 'active-layout-dashboard' : ''}`}
+                            onClick={(e) => toggleDropdown(item.key, e)}
+                            style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              width: '100%',
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: '0.8rem 1rem 0.8rem 0.75rem',
+                              borderRadius: 'var(--radius-md)',
+                              color: isDropdownHighlighted ? 'var(--sidebar-text-active)' : 'var(--sidebar-text)',
+                              backgroundColor: isDropdownHighlighted ? 'var(--sidebar-active)' : 'transparent',
+                              fontFamily: 'var(--font-family)',
+                              fontSize: '0.92rem',
+                              fontWeight: '500'
+                            }}
+                          >
+                            <span className="nav-icon-layout-dashboard">{item.icon}</span>
+                            <span className="nav-label-layout-dashboard">{item.label}</span>
+                            <span className="sidebar-section-arrow-layout-dashboard">
+                              {isDropdownOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+                            </span>
+                          </button>
+                          
+                          {/* Dropdown items */}
+                          <div className={`dropdown-items-wrapper ${isDropdownOpen ? 'open' : 'closed'}`}>
+                            {item.items.map((subItem, subIndex) => (
+                              <button
+                                key={subIndex}
+                                onClick={() => {
+                                  handleDropdownItemClick(subItem.path);
+                                  if (isMobile()) setSidebarOpen(false);
+                                }}
+                                className={`nav-item-layout-dashboard sub-item ${isActive(subItem.path) ? 'active-layout-dashboard' : ''}`}
+                                disabled={isNavigating}
+                                style={{ paddingLeft: '2.5rem' }}
+                              >
+                                <span className="nav-icon-layout-dashboard">{subItem.icon}</span>
+                                <span className="nav-label-layout-dashboard">{subItem.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })
+                ) : (
+                  // Regular items (Main Navigation, Notifications)
+                  section.items.map((item, itemIndex) => (
+                    <button
+                      key={itemIndex}
+                      onClick={() => {
+                        handleNavigation(item.path);
+                        if (isMobile()) setSidebarOpen(false);
+                      }}
+                      className={`nav-item-layout-dashboard ${isActive(item.path) ? 'active-layout-dashboard' : ''}`}
+                      disabled={isNavigating}
+                    >
+                      <span className="nav-icon-layout-dashboard">{item.icon}</span>
+                      <span className="nav-label-layout-dashboard">{item.label}</span>
+                      {item.badge && unreadCount > 0 && (
+                        <span className="notification-badge-sidebar">{unreadCount}</span>
+                      )}
+                    </button>
+                  ))
+                )}
               </div>
             </div>
           ))}

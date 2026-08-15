@@ -1,6 +1,6 @@
 // components/AppDownload.jsx - Android Green Theme with Phone Mockup
 import React, { useState, useEffect } from 'react';
-import { FaAndroid, FaDownload, FaSpinner, FaCheckCircle, FaGooglePlay } from 'react-icons/fa';
+import { FaDownload, FaSpinner, FaCheckCircle, FaGooglePlay } from 'react-icons/fa';
 import axios from 'axios';
 
 const AppDownload = () => {
@@ -36,11 +36,18 @@ const AppDownload = () => {
         0%, 100% { transform: translateY(0px); }
         50% { transform: translateY(-6px); }
       }
+      @keyframes logoPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
       .phone-float {
         animation: float 3s ease-in-out infinite;
       }
       .glow-pulse {
         animation: pulse 3s ease-in-out infinite;
+      }
+      .logo-pulse {
+        animation: logoPulse 3s ease-in-out infinite;
       }
     `;
     document.head.appendChild(style);
@@ -185,11 +192,22 @@ const AppDownload = () => {
       background: 'rgba(255,255,255,0.1)',
       borderRadius: '2px',
     },
-    phoneAppIcon: {
-      fontSize: '48px',
-      color: colors.androidGreen,
+    phoneAppIconWrapper: {
+      width: '64px',
+      height: '64px',
+      borderRadius: '50%',
+      background: '#FFFFFF',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
       marginBottom: '8px',
-      filter: 'drop-shadow(0 4px 20px rgba(61, 220, 132, 0.3))',
+      boxShadow: '0 4px 20px rgba(61, 220, 132, 0.3)',
+      padding: '8px',
+    },
+    phoneAppIcon: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'contain',
     },
     phoneAppName: {
       fontSize: '12px',
@@ -248,14 +266,26 @@ const AppDownload = () => {
       alignItems: 'center',
       gap: '12px',
     },
-    androidIcon: {
-      fontSize: '32px',
-      color: colors.androidGreen,
-      filter: 'drop-shadow(0 4px 12px rgba(61, 220, 132, 0.3))',
+    appLogoWrapper: {
+      width: '48px',
+      height: '48px',
+      borderRadius: '50%',
+      background: '#FFFFFF',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '6px',
       transition: 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+      boxShadow: '0 2px 12px rgba(61, 220, 132, 0.2)',
     },
-    androidIconHover: {
-      transform: 'scale(1.1) rotate(10deg)',
+    appLogoWrapperHover: {
+      transform: 'scale(1.1) rotate(5deg)',
+      boxShadow: '0 4px 20px rgba(61, 220, 132, 0.4)',
+    },
+    appLogo: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'contain',
     },
     titleGroup: {
       display: 'flex',
@@ -405,7 +435,14 @@ const AppDownload = () => {
                 </div>
               </div>
             </div>
-            <FaAndroid style={styles.phoneAppIcon} />
+            <div style={styles.phoneAppIconWrapper}>
+              <img 
+                src="/Salfare_Logo.png"
+                alt="Salfer Engineering" 
+                style={styles.phoneAppIcon}
+                className="logo-pulse"
+              />
+            </div>
             <div style={styles.phoneAppName}>Salfer Solar</div>
             <div style={styles.phoneAppSub}>v{app.version}</div>
           </div>
@@ -417,13 +454,17 @@ const AppDownload = () => {
         <div style={styles.header}>
           <div 
             style={{
-              ...styles.androidIcon,
-              ...(isIconHovered ? styles.androidIconHover : {}),
+              ...styles.appLogoWrapper,
+              ...(isIconHovered ? styles.appLogoWrapperHover : {}),
             }}
             onMouseEnter={() => setIsIconHovered(true)}
             onMouseLeave={() => setIsIconHovered(false)}
           >
-            <FaAndroid />
+            <img 
+              src="/Salfare_Logo.png"
+              alt="Salfer Engineering"
+              style={styles.appLogo}
+            />
           </div>
           <div style={styles.titleGroup}>
             <h3 style={styles.title}>Salfer Solar App</h3>

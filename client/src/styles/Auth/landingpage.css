@@ -1004,7 +1004,7 @@ html {
 
 /* ============================================== DOWNLOAD APP SECTION ============================================== */
 .download-section-land {
-  background: linear-gradient(135deg, var(--navy) 0%, rgba(26, 42, 62, 0.95) 100%);
+  background: var(--navy);
   color: white;
 }
 
@@ -1524,7 +1524,7 @@ html {
   .download-section-land .section-title-land {
     text-align: center;
   }
-  
+
   .download-section-land .section-subtitle-land {
     text-align: center;
   }

@@ -769,15 +769,15 @@ const LandingPage = () => {
               <div className="download-features-land">
                 <div className="download-feature-land">
                   <FaCheckCircle className="download-feature-icon-land" />
-                  <span>Track your solar savings anytime</span>
+                  <span>Plan your solar installation</span>
                 </div>
                 <div className="download-feature-land">
                   <FaCheckCircle className="download-feature-icon-land" />
-                  <span>Monitor system performance in real-time</span>
+                  <span>Install the perfect solar system for your home</span>
                 </div>
                 <div className="download-feature-land">
                   <FaCheckCircle className="download-feature-icon-land" />
-                  <span>Get instant notifications and alerts</span>
+                  <span>Save on your electricity bills</span>
                 </div>
                 <div className="download-feature-land">
                   <FaCheckCircle className="download-feature-icon-land" />

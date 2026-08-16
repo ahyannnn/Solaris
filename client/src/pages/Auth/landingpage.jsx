@@ -885,7 +885,12 @@ const LandingPage = () => {
               </div>
             </div>
           </div>
-          <div className="footer-bottom-land"><p>© 2026 Salfer Engineering & Solar Technology Enterprise. All rights reserved.</p></div>
+          <div className="footer-bottom-land">
+            <p>© 2026 Salfer Engineering & Solar Technology Enterprise. All rights reserved.</p>
+            <p className="footer-proponents">
+              Proponents: Adriano, Brix Adrian S. | Padilla, Carlos Niño Q. | Sanico, Ian George M. | Teope, Christiniel R.
+            </p>
+          </div>
         </div>
       </footer>
     </div>

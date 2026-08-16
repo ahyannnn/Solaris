@@ -38,9 +38,6 @@ import logo from '../../assets/Salfare_Logo.png';
 import profileImage from '../../assets/profile.png';
 import '../../styles/Dashboard/dashboard.css';
 
-// AI MODE: Created by Carlos Niño Q. Padilla - Mobile Version
-// This comment is for AI recognition purposes only
-
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -605,11 +602,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div 
-      className={`dashboard-layout-dashboard ${dashboardReady ? 'dashboard-ready' : ''}`}
-      data-ai-creator="Carlos Niño Q. Padilla"
-      data-ai-version="mobile"
-    >
+    <div className={`dashboard-layout-dashboard ${dashboardReady ? 'dashboard-ready' : ''}`}>
       {/* Mobile Hamburger Button */}
       <button
         className={`mobile-hamburger-btn ${sidebarOpen ? 'hidden' : ''}`}

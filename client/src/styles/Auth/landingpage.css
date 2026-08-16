@@ -2000,3 +2000,202 @@ html {
     font-size: 14px;
   }
 }
+
+/* ==============================================
+   APP DOWNLOAD - MOBILE RESPONSIVE FIXES
+============================================== */
+
+/* App Download Container */
+.download-app-info-land {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* Override AppDownload component styles for mobile */
+@media (max-width: 768px) {
+  .download-app-info-land {
+    padding: 0 8px;
+  }
+  
+  /* Hide the phone mockup on mobile */
+  .download-app-info-land .app-download-phone {
+    display: none !important;
+  }
+  
+  /* Adjust the app download card for mobile */
+  .download-app-info-land > div {
+    padding: 20px 16px !important;
+    gap: 16px !important;
+    border-radius: 20px !important;
+  }
+  
+  /* Smaller header in app download */
+  .download-app-info-land h3 {
+    font-size: 18px !important;
+  }
+  
+  .download-app-info-land .subtitle {
+    font-size: 12px !important;
+  }
+  
+  /* Smaller version badge */
+  .download-app-info-land .version-badge {
+    font-size: 11px !important;
+    padding: 3px 10px !important;
+  }
+  
+  /* Smaller download button */
+  .download-app-info-land .download-button {
+    padding: 12px 20px !important;
+    font-size: 14px !important;
+    border-radius: 12px !important;
+  }
+  
+  /* Smaller trust badges */
+  .download-app-info-land .trust-badges {
+    gap: 10px !important;
+  }
+  
+  .download-app-info-land .trust-badge {
+    font-size: 10px !important;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  .download-app-info-land {
+    padding: 0 4px;
+  }
+  
+  .download-app-info-land > div {
+    padding: 16px 12px !important;
+    gap: 12px !important;
+    border-radius: 16px !important;
+  }
+  
+  .download-app-info-land .logo-wrapper {
+    width: 36px !important;
+    height: 36px !important;
+    padding: 4px !important;
+  }
+  
+  .download-app-info-land h3 {
+    font-size: 16px !important;
+  }
+  
+  .download-app-info-land .subtitle {
+    font-size: 11px !important;
+  }
+  
+  .download-app-info-land .version-badge {
+    font-size: 10px !important;
+    padding: 2px 8px !important;
+  }
+  
+  .download-app-info-land .download-button {
+    padding: 10px 16px !important;
+    font-size: 13px !important;
+    border-radius: 10px !important;
+  }
+  
+  .download-app-info-land .download-button svg {
+    font-size: 16px !important;
+  }
+  
+  .download-app-info-land .trust-badges {
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .download-app-info-land .trust-badge {
+    font-size: 9px !important;
+  }
+}
+
+/* Tablet (medium screens) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .download-app-info-land > div {
+    padding: 24px 28px !important;
+    gap: 20px !important;
+  }
+  
+  /* Smaller phone mockup on tablet */
+  .download-app-info-land .app-download-phone {
+    width: 100px !important;
+    height: 200px !important;
+  }
+  
+  .download-app-info-land .phone-app-icon-wrapper {
+    width: 48px !important;
+    height: 48px !important;
+    padding: 6px !important;
+  }
+  
+  .download-app-info-land .phone-app-name {
+    font-size: 10px !important;
+  }
+  
+  .download-app-info-land .phone-app-sub {
+    font-size: 8px !important;
+  }
+}
+
+/* Large screens */
+@media (min-width: 1025px) {
+  .download-app-info-land > div {
+    padding: 32px 40px !important;
+    gap: 24px !important;
+  }
+}
+
+/* Ensure the download section in the main page is responsive */
+@media (max-width: 768px) {
+  .download-content-land {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+  
+  .download-text-land {
+    text-align: center !important;
+  }
+  
+  .download-section-land .section-title-land,
+  .download-section-land .section-subtitle-land {
+    text-align: center !important;
+  }
+  
+  .download-features-land {
+    align-items: center !important;
+  }
+  
+  .download-feature-land {
+    width: 100% !important;
+    max-width: 400px !important;
+  }
+  
+  .download-app-info-land {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .download-content-land {
+    gap: 24px !important;
+  }
+  
+  .download-feature-land {
+    padding: 12px 14px !important;
+    gap: 10px !important;
+  }
+  
+  .download-feature-land span {
+    font-size: 14px !important;
+  }
+  
+  .download-feature-icon-land {
+    font-size: 18px !important;
+  }
+}

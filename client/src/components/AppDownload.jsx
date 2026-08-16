@@ -121,6 +121,7 @@ const AppDownload = () => {
     borderHover: 'rgba(61, 220, 132, 0.4)',
   };
 
+  // Responsive styles with media queries
   const styles = {
     container: {
       display: 'flex',
@@ -277,6 +278,7 @@ const AppDownload = () => {
       padding: '6px',
       transition: 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
       boxShadow: '0 2px 12px rgba(61, 220, 132, 0.2)',
+      flexShrink: 0,
     },
     appLogoWrapperHover: {
       transform: 'scale(1.1) rotate(5deg)',
@@ -290,6 +292,7 @@ const AppDownload = () => {
     titleGroup: {
       display: 'flex',
       flexDirection: 'column',
+      minWidth: '0',
     },
     title: {
       fontSize: '22px',
@@ -379,6 +382,7 @@ const AppDownload = () => {
       display: 'flex',
       gap: '16px',
       marginTop: '4px',
+      flexWrap: 'wrap',
     },
     trustBadge: {
       display: 'flex',
@@ -422,8 +426,8 @@ const AppDownload = () => {
     >
       <div style={styles.containerGlow} className="glow-pulse" />
 
-      {/* Phone Mockup */}
-      <div style={styles.phoneMockup} className="phone-float">
+      {/* Phone Mockup - Hidden on small mobile */}
+      <div style={styles.phoneMockup} className="phone-float app-download-phone">
         <div style={styles.phoneBody}>
           <div style={styles.phoneScreen}>
             <div style={styles.phoneNotch} />
@@ -511,6 +515,32 @@ const AppDownload = () => {
           </span>
         </div>
       </div>
+
+      {/* Mobile responsive styles */}
+      <style jsx>{`
+        @media (max-width: 768px) {
+          .app-download-phone {
+            display: none;
+          }
+          
+          .app-download-container {
+            padding: 0 16px;
+          }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+          .app-download-phone {
+            width: 100px !important;
+            height: 200px !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .app-download-container {
+            padding: 0 8px;
+          }
+        }
+      `}</style>
     </div>
   );
 };

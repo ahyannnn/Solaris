@@ -1,4 +1,4 @@
-// pages/Customer/setupacc.jsx
+// pages/Customer/setupacc.jsx - Updated with PSGC Cloud API
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -41,7 +41,7 @@ const SetupAccount = () => {
   ];
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
-  // RootScratch API States
+  // PSGC Cloud API States
   const [regions, setRegions] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [citiesMunicipalities, setCitiesMunicipalities] = useState([]);
@@ -72,6 +72,9 @@ const SetupAccount = () => {
 
   const [errors, setErrors] = useState({});
   const [birthdayError, setBirthdayError] = useState('');
+
+  // PSGC API Base URL
+  const PSGC_API_BASE = 'https://psgc.gitlab.io/api';
 
   // Fetch existing client data on mount
   useEffect(() => {
@@ -107,12 +110,14 @@ const SetupAccount = () => {
     }
   }, [token]);
 
+  // ========== PSGC CLOUD API FUNCTIONS ==========
+
   // Fetch Regions on component mount
   useEffect(() => {
     const fetchRegions = async () => {
       setLoadingRegions(true);
       try {
-        const response = await fetch('https://rootscratch.com/api/psgc/regions?limit=20', {
+        const response = await fetch(`${PSGC_API_BASE}/regions`, {
           headers: {
             'Accept': 'application/json'
           }
@@ -123,7 +128,7 @@ const SetupAccount = () => {
         }
 
         const data = await response.json();
-        setRegions(data.data || []);
+        setRegions(data || []);
       } catch (error) {
         console.error('Error fetching regions:', error);
         setApiError('Failed to load regions. Please refresh the page.');
@@ -142,7 +147,6 @@ const SetupAccount = () => {
         setProvinces([]);
         setCitiesMunicipalities([]);
         setBarangays([]);
-        // Reset dependent fields
         setFormData(prev => ({
           ...prev,
           province: '',
@@ -152,21 +156,18 @@ const SetupAccount = () => {
         return;
       }
 
-      // Extract region code from selected region
+      // Find the region code from selected region name
       const selectedRegion = regions.find(r => r.name === formData.region);
       if (!selectedRegion) {
         setProvinces([]);
         return;
       }
 
-      // Region code is like "1200000000", we need to extract the numeric part
-      // The API expects region_code like "12" from "1200000000"
-      const regionCode = selectedRegion.code.replace(/0+$/, '');
-
       setLoadingProvinces(true);
       try {
+        // Use the region code to fetch provinces
         const response = await fetch(
-          `https://rootscratch.com/api/psgc/provinces?region_code=${regionCode}&limit=500`,
+          `${PSGC_API_BASE}/regions/${selectedRegion.code}/provinces`,
           {
             headers: {
               'Accept': 'application/json'
@@ -179,7 +180,7 @@ const SetupAccount = () => {
         }
 
         const data = await response.json();
-        setProvinces(data.data || []);
+        setProvinces(data || []);
         setCitiesMunicipalities([]);
         setBarangays([]);
         setFormData(prev => ({
@@ -213,20 +214,18 @@ const SetupAccount = () => {
         return;
       }
 
-      // Find the selected province
+      // Find the province code from selected province name
       const selectedProvince = provinces.find(p => p.name === formData.province);
       if (!selectedProvince) {
         setCitiesMunicipalities([]);
         return;
       }
 
-      // Province code like "1206300000" - remove trailing zeros to get "12063"
-      const provinceCode = selectedProvince.code.replace(/0+$/, '');
-
       setLoadingCities(true);
       try {
+        // Use the province code to fetch cities and municipalities
         const response = await fetch(
-          `https://rootscratch.com/api/psgc/cities-municipalities?province_code=${provinceCode}&limit=500`,
+          `${PSGC_API_BASE}/provinces/${selectedProvince.code}/cities-municipalities`,
           {
             headers: {
               'Accept': 'application/json'
@@ -239,7 +238,7 @@ const SetupAccount = () => {
         }
 
         const data = await response.json();
-        setCitiesMunicipalities(data.data || []);
+        setCitiesMunicipalities(data || []);
         setBarangays([]);
         setFormData(prev => ({
           ...prev,
@@ -269,20 +268,18 @@ const SetupAccount = () => {
         return;
       }
 
-      // Find the selected city/municipality
+      // Find the city/municipality code from selected name
       const selectedCity = citiesMunicipalities.find(c => c.name === formData.cityMunicipality);
       if (!selectedCity) {
         setBarangays([]);
         return;
       }
 
-      // City code like "1206306000" - remove trailing zeros to get "1206306"
-      const cityCode = selectedCity.code.replace(/0+$/, '');
-
       setLoadingBarangays(true);
       try {
+        // Use the city/municipality code to fetch barangays
         const response = await fetch(
-          `https://rootscratch.com/api/psgc/barangays?city_municipality_code=${cityCode}&limit=100`,
+          `${PSGC_API_BASE}/cities-municipalities/${selectedCity.code}/barangays`,
           {
             headers: {
               'Accept': 'application/json'
@@ -295,7 +292,7 @@ const SetupAccount = () => {
         }
 
         const data = await response.json();
-        setBarangays(data.data || []);
+        setBarangays(data || []);
         setFormData(prev => ({
           ...prev,
           barangay: ''
@@ -310,6 +307,8 @@ const SetupAccount = () => {
 
     fetchBarangays();
   }, [formData.cityMunicipality, citiesMunicipalities]);
+
+  // ========== END OF PSGC CLOUD API FUNCTIONS ==========
 
   // Enhanced birthday validation with detailed error messages
   const validateBirthday = (month, day, year) => {
@@ -779,7 +778,6 @@ const SetupAccount = () => {
                     <small className="new-setup-hint-text">Format: 09XXXXXXXXX (11 digits)</small>
                   </div>
 
-
                   {/* BIRTHDAY */}
                   <div className="new-setup-form-group">
                     <label className="new-setup-form-label">Birthday <span className="new-setup-required">*</span></label>
@@ -862,9 +860,7 @@ const SetupAccount = () => {
                 )}
 
                 <form onSubmit={handleSubmit} className="new-setup-form">
-                  
-
-                  {/* REGION - Dropdown */}
+             
                   <div className="new-setup-form-group">
                     <label className="new-setup-form-label">Region <span className="new-setup-required">*</span></label>
                     <div className="new-setup-select-wrapper">
@@ -879,7 +875,7 @@ const SetupAccount = () => {
                         <option value="">Select Region</option>
                         {regions.map((region) => (
                           <option key={region.code} value={region.name}>
-                            {region.name}
+                            {region.regionName} - {region.name}
                           </option>
                         ))}
                       </select>
@@ -962,6 +958,7 @@ const SetupAccount = () => {
                     {!formData.cityMunicipality && <small className="new-setup-hint-text">Please select a city/municipality first</small>}
                     {errors.barangay && <span className="new-setup-error-message">{errors.barangay}</span>}
                   </div>
+
                   {/* STREET */}
                   <div className="new-setup-form-group">
                     <label className="new-setup-form-label">Street <span className="new-setup-required">*</span></label>
@@ -978,6 +975,7 @@ const SetupAccount = () => {
                     </div>
                     {errors.street && <span className="new-setup-error-message">{errors.street}</span>}
                   </div>
+
                   {/* HOUSE/BUILDING NUMBER */}
                   <div className="new-setup-form-group">
                     <label className="new-setup-form-label">House/Building No. <span className="new-setup-required">*</span></label>
@@ -994,8 +992,6 @@ const SetupAccount = () => {
                     </div>
                     {errors.houseOrBuilding && <span className="new-setup-error-message">{errors.houseOrBuilding}</span>}
                   </div>
-
-
 
                   {/* ZIP CODE */}
                   <div className="new-setup-form-group">

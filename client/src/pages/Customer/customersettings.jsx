@@ -1,4 +1,5 @@
-// pages/Customer/CustomerSettings.jsx - Single page with sections, no internal tabs
+// pages/Customer/CustomerSettings.jsx - Updated with PSGC Cloud API (Unified Cities/Municipalities)
+
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -34,7 +35,7 @@ const CustomerSettings = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast, showToast, hideToast } = useToast();
-  
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -45,45 +46,45 @@ const CustomerSettings = () => {
   const [editingAddress, setEditingAddress] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-  // RootScratch API States
+  // PSGC Cloud API States
   const [regions, setRegions] = useState([]);
   const [provinces, setProvinces] = useState([]);
-  const [citiesMunicipalities, setCitiesMunicipalities] = useState([]);
+  const [citiesMunicipalities, setCitiesMunicipalities] = useState([]); // Unified list
   const [barangays, setBarangays] = useState([]);
-  
+
   const [loadingRegions, setLoadingRegions] = useState(false);
   const [loadingProvinces, setLoadingProvinces] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
   const [loadingBarangays, setLoadingBarangays] = useState(false);
 
   const [profileData, setProfileData] = useState({
-    firstName: '', 
-    middleName: '', 
-    lastName: '', 
-    email: '', 
-    contactNumber: '', 
-    companyName: '', 
-    client_type: 'Individual', 
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    email: '',
+    contactNumber: '',
+    companyName: '',
+    client_type: 'Individual',
     birthday: ''
   });
 
   const [originalProfileData, setOriginalProfileData] = useState({
-    firstName: '', 
-    middleName: '', 
-    lastName: '', 
+    firstName: '',
+    middleName: '',
+    lastName: '',
     contactNumber: ''
   });
 
   const [addresses, setAddresses] = useState([]);
   const [addressForm, setAddressForm] = useState({
-    houseOrBuilding: '', 
-    street: '', 
+    houseOrBuilding: '',
+    street: '',
     region: '',
-    province: '', 
-    cityMunicipality: '', 
-    barangay: '', 
-    zipCode: '', 
-    label: 'Home', 
+    province: '',
+    cityMunicipality: '',
+    barangay: '',
+    zipCode: '',
+    label: 'Home',
     isPrimary: false
   });
 
@@ -92,23 +93,24 @@ const CustomerSettings = () => {
   const [memberSince, setMemberSince] = useState(null);
   const [isVerified, setIsVerified] = useState(false);
 
-  // Fetch Regions on component mount
+  // ========== PSGC CLOUD API FUNCTIONS ==========
+
+  // Base URL for PSGC Cloud API
+  const PSGC_API_BASE = 'https://psgc.gitlab.io/api/';
+
+  // Fetch Regions
   useEffect(() => {
     const fetchRegions = async () => {
       setLoadingRegions(true);
       try {
-        const response = await fetch('https://rootscratch.com/api/psgc/regions?limit=20', {
-          headers: {
-            'Accept': 'application/json'
-          }
+        const response = await fetch(`${PSGC_API_BASE}/regions`, {
+          headers: { 'Accept': 'application/json' }
         });
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch regions');
-        }
-        
+
+        if (!response.ok) throw new Error('Failed to fetch regions');
+
         const data = await response.json();
-        setRegions(data.data || []);
+        setRegions(data || []);
       } catch (error) {
         console.error('Error fetching regions:', error);
         showToast('Failed to load regions. Please refresh the page.', 'error');
@@ -127,7 +129,6 @@ const CustomerSettings = () => {
         setProvinces([]);
         setCitiesMunicipalities([]);
         setBarangays([]);
-        // Reset dependent fields
         setAddressForm(prev => ({
           ...prev,
           province: '',
@@ -137,33 +138,27 @@ const CustomerSettings = () => {
         return;
       }
 
-      // Extract region code from selected region
+      // Find the region code from selected region name
       const selectedRegion = regions.find(r => r.name === addressForm.region);
       if (!selectedRegion) {
         setProvinces([]);
         return;
       }
 
-      // Region code is like "1200000000", we need to extract the numeric part
-      const regionCode = selectedRegion.code.replace(/0+$/, '');
-      
       setLoadingProvinces(true);
       try {
+        // Use the region code to fetch provinces
         const response = await fetch(
-          `https://rootscratch.com/api/psgc/provinces?region_code=${regionCode}&limit=500`,
+          `${PSGC_API_BASE}/regions/${selectedRegion.code}/provinces`,
           {
-            headers: {
-              'Accept': 'application/json'
-            }
+            headers: { 'Accept': 'application/json' }
           }
         );
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch provinces');
-        }
-        
+
+        if (!response.ok) throw new Error('Failed to fetch provinces');
+
         const data = await response.json();
-        setProvinces(data.data || []);
+        setProvinces(data || []);
         setCitiesMunicipalities([]);
         setBarangays([]);
         setAddressForm(prev => ({
@@ -197,33 +192,27 @@ const CustomerSettings = () => {
         return;
       }
 
-      // Find the selected province
+      // Find the province code from selected province name
       const selectedProvince = provinces.find(p => p.name === addressForm.province);
       if (!selectedProvince) {
         setCitiesMunicipalities([]);
         return;
       }
 
-      // Province code like "1206300000" - remove trailing zeros to get "12063"
-      const provinceCode = selectedProvince.code.replace(/0+$/, '');
-      
       setLoadingCities(true);
       try {
+        // Use the province code to fetch cities and municipalities
         const response = await fetch(
-          `https://rootscratch.com/api/psgc/cities-municipalities?province_code=${provinceCode}&limit=500`,
+          `${PSGC_API_BASE}/provinces/${selectedProvince.code}/cities-municipalities`,
           {
-            headers: {
-              'Accept': 'application/json'
-            }
+            headers: { 'Accept': 'application/json' }
           }
         );
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch cities/municipalities');
-        }
-        
+
+        if (!response.ok) throw new Error('Failed to fetch cities/municipalities');
+
         const data = await response.json();
-        setCitiesMunicipalities(data.data || []);
+        setCitiesMunicipalities(data || []);
         setBarangays([]);
         setAddressForm(prev => ({
           ...prev,
@@ -253,33 +242,27 @@ const CustomerSettings = () => {
         return;
       }
 
-      // Find the selected city/municipality
+      // Find the city/municipality code from selected name
       const selectedCity = citiesMunicipalities.find(c => c.name === addressForm.cityMunicipality);
       if (!selectedCity) {
         setBarangays([]);
         return;
       }
 
-      // City code like "1206306000" - remove trailing zeros to get "1206306"
-      const cityCode = selectedCity.code.replace(/0+$/, '');
-      
       setLoadingBarangays(true);
       try {
+        // Use the city/municipality code to fetch barangays
         const response = await fetch(
-          `https://rootscratch.com/api/psgc/barangays?city_municipality_code=${cityCode}&limit=100`,
+          `${PSGC_API_BASE}/cities-municipalities/${selectedCity.code}/barangays`,
           {
-            headers: {
-              'Accept': 'application/json'
-            }
+            headers: { 'Accept': 'application/json' }
           }
         );
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch barangays');
-        }
-        
+
+        if (!response.ok) throw new Error('Failed to fetch barangays');
+
         const data = await response.json();
-        setBarangays(data.data || []);
+        setBarangays(data || []);
         setAddressForm(prev => ({
           ...prev,
           barangay: ''
@@ -294,6 +277,8 @@ const CustomerSettings = () => {
 
     fetchBarangays();
   }, [addressForm.cityMunicipality, citiesMunicipalities]);
+
+  // ========== END OF PSGC CLOUD API FUNCTIONS ==========
 
   useEffect(() => {
     fetchAllData();
@@ -317,13 +302,13 @@ const CustomerSettings = () => {
       });
       const client = response.data.client;
       const data = {
-        firstName: client.contactFirstName || '', 
-        middleName: client.contactMiddleName || '', 
+        firstName: client.contactFirstName || '',
+        middleName: client.contactMiddleName || '',
         lastName: client.contactLastName || '',
-        email: client.email || '', 
-        contactNumber: client.contactNumber || '', 
+        email: client.email || '',
+        contactNumber: client.contactNumber || '',
         companyName: client.companyName || '',
-        client_type: client.client_type || 'Individual', 
+        client_type: client.client_type || 'Individual',
         birthday: client.birthday || ''
       };
       setProfileData(data);
@@ -353,7 +338,7 @@ const CustomerSettings = () => {
     }
   };
 
-  // Profile validation functions
+  // Profile validation functions (unchanged)
   const validateName = (name, fieldName) => {
     if (!name || name.trim() === '') {
       return `${fieldName} is required`;
@@ -380,21 +365,21 @@ const CustomerSettings = () => {
 
   const validateProfileForm = () => {
     const errors = {};
-    
+
     const firstNameError = validateName(profileData.firstName, 'First name');
     if (firstNameError) errors.firstName = firstNameError;
-    
+
     const lastNameError = validateName(profileData.lastName, 'Last name');
     if (lastNameError) errors.lastName = lastNameError;
-    
+
     if (profileData.middleName && profileData.middleName.trim() !== '') {
       const middleNameError = validateName(profileData.middleName, 'Middle name');
       if (middleNameError) errors.middleName = middleNameError;
     }
-    
+
     const contactError = validateContactNumber(profileData.contactNumber);
     if (contactError) errors.contactNumber = contactError;
-    
+
     return errors;
   };
 
@@ -410,14 +395,12 @@ const CustomerSettings = () => {
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
     setProfileData(prev => ({ ...prev, [name]: value }));
-    // Clear error for this field when user types
     if (profileErrors[name]) {
       setProfileErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
   const saveProfile = async () => {
-    // Validate profile
     const errors = validateProfileForm();
     if (Object.keys(errors).length > 0) {
       setProfileErrors(errors);
@@ -426,7 +409,6 @@ const CustomerSettings = () => {
       return;
     }
 
-    // Check if there are changes
     if (!hasProfileChanges()) {
       showToast('No changes to save', 'info');
       return;
@@ -436,23 +418,22 @@ const CustomerSettings = () => {
     try {
       const token = sessionStorage.getItem('token');
       await axios.put(`${import.meta.env.VITE_API_URL}/api/clients/update`,
-        { 
-          contactFirstName: profileData.firstName.trim(), 
-          contactMiddleName: profileData.middleName.trim(), 
-          contactLastName: profileData.lastName.trim(), 
+        {
+          contactFirstName: profileData.firstName.trim(),
+          contactMiddleName: profileData.middleName.trim(),
+          contactLastName: profileData.lastName.trim(),
           contactNumber: profileData.contactNumber.replace(/\s/g, '')
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
-      // Update original data
+
       setOriginalProfileData({
         firstName: profileData.firstName.trim(),
         middleName: profileData.middleName.trim(),
         lastName: profileData.lastName.trim(),
         contactNumber: profileData.contactNumber.replace(/\s/g, '')
       });
-      
+
       showToast('Profile updated successfully', 'success');
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to update profile', 'error');
@@ -463,16 +444,16 @@ const CustomerSettings = () => {
 
   const handleAddAddress = () => {
     setEditingAddress(null);
-    setAddressForm({ 
-      houseOrBuilding: '', 
-      street: '', 
+    setAddressForm({
+      houseOrBuilding: '',
+      street: '',
       region: '',
-      province: '', 
-      cityMunicipality: '', 
-      barangay: '', 
-      zipCode: '', 
-      label: 'Home', 
-      isPrimary: addresses.length === 0 
+      province: '',
+      cityMunicipality: '',
+      barangay: '',
+      zipCode: '',
+      label: 'Home',
+      isPrimary: addresses.length === 0
     });
     setFormErrors({});
     setProvinces([]);
@@ -484,65 +465,55 @@ const CustomerSettings = () => {
   const handleEditAddress = (address) => {
     setEditingAddress(address);
     setAddressForm({
-      houseOrBuilding: address.houseOrBuilding || '', 
-      street: address.street || '', 
+      houseOrBuilding: address.houseOrBuilding || '',
+      street: address.street || '',
       region: address.region || '',
-      province: address.province || '', 
-      cityMunicipality: address.cityMunicipality || '', 
+      province: address.province || '',
+      cityMunicipality: address.cityMunicipality || '',
       barangay: address.barangay || '',
       zipCode: address.zipCode || '',
-      label: address.label || 'Home', 
+      label: address.label || 'Home',
       isPrimary: address.isPrimary || false
     });
     setFormErrors({});
-    
+
     // Fetch provinces, cities, and barangays based on existing address data
     if (address.region) {
-      // Trigger province fetch
-      const selectedRegion = regions.find(r => r.name === address.region);
-      if (selectedRegion) {
-        const regionCode = selectedRegion.code.replace(/0+$/, '');
-        fetch(`https://rootscratch.com/api/psgc/provinces?region_code=${regionCode}&limit=500`, {
-          headers: { 'Accept': 'application/json' }
-        })
-          .then(res => res.json())
-          .then(data => {
-            setProvinces(data.data || []);
-            // If province exists, fetch cities
-            if (address.province) {
-              const selectedProvince = data.data.find(p => p.name === address.province);
-              if (selectedProvince) {
-                const provinceCode = selectedProvince.code.replace(/0+$/, '');
-                fetch(`https://rootscratch.com/api/psgc/cities-municipalities?province_code=${provinceCode}&limit=500`, {
-                  headers: { 'Accept': 'application/json' }
-                })
-                  .then(res => res.json())
-                  .then(cityData => {
-                    setCitiesMunicipalities(cityData.data || []);
-                    // If city exists, fetch barangays
-                    if (address.cityMunicipality) {
-                      const selectedCity = cityData.data.find(c => c.name === address.cityMunicipality);
-                      if (selectedCity) {
-                        const cityCode = selectedCity.code.replace(/0+$/, '');
-                        fetch(`https://rootscratch.com/api/psgc/barangays?city_municipality_code=${cityCode}&limit=100`, {
-                          headers: { 'Accept': 'application/json' }
-                        })
-                          .then(res => res.json())
-                          .then(barangayData => {
-                            setBarangays(barangayData.data || []);
-                          })
-                          .catch(err => console.error('Error fetching barangays:', err));
-                      }
-                    }
+      // Fetch provinces
+      fetch(`${PSGC_API_BASE}/provinces`, {
+        headers: { 'Accept': 'application/json' }
+      })
+        .then(res => res.json())
+        .then(data => {
+          setProvinces(data || []);
+          // If province exists, fetch cities and municipalities
+          if (address.province) {
+            Promise.all([
+              fetch(`${PSGC_API_BASE}/cities`, { headers: { 'Accept': 'application/json' } }),
+              fetch(`${PSGC_API_BASE}/municipalities`, { headers: { 'Accept': 'application/json' } })
+            ])
+              .then(([citiesRes, municipalitiesRes]) => Promise.all([citiesRes.json(), municipalitiesRes.json()]))
+              .then(([citiesData, municipalitiesData]) => {
+                const combined = [...(citiesData || []), ...(municipalitiesData || [])];
+                setCitiesMunicipalities(combined);
+                // If city exists, fetch barangays
+                if (address.cityMunicipality) {
+                  fetch(`${PSGC_API_BASE}/barangays`, {
+                    headers: { 'Accept': 'application/json' }
                   })
-                  .catch(err => console.error('Error fetching cities:', err));
-              }
-            }
-          })
-          .catch(err => console.error('Error fetching provinces:', err));
-      }
+                    .then(res => res.json())
+                    .then(barangayData => {
+                      setBarangays(barangayData || []);
+                    })
+                    .catch(err => console.error('Error fetching barangays:', err));
+                }
+              })
+              .catch(err => console.error('Error fetching cities:', err));
+          }
+        })
+        .catch(err => console.error('Error fetching provinces:', err));
     }
-    
+
     setShowAddressModal(true);
   };
 
@@ -550,7 +521,7 @@ const CustomerSettings = () => {
     const { name, value, type, checked } = e.target;
     setAddressForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: '' }));
-    
+
     // Clear dependent dropdown values when parent changes
     if (name === 'region') {
       setProvinces([]);
@@ -622,13 +593,13 @@ const CustomerSettings = () => {
       };
 
       if (editingAddress) {
-        await axios.put(`${import.meta.env.VITE_API_URL}/api/clients/me/addresses/${editingAddress._id}`, addressData, { 
-          headers: { Authorization: `Bearer ${token}` } 
+        await axios.put(`${import.meta.env.VITE_API_URL}/api/clients/me/addresses/${editingAddress._id}`, addressData, {
+          headers: { Authorization: `Bearer ${token}` }
         });
         showToast('Address updated successfully', 'success');
       } else {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/clients/me/addresses`, addressData, { 
-          headers: { Authorization: `Bearer ${token}` } 
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/clients/me/addresses`, addressData, {
+          headers: { Authorization: `Bearer ${token}` }
         });
         showToast('Address added successfully', 'success');
       }
@@ -644,8 +615,8 @@ const CustomerSettings = () => {
   const setAsPrimary = async (addressId) => {
     try {
       const token = sessionStorage.getItem('token');
-      await axios.patch(`${import.meta.env.VITE_API_URL}/api/clients/me/addresses/${addressId}/primary`, {}, { 
-        headers: { Authorization: `Bearer ${token}` } 
+      await axios.patch(`${import.meta.env.VITE_API_URL}/api/clients/me/addresses/${addressId}/primary`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       showToast('Primary address updated successfully', 'success');
       fetchAddresses();
@@ -657,8 +628,8 @@ const CustomerSettings = () => {
   const deleteAddress = async (addressId) => {
     try {
       const token = sessionStorage.getItem('token');
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/clients/me/addresses/${addressId}`, { 
-        headers: { Authorization: `Bearer ${token}` } 
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/clients/me/addresses/${addressId}`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       showToast('Address deleted successfully', 'success');
       fetchAddresses();
@@ -670,11 +641,11 @@ const CustomerSettings = () => {
 
   const getFullAddress = (addr) => {
     const parts = [
-      addr.houseOrBuilding, 
-      addr.street, 
-      addr.barangay, 
-      addr.cityMunicipality, 
-      addr.province, 
+      addr.houseOrBuilding,
+      addr.street,
+      addr.barangay,
+      addr.cityMunicipality,
+      addr.province,
       addr.zipCode
     ].filter(part => part && part.trim() !== '');
     return parts.join(', ');
@@ -743,24 +714,24 @@ const CustomerSettings = () => {
           <div className="cuset-form-card">
             <div className="card-header">
               <h3><FaUser /> Personal Information</h3>
-              <button 
-                className="save-btn" 
-                onClick={saveProfile} 
+              <button
+                className="save-btn"
+                onClick={saveProfile}
                 disabled={saving || !hasProfileChanges()}
               >
                 <FaSave /> {saving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
-            
+
             <div className="profile-form">
               <div className="form-row">
                 <div className="form-group">
                   <label>First Name <span className="required">*</span></label>
-                  <input 
-                    type="text" 
-                    name="firstName" 
-                    value={profileData.firstName} 
-                    onChange={handleProfileChange} 
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={profileData.firstName}
+                    onChange={handleProfileChange}
                     placeholder="Enter first name"
                     className={profileErrors.firstName ? 'error' : ''}
                   />
@@ -770,11 +741,11 @@ const CustomerSettings = () => {
                 </div>
                 <div className="form-group">
                   <label>Middle Name</label>
-                  <input 
-                    type="text" 
-                    name="middleName" 
-                    value={profileData.middleName} 
-                    onChange={handleProfileChange} 
+                  <input
+                    type="text"
+                    name="middleName"
+                    value={profileData.middleName}
+                    onChange={handleProfileChange}
                     placeholder="Enter middle name"
                     className={profileErrors.middleName ? 'error' : ''}
                   />
@@ -784,11 +755,11 @@ const CustomerSettings = () => {
                 </div>
                 <div className="form-group">
                   <label>Last Name <span className="required">*</span></label>
-                  <input 
-                    type="text" 
-                    name="lastName" 
-                    value={profileData.lastName} 
-                    onChange={handleProfileChange} 
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={profileData.lastName}
+                    onChange={handleProfileChange}
                     placeholder="Enter last name"
                     className={profileErrors.lastName ? 'error' : ''}
                   />
@@ -799,21 +770,19 @@ const CustomerSettings = () => {
               </div>
 
               <div className="form-row">
-                
                 <div className="form-group">
                   <label><FaPhone /> Contact Number <span className="required">*</span></label>
-                  <input 
-                    type="tel" 
-                    name="contactNumber" 
-                    value={profileData.contactNumber} 
-                    onChange={handleProfileChange} 
+                  <input
+                    type="tel"
+                    name="contactNumber"
+                    value={profileData.contactNumber}
+                    onChange={handleProfileChange}
                     placeholder="09XXXXXXXXX"
                     className={profileErrors.contactNumber ? 'error' : ''}
                   />
                   {profileErrors.contactNumber && (
                     <small className="error-text">{profileErrors.contactNumber}</small>
                   )}
-                  
                 </div>
               </div>
             </div>
@@ -846,8 +815,8 @@ const CustomerSettings = () => {
             ) : (
               <div className="addresses-grid">
                 {addresses.map(address => (
-                  <div 
-                    key={address._id} 
+                  <div
+                    key={address._id}
                     className={`address-card-item ${address.isPrimary ? 'primary' : ''}`}
                   >
                     {address.isPrimary && (
@@ -868,21 +837,21 @@ const CustomerSettings = () => {
                     </div>
                     <div className="address-actions">
                       {!address.isPrimary && (
-                        <button 
-                          className="action-btn primary-btn" 
+                        <button
+                          className="action-btn primary-btn"
                           onClick={() => setAsPrimary(address._id)}
                         >
                           Set Primary
                         </button>
                       )}
-                      <button 
-                        className="action-btn edit-btn" 
+                      <button
+                        className="action-btn edit-btn"
                         onClick={() => handleEditAddress(address)}
                       >
                         <FaEdit /> Edit
                       </button>
-                      <button 
-                        className="action-btn delete-btn" 
+                      <button
+                        className="action-btn delete-btn"
                         onClick={() => setDeleteConfirm(address)}
                       >
                         <FaTrash /> Delete
@@ -919,7 +888,7 @@ const CustomerSettings = () => {
   return (
     <>
       <Helmet><title>Settings | Salfer Engineering</title></Helmet>
-      
+
       <div className="cuset-page">
         {/* Header */}
         <div className="cuset-header">
@@ -950,9 +919,9 @@ const CustomerSettings = () => {
                   <div className="form-row">
                     <div className="form-group">
                       <label>Label</label>
-                      <select 
-                        name="label" 
-                        value={addressForm.label} 
+                      <select
+                        name="label"
+                        value={addressForm.label}
                         onChange={handleAddressFormChange}
                       >
                         <option value="Home">Home</option>
@@ -962,24 +931,21 @@ const CustomerSettings = () => {
                     </div>
                     <div className="form-group checkbox-group">
                       <label className="checkbox-label">
-                        <input 
-                          type="checkbox" 
-                          name="isPrimary" 
-                          checked={addressForm.isPrimary} 
-                          onChange={handleAddressFormChange} 
+                        <input
+                          type="checkbox"
+                          name="isPrimary"
+                          checked={addressForm.isPrimary}
+                          onChange={handleAddressFormChange}
                         />
                         <span>Set as primary</span>
                       </label>
                     </div>
                   </div>
 
-                  
-
                   {/* REGION - Dropdown */}
                   <div className="form-group">
                     <label>Region <span className="required">*</span></label>
                     <div className="select-wrapper">
-                     
                       <select
                         name="region"
                         value={addressForm.region}
@@ -990,7 +956,7 @@ const CustomerSettings = () => {
                         <option value="">Select Region</option>
                         {regions.map((region) => (
                           <option key={region.code} value={region.name}>
-                            {region.name}
+                            {region.regionName}
                           </option>
                         ))}
                       </select>
@@ -1005,7 +971,6 @@ const CustomerSettings = () => {
                   <div className="form-group">
                     <label>Province <span className="required">*</span></label>
                     <div className="select-wrapper">
-                     
                       <select
                         name="province"
                         value={addressForm.province}
@@ -1028,11 +993,10 @@ const CustomerSettings = () => {
                     )}
                   </div>
 
-                  {/* CITY/MUNICIPALITY - Dropdown */}
+                  {/* CITY/MUNICIPALITY - Dropdown (Unified) */}
                   <div className="form-group">
                     <label>City / Municipality <span className="required">*</span></label>
                     <div className="select-wrapper">
-                      
                       <select
                         name="cityMunicipality"
                         value={addressForm.cityMunicipality}
@@ -1059,7 +1023,6 @@ const CustomerSettings = () => {
                   <div className="form-group">
                     <label>Barangay <span className="required">*</span></label>
                     <div className="select-wrapper">
-                      
                       <select
                         name="barangay"
                         value={addressForm.barangay}
@@ -1081,14 +1044,15 @@ const CustomerSettings = () => {
                       <small className="error-text">{formErrors.barangay}</small>
                     )}
                   </div>
+
                   <div className="form-group">
                     <label>Street <span className="required">*</span></label>
-                    <input 
-                      type="text" 
-                      name="street" 
-                      value={addressForm.street} 
-                      onChange={handleAddressFormChange} 
-                      className={formErrors.street ? 'error' : ''} 
+                    <input
+                      type="text"
+                      name="street"
+                      value={addressForm.street}
+                      onChange={handleAddressFormChange}
+                      className={formErrors.street ? 'error' : ''}
                       placeholder="Enter street name"
                     />
                     {formErrors.street && (
@@ -1098,12 +1062,12 @@ const CustomerSettings = () => {
 
                   <div className="form-group">
                     <label>House / Building <span className="required">*</span></label>
-                    <input 
-                      type="text" 
-                      name="houseOrBuilding" 
-                      value={addressForm.houseOrBuilding} 
-                      onChange={handleAddressFormChange} 
-                      className={formErrors.houseOrBuilding ? 'error' : ''} 
+                    <input
+                      type="text"
+                      name="houseOrBuilding"
+                      value={addressForm.houseOrBuilding}
+                      onChange={handleAddressFormChange}
+                      className={formErrors.houseOrBuilding ? 'error' : ''}
                       placeholder="Enter house number or building name"
                     />
                     {formErrors.houseOrBuilding && (
@@ -1111,17 +1075,15 @@ const CustomerSettings = () => {
                     )}
                   </div>
 
-                  
-
                   <div className="form-group">
                     <label>ZIP Code <span className="required">*</span></label>
-                    <input 
-                      type="text" 
-                      name="zipCode" 
-                      value={addressForm.zipCode} 
-                      onChange={handleAddressFormChange} 
-                      maxLength="4" 
-                      className={formErrors.zipCode ? 'error' : ''} 
+                    <input
+                      type="text"
+                      name="zipCode"
+                      value={addressForm.zipCode}
+                      onChange={handleAddressFormChange}
+                      maxLength="4"
+                      className={formErrors.zipCode ? 'error' : ''}
                       placeholder="Enter ZIP code"
                     />
                     {formErrors.zipCode && (
@@ -1132,16 +1094,16 @@ const CustomerSettings = () => {
                 </div>
 
                 <div className="modal-actions">
-                  <button 
-                    type="button" 
-                    className="cancel-btn" 
+                  <button
+                    type="button"
+                    className="cancel-btn"
                     onClick={() => setShowAddressModal(false)}
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="submit" 
-                    className="save-btn" 
+                  <button
+                    type="submit"
+                    className="save-btn"
                     disabled={saving}
                   >
                     {saving ? 'Saving...' : 'Save Address'}
@@ -1168,14 +1130,14 @@ const CustomerSettings = () => {
                   {getFullAddress(deleteConfirm)}
                 </div>
                 <div className="confirm-actions">
-                  <button 
-                    className="cancel-btn" 
+                  <button
+                    className="cancel-btn"
                     onClick={() => setDeleteConfirm(null)}
                   >
                     Cancel
                   </button>
-                  <button 
-                    className="delete-btn" 
+                  <button
+                    className="delete-btn"
                     onClick={() => deleteAddress(deleteConfirm._id)}
                   >
                     <FaTrash /> Delete Address

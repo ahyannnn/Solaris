@@ -120,7 +120,7 @@ const MyProject = () => {
     );
 
     const finalPaid = isPaymentPaid(project, 'final');
-    
+
     if (paymentType !== 'final' && finalPaid) {
       return { status: 'paid', text: 'Paid', color: '#10b981' };
     }
@@ -158,7 +158,7 @@ const MyProject = () => {
   const getProjectProgress = (project) => {
     let progress = 0;
     const paymentPreference = project.paymentPreference || 'full';
-    
+
     if (paymentPreference === 'full') {
       if (project.status === 'completed') progress = 100;
       else if (project.status === 'in_progress') progress = 60;
@@ -195,7 +195,7 @@ const MyProject = () => {
         progress = 5;
       }
     }
-    
+
     return Math.min(progress, 100);
   };
 
@@ -389,13 +389,15 @@ const MyProject = () => {
     );
   }
 
+  // pages/Customer/MyProject.cuspro.jsx
+
   if (projects.length === 0) {
     return (
       <>
         <Helmet>
           <title>My Project | Salfer Engineering</title>
         </Helmet>
-        <div className="cuspro-page">
+        <div className="cuspro-empty-page">
           <div className="cuspro-empty-state-card">
             <FaProjectDiagram className="cuspro-empty-icon" />
             <h2>No Projects Yet</h2>
@@ -482,24 +484,24 @@ const MyProject = () => {
                         transform="rotate(-90 60 60)"
                       />
                       <g transform="rotate(90 60 60)">
-                        <text 
-                          x="60" 
-                          y="52" 
-                          textAnchor="middle" 
+                        <text
+                          x="60"
+                          y="52"
+                          textAnchor="middle"
                           dominantBaseline="middle"
-                          fill="#0F172A" 
-                          fontSize="26" 
+                          fill="#0F172A"
+                          fontSize="26"
                           fontWeight="700"
                         >
                           {getProjectProgress(selectedProject)}%
                         </text>
-                        <text 
-                          x="60" 
-                          y="72" 
-                          textAnchor="middle" 
+                        <text
+                          x="60"
+                          y="72"
+                          textAnchor="middle"
                           dominantBaseline="middle"
-                          fill="#64748B" 
-                          fontSize="11" 
+                          fill="#64748B"
+                          fontSize="11"
                           fontWeight="500"
                         >
                           Complete

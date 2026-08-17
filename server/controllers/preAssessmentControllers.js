@@ -13,7 +13,7 @@ const PayMongoService = require('../services/paymongoService');
 const receiptService = require('../services/receiptService');
 const AuditLog = require('../models/AuditLog');
 // Add this at the top of preAssessmentControllers.js with other requires
-const { sendNotification } = require('../utils/notificationHelper');
+const { sendNotification, sendAdminBroadcast } = require('../utils/notificationHelper');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -229,6 +229,7 @@ exports.generateQuotationPDF = async (req, res) => {
       estimatedAnnualProduction,
       estimatedAnnualProductionMin,
       estimatedAnnualProductionMax,
+      annualProduction,
       co2Offset,
       co2OffsetMin,
       co2OffsetMax,
@@ -237,7 +238,7 @@ exports.generateQuotationPDF = async (req, res) => {
       discountAmount,
       finalAmount
     } = req.body;
-
+    console.log('Received request to generate quotation PDF with data:', req.body);
     const assessment = await PreAssessment.findById(id)
       .populate('clientId', 'contactFirstName contactLastName contactNumber userId')
       .populate('addressId');
@@ -425,7 +426,7 @@ exports.generateQuotationPDF = async (req, res) => {
       co2Offset: co2Offset || 0,
       co2OffsetMin: co2OffsetMin || 0,
       co2OffsetMax: co2OffsetMax || 0,
-      roiYears: roiYears || 0,  // NEW: ROI years
+      roiYears: parseFloat(roiYears) || 0,
       discountPercentage: parseFloat(discountPercentage) || 0,
       discountAmount: parseFloat(discountAmount) || 0,
       finalAmount: parseFloat(finalAmount) || 0,
@@ -438,11 +439,11 @@ exports.generateQuotationPDF = async (req, res) => {
         recommendations: assessment.engineerAssessment?.recommendations
       },
       performanceEstimates: iotAnalysis ? {
-        annualProduction: iotAnalysis.annualProduction || (systemSize || 0) * 1200,
+        annualProduction: parseFloat(annualProduction) || 0,
         annualSavings: iotAnalysis.estimatedAnnualSavings || (calculatedTotalCost || 0) * 0.15,
         monthlySavings: iotAnalysis.estimatedMonthlySavings || 0,
-        paybackPeriod: iotAnalysis.paybackPeriod || Math.ceil((calculatedTotalCost || 0) / ((systemSize || 1) * 1200 * 0.1)),
-        co2Offset: iotAnalysis.co2Offset || (systemSize || 0) * 800,
+        paybackPeriod: parseFloat(roiYears) || 0,
+        co2Offset: co2Offset || 0,
         siteSuitabilityScore: iotAnalysis.siteSuitabilityScore || 85
       } : {
         annualProduction: (systemSize || 0) * 1200,
@@ -515,7 +516,7 @@ exports.generateQuotationPDF = async (req, res) => {
         roiYears: roiYears || 0,
         discountPercentage: parseFloat(discountPercentage) || 0,
         discountAmount: parseFloat(discountAmount) || 0,
-        finalAmount: parseFloat(finalAmount) || 0,  
+        finalAmount: parseFloat(finalAmount) || 0,
         generatedAt: new Date().toISOString()
       }
     });
@@ -604,6 +605,45 @@ exports.generateQuotationPDF = async (req, res) => {
           }
         }
       );
+      // ✅ SEND ADMIN BROADCAST NOTIFICATION - All admins can view this
+      try {
+        const engineerName = req.user.fullName || req.user.email || 'Engineer';
+        const clientName = `${assessment.clientId.contactFirstName || ''} ${assessment.clientId.contactLastName || ''}`.trim() || 'Customer';
+
+        await sendAdminBroadcast(
+          'Quotation Generated',
+          `Engineer ${engineerName} generated quotation ${quotationNumber || 'Q-' + assessment.bookingReference} for customer ${clientName}. Total cost: PHP ${calculatedTotalCost.toFixed(2)}`,
+          'success',
+          '/admin/pre-assessments/' + assessment._id,
+          {
+            bookingReference: assessment.bookingReference,
+            quotationNumber: quotationNumber || 'Q-' + assessment.bookingReference,
+            clientName: clientName,
+            clientId: assessment.clientId._id,
+            engineerName: engineerName,
+            engineerId: engineerId,
+            systemSize: parseFloat(systemSize),
+            systemType: systemType,
+            totalCost: calculatedTotalCost,
+            equipmentCost: calculatedEquipmentTotal,
+            installationCost: calculatedInstallationTotal,
+            estimatedAnnualProduction: estimatedAnnualProduction || 0,
+            co2Offset: co2Offset || 0,
+            roiYears: roiYears || 0,
+            discountPercentage: parseFloat(discountPercentage) || 0,
+            discountAmount: parseFloat(discountAmount) || 0,
+            finalAmount: parseFloat(finalAmount) || 0,
+            warrantyYears: parseInt(warrantyYears) || 10,
+            includeIoTData: includeIoTData || false,
+            hasIoTData: !!iotAnalysis,
+            timestamp: new Date().toISOString()
+          }
+        );
+        console.log(`✅ Admin broadcast sent for quotation ${quotationNumber || 'Q-' + assessment.bookingReference}`);
+      } catch (adminNotifError) {
+        console.error('Admin broadcast error:', adminNotifError);
+        // Don't block if admin notification fails
+      }
     }
 
     res.json({
@@ -761,18 +801,7 @@ exports.generateFreeQuotePDF = async (req, res) => {
     res.status(500).json({ message: 'Failed to generate quotation PDF', error: error.message });
   }
 };
-// @desc    Create a new pre-assessment booking
-// @route   POST /api/pre-assessments
-// @access  Private (Customer)
-// controllers/preAssessmentControllers.js
 
-// controllers/preAssessmentControllers.js
-// controllers/preAssessmentControllers.js
-
-// @desc    Approve or reject booking (Admin only)
-// @route   PUT /api/pre-assessments/:id/approve-booking
-// @access  Private (Admin)
-// controllers/preAssessmentControllers.js
 
 // @desc    Approve or reject booking (Admin only)
 // @route   PUT /api/pre-assessments/:id/approve-booking
@@ -1006,6 +1035,29 @@ exports.createPreAssessment = async (req, res) => {
         }
       }
     );
+    // ✅ SEND ADMIN BROADCAST NOTIFICATION - All admins can view this
+    try {
+      const clientName = `${client.contactFirstName || ''} ${client.contactLastName || ''}`.trim() || 'Customer';
+
+      await sendAdminBroadcast(
+        'New Pre-Assessment Booking',
+        `Customer ${clientName} submitted a new pre-assessment booking ${bookingReference} for ${propertyType} property.`,
+        'info',
+        '/admin/pre-assessments/' + preAssessment._id,
+        {
+          bookingReference: bookingReference,
+          clientName: clientName,
+          propertyType: propertyType,
+          assessmentStatus: 'pending_review',
+          paymentStatus: 'pending',
+          timestamp: new Date().toISOString()
+        }
+      );
+      console.log(`✅ Admin broadcast sent for new booking ${bookingReference}`);
+    } catch (adminNotifError) {
+      console.error('Admin broadcast error:', adminNotifError);
+      // Don't block booking creation if admin notification fails
+    }
 
     res.status(201).json({
       success: true,

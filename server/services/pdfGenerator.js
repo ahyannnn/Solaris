@@ -483,7 +483,21 @@ class QuotationGenerator {
 
          y += 15;
 
-         const roiValue = data.roiYears || data.calculatedRoiYears || data.roiData || 'N/A';
+         let roiValue = data.roiYears || data.calculatedRoiYears || data.roiData;
+         if (typeof roiValue === 'number' && roiValue > 0) {
+            roiValue = roiValue.toFixed(1) + ' years';
+         } else if (typeof roiValue === 'number') {
+            roiValue = 'N/A';
+         } else if (!roiValue || roiValue === 'N/A') {
+            // Calculate ROI if possible
+            if (totalPackagePrice > 0 && data.annualProduction) {
+               const annualSavings = data.annualProduction * (data.ratePerKwh || 12);
+               const calculatedRoi = totalPackagePrice / annualSavings;
+               roiValue = calculatedRoi.toFixed(1) + ' years';
+            } else {
+               roiValue = 'N/A';
+            }
+         }
          doc.font('Roboto')
             .fontSize(9)
             .text(`ROI: ${typeof roiValue === 'number' ? roiValue.toFixed(1) + ' years' : roiValue}`, leftX + 5, y);
@@ -1144,8 +1158,7 @@ class QuotationGenerator {
          { label: 'Peak Sun Hours', value: iot.peakSunHours ? `${iot.peakSunHours} hours` : 'N/A' },
          { label: 'Temperature', value: iot.averageTemperature ? `${iot.averageTemperature}°C` : 'N/A' },
          { label: 'Humidity', value: iot.averageHumidity ? `${iot.averageHumidity}%` : 'N/A' },
-         { label: 'Optimal Orientation', value: iot.optimalOrientation || 'N/A' },
-         { label: 'Optimal Tilt Angle', value: iot.optimalTiltAngle ? `${iot.optimalTiltAngle}°` : 'N/A' }
+        
       ];
 
       for (const item of iotData) {
@@ -1181,8 +1194,7 @@ class QuotationGenerator {
          { label: 'Annual Production', value: perf.annualProduction ? `${perf.annualProduction.toFixed(0)} kWh/year` : 'N/A' },
          { label: 'CO₂ Offset', value: perf.co2Offset ? `${perf.co2Offset.toFixed(0)} kg/year` : 'N/A' },
          { label: 'ROI / Payback Period', value: perf.paybackPeriod ? `${perf.paybackPeriod} years` : 'N/A' },
-         { label: 'Monthly Savings', value: perf.monthlySavings ? `₱${perf.monthlySavings.toFixed(2)}` : 'N/A' },
-         { label: 'Site Suitability', value: perf.siteSuitabilityScore ? `${perf.siteSuitabilityScore}%` : 'N/A' }
+         
       ];
 
       for (const item of performanceData) {

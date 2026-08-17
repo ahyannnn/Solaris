@@ -106,26 +106,13 @@ export const useSystemCalculation = () => {
     const hasData = (area > 0) || (total > 0);
     setIsDataLoaded(hasData);
 
-    console.log('Initialized calculation data:', {
-      roofLength: length,
-      roofWidth: width,
-      roofArea: area,
-      dayConsumption: day,
-      nightConsumption: night,
-      totalDailyConsumption: total,
-      monthlyBill: bill,
-      ratePerKwh: rate,
-      targetSavings: target,
-      motorAppliancesWatts: motor,
-      nonMotorAppliancesWatts: nonMotor,
-      isDataLoaded: hasData
-    });
+    
   };
 
   const setPshFromIoT = (peakSunHours) => {
     if (peakSunHours && peakSunHours > 0) {
       setPshValue(peakSunHours);
-      console.log('PSH updated from IoT data:', peakSunHours);
+      
     }
   };
 
@@ -237,11 +224,7 @@ export const useSystemCalculation = () => {
     const total = monthlybill / (rate * 30);
     const target = parseFloat(targetSavings) || 100;
 
-    console.log('===== Electricity Calculation Debug =====');
-    console.log('monthlyBill:', monthlyBill);
-    console.log('ratePerKwh:', ratePerKwh);
-    console.log('total daily consumption:', total);
-    console.log('targetSavings:', target);
+   
 
     if (total === 0) {
       alert('No consumption data available. Please check client data.');
@@ -264,9 +247,7 @@ export const useSystemCalculation = () => {
     const baseSystemSize = (total * safetyFactor) / pshValue;
     const recommendedSystemSize = Math.round((baseSystemSize * (target / 100)) * 100) / 100;
 
-    console.log('baseSystemSize:', baseSystemSize);
-    console.log('recommendedSystemSize:', recommendedSystemSize);
-    console.log('=========================================');
+   
 
     const inverterSize = Math.ceil(calculateInverterSize() * 100) / 100;
     const panelsNeeded = Math.ceil((recommendedSystemSize * 1000) / PANEL_WATTAGE_W);
@@ -316,11 +297,7 @@ export const useSystemCalculation = () => {
     const total = parseFloat(totalDailyConsumption) || 0;
     const target = parseFloat(targetSavings) || 100;
     
-    console.log('===== Load Profile Calculation Debug =====');
-    console.log('totalDailyConsumption:', totalDailyConsumption);
-    console.log('targetSavings:', targetSavings);
-    console.log('pshValue:', pshValue);
-    console.log('selectedPanelForCalc:', selectedPanelForCalc);
+    
 
     if (total === 0) {
       alert('No consumption data available. Please check client data.');
@@ -343,10 +320,7 @@ export const useSystemCalculation = () => {
     const baseSystemSize = (total * safetyFactor) / pshValue;
     const recommendedSystemSize = Math.round((baseSystemSize * (target / 100)) * 100) / 100;
     
-    console.log('baseSystemSize (before target savings):', baseSystemSize);
-    console.log('targetSavings:', target);
-    console.log('recommendedSystemSize:', recommendedSystemSize);
-    console.log('=========================================');
+   
 
     const inverterSize = Math.ceil(calculateInverterSize() * 100) / 100;
     const panelsNeeded = Math.ceil((recommendedSystemSize * 1000) / PANEL_WATTAGE_W);
@@ -400,12 +374,7 @@ const calculateByNetMetering = () => {
   
   const psh = parseFloat(pshValue) || 3.5;
   
-  console.log('===== Net Metering Calculation Debug =====');
-  console.log('dayConsumption:', dayConsumption);
-  console.log('nightConsumption:', nightConsumption);
-  console.log('exportRate:', exportRateValue);
-  console.log('pshValue:', psh);
-  console.log('targetSavings:', targetSavings);
+  
 
   if (day === 0 && night === 0) {
     alert('No consumption data available. Please check client data.');
@@ -430,12 +399,7 @@ const calculateByNetMetering = () => {
   const totalPv = dayPv + nightPv;
   const recommendedSystemSize = Math.round((totalPv * (target / 100)) * 100) / 100;
 
-  console.log('dayPv:', dayPv);
-  console.log('nightPv:', nightPv);
-  console.log('totalPv:', totalPv);
-  console.log('targetSavings:', target);
-  console.log('recommendedSystemSize:', recommendedSystemSize);
-  console.log('=========================================');
+  
 
   const inverterSize = Math.ceil(calculateInverterSize() * 100) / 100;
   const panelsNeeded = Math.ceil((recommendedSystemSize * 1000) / PANEL_WATTAGE_W);

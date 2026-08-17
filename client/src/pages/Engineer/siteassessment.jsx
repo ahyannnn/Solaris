@@ -161,11 +161,11 @@ const MyAssessments = () => {
     discountAmount: 0,  // ✅ ADD THIS
     finalAmount: 0
   });
-const [roiYears, setRoiYears] = useState(0);
+  const [roiYears, setRoiYears] = useState(0);
 
-const handleROIChange = (value) => {
-  setRoiYears(value);
-};
+  const handleROIChange = (value) => {
+    setRoiYears(value);
+  };
   // ✅ MOVE THIS HERE - Site Inspection Data State
   const [siteInspectionData, setSiteInspectionData] = useState({
     appliances: [],
@@ -290,7 +290,9 @@ const handleROIChange = (value) => {
     return date.toISOString().split('T')[0];
   };
 
-
+  const handleROICalculated = (roi) => {
+    setRoiYears(roi);
+  };
 
   // Use the calculation hook
   const calculation = useSystemCalculation();
@@ -1286,7 +1288,7 @@ const handleROIChange = (value) => {
       showToast('Please enter a valid system size (greater than 0)', 'warning');
       return;
     }
-    
+
     if (!totalCost || parseFloat(totalCost) <= 0) {
       showToast('Please enter a valid total cost (greater than 0)', 'warning');
       return;
@@ -1336,7 +1338,7 @@ const handleROIChange = (value) => {
         siteSuitabilityScore: systemMetrics?.siteSuitabilityScore || 85
       } : null;
 
-      
+
 
       const payload = isFreeQuote ? {
         quotationNumber: freeQuoteForm.quotationNumber,
@@ -2267,7 +2269,6 @@ const handleROIChange = (value) => {
                           dayPvCapacity={calculation.dayPvCapacity}
                           pshValue={calculation.pshValue}
                           setExportRate={calculation.setExportRate}
-                          exportRate={calculation.exportRate}
                           ratePerKwh={calculation.ratePerKwh}
                           nightPvCapacity={calculation.nightPvCapacity}
                           totalPvCapacity={calculation.totalPvCapacity}
@@ -2416,6 +2417,7 @@ const handleROIChange = (value) => {
                       generateQuotationPDF={generateQuotationPDF}
                       generatingPDF={generatingPDF}
                       annualProduction={calculation.calculationResults.estimatedAnnualProduction || 0}
+                      onROICalculated={handleROICalculated}
                     />
                   </>
                 )}
@@ -2935,6 +2937,7 @@ const handleROIChange = (value) => {
                       generateQuotationPDF={generateQuotationPDF}
                       generatingPDF={generatingPDF}
                       annualProduction={calculation.calculationResults.estimatedAnnualProduction || 0}
+                      onROICalculated={handleROICalculated}
                     />
                   </>
                 )}

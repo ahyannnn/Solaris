@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 const PayMongoService = require('../services/paymongoService');
 const SolarInvoice = require('../models/SolarInvoice');
 const cloudinary = require('cloudinary').v2;
-const { sendNotification } = require('../utils/notificationHelper');
+const { sendNotification, sendAdminBroadcast } = require('../utils/notificationHelper');
 const AuditLog = require('../models/AuditLog');
 
 // Configure Cloudinary (should already be configured in your app)
@@ -779,6 +779,39 @@ exports.createProjectFromAcceptance = async (req, res) => {
         }
       }
     );
+    try {
+      const clientName = `${client.contactFirstName || ''} ${client.contactLastName || ''}`.trim() || 'Customer';
+      const sourceReference = sourceType === 'free-quote'
+        ? sourceData.quotationReference
+        : sourceData.bookingReference;
+
+      await sendAdminBroadcast(
+        'New Project Created',
+        `Customer ${clientName} accepted a ${sourceType} (${sourceReference}) and created project ${project.projectReference}. Total cost: PHP ${project.totalCost.toFixed(2)}`,
+        'success',
+        '/admin/projects/' + project._id,
+        {
+          projectReference: project.projectReference,
+          clientName: clientName,
+          clientId: client._id,
+          sourceType: sourceType,
+          sourceReference: sourceReference,
+          sourceId: sourceData._id,
+          totalCost: project.totalCost,
+          baseCost: project.baseCost,
+          vatRate: project.vatRate,
+          systemSize: project.systemSize,
+          systemType: project.systemType,
+          paymentPreference: project.paymentPreference || 'installment',
+          status: project.status,
+          timestamp: new Date().toISOString()
+        }
+      );
+      console.log(`✅ Admin broadcast sent for new project ${project.projectReference}`);
+    } catch (adminNotifError) {
+      console.error('Admin broadcast error:', adminNotifError);
+      // Don't block project creation if admin notification fails
+    }
     // ✅ Update the source to mark as accepted
     if (sourceType === 'free-quote') {
       sourceData.status = 'accepted';

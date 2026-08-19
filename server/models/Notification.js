@@ -38,6 +38,12 @@ const notificationSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.Mixed,
     default: {},
   },
+  // ✅ NEW FIELD: For admin-wide notifications
+  isAdminBroadcast: {
+    type: Boolean,
+    default: false,
+    index: true,
+  },
   expiresAt: {
     type: Date,
     default: () => new Date(+new Date() + 30 * 24 * 60 * 60 * 1000), // 30 days
@@ -68,6 +74,15 @@ notificationSchema.statics.markAllAsRead = async function(userId) {
 
 notificationSchema.statics.getUnreadCount = async function(userId) {
   return await this.countDocuments({ userId, read: false });
+};
+
+// ✅ NEW: Get unread admin broadcast count for a specific admin
+notificationSchema.statics.getUnreadAdminBroadcastCount = async function(userId) {
+  return await this.countDocuments({
+    userId,
+    read: false,
+    isAdminBroadcast: true
+  });
 };
 
 notificationSchema.methods.markAsRead = async function() {

@@ -1,5 +1,6 @@
 // backend/controllers/notificationController.js
 const Notification = require('../models/Notification');
+const User = require('../models/Users');
 const mongoose = require('mongoose');
 
 // Get all notifications for the logged-in user
@@ -149,20 +150,122 @@ exports.deleteNotification = async (req, res) => {
   }
 };
 
-// Helper function to create notification (can be used anywhere in your app)
-exports.createNotification = async (userId, title, message, type = 'info', link = '', metadata = {}) => {
+// ✅ UPDATED: Helper function to create notification with isAdminBroadcast support
+exports.createNotification = async (userId, title, message, type = 'info', link = '', metadata = {}, isAdminBroadcast = false) => {
   try {
-    const notification = await Notification.createNotification({
+    const notification = await Notification.create({
       userId,
       title,
       message,
       type,
       link,
       metadata,
+      isAdminBroadcast, // Add this field
     });
     return notification;
   } catch (error) {
     console.error('Error creating notification:', error);
     return null;
+  }
+};
+
+// ✅ NEW: Create admin broadcast notification for all admins
+exports.createAdminBroadcast = async (title, message, type = 'info', link = '', metadata = {}, adminIds = null) => {
+  try {
+    let admins = adminIds;
+    
+    // If adminIds not provided, fetch all admin users
+    if (!admins) {
+      const adminUsers = await User.find({ 
+        role: { $in: ['super_admin', 'admin', 'finance_admin', 'operations_admin'] }
+      }).select('_id');
+      admins = adminUsers.map(admin => admin._id);
+    }
+
+    if (!admins || admins.length === 0) {
+      console.log('No admin users found to send broadcast');
+      return [];
+    }
+
+    // Create notifications for all admins
+    const notifications = admins.map(adminId => ({
+      userId: adminId,
+      title,
+      message,
+      type,
+      link,
+      metadata,
+      isAdminBroadcast: true // Set to true for admin broadcasts
+    }));
+
+    const result = await Notification.insertMany(notifications);
+    console.log(`✅ Admin broadcast sent to ${result.length} admins`);
+    return result;
+  } catch (error) {
+    console.error('Error creating admin broadcast:', error);
+    return [];
+  }
+};
+
+// ✅ NEW: Get admin broadcast notifications for a specific admin
+exports.getAdminBroadcasts = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { limit = 50, skip = 0 } = req.query;
+
+    const notifications = await Notification.find({ 
+      userId, 
+      isAdminBroadcast: true 
+    })
+      .sort({ createdAt: -1 })
+      .skip(parseInt(skip))
+      .limit(parseInt(limit));
+
+    const total = await Notification.countDocuments({ 
+      userId, 
+      isAdminBroadcast: true 
+    });
+    
+    const unreadCount = await Notification.countDocuments({
+      userId,
+      isAdminBroadcast: true,
+      read: false
+    });
+
+    res.status(200).json({
+      success: true,
+      notifications,
+      total,
+      unreadCount,
+    });
+  } catch (error) {
+    console.error('Error fetching admin broadcasts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching admin broadcasts',
+    });
+  }
+};
+
+// ✅ NEW: Get unread admin broadcast count for a specific admin
+exports.getUnreadAdminBroadcastCount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const count = await Notification.countDocuments({
+      userId,
+      isAdminBroadcast: true,
+      read: false
+    });
+
+    res.status(200).json({
+      success: true,
+      count,
+    });
+  } catch (error) {
+    console.error('Error getting unread admin broadcast count:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error getting unread admin broadcast count',
+    });
   }
 };

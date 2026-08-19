@@ -70,6 +70,7 @@ export const SystemEquipmentSelection = ({
 
   annualProduction,
   roiData,
+  onROICalculated,
   // Utility
   formatCurrency,
   generateQuotationPDF,
@@ -297,7 +298,7 @@ export const SystemEquipmentSelection = ({
     // Return true if there are any errors
     return Object.values(fieldErrorMap).some(error => error && error.length > 0);
   };
-
+  
   // Handle PDF generation with validation
   const handleGeneratePDF = () => {
     const hasErrors = validateEquipment();
@@ -357,7 +358,31 @@ export const SystemEquipmentSelection = ({
 
   // Calculate discounted total
   const { discountAmount, finalAmount } = freeQuoteCalculatedCosts;
+  // Calculate ROI whenever values change
+  useEffect(() => {
+    const totalCost = discountPercentage > 0 ? finalAmount : freeQuoteCalculatedCosts.totalSystemCost;
+    const annualProd = annualProduction || 0;
 
+    if (annualProd > 0 && totalCost > 0) {
+      const calculatedROI = totalCost / annualProd;
+      const roundedROI = Math.round(calculatedROI * 10) / 10;
+      // Call the callback with the calculated ROI
+      if (onROICalculated) {
+        onROICalculated(roundedROI);
+      }
+    } else if (annualProd === 0 && totalCost > 0) {
+      // No annual production data, use 0
+      if (onROICalculated) {
+        onROICalculated(0);
+      }
+    }
+  }, [
+    discountPercentage,
+    finalAmount,
+    freeQuoteCalculatedCosts.totalSystemCost,
+    annualProduction,
+    onROICalculated
+  ]);
   return (
     <>
       {/* Toast Notification Component */}

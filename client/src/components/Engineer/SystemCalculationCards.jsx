@@ -519,7 +519,7 @@ export const NetMeteringCalculationCard = ({
 }) => {
   const panelWattage = getPanelWattage(selectedPanelForCalc);
   // Use pshValue if available, otherwise default to 3.5
-  console.log('pshValue:', pshValue); // Debugging line to check the value of pshValue
+  
   const psh = parseFloat(pshValue) || 3.5;
 
   // Use exportRate instead of ratePerKwh for net metering calculation

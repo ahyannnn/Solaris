@@ -9,7 +9,7 @@ const cloudinary = require('cloudinary').v2;
 const mongoose = require('mongoose');
 const AuditLog = require('../models/AuditLog');
 // Add this at the top after other requires
-const { sendNotification } = require('../utils/notificationHelper');
+const { sendNotification, sendAdminBroadcast } = require('../utils/notificationHelper');
 
 // Configure Cloudinary (if not already configured elsewhere)
 cloudinary.config({
@@ -237,6 +237,32 @@ exports.createFreeQuote = async (req, res) => {
         }
       }
     );
+    // ✅ SEND ADMIN BROADCAST NOTIFICATION - All admins can view this
+    try {
+      const clientName = `${client.contactFirstName || ''} ${client.contactLastName || ''}`.trim() || 'Customer';
+
+      await sendAdminBroadcast(
+        'New Free Quote Request',
+        `Customer ${clientName} submitted a new free quote request ${quotationReference} for ${propertyType || 'property'} with ${systemType || 'grid-tie'} system.`,
+        'info',
+        '/admin/free-quotes/' + freeQuote._id,
+        {
+          quotationReference: quotationReference,
+          clientName: clientName,
+          clientId: client._id,
+          propertyType: propertyType || 'Not specified',
+          systemType: systemType || 'Not specified',
+          desiredCapacity: desiredCapacity || 'Not specified',
+          monthlyBill: monthlyBill ? `₱${parseFloat(monthlyBill).toFixed(2)}` : 'Not provided',
+          status: 'pending',
+          timestamp: new Date().toISOString()
+        }
+      );
+      
+    } catch (adminNotifError) {
+      console.error('Admin broadcast error:', adminNotifError);
+      // Don't block quote creation if admin notification fails
+    }
     // Populate references for response
     await freeQuote.populate('clientId', 'contactFirstName contactLastName contactNumber');
     await freeQuote.populate('addressId');
@@ -1200,6 +1226,41 @@ exports.generateFreeQuotePDF = async (req, res) => {
           }
         }
       );
+      // ✅ SEND ADMIN BROADCAST NOTIFICATION - All admins can view this
+      try {
+        const engineerName = req.user.fullName || req.user.email || 'Engineer';
+        const clientName = `${quote.clientId.contactFirstName || ''} ${quote.clientId.contactLastName || ''}`.trim() || 'Customer';
+
+        await sendAdminBroadcast(
+          'Quotation Generated',
+          `Engineer ${engineerName} generated quotation ${quotationNumber || quote.quotationReference} for customer ${clientName}. Total cost: PHP ${calculatedTotalCost.toFixed(2)}`,
+          'success',
+          '/admin/free-quotes/' + quote._id,
+          {
+            quotationReference: quote.quotationReference,
+            quotationNumber: quotationNumber || quote.quotationReference,
+            clientName: clientName,
+            clientId: quote.clientId._id,
+            engineerName: engineerName,
+            engineerId: engineerId,
+            systemSize: parseFloat(systemSize),
+            systemType: systemType,
+            totalCost: calculatedTotalCost,
+            equipmentCost: calculatedEquipmentTotal,
+            installationCost: calculatedInstallationTotal,
+            annualProduction: parseFloat(annualProduction) || 0,
+            co2Offset: parseFloat(co2Offset) || 0,
+            roiYears: parseFloat(roiYears) || 0,
+            discountPercentage: parseFloat(discountPercentage) || 0,
+            discountAmount: parseFloat(discountAmount) || 0,
+            finalAmount: parseFloat(finalAmount) || 0,
+            warrantyYears: parseInt(warrantyYears) || 10,
+            timestamp: new Date().toISOString()
+          }
+        );
+      } catch (adminNotifError) {
+        console.error('Admin broadcast error:', adminNotifError);
+      }
     }
 
     res.json({

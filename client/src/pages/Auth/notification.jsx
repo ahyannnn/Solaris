@@ -15,7 +15,8 @@ import {
   FaSlidersH,
   FaInbox,
   FaCircle,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaBullhorn // Added for broadcast icon
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Auth/notification.css';
@@ -33,7 +34,7 @@ const Notifications = () => {
 
   // Modal State
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [modalAction, setModalAction] = useState(null); // 'single' or 'bulk'
+  const [modalAction, setModalAction] = useState(null);
   const [modalTargetId, setModalTargetId] = useState(null);
   const [modalCount, setModalCount] = useState(0);
 
@@ -106,12 +107,14 @@ const Notifications = () => {
         prev.map(notif => ({ ...notif, read: true }))
       );
       setUnreadCount(0);
+      showToast('All notifications marked as read', 'success');
     } catch (err) {
       console.error('Error marking all as read:', err);
+      showToast('Failed to mark all as read', 'error');
     }
   };
 
-  // ---- DELETE LOGIC WITH MODAL ----
+  // Delete logic with modal
   const openDeleteModal = (notificationId) => {
     setModalAction('single');
     setModalTargetId(notificationId);
@@ -202,6 +205,8 @@ const Notifications = () => {
         return notifications.filter(n => !n.read);
       case 'read':
         return notifications.filter(n => n.read);
+      case 'broadcast':
+        return notifications.filter(n => n.isAdminBroadcast === true);
       default:
         return notifications;
     }
@@ -257,6 +262,11 @@ const Notifications = () => {
       case 'error': return 'icon-bg-error';
       default: return 'icon-bg-default';
     }
+  };
+
+  // Get broadcast count
+  const getBroadcastCount = () => {
+    return notifications.filter(n => n.isAdminBroadcast === true).length;
   };
 
   useEffect(() => {
@@ -359,6 +369,17 @@ const Notifications = () => {
               Read
               <span className="filter-count">{notifications.length - unreadCount}</span>
             </button>
+            {/* ✅ NEW: Broadcast filter for admin notifications */}
+            {getBroadcastCount() > 0 && (
+              <button
+                className={`filter-tab ${filter === 'broadcast' ? 'active' : ''}`}
+                onClick={() => setFilter('broadcast')}
+              >
+                <FaBullhorn className="filter-broadcast-icon" />
+                Broadcast
+                <span className="filter-count broadcast-count">{getBroadcastCount()}</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -382,10 +403,10 @@ const Notifications = () => {
           </div>
         ) : (
           <div className="notif-list">
-            {filteredNotifications.map((notification, index) => (
+            {filteredNotifications.map((notification) => (
               <div
                 key={notification._id}
-                className={`notif-item ${!notification.read ? 'unread' : ''} ${selectedNotifications.includes(notification._id) ? 'selected' : ''}`}
+                className={`notif-item ${!notification.read ? 'unread' : ''} ${selectedNotifications.includes(notification._id) ? 'selected' : ''} ${notification.isAdminBroadcast ? 'broadcast' : ''}`}
               >
                 {/* Selection checkbox */}
                 {selectMode && (
@@ -403,14 +424,21 @@ const Notifications = () => {
 
                 {/* Icon */}
                 <div className={`notif-icon-wrapper ${getIconBg(notification.type)}`}>
-                  {getIcon(notification.type)}
+                  {notification.isAdminBroadcast ? (
+                    <FaBullhorn className="notif-icon-broadcast" />
+                  ) : (
+                    getIcon(notification.type)
+                  )}
                 </div>
 
                 {/* Content */}
                 <div className="notif-content">
                   <div className="notif-content-header">
                     <div className="notif-title-wrapper">
-                      <h4 className="notif-title">{notification.title}</h4>
+                      <h4 className="notif-title">
+                        {notification.title}
+                        {notification.isAdminBroadcast}
+                      </h4>
                       {!notification.read && (
                         <span className="notif-unread-label">New</span>
                       )}
@@ -422,6 +450,21 @@ const Notifications = () => {
                     </div>
                   </div>
                   <p className="notif-message">{notification.message}</p>
+                  
+                  {/* Metadata display */}
+                  {notification.metadata && notification.metadata.performedBy && (
+                    <div className="notif-metadata">
+                      <span className="notif-performed-by">
+                        Performed by: {notification.metadata.performedBy}
+                      </span>
+                      {notification.metadata.bookingReference && (
+                        <span className="notif-booking-ref">
+                          Booking: {notification.metadata.bookingReference}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  
                   {!notification.read && (
                     <div className="notif-footer">
                       <button
@@ -456,14 +499,13 @@ const Notifications = () => {
           <div className="notif-footer-stats">
             <span className="notif-stats">
               Showing {filteredNotifications.length} of {notifications.length} notifications
+              {getBroadcastCount() > 0 && ` • ${getBroadcastCount()} broadcast`}
             </span>
           </div>
         )}
       </div>
 
-      {/* ============================================
-          DELETE CONFIRMATION MODAL
-         ============================================ */}
+      {/* Delete Confirmation Modal */}
       {showConfirmModal && (
         <div className="notif-modal-overlay" onClick={closeModal}>
           <div className="notif-modal-content" onClick={e => e.stopPropagation()}>

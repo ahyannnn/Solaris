@@ -1158,6 +1158,34 @@ exports.submitPayment = async (req, res) => {
 
     await preAssessment.save();
 
+    // ✅ SEND ADMIN BROADCAST NOTIFICATION - All admins can view this
+    try {
+      const customerName = `${client.contactFirstName || ''} ${client.contactLastName || ''}`.trim() || 'Customer';
+      
+      await sendAdminBroadcast(
+        paymentMethod === 'gcash' ? 'Payment Submitted for Verification' : 'Cash Payment Selected',
+        `Customer ${customerName} ${paymentMethod === 'gcash' ? 'submitted a GCash payment' : 'selected cash payment'} for invoice ${invoiceNumber}.`,
+        paymentMethod === 'gcash' ? 'warning' : 'info',
+        '/admin/pre-assessments/' + preAssessment._id,
+        {
+          invoiceNumber: invoiceNumber,
+          bookingReference: preAssessment.bookingReference,
+          customerName: customerName,
+          customerId: client._id,
+          paymentMethod: paymentMethod,
+          paymentReference: paymentReference || null,
+          paymentStatus: preAssessment.paymentStatus,
+          amount: preAssessment.assessmentFee,
+          hasPaymentProof: paymentMethod === 'gcash' ? true : false,
+          paymentProofUrl: paymentMethod === 'gcash' ? fileUrl : null,
+          timestamp: new Date().toISOString()
+        }
+      );
+      console.log(`✅ Admin broadcast sent for ${paymentMethod} payment submission ${invoiceNumber}`);
+    } catch (adminNotifError) {
+      console.error('Admin broadcast error:', adminNotifError);
+    }
+
     res.json({
       success: true,
       message: paymentMethod === 'gcash' ? 'Payment submitted for verification' : 'Cash payment selected'
@@ -1298,6 +1326,32 @@ exports.cashPayment = async (req, res) => {
     preAssessment.assessmentStatus = 'scheduled';
 
     await preAssessment.save();
+
+    // ✅ SEND ADMIN BROADCAST NOTIFICATION - All admins can view this
+    try {
+      const customerName = `${client.contactFirstName || ''} ${client.contactLastName || ''}`.trim() || 'Customer';
+      
+      await sendAdminBroadcast(
+        'Cash Payment Selected',
+        `Customer ${customerName} selected cash payment for booking ${bookingReference}.`,
+        'info',
+        '/admin/pre-assessments/' + preAssessment._id,
+        {
+          bookingReference: bookingReference,
+          customerName: customerName,
+          customerId: client._id,
+          paymentMethod: 'cash',
+          paymentStatus: 'pending',
+          assessmentStatus: 'scheduled',
+          amount: preAssessment.assessmentFee,
+          invoiceNumber: preAssessment.invoiceNumber,
+          timestamp: new Date().toISOString()
+        }
+      );
+      console.log(`✅ Admin broadcast sent for cash payment selection ${bookingReference}`);
+    } catch (adminNotifError) {
+      console.error('Admin broadcast error:', adminNotifError);
+    }
 
     res.json({
       success: true,

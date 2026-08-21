@@ -8,6 +8,7 @@ const File = require('../models/File');
 const { processUpload, getFileUrl, deleteFile } = require('../middleware/uploadMiddleware');
 const receiptService = require('../services/receiptService');
 const AuditLog = require('../models/AuditLog');
+const { sendNotification, sendAdminBroadcast } = require('../utils/notificationHelper');
 
 // Helper function to format currency (for project updates)
 const formatCurrencyHelper = (amount) => {
@@ -95,7 +96,7 @@ exports.paySolarInvoice = async (req, res) => {
 
     // Update project's payment schedule if linked
     if (invoice.projectId) {
-      const project = await Project.findById(invoice.projectId); // ✅ Now works without duplicate require
+      const project = await Project.findById(invoice.projectId);
       if (project) {
         const scheduleItem = project.paymentSchedule.find(p => p.invoiceNumber === invoice.invoiceNumber);
         if (scheduleItem && scheduleItem.status !== 'paid') {
@@ -104,6 +105,36 @@ exports.paySolarInvoice = async (req, res) => {
         }
         await project.save();
       }
+    }
+
+    // ✅ SEND ADMIN BROADCAST NOTIFICATION - All admins can view this
+    try {
+      const customerName = `${invoice.clientId.contactFirstName || ''} ${invoice.clientId.contactLastName || ''}`.trim() || 'Customer';
+      const amount = invoice.balance || invoice.totalAmount;
+      
+      await sendAdminBroadcast(
+        'Invoice Payment Submitted',
+        `Customer ${customerName} submitted a GCash payment for invoice ${invoice.invoiceNumber} (${invoice.invoiceType}). Amount: PHP ${amount.toFixed(2)}`,
+        'warning',
+        '/admin/invoices/' + invoice._id,
+        {
+          invoiceNumber: invoice.invoiceNumber,
+          invoiceType: invoice.invoiceType,
+          customerName: customerName,
+          customerId: invoice.clientId._id,
+          projectId: invoice.projectId,
+          paymentReference: paymentReference || null,
+          amount: amount,
+          paymentMethod: 'gcash',
+          paymentStatus: 'for_verification',
+          hasPaymentProof: true,
+          paymentProofUrl: fileUrl,
+          timestamp: new Date().toISOString()
+        }
+      );
+      console.log(`✅ Admin broadcast sent for invoice payment ${invoice.invoiceNumber}`);
+    } catch (adminNotifError) {
+      console.error('Admin broadcast error:', adminNotifError);
     }
 
     res.json({
@@ -134,7 +165,7 @@ exports.paySolarInvoiceCash = async (req, res) => {
     const { amount } = req.body;
 
     const invoice = await SolarInvoice.findById(id)
-      .populate('clientId', 'userId');
+      .populate('clientId', 'contactFirstName contactLastName contactNumber userId');
 
     if (!invoice) {
       return res.status(404).json({ message: 'Invoice not found' });
@@ -163,6 +194,32 @@ exports.paySolarInvoiceCash = async (req, res) => {
     invoice.status = 'pending';
 
     await invoice.save();
+
+    // ✅ SEND ADMIN BROADCAST NOTIFICATION - All admins can view this
+    try {
+      const customerName = `${invoice.clientId.contactFirstName || ''} ${invoice.clientId.contactLastName || ''}`.trim() || 'Customer';
+      
+      await sendAdminBroadcast(
+        'Cash Payment Selected for Invoice',
+        `Customer ${customerName} selected cash payment for invoice ${invoice.invoiceNumber} (${invoice.invoiceType}). Amount: PHP ${paymentAmount.toFixed(2)}`,
+        'info',
+        '/admin/invoices/' + invoice._id,
+        {
+          invoiceNumber: invoice.invoiceNumber,
+          invoiceType: invoice.invoiceType,
+          customerName: customerName,
+          customerId: invoice.clientId._id,
+          projectId: invoice.projectId,
+          amount: paymentAmount,
+          paymentMethod: 'cash',
+          paymentStatus: 'pending',
+          timestamp: new Date().toISOString()
+        }
+      );
+      console.log(`✅ Admin broadcast sent for cash payment selection ${invoice.invoiceNumber}`);
+    } catch (adminNotifError) {
+      console.error('Admin broadcast error:', adminNotifError);
+    }
 
     res.json({
       success: true,

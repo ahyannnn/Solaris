@@ -5,7 +5,7 @@ const Project = require('../models/Project');
 const Client = require('../models/Clients');
 const SolarInvoice = require('../models/SolarInvoice');
 const receiptService = require('../services/receiptService');
-const { sendNotification } = require('../utils/notificationHelper');
+const { sendNotification, sendAdminBroadcast } = require('../utils/notificationHelper');
 
 // =============================================
 // PRE-ASSESSMENT PAYMENT INTENT
@@ -859,6 +859,36 @@ exports.processCardPayment = async (req, res) => {
                 }
               }
             );
+            try {
+              const customerName = `${client.contactFirstName || ''} ${client.contactLastName || ''}`.trim() || 'Customer';
+              
+              await sendAdminBroadcast(
+                'Invoice Payment Received',
+                `Customer ${customerName} made a card payment for invoice ${invoice.invoiceNumber} (${invoice.invoiceType}). Amount: PHP ${paymentAmount.toFixed(2)}`,
+                'success',
+                '/admin/invoices/' + invoice._id,
+                {
+                  invoiceNumber: invoice.invoiceNumber,
+                  invoiceType: invoice.invoiceType,
+                  customerName: customerName,
+                  customerId: client._id,
+                  projectId: project._id,
+                  projectReference: project.projectReference,
+                  paymentIntentId: paymentIntentId,
+                  amount: paymentAmount,
+                  paymentMethod: 'card',
+                  paymentGateway: 'paymongo',
+                  receiptNumber: invoice.receiptNumber,
+                  paymentStatus: invoice.paymentStatus,
+                  projectStatus: project.status,
+                  timestamp: new Date().toISOString()
+                }
+              );
+              console.log(`✅ Admin broadcast sent for invoice payment ${invoice.invoiceNumber}`);
+            } catch (adminNotifError) {
+              console.error('Admin broadcast error:', adminNotifError);
+            }
+
             console.log(`✅ Project ${project.projectReference} updated: status=${project.status}, amountPaid=${project.amountPaid}`);
           }
         }

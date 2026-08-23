@@ -1,122 +1,143 @@
-/* src/styles/Admin/project.css */
+/* styles/Admin/project.css - Dark Solar Theme for Project Management */
 
-:root {
-  --primary-blue: #2563eb;
-  --primary-blue-light: #dbeafe;
-  --indigo: #6366f1;
-  --indigo-light: #e0e7ff;
-  --emerald: #10b981;
-  --emerald-light: #d1fae5;
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
-  --gray-50: #f8fafc;
-  --gray-100: #f1f5f9;
-  --gray-200: #e2e8f0;
-  --gray-300: #cbd5e1;
-  --gray-500: #64748b;
-  --gray-700: #334155;
-  --gray-900: #0f172a;
-
-  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-  --border-radius: 16px;
-}
-
-/* --- Main container - MATCH SITE ASSESSMENT --- */
+/* ============================================
+   BASE LAYOUT
+   ============================================ */
 .project-management {
-  background-color: var(--gray-50);
+  background: #0B111A;
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: var(--gray-900);
-  /* REMOVED padding: 16px 0; */
-  padding: 0;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #FFFFFF;
 }
 
-/* --- Header - MATCH SITE ASSESSMENT (minimal) --- */
+/* ============================================
+   HEADER
+   ============================================ */
 .project-header-projectmanagement {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  height: 5px; /* MATCH site assessment */
-  padding: 0; /* REMOVED padding: 0 40px; */
+  padding: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
 }
 
-/* =========================================
-   CHARTS ROW - MATCH SITE ASSESSMENT
-   ========================================= */
+/* ============================================
+   CHARTS ROW
+   ============================================ */
 .project-charts-row-projectmanagement {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px; /* MATCH site assessment gap */
-  padding: 0; /* REMOVED padding: 0 40px; */
-  margin-bottom: 16px; /* MATCH site assessment */
+  gap: 20px;
+  margin-bottom: 24px;
 }
 
 .project-chart-card-projectmanagement {
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
-  border-radius: var(--border-radius);
-  padding: 20px 24px; /* MATCH site assessment padding */
-  height: 260px; /* MATCH site assessment height */
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--card-shadow);
-  transition: box-shadow 0.3s ease;
+  background: #1A2533;
+  border-radius: 14px;
+  padding: 20px 24px 16px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: all 200ms ease;
 }
 
 .project-chart-card-projectmanagement:hover {
-  box-shadow: var(--card-hover-shadow);
+  border-color: rgba(243, 156, 18, 0.1);
 }
 
 .project-chart-header-projectmanagement {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px; /* MATCH site assessment */
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .project-chart-header-projectmanagement h3 {
-  font-size: 16px; /* MATCH site assessment */
-  font-weight: 700; /* MATCH site assessment */
+  font-size: 16px;
+  font-weight: 600;
+  color: #FFFFFF;
   margin: 0;
-  color: var(--gray-900);
-  letter-spacing: -0.01em;
 }
 
 .project-chart-period-projectmanagement {
-  font-size: 13px; /* MATCH site assessment */
-  font-weight: 500;
-  color: var(--gray-500);
-  background: var(--gray-100);
-  padding: 4px 12px;
-  border-radius: 20px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .project-chart-wrapper-projectmanagement {
-  flex: 1;
-  width: 100%;
-  height: 100%;
+  height: 220px;
 }
 
-/* =========================================
-   TOOLBAR - MATCH SITE ASSESSMENT
-   ========================================= */
+/* Chart Tooltip */
+.recharts-custom-tooltip-projectmanagement {
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.tooltip-label-projectmanagement {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 4px 0;
+}
+
+.tooltip-item-projectmanagement {
+  font-size: 13px;
+  font-weight: 500;
+  margin: 2px 0;
+  color: #FFFFFF;
+}
+
+/* ============================================
+   TOOLBAR / FILTERS
+   ============================================ */
 .project-tabs-projectmanagement {
-  padding: 0; /* REMOVED padding: 0 40px; */
+  margin-bottom: 16px;
 }
 
 .project-filters-projectmanagement {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 0; /* REMOVED padding: 0 40px; */
-  margin-bottom: 16px; /* MATCH site assessment */
+  gap: 12px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .search-group-projectmanagement {
-  flex: 0 0 280px; /* MATCH site assessment */
-  max-width: 320px;
   position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 380px;
+}
+
+.search-group-projectmanagement input {
+  width: 100%;
+  padding: 10px 14px 10px 40px;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  font-size: 14px;
+  color: #FFFFFF;
+  font-family: 'Poppins', sans-serif;
+  transition: all 200ms ease;
+}
+
+.search-group-projectmanagement input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.search-group-projectmanagement input:focus {
+  outline: none;
+  border-color: #F39C12;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 
 .search-icon-projectmanagement {
@@ -124,108 +145,90 @@
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--gray-500);
+  color: rgba(255, 255, 255, 0.3);
   font-size: 14px;
-}
-
-.search-group-projectmanagement input {
-  width: 100%;
-  padding: 12px 14px 12px 42px; /* MATCH site assessment */
-  border: 1px solid var(--gray-200);
-  border-radius: 10px; /* MATCH site assessment */
-  font-size: 14px;
-  background: #FFFFFF;
-  color: var(--gray-900);
-  outline: none;
-  transition: all 0.2s ease;
-}
-
-.search-group-projectmanagement input:focus {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 4px var(--primary-blue-light);
-}
-
-.search-group-projectmanagement input::placeholder {
-  color: var(--gray-500);
 }
 
 .filter-group-projectmanagement {
-  flex: 0 0 auto;
   position: relative;
+  min-width: 160px;
 }
 
 .filter-group-projectmanagement select {
-  appearance: none;
-  padding: 12px 44px 12px 16px; /* MATCH site assessment */
-  border: 1px solid var(--gray-200);
-  border-radius: 10px; /* MATCH site assessment */
+  width: 100%;
+  padding: 10px 36px 10px 14px;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
   font-size: 14px;
-  font-weight: 500;
-  background: #FFFFFF;
-  color: var(--gray-900);
-  outline: none;
+  color: #FFFFFF;
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 150px;
+  font-family: 'Poppins', sans-serif;
+  appearance: none;
+  transition: all 200ms ease;
 }
 
 .filter-group-projectmanagement select:focus {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 4px var(--primary-blue-light);
+  outline: none;
+  border-color: #F39C12;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+}
+
+.filter-group-projectmanagement select option {
+  background: #1A2533;
+  color: #FFFFFF;
 }
 
 .select-arrow-projectmanagement {
   position: absolute;
-  right: 16px;
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--gray-500);
+  color: rgba(255, 255, 255, 0.3);
   pointer-events: none;
   font-size: 12px;
 }
 
 .refresh-btn-projectmanagement {
-  flex: 0 0 auto;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 20px; /* MATCH site assessment */
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
-  border-radius: 10px; /* MATCH site assessment */
+  padding: 10px 18px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
   white-space: nowrap;
 }
 
 .refresh-btn-projectmanagement:hover {
-  background: var(--gray-100);
-  border-color: var(--gray-300);
-  color: var(--gray-900);
-}
-
-@keyframes spin-projectmanagement {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  background: #131C28;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
 }
 
 .spinning-projectmanagement {
-  animation: spin-projectmanagement 1s linear infinite;
+  animation: spin 1s linear infinite;
 }
 
-/* =========================================
-   TABLE - MATCH SITE ASSESSMENT
-   ========================================= */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   TABLE
+   ============================================ */
 .project-table-container-projectmanagement {
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
-  border-radius: 0; /* REMOVED rounded corners to match site assessment */
+  background: #1A2533;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   overflow: hidden;
-  box-shadow: var(--card-shadow);
-  margin: 0; /* REMOVED margin: 0 40px; */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .table-wrapper-projectmanagement {
@@ -235,30 +238,27 @@
 .project-table-projectmanagement {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .project-table-projectmanagement thead {
-  background: var(--primary-blue); /* MATCH site assessment - blue header */
-  border-bottom: 1px solid var(--gray-200);
+  background: #131C28;
 }
 
-.project-table-projectmanagement th {
+.project-table-projectmanagement thead th {
+  padding: 14px 16px;
   text-align: left;
-  padding: 14px 18px; /* MATCH site assessment */
   font-weight: 600;
-  color: #FFFFFF; /* MATCH site assessment - white text */
-  font-size: 13px;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .project-table-projectmanagement tbody tr {
-  border-bottom: 1px solid var(--gray-100);
-  transition: all 0.15s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 200ms ease;
 }
 
 .project-table-projectmanagement tbody tr:last-child {
@@ -266,89 +266,126 @@
 }
 
 .project-table-projectmanagement tbody tr:hover {
-  background-color: var(--gray-50);
+  background: rgba(255, 255, 255, 0.03);
 }
 
-.project-table-projectmanagement tbody tr:nth-child(even) {
-  background-color: #FAFBFC;
-}
-
-.project-table-projectmanagement tbody tr:nth-child(even):hover {
-  background-color: var(--gray-100);
-}
-
-.project-table-projectmanagement td {
-  padding: 14px 18px; /* MATCH site assessment */
-  color: var(--gray-700);
+.project-table-projectmanagement tbody td {
+  padding: 14px 16px;
   vertical-align: middle;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .project-cell-projectmanagement .project-name-projectmanagement {
-  font-weight: 500;
-  color: var(--gray-900);
+  font-weight: 600;
+  color: #FFFFFF;
 }
 
 .project-cell-projectmanagement .project-ref-projectmanagement {
-  font-size: 12px;
-  color: var(--gray-500);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  font-family: monospace;
 }
 
 .amount-projectmanagement {
   font-weight: 600;
-  color: var(--gray-900);
+  color: #FFFFFF;
 }
 
-.empty-state-projectmanagement {
-  text-align: center;
-  padding: 48px 20px;
-  color: var(--gray-500);
-  font-size: 15px;
-}
-
-/* --- Status Badges - MATCH SITE ASSESSMENT --- */
+/* ============================================
+   STATUS BADGES
+   ============================================ */
 .status-badge-projectmanagement {
   display: inline-block;
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 12px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 11px;
   font-weight: 600;
-  background: var(--gray-100);
-  color: var(--gray-700);
-  text-transform: capitalize;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
+.status-badge-projectmanagement.quoted {
+  background: rgba(243, 156, 18, 0.12);
+  color: #F39C12;
+  border: 1px solid rgba(243, 156, 18, 0.2);
+}
 
+.status-badge-projectmanagement.approved {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
 
-/* --- Action Dropdown - MATCH SITE ASSESSMENT --- */
+.status-badge-projectmanagement.initial-paid {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8B5CF6;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.status-badge-projectmanagement.in-progress {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8B5CF6;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.status-badge-projectmanagement.progress-paid {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.status-badge-projectmanagement.completed {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-badge-projectmanagement.cancelled {
+  background: rgba(239, 68, 68, 0.12);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.status-badge-projectmanagement.full-paid {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* ============================================
+   ACTION DROPDOWN
+   ============================================ */
 .action-dropdown-container-projectmanagement {
   position: relative;
   display: inline-block;
 }
 
 .action-dropdown-toggle-projectmanagement {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px; /* MATCH site assessment */
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
+  gap: 8px;
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
 .action-dropdown-toggle-projectmanagement:hover {
-  background: var(--gray-50);
-  border-color: var(--gray-300);
-  color: var(--gray-900);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
 }
 
 .dropdown-arrow-projectmanagement {
   font-size: 10px;
-  transition: transform 0.2s ease;
+  transition: transform 200ms ease;
 }
 
 .dropdown-arrow-projectmanagement.open {
@@ -356,268 +393,314 @@
 }
 
 .action-dropdown-menu-projectmanagement {
-  min-width: 180px;
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
+  min-width: 200px;
+  max-width: 250px;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
-  padding: 6px 0;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  padding: 6px;
+  backdrop-filter: blur(10px);
   overflow: hidden;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.action-dropdown-menu-projectmanagement::-webkit-scrollbar {
+  width: 3px;
+}
+
+.action-dropdown-menu-projectmanagement::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+.action-dropdown-menu-projectmanagement::-webkit-scrollbar-thumb {
+  background: #F39C12;
+  border-radius: 4px;
 }
 
 .dropdown-item-projectmanagement {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  padding: 10px 16px;
+  padding: 8px 14px;
   background: transparent;
   border: none;
-  font-size: 14px;
-  color: var(--gray-700);
+  border-radius: 6px;
+  font-size: 13px;
   cursor: pointer;
-  transition: background-color 0.15s ease;
   text-align: left;
+  transition: all 150ms ease;
+  font-family: 'Poppins', sans-serif;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.dropdown-item-projectmanagement:hover:not(.disabled) {
-  background: var(--gray-50);
+.dropdown-item-projectmanagement:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.dropdown-item-projectmanagement svg {
-  font-size: 14px;
-  color: var(--gray-500);
-  width: 16px;
-  text-align: center;
-}
-
-.dropdown-item-projectmanagement.disabled {
-  color: var(--gray-300);
-  cursor: default;
-}
-
-.dropdown-item-projectmanagement.disabled svg {
-  color: var(--gray-300);
-}
-
-/* Color variants for dropdown items */
 .dropdown-item-projectmanagement.success {
-  color: #065F46;
-}
-.dropdown-item-projectmanagement.danger {
-  color: #991B1B;
-}
-.dropdown-item-projectmanagement.warning {
-  color: #92400E;
-}
-.dropdown-item-projectmanagement.primary {
-  color: #1E40AF;
+  color: #10B981;
 }
 
-/* =========================================
-   PAGINATION - MATCH SITE ASSESSMENT
-   ========================================= */
+.dropdown-item-projectmanagement.success:hover {
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.dropdown-item-projectmanagement.danger {
+  color: #EF4444;
+}
+
+.dropdown-item-projectmanagement.danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.dropdown-item-projectmanagement.warning {
+  color: #F39C12;
+}
+
+.dropdown-item-projectmanagement.warning:hover {
+  background: rgba(243, 156, 18, 0.12);
+}
+
+.dropdown-item-projectmanagement.primary {
+  color: #3B82F6;
+}
+
+.dropdown-item-projectmanagement.primary:hover {
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.dropdown-item-projectmanagement.info {
+  color: #06B6D4;
+}
+
+.dropdown-item-projectmanagement.info:hover {
+  background: rgba(6, 182, 212, 0.12);
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.empty-state-projectmanagement {
+  text-align: center;
+  padding: 48px 20px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+}
+
+/* ============================================
+   PAGINATION
+   ============================================ */
 .pagination-projectmanagement {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 16px 0 0 0; /* MATCH site assessment */
+  justify-content: space-between;
+  padding: 16px 0 8px 0;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
 }
 
 .pagination-info-projectmanagement {
-  color: var(--gray-500);
-  font-size: 14px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .pagination-controls-projectmanagement {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .page-btn-projectmanagement {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px; /* MATCH site assessment */
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
+  gap: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
 .page-btn-projectmanagement:hover:not(:disabled) {
-  background: var(--gray-50);
-  border-color: var(--primary-blue);
-  color: var(--primary-blue);
+  background: #131C28;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
 }
 
 .page-btn-projectmanagement:disabled {
-  opacity: 0.5;
-  cursor: default;
-  border-color: var(--gray-100);
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .page-number-projectmanagement {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-width: 36px;
   height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0 8px;
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid transparent;
   border-radius: 8px;
-  font-size: 14px;
-  color: var(--gray-700);
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
-.page-number-projectmanagement:hover:not(.active-projectmanagement) {
-  background: var(--gray-50);
-  border-color: var(--gray-300);
+.page-number-projectmanagement:hover {
+  background: #131C28;
+  color: #FFFFFF;
 }
 
 .page-number-projectmanagement.active-projectmanagement {
-  background: var(--primary-blue);
+  background: #F39C12;
   color: #FFFFFF;
-  border-color: var(--primary-blue);
-  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+  border-color: #F39C12;
 }
 
-/* =========================================
-   MODALS - MATCH SITE ASSESSMENT
-   ========================================= */
+/* ============================================
+   MODALS
+   ============================================ */
 .modal-overlay-projectmanagement {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(6px);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9998;
+  z-index: 9999;
+  padding: 20px;
 }
 
 .modal-projectmanagement {
-  background: #FFFFFF;
-  border-radius: var(--border-radius);
-  max-width: 600px;
-  width: 90%;
+  background: #1A2533;
+  border-radius: 18px;
+  max-width: 560px;
+  width: 100%;
   max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+}
+
+.detail-modal-projectmanagement {
+  max-width: 600px;
+}
+
+.assign-engineer-modal-projectmanagement {
+  max-width: 620px;
 }
 
 .modal-header-projectmanagement {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 28px;
-  border-bottom: 1px solid var(--gray-200);
+  padding: 20px 24px 16px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .modal-header-projectmanagement h3 {
   font-size: 20px;
   font-weight: 700;
+  color: #FFFFFF;
   margin: 0;
-  color: var(--gray-900);
-}
-
-.modal-close-projectmanagement {
-  background: var(--gray-100);
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-size: 18px;
-  color: var(--gray-500);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.modal-close-projectmanagement:hover {
-  background: var(--gray-200);
-  color: var(--gray-900);
 }
 
 .modal-body-projectmanagement {
-  padding: 28px;
+  padding: 20px 24px;
+  overflow-y: auto;
+  max-height: calc(90vh - 140px);
+}
+
+.modal-body-projectmanagement::-webkit-scrollbar {
+  width: 4px;
+}
+
+.modal-body-projectmanagement::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+.modal-body-projectmanagement::-webkit-scrollbar-thumb {
+  background: #F39C12;
+  border-radius: 4px;
 }
 
 .modal-actions-projectmanagement {
+  padding: 16px 24px 20px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
-  justify-content: flex-end;
   gap: 12px;
-  padding: 20px 28px;
-  border-top: 1px solid var(--gray-200);
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
-.modal-actions-projectmanagement button {
+/* Modal Buttons */
+.cancel-btn-projectmanagement {
   padding: 10px 24px;
+  background: #131C28;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.cancel-btn-projectmanagement:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.assign-btn-projectmanagement,
+.approve-btn-projectmanagement {
+  padding: 10px 24px;
+  background: #10B981;
+  color: #FFFFFF;
+  border: none;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
-  border: 1px solid var(--gray-200);
-  background: #FFFFFF;
-  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
-.modal-actions-projectmanagement button:hover:not(:disabled) {
-  background: var(--gray-50);
+.assign-btn-projectmanagement:hover:not(:disabled),
+.approve-btn-projectmanagement:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
 }
 
-.modal-actions-projectmanagement button:disabled {
-  opacity: 0.6;
-  cursor: default;
+.assign-btn-projectmanagement:disabled,
+.approve-btn-projectmanagement:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
 }
 
-.cancel-btn-projectmanagement {
-  background: #FFFFFF;
-}
-
-.approve-btn-projectmanagement,
-.assign-btn-projectmanagement {
-  background: var(--primary-blue) !important;
-  color: #FFFFFF !important;
-  border-color: var(--primary-blue) !important;
-  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.15) !important;
-}
-
-.approve-btn-projectmanagement:hover,
-.assign-btn-projectmanagement:hover {
-  background: #1d4ed8 !important;
-  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.25) !important;
-}
-
-/* =========================================
-   ENGINEER GRID INSIDE MODAL
-   ========================================= */
-.assign-engineer-modal-projectmanagement {
-  max-width: 650px;
-}
-
+/* ============================================
+   DETAIL SECTION IN MODALS
+   ============================================ */
 .detail-row-projectmanagement {
   display: flex;
   justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--gray-100);
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .detail-row-projectmanagement:last-child {
@@ -625,50 +708,144 @@
 }
 
 .detail-row-projectmanagement span {
-  color: var(--gray-500);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
 }
 
+.detail-row-projectmanagement strong {
+  color: #FFFFFF;
+  font-size: 14px;
+}
+
+.detail-section-projectmanagement {
+  margin-bottom: 16px;
+}
+
+.detail-section-projectmanagement:last-child {
+  margin-bottom: 0;
+}
+
+.detail-section-projectmanagement h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin: 0 0 8px 0;
+}
+
+.detail-section-projectmanagement p {
+  margin: 4px 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.detail-section-projectmanagement p strong {
+  color: #FFFFFF;
+}
+
+/* ============================================
+   FORM GROUPS IN MODALS
+   ============================================ */
+.form-group-projectmanagement {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.form-group-projectmanagement label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.form-group-projectmanagement textarea,
+.form-group-projectmanagement input,
+.form-group-projectmanagement select {
+  padding: 10px 14px;
+  background: #131C28;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  font-size: 14px;
+  color: #FFFFFF;
+  font-family: 'Poppins', sans-serif;
+  transition: all 200ms ease;
+  width: 100%;
+}
+
+.form-group-projectmanagement textarea:focus,
+.form-group-projectmanagement input:focus,
+.form-group-projectmanagement select:focus {
+  outline: none;
+  border-color: #F39C12;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+}
+
+.form-group-projectmanagement textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ============================================
+   ENGINEER GRID
+   ============================================ */
 .engineer-grid-projectmanagement {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 6px;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px 2px;
+}
+
+.engineer-grid-projectmanagement::-webkit-scrollbar {
+  width: 3px;
+}
+
+.engineer-grid-projectmanagement::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+.engineer-grid-projectmanagement::-webkit-scrollbar-thumb {
+  background: #F39C12;
+  border-radius: 4px;
 }
 
 .engineer-card-projectmanagement {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px;
-  border: 1px solid var(--gray-200);
+  padding: 10px 14px;
+  background: #131C28;
+  border: 2px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  background: #FFFFFF;
+  transition: all 200ms ease;
+  position: relative;
 }
 
 .engineer-card-projectmanagement:hover {
-  background: var(--gray-50);
-  border-color: var(--gray-300);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .engineer-card-projectmanagement.selected-projectmanagement {
-  border-color: var(--primary-blue);
-  background: var(--primary-blue-light);
-  box-shadow: 0 0 0 4px var(--primary-blue-light);
+  border-color: #F39C12;
+  background: rgba(243, 156, 18, 0.06);
 }
 
 .engineer-avatar-projectmanagement {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--gray-200);
+  background: rgba(243, 156, 18, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 16px;
   font-weight: 600;
-  color: var(--gray-500);
-  font-size: 14px;
+  color: #F39C12;
   flex-shrink: 0;
 }
 
@@ -678,537 +855,294 @@
 }
 
 .engineer-name-projectmanagement {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--gray-900);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: #FFFFFF;
 }
 
 .engineer-email-projectmanagement {
-  font-size: 12px;
-  color: var(--gray-500);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .engineer-selected-badge-projectmanagement {
-  color: var(--primary-blue);
-  font-size: 18px;
+  color: #F39C12;
+  font-size: 16px;
+  flex-shrink: 0;
 }
 
 .no-engineers-projectmanagement {
-  grid-column: 1 / -1;
-  padding: 20px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+  padding: 12px;
   text-align: center;
-  color: var(--gray-500);
-  background: var(--gray-50);
-  border-radius: 10px;
-  border: 1px dashed var(--gray-300);
+  grid-column: 1 / -1;
 }
 
-/* =========================================
-   FORM GROUPS
-   ========================================= */
-.form-group-projectmanagement {
-  margin-top: 20px;
-}
-
-.form-group-projectmanagement label {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--gray-700);
-}
-
-.form-group-projectmanagement textarea,
-.form-group-projectmanagement input,
-.form-group-projectmanagement select {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--gray-200);
-  border-radius: 10px;
-  font-size: 14px;
-  background: #FFFFFF;
-  outline: none;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-}
-
-.form-group-projectmanagement textarea:focus,
-.form-group-projectmanagement input:focus,
-.form-group-projectmanagement select:focus {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 4px var(--primary-blue-light);
-}
-
-/* =========================================
-   SKELETON LOADERS
-   ========================================= */
+/* ============================================
+   SKELETON LOADING
+   ============================================ */
 .skeleton-title-projectmanagement {
-  height: 28px;
-  width: 200px;
-  background: var(--gray-200);
-  border-radius: 4px;
-  margin-bottom: 8px;
+  width: 40%;
+  height: 32px;
+  border-radius: 6px;
+  animation: shimmer-projectmanagement 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background-size: 200% 100%;
 }
 
 .skeleton-subtitle-projectmanagement {
-  height: 16px;
-  width: 300px;
-  background: var(--gray-200);
-  border-radius: 4px;
+  width: 60%;
+  height: 20px;
+  border-radius: 6px;
+  animation: shimmer-projectmanagement 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background-size: 200% 100%;
 }
 
 .skeleton-chart-projectmanagement {
-  height: 200px;
-  background: var(--gray-200);
-  border-radius: var(--border-radius);
-  margin-bottom: 16px;
+  height: 220px;
+  border-radius: 14px;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .skeleton-tab-projectmanagement {
   height: 40px;
   width: 120px;
-  background: var(--gray-200);
-  border-radius: 4px;
-  margin-right: 16px;
+  border-radius: 8px;
+  background: #1A2533;
+  animation: shimmer-projectmanagement 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background-size: 200% 100%;
 }
 
 .skeleton-select-projectmanagement {
   height: 40px;
   width: 160px;
-  background: var(--gray-200);
   border-radius: 8px;
+  background: #1A2533;
+  animation: shimmer-projectmanagement 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background-size: 200% 100%;
 }
 
 .skeleton-search-projectmanagement {
   height: 40px;
-  width: 250px;
-  background: var(--gray-200);
+  width: 280px;
   border-radius: 8px;
+  background: #1A2533;
+  animation: shimmer-projectmanagement 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background-size: 200% 100%;
 }
 
 .skeleton-table-projectmanagement {
-  height: 400px;
-  background: var(--gray-200);
-  border-radius: 0;
+  height: 300px;
+  border-radius: 14px;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 @keyframes shimmer-projectmanagement {
-  0% { background-position: -200px 0; }
-  100% { background-position: 200px 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
-.skeleton-title-projectmanagement,
-.skeleton-subtitle-projectmanagement,
-.skeleton-chart-projectmanagement,
-.skeleton-tab-projectmanagement,
-.skeleton-select-projectmanagement,
-.skeleton-search-projectmanagement,
-.skeleton-table-projectmanagement {
-  background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
-  background-size: 200px 100%;
-  animation: shimmer-projectmanagement 1.5s infinite;
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1200px) {
+  .project-management {
+    padding-inline: 20px;
+  }
 }
 
-/* =========================================
-   RECHARTS TOOLTIPS - MATCH SITE ASSESSMENT
-   ========================================= */
-.recharts-custom-tooltip-projectmanagement {
-  background: #FFFFFF;
-  padding: 10px 14px;
-  border-radius: 10px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--gray-200);
-}
-
-.tooltip-label-projectmanagement {
-  font-weight: 600;
-  font-size: 13px;
-  margin: 0 0 6px 0;
-  color: var(--gray-900);
-  border-bottom: 1px solid var(--gray-200);
-  padding-bottom: 4px;
-}
-
-.tooltip-item-projectmanagement {
-  font-size: 13px;
-  margin: 2px 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.tooltip-item-projectmanagement::before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: currentColor;
-}
-
-/* =========================================
-   RESPONSIVE - MATCH SITE ASSESSMENT
-   ========================================= */
 @media (max-width: 1024px) {
+  .project-management {
+    padding-inline: 18px;
+  }
   .project-charts-row-projectmanagement {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
-  .engineer-grid-projectmanagement {
-    grid-template-columns: 1fr;
+  .project-chart-wrapper-projectmanagement {
+    height: 200px;
   }
 }
 
 @media (max-width: 768px) {
-  /* Main container */
   .project-management {
-    padding: 16px !important;
+    padding-inline: 14px;
+    padding-top: 12px;
   }
-
   .project-header-projectmanagement {
-    padding: 0 !important;
+    padding: 0 0 16px 0;
   }
-
-  /* Charts */
-  .project-charts-row-projectmanagement {
-    padding: 0 !important;
-  }
-
-  .project-chart-card-projectmanagement {
-    height: 200px !important;
-    padding: 16px !important;
-  }
-
-  .project-chart-header-projectmanagement h3 {
-    font-size: 14px !important;
-  }
-
-  .project-chart-period-projectmanagement {
-    font-size: 11px !important;
-    padding: 2px 10px !important;
-  }
-
-  /* Toolbar - full width on mobile */
   .project-filters-projectmanagement {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 10px !important;
-    padding: 0 !important;
-    margin-bottom: 12px !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
   }
-
   .search-group-projectmanagement {
-    flex: 1 1 auto !important;
-    max-width: 100% !important;
-    min-width: auto !important;
+    max-width: none;
+    min-width: auto;
   }
-
   .filter-group-projectmanagement {
-    flex: 1 1 auto !important;
-    width: 100% !important;
+    min-width: auto;
   }
-
-  .filter-group-projectmanagement select {
-    width: 100% !important;
-    min-width: auto !important;
-  }
-
   .refresh-btn-projectmanagement {
-    flex: 1 1 auto !important;
-    justify-content: center !important;
-    width: 100% !important;
+    justify-content: center;
   }
-
-  /* Table container */
-  .project-table-container-projectmanagement {
-    margin: 0 !important;
-  }
-
-  /* Mobile card view - table becomes cards */
   .project-table-projectmanagement thead {
-    display: none !important;
+    display: none;
   }
-
+  .project-table-projectmanagement tbody td {
+    display: block;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+  .project-table-projectmanagement tbody td:last-child {
+    border-bottom: none;
+  }
+  .project-table-projectmanagement tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: inline-block;
+    width: 100px;
+  }
   .project-table-projectmanagement tbody tr {
-    display: block !important;
-    border: 1px solid var(--gray-200) !important;
-    border-radius: 12px !important;
-    margin-bottom: 12px !important;
-    padding: 16px !important;
-    background: #FFFFFF !important;
+    display: block;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   }
-
-  .project-table-projectmanagement tbody tr:nth-child(even) {
-    background: #FFFFFF !important;
+  .project-table-projectmanagement tbody tr:last-child {
+    border-bottom: none;
   }
-
-  .project-table-projectmanagement tbody tr:hover {
-    background: #FFFFFF !important;
+  .amount-projectmanagement {
+    display: inline-block;
   }
-
-  .project-table-projectmanagement td {
-    display: flex !important;
-    justify-content: space-between !important;
-    padding: 8px 0 !important;
-    border: none !important;
-    text-align: right !important;
-    font-size: 13px !important;
-  }
-
-  .project-table-projectmanagement td::before {
-    content: attr(data-label) !important;
-    font-weight: 600 !important;
-    color: var(--gray-500) !important;
-    text-align: left !important;
-    padding-right: 16px !important;
-    font-size: 12px !important;
-  }
-
-  .project-cell-projectmanagement .project-ref-projectmanagement {
-    font-size: 11px !important;
-  }
-
-  /* Pagination */
-  .pagination-projectmanagement {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 12px !important;
-    padding: 12px 0 0 0 !important;
-  }
-
-  .pagination-info-projectmanagement {
-    text-align: center !important;
-    font-size: 12px !important;
-  }
-
-  .pagination-controls-projectmanagement {
-    justify-content: center !important;
-    flex-wrap: wrap !important;
-    gap: 4px !important;
-  }
-
-  .page-btn-projectmanagement {
-    padding: 6px 12px !important;
-    font-size: 12px !important;
-  }
-
-  .page-number-projectmanagement {
-    min-width: 30px !important;
-    height: 30px !important;
-    font-size: 12px !important;
-    padding: 0 6px !important;
-  }
-
-  /* Modals */
   .modal-projectmanagement {
-    max-width: 95% !important;
-    max-height: 95vh !important;
-    border-radius: 12px !important;
+    max-width: 100%;
+    margin: 12px;
+    border-radius: 14px;
   }
-
-  .modal-header-projectmanagement {
-    padding: 16px 20px !important;
-  }
-
   .modal-header-projectmanagement h3 {
-    font-size: 17px !important;
+    font-size: 18px;
   }
-
   .modal-body-projectmanagement {
-    padding: 20px !important;
+    padding: 16px 18px;
   }
-
   .modal-actions-projectmanagement {
-    flex-direction: column-reverse !important;
-    padding: 16px 20px !important;
-    gap: 8px !important;
+    padding: 14px 18px 18px 18px;
+    flex-direction: column;
   }
-
   .modal-actions-projectmanagement button {
-    width: 100% !important;
-    justify-content: center !important;
-    padding: 12px !important;
-    font-size: 14px !important;
+    width: 100%;
+    justify-content: center;
   }
-
-  .detail-row-projectmanagement {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 4px !important;
-    padding: 8px 0 !important;
+  .pagination-projectmanagement {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
   }
-
-  .detail-row-projectmanagement span {
-    font-size: 12px !important;
+  .pagination-controls-projectmanagement {
+    justify-content: center;
   }
-
-  .detail-row-projectmanagement strong {
-    font-size: 14px !important;
+  .project-chart-card-projectmanagement {
+    padding: 14px 16px;
+    border-radius: 10px;
   }
-
-  /* Engineer grid */
+  .project-chart-header-projectmanagement h3 {
+    font-size: 14px;
+  }
+  .project-chart-period-projectmanagement {
+    font-size: 11px;
+  }
+  .project-chart-wrapper-projectmanagement {
+    height: 180px;
+  }
   .engineer-grid-projectmanagement {
-    grid-template-columns: 1fr !important;
-    gap: 8px !important;
-  }
-
-  .engineer-card-projectmanagement {
-    padding: 10px 12px !important;
-  }
-
-  .engineer-avatar-projectmanagement {
-    width: 32px !important;
-    height: 32px !important;
-    font-size: 12px !important;
-  }
-
-  .engineer-name-projectmanagement {
-    font-size: 13px !important;
-  }
-
-  .engineer-email-projectmanagement {
-    font-size: 11px !important;
-  }
-
-  /* Form elements */
-  .form-group-projectmanagement label {
-    font-size: 13px !important;
-  }
-
-  .form-group-projectmanagement textarea,
-  .form-group-projectmanagement input,
-  .form-group-projectmanagement select {
-    padding: 10px 12px !important;
-    font-size: 13px !important;
-  }
-
-  .action-dropdown-menu-projectmanagement {
-    min-width: 160px !important;
-    max-width: 200px !important;
-    border-radius: 8px !important;
-  }
-
-  .dropdown-item-projectmanagement {
-    padding: 8px 14px !important;
-    font-size: 13px !important;
-  }
-
-  .dropdown-item-projectmanagement svg {
-    font-size: 13px !important;
+    grid-template-columns: 1fr;
   }
 }
 
-/* --- Extra small devices (phones < 480px) --- */
 @media (max-width: 480px) {
   .project-management {
-    padding: 8px !important;
+    padding-inline: 10px;
   }
-
-  .project-chart-card-projectmanagement {
-    height: 170px !important;
-    padding: 12px !important;
+  .project-chart-wrapper-projectmanagement {
+    height: 150px;
   }
-
-  .project-chart-header-projectmanagement h3 {
-    font-size: 12px !important;
-  }
-
-  .project-chart-period-projectmanagement {
-    font-size: 9px !important;
-    padding: 2px 8px !important;
-  }
-
-  .project-table-projectmanagement tbody tr {
-    padding: 12px !important;
-  }
-
-  .project-table-projectmanagement td {
-    font-size: 12px !important;
-    padding: 6px 0 !important;
-  }
-
-  .project-table-projectmanagement td::before {
-    font-size: 11px !important;
-  }
-
-  .modal-projectmanagement {
-    max-width: 98% !important;
-  }
-
-  .modal-header-projectmanagement {
-    padding: 12px 16px !important;
-  }
-
-  .modal-header-projectmanagement h3 {
-    font-size: 15px !important;
-  }
-
-  .modal-body-projectmanagement {
-    padding: 16px !important;
-  }
-
-  .modal-actions-projectmanagement {
-    padding: 12px 16px !important;
-  }
-
-  .modal-actions-projectmanagement button {
-    font-size: 13px !important;
-    padding: 10px !important;
-  }
-
-  .page-btn-projectmanagement {
-    padding: 4px 10px !important;
-    font-size: 11px !important;
-  }
-
+  .page-btn-projectmanagement,
   .page-number-projectmanagement {
-    min-width: 28px !important;
-    height: 28px !important;
-    font-size: 11px !important;
+    font-size: 12px;
+    padding: 6px 12px;
   }
-
-  .dropdown-item-projectmanagement {
-    padding: 6px 12px !important;
-    font-size: 12px !important;
+  .pagination-info-projectmanagement {
+    font-size: 12px;
+  }
+  .modal-projectmanagement {
+    border-radius: 12px;
+  }
+  .modal-header-projectmanagement h3 {
+    font-size: 16px;
+  }
+  .modal-body-projectmanagement {
+    padding: 14px 16px;
   }
 }
 
-/* --- Touch-friendly improvements for mobile --- */
-@media (hover: none) and (pointer: coarse) {
-  .action-dropdown-toggle-projectmanagement {
-    padding: 8px 14px !important;
-    min-height: 40px !important;
+@media (max-width: 360px) {
+  .project-management {
+    padding-inline: 6px;
   }
-
-  .dropdown-item-projectmanagement {
-    padding: 12px 16px !important;
-    min-height: 44px !important;
+  .project-chart-wrapper-projectmanagement {
+    height: 130px;
   }
+}
 
-  .page-btn-projectmanagement,
-  .page-number-projectmanagement {
-    min-height: 40px !important;
-    min-width: 40px !important;
+/* ============================================
+   REDUCED MOTION PREFERENCES
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
-
-  .modal-actions-projectmanagement button {
-    min-height: 48px !important;
+  .project-chart-card-projectmanagement:hover,
+  .project-table-projectmanagement tbody tr:hover {
+    transform: none !important;
   }
-
-  .refresh-btn-projectmanagement {
-    min-height: 44px !important;
+  .skeleton-title-projectmanagement,
+  .skeleton-subtitle-projectmanagement,
+  .skeleton-tab-projectmanagement,
+  .skeleton-select-projectmanagement,
+  .skeleton-search-projectmanagement {
+    animation: none !important;
+    background: #131C28 !important;
   }
-
-  .search-group-projectmanagement input {
-    min-height: 44px !important;
+  .refresh-btn-projectmanagement:hover,
+  .action-dropdown-toggle-projectmanagement:hover,
+  .assign-btn-projectmanagement:hover,
+  .approve-btn-projectmanagement:hover,
+  .cancel-btn-projectmanagement:hover {
+    transform: none !important;
   }
-
-  .filter-group-projectmanagement select {
-    min-height: 44px !important;
+  .spinning-projectmanagement {
+    animation: none !important;
+  }
+  .dropdown-arrow-projectmanagement.open {
+    transform: none !important;
   }
 }

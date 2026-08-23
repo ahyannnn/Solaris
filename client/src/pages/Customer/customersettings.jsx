@@ -1,4 +1,4 @@
-// pages/Customer/CustomerSettings.jsx - Updated with PSGC Cloud API (Unified Cities/Municipalities)
+// pages/Customer/CustomerSettings.jsx - Redesigned with PSGC Cloud API
 
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
@@ -27,7 +27,10 @@ import {
   FaCog,
   FaGlobe,
   FaCity,
-  FaRoad
+  FaRoad,
+  FaUserEdit,
+  FaAddressCard,
+  FaInfoCircle
 } from 'react-icons/fa';
 import '../../styles/Customer/customersettings.css';
 
@@ -39,7 +42,6 @@ const CustomerSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Get current tab from URL
   const currentTab = new URLSearchParams(location.search).get('tab') || 'profile';
 
   const [showAddressModal, setShowAddressModal] = useState(false);
@@ -49,7 +51,7 @@ const CustomerSettings = () => {
   // PSGC Cloud API States
   const [regions, setRegions] = useState([]);
   const [provinces, setProvinces] = useState([]);
-  const [citiesMunicipalities, setCitiesMunicipalities] = useState([]); // Unified list
+  const [citiesMunicipalities, setCitiesMunicipalities] = useState([]);
   const [barangays, setBarangays] = useState([]);
 
   const [loadingRegions, setLoadingRegions] = useState(false);
@@ -95,10 +97,8 @@ const CustomerSettings = () => {
 
   // ========== PSGC CLOUD API FUNCTIONS ==========
 
-  // Base URL for PSGC Cloud API
   const PSGC_API_BASE = 'https://psgc.gitlab.io/api/';
 
-  // Fetch Regions
   useEffect(() => {
     const fetchRegions = async () => {
       setLoadingRegions(true);
@@ -106,9 +106,7 @@ const CustomerSettings = () => {
         const response = await fetch(`${PSGC_API_BASE}/regions`, {
           headers: { 'Accept': 'application/json' }
         });
-
         if (!response.ok) throw new Error('Failed to fetch regions');
-
         const data = await response.json();
         setRegions(data || []);
       } catch (error) {
@@ -118,55 +116,31 @@ const CustomerSettings = () => {
         setLoadingRegions(false);
       }
     };
-
     fetchRegions();
   }, []);
 
-  // Fetch Provinces when Region changes
   useEffect(() => {
     const fetchProvinces = async () => {
       if (!addressForm.region) {
         setProvinces([]);
         setCitiesMunicipalities([]);
         setBarangays([]);
-        setAddressForm(prev => ({
-          ...prev,
-          province: '',
-          cityMunicipality: '',
-          barangay: ''
-        }));
+        setAddressForm(prev => ({ ...prev, province: '', cityMunicipality: '', barangay: '' }));
         return;
       }
-
-      // Find the region code from selected region name
       const selectedRegion = regions.find(r => r.name === addressForm.region);
-      if (!selectedRegion) {
-        setProvinces([]);
-        return;
-      }
-
+      if (!selectedRegion) { setProvinces([]); return; }
       setLoadingProvinces(true);
       try {
-        // Use the region code to fetch provinces
-        const response = await fetch(
-          `${PSGC_API_BASE}/regions/${selectedRegion.code}/provinces`,
-          {
-            headers: { 'Accept': 'application/json' }
-          }
-        );
-
+        const response = await fetch(`${PSGC_API_BASE}/regions/${selectedRegion.code}/provinces`, {
+          headers: { 'Accept': 'application/json' }
+        });
         if (!response.ok) throw new Error('Failed to fetch provinces');
-
         const data = await response.json();
         setProvinces(data || []);
         setCitiesMunicipalities([]);
         setBarangays([]);
-        setAddressForm(prev => ({
-          ...prev,
-          province: '',
-          cityMunicipality: '',
-          barangay: ''
-        }));
+        setAddressForm(prev => ({ ...prev, province: '', cityMunicipality: '', barangay: '' }));
       } catch (error) {
         console.error('Error fetching provinces:', error);
         showToast('Failed to load provinces. Please try again.', 'error');
@@ -174,51 +148,29 @@ const CustomerSettings = () => {
         setLoadingProvinces(false);
       }
     };
-
     fetchProvinces();
   }, [addressForm.region, regions]);
 
-  // Fetch Cities/Municipalities when Province changes
   useEffect(() => {
     const fetchCitiesMunicipalities = async () => {
       if (!addressForm.province) {
         setCitiesMunicipalities([]);
         setBarangays([]);
-        setAddressForm(prev => ({
-          ...prev,
-          cityMunicipality: '',
-          barangay: ''
-        }));
+        setAddressForm(prev => ({ ...prev, cityMunicipality: '', barangay: '' }));
         return;
       }
-
-      // Find the province code from selected province name
       const selectedProvince = provinces.find(p => p.name === addressForm.province);
-      if (!selectedProvince) {
-        setCitiesMunicipalities([]);
-        return;
-      }
-
+      if (!selectedProvince) { setCitiesMunicipalities([]); return; }
       setLoadingCities(true);
       try {
-        // Use the province code to fetch cities and municipalities
-        const response = await fetch(
-          `${PSGC_API_BASE}/provinces/${selectedProvince.code}/cities-municipalities`,
-          {
-            headers: { 'Accept': 'application/json' }
-          }
-        );
-
+        const response = await fetch(`${PSGC_API_BASE}/provinces/${selectedProvince.code}/cities-municipalities`, {
+          headers: { 'Accept': 'application/json' }
+        });
         if (!response.ok) throw new Error('Failed to fetch cities/municipalities');
-
         const data = await response.json();
         setCitiesMunicipalities(data || []);
         setBarangays([]);
-        setAddressForm(prev => ({
-          ...prev,
-          cityMunicipality: '',
-          barangay: ''
-        }));
+        setAddressForm(prev => ({ ...prev, cityMunicipality: '', barangay: '' }));
       } catch (error) {
         console.error('Error fetching cities/municipalities:', error);
         showToast('Failed to load cities/municipalities. Please try again.', 'error');
@@ -226,47 +178,27 @@ const CustomerSettings = () => {
         setLoadingCities(false);
       }
     };
-
     fetchCitiesMunicipalities();
   }, [addressForm.province, provinces]);
 
-  // Fetch Barangays when City/Municipality changes
   useEffect(() => {
     const fetchBarangays = async () => {
       if (!addressForm.cityMunicipality) {
         setBarangays([]);
-        setAddressForm(prev => ({
-          ...prev,
-          barangay: ''
-        }));
+        setAddressForm(prev => ({ ...prev, barangay: '' }));
         return;
       }
-
-      // Find the city/municipality code from selected name
       const selectedCity = citiesMunicipalities.find(c => c.name === addressForm.cityMunicipality);
-      if (!selectedCity) {
-        setBarangays([]);
-        return;
-      }
-
+      if (!selectedCity) { setBarangays([]); return; }
       setLoadingBarangays(true);
       try {
-        // Use the city/municipality code to fetch barangays
-        const response = await fetch(
-          `${PSGC_API_BASE}/cities-municipalities/${selectedCity.code}/barangays`,
-          {
-            headers: { 'Accept': 'application/json' }
-          }
-        );
-
+        const response = await fetch(`${PSGC_API_BASE}/cities-municipalities/${selectedCity.code}/barangays`, {
+          headers: { 'Accept': 'application/json' }
+        });
         if (!response.ok) throw new Error('Failed to fetch barangays');
-
         const data = await response.json();
         setBarangays(data || []);
-        setAddressForm(prev => ({
-          ...prev,
-          barangay: ''
-        }));
+        setAddressForm(prev => ({ ...prev, barangay: '' }));
       } catch (error) {
         console.error('Error fetching barangays:', error);
         showToast('Failed to load barangays. Please try again.', 'error');
@@ -274,7 +206,6 @@ const CustomerSettings = () => {
         setLoadingBarangays(false);
       }
     };
-
     fetchBarangays();
   }, [addressForm.cityMunicipality, citiesMunicipalities]);
 
@@ -338,48 +269,33 @@ const CustomerSettings = () => {
     }
   };
 
-  // Profile validation functions (unchanged)
+  // Profile validation
   const validateName = (name, fieldName) => {
-    if (!name || name.trim() === '') {
-      return `${fieldName} is required`;
-    }
-    if (!/^[a-zA-Z\s.]+$/.test(name)) {
-      return `${fieldName} must contain only letters, spaces, and periods`;
-    }
-    if (name.trim().length < 2) {
-      return `${fieldName} must be at least 2 characters`;
-    }
+    if (!name || name.trim() === '') return `${fieldName} is required`;
+    if (!/^[a-zA-Z\s.]+$/.test(name)) return `${fieldName} must contain only letters, spaces, and periods`;
+    if (name.trim().length < 2) return `${fieldName} must be at least 2 characters`;
     return '';
   };
 
   const validateContactNumber = (number) => {
-    if (!number || number.trim() === '') {
-      return 'Contact number is required';
-    }
+    if (!number || number.trim() === '') return 'Contact number is required';
     const cleanNumber = number.replace(/\s/g, '');
-    if (!/^09\d{9}$/.test(cleanNumber)) {
-      return 'Contact number must start with 09 and be exactly 11 digits';
-    }
+    if (!/^09\d{9}$/.test(cleanNumber)) return 'Contact number must start with 09 and be exactly 11 digits';
     return '';
   };
 
   const validateProfileForm = () => {
     const errors = {};
-
     const firstNameError = validateName(profileData.firstName, 'First name');
     if (firstNameError) errors.firstName = firstNameError;
-
     const lastNameError = validateName(profileData.lastName, 'Last name');
     if (lastNameError) errors.lastName = lastNameError;
-
     if (profileData.middleName && profileData.middleName.trim() !== '') {
       const middleNameError = validateName(profileData.middleName, 'Middle name');
       if (middleNameError) errors.middleName = middleNameError;
     }
-
     const contactError = validateContactNumber(profileData.contactNumber);
     if (contactError) errors.contactNumber = contactError;
-
     return errors;
   };
 
@@ -395,9 +311,7 @@ const CustomerSettings = () => {
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
     setProfileData(prev => ({ ...prev, [name]: value }));
-    if (profileErrors[name]) {
-      setProfileErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    if (profileErrors[name]) setProfileErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const saveProfile = async () => {
@@ -408,12 +322,10 @@ const CustomerSettings = () => {
       showToast(firstError, 'warning');
       return;
     }
-
     if (!hasProfileChanges()) {
       showToast('No changes to save', 'info');
       return;
     }
-
     setSaving(true);
     try {
       const token = sessionStorage.getItem('token');
@@ -426,14 +338,12 @@ const CustomerSettings = () => {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       setOriginalProfileData({
         firstName: profileData.firstName.trim(),
         middleName: profileData.middleName.trim(),
         lastName: profileData.lastName.trim(),
         contactNumber: profileData.contactNumber.replace(/\s/g, '')
       });
-
       showToast('Profile updated successfully', 'success');
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to update profile', 'error');
@@ -476,44 +386,6 @@ const CustomerSettings = () => {
       isPrimary: address.isPrimary || false
     });
     setFormErrors({});
-
-    // Fetch provinces, cities, and barangays based on existing address data
-    if (address.region) {
-      // Fetch provinces
-      fetch(`${PSGC_API_BASE}/provinces`, {
-        headers: { 'Accept': 'application/json' }
-      })
-        .then(res => res.json())
-        .then(data => {
-          setProvinces(data || []);
-          // If province exists, fetch cities and municipalities
-          if (address.province) {
-            Promise.all([
-              fetch(`${PSGC_API_BASE}/cities`, { headers: { 'Accept': 'application/json' } }),
-              fetch(`${PSGC_API_BASE}/municipalities`, { headers: { 'Accept': 'application/json' } })
-            ])
-              .then(([citiesRes, municipalitiesRes]) => Promise.all([citiesRes.json(), municipalitiesRes.json()]))
-              .then(([citiesData, municipalitiesData]) => {
-                const combined = [...(citiesData || []), ...(municipalitiesData || [])];
-                setCitiesMunicipalities(combined);
-                // If city exists, fetch barangays
-                if (address.cityMunicipality) {
-                  fetch(`${PSGC_API_BASE}/barangays`, {
-                    headers: { 'Accept': 'application/json' }
-                  })
-                    .then(res => res.json())
-                    .then(barangayData => {
-                      setBarangays(barangayData || []);
-                    })
-                    .catch(err => console.error('Error fetching barangays:', err));
-                }
-              })
-              .catch(err => console.error('Error fetching cities:', err));
-          }
-        })
-        .catch(err => console.error('Error fetching provinces:', err));
-    }
-
     setShowAddressModal(true);
   };
 
@@ -521,34 +393,20 @@ const CustomerSettings = () => {
     const { name, value, type, checked } = e.target;
     setAddressForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: '' }));
-
-    // Clear dependent dropdown values when parent changes
     if (name === 'region') {
       setProvinces([]);
       setCitiesMunicipalities([]);
       setBarangays([]);
-      setAddressForm(prev => ({
-        ...prev,
-        province: '',
-        cityMunicipality: '',
-        barangay: ''
-      }));
+      setAddressForm(prev => ({ ...prev, province: '', cityMunicipality: '', barangay: '' }));
     }
     if (name === 'province') {
       setCitiesMunicipalities([]);
       setBarangays([]);
-      setAddressForm(prev => ({
-        ...prev,
-        cityMunicipality: '',
-        barangay: ''
-      }));
+      setAddressForm(prev => ({ ...prev, cityMunicipality: '', barangay: '' }));
     }
     if (name === 'cityMunicipality') {
       setBarangays([]);
-      setAddressForm(prev => ({
-        ...prev,
-        barangay: ''
-      }));
+      setAddressForm(prev => ({ ...prev, barangay: '' }));
     }
   };
 
@@ -666,215 +524,199 @@ const CustomerSettings = () => {
       .join(' ');
   };
 
-  const SkeletonLoader = () => (
-    <div className="cuset-page">
-      <div className="cuset-header">
-        <div className="skeleton-line large"></div>
-        <div className="skeleton-line medium"></div>
+  // ========== PROFILE TAB ==========
+  const ProfileTab = () => (
+    <div className="cuset-profile-tab">
+      {/* Profile Card */}
+      <div className="cuset-profile-card">
+        <div className="cuset-profile-avatar">
+          <FaUserCircle />
+        </div>
+        <div className="cuset-profile-details">
+          <h2>{getFullName() || 'No Name Set'}</h2>
+          <p className="cuset-profile-email">{profileData.email}</p>
+          <div className="cuset-profile-badges">
+            <span className="cuset-badge cuset-badge-client-type">
+              <FaBriefcase /> {profileData.client_type || 'Individual'}
+            </span>
+            {memberSince && (
+              <span className="cuset-badge cuset-badge-member-since">
+                <FaCalendarAlt /> Member since {formatDate(memberSince)}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
-      <div className="cuset-single-col">
-        <div className="cuset-card skeleton-card">
-          <div className="skeleton-line large"></div>
-          <div className="skeleton-input"></div>
-          <div className="skeleton-input"></div>
-          <div className="skeleton-input"></div>
+
+      {/* Edit Profile Form */}
+      <div className="cuset-form-container">
+        <div className="cuset-form-header">
+          <h3><FaUser /> Personal Information</h3>
+          <button
+            className="cuset-btn-save"
+            onClick={saveProfile}
+            disabled={saving || !hasProfileChanges()}
+          >
+            <FaSave /> {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+
+        <div className="cuset-form">
+          <div className="cuset-form-grid-3">
+            <div className="cuset-form-field">
+              <label>First Name <span className="cuset-required">*</span></label>
+              <input
+                type="text"
+                name="firstName"
+                value={profileData.firstName}
+                onChange={handleProfileChange}
+                placeholder="Enter first name"
+                className={profileErrors.firstName ? 'error' : ''}
+              />
+              {profileErrors.firstName && <span className="cuset-error-text">{profileErrors.firstName}</span>}
+            </div>
+            <div className="cuset-form-field">
+              <label>Middle Name</label>
+              <input
+                type="text"
+                name="middleName"
+                value={profileData.middleName}
+                onChange={handleProfileChange}
+                placeholder="Enter middle name"
+                className={profileErrors.middleName ? 'error' : ''}
+              />
+              {profileErrors.middleName && <span className="cuset-error-text">{profileErrors.middleName}</span>}
+            </div>
+            <div className="cuset-form-field">
+              <label>Last Name <span className="cuset-required">*</span></label>
+              <input
+                type="text"
+                name="lastName"
+                value={profileData.lastName}
+                onChange={handleProfileChange}
+                placeholder="Enter last name"
+                className={profileErrors.lastName ? 'error' : ''}
+              />
+              {profileErrors.lastName && <span className="cuset-error-text">{profileErrors.lastName}</span>}
+            </div>
+          </div>
+
+          <div className="cuset-form-grid-2">
+            <div className="cuset-form-field">
+              <label><FaPhone /> Contact Number <span className="cuset-required">*</span></label>
+              <input
+                type="tel"
+                name="contactNumber"
+                value={profileData.contactNumber}
+                onChange={handleProfileChange}
+                placeholder="09XXXXXXXXX"
+                className={profileErrors.contactNumber ? 'error' : ''}
+              />
+              {profileErrors.contactNumber && <span className="cuset-error-text">{profileErrors.contactNumber}</span>}
+            </div>
+            <div className="cuset-form-field">
+              <label><FaEnvelope /> Email</label>
+              <input
+                type="email"
+                value={profileData.email}
+                disabled
+                className="cuset-disabled"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 
-  // Render based on current tab from URL
-  const renderContent = () => {
-    // Profile Tab
-    if (currentTab === 'profile') {
-      return (
-        <div className="cuset-profile-page">
-          {/* Profile Card - Summary */}
-          <div className="cuset-profile-summary">
-            <div className="profile-avatar-large">
-              <FaUserCircle />
-            </div>
-            <div className="profile-info">
-              <h2>{getFullName() || 'No Name Set'}</h2>
-              <p className="profile-email-text">{profileData.email}</p>
-              <div className="profile-meta">
-                <span className="meta-item">
-                  <FaBriefcase /> {profileData.client_type || 'Individual'}
-                </span>
-                {memberSince && (
-                  <span className="meta-item">
-                    <FaCalendarAlt /> Member since {formatDate(memberSince)}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
+  // ========== ADDRESSES TAB ==========
+  const AddressesTab = () => (
+    <div className="cuset-addresses-tab">
+      <div className="cuset-addresses-header">
+        <h3><FaMapMarkerAlt /> My Addresses</h3>
+        <button className="cuset-btn-add-address" onClick={handleAddAddress}>
+          <FaPlus /> Add Address
+        </button>
+      </div>
 
-          {/* Profile Form */}
-          <div className="cuset-form-card">
-            <div className="card-header">
-              <h3><FaUser /> Personal Information</h3>
-              <button
-                className="save-btn"
-                onClick={saveProfile}
-                disabled={saving || !hasProfileChanges()}
-              >
-                <FaSave /> {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-
-            <div className="profile-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>First Name <span className="required">*</span></label>
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={profileData.firstName}
-                    onChange={handleProfileChange}
-                    placeholder="Enter first name"
-                    className={profileErrors.firstName ? 'error' : ''}
-                  />
-                  {profileErrors.firstName && (
-                    <small className="error-text">{profileErrors.firstName}</small>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label>Middle Name</label>
-                  <input
-                    type="text"
-                    name="middleName"
-                    value={profileData.middleName}
-                    onChange={handleProfileChange}
-                    placeholder="Enter middle name"
-                    className={profileErrors.middleName ? 'error' : ''}
-                  />
-                  {profileErrors.middleName && (
-                    <small className="error-text">{profileErrors.middleName}</small>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label>Last Name <span className="required">*</span></label>
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={profileData.lastName}
-                    onChange={handleProfileChange}
-                    placeholder="Enter last name"
-                    className={profileErrors.lastName ? 'error' : ''}
-                  />
-                  {profileErrors.lastName && (
-                    <small className="error-text">{profileErrors.lastName}</small>
-                  )}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label><FaPhone /> Contact Number <span className="required">*</span></label>
-                  <input
-                    type="tel"
-                    name="contactNumber"
-                    value={profileData.contactNumber}
-                    onChange={handleProfileChange}
-                    placeholder="09XXXXXXXXX"
-                    className={profileErrors.contactNumber ? 'error' : ''}
-                  />
-                  {profileErrors.contactNumber && (
-                    <small className="error-text">{profileErrors.contactNumber}</small>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+      {addresses.length === 0 ? (
+        <div className="cuset-empty-addresses">
+          <FaMapMarkerAlt className="cuset-empty-icon" />
+          <h4>No addresses saved</h4>
+          <p>Add your first address to make checkout faster</p>
+          <button className="cuset-btn-add-first" onClick={handleAddAddress}>
+            <FaPlus /> Add Address
+          </button>
         </div>
-      );
-    }
-
-    // Addresses Tab
-    if (currentTab === 'addresses') {
-      return (
-        <div className="cuset-addresses-page">
-          <div className="cuset-addresses-card">
-            <div className="card-header">
-              <h3><FaMapMarkerAlt /> My Addresses</h3>
-              <button className="add-btn" onClick={handleAddAddress}>
-                <FaPlus /> Add Address
-              </button>
-            </div>
-
-            {addresses.length === 0 ? (
-              <div className="empty-state">
-                <FaMapMarkerAlt className="empty-icon" />
-                <h4>No addresses yet</h4>
-                <p>Add your first address to get started</p>
-                <button className="add-first-btn" onClick={handleAddAddress}>
-                  <FaPlus /> Add Address
+      ) : (
+        <div className="cuset-addresses-grid">
+          {addresses.map(address => (
+            <div
+              key={address._id}
+              className={`cuset-address-card ${address.isPrimary ? 'cuset-primary' : ''}`}
+            >
+              {address.isPrimary && (
+                <div className="cuset-primary-tag">
+                  <FaStar /> Primary
+                </div>
+              )}
+              <div className="cuset-address-label-tag">{address.label}</div>
+              <div className="cuset-address-text">
+                <p>{address.houseOrBuilding}</p>
+                <p>{address.street}</p>
+                <p>{address.barangay}</p>
+                <p>{address.cityMunicipality}</p>
+                <p>{address.province}</p>
+                <p className="cuset-zip">{address.zipCode}</p>
+              </div>
+              <div className="cuset-address-actions">
+                {!address.isPrimary && (
+                  <button
+                    className="cuset-action-btn cuset-primary-action"
+                    onClick={() => setAsPrimary(address._id)}
+                  >
+                    Set Primary
+                  </button>
+                )}
+                <button
+                  className="cuset-action-btn cuset-edit-action"
+                  onClick={() => handleEditAddress(address)}
+                >
+                  <FaEdit /> Edit
+                </button>
+                <button
+                  className="cuset-action-btn cuset-delete-action"
+                  onClick={() => setDeleteConfirm(address)}
+                >
+                  <FaTrash /> Delete
                 </button>
               </div>
-            ) : (
-              <div className="addresses-grid">
-                {addresses.map(address => (
-                  <div
-                    key={address._id}
-                    className={`address-card-item ${address.isPrimary ? 'primary' : ''}`}
-                  >
-                    {address.isPrimary && (
-                      <div className="primary-badge">
-                        <FaStar /> Primary
-                      </div>
-                    )}
-                    <div className="address-label">
-                      <span className="label-badge">{address.label}</span>
-                    </div>
-                    <div className="address-details">
-                      <p>{address.houseOrBuilding}</p>
-                      <p>{address.street}</p>
-                      <p>{address.barangay}</p>
-                      <p>{address.cityMunicipality}</p>
-                      <p>{address.province}</p>
-                      <p>{address.zipCode}</p>
-                    </div>
-                    <div className="address-actions">
-                      {!address.isPrimary && (
-                        <button
-                          className="action-btn primary-btn"
-                          onClick={() => setAsPrimary(address._id)}
-                        >
-                          Set Primary
-                        </button>
-                      )}
-                      <button
-                        className="action-btn edit-btn"
-                        onClick={() => handleEditAddress(address)}
-                      >
-                        <FaEdit /> Edit
-                      </button>
-                      <button
-                        className="action-btn delete-btn"
-                        onClick={() => setDeleteConfirm(address)}
-                      >
-                        <FaTrash /> Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  // ========== SKELETON LOADER ==========
+  const SkeletonLoader = () => (
+    <div className="cuset-page">
+      <div className="cuset-header">
+        <div className="cuset-skeleton-line cuset-skeleton-large"></div>
+        <div className="cuset-skeleton-line cuset-skeleton-medium"></div>
+      </div>
+      <div className="cuset-layout">
+        <div className="cuset-content">
+          <div className="cuset-skeleton-card">
+            <div className="cuset-skeleton-line cuset-skeleton-large"></div>
+            <div className="cuset-skeleton-input"></div>
+            <div className="cuset-skeleton-input"></div>
+            <div className="cuset-skeleton-input"></div>
           </div>
         </div>
-      );
-    }
-
-    // Default fallback
-    return (
-      <div className="cuset-empty">
-        <FaCog className="empty-icon" />
-        <h3>Section not found</h3>
-        <p>Please select a valid settings option from the sidebar.</p>
       </div>
-    );
-  };
+    </div>
+  );
 
   if (loading) {
     return (
@@ -896,56 +738,62 @@ const CustomerSettings = () => {
             <h1>Account Settings</h1>
             <p>
               {currentTab === 'profile' && 'Manage your personal information and profile details'}
-              {currentTab === 'addresses' && 'Manage your saved addresses'}
+              {currentTab === 'addresses' && 'Manage your saved addresses for faster checkout'}
             </p>
           </div>
         </div>
 
-        {/* Content based on tab */}
-        {renderContent()}
+        {/* Content without sidebar */}
+        <div className="cuset-layout">
+          <div className="cuset-content">
+            {currentTab === 'profile' && <ProfileTab />}
+            {currentTab === 'addresses' && <AddressesTab />}
+          </div>
+        </div>
 
-        {/* Address Modal */}
+        {/* ========== ADDRESS MODAL - NO SCROLL ========== */}
         {showAddressModal && (
-          <div className="modal-overlay" onClick={() => setShowAddressModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3>{editingAddress ? 'Edit Address' : 'Add Address'}</h3>
-                <button className="modal-close" onClick={() => setShowAddressModal(false)}>
+          <div className="cuset-modal-overlay" onClick={() => setShowAddressModal(false)}>
+            <div className="cuset-modal-content cuset-no-scroll" onClick={e => e.stopPropagation()}>
+              <div className="cuset-modal-header">
+                <h3>{editingAddress ? 'Edit Address' : 'Add New Address'}</h3>
+                <button className="cuset-modal-close" onClick={() => setShowAddressModal(false)}>
                   <FaTimes />
                 </button>
               </div>
               <form onSubmit={handleAddressSubmit}>
-                <div className="modal-form">
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Label</label>
-                      <select
-                        name="label"
-                        value={addressForm.label}
-                        onChange={handleAddressFormChange}
-                      >
-                        <option value="Home">Home</option>
-                        <option value="Office">Office</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                    <div className="form-group checkbox-group">
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          name="isPrimary"
-                          checked={addressForm.isPrimary}
+                <div className="cuset-modal-body cuset-no-scroll-body">
+                  <div className="cuset-modal-form-grid">
+                    {/* Label & Primary */}
+                    <div className="cuset-modal-row">
+                      <div className="cuset-modal-field">
+                        <label>Address Label</label>
+                        <select
+                          name="label"
+                          value={addressForm.label}
                           onChange={handleAddressFormChange}
-                        />
-                        <span>Set as primary</span>
-                      </label>
+                        >
+                          <option value="Home">Home</option>
+                          <option value="Office">Office</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                      <div className="cuset-modal-field cuset-checkbox-field">
+                        <label className="cuset-checkbox-label">
+                          <input
+                            type="checkbox"
+                            name="isPrimary"
+                            checked={addressForm.isPrimary}
+                            onChange={handleAddressFormChange}
+                          />
+                          <span>Set as primary address</span>
+                        </label>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* REGION - Dropdown */}
-                  <div className="form-group">
-                    <label>Region <span className="required">*</span></label>
-                    <div className="select-wrapper">
+                    {/* Region */}
+                    <div className="cuset-modal-field">
+                      <label>Region <span className="cuset-required">*</span></label>
                       <select
                         name="region"
                         value={addressForm.region}
@@ -960,17 +808,13 @@ const CustomerSettings = () => {
                           </option>
                         ))}
                       </select>
+                      {loadingRegions && <span className="cuset-hint">Loading regions...</span>}
+                      {formErrors.region && <span className="cuset-error-text">{formErrors.region}</span>}
                     </div>
-                    {loadingRegions && <small className="hint-text">Loading regions...</small>}
-                    {formErrors.region && (
-                      <small className="error-text">{formErrors.region}</small>
-                    )}
-                  </div>
 
-                  {/* PROVINCE - Dropdown */}
-                  <div className="form-group">
-                    <label>Province <span className="required">*</span></label>
-                    <div className="select-wrapper">
+                    {/* Province */}
+                    <div className="cuset-modal-field">
+                      <label>Province <span className="cuset-required">*</span></label>
                       <select
                         name="province"
                         value={addressForm.province}
@@ -985,18 +829,14 @@ const CustomerSettings = () => {
                           </option>
                         ))}
                       </select>
+                      {loadingProvinces && <span className="cuset-hint">Loading provinces...</span>}
+                      {!addressForm.region && <span className="cuset-hint">Please select a region first</span>}
+                      {formErrors.province && <span className="cuset-error-text">{formErrors.province}</span>}
                     </div>
-                    {loadingProvinces && <small className="hint-text">Loading provinces...</small>}
-                    {!addressForm.region && <small className="hint-text">Please select a region first</small>}
-                    {formErrors.province && (
-                      <small className="error-text">{formErrors.province}</small>
-                    )}
-                  </div>
 
-                  {/* CITY/MUNICIPALITY - Dropdown (Unified) */}
-                  <div className="form-group">
-                    <label>City / Municipality <span className="required">*</span></label>
-                    <div className="select-wrapper">
+                    {/* City/Municipality */}
+                    <div className="cuset-modal-field">
+                      <label>City / Municipality <span className="cuset-required">*</span></label>
                       <select
                         name="cityMunicipality"
                         value={addressForm.cityMunicipality}
@@ -1011,18 +851,14 @@ const CustomerSettings = () => {
                           </option>
                         ))}
                       </select>
+                      {loadingCities && <span className="cuset-hint">Loading cities...</span>}
+                      {!addressForm.province && <span className="cuset-hint">Please select a province first</span>}
+                      {formErrors.cityMunicipality && <span className="cuset-error-text">{formErrors.cityMunicipality}</span>}
                     </div>
-                    {loadingCities && <small className="hint-text">Loading cities/municipalities...</small>}
-                    {!addressForm.province && <small className="hint-text">Please select a province first</small>}
-                    {formErrors.cityMunicipality && (
-                      <small className="error-text">{formErrors.cityMunicipality}</small>
-                    )}
-                  </div>
 
-                  {/* BARANGAY - Dropdown */}
-                  <div className="form-group">
-                    <label>Barangay <span className="required">*</span></label>
-                    <div className="select-wrapper">
+                    {/* Barangay */}
+                    <div className="cuset-modal-field">
+                      <label>Barangay <span className="cuset-required">*</span></label>
                       <select
                         name="barangay"
                         value={addressForm.barangay}
@@ -1037,73 +873,68 @@ const CustomerSettings = () => {
                           </option>
                         ))}
                       </select>
+                      {loadingBarangays && <span className="cuset-hint">Loading barangays...</span>}
+                      {!addressForm.cityMunicipality && <span className="cuset-hint">Please select a city first</span>}
+                      {formErrors.barangay && <span className="cuset-error-text">{formErrors.barangay}</span>}
                     </div>
-                    {loadingBarangays && <small className="hint-text">Loading barangays...</small>}
-                    {!addressForm.cityMunicipality && <small className="hint-text">Please select a city/municipality first</small>}
-                    {formErrors.barangay && (
-                      <small className="error-text">{formErrors.barangay}</small>
-                    )}
-                  </div>
 
-                  <div className="form-group">
-                    <label>Street <span className="required">*</span></label>
-                    <input
-                      type="text"
-                      name="street"
-                      value={addressForm.street}
-                      onChange={handleAddressFormChange}
-                      className={formErrors.street ? 'error' : ''}
-                      placeholder="Enter street name"
-                    />
-                    {formErrors.street && (
-                      <small className="error-text">{formErrors.street}</small>
-                    )}
-                  </div>
+                    {/* Street */}
+                    <div className="cuset-modal-field">
+                      <label>Street <span className="cuset-required">*</span></label>
+                      <input
+                        type="text"
+                        name="street"
+                        value={addressForm.street}
+                        onChange={handleAddressFormChange}
+                        className={formErrors.street ? 'error' : ''}
+                        placeholder="Enter street name"
+                      />
+                      {formErrors.street && <span className="cuset-error-text">{formErrors.street}</span>}
+                    </div>
 
-                  <div className="form-group">
-                    <label>House / Building <span className="required">*</span></label>
-                    <input
-                      type="text"
-                      name="houseOrBuilding"
-                      value={addressForm.houseOrBuilding}
-                      onChange={handleAddressFormChange}
-                      className={formErrors.houseOrBuilding ? 'error' : ''}
-                      placeholder="Enter house number or building name"
-                    />
-                    {formErrors.houseOrBuilding && (
-                      <small className="error-text">{formErrors.houseOrBuilding}</small>
-                    )}
-                  </div>
+                    {/* House/Building */}
+                    <div className="cuset-modal-field">
+                      <label>House / Building <span className="cuset-required">*</span></label>
+                      <input
+                        type="text"
+                        name="houseOrBuilding"
+                        value={addressForm.houseOrBuilding}
+                        onChange={handleAddressFormChange}
+                        className={formErrors.houseOrBuilding ? 'error' : ''}
+                        placeholder="Enter house number or building name"
+                      />
+                      {formErrors.houseOrBuilding && <span className="cuset-error-text">{formErrors.houseOrBuilding}</span>}
+                    </div>
 
-                  <div className="form-group">
-                    <label>ZIP Code <span className="required">*</span></label>
-                    <input
-                      type="text"
-                      name="zipCode"
-                      value={addressForm.zipCode}
-                      onChange={handleAddressFormChange}
-                      maxLength="4"
-                      className={formErrors.zipCode ? 'error' : ''}
-                      placeholder="Enter ZIP code"
-                    />
-                    {formErrors.zipCode && (
-                      <small className="error-text">{formErrors.zipCode}</small>
-                    )}
-                    <small className="hint-text">Format: 4 digits (e.g., 1234)</small>
+                    {/* ZIP Code */}
+                    <div className="cuset-modal-field">
+                      <label>ZIP Code <span className="cuset-required">*</span></label>
+                      <input
+                        type="text"
+                        name="zipCode"
+                        value={addressForm.zipCode}
+                        onChange={handleAddressFormChange}
+                        maxLength="4"
+                        className={formErrors.zipCode ? 'error' : ''}
+                        placeholder="Enter ZIP code"
+                      />
+                      {formErrors.zipCode && <span className="cuset-error-text">{formErrors.zipCode}</span>}
+                      <span className="cuset-hint">4 digits (e.g., 1234)</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="modal-actions">
+                <div className="cuset-modal-footer">
                   <button
                     type="button"
-                    className="cancel-btn"
+                    className="cuset-btn-cancel"
                     onClick={() => setShowAddressModal(false)}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="save-btn"
+                    className="cuset-btn-submit"
                     disabled={saving}
                   >
                     {saving ? 'Saving...' : 'Save Address'}
@@ -1114,30 +945,33 @@ const CustomerSettings = () => {
           </div>
         )}
 
-        {/* Delete Confirmation Modal */}
+        {/* ========== DELETE CONFIRM MODAL ========== */}
         {deleteConfirm && (
-          <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
-            <div className="modal-content confirm-modal" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
+          <div className="cuset-modal-overlay" onClick={() => setDeleteConfirm(null)}>
+            <div className="cuset-modal-content cuset-confirm-modal cuset-no-scroll" onClick={e => e.stopPropagation()}>
+              <div className="cuset-modal-header">
                 <h3>Delete Address</h3>
-                <button className="modal-close" onClick={() => setDeleteConfirm(null)}>
+                <button className="cuset-modal-close" onClick={() => setDeleteConfirm(null)}>
                   <FaTimes />
                 </button>
               </div>
-              <div className="confirm-body">
+              <div className="cuset-modal-body cuset-confirm-body">
+                <div className="cuset-confirm-icon">
+                  <FaInfoCircle />
+                </div>
                 <p>Are you sure you want to delete this address?</p>
-                <div className="address-preview">
+                <div className="cuset-address-preview-box">
                   {getFullAddress(deleteConfirm)}
                 </div>
-                <div className="confirm-actions">
+                <div className="cuset-confirm-actions">
                   <button
-                    className="cancel-btn"
+                    className="cuset-btn-cancel"
                     onClick={() => setDeleteConfirm(null)}
                   >
                     Cancel
                   </button>
                   <button
-                    className="delete-btn"
+                    className="cuset-btn-delete"
                     onClick={() => deleteAddress(deleteConfirm._id)}
                   >
                     <FaTrash /> Delete Address

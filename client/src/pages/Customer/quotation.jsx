@@ -12,26 +12,18 @@ import '../../styles/Customer/quotation.css';
 
 // Format card number with spaces every 4 digits, max 16 digits
 const formatCardNumber = (value) => {
-  // Remove all non-digit characters
   const cleaned = value.replace(/\D/g, '');
-  // Limit to 16 digits
   const limited = cleaned.slice(0, 16);
-  // Add space every 4 digits
   const formatted = limited.replace(/(.{4})/g, '$1 ').trim();
   return formatted;
 };
 
 // Format expiry date: auto-add "/" after 2 digits, restrict to MM/YY
 const formatExpiryDate = (value) => {
-  // Remove all non-digit characters
   const cleaned = value.replace(/\D/g, '');
-  // Limit to 4 digits (MMYY)
   const limited = cleaned.slice(0, 4);
-
   if (limited.length === 0) return '';
   if (limited.length <= 2) return limited;
-
-  // Add slash after first 2 digits
   return `${limited.slice(0, 2)}/${limited.slice(2)}`;
 };
 
@@ -63,15 +55,10 @@ const Quotation = () => {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
 
-  // Validation error states
   const [validationErrors, setValidationErrors] = useState({});
-
-  // Scroll container ref for modal
   const scrollContainerRef = useRef(null);
-  // Store scroll position to prevent auto-scroll
   const scrollPositionRef = useRef(0);
 
-  // Manual Bank Transfer States
   const [selectedBankId, setSelectedBankId] = useState('');
   const [manualTransferForm, setManualTransferForm] = useState({
     accountName: '',
@@ -85,7 +72,6 @@ const Quotation = () => {
   const [isSubmittingManual, setIsSubmittingManual] = useState(false);
   const [showManualTransferForm, setShowManualTransferForm] = useState(false);
 
-  // Filter states
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -97,7 +83,6 @@ const Quotation = () => {
   const [allItems, setAllItems] = useState([]);
   const [activeTab, setActiveTab] = useState('all');
 
-  // Company bank accounts
   const companyBanks = [
     { id: 'bpo', name: 'BPO', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
     { id: 'bpi', name: 'BPI', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
@@ -105,14 +90,12 @@ const Quotation = () => {
     { id: 'security_bank', name: 'Security Bank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' }
   ];
 
-  // Save scroll position before any update that might cause re-render
   const saveScrollPosition = useCallback(() => {
     if (scrollContainerRef.current) {
       scrollPositionRef.current = scrollContainerRef.current.scrollTop;
     }
   }, []);
 
-  // Restore scroll position after updates
   const restoreScrollPosition = useCallback(() => {
     if (scrollContainerRef.current) {
       requestAnimationFrame(() => {
@@ -123,7 +106,6 @@ const Quotation = () => {
     }
   }, []);
 
-  // Listen to scroll events to save position
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (container) {
@@ -296,7 +278,6 @@ const Quotation = () => {
 
     const invoiceType = item.invoiceType;
     const projectId = item.projectId;
-    const projectStatus = item.status;
     const paymentPlan = getProjectPaymentPlan(projectId);
 
     if (paymentPlan === 'full') {
@@ -471,7 +452,6 @@ const Quotation = () => {
     return parts.length > 0 ? parts.join(', ') : 'No address provided';
   };
 
-  // Validation functions
   const validateGCashReference = (reference) => {
     if (!reference) return 'GCash reference number is required';
     const cleanRef = reference.replace(/\s/g, '');
@@ -522,7 +502,7 @@ const Quotation = () => {
   };
 
   const validateBankAccountName = (name) => {
-    if (!name) return ''; // Optional field
+    if (!name) return '';
     if (!/^[a-zA-Z\s.]+$/.test(name)) {
       return 'Account name must contain only letters and spaces';
     }
@@ -553,24 +533,20 @@ const Quotation = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Get invoice creation date
     let creationDate;
     if (invoiceDate) {
       creationDate = new Date(invoiceDate);
       creationDate.setHours(0, 0, 0, 0);
     } else {
-      // If no invoice date, use 30 days ago as fallback
       creationDate = new Date();
       creationDate.setDate(creationDate.getDate() - 30);
       creationDate.setHours(0, 0, 0, 0);
     }
 
-    // Check if date is before creation date
     if (selectedDate < creationDate) {
       return `Transfer date cannot be before the invoice date (${creationDate.toLocaleDateString()})`;
     }
 
-    // Check if date is in the future
     if (selectedDate > today) {
       return 'Transfer date cannot be in the future';
     }
@@ -585,6 +561,11 @@ const Quotation = () => {
 
   const validateProofFile = (file) => {
     if (!file) return 'Please upload proof of payment';
+    return '';
+  };
+
+  const validateTransactionReference = (reference) => {
+    if (!reference) return 'Transaction reference number is required';
     return '';
   };
 
@@ -607,32 +588,23 @@ const Quotation = () => {
       setProofFile(file);
     }
   };
-  const validateTransactionReference = (reference) => {
-    if (!reference) return 'Transaction reference number is required';
-    return '';
-  };
 
   const handleSubmitManualTransfer = async () => {
-    // Clear previous validation errors
     setValidationErrors({});
 
     const dueAmount = parseFloat(selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount);
     const errors = {};
 
-    // Validate all fields
     if (!selectedBankId) {
       errors.bank = 'Please select a bank';
     }
 
-    // Only check if transaction reference is not empty
     const refError = validateTransactionReference(manualTransferForm.transactionReference);
     if (refError) errors.transactionReference = refError;
 
     const amountError = validateAmountSent(manualTransferForm.amount, dueAmount);
     if (amountError) errors.amount = amountError;
 
-
-    // Pass the invoice date to the validation
     const invoiceDate = selectedItem?.date || selectedItem?.bookedAt || selectedItem?.issueDate;
     const dateError = validateTransferDate(manualTransferForm.transferDate, invoiceDate);
     if (dateError) errors.transferDate = dateError;
@@ -647,7 +619,6 @@ const Quotation = () => {
 
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
-      // Show first error as toast
       const firstError = Object.values(errors)[0];
       showToast(firstError, 'warning');
       return;
@@ -729,7 +700,6 @@ const Quotation = () => {
       const cardExpiry = document.getElementById('card-expiry')?.value;
       const cardCvc = document.getElementById('card-cvc')?.value;
 
-      // Validate card details
       const errors = {};
       const cardNumError = validateCardNumber(cardNumber);
       if (cardNumError) errors.cardNumber = cardNumError;
@@ -818,7 +788,6 @@ const Quotation = () => {
       const cardExpiry = document.getElementById('full-card-expiry')?.value;
       const cardCvc = document.getElementById('full-card-cvc')?.value;
 
-      // Validate card details
       const errors = {};
       const cardNumError = validateCardNumber(cardNumber);
       if (cardNumError) errors.cardNumber = cardNumError;
@@ -915,7 +884,6 @@ const Quotation = () => {
     setTimeout(restoreScrollPosition, 0);
   };
 
-  // Card number input handler with auto-format
   const handleCardNumberInput = (e) => {
     const input = e.target;
     const oldValue = input.value;
@@ -924,14 +892,12 @@ const Quotation = () => {
     if (newValue !== oldValue) {
       const cursorPos = input.selectionStart;
       input.value = newValue;
-      // Adjust cursor position
       const diff = newValue.length - oldValue.length;
       const newCursorPos = cursorPos + diff;
       input.setSelectionRange(newCursorPos, newCursorPos);
     }
   };
 
-  // Expiry date input handler with auto-format
   const handleExpiryInput = (e) => {
     const input = e.target;
     const oldValue = input.value;
@@ -940,14 +906,12 @@ const Quotation = () => {
     if (newValue !== oldValue) {
       const cursorPos = input.selectionStart;
       input.value = newValue;
-      // Adjust cursor position
       const diff = newValue.length - oldValue.length;
       const newCursorPos = cursorPos + diff;
       input.setSelectionRange(newCursorPos, newCursorPos);
     }
   };
 
-  // CVC input handler - only numbers, max 3 digits
   const handleCVCInput = (e) => {
     const input = e.target;
     const oldValue = input.value;
@@ -975,7 +939,6 @@ const Quotation = () => {
         showToast('Please enter GCash reference number', 'warning');
         return;
       }
-      // Validate GCash reference
       const refError = validateGCashReference(paymentReference);
       if (refError) {
         showToast(refError, 'warning');
@@ -1076,7 +1039,6 @@ const Quotation = () => {
         showToast('Please enter GCash reference number', 'warning');
         return;
       }
-      // Validate GCash reference
       const refError = validateGCashReference(paymentReference);
       if (refError) {
         showToast(refError, 'warning');
@@ -1348,7 +1310,6 @@ const Quotation = () => {
                   {validationErrors.transactionReference && (
                     <small className="billing-customer-hint-text">{validationErrors.transactionReference}</small>
                   )}
-
                 </div>
               </div>
 
@@ -1368,7 +1329,6 @@ const Quotation = () => {
                   {validationErrors.amount && (
                     <small className="billing-customer-error-message">{validationErrors.amount}</small>
                   )}
-
                 </div>
               </div>
 
@@ -1480,50 +1440,134 @@ const Quotation = () => {
     return filteredItems;
   };
 
-  
-  // Add this function after your other helper functions
   const getVisibleItems = (items) => {
     return items.filter(item => {
-      // For project items, hide if Pay Now is disabled
       if (item.type === 'project' && (item.status === 'pending' || item.status === 'pending_payment')) {
         return !isPayNowDisabled(item);
       }
-      // For pre-assessments, always show
       if (item.type === 'pre-assessment' && (item.status === 'pending' || item.status === 'pending_payment')) {
         return true;
       }
-      // For non-pending items, always show
       return true;
     });
   };
 
-  // Replace the tabItems declaration
   const tabItems = getVisibleItems(getTabItems(activeTab));
 
+  // =========================================
+  // FIXED: DROPDOWN POSITIONING
+  // =========================================
+  
   const toggleDropdown = (itemId, event) => {
     if (activeDropdown === itemId) {
       setActiveDropdown(null);
     } else {
       const rect = event.currentTarget.getBoundingClientRect();
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
 
-      let top = rect.bottom + scrollTop + 4;
-      let left = rect.right + scrollLeft - 180;
+      const dropdownHeight = 180;
+      const dropdownWidth = 220;
 
-      if (left + 180 > window.innerWidth) {
-        left = rect.left + scrollLeft - 180 + 32;
+      // Use viewport coordinates directly (no scroll offset)
+      let top = rect.bottom + 4;
+      let left = rect.left;
+
+      // Calculate available space below and above in the viewport
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+
+      // Flip above if not enough space below
+      if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+        top = rect.top - dropdownHeight - 4;
       }
-      if (left < 10) left = 10;
 
-      if (top + 200 > window.innerHeight + scrollTop) {
-        top = rect.top + scrollTop - 200 - 4;
+      // Keep dropdown within viewport horizontally
+      if (left + dropdownWidth > window.innerWidth) {
+        left = Math.max(10, window.innerWidth - dropdownWidth - 10);
+      }
+
+      // Keep dropdown within viewport vertically
+      if (top < 10) {
+        top = 10;
+      }
+      if (top + dropdownHeight > window.innerHeight - 10) {
+        top = window.innerHeight - dropdownHeight - 10;
       }
 
       setDropdownPosition({ top, left });
       setActiveDropdown(itemId);
     }
   };
+
+  // Recalculate dropdown position on scroll when dropdown is open
+  useEffect(() => {
+    if (activeDropdown === null) return;
+
+    const handleScroll = () => {
+      // Find the active button element
+      const triggerButtons = document.querySelectorAll('.billing-customer-dropdown-trigger-btn');
+      let activeButton = null;
+      triggerButtons.forEach(btn => {
+        if (btn.closest('.billing-customer-dropdown-menu-container')) {
+          const container = btn.closest('.billing-customer-dropdown-menu-container');
+          if (container && container.querySelector('.billing-customer-dropdown-menu')) {
+            activeButton = btn;
+          }
+        }
+      });
+
+      if (!activeButton) return;
+
+      const rect = activeButton.getBoundingClientRect();
+      const dropdownHeight = 180;
+      const dropdownWidth = 220;
+
+      let top = rect.bottom + 4;
+      let left = rect.left;
+
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+
+      if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+        top = rect.top - dropdownHeight - 4;
+      }
+
+      if (left + dropdownWidth > window.innerWidth) {
+        left = Math.max(10, window.innerWidth - dropdownWidth - 10);
+      }
+
+      if (top < 10) {
+        top = 10;
+      }
+      if (top + dropdownHeight > window.innerHeight - 10) {
+        top = window.innerHeight - dropdownHeight - 10;
+      }
+
+      setDropdownPosition({ top, left });
+    };
+
+    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('resize', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [activeDropdown]);
+
+  // Auto-close dropdown on scroll
+  useEffect(() => {
+    if (activeDropdown === null) return;
+
+    const handleScroll = () => {
+      setActiveDropdown(null);
+    };
+
+    window.addEventListener('scroll', handleScroll, true);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [activeDropdown]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -1544,7 +1588,7 @@ const Quotation = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [activeDropdown]);
 
-  // Success Page Component (now rendered inside dashboard content)
+  // Success Page Component
   const SuccessPageContent = () => (
     <div className="billing-customer-success-page-content">
       <Helmet>
@@ -1587,7 +1631,7 @@ const Quotation = () => {
     </div>
   );
 
-  // Processing Modal - FIXED SPINNER (no double circle)
+  // Processing Modal
   const ProcessingModal = () => (
     <div className="billing-customer-processing-overlay">
       <div className="billing-customer-processing-modal">
@@ -1615,31 +1659,75 @@ const Quotation = () => {
     <>
       <Helmet><title>My Solar Journey | Salfer Engineering</title></Helmet>
 
-      {/* Processing Modal */}
       {showProcessingModal && <ProcessingModal />}
 
       <div className="billing-customer-container">
+
+        {/* STATS CARDS - 4 IN A ROW */}
+        <div className="billing-customer-stats-grid">
+          <div className="billing-customer-stat-card">
+            <div className="billing-customer-stat-label">Total Transactions</div>
+            <div className="billing-customer-stat-value">{stats.totalItems}</div>
+            <div className="billing-customer-stat-sub">All time</div>
+          </div>
+          <div className="billing-customer-stat-card">
+            <div className="billing-customer-stat-label">Pending</div>
+            <div className="billing-customer-stat-value">{stats.pendingItems}</div>
+            <div className="billing-customer-stat-sub">{formatCurrency(stats.pendingAmount)}</div>
+          </div>
+          <div className="billing-customer-stat-card">
+            <div className="billing-customer-stat-label">Paid</div>
+            <div className="billing-customer-stat-value">{stats.paidItems}</div>
+            <div className="billing-customer-stat-sub">Completed</div>
+          </div>
+          <div className="billing-customer-stat-card">
+            <div className="billing-customer-stat-label">For Verification</div>
+            <div className="billing-customer-stat-value">{stats.forVerificationItems}</div>
+            <div className="billing-customer-stat-sub">Pending review</div>
+          </div>
+        </div>
+
+        {/* TABS - WITHOUT BADGES/NUMBERS */}
         <div className="billing-customer-tabs">
           <button
             className={`billing-customer-tab-btn ${activeTab === 'all' ? 'active' : ''}`}
             onClick={() => setActiveTab('all')}
           >
-            All <span className="billing-customer-tab-badge">{stats.totalItems}</span>
+            All
           </button>
           <button
             className={`billing-customer-tab-btn ${activeTab === 'pre-assessment' ? 'active' : ''}`}
             onClick={() => setActiveTab('pre-assessment')}
           >
-            Pre-Assessments <span className="billing-customer-tab-badge">{filteredItems.filter(i => i.type === 'pre-assessment').length}</span>
+            Pre-Assessments
           </button>
           <button
             className={`billing-customer-tab-btn ${activeTab === 'project' ? 'active' : ''}`}
             onClick={() => setActiveTab('project')}
           >
-            Project Bills <span className="billing-customer-tab-badge">{filteredItems.filter(i => i.type === 'project').length}</span>
+            Project Bills
+          </button>
+          <button
+            className={`billing-customer-tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pending')}
+          >
+            Pending
+          </button>
+          <button
+            className={`billing-customer-tab-btn ${activeTab === 'paid' ? 'active' : ''}`}
+            onClick={() => setActiveTab('paid')}
+          >
+            Paid
+          </button>
+          <button
+            className={`billing-customer-tab-btn ${activeTab === 'for_verification' ? 'active' : ''}`}
+            onClick={() => setActiveTab('for_verification')}
+          >
+            Verifying
           </button>
         </div>
 
+        {/* FILTERS */}
         <div className="billing-customer-filters">
           <div className="billing-customer-filter-group">
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
@@ -1679,7 +1767,7 @@ const Quotation = () => {
           <p>Showing {tabItems.length} of {filteredItems.length} transaction(s)</p>
         </div>
 
-        {/* Table Container - Desktop */}
+        {/* TABLE CONTAINER - Desktop */}
         <div className="billing-customer-table-container">
           <div className="billing-customer-table-wrapper">
             {tabItems.length === 0 ? (
@@ -1705,7 +1793,6 @@ const Quotation = () => {
                     const isPaid = item.status === 'paid';
                     const isPending = item.status === 'pending' || item.status === 'pending_payment';
                     const isPayNowButtonDisabled = isPayNowDisabled(item);
-                    const disabledReason = getPayNowDisabledReason(item);
                     const hasReceipt = item.receiptUrl;
                     const isDropdownOpen = activeDropdown === item.id;
 
@@ -1740,7 +1827,6 @@ const Quotation = () => {
                         <td>
                           <div className="billing-customer-action-cell">
                             {isPending ? (
-                              // Only show Pay Now button if NOT disabled
                               !isPayNowButtonDisabled ? (
                                 <button
                                   className="billing-customer-paynow-btn"
@@ -1750,13 +1836,12 @@ const Quotation = () => {
                                   Pay Now
                                 </button>
                               ) : (
-                                // Show nothing when disabled (empty cell)
                                 <span className="billing-customer-no-action">—</span>
                               )
                             ) : isPaid ? (
                               <div className="billing-customer-dropdown-menu-container">
                                 <button
-                                  className="billing-customer-paynow-btn"
+                                  className="billing-customer-dropdown-trigger-btn"
                                   onClick={(e) => toggleDropdown(item.id, e)}
                                 >
                                   Action ▾
@@ -1766,13 +1851,18 @@ const Quotation = () => {
                                   <div
                                     className="billing-customer-dropdown-menu"
                                     style={{
+                                      position: 'fixed',
                                       top: dropdownPosition.top + 'px',
-                                      left: dropdownPosition.left + 'px'
+                                      left: dropdownPosition.left + 'px',
+                                      zIndex: 99999,
                                     }}
                                   >
                                     <button
-                                      className="billing-customer-dropdown-item"
-                                      onClick={() => handleViewDetails(item)}
+                                      className="billing-customer-dropdown-item view-details"
+                                      onClick={() => {
+                                        setActiveDropdown(null);
+                                        handleViewDetails(item);
+                                      }}
                                     >
                                       View Details
                                     </button>
@@ -1780,14 +1870,20 @@ const Quotation = () => {
                                     {hasReceipt && (
                                       <>
                                         <button
-                                          className="billing-customer-dropdown-item"
-                                          onClick={() => handleViewReceipt(item)}
+                                          className="billing-customer-dropdown-item view-receipt"
+                                          onClick={() => {
+                                            setActiveDropdown(null);
+                                            handleViewReceipt(item);
+                                          }}
                                         >
                                           View Receipt
                                         </button>
                                         <button
-                                          className="billing-customer-dropdown-item"
-                                          onClick={() => handleDownloadReceipt(item)}
+                                          className="billing-customer-dropdown-item download-receipt"
+                                          onClick={() => {
+                                            setActiveDropdown(null);
+                                            handleDownloadReceipt(item);
+                                          }}
                                         >
                                           Download Receipt
                                         </button>
@@ -1810,7 +1906,7 @@ const Quotation = () => {
           </div>
         </div>
 
-        {/* Mobile Cards */}
+        {/* MOBILE CARDS */}
         <div className="billing-customer-mobile-cards">
           {tabItems.length === 0 ? (
             <div className="billing-customer-empty-state">
@@ -1823,7 +1919,6 @@ const Quotation = () => {
               const isPaid = item.status === 'paid';
               const isPending = item.status === 'pending' || item.status === 'pending_payment';
               const isPayNowButtonDisabled = isPayNowDisabled(item);
-              const disabledReason = getPayNowDisabledReason(item);
               const hasReceipt = item.receiptUrl;
               const isDropdownOpen = activeDropdown === item.id;
 
@@ -1868,7 +1963,6 @@ const Quotation = () => {
                       <span className="billing-customer-transaction-name">{item.description}</span>
                     </div>
                     {isPending ? (
-                      // Only show Pay Now button if NOT disabled
                       !isPayNowButtonDisabled ? (
                         <button
                           className="billing-customer-paynow-btn"
@@ -1878,7 +1972,6 @@ const Quotation = () => {
                           Pay Now
                         </button>
                       ) : (
-                        // Show nothing when disabled
                         <span className="billing-customer-no-action">—</span>
                       )
                     ) : isPaid ? (
@@ -1894,13 +1987,18 @@ const Quotation = () => {
                           <div
                             className="billing-customer-dropdown-menu"
                             style={{
+                              position: 'fixed',
                               top: dropdownPosition.top + 'px',
-                              left: dropdownPosition.left + 'px'
+                              left: dropdownPosition.left + 'px',
+                              zIndex: 99999,
                             }}
                           >
                             <button
-                              className="billing-customer-dropdown-item"
-                              onClick={() => handleViewDetails(item)}
+                              className="billing-customer-dropdown-item view-details"
+                              onClick={() => {
+                                setActiveDropdown(null);
+                                handleViewDetails(item);
+                              }}
                             >
                               View Details
                             </button>
@@ -1908,14 +2006,20 @@ const Quotation = () => {
                             {hasReceipt && (
                               <>
                                 <button
-                                  className="billing-customer-dropdown-item"
-                                  onClick={() => handleViewReceipt(item)}
+                                  className="billing-customer-dropdown-item view-receipt"
+                                  onClick={() => {
+                                    setActiveDropdown(null);
+                                    handleViewReceipt(item);
+                                  }}
                                 >
                                   View Receipt
                                 </button>
                                 <button
-                                  className="billing-customer-dropdown-item"
-                                  onClick={() => handleDownloadReceipt(item)}
+                                  className="billing-customer-dropdown-item download-receipt"
+                                  onClick={() => {
+                                    setActiveDropdown(null);
+                                    handleDownloadReceipt(item);
+                                  }}
                                 >
                                   Download Receipt
                                 </button>
@@ -1934,7 +2038,7 @@ const Quotation = () => {
           )}
         </div>
 
-        {/* Full Payment Modal */}
+        {/* FULL PAYMENT MODAL */}
         {showFullPaymentModal && selectedItem && (
           <div className="billing-customer-modal-overlay" onClick={closeFullPaymentModal}>
             <div className="billing-customer-modal billing-customer-payment-modal" onClick={e => e.stopPropagation()}>
@@ -2065,7 +2169,7 @@ const Quotation = () => {
           </div>
         )}
 
-        {/* Payment Modal (Pre-assessment) */}
+        {/* PAYMENT MODAL (Pre-assessment) */}
         {showPaymentModal && selectedItem && (
           <div className="billing-customer-modal-overlay" onClick={closeModal}>
             <div className="billing-customer-modal billing-customer-payment-modal" onClick={e => e.stopPropagation()}>
@@ -2193,7 +2297,7 @@ const Quotation = () => {
           </div>
         )}
 
-        {/* Details Modal */}
+        {/* DETAILS MODAL */}
         {showDetailsModal && detailsItem && (
           <div className="billing-customer-modal-overlay" onClick={() => setShowDetailsModal(false)}>
             <div className="billing-customer-modal billing-customer-details-modal" onClick={e => e.stopPropagation()}>

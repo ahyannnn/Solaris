@@ -1,1998 +1,1363 @@
-/* src/styles/Admin/siteassessment.css */
+/* styles/Admin/siteassessment.css - Dark Solar Theme for Site Assessment */
 
-/* =========================================
-   PREMIUM SAAS ADMIN DASHBOARD - SITE ASSESSMENT
-   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
-:root {
-  --primary-blue: #2563eb;
-  --primary-blue-light: #dbeafe;
-  --indigo: #6366f1;
-  --indigo-light: #e0e7ff;
-  --emerald: #10b981;
-  --emerald-light: #d1fae5;
-  
-  --gray-50: #f8fafc;
-  --gray-100: #f1f5f9;
-  --gray-200: #e2e8f0;
-  --gray-300: #cbd5e1;
-  --gray-500: #64748b;
-  --gray-700: #334155;
-  --gray-900: #0f172a;
-  
-  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-  --border-radius: 16px;
-}
-
-/* --- Base Reset & Layout --- */
-.site-assessment-adminsiteassess {
-  background-color: var(--gray-50);
+/* ============================================
+   BASE LAYOUT - SITE ASSESSMENT
+   ============================================ */
+.site-assessment-adminbills_ {
+  background: #0B111A;
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: var(--gray-900);
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #FFFFFF;
 }
 
-/* --- Header (Minimal) --- */
-.header-adminsiteassess {
+/* ============================================
+   HEADER
+   ============================================ */
+.header-adminbills_ {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  height: 5px; /* Minimal spacing */
-}
-
-/* --- Chart Area (Colorful & Modern) --- */
-.chart-area-adminsiteassess {
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
-  border-radius: var(--border-radius);
-  padding: 24px;
-  margin-bottom: 16px; /* Decreased gap */
-  box-shadow: var(--card-shadow);
-  height: 260px;
-  display: flex;
-  flex-direction: column;
-  transition: box-shadow 0.3s ease;
-}
-
-.chart-area-adminsiteassess:hover {
-  box-shadow: var(--card-hover-shadow);
-}
-
-.chart-header-adminsiteassess {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.chart-header-adminsiteassess h3 {
-  font-size: 16px;
-  font-weight: 700;
-  margin: 0;
-  color: var(--gray-900);
-  letter-spacing: -0.01em;
-}
-
-.chart-period-adminsiteassess {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--gray-500);
-  background: var(--gray-100);
-  padding: 4px 12px;
-  border-radius: 20px;
-}
-
-.chart-wrapper-adminsiteassess {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-}
-
-/* Recharts Tooltip */
-.recharts-custom-tooltip-adminsiteassess {
-  background: #FFFFFF;
-  padding: 10px 14px;
-  border-radius: 10px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--gray-200);
-}
-.tooltip-label-adminsiteassess { 
-  font-weight: 600; 
-  font-size: 13px; 
-  margin: 0 0 6px 0; 
-  color: var(--gray-900); 
-  border-bottom: 1px solid var(--gray-200);
-  padding-bottom: 4px;
-}
-.tooltip-item-adminsiteassess { 
-  font-size: 13px; 
-  margin: 2px 0; 
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.tooltip-item-adminsiteassess::before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: currentColor;
-}
-
-/* --- Tabs (Placed below chart) --- */
-.tabs-adminsiteassess {
-  display: flex;
-  gap: 0px;
-  border-bottom: 1px solid var(--gray-200);
-  margin-bottom: 16px; /* Decreased gap */
-}
-
-.tab-btn-adminsiteassess {
-  background: transparent;
-  border: none;
-  padding: 14px 24px;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--gray-500);
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.tab-btn-adminsiteassess:hover {
-  color: var(--primary-blue);
-}
-
-.tab-btn-adminsiteassess.active-adminsiteassess {
-  color: var(--primary-blue);
-  font-weight: 600;
-}
-
-.tab-btn-adminsiteassess.active-adminsiteassess::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 24px;
-  right: 24px;
-  height: 3px;
-  background-color: var(--primary-blue);
-  border-radius: 10px 10px 0 0;
-}
-
-.tab-badge-adminsiteassess {
-  background-color: var(--gray-100);
-  color: var(--gray-500);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 2px 10px;
-  border-radius: 50px;
-}
-
-.tab-btn-adminsiteassess.active-adminsiteassess .tab-badge-adminsiteassess {
-  background-color: var(--primary-blue-light);
-  color: var(--primary-blue);
-}
-
-/* --- Toolbar --- */
-.toolbar-adminsiteassess {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 16px; /* Decreased gap */
+  padding: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
-.search-group-adminsiteassess {
-  flex: 1;
-  min-width: 250px;
-  position: relative;
+/* ============================================
+   CHART AREA
+   ============================================ */
+.chart-area-adminbills_ {
+  background: #1A2533;
+  border-radius: 14px;
+  padding: 20px 24px 16px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  margin-bottom: 24px;
+  transition: all 200ms ease;
 }
 
-.search-icon-adminsiteassess {
+.chart-area-adminbills_:hover {
+  border-color: rgba(243, 156, 18, 0.1);
+}
+
+.chart-header-adminbills_ {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chart-header-adminbills_ h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.chart-period-adminbills_ {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.chart-wrapper-adminbills_ {
+  height: 220px;
+}
+
+/* Chart Tooltip */
+.recharts-custom-tooltip-adminbills_ {
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.tooltip-label-adminbills_ {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 4px 0;
+}
+
+.tooltip-item-adminbills_ {
+  font-size: 13px;
+  font-weight: 500;
+  margin: 2px 0;
+  color: #FFFFFF;
+}
+
+/* ============================================
+   TABS
+   ============================================ */
+.tabs-adminbills_ {
+  display: inline-flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  background: #1A2533;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  width: auto;
+}
+
+.tab-btn-adminbills_ {
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 200ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
+}
+
+.tab-btn-adminbills_:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn-adminbills_.active-adminbills_ {
+  background: #F39C12;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+}
+
+.tab-badge-adminbills_ {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.tab-btn-adminbills_.active-adminbills_ .tab-badge-adminbills_ {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+}
+
+/* ============================================
+   TOOLBAR
+   ============================================ */
+.toolbar-adminbills_ {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-group-adminbills_ {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 380px;
+}
+
+.search-group-adminbills_ input {
+  width: 100%;
+  padding: 10px 14px 10px 40px;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  font-size: 14px;
+  color: #FFFFFF;
+  font-family: 'Poppins', sans-serif;
+  transition: all 200ms ease;
+}
+
+.search-group-adminbills_ input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.search-group-adminbills_ input:focus {
+  outline: none;
+  border-color: #F39C12;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+}
+
+.search-icon-adminbills_ {
   position: absolute;
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--gray-500);
+  color: rgba(255, 255, 255, 0.3);
   font-size: 14px;
 }
 
-.search-group-adminsiteassess input {
-  width: 100%;
-  padding: 12px 14px 12px 42px;
-  border: 1px solid var(--gray-200);
-  border-radius: 10px;
-  font-size: 14px;
-  background: #FFFFFF;
-  color: var(--gray-900);
-  outline: none;
-  transition: all 0.2s ease;
-}
-
-.search-group-adminsiteassess input:focus {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 4px var(--primary-blue-light);
-}
-
-.search-group-adminsiteassess input::placeholder {
-  color: var(--gray-500);
-}
-
-.filter-group-adminsiteassess {
+.filter-group-adminbills_ {
   position: relative;
+  min-width: 160px;
 }
 
-.filter-group-adminsiteassess select {
-  appearance: none;
-  padding: 12px 44px 12px 16px;
-  border: 1px solid var(--gray-200);
+.filter-group-adminbills_ select {
+  width: 100%;
+  padding: 10px 36px 10px 14px;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
   font-size: 14px;
-  font-weight: 500;
-  background: #FFFFFF;
-  color: var(--gray-900);
-  outline: none;
+  color: #FFFFFF;
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 150px;
+  font-family: 'Poppins', sans-serif;
+  appearance: none;
+  transition: all 200ms ease;
 }
 
-.filter-group-adminsiteassess select:focus {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 4px var(--primary-blue-light);
+.filter-group-adminbills_ select:focus {
+  outline: none;
+  border-color: #F39C12;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 
-.select-arrow-adminsiteassess {
+.filter-group-adminbills_ select option {
+  background: #1A2533;
+  color: #FFFFFF;
+}
+
+.select-arrow-adminbills_ {
   position: absolute;
-  right: 16px;
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--gray-500);
+  color: rgba(255, 255, 255, 0.3);
   pointer-events: none;
   font-size: 12px;
 }
 
-.refresh-btn-adminsiteassess {
-  display: flex;
+.refresh-btn-adminbills_ {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 20px;
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
+  padding: 10px 18px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
 }
 
-.refresh-btn-adminsiteassess:hover {
-  background: var(--gray-100);
-  border-color: var(--gray-300);
-  color: var(--gray-900);
+.refresh-btn-adminbills_:hover {
+  background: #131C28;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
 }
 
-@keyframes spin-adminsiteassess {
-  from { transform: rotate(0deg); }
+.spinning-adminbills_ {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-.spinning-adminsiteassess {
-  animation: spin-adminsiteassess 1s linear infinite;
-}
-
-/* --- Table (Strictly Sharp Corners) --- */
-.table-container-adminsiteassess {
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
-  border-radius: 0; /* REMOVED ROUND CORNERS */
+/* ============================================
+   TABLE
+   ============================================ */
+.table-container-adminbills_ {
+  background: #1A2533;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   overflow: hidden;
-  box-shadow: var(--card-shadow);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-.data-table-adminsiteassess {
+.data-table-adminbills_ {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
-}
-
-.data-table-adminsiteassess thead {
-  background: var(--primary-blue);
-  border-bottom: 1px solid var(--gray-200);
-}
-
-.data-table-adminsiteassess th {
-  text-align: left;
-  padding: 14px 18px;
-  font-weight: 600;
-  color: #FFFFFF;
   font-size: 13px;
+}
+
+.data-table-adminbills_ thead {
+  background: #131C28;
+}
+
+.data-table-adminbills_ thead th {
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.data-table-adminsiteassess tbody tr {
-  border-bottom: 1px solid var(--gray-100);
-  transition: all 0.15s ease;
+.data-table-adminbills_ tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 200ms ease;
 }
 
-.data-table-adminsiteassess tbody tr:last-child {
+.data-table-adminbills_ tbody tr:last-child {
   border-bottom: none;
 }
 
-.data-table-adminsiteassess tbody tr:hover {
-  background-color: var(--gray-50);
+.data-table-adminbills_ tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
 }
 
-/* Alternating rows */
-.data-table-adminsiteassess tbody tr:nth-child(even) {
-  background-color: #FAFBFC;
-}
-.data-table-adminsiteassess tbody tr:nth-child(even):hover {
-  background-color: var(--gray-100);
-}
-
-.data-table-adminsiteassess td {
-  padding: 14px 18px; 
-  color: var(--gray-700);
+.data-table-adminbills_ tbody td {
+  padding: 14px 16px;
   vertical-align: middle;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.ref-cell-adminsiteassess {
-  font-weight: 600;
-  color: var(--gray-900);
+.ref-cell-adminbills_ {
+  font-weight: 500;
+  color: #FFFFFF;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.client-cell-adminbills_ {
+  font-weight: 500;
+  color: #FFFFFF;
+}
+
+.contact-info-adminbills_ {
   font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.amount-cell-adminsiteassess {
-  font-weight: 600;
-  color: var(--gray-900);
-}
-
-.email-cell-adminsiteassess {
+.email-cell-adminbills_ {
   font-size: 12px;
-  color: var(--gray-500);
-  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.3);
 }
 
-.contact-info-adminsiteassess {
-  font-size: 14px;
+.amount-cell-adminbills_ {
+  font-weight: 600;
+  color: #FFFFFF;
 }
 
-.empty-state-adminsiteassess {
-  text-align: center;
-  padding: 48px 20px;
-  color: var(--gray-500);
-  font-size: 15px;
-}
-
-/* --- Status Badges (Clean & Simple) --- */
-.status-badge-adminsiteassess {
+/* ============================================
+   STATUS BADGES
+   ============================================ */
+.status-badge-adminbills_ {
   display: inline-block;
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 12px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 11px;
   font-weight: 600;
-  background: var(--gray-100);
-  color: var(--gray-700);
-  text-transform: capitalize;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
-/* --- Action Dropdown --- */
-.action-dropdown-container-adminsiteassess {
+.status-badge-adminbills_.pending,
+.status-badge-adminbills_.pending-payment,
+.status-badge-adminbills_.pending-review,
+.status-badge-adminbills_.for-verification {
+  background: rgba(243, 156, 18, 0.12);
+  color: #F39C12;
+  border: 1px solid rgba(243, 156, 18, 0.2);
+}
+
+.status-badge-adminbills_.assigned,
+.status-badge-adminbills_.scheduled {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.status-badge-adminbills_.processing,
+.status-badge-adminbills_.site-visit-ongoing {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8B5CF6;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.status-badge-adminbills_.paid,
+.status-badge-adminbills_.completed,
+.status-badge-adminbills_.approved,
+.status-badge-adminbills_.accepted {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-badge-adminbills_.cancelled,
+.status-badge-adminbills_.overdue {
+  background: rgba(239, 68, 68, 0.12);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.status-badge-adminbills_.quoted {
+  background: rgba(243, 156, 18, 0.12);
+  color: #F39C12;
+  border: 1px solid rgba(243, 156, 18, 0.2);
+}
+
+.status-badge-adminbills_.verifying {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.status-badge-adminbills_.inprogress {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8B5CF6;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.status-badge-adminbills_.partial {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+/* ============================================
+   ACTION DROPDOWN
+   ============================================ */
+.action-dropdown-container-adminbills_ {
   position: relative;
   display: inline-block;
 }
 
-.action-dropdown-toggle-adminsiteassess {
-  display: flex;
+.action-dropdown-toggle-adminbills_ {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
+  gap: 8px;
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
-.action-dropdown-toggle-adminsiteassess:hover {
-  background: var(--gray-50);
-  border-color: var(--gray-300);
-  color: var(--gray-900);
+.action-dropdown-toggle-adminbills_:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
 }
 
-.dropdown-arrow-adminsiteassess {
+.dropdown-arrow-adminbills_ {
   font-size: 10px;
-  transition: transform 0.2s ease;
+  transition: transform 200ms ease;
 }
 
-.dropdown-arrow-adminsiteassess.open-adminsiteassess {
+.dropdown-arrow-adminbills_.open-adminbills_ {
   transform: rotate(180deg);
 }
 
-.action-dropdown-menu-adminsiteassess {
-  min-width: 180px;
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
+.action-dropdown-menu-adminbills_ {
+  min-width: 200px;
+  max-width: 250px;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
-  padding: 6px 0;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  padding: 6px;
+  backdrop-filter: blur(10px);
   overflow: hidden;
-}
-
-.dropdown-item-adminsiteassess {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 10px 16px;
-  background: transparent;
-  border: none;
-  font-size: 14px;
-  color: var(--gray-700);
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-  text-align: left;
-}
-
-.dropdown-item-adminsiteassess:hover:not(.disabled-adminsiteassess) {
-  background: var(--gray-50);
-}
-
-.dropdown-item-adminsiteassess svg {
-  font-size: 14px;
-  color: var(--gray-500);
-  width: 16px;
-  text-align: center;
-}
-
-.dropdown-item-adminsiteassess.disabled-adminsiteassess {
-  color: var(--gray-300);
-  cursor: default;
-}
-
-.dropdown-item-adminsiteassess.disabled-adminsiteassess svg {
-  color: var(--gray-300);
-}
-
-/* --- Pagination --- */
-.pagination-adminsiteassess {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 0 0 0; /* Decreased top padding */
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.pagination-info-adminsiteassess {
-  color: var(--gray-500);
-  font-size: 14px;
-}
-
-.pagination-controls-adminsiteassess {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.page-btn-adminsiteassess {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--gray-700);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.page-btn-adminsiteassess:hover:not(:disabled) {
-  background: var(--gray-50);
-  border-color: var(--primary-blue);
-  color: var(--primary-blue);
-}
-
-.page-btn-adminsiteassess:disabled {
-  opacity: 0.5;
-  cursor: default;
-  border-color: var(--gray-100);
-}
-
-.page-number-adminsiteassess {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 36px;
-  height: 36px;
-  padding: 0 8px;
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
-  border-radius: 8px;
-  font-size: 14px;
-  color: var(--gray-700);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.page-number-adminsiteassess:hover:not(.active-adminsiteassess) {
-  background: var(--gray-50);
-  border-color: var(--gray-300);
-}
-
-.page-number-adminsiteassess.active-adminsiteassess {
-  background: var(--primary-blue);
-  color: #FFFFFF;
-  border-color: var(--primary-blue);
-  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
-}
-
-/* --- Modals --- */
-.modal-overlay-adminsiteassess {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(6px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9998;
-}
-
-.modal-adminsiteassess {
-  background: #FFFFFF;
-  border-radius: var(--border-radius);
-  max-width: 600px;
-  width: 90%;
-  max-height: 90vh;
+  max-height: 300px;
   overflow-y: auto;
-  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
-  padding: 0;
 }
 
-.modal-header-adminsiteassess {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 28px;
-  border-bottom: 1px solid var(--gray-200);
+.action-dropdown-menu-adminbills_::-webkit-scrollbar {
+  width: 3px;
 }
 
-.modal-header-adminsiteassess h3 {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
-  color: var(--gray-900);
-}
-
-.modal-close-adminsiteassess {
-  background: var(--gray-100);
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-size: 18px;
-  color: var(--gray-500);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.modal-close-adminsiteassess:hover {
-  background: var(--gray-200);
-  color: var(--gray-900);
-}
-
-.modal-body-adminsiteassess {
-  padding: 28px;
-}
-
-.detail-row-adminsiteassess {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--gray-100);
-}
-
-.detail-row-adminsiteassess:last-child {
-  border-bottom: none;
-}
-
-.detail-row-adminsiteassess span {
-  color: var(--gray-500);
-}
-
-.detail-section-adminsiteassess {
-  margin-bottom: 24px;
-}
-
-.detail-section-adminsiteassess h4 {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--gray-500);
-  margin: 0 0 14px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.detail-section-adminsiteassess p {
-  margin: 6px 0;
-  font-size: 14px;
-  color: var(--gray-700);
-}
-
-.detail-section-adminsiteassess p strong {
-  font-weight: 600;
-  color: var(--gray-900);
-  margin-right: 6px;
-}
-
-.form-group-adminsiteassess {
-  margin-top: 20px;
-}
-
-.form-group-adminsiteassess label {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--gray-700);
-}
-
-.form-group-adminsiteassess textarea,
-.form-group-adminsiteassess input[type="text"],
-.form-group-adminsiteassess input[type="date"],
-.form-group-adminsiteassess select {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--gray-200);
-  border-radius: 10px;
-  font-size: 14px;
-  background: #FFFFFF;
-  outline: none;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-}
-
-.form-group-adminsiteassess textarea:focus,
-.form-group-adminsiteassess input:focus,
-.form-group-adminsiteassess select:focus {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 4px var(--primary-blue-light);
-}
-
-.info-box-adminsiteassess {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 14px;
-  background: var(--gray-50);
-  border-radius: 10px;
-  border: 1px solid var(--gray-200);
-  margin-top: 20px;
-  color: var(--gray-500);
-  font-size: 13px;
-}
-
-.info-box-adminsiteassess svg {
-  margin-top: 2px;
-  color: var(--primary-blue);
-}
-
-.modal-actions-adminsiteassess {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 20px 28px;
-  border-top: 1px solid var(--gray-200);
-}
-
-.modal-actions-adminsiteassess button {
-  padding: 10px 24px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  border: 1px solid var(--gray-200);
-  background: #FFFFFF;
-  color: var(--gray-700);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.modal-actions-adminsiteassess button:hover:not(:disabled) {
-  background: var(--gray-50);
-}
-
-.modal-actions-adminsiteassess button:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.cancel-btn-adminsiteassess {
-  background: #FFFFFF;
-}
-
-.approve-btn-adminsiteassess, .verify-btn-adminsiteassess, .assign-btn-adminsiteassess, .upload-btn-adminsiteassess {
-  background: var(--primary-blue) !important;
-  color: #FFFFFF !important;
-  border-color: var(--primary-blue) !important;
-  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.15) !important;
-}
-
-.approve-btn-adminsiteassess:hover, .verify-btn-adminsiteassess:hover, .assign-btn-adminsiteassess:hover, .upload-btn-adminsiteassess:hover {
-  background: #1d4ed8 !important;
-  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.25) !important;
-}
-
-.reject-btn-adminsiteassess {
-  background: #FEF2F2 !important;
-  color: #DC2626 !important;
-  border-color: #FECACA !important;
-}
-
-.reject-btn-adminsiteassess:hover {
-  background: #FEE2E2 !important;
-}
-
-/* Engineer Grid inside Modal */
-.engineer-grid-adminsiteassess {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 6px;
-}
-
-.engineer-card-adminsiteassess {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px;
-  border: 1px solid var(--gray-200);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: #FFFFFF;
-}
-
-.engineer-card-adminsiteassess:hover {
-  background: var(--gray-50);
-  border-color: var(--gray-300);
-}
-
-.engineer-card-adminsiteassess.selected-adminsiteassess {
-  border-color: var(--primary-blue);
-  background: var(--primary-blue-light);
-  box-shadow: 0 0 0 4px var(--primary-blue-light);
-}
-
-.engineer-avatar-adminsiteassess {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--gray-200);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  color: var(--gray-500);
-  font-size: 14px;
-  flex-shrink: 0;
-}
-
-.engineer-info-adminsiteassess {
-  flex: 1;
-  min-width: 0;
-}
-
-.engineer-name-adminsiteassess {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--gray-900);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.engineer-email-adminsiteassess {
-  font-size: 12px;
-  color: var(--gray-500);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.engineer-selected-badge-adminsiteassess {
-  color: var(--primary-blue);
-  font-size: 18px;
-}
-
-.no-engineers-adminsiteassess {
-  grid-column: 1 / -1;
-  padding: 20px;
-  text-align: center;
-  color: var(--gray-500);
-  background: var(--gray-50);
-  border-radius: 10px;
-  border: 1px dashed var(--gray-300);
-}
-
-/* --- Skeleton Loaders --- */
-.skeleton-title-adminsiteassess { height: 28px; width: 200px; background: var(--gray-200); border-radius: 4px; margin-bottom: 8px; }
-.skeleton-subtitle-adminsiteassess { height: 16px; width: 300px; background: var(--gray-200); border-radius: 4px; }
-.skeleton-tab-adminsiteassess { height: 40px; width: 120px; background: var(--gray-200); border-radius: 4px; margin-right: 16px; }
-.skeleton-chart-adminsiteassess { height: 200px; background: var(--gray-200); border-radius: var(--border-radius); margin-bottom: 16px; }
-.skeleton-table-adminsiteassess { height: 400px; background: var(--gray-200); border-radius: 0; }
-
-@keyframes shimmer-adminsiteassess {
-  0% { background-position: -200px 0; }
-  100% { background-position: 200px 0; }
-}
-.skeleton-title-adminsiteassess, .skeleton-subtitle-adminsiteassess, .skeleton-tab-adminsiteassess, .skeleton-chart-adminsiteassess, .skeleton-table-adminsiteassess {
-  background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
-  background-size: 200px 100%;
-  animation: shimmer-adminsiteassess 1.5s infinite;
-}
-
-/* --- Responsive Tweaks --- */
-@media (max-width: 1024px) {
-  .site-assessment-adminsiteassess { padding: 16px 24px; }
-  .engineer-grid-adminsiteassess { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 768px) {
-  .site-assessment-adminsiteassess { padding: 16px; }
-  .toolbar-adminsiteassess { flex-direction: column; align-items: stretch; }
-  .search-group-adminsiteassess { min-width: auto; }
-  .pagination-adminsiteassess { flex-direction: column; align-items: stretch; gap: 12px; }
-  .pagination-controls-adminsiteassess { justify-content: center; flex-wrap: wrap; }
-  .data-table-adminsiteassess { font-size: 13px; }
-  .data-table-adminsiteassess th, .data-table-adminsiteassess td { padding: 12px 12px; }
-  .modal-adminsiteassess { width: 95%; }
-  .modal-actions-adminsiteassess { flex-direction: column-reverse; }
-  .modal-actions-adminsiteassess button { width: 100%; justify-content: center; }
-  .chart-area-adminsiteassess { height: 220px; }
-}
-/* --- Toolbar --- */
-.toolbar-adminsiteassess {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
-  flex-wrap: nowrap;
-}
-
-.search-group-adminsiteassess {
-  flex: 0 0 280px;
-  max-width: 320px;
-  position: relative;
-}
-
-.search-icon-adminsiteassess {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--gray-500);
-  font-size: 14px;
-}
-
-.search-group-adminsiteassess input {
-  width: 100%;
-  padding: 12px 14px 12px 42px;
-  border: 1px solid var(--gray-200);
-  border-radius: 10px;
-  font-size: 14px;
-  background: #FFFFFF;
-  color: var(--gray-900);
-  outline: none;
-  transition: all 0.2s ease;
-}
-
-.search-group-adminsiteassess input:focus {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 4px var(--primary-blue-light);
-}
-
-.search-group-adminsiteassess input::placeholder {
-  color: var(--gray-500);
-}
-
-.filter-group-adminsiteassess {
-  flex: 0 0 auto;
-  position: relative;
-}
-
-.filter-group-adminsiteassess select {
-  appearance: none;
-  padding: 12px 44px 12px 16px;
-  border: 1px solid var(--gray-200);
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  background: #FFFFFF;
-  color: var(--gray-900);
-  outline: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 150px;
-}
-
-.filter-group-adminsiteassess select:focus {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 4px var(--primary-blue-light);
-}
-
-.select-arrow-adminsiteassess {
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--gray-500);
-  pointer-events: none;
-  font-size: 12px;
-}
-
-.refresh-btn-adminsiteassess {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--gray-700);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.refresh-btn-adminsiteassess:hover {
-  background: var(--gray-100);
-  border-color: var(--gray-300);
-  color: var(--gray-900);
-}
-
-/* ============================================
-   ADDITIONAL MOBILE RESPONSIVE FIXES
-   ============================================ */
-
-/* --- Mobile First Improvements --- */
-@media (max-width: 768px) {
-  /* Main container padding */
-  .site-assessment-adminsiteassess {
-    padding: 12px !important;
-  }
-
-  /* Chart area adjustments */
-  .chart-area-adminsiteassess {
-    height: 200px !important;
-    padding: 16px !important;
-    margin-bottom: 12px !important;
-  }
-
-  .chart-header-adminsiteassess h3 {
-    font-size: 14px !important;
-  }
-
-  .chart-period-adminsiteassess {
-    font-size: 11px !important;
-    padding: 2px 10px !important;
-  }
-
-  /* Toolbar - full width on mobile */
-  .toolbar-adminsiteassess {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 10px !important;
-    margin-bottom: 12px !important;
-  }
-
-  .search-group-adminsiteassess {
-    flex: 1 1 auto !important;
-    max-width: 100% !important;
-    min-width: auto !important;
-  }
-
-  .filter-group-adminsiteassess {
-    flex: 1 1 auto !important;
-    width: 100% !important;
-  }
-
-  .filter-group-adminsiteassess select {
-    width: 100% !important;
-    min-width: auto !important;
-  }
-
-  .refresh-btn-adminsiteassess {
-    flex: 1 1 auto !important;
-    justify-content: center !important;
-    width: 100% !important;
-  }
-
-  /* Tabs - scrollable on mobile */
-  .tabs-adminsiteassess {
-    overflow-x: auto !important;
-    flex-wrap: nowrap !important;
-    gap: 0 !important;
-    margin-bottom: 12px !important;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-
-  .tabs-adminsiteassess::-webkit-scrollbar {
-    display: none;
-  }
-
-  .tab-btn-adminsiteassess {
-    padding: 10px 16px !important;
-    font-size: 13px !important;
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
-  }
-
-  .tab-btn-adminsiteassess.active-adminsiteassess::after {
-    left: 16px !important;
-    right: 16px !important;
-  }
-
-  .tab-badge-adminsiteassess {
-    font-size: 10px !important;
-    padding: 1px 8px !important;
-  }
-
-  /* Table - horizontal scroll */
-  .table-container-adminsiteassess {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
-    margin: 0 -4px !important;
-    border-radius: 0 !important;
-  }
-
-  .data-table-adminsiteassess {
-    font-size: 12px !important;
-    min-width: 700px !important;
-  }
-
-  .data-table-adminsiteassess th,
-  .data-table-adminsiteassess td {
-    padding: 10px 12px !important;
-    font-size: 12px !important;
-  }
-
-  .data-table-adminsiteassess th {
-    font-size: 11px !important;
-    padding: 10px 12px !important;
-  }
-
-  .ref-cell-adminsiteassess {
-    font-size: 12px !important;
-  }
-
-  .amount-cell-adminsiteassess {
-    font-size: 12px !important;
-  }
-
-  .email-cell-adminsiteassess {
-    font-size: 10px !important;
-  }
-
-  .contact-info-adminsiteassess {
-    font-size: 12px !important;
-  }
-
-  /* Action dropdown button on mobile */
-  .action-dropdown-toggle-adminsiteassess {
-    padding: 4px 10px !important;
-    font-size: 12px !important;
-  }
-
-  .action-dropdown-toggle-adminsiteassess span {
-    display: none !important;
-  }
-
-  .action-dropdown-toggle-adminsiteassess svg {
-    font-size: 12px !important;
-  }
-
-  /* Status badges */
-  .status-badge-adminsiteassess {
-    font-size: 10px !important;
-    padding: 3px 8px !important;
-  }
-
-  /* Pagination */
-  .pagination-adminsiteassess {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 12px !important;
-    padding: 12px 0 0 0 !important;
-  }
-
-  .pagination-info-adminsiteassess {
-    text-align: center !important;
-    font-size: 12px !important;
-  }
-
-  .pagination-controls-adminsiteassess {
-    justify-content: center !important;
-    flex-wrap: wrap !important;
-    gap: 4px !important;
-  }
-
-  .page-btn-adminsiteassess {
-    padding: 6px 12px !important;
-    font-size: 12px !important;
-  }
-
-  .page-number-adminsiteassess {
-    min-width: 30px !important;
-    height: 30px !important;
-    font-size: 12px !important;
-    padding: 0 6px !important;
-  }
-
-  /* Modals */
-  .modal-adminsiteassess {
-    max-width: 95% !important;
-    max-height: 95vh !important;
-    border-radius: 12px !important;
-  }
-
-  .modal-header-adminsiteassess {
-    padding: 16px 20px !important;
-  }
-
-  .modal-header-adminsiteassess h3 {
-    font-size: 17px !important;
-  }
-
-  .modal-body-adminsiteassess {
-    padding: 20px !important;
-  }
-
-  .modal-actions-adminsiteassess {
-    flex-direction: column-reverse !important;
-    padding: 16px 20px !important;
-    gap: 8px !important;
-  }
-
-  .modal-actions-adminsiteassess button {
-    width: 100% !important;
-    justify-content: center !important;
-    padding: 12px !important;
-    font-size: 14px !important;
-  }
-
-  .detail-row-adminsiteassess {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 4px !important;
-    padding: 8px 0 !important;
-  }
-
-  .detail-row-adminsiteassess span {
-    font-size: 12px !important;
-  }
-
-  .detail-row-adminsiteassess strong {
-    font-size: 14px !important;
-  }
-
-  /* Engineer grid */
-  .engineer-grid-adminsiteassess {
-    grid-template-columns: 1fr !important;
-    gap: 8px !important;
-  }
-
-  .engineer-card-adminsiteassess {
-    padding: 10px 12px !important;
-  }
-
-  .engineer-avatar-adminsiteassess {
-    width: 32px !important;
-    height: 32px !important;
-    font-size: 12px !important;
-  }
-
-  .engineer-name-adminsiteassess {
-    font-size: 13px !important;
-  }
-
-  .engineer-email-adminsiteassess {
-    font-size: 11px !important;
-  }
-
-  /* Form elements */
-  .form-group-adminsiteassess label {
-    font-size: 13px !important;
-  }
-
-  .form-group-adminsiteassess textarea,
-  .form-group-adminsiteassess input[type="text"],
-  .form-group-adminsiteassess input[type="date"],
-  .form-group-adminsiteassess select {
-    padding: 10px 12px !important;
-    font-size: 13px !important;
-  }
-
-  .info-box-adminsiteassess {
-    font-size: 12px !important;
-    padding: 12px !important;
-  }
-
-  /* Overlay */
-  .modal-overlay-adminsiteassess {
-    padding: 16px !important;
-    backdrop-filter: blur(4px) !important;
-  }
-
-  .action-dropdown-menu-adminsiteassess {
-    min-width: 160px !important;
-    max-width: 200px !important;
-    border-radius: 8px !important;
-  }
-
-  .dropdown-item-adminsiteassess {
-    padding: 8px 14px !important;
-    font-size: 13px !important;
-  }
-
-  .dropdown-item-adminsiteassess svg {
-    font-size: 13px !important;
-  }
-}
-
-/* --- Extra small devices (phones < 480px) --- */
-@media (max-width: 480px) {
-  .site-assessment-adminsiteassess {
-    padding: 8px !important;
-  }
-
-  .chart-area-adminsiteassess {
-    height: 180px !important;
-    padding: 12px !important;
-  }
-
-  .chart-header-adminsiteassess h3 {
-    font-size: 12px !important;
-  }
-
-  .chart-period-adminsiteassess {
-    font-size: 9px !important;
-    padding: 2px 8px !important;
-  }
-
-  .tab-btn-adminsiteassess {
-    padding: 8px 12px !important;
-    font-size: 11px !important;
-  }
-
-  .tab-badge-adminsiteassess {
-    font-size: 9px !important;
-    padding: 1px 6px !important;
-  }
-
-  .data-table-adminsiteassess th,
-  .data-table-adminsiteassess td {
-    padding: 8px 8px !important;
-    font-size: 11px !important;
-  }
-
-  .data-table-adminsiteassess th {
-    font-size: 10px !important;
-    padding: 8px 8px !important;
-  }
-
-  .ref-cell-adminsiteassess {
-    font-size: 11px !important;
-  }
-
-  .amount-cell-adminsiteassess {
-    font-size: 11px !important;
-  }
-
-  .email-cell-adminsiteassess {
-    font-size: 9px !important;
-  }
-
-  .contact-info-adminsiteassess {
-    font-size: 11px !important;
-  }
-
-  .status-badge-adminsiteassess {
-    font-size: 9px !important;
-    padding: 2px 6px !important;
-  }
-
-  .action-dropdown-toggle-adminsiteassess {
-    padding: 2px 8px !important;
-    font-size: 11px !important;
-  }
-
-  .modal-adminsiteassess {
-    max-width: 98% !important;
-  }
-
-  .modal-header-adminsiteassess {
-    padding: 12px 16px !important;
-  }
-
-  .modal-header-adminsiteassess h3 {
-    font-size: 15px !important;
-  }
-
-  .modal-body-adminsiteassess {
-    padding: 16px !important;
-  }
-
-  .modal-actions-adminsiteassess {
-    padding: 12px 16px !important;
-  }
-
-  .modal-actions-adminsiteassess button {
-    font-size: 13px !important;
-    padding: 10px !important;
-  }
-
-  .detail-row-adminsiteassess strong {
-    font-size: 13px !important;
-  }
-
-  .form-group-adminsiteassess textarea,
-  .form-group-adminsiteassess input[type="text"],
-  .form-group-adminsiteassess input[type="date"],
-  .form-group-adminsiteassess select {
-    padding: 8px 10px !important;
-    font-size: 12px !important;
-  }
-
-  .page-btn-adminsiteassess {
-    padding: 4px 10px !important;
-    font-size: 11px !important;
-  }
-
-  .page-number-adminsiteassess {
-    min-width: 28px !important;
-    height: 28px !important;
-    font-size: 11px !important;
-  }
-
-  .dropdown-item-adminsiteassess {
-    padding: 6px 12px !important;
-    font-size: 12px !important;
-  }
-
-  .dropdown-item-adminsiteassess svg {
-    font-size: 12px !important;
-  }
-}
-
-/* --- Fix for table scroll on mobile --- */
-@media (max-width: 768px) {
-  .data-table-adminsiteassess {
-    min-width: 600px !important;
-  }
-
-  /* Hide less important columns on very small screens */
-  .data-table-adminsiteassess th:nth-child(6),
-  .data-table-adminsiteassess td:nth-child(6) {
-    display: none !important;
-  }
-
-  .data-table-adminsiteassess th:nth-child(7),
-  .data-table-adminsiteassess td:nth-child(7) {
-    display: none !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .data-table-adminsiteassess {
-    min-width: 500px !important;
-  }
-
-  /* Hide even more columns on very small screens */
-  .data-table-adminsiteassess th:nth-child(3),
-  .data-table-adminsiteassess td:nth-child(3) {
-    display: none !important;
-  }
-
-  .data-table-adminsiteassess th:nth-child(4),
-  .data-table-adminsiteassess td:nth-child(4) {
-    display: none !important;
-  }
-}
-
-/* --- Touch-friendly improvements --- */
-@media (hover: none) and (pointer: coarse) {
-  .tab-btn-adminsiteassess {
-    padding: 12px 20px !important;
-  }
-
-  .action-dropdown-toggle-adminsiteassess {
-    padding: 8px 14px !important;
-    min-height: 40px !important;
-  }
-
-  .dropdown-item-adminsiteassess {
-    padding: 12px 16px !important;
-    min-height: 44px !important;
-  }
-
-  .page-btn-adminsiteassess,
-  .page-number-adminsiteassess {
-    min-height: 40px !important;
-    min-width: 40px !important;
-  }
-
-  .modal-actions-adminsiteassess button {
-    min-height: 48px !important;
-  }
-
-  .engineer-card-adminsiteassess {
-    padding: 12px 14px !important;
-  }
-}
-
-/* --- Loading state improvements for mobile --- */
-@media (max-width: 768px) {
-  .skeleton-title-adminsiteassess {
-    height: 24px !important;
-    width: 150px !important;
-  }
-
-  .skeleton-subtitle-adminsiteassess {
-    height: 14px !important;
-    width: 200px !important;
-  }
-
-  .skeleton-chart-adminsiteassess {
-    height: 160px !important;
-  }
-
-  .skeleton-table-adminsiteassess {
-    height: 300px !important;
-  }
-}
-
-/* ============================================
-   MOBILE RESPONSIVE - CARDS VIEW
-   ============================================ */
-
-/* --- Hide desktop table on mobile, show cards --- */
-@media (max-width: 768px) {
-  .desktop-table {
-    display: none !important;
-  }
-  
-  .mobile-cards {
-    display: block !important;
-  }
-}
-
-/* --- Hide mobile cards on desktop, show table --- */
-@media (min-width: 769px) {
-  .mobile-cards {
-    display: none !important;
-  }
-  
-  .desktop-table {
-    display: block !important;
-  }
-}
-
-/* --- Card Styles --- */
-.cards-container-adminsiteassess {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  padding: 0;
-  margin-bottom: 16px;
-}
-
-.card-item-adminsiteassess {
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-  transition: all 0.2s ease;
-}
-
-.card-item-adminsiteassess:active {
-  transform: scale(0.99);
-}
-
-.card-header-adminsiteassess {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 16px;
-  background: var(--gray-50);
-  border-bottom: 1px solid var(--gray-200);
-}
-
-.card-ref-adminsiteassess {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.card-ref-label {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--gray-500);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background: var(--gray-200);
-  padding: 2px 8px;
+.action-dropdown-menu-adminbills_::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 4px;
 }
 
-.card-ref-value {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--gray-900);
+.action-dropdown-menu-adminbills_::-webkit-scrollbar-thumb {
+  background: #F39C12;
+  border-radius: 4px;
 }
 
-.card-body-adminsiteassess {
-  padding: 16px;
-}
-
-.card-client-adminsiteassess {
+.dropdown-item-adminbills_ {
   display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  margin-bottom: 14px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--gray-100);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 150ms ease;
+  font-family: 'Poppins', sans-serif;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.card-client-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--primary-blue);
+.dropdown-item-adminbills_:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dropdown-item-adminbills_.success {
+  color: #10B981;
+}
+
+.dropdown-item-adminbills_.success:hover {
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.dropdown-item-adminbills_.danger {
+  color: #EF4444;
+}
+
+.dropdown-item-adminbills_.danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.dropdown-item-adminbills_.warning {
+  color: #F39C12;
+}
+
+.dropdown-item-adminbills_.warning:hover {
+  background: rgba(243, 156, 18, 0.12);
+}
+
+.dropdown-item-adminbills_.primary {
+  color: #3B82F6;
+}
+
+.dropdown-item-adminbills_.primary:hover {
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.dropdown-item-adminbills_.disabled-adminbills_ {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.empty-state-adminbills_ {
+  text-align: center;
+  padding: 48px 20px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+}
+
+/* ============================================
+   PAGINATION
+   ============================================ */
+.pagination-adminbills_ {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0 8px 0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pagination-info-adminbills_ {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.pagination-controls-adminbills_ {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.page-btn-adminbills_ {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.page-btn-adminbills_:hover:not(:disabled) {
+  background: #131C28;
+  border-color: rgba(255, 255, 255, 0.15);
   color: #FFFFFF;
+}
+
+.page-btn-adminbills_:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.page-number-adminbills_ {
+  min-width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.page-number-adminbills_:hover {
+  background: #131C28;
+  color: #FFFFFF;
+}
+
+.page-number-adminbills_.active-adminbills_ {
+  background: #F39C12;
+  color: #FFFFFF;
+  border-color: #F39C12;
+}
+
+/* ============================================
+   MODALS
+   ============================================ */
+.modal-overlay-adminbills_ {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal-adminbills_ {
+  background: #1A2533;
+  border-radius: 18px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+}
+
+.detail-modal-adminbills_ {
+  max-width: 600px;
+}
+
+.assign-engineer-modal-adminbills_ {
+  max-width: 620px;
+}
+
+.modal-header-adminbills_ {
+  padding: 20px 24px 16px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header-adminbills_ h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.modal-close-adminbills_ {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.modal-close-adminbills_:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #EF4444;
+}
+
+.modal-body-adminbills_ {
+  padding: 20px 24px;
+  overflow-y: auto;
+  max-height: calc(90vh - 140px);
+}
+
+.modal-body-adminbills_::-webkit-scrollbar {
+  width: 4px;
+}
+
+.modal-body-adminbills_::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+.modal-body-adminbills_::-webkit-scrollbar-thumb {
+  background: #F39C12;
+  border-radius: 4px;
+}
+
+.detail-row-adminbills_ {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.detail-row-adminbills_:last-child {
+  border-bottom: none;
+}
+
+.detail-row-adminbills_ span {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+}
+
+.detail-row-adminbills_ strong {
+  color: #FFFFFF;
+  font-size: 14px;
+}
+
+.detail-section-adminbills_ {
+  margin-bottom: 16px;
+}
+
+.detail-section-adminbills_:last-child {
+  margin-bottom: 0;
+}
+
+.detail-section-adminbills_ h4 {
+  font-size: 13px;
   font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin: 0 0 8px 0;
+}
+
+.detail-section-adminbills_ p {
+  margin: 4px 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.detail-section-adminbills_ p strong {
+  color: #FFFFFF;
+}
+
+/* Form Groups in Modals */
+.form-group-adminbills_ {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.form-group-adminbills_ label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.required-field-adminbills_ {
+  color: #EF4444;
+}
+
+.form-group-adminbills_ textarea,
+.form-group-adminbills_ input,
+.form-group-adminbills_ select {
+  padding: 10px 14px;
+  background: #131C28;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  font-size: 14px;
+  color: #FFFFFF;
+  font-family: 'Poppins', sans-serif;
+  transition: all 200ms ease;
+  width: 100%;
+}
+
+.form-group-adminbills_ textarea:focus,
+.form-group-adminbills_ input:focus,
+.form-group-adminbills_ select:focus {
+  outline: none;
+  border-color: #F39C12;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+}
+
+.form-group-adminbills_ textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.date-input-adminbills_ {
+  padding: 10px 14px;
+  background: #131C28;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  font-size: 14px;
+  color: #FFFFFF;
+  font-family: 'Poppins', sans-serif;
+  transition: all 200ms ease;
+  width: 100%;
+}
+
+.date-input-adminbills_:focus {
+  outline: none;
+  border-color: #F39C12;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+}
+
+.invalid-date-adminbills_ {
+  border-color: #EF4444 !important;
+}
+
+.validation-error-adminbills_ label {
+  color: #EF4444 !important;
+  font-size: 12px;
+}
+
+.validation-hint-adminbills_ label {
+  color: rgba(255, 255, 255, 0.3) !important;
+  font-size: 12px;
+}
+
+.info-box-adminbills_ {
+  background: rgba(243, 156, 18, 0.06);
+  border: 1px solid rgba(243, 156, 18, 0.15);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-top: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.info-box-adminbills_ svg {
+  color: #F39C12;
+  font-size: 16px;
+  margin-top: 2px;
   flex-shrink: 0;
 }
 
-.card-client-info {
+.info-box-adminbills_ small {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.5;
+}
+
+/* Engineer Grid */
+.engineer-grid-adminbills_ {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px 2px;
+}
+
+.engineer-grid-adminbills_::-webkit-scrollbar {
+  width: 3px;
+}
+
+.engineer-grid-adminbills_::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+.engineer-grid-adminbills_::-webkit-scrollbar-thumb {
+  background: #F39C12;
+  border-radius: 4px;
+}
+
+.engineer-card-adminbills_ {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #131C28;
+  border: 2px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 200ms ease;
+  position: relative;
+}
+
+.engineer-card-adminbills_:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.engineer-card-adminbills_.selected-adminbills_ {
+  border-color: #F39C12;
+  background: rgba(243, 156, 18, 0.06);
+}
+
+.engineer-avatar-adminbills_ {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(243, 156, 18, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #F39C12;
+  flex-shrink: 0;
+}
+
+.engineer-info-adminbills_ {
   flex: 1;
   min-width: 0;
 }
 
-.card-client-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--gray-900);
-  margin-bottom: 4px;
-}
-
-.card-client-contact {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.engineer-name-adminbills_ {
   font-size: 13px;
-  color: var(--gray-600);
-  margin-top: 2px;
-}
-
-.card-icon-sm {
-  font-size: 11px;
-  color: var(--gray-400);
-}
-
-.card-details-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.card-detail-item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.card-detail-label {
-  font-size: 10px;
   font-weight: 600;
-  color: var(--gray-500);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  color: #FFFFFF;
 }
 
-.card-detail-value {
+.engineer-email-adminbills_ {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.engineer-selected-badge-adminbills_ {
+  color: #F39C12;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.no-engineers-adminbills_ {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+  padding: 12px;
+  text-align: center;
+  grid-column: 1 / -1;
+}
+
+/* Modal Actions */
+.modal-actions-adminbills_ {
+  padding: 16px 24px 20px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.cancel-btn-adminbills_ {
+  padding: 10px 24px;
+  background: #131C28;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--gray-900);
-}
-
-.card-detail-value.amount {
-  font-weight: 600;
-  color: var(--primary-blue);
-}
-
-.card-actions-adminsiteassess {
-  padding: 12px 16px;
-  border-top: 1px solid var(--gray-100);
-  display: flex;
-  justify-content: flex-end;
-  background: var(--gray-50);
-}
-
-.card-action-dropdown {
-  position: relative;
-}
-
-.card-action-dropdown .action-dropdown-toggle-adminsiteassess {
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--gray-700);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
-.card-action-dropdown .action-dropdown-toggle-adminsiteassess:hover {
-  background: var(--gray-50);
-  border-color: var(--gray-300);
+.cancel-btn-adminbills_:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.card-action-dropdown .action-dropdown-toggle-adminsiteassess .dropdown-arrow-adminsiteassess {
-  font-size: 10px;
-  transition: transform 0.2s ease;
+.approve-btn-adminbills_,
+.assign-btn-adminbills_,
+.verify-btn-adminbills_,
+.upload-btn-adminbills_ {
+  padding: 10px 24px;
+  background: #10B981;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
-.card-action-dropdown .action-dropdown-toggle-adminsiteassess .dropdown-arrow-adminsiteassess.open-adminsiteassess {
-  transform: rotate(180deg);
+.approve-btn-adminbills_:hover:not(:disabled),
+.assign-btn-adminbills_:hover:not(:disabled),
+.verify-btn-adminbills_:hover:not(:disabled),
+.upload-btn-adminbills_:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
 }
 
-/* --- Status badge in cards --- */
-.card-header-adminsiteassess .status-badge-adminsiteassess {
-  font-size: 11px;
-  padding: 4px 12px;
+.approve-btn-adminbills_:disabled,
+.assign-btn-adminbills_:disabled,
+.verify-btn-adminbills_:disabled,
+.upload-btn-adminbills_:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
 }
 
-/* --- Empty state for cards --- */
-.cards-container-adminsiteassess .empty-state-adminsiteassess {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--gray-500);
-  font-size: 15px;
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
-  border-radius: 12px;
+.reject-btn-adminbills_ {
+  padding: 10px 24px;
+  background: #EF4444;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
-/* --- Skeleton cards --- */
-.skeleton-card-adminsiteassess {
-  height: 180px;
-  background: var(--gray-200);
-  border-radius: 12px;
-  margin-bottom: 12px;
-  background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
-  background-size: 200px 100%;
-  animation: shimmer-adminsiteassess 1.5s infinite;
+.reject-btn-adminbills_:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
 }
 
-/* --- Chart responsiveness --- */
+.reject-btn-adminbills_:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ============================================
+   SKELETON LOADING
+   ============================================ */
+.skeleton-line-adminbills_ {
+  border-radius: 6px;
+  animation: shimmer-adminbills_ 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer-adminbills_ {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-title-adminbills_ {
+  width: 40%;
+  height: 32px;
+  margin-bottom: 8px;
+}
+
+.skeleton-subtitle-adminbills_ {
+  width: 60%;
+  height: 20px;
+}
+
+.skeleton-card-adminbills_ {
+  background: #1A2533;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 20px;
+  min-height: 100px;
+}
+
+.skeleton-chart-adminbills_ {
+  height: 220px;
+  border-radius: 14px;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 24px;
+}
+
+.skeleton-tab-adminbills_ {
+  width: 120px;
+  height: 40px;
+  border-radius: 8px;
+  background: #1A2533;
+}
+
+.skeleton-table-adminbills_ {
+  height: 300px;
+  border-radius: 14px;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1200px) {
+  .site-assessment-adminbills_ {
+    padding-inline: 20px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .site-assessment-adminbills_ {
+    padding-inline: 18px;
+  }
+}
+
 @media (max-width: 768px) {
-  .chart-area-adminsiteassess {
-    height: 200px !important;
-    padding: 12px !important;
-    margin-bottom: 12px !important;
+  .site-assessment-adminbills_ {
+    padding-inline: 14px;
+    padding-top: 12px;
   }
-
-  .chart-header-adminsiteassess {
-    margin-bottom: 8px !important;
+  .header-adminbills_ {
+    padding: 0 0 16px 0;
   }
-
-  .chart-header-adminsiteassess h3 {
-    font-size: 13px !important;
+  .tabs-adminbills_ {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    width: 100%;
+    padding: 4px;
+    gap: 4px;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
   }
-
-  .chart-period-adminsiteassess {
-    font-size: 10px !important;
-    padding: 2px 8px !important;
+  .tab-btn-adminbills_ {
+    padding: 8px 14px;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
-
-  .chart-wrapper-adminsiteassess {
-    height: calc(100% - 30px) !important;
+  .toolbar-adminbills_ {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
   }
-
-  /* Recharts mobile adjustments */
-  .recharts-custom-tooltip-adminsiteassess {
-    padding: 6px 10px !important;
-    font-size: 11px !important;
+  .search-group-adminbills_ {
+    max-width: none;
+    min-width: auto;
   }
-
-  .tooltip-label-adminsiteassess {
-    font-size: 11px !important;
+  .filter-group-adminbills_ {
+    min-width: auto;
   }
-
-  .tooltip-item-adminsiteassess {
-    font-size: 11px !important;
+  .refresh-btn-adminbills_ {
+    justify-content: center;
+  }
+  .data-table-adminbills_ {
+    font-size: 12px;
+  }
+  .data-table-adminbills_ thead th,
+  .data-table-adminbills_ tbody td {
+    padding: 10px 12px;
+  }
+  .chart-area-adminbills_ {
+    padding: 14px 16px;
+    border-radius: 10px;
+  }
+  .chart-header-adminbills_ h3 {
+    font-size: 14px;
+  }
+  .chart-period-adminbills_ {
+    font-size: 11px;
+  }
+  .chart-wrapper-adminbills_ {
+    height: 180px;
+  }
+  .modal-adminbills_ {
+    max-width: 100%;
+    margin: 12px;
+    border-radius: 14px;
+  }
+  .modal-header-adminbills_ {
+    padding: 16px 18px;
+  }
+  .modal-header-adminbills_ h3 {
+    font-size: 18px;
+  }
+  .modal-body-adminbills_ {
+    padding: 16px 18px;
+  }
+  .modal-actions-adminbills_ {
+    padding: 14px 18px 18px 18px;
+  }
+  .pagination-adminbills_ {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .pagination-controls-adminbills_ {
+    justify-content: center;
+  }
+  .engineer-grid-adminbills_ {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 480px) {
-  .chart-area-adminsiteassess {
-    height: 170px !important;
-    padding: 8px !important;
+  .site-assessment-adminbills_ {
+    padding-inline: 10px;
   }
-
-  .chart-header-adminsiteassess h3 {
-    font-size: 11px !important;
+  .tab-btn-adminbills_ {
+    padding: 6px 10px;
+    font-size: 11px;
   }
-
-  .chart-period-adminsiteassess {
-    font-size: 9px !important;
-    padding: 2px 6px !important;
+  .tab-badge-adminbills_ {
+    min-width: 18px;
+    height: 18px;
+    font-size: 10px;
+    padding: 0 6px;
   }
-
-  /* Recharts x-axis labels smaller */
-  .recharts-x-axis text,
-  .recharts-y-axis text {
-    font-size: 10px !important;
+  .data-table-adminbills_ thead th,
+  .data-table-adminbills_ tbody td {
+    padding: 8px 10px;
+    font-size: 11px;
   }
-}
-
-/* --- Toolbar mobile adjustments --- */
-@media (max-width: 768px) {
-  .toolbar-adminsiteassess {
-    flex-direction: column !important;
-    gap: 10px !important;
-    margin-bottom: 12px !important;
+  .action-dropdown-toggle-adminbills_ {
+    padding: 4px 10px;
+    font-size: 11px;
   }
-
-  .search-group-adminsiteassess {
-    flex: 1 1 auto !important;
-    max-width: 100% !important;
-    min-width: auto !important;
-    width: 100% !important;
+  .action-dropdown-menu-adminbills_ {
+    min-width: 160px;
   }
-
-  .search-group-adminsiteassess input {
-    font-size: 14px !important;
-    padding: 10px 14px 10px 38px !important;
+  .dropdown-item-adminbills_ {
+    font-size: 12px;
+    padding: 6px 12px;
   }
-
-  .filter-group-adminsiteassess {
-    width: 100% !important;
-    flex: 1 1 auto !important;
+  .chart-wrapper-adminbills_ {
+    height: 150px;
   }
-
-  .filter-group-adminsiteassess select {
-    width: 100% !important;
-    min-width: auto !important;
-    font-size: 14px !important;
-    padding: 10px 40px 10px 14px !important;
+  .modal-adminbills_ {
+    border-radius: 12px;
   }
-
-  .refresh-btn-adminsiteassess {
-    width: 100% !important;
-    justify-content: center !important;
-    padding: 10px !important;
-    font-size: 14px !important;
+  .modal-header-adminbills_ {
+    padding: 14px 16px;
   }
-}
-
-/* --- Tabs mobile adjustments --- */
-@media (max-width: 768px) {
-  .tabs-adminsiteassess {
-    overflow-x: auto !important;
-    flex-wrap: nowrap !important;
-    gap: 0 !important;
-    margin-bottom: 12px !important;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding: 0 4px !important;
+  .modal-header-adminbills_ h3 {
+    font-size: 16px;
   }
-
-  .tabs-adminsiteassess::-webkit-scrollbar {
-    display: none;
+  .modal-body-adminbills_ {
+    padding: 14px 16px;
   }
-
-  .tab-btn-adminsiteassess {
-    padding: 10px 14px !important;
-    font-size: 13px !important;
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
+  .modal-actions-adminbills_ {
+    padding: 12px 16px 16px 16px;
+    flex-direction: column;
   }
-
-  .tab-badge-adminsiteassess {
-    font-size: 10px !important;
-    padding: 1px 8px !important;
+  .modal-actions-adminbills_ button {
+    width: 100%;
+    justify-content: center;
+  }
+  .detail-row-adminbills_ {
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 0;
+  }
+  .detail-row-adminbills_ span {
+    font-size: 12px;
+  }
+  .detail-row-adminbills_ strong {
+    font-size: 13px;
+  }
+  .engineer-card-adminbills_ {
+    padding: 8px 12px;
+  }
+  .engineer-avatar-adminbills_ {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .engineer-name-adminbills_ {
+    font-size: 12px;
+  }
+  .pagination-info-adminbills_ {
+    font-size: 12px;
+  }
+  .page-btn-adminbills_,
+  .page-number-adminbills_ {
+    font-size: 12px;
+    padding: 6px 12px;
   }
 }
 
-/* --- Pagination mobile adjustments --- */
-@media (max-width: 768px) {
-  .pagination-adminsiteassess {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 10px !important;
-    padding: 12px 0 0 0 !important;
+@media (max-width: 360px) {
+  .site-assessment-adminbills_ {
+    padding-inline: 6px;
   }
-
-  .pagination-info-adminsiteassess {
-    text-align: center !important;
-    font-size: 12px !important;
+  .tab-btn-adminbills_ {
+    padding: 4px 8px;
+    font-size: 10px;
   }
-
-  .pagination-controls-adminsiteassess {
-    justify-content: center !important;
-    flex-wrap: wrap !important;
-    gap: 4px !important;
+  .data-table-adminbills_ thead th,
+  .data-table-adminbills_ tbody td {
+    padding: 6px 8px;
+    font-size: 10px;
   }
-
-  .page-btn-adminsiteassess {
-    padding: 6px 10px !important;
-    font-size: 12px !important;
-  }
-
-  .page-number-adminsiteassess {
-    min-width: 32px !important;
-    height: 32px !important;
-    font-size: 12px !important;
-    padding: 0 6px !important;
+  .chart-wrapper-adminbills_ {
+    height: 120px;
   }
 }
 
-/* --- Modal mobile adjustments --- */
-@media (max-width: 768px) {
-  .modal-adminsiteassess {
-    max-width: 95% !important;
-    max-height: 95vh !important;
-    border-radius: 12px !important;
-    margin: 10px !important;
+/* ============================================
+   REDUCED MOTION PREFERENCES
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
-
-  .modal-header-adminsiteassess {
-    padding: 14px 16px !important;
+  .chart-area-adminbills_:hover,
+  .data-table-adminbills_ tbody tr:hover {
+    transform: none !important;
   }
-
-  .modal-header-adminsiteassess h3 {
-    font-size: 16px !important;
+  .skeleton-line-adminbills_ {
+    animation: none !important;
+    background: #131C28 !important;
   }
-
-  .modal-body-adminsiteassess {
-    padding: 16px !important;
+  .refresh-btn-adminbills_:hover,
+  .action-dropdown-toggle-adminbills_:hover,
+  .approve-btn-adminbills_:hover,
+  .assign-btn-adminbills_:hover,
+  .reject-btn-adminbills_:hover,
+  .cancel-btn-adminbills_:hover,
+  .verify-btn-adminbills_:hover,
+  .upload-btn-adminbills_:hover,
+  .modal-close-adminbills_:hover {
+    transform: none !important;
   }
-
-  .modal-actions-adminsiteassess {
-    flex-direction: column-reverse !important;
-    padding: 12px 16px !important;
-    gap: 8px !important;
+  .spinning-adminbills_ {
+    animation: none !important;
   }
-
-  .modal-actions-adminsiteassess button {
-    width: 100% !important;
-    justify-content: center !important;
-    padding: 12px !important;
-    font-size: 14px !important;
-  }
-
-  .detail-row-adminsiteassess {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 2px !important;
-    padding: 6px 0 !important;
-  }
-
-  .detail-row-adminsiteassess span {
-    font-size: 12px !important;
-  }
-
-  .detail-row-adminsiteassess strong {
-    font-size: 14px !important;
-  }
-
-  .engineer-grid-adminsiteassess {
-    grid-template-columns: 1fr !important;
-    gap: 8px !important;
-  }
-
-  .form-group-adminsiteassess {
-    margin-top: 14px !important;
-  }
-
-  .form-group-adminsiteassess label {
-    font-size: 13px !important;
-  }
-
-  .form-group-adminsiteassess textarea,
-  .form-group-adminsiteassess input[type="text"],
-  .form-group-adminsiteassess input[type="date"],
-  .form-group-adminsiteassess select {
-    padding: 10px 12px !important;
-    font-size: 14px !important;
-  }
-}
-
-/* --- Touch target improvements for mobile --- */
-@media (hover: none) and (pointer: coarse) {
-  .tab-btn-adminsiteassess {
-    padding: 12px 16px !important;
-    min-height: 44px !important;
-  }
-
-  .action-dropdown-toggle-adminsiteassess {
-    padding: 10px 16px !important;
-    min-height: 44px !important;
-  }
-
-  .dropdown-item-adminsiteassess {
-    padding: 12px 16px !important;
-    min-height: 44px !important;
-  }
-
-  .page-btn-adminsiteassess,
-  .page-number-adminsiteassess {
-    min-height: 40px !important;
-    min-width: 40px !important;
-  }
-
-  .modal-actions-adminsiteassess button {
-    min-height: 48px !important;
-  }
-
-  .refresh-btn-adminsiteassess {
-    min-height: 44px !important;
-  }
-
-  .search-group-adminsiteassess input {
-    min-height: 44px !important;
-  }
-
-  .filter-group-adminsiteassess select {
-    min-height: 44px !important;
-  }
-}
-
-/* --- Fix dropdown position on mobile --- */
-@media (max-width: 768px) {
-  .action-dropdown-menu-adminsiteassess {
-    min-width: 160px !important;
-    max-width: 200px !important;
-    right: 0 !important;
-    left: auto !important;
+  .dropdown-arrow-adminbills_.open-adminbills_ {
+    transform: none !important;
   }
 }

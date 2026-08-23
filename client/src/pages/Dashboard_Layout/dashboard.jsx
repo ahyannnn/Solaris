@@ -32,10 +32,16 @@ import {
   FaChevronDown,
   FaChevronUp,
   FaLifeRing,
-  FaUserCog
+  FaUserCog,
+  FaCheckCircle,
+  FaClock,
+  FaBell as FaBellSolid,
+  FaInfoCircle as FaInfoIcon,
+  FaExclamationCircle,
+  FaTimes as FaTimesIcon,
+  FaBullhorn
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
-import profileImage from '../../assets/profile.png';
 import '../../styles/Dashboard/dashboard.css';
 
 const Dashboard = () => {
@@ -47,11 +53,15 @@ const Dashboard = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [dashboardReady, setDashboardReady] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const notificationRef = useRef(null);
+  const buttonRef = useRef(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState('user');
   const [userName, setUserName] = useState('Customer User');
-  const [userPhoto, setUserPhoto] = useState(null);
   
   // Dropdown states
   const [openDropdowns, setOpenDropdowns] = useState({
@@ -83,6 +93,30 @@ const Dashboard = () => {
     }
   }, [location]);
 
+  // Handle click outside notification popover
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target) &&
+          buttonRef.current && !buttonRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
+
   // Fetch unread notification count
   const fetchUnreadCount = async () => {
     try {
@@ -96,6 +130,189 @@ const Dashboard = () => {
     } catch (error) {
       console.error('Error fetching unread count:', error);
     }
+  };
+
+  // Fetch notifications for popover
+  const fetchNotifications = async () => {
+    setLoadingNotifications(true);
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/notifications`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { limit: 3 }
+      });
+      
+      // Process notifications - ensure read status is properly set
+      const processedNotifications = (response.data.notifications || []).map(notif => ({
+        ...notif,
+        isRead: notif.read === true || notif.isRead === true,
+        read: notif.read === true || notif.isRead === true
+      }));
+      
+      setNotifications(processedNotifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  };
+
+  // Toggle notification popover
+  const toggleNotifications = () => {
+    if (!showNotifications) {
+      fetchNotifications();
+    }
+    setShowNotifications(!showNotifications);
+  };
+
+  // Mark notification as read
+  const markAsRead = async (notificationId) => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) return;
+
+      await axios.patch(
+        `${import.meta.env.VITE_API_URL}/api/notifications/${notificationId}/read`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Update local state - mark as read
+      setNotifications(prev => 
+        prev.map(n => 
+          n._id === notificationId ? { ...n, isRead: true, read: true } : n
+        )
+      );
+      
+      // Update unread count
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  // Mark all as read
+  const markAllAsRead = async () => {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) return;
+
+      await axios.patch(
+        `${import.meta.env.VITE_API_URL}/api/notifications/read-all`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Update local state - mark all as read
+      setNotifications(prev => 
+        prev.map(n => ({ ...n, isRead: true, read: true }))
+      );
+      
+      // Update unread count
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
+
+  // Get notification icon based on type
+  const getNotificationIcon = (notification) => {
+    const type = notification.type || notification.notificationType || '';
+    const isBroadcast = notification.isAdminBroadcast === true;
+    
+    if (isBroadcast) {
+      return <FaBullhorn className="notif-icon-broadcast" />;
+    }
+    
+    switch(type) {
+      case 'payment':
+      case 'Payment':
+      case 'payment_success':
+        return <FaCheckCircle className="notif-icon-payment" />;
+      case 'project':
+      case 'Project':
+      case 'project_update':
+        return <FaProjectDiagram className="notif-icon-project" />;
+      case 'assessment':
+      case 'Assessment':
+      case 'site_assessment':
+        return <FaClipboardList className="notif-icon-assessment" />;
+      case 'schedule':
+      case 'Schedule':
+      case 'appointment':
+        return <FaCalendarAlt className="notif-icon-schedule" />;
+      case 'info':
+        return <FaInfoIcon className="notif-icon-info" />;
+      case 'warning':
+        return <FaExclamationCircle className="notif-icon-warning" />;
+      case 'error':
+        return <FaTimesIcon className="notif-icon-error" />;
+      case 'success':
+        return <FaCheckCircle className="notif-icon-success" />;
+      default:
+        return <FaBellSolid className="notif-icon-default" />;
+    }
+  };
+
+  // Get notification icon background class
+  const getIconBgClass = (notification) => {
+    const type = notification.type || notification.notificationType || '';
+    const isBroadcast = notification.isAdminBroadcast === true;
+    
+    if (isBroadcast) return 'icon-bg-broadcast';
+    
+    switch(type) {
+      case 'payment':
+      case 'Payment':
+      case 'payment_success':
+        return 'icon-bg-success';
+      case 'project':
+      case 'Project':
+      case 'project_update':
+        return 'icon-bg-info';
+      case 'assessment':
+      case 'Assessment':
+      case 'site_assessment':
+        return 'icon-bg-assessment';
+      case 'schedule':
+      case 'Schedule':
+      case 'appointment':
+        return 'icon-bg-warning';
+      case 'info':
+        return 'icon-bg-info';
+      case 'warning':
+        return 'icon-bg-warning';
+      case 'error':
+        return 'icon-bg-error';
+      case 'success':
+        return 'icon-bg-success';
+      default:
+        return 'icon-bg-default';
+    }
+  };
+
+  // Get time ago string
+  const getTimeAgo = (timestamp) => {
+    if (!timestamp) return 'Just now';
+    
+    const now = new Date();
+    const past = new Date(timestamp);
+    const diffMs = now - past;
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHour = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHour / 24);
+    const diffMonth = Math.floor(diffDay / 30);
+    const diffYear = Math.floor(diffMonth / 12);
+
+    if (diffYear > 0) return `${diffYear}y`;
+    if (diffMonth > 0) return `${diffMonth}m`;
+    if (diffDay > 0) return diffDay === 1 ? '1d' : `${diffDay}d`;
+    if (diffHour > 0) return `${diffHour}h`;
+    if (diffMin > 0) return `${diffMin}m`;
+    return 'Just now';
   };
 
   // Page titles and descriptions based on role and path
@@ -290,6 +507,18 @@ const Dashboard = () => {
 
   const pageInfo = getPageInfo();
 
+  // Get user initials from name
+  const getUserInitials = (name) => {
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) {
+      return parts[0].charAt(0).toUpperCase();
+    }
+    const firstInitial = parts[0].charAt(0).toUpperCase();
+    const lastInitial = parts[parts.length - 1].charAt(0).toUpperCase();
+    return firstInitial + lastInitial;
+  };
+
   // Toggle dropdown - only toggle dropdown, not navigation
   const toggleDropdown = (key, e) => {
     if (e) {
@@ -469,11 +698,9 @@ const Dashboard = () => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const role = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
     const name = localStorage.getItem('userName') || sessionStorage.getItem('userName');
-    const photo = localStorage.getItem('userPhotoURL') || sessionStorage.getItem('userPhotoURL');
 
     if (role) setUserRole(role);
     if (name) setUserName(name);
-    if (photo) setUserPhoto(photo);
 
     if (!token || !role) {
       setIsNavigating(true);
@@ -562,7 +789,6 @@ const Dashboard = () => {
   const isDropdownActive = (item) => {
     if (!item || !item.items) return false;
     
-    // Check if any sub-item path matches current location
     return item.items.some(subItem => isActive(subItem.path));
   };
 
@@ -588,6 +814,7 @@ const Dashboard = () => {
   const handleNavigation = (path) => {
     if (isNavigating) return;
     setIsNavigating(true);
+    setShowNotifications(false);
     navigate(path);
     if (isMobile()) {
       setSidebarOpen(false);
@@ -598,6 +825,31 @@ const Dashboard = () => {
   const closeSidebar = () => {
     if (isMobile()) {
       setSidebarOpen(false);
+    }
+  };
+
+  // Get notifications page path based on role
+  const getNotificationsPath = () => {
+    const paths = {
+      admin: '/app/admin/notifications',
+      engineer: '/app/engineer/notifications',
+      user: '/app/customer/notifications'
+    };
+    return paths[userRole] || '/app/customer/notifications';
+  };
+
+  // Handle click on notification item
+  const handleNotificationClick = (notification) => {
+    // Mark as read if unread
+    if (!notification.isRead) {
+      markAsRead(notification._id);
+    }
+    
+    // Navigate based on notification link or role
+    if (notification.link) {
+      handleNavigation(notification.link);
+    } else {
+      handleNavigation(getNotificationsPath());
     }
   };
 
@@ -643,7 +895,6 @@ const Dashboard = () => {
               {/* Section Items */}
               <div className="sidebar-section-items-layout-dashboard">
                 {section.isNested ? (
-                  // Settings section - render Support and Settings as buttons with dropdowns
                   section.items.map((item, itemIndex) => {
                     if (item.type === 'dropdown') {
                       const isDropdownOpen = openDropdowns[item.key] || false;
@@ -651,7 +902,6 @@ const Dashboard = () => {
                       
                       return (
                         <div key={itemIndex} className="sidebar-dropdown-wrapper">
-                          {/* Button that toggles dropdown - highlight if any sub-item is active */}
                           <button
                             className={`nav-item-layout-dashboard ${isDropdownHighlighted ? 'active-layout-dashboard' : ''}`}
                             onClick={(e) => toggleDropdown(item.key, e)}
@@ -678,7 +928,6 @@ const Dashboard = () => {
                             </span>
                           </button>
                           
-                          {/* Dropdown items */}
                           <div className={`dropdown-items-wrapper ${isDropdownOpen ? 'open' : 'closed'}`}>
                             {item.items.map((subItem, subIndex) => (
                               <button
@@ -702,7 +951,6 @@ const Dashboard = () => {
                     return null;
                   })
                 ) : (
-                  // Regular items (Main Navigation, Notifications)
                   section.items.map((item, itemIndex) => (
                     <button
                       key={itemIndex}
@@ -757,12 +1005,98 @@ const Dashboard = () => {
               </div>
             )}
 
+            {/* Notification Button */}
+            <div className="notification-wrapper">
+              <button 
+                ref={buttonRef}
+                className={`notification-btn ${showNotifications ? 'active' : ''} ${unreadCount > 0 ? 'has-unread' : ''}`}
+                onClick={toggleNotifications}
+                aria-label="Notifications"
+              >
+                <FaBell />
+                {unreadCount > 0 && (
+                  <span className="notification-badge-header">{unreadCount}</span>
+                )}
+              </button>
+
+              {/* Notification Popover */}
+              {showNotifications && (
+                <div className="notification-popover" ref={notificationRef}>
+                  <div className="notification-popover-header">
+                    <h3>Notifications</h3>
+                    {unreadCount > 0 && (
+                      <button 
+                        className="mark-all-read-btn"
+                        onClick={markAllAsRead}
+                      >
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="notification-popover-body">
+                    {loadingNotifications ? (
+                      <div className="notif-loading">
+                        <FaBell className="loading-icon" />
+                        <span>Loading notifications...</span>
+                      </div>
+                    ) : notifications.length === 0 ? (
+                      <div className="notif-empty">
+                        <FaBell className="empty-icon" />
+                        <span>No notifications yet</span>
+                        <p>We'll notify you when something happens</p>
+                      </div>
+                    ) : (
+                      <>
+                        {notifications.slice(0, 3).map((notif) => {
+                          const isUnread = !notif.isRead;
+                          
+                          return (
+                            <div 
+                              key={notif._id} 
+                              className={`notif-item ${isUnread ? 'unread' : 'read'}`}
+                              onClick={() => handleNotificationClick(notif)}
+                            >
+                              <div className={`notif-icon ${getIconBgClass(notif)}`}>
+                                {getNotificationIcon(notif)}
+                              </div>
+                              <div className="notif-content">
+                                <div className="notif-title">{notif.title || 'Notification'}</div>
+                                <div className="notif-message">{notif.message}</div>
+                                <div className="notif-time">
+                                  <FaClock className="time-icon" />
+                                  {getTimeAgo(notif.createdAt)}
+                                </div>
+                              </div>
+                              {isUnread && (
+                                <div className="notif-unread-dot"></div>
+                              )}
+                            </div>
+                          );
+                        })}
+
+                        {notifications.length > 3 && (
+                          <div className="notif-view-all">
+                            <button 
+                              className="view-all-btn"
+                              onClick={() => handleNavigation(getNotificationsPath())}
+                            >
+                              View All Notifications
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="header-user-info-layout-dashboard">
-              <img
-                src={userPhoto || profileImage}
-                alt={userName}
-                className="header-profile-image-layout-dashboard"
-              />
+              {/* Initials Avatar - replaces profile image */}
+              <div className="header-user-initials-avatar">
+                {getUserInitials(userName)}
+              </div>
               <span className="header-user-name-layout-dashboard">{userName}</span>
             </div>
           </div>

@@ -14,15 +14,16 @@ import {
   FaCheck,
   FaChevronDown,
   FaSearch,
-  FaSyncAlt
+  FaSyncAlt,
+  FaChartBar,
+  FaWallet
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/project.css';
 
 // Recharts Imports
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 
 const ProjectManagement = () => {
@@ -55,8 +56,8 @@ const ProjectManagement = () => {
   });
 
   // CHART DATA STATES
-  const [pipelineChartData, setPipelineChartData] = useState([]);
-  const [revenueChartData, setRevenueChartData] = useState([]);
+  const [projectStatusChartData, setProjectStatusChartData] = useState([]);
+  const [financialChartData, setFinancialChartData] = useState({ totalValue: 0, amountPaid: 0, outstandingBalance: 0 });
 
   useEffect(() => {
     fetchProjects();
@@ -115,31 +116,57 @@ const ProjectManagement = () => {
   const fetchStats = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/stats`, {
+      
+      // Fetch stats from API
+      const statsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/stats`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const data = response.data.stats || { total: 0, quoted: 0, approved: 0, inProgress: 0, completed: 0, cancelled: 0, totalRevenue: 0 };
+      const data = statsResponse.data.stats || { 
+        total: 0, quoted: 0, approved: 0, inProgress: 0, completed: 0, cancelled: 0, totalRevenue: 0 
+      };
       setStats(data);
 
-      // SET CHART DATA 1: Pipeline Bar Chart
-      setPipelineChartData([
+      // --- CHART 1: Project Status Overview ---
+      // Exclude "cancelled" from the chart
+      const statusData = [
         { name: 'Quoted', value: data.quoted || 0 },
         { name: 'Approved', value: data.approved || 0 },
+        { name: 'Initial Paid', value: data.initialPaid || 0 },
         { name: 'In Progress', value: data.inProgress || 0 },
+        { name: 'Progress Paid', value: data.progressPaid || 0 },
         { name: 'Completed', value: data.completed || 0 }
-      ]);
+      ];
+      
+      setProjectStatusChartData(statusData);
 
-      // SET CHART DATA 2: Revenue Area Chart
-      const currentMonth = new Date().getMonth();
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const mockMonthlyData = monthNames.map((name, index) => {
-        const base = data.totalRevenue / 12;
-        const randomFactor = Math.sin(index / 2) * 5000 + 5000; 
-        const total = index <= currentMonth ? Math.floor(base + randomFactor) : 0;
-        const collected = index <= currentMonth ? Math.floor(total * 0.7) : 0;
-        return { name, total, collected };
+      // --- CHART 2: Financial Overview ---
+      // Fetch all projects to calculate financial totals
+      const projectsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { limit: 999 } // Get all projects for accurate financial calculation
       });
-      setRevenueChartData(mockMonthlyData);
+      
+      const allProjects = projectsResponse.data.projects || [];
+      
+      // Calculate financial totals from actual project data
+      let totalValue = 0;
+      let amountPaid = 0;
+      
+      allProjects.forEach(project => {
+        // Exclude cancelled projects from financial totals
+        if (project.status !== 'cancelled') {
+          totalValue += (project.totalCost || 0);
+          amountPaid += (project.amountPaid || 0);
+        }
+      });
+      
+      const outstandingBalance = totalValue - amountPaid;
+      
+      setFinancialChartData({
+        totalValue: totalValue,
+        amountPaid: amountPaid,
+        outstandingBalance: outstandingBalance
+      });
 
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -343,12 +370,12 @@ const ProjectManagement = () => {
   };
 
   // Custom Tooltips
-  const PipelineTooltip = ({ active, payload, label }) => {
+  const StatusTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
         <div className="recharts-custom-tooltip-projectmanagement">
           <p className="tooltip-label-projectmanagement">{label}</p>
-          <p className="tooltip-item-projectmanagement" style={{ color: '#6366f1' }}>
+          <p className="tooltip-item-projectmanagement" style={{ color: '#F39C12' }}>
             Projects: {payload[0].value}
           </p>
         </div>
@@ -357,16 +384,14 @@ const ProjectManagement = () => {
     return null;
   };
 
-  const RevenueTooltip = ({ active, payload, label }) => {
+  const FinancialTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
         <div className="recharts-custom-tooltip-projectmanagement">
           <p className="tooltip-label-projectmanagement">{label}</p>
-          {payload.map((entry, idx) => (
-            <p key={idx} className="tooltip-item-projectmanagement" style={{ color: entry.color }}>
-              {entry.name}: {formatCurrency(entry.value)}
-            </p>
-          ))}
+          <p className="tooltip-item-projectmanagement" style={{ color: '#10B981' }}>
+            {formatCurrency(payload[0].value)}
+          </p>
         </div>
       );
     }
@@ -412,57 +437,129 @@ const ProjectManagement = () => {
         {/* CHARTS ROW                                   */}
         {/* ============================================ */}
         <div className="project-charts-row-projectmanagement">
-          {/* CHART 1: Pipeline */}
+          {/* CHART 1: Project Status Overview */}
           <div className="project-chart-card-projectmanagement">
             <div className="project-chart-header-projectmanagement">
-              <h3>Project Pipeline</h3>
-              <span className="project-chart-period-projectmanagement">Current Status</span>
+              <h3>Project Status Overview</h3>
+              <span className="project-chart-period-projectmanagement">Current Project Status</span>
             </div>
             <div className="project-chart-wrapper-projectmanagement">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={pipelineChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <BarChart 
+                  data={projectStatusChartData} 
+                  layout="vertical"
+                  margin={{ top: 10, right: 10, left: 20, bottom: 0 }}
+                >
                   <defs>
-                    <linearGradient id="colorPipeline" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0.2}/>
+                    <linearGradient id="colorStatus" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="5%" stopColor="#F39C12" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#F39C12" stopOpacity={0.2}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#E5E7EB" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 11}} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 11}} width={30} allowDecimals={false} />
-                  <Tooltip content={<PipelineTooltip />} cursor={{stroke: '#D1D5DB', strokeWidth: 1}} />
-                  <Bar dataKey="value" fill="url(#colorPipeline)" radius={[4, 4, 0, 0]} barSize={40} />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} stroke="rgba(255,255,255,0.06)" />
+                  <XAxis 
+                    type="number" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 11}} 
+                    allowDecimals={false}
+                  />
+                  <YAxis 
+                    type="category" 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fill: 'rgba(255,255,255,0.6)', fontSize: 11}} 
+                    width={100}
+                  />
+                  <Tooltip content={<StatusTooltip />} cursor={{fill: 'rgba(255,255,255,0.05)'}} />
+                  <Bar 
+                    dataKey="value" 
+                    fill="url(#colorStatus)" 
+                    radius={[0, 4, 4, 0]} 
+                    barSize={28} 
+                    label={{ 
+                      position: 'right', 
+                      fill: 'rgba(255,255,255,0.6)', 
+                      fontSize: 12, 
+                      fontWeight: 600,
+                      formatter: (value) => value > 0 ? value : ''
+                    }}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* CHART 2: Revenue */}
+          {/* CHART 2: Financial Overview */}
           <div className="project-chart-card-projectmanagement">
             <div className="project-chart-header-projectmanagement">
-              <h3>Revenue Overview</h3>
-              <span className="project-chart-period-projectmanagement">Monthly Trends</span>
+              <h3>Financial Overview</h3>
+              <span className="project-chart-period-projectmanagement">Current Project Finances</span>
             </div>
             <div className="project-chart-wrapper-projectmanagement">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={revenueChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <BarChart 
+                  data={[
+                    { name: 'Total Value', value: financialChartData.totalValue },
+                    { name: 'Amount Paid', value: financialChartData.amountPaid },
+                    { name: 'Outstanding', value: financialChartData.outstandingBalance }
+                  ]} 
+                  layout="vertical"
+                  margin={{ top: 10, right: 10, left: 20, bottom: 0 }}
+                >
                   <defs>
-                    <linearGradient id="colorTotalRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                    <linearGradient id="colorFinancial" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0.2}/>
                     </linearGradient>
-                    <linearGradient id="colorCollected" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    <linearGradient id="colorPaid" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.2}/>
+                    </linearGradient>
+                    <linearGradient id="colorOutstanding" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="5%" stopColor="#EF4444" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#EF4444" stopOpacity={0.2}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#E5E7EB" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 11}} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 11}} width={40} />
-                  <Tooltip content={<RevenueTooltip />} cursor={{stroke: '#D1D5DB', strokeWidth: 1}} />
-                  <Area type="monotone" dataKey="total" name="Total Expected" stroke="#2563eb" strokeWidth={2.5} fillOpacity={1} fill="url(#colorTotalRevenue)" dot={{ r: 4, fill: '#2563eb', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
-                  <Area type="monotone" dataKey="collected" name="Collected" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCollected)" dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
-                </AreaChart>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} stroke="rgba(255,255,255,0.06)" />
+                  <XAxis 
+                    type="number" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 11}}
+                    tickFormatter={(value) => value >= 1000000 ? `₱${(value/1000000).toFixed(1)}M` : value >= 1000 ? `₱${(value/1000).toFixed(0)}k` : `₱${value}`}
+                  />
+                  <YAxis 
+                    type="category" 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fill: 'rgba(255,255,255,0.6)', fontSize: 11}} 
+                    width={110}
+                  />
+                  <Tooltip content={<FinancialTooltip />} cursor={{fill: 'rgba(255,255,255,0.05)'}} />
+                  <Bar 
+                    dataKey="value" 
+                    radius={[0, 4, 4, 0]} 
+                    barSize={28}
+                    label={{ 
+                      position: 'right', 
+                      fill: 'rgba(255,255,255,0.6)', 
+                      fontSize: 11, 
+                      fontWeight: 600,
+                      formatter: (value) => value > 0 ? formatCurrency(value) : ''
+                    }}
+                  >
+                    {[
+                      { name: 'Total Value', fill: 'url(#colorFinancial)' },
+                      { name: 'Amount Paid', fill: 'url(#colorPaid)' },
+                      { name: 'Outstanding', fill: 'url(#colorOutstanding)' }
+                    ].map((entry, index) => (
+                      <Bar key={index} dataKey="value" fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </div>

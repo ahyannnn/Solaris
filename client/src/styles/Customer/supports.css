@@ -1,54 +1,21 @@
-/* styles/Customer/supports.css - Redesigned */
+/* styles/Customer/supports.css - Dark Solar Theme */
 
 /* ============================================
-   SUPPORT - Clean Modern Design
+   SUPPORT - Dark Solar Theme
    ============================================ */
 
-:root {
-  --primary: #1a56db;
-  --primary-hover: #1e40af;
-  --primary-light: #dbeafe;
-  --primary-subtle: #eff6ff;
-  --success: #059669;
-  --success-light: #d1fae5;
-  --success-subtle: #ecfdf5;
-  --warning: #d97706;
-  --warning-light: #fef3c7;
-  --warning-subtle: #fffbeb;
-  --danger: #dc2626;
-  --danger-light: #fee2e2;
-  --danger-subtle: #fef2f2;
-  --bg-base: #f3f4f6;
-  --bg-card: #ffffff;
-  --bg-surface: #f9fafb;
-  --bg-hover: #f3f4f6;
-  --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --text-muted: #6b7280;
-  --text-light: #9ca3af;
-  --border-light: #e5e7eb;
-  --border-medium: #d1d5db;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.04);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.06);
-  --shadow-xl: 0 20px 25px rgba(0,0,0,0.08);
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
-  --radius-2xl: 24px;
-  --blue: #2563EB;
-  --blue-hover: #1D4ED8;
-  --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-spring: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   CONTAINER
+   BASE CONTAINER
    ============================================ */
 .cusup-container {
+  padding-inline: 24px;
   margin: 0 auto;
-  padding: 24px;
+  background: #0B111A;
+  min-height: 100vh;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #FFFFFF;
 }
 
 /* ============================================
@@ -56,76 +23,81 @@
    ============================================ */
 .cusup-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 24px 0 20px 0;
-  border-bottom: 1px solid var(--border-light);
-  margin-bottom: 28px;
+  justify-content: space-between;
+  padding: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 1.5rem;
   flex-wrap: wrap;
-  gap: 16px;
+}
+
+.cusup-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .cusup-header-content h1 {
-  font-size: 28px;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 4px 0;
-  letter-spacing: -0.02em;
+  color: #FFFFFF;
+  margin: 0;
+  letter-spacing: -0.3px;
 }
 
 .cusup-header-content p {
-  font-size: 15px;
-  color: var(--text-secondary);
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.6);
   margin: 0;
 }
 
 .cusup-header-icon {
-  width: 56px;
-  height: 56px;
-  background: var(--primary-subtle);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary);
-  font-size: 28px;
+  display: none;
 }
 
 /* ============================================
    SECTION
    ============================================ */
 .cusup-section {
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-xl);
-  padding: 24px 28px;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  transition: all 200ms ease;
+  margin-bottom: 1.5rem;
 }
 
 .cusup-section:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .cusup-section-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-light);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .cusup-section-header svg {
-  font-size: 20px;
-  color: var(--primary);
+  font-size: 1.2rem;
+  color: #F39C12;
 }
 
 .cusup-section-header h2 {
-  font-size: 18px;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0;
+}
+
+.cusup-section-description {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+  margin: 0 0 1.25rem 0;
 }
 
 /* ============================================
@@ -134,11 +106,11 @@
 .cusup-faq-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.25rem;
 }
 
 .cusup-faq-item {
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .cusup-faq-item:last-child {
@@ -150,27 +122,28 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 0;
+  padding: 0.75rem 0;
   background: none;
   border: none;
-  font-size: 15px;
+  font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #FFFFFF;
   cursor: pointer;
   text-align: left;
-  transition: all 0.2s;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
 .cusup-faq-question:hover {
-  color: var(--primary);
+  color: #F39C12;
 }
 
 .cusup-faq-question svg {
-  font-size: 14px;
-  color: var(--text-muted);
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.3);
   flex-shrink: 0;
-  margin-left: 12px;
-  transition: transform 0.2s;
+  margin-left: 0.75rem;
+  transition: transform 200ms ease;
 }
 
 .cusup-faq-question.open svg {
@@ -178,9 +151,9 @@
 }
 
 .cusup-faq-answer {
-  padding: 0 0 16px 0;
-  font-size: 14px;
-  color: var(--text-secondary);
+  padding: 0 0 0.75rem 0;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
   line-height: 1.6;
 }
 
@@ -190,47 +163,52 @@
 .cusup-contact-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1rem;
 }
 
 .cusup-form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 1rem;
 }
 
 .cusup-form-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.25rem;
 }
 
 .cusup-form-group label {
-  font-size: 13px;
+  font-size: 0.8rem;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .cusup-form-group input,
 .cusup-form-group textarea,
 .cusup-form-group select {
-  padding: 10px 12px;
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  color: var(--text-primary);
-  background: var(--bg-card);
-  transition: all 0.2s;
-  font-family: inherit;
+  padding: 0.6rem 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: #FFFFFF;
+  background: #131C28;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
   width: 100%;
+}
+
+.cusup-form-group input::placeholder,
+.cusup-form-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .cusup-form-group input:focus,
 .cusup-form-group textarea:focus,
 .cusup-form-group select:focus {
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.08);
+  border-color: #F39C12;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.08);
 }
 
 .cusup-form-group textarea {
@@ -238,26 +216,32 @@
   min-height: 100px;
 }
 
+.cusup-form-group select option {
+  background: #1A2533;
+  color: #FFFFFF;
+}
+
 .cusup-submit-btn {
-  padding: 12px 24px;
-  background: var(--primary);
-  color: white;
+  padding: 0.75rem 1.5rem;
+  background: #F39C12;
+  color: #FFFFFF;
   border: none;
-  border-radius: var(--radius-md);
-  font-size: 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 200ms ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 0.5rem;
+  font-family: 'Poppins', sans-serif;
 }
 
 .cusup-submit-btn:hover:not(:disabled) {
-  background: var(--primary-hover);
+  background: #E67E22;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(26, 86, 219, 0.25);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
 }
 
 .cusup-submit-btn:disabled {
@@ -266,58 +250,59 @@
 }
 
 /* ============================================
-   INFO
+   INFO GRID
    ============================================ */
 .cusup-info-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 1rem;
 }
 
 .cusup-info-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  padding: 20px;
+  background: #131C28;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 1.25rem;
   text-align: center;
-  transition: all 0.2s;
+  transition: all 200ms ease;
 }
 
 .cusup-info-card:hover {
-  border-color: var(--border-medium);
-  box-shadow: var(--shadow-sm);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
 }
 
 .cusup-info-icon {
   width: 48px;
   height: 48px;
-  background: var(--primary-subtle);
+  background: rgba(243, 156, 18, 0.12);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 10px;
-  color: var(--primary);
-  font-size: 20px;
+  margin: 0 auto 0.75rem;
+  color: #F39C12;
+  font-size: 1.25rem;
 }
 
 .cusup-info-card h3 {
-  font-size: 14px;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 4px 0;
+  color: #FFFFFF;
+  margin: 0 0 0.25rem 0;
 }
 
 .cusup-info-card p {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin: 0 0 4px 0;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 0.25rem 0;
   word-break: break-word;
 }
 
 .cusup-info-card small {
-  font-size: 12px;
-  color: var(--text-muted);
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.3);
 }
 
 /* ============================================
@@ -327,9 +312,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .cusup-tickets-header .cusup-section-header {
@@ -341,191 +326,191 @@
 .cusup-create-ticket-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
-  background: var(--primary);
-  color: white;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  background: #F39C12;
+  color: #FFFFFF;
   border: none;
-  border-radius: var(--radius-md);
-  font-size: 13px;
+  border-radius: 10px;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
 .cusup-create-ticket-btn:hover {
-  background: var(--primary-hover);
+  background: #E67E22;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(26, 86, 219, 0.25);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
 }
 
 .cusup-tickets-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .cusup-ticket-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  padding: 16px 20px;
-  transition: all 0.2s;
+  background: #131C28;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  transition: all 200ms ease;
 }
 
 .cusup-ticket-card:hover {
-  border-color: var(--border-medium);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .cusup-ticket-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 0.25rem;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .cusup-ticket-id {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   font-family: monospace;
 }
 
 .status-badge-support {
-  padding: 2px 12px;
-  border-radius: 30px;
-  font-size: 11px;
+  padding: 0.125rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  border: 1px solid transparent;
 }
 
 .status-badge-support.open {
-  background: var(--warning-subtle);
-  color: var(--warning);
+  background: rgba(243, 156, 18, 0.12);
+  color: #F39C12;
+  border-color: rgba(243, 156, 18, 0.2);
 }
 
 .status-badge-support.in-progress {
-  background: var(--primary-subtle);
-  color: var(--primary);
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+  border-color: rgba(59, 130, 246, 0.2);
 }
 
 .status-badge-support.resolved {
-  background: var(--success-subtle);
-  color: var(--success);
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+  border-color: rgba(16, 185, 129, 0.2);
 }
 
 .cusup-ticket-subject {
-  font-size: 15px;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 4px;
+  color: #FFFFFF;
+  margin-bottom: 0.25rem;
 }
 
 .cusup-ticket-description {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin-bottom: 10px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.5rem;
 }
 
 .cusup-ticket-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
-  color: var(--text-muted);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .cusup-ticket-date {
-  font-size: 12px;
-  color: var(--text-muted);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .cusup-view-ticket-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.4rem;
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
 .cusup-view-ticket-btn:hover {
-  color: var(--primary);
+  color: #F39C12;
 }
 
 .cusup-ticket-details {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-light);
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .cusup-ticket-messages {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.5rem;
 }
 
 .cusup-message {
-  padding: 12px 16px;
-  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
 }
 
 .cusup-message.customer {
-  background: var(--bg-hover);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .cusup-message.support {
-  background: var(--primary-subtle);
-  border-left: 3px solid var(--primary);
+  background: rgba(243, 156, 18, 0.06);
+  border-left: 3px solid #F39C12;
 }
 
 .cusup-message strong {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .cusup-message p {
-  font-size: 14px;
-  color: var(--text-primary);
-  margin: 4px 0 0 0;
+  font-size: 0.85rem;
+  color: #FFFFFF;
+  margin: 0.25rem 0 0 0;
 }
 
 .cusup-message small {
-  font-size: 11px;
-  color: var(--text-muted);
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.3);
 }
 
 /* ============================================
-   GUIDES SECTION - BLUE THEME
+   GUIDES
    ============================================ */
-.cusup-section-description {
-  margin-bottom: 24px;
-  color: var(--text-secondary);
-  font-size: 16px;
-}
-
 .cusup-guides-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .cusup-guide-card {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  transition: all var(--transition-base);
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: #131C28;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  transition: all 200ms ease;
 }
 
 .cusup-guide-card.guide-clickable {
@@ -533,31 +518,31 @@
 }
 
 .cusup-guide-card.guide-clickable:hover {
-  transform: translateX(8px);
-  border-color: var(--blue);
-  box-shadow: var(--shadow-md);
+  transform: translateX(6px);
+  border-color: rgba(243, 156, 18, 0.2);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .cusup-guide-icon-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
-  background: rgba(37, 99, 235, 0.1);
+  width: 48px;
+  height: 48px;
+  background: rgba(243, 156, 18, 0.12);
   border-radius: 12px;
   flex-shrink: 0;
-  transition: all var(--transition-spring);
+  transition: all 200ms ease;
 }
 
 .cusup-guide-card:hover .cusup-guide-icon-wrapper {
-  background: rgba(37, 99, 235, 0.2);
-  transform: scale(1.05) rotate(-3deg);
+  background: rgba(243, 156, 18, 0.2);
+  transform: scale(1.05);
 }
 
 .cusup-guide-icon-wrapper svg {
-  font-size: 28px;
-  color: var(--blue);
+  font-size: 1.5rem;
+  color: #F39C12;
 }
 
 .cusup-guide-info {
@@ -565,53 +550,53 @@
 }
 
 .cusup-guide-info h3 {
-  font-size: 15px;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 4px 0;
+  color: #FFFFFF;
+  margin: 0 0 0.25rem 0;
 }
 
 .cusup-guide-info p {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin: 0 0 4px 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 0.25rem 0;
 }
 
 .cusup-guide-type {
   display: inline-block;
-  padding: 2px 12px;
-  background: rgba(37, 99, 235, 0.1);
-  color: var(--blue);
+  padding: 0.1rem 0.75rem;
+  background: rgba(243, 156, 18, 0.12);
+  color: #F39C12;
   border-radius: 12px;
-  font-size: 12px;
+  font-size: 0.7rem;
   font-weight: 600;
 }
 
 .cusup-guide-open-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: var(--blue);
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  background: #F39C12;
   color: #FFFFFF;
   border: none;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 0.85rem;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 200ms ease;
   flex-shrink: 0;
+  font-family: 'Poppins', sans-serif;
 }
 
 .cusup-guide-open-btn:hover {
-  background: var(--blue-hover);
+  background: #E67E22;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
 }
 
 .cusup-guide-open-btn svg {
-  font-size: 14px;
-  color: #FFFFFF;
+  font-size: 0.875rem;
 }
 
 /* ============================================
@@ -619,25 +604,25 @@
    ============================================ */
 .cusup-empty-state {
   text-align: center;
-  padding: 40px 20px;
+  padding: 2.5rem 1.25rem;
 }
 
 .cusup-empty-state .empty-icon {
-  font-size: 40px;
-  color: var(--text-light);
-  margin-bottom: 12px;
+  font-size: 2.5rem;
+  color: rgba(255, 255, 255, 0.15);
+  margin-bottom: 0.75rem;
 }
 
 .cusup-empty-state h3 {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 4px 0;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 0.25rem 0;
 }
 
 .cusup-empty-state p {
-  font-size: 14px;
-  color: var(--text-secondary);
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.3);
   margin: 0;
 }
 
@@ -650,13 +635,14 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   animation: fadeIn 0.25s ease;
+  padding: 1rem;
 }
 
 @keyframes fadeIn {
@@ -665,14 +651,14 @@
 }
 
 .cusup-modal {
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-2xl);
-  width: 90%;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  width: 100%;
   max-width: 520px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: var(--shadow-xl);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -681,18 +667,32 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
+.cusup-modal::-webkit-scrollbar {
+  width: 4px;
+}
+
+.cusup-modal::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+.cusup-modal::-webkit-scrollbar-thumb {
+  background: #F39C12;
+  border-radius: 4px;
+}
+
 .cusup-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--border-light);
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .cusup-modal-header h3 {
-  font-size: 18px;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0;
 }
 
@@ -701,27 +701,27 @@
   height: 32px;
   background: none;
   border: none;
-  font-size: 18px;
-  color: var(--text-muted);
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.3);
   cursor: pointer;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: all 200ms ease;
 }
 
 .cusup-modal-close:hover {
-  background: var(--bg-surface);
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+  color: #FFFFFF;
 }
 
 .cusup-modal-body {
-  padding: 20px 24px;
+  padding: 1.25rem 1.5rem;
 }
 
 .cusup-modal-body .cusup-form-group {
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 
 .cusup-modal-body .cusup-form-group:last-child {
@@ -730,44 +730,46 @@
 
 .cusup-modal-footer {
   display: flex;
-  gap: 12px;
+  gap: 0.75rem;
   justify-content: flex-end;
-  padding: 16px 24px 24px 24px;
-  border-top: 1px solid var(--border-light);
+  padding: 1rem 1.5rem 1.5rem 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .cusup-cancel-btn {
-  padding: 10px 20px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  font-size: 14px;
+  padding: 0.6rem 1.25rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  font-size: 0.875rem;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
 .cusup-cancel-btn:hover {
-  background: var(--bg-hover);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .cusup-submit-ticket-btn {
-  padding: 10px 24px;
-  background: var(--primary);
+  padding: 0.6rem 1.5rem;
+  background: #F39C12;
   border: none;
-  border-radius: var(--radius-md);
-  font-size: 14px;
+  border-radius: 10px;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: white;
+  color: #FFFFFF;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
 .cusup-submit-ticket-btn:hover:not(:disabled) {
-  background: var(--primary-hover);
+  background: #E67E22;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(26, 86, 219, 0.25);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
 }
 
 .cusup-submit-ticket-btn:disabled {
@@ -791,6 +793,10 @@
    RESPONSIVE
    ============================================ */
 @media (max-width: 1024px) {
+  .cusup-container {
+    padding-inline: 20px;
+  }
+  
   .cusup-info-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -798,25 +804,55 @@
 
 @media (max-width: 768px) {
   .cusup-container {
-    padding: 16px;
+    padding-inline: 14px;
   }
   
   .cusup-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 0 1rem 0;
+  }
+  
+  .cusup-header-content h1 {
+    font-size: 1.3rem;
+  }
+  
+  .cusup-header-content p {
+    font-size: 0.9rem;
   }
   
   .cusup-section {
-    padding: 16px 18px;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
   }
   
   .cusup-form-row {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 0.75rem;
   }
   
   .cusup-info-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  
+  .cusup-info-card {
+    padding: 1rem;
+  }
+  
+  .cusup-info-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .cusup-info-card h3 {
+    font-size: 0.8rem;
+  }
+  
+  .cusup-info-card p {
+    font-size: 0.75rem;
   }
   
   .cusup-tickets-header {
@@ -829,8 +865,30 @@
     align-items: flex-start;
   }
   
+  .cusup-guide-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+  
+  .cusup-guide-icon-wrapper {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .cusup-guide-icon-wrapper svg {
+    font-size: 1.2rem;
+  }
+  
+  .cusup-guide-open-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
   .cusup-modal {
-    margin: 12px;
+    margin: 1rem;
+    border-radius: 14px;
   }
   
   .cusup-modal-footer {
@@ -842,43 +900,182 @@
     width: 100%;
     justify-content: center;
   }
-
-  .cusup-guide-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 20px;
+  
+  .cusup-modal-header {
+    padding: 1rem 1.25rem;
   }
-
-  .cusup-guide-icon-wrapper {
-    width: 48px;
-    height: 48px;
+  
+  .cusup-modal-body {
+    padding: 1rem 1.25rem;
   }
-
-  .cusup-guide-icon-wrapper svg {
-    font-size: 22px;
-  }
-
-  .cusup-guide-open-btn {
-    width: 100%;
-    justify-content: center;
+  
+  .cusup-modal-footer {
+    padding: 0.75rem 1.25rem 1.25rem 1.25rem;
   }
 }
 
 @media (max-width: 480px) {
+  .cusup-container {
+    padding-inline: 10px;
+  }
+  
   .cusup-header-content h1 {
-    font-size: 22px;
+    font-size: 1.1rem;
+  }
+  
+  .cusup-header-content p {
+    font-size: 0.8rem;
+  }
+  
+  .cusup-section {
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+  }
+  
+  .cusup-section-header h2 {
+    font-size: 0.95rem;
+  }
+  
+  .cusup-info-grid {
+    grid-template-columns: 1fr;
   }
   
   .cusup-info-card {
-    padding: 16px;
-  }
-  
-  .cusup-guide-card {
-    padding: 12px;
+    padding: 0.875rem;
   }
   
   .cusup-ticket-card {
-    padding: 12px 16px;
+    padding: 0.75rem 1rem;
+  }
+  
+  .cusup-ticket-subject {
+    font-size: 0.85rem;
+  }
+  
+  .cusup-ticket-description {
+    font-size: 0.8rem;
+  }
+  
+  .cusup-guide-card {
+    padding: 0.75rem;
+  }
+  
+  .cusup-guide-info h3 {
+    font-size: 0.85rem;
+  }
+  
+  .cusup-guide-info p {
+    font-size: 0.8rem;
+  }
+  
+  .cusup-create-ticket-btn {
+    font-size: 0.8rem;
+    padding: 0.4rem 1rem;
+  }
+  
+  .cusup-submit-btn {
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
+  }
+  
+  .cusup-modal {
+    margin: 0.5rem;
+    border-radius: 12px;
+  }
+  
+  .cusup-modal-header h3 {
+    font-size: 1rem;
+  }
+  
+  .cusup-modal-body {
+    padding: 0.875rem 1rem;
+  }
+  
+  .cusup-modal-footer {
+    padding: 0.75rem 1rem 1rem 1rem;
+  }
+  
+  .cusup-cancel-btn,
+  .cusup-submit-ticket-btn {
+    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .cusup-container {
+    padding-inline: 8px;
+  }
+  
+  .cusup-header-content h1 {
+    font-size: 0.95rem;
+  }
+  
+  .cusup-section {
+    padding: 0.625rem 0.75rem;
+  }
+  
+  .cusup-info-card {
+    padding: 0.625rem;
+  }
+  
+  .cusup-info-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+  }
+  
+  .cusup-guide-card {
+    padding: 0.625rem;
+  }
+  
+  .cusup-guide-icon-wrapper {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .cusup-guide-icon-wrapper svg {
+    font-size: 1rem;
+  }
+  
+  .cusup-ticket-card {
+    padding: 0.625rem 0.75rem;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .cusup-section:hover,
+  .cusup-info-card:hover,
+  .cusup-ticket-card:hover,
+  .cusup-guide-card.guide-clickable:hover {
+    transform: none !important;
+  }
+  
+  .cusup-submit-btn:hover:not(:disabled),
+  .cusup-create-ticket-btn:hover,
+  .cusup-guide-open-btn:hover,
+  .cusup-submit-ticket-btn:hover:not(:disabled) {
+    transform: none !important;
+  }
+  
+  .cusup-modal {
+    animation: none !important;
+  }
+  
+  .cusup-modal-overlay {
+    animation: none !important;
+  }
+  
+  .spinning {
+    animation: none !important;
   }
 }

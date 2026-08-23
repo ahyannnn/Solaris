@@ -1,5 +1,5 @@
 // src/pages/Auth/notification.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -16,7 +16,9 @@ import {
   FaInbox,
   FaCircle,
   FaExclamationTriangle,
-  FaBullhorn // Added for broadcast icon
+  FaBullhorn,
+  FaEllipsisV,
+  FaEye
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Auth/notification.css';
@@ -31,6 +33,7 @@ const Notifications = () => {
   const [filter, setFilter] = useState('all');
   const [selectedNotifications, setSelectedNotifications] = useState([]);
   const [selectMode, setSelectMode] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState(null);
 
   // Modal State
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -38,8 +41,14 @@ const Notifications = () => {
   const [modalTargetId, setModalTargetId] = useState(null);
   const [modalCount, setModalCount] = useState(0);
 
+  const dropdownRef = useRef(null);
+
   const getToken = () => {
     return localStorage.getItem('token') || sessionStorage.getItem('token');
+  };
+
+  const getUserRole = () => {
+    return localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
   };
 
   const fetchNotifications = async () => {
@@ -55,6 +64,7 @@ const Notifications = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
+      console.log('Notifications data:', response.data);
       setNotifications(response.data.notifications || []);
       setUnreadCount(response.data.unreadCount || 0);
       setError('');
@@ -120,6 +130,7 @@ const Notifications = () => {
     setModalTargetId(notificationId);
     setModalCount(1);
     setShowConfirmModal(true);
+    setActiveDropdown(null);
   };
 
   const openBulkDeleteModal = () => {
@@ -182,6 +193,118 @@ const Notifications = () => {
     setModalTargetId(null);
     setModalCount(0);
   };
+
+  // ============================================
+  // NAVIGATION - BASED ON ACTUAL APP ROUTES
+  // ============================================
+  const handleViewNotification = (notification) => {
+    // Mark as read when viewing
+    if (!notification.read) {
+      markAsRead(notification._id);
+    }
+    
+    const userRole = getUserRole() || 'user';
+    
+    const type = notification.metadata?.type || notification.type || notification.notificationType || '';
+    const title = notification.title?.toLowerCase() || '';
+    const message = notification.message?.toLowerCase() || '';
+    const source = notification.metadata?.source || notification.source || '';
+    const combinedText = `${type} ${title} ${message} ${source}`.toLowerCase();
+    
+    let path = '/app/customer/notifications';
+
+    // ===== ADMIN ROUTES =====
+    if (userRole === 'admin') {
+      if (combinedText.includes('billing') || combinedText.includes('invoice') || combinedText.includes('payment') || combinedText.includes('bill') || combinedText.includes('receipt')) {
+        path = '/app/admin/billing';
+      } else if (combinedText.includes('solarinvoice') || combinedText.includes('solar invoice')) {
+        path = '/app/admin/solarinvoices';
+      } else if (combinedText.includes('project')) {
+        path = '/app/admin/project';
+      } else if (combinedText.includes('pre-assessment') || combinedText.includes('preassessment') || 
+                 combinedText.includes('booking') || combinedText.includes('free quote') || 
+                 combinedText.includes('freequote') || combinedText.includes('quote') || 
+                 combinedText.includes('site assessment') || combinedText.includes('siteassessment') ||
+                 combinedText.includes('assessment')) {
+        // LAHAT NG QUOTES, PRE-ASSESSMENTS, SITE ASSESSMENTS DITO
+        path = '/app/admin/siteassessment';
+      } else if (combinedText.includes('user') || combinedText.includes('client') || combinedText.includes('customer')) {
+        path = '/app/admin/usermanagement';
+      } else if (combinedText.includes('device') || combinedText.includes('iot') || combinedText.includes('hardware')) {
+        path = '/app/admin/iotdevice';
+      } else if (combinedText.includes('report') || combinedText.includes('analytics')) {
+        path = '/app/admin/reports';
+      } else if (combinedText.includes('schedule') || combinedText.includes('appointment')) {
+        path = '/app/admin/schedule';
+      } else if (combinedText.includes('maintenance')) {
+        path = '/app/admin/maintenance';
+      } else if (combinedText.includes('settings') || combinedText.includes('config')) {
+        path = '/app/admin/settings';
+      } else if (combinedText.includes('system')) {
+        path = '/app/admin/system-config';
+      } else {
+        path = '/app/admin/notifications';
+      }
+    }
+    // ===== ENGINEER ROUTES =====
+    else if (userRole === 'engineer') {
+      if (combinedText.includes('quotation') || combinedText.includes('billing') || combinedText.includes('invoice') || combinedText.includes('payment')) {
+        path = '/app/engineer/quotation';
+      } else if (combinedText.includes('project')) {
+        path = '/app/engineer/project';
+      } else if (combinedText.includes('schedule') || combinedText.includes('appointment')) {
+        path = '/app/engineer/schedule';
+      } else if (combinedText.includes('assessment') || combinedText.includes('site assessment')) {
+        path = '/app/engineer/assessment';
+      } else if (combinedText.includes('device') || combinedText.includes('iot')) {
+        path = '/app/engineer/device';
+      } else if (combinedText.includes('report') || combinedText.includes('analytics')) {
+        path = '/app/engineer/reports';
+      } else if (combinedText.includes('profile')) {
+        path = '/app/engineer/profile';
+      } else {
+        path = '/app/engineer/notifications';
+      }
+    }
+    // ===== CUSTOMER ROUTES =====
+    else {
+      if (combinedText.includes('quotation') || combinedText.includes('billing') || combinedText.includes('invoice') || combinedText.includes('payment') || combinedText.includes('bill') || combinedText.includes('receipt') || combinedText.includes('fee')) {
+        path = '/app/customer/billing';
+      } else if (combinedText.includes('project') || combinedText.includes('installation') || combinedText.includes('solar')) {
+        path = '/app/customer/project';
+      } else if (combinedText.includes('schedule') || combinedText.includes('assessment') || combinedText.includes('booking') || combinedText.includes('appointment') || combinedText.includes('pre-assessment')) {
+        path = '/app/customer/book-assessment';
+      } else if (combinedText.includes('support') || combinedText.includes('ticket') || combinedText.includes('help') || combinedText.includes('inquiry')) {
+        path = '/app/customer/support';
+      } else if (combinedText.includes('profile')) {
+        path = '/app/customer/profile';
+      } else if (combinedText.includes('settings')) {
+        path = '/app/customer/settings';
+      } else {
+        path = '/app/customer/notifications';
+      }
+    }
+
+    console.log('Navigating to:', path);
+    setActiveDropdown(null);
+    navigate(path);
+  };
+
+  const toggleDropdown = (notificationId, event) => {
+    event.stopPropagation();
+    setActiveDropdown(activeDropdown === notificationId ? null : notificationId);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setActiveDropdown(null);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   const toggleSelection = (id) => {
     setSelectedNotifications(prev =>
@@ -264,7 +387,6 @@ const Notifications = () => {
     }
   };
 
-  // Get broadcast count
   const getBroadcastCount = () => {
     return notifications.filter(n => n.isAdminBroadcast === true).length;
   };
@@ -369,7 +491,6 @@ const Notifications = () => {
               Read
               <span className="filter-count">{notifications.length - unreadCount}</span>
             </button>
-            {/* ✅ NEW: Broadcast filter for admin notifications */}
             {getBroadcastCount() > 0 && (
               <button
                 className={`filter-tab ${filter === 'broadcast' ? 'active' : ''}`}
@@ -422,8 +543,13 @@ const Notifications = () => {
                   </div>
                 )}
 
-                {/* Icon */}
-                <div className={`notif-icon-wrapper ${getIconBg(notification.type)}`}>
+                {/* Icon - Clickable to view */}
+                <div 
+                  className={`notif-icon-wrapper ${getIconBg(notification.type)}`}
+                  onClick={() => handleViewNotification(notification)}
+                  style={{ cursor: 'pointer' }}
+                  title="Click to view"
+                >
                   {notification.isAdminBroadcast ? (
                     <FaBullhorn className="notif-icon-broadcast" />
                   ) : (
@@ -431,13 +557,16 @@ const Notifications = () => {
                   )}
                 </div>
 
-                {/* Content */}
-                <div className="notif-content">
+                {/* Content - Clickable to view */}
+                <div 
+                  className="notif-content"
+                  onClick={() => handleViewNotification(notification)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <div className="notif-content-header">
                     <div className="notif-title-wrapper">
                       <h4 className="notif-title">
                         {notification.title}
-                        {notification.isAdminBroadcast}
                       </h4>
                       {!notification.read && (
                         <span className="notif-unread-label">New</span>
@@ -469,7 +598,10 @@ const Notifications = () => {
                     <div className="notif-footer">
                       <button
                         className="notif-mark-read-btn"
-                        onClick={() => markAsRead(notification._id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          markAsRead(notification._id);
+                        }}
                       >
                         <FaCheck /> Mark as read
                       </button>
@@ -477,16 +609,33 @@ const Notifications = () => {
                   )}
                 </div>
 
-                {/* Actions */}
+                {/* Actions - 3 Dots Dropdown */}
                 {!selectMode && (
-                  <div className="notif-actions">
+                  <div className="notif-actions" ref={dropdownRef}>
                     <button
-                      className="notif-delete-btn"
-                      onClick={() => openDeleteModal(notification._id)}
-                      title="Delete"
+                      className="notif-menu-btn"
+                      onClick={(e) => toggleDropdown(notification._id, e)}
+                      title="More options"
                     >
-                      <FaTrash />
+                      <FaEllipsisV />
                     </button>
+
+                    {activeDropdown === notification._id && (
+                      <div className="notif-dropdown-menu">
+                        <button
+                          className="notif-dropdown-item view"
+                          onClick={() => handleViewNotification(notification)}
+                        >
+                          <FaEye /> View
+                        </button>
+                        <button
+                          className="notif-dropdown-item delete"
+                          onClick={() => openDeleteModal(notification._id)}
+                        >
+                          <FaTrash /> Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

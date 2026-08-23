@@ -1,4 +1,4 @@
-// pages/Admin/AdminDashboard.cuspro.jsx - Premium Modern Recharts Redesign
+// pages/Admin/AdminDashboard.cuspro.jsx - Redesigned with Dark Solar Theme
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
@@ -17,7 +17,9 @@ import {
   FaCalendarAlt,
   FaChevronRight,
   FaClock,
-  FaArrowUp
+  FaSun,
+  FaMoon,
+  FaUserCircle
 } from 'react-icons/fa';
 import '../../styles/Admin/dashboard.css';
 import {
@@ -309,103 +311,84 @@ const AdminDashboard = () => {
       icon: <FaClipboardList />, 
       label: 'Manage Assessments', 
       description: 'Review and assign assessments',
-      color: 'indigo',
       link: '/app/admin/siteassessment'
     },
     { 
       icon: <FaProjectDiagram />, 
       label: 'View Projects', 
       description: 'Track all projects status',
-      color: 'emerald',
       link: '/app/admin/project'
     },
     { 
       icon: <FaMoneyBillWave />, 
       label: 'Billing Overview', 
       description: 'Review payments and invoices',
-      color: 'purple',
       link: '/app/admin/billing'
     },
     { 
       icon: <FaUsers />, 
       label: 'User Management', 
       description: 'Manage user accounts',
-      color: 'amber',
       link: '/app/admin/usermanagement'
     }
   ];
 
-  /* --- STATS CARDS COMPONENT WITH SPARKLINES --- */
+  /* --- STATS CARDS COMPONENT --- */
   const StatsCards = () => {
     const cards = [
       {
         title: 'Free Quotes',
         value: stats.freeQuotes.total,
         icon: <FaFileInvoiceDollar />,
-        color: 'blue',
         detail: `${stats.freeQuotes.pending} pending`,
-        trend: '+12%',
         data: monthlyData.freeQuotes
       },
       {
         title: 'Pre Assessments',
         value: stats.preAssessments.total,
         icon: <FaClipboardList />,
-        color: 'green',
         detail: `${stats.preAssessments.scheduled} scheduled`,
-        trend: '+8%',
         data: monthlyData.assessments
       },
       {
         title: 'Total Revenue',
         value: formatCurrency(stats.revenue.total || 0),
         icon: <FaChartLine />,
-        color: 'purple',
         detail: `${formatCurrency(stats.revenue.thisMonth)} this month`,
-        trend: '+5%',
         data: monthlyData.revenue
       },
       {
         title: 'IoT Devices',
         value: stats.devices.total || 0,
         icon: <FaMicrochip />,
-        color: 'orange',
         detail: `${stats.devices.active || 0} active`,
-        trend: '+16%',
-        data: monthlyData.revenue 
+        data: monthlyData.revenue
       }
     ];
 
     return (
-      <div className="modern-stats-grid">
+      <div className="stats-grid_admindashbu">
         {cards.map((card, index) => {
           const maxVal = Math.max(...card.data, 1);
           
           return (
-            <div key={index} className={`modern-stat-card ${card.color}`}>
-              <div className="modern-stat-header">
-                <div className={`modern-stat-icon-wrapper ${card.color}`}>
+            <div key={index} className="stat-card_admindashbu">
+              <div className="stat-card-header_admindashbu">
+                <div className="stat-icon-wrapper_admindashbu">
                   {card.icon}
                 </div>
-                <div className="modern-stat-trend">
-                  <FaArrowUp className="modern-trend-icon" /> {card.trend}
-                </div>
               </div>
-              <div className="modern-stat-content">
-                <span className="modern-stat-value">{card.value}</span>
-                <span className="modern-stat-label">{card.title}</span>
-                <span className="modern-stat-detail">{card.detail}</span>
+              <div className="stat-card-content_admindashbu">
+                <span className="stat-value_admindashbu">{card.value}</span>
+                <span className="stat-label_admindashbu">{card.title}</span>
+                <span className="stat-detail_admindashbu">{card.detail}</span>
               </div>
-              
-              {/* Sparkline Footer */}
-              <div className="modern-stat-sparkline">
+              <div className="stat-sparkline_admindashbu">
                 <svg width="100%" height="30" viewBox="0 0 120 30" preserveAspectRatio="none">
                   <path
-                    d={`M0 ${30 - (card.data[0] / maxVal) * 25} ${
-                      card.data.map((d, i) => `L${(i / (card.data.length - 1)) * 120} ${30 - (d / maxVal) * 25}`).join(' ')
-                    }`}
+                    d={`M0 ${30 - (card.data[0] / maxVal) * 25} ${card.data.map((d, i) => `L${(i / (card.data.length - 1)) * 120} ${30 - (d / maxVal) * 25}`).join(' ')}`}
                     fill="none"
-                    stroke="currentColor"
+                    stroke="#F39C12"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -419,7 +402,7 @@ const AdminDashboard = () => {
     );
   };
 
-  /* --- RECHARTS: PROJECT OVERVIEW AREA CHART (Left) --- */
+  /* --- PROJECT OVERVIEW CHART --- */
   const ProjectOverviewChart = () => {
     const chartData = monthlyData.labels.map((label, i) => ({
       name: label,
@@ -430,10 +413,10 @@ const AdminDashboard = () => {
     const CustomTooltip = ({ active, payload, label }) => {
       if (active && payload && payload.length) {
         return (
-          <div className="modern-chart-tooltip">
-            <p className="tooltip-label">{label}</p>
+          <div className="chart-tooltip_admindashbu">
+            <p className="tooltip-label_admindashbu">{label}</p>
             {payload.map((entry, idx) => (
-              <p key={idx} className="tooltip-item" style={{ color: entry.color }}>
+              <p key={idx} className="tooltip-item_admindashbu" style={{ color: entry.color }}>
                 {entry.name}: {entry.value}
               </p>
             ))}
@@ -444,63 +427,63 @@ const AdminDashboard = () => {
     };
 
     return (
-      <div className="modern-chart-card">
-        <div className="modern-chart-header">
+      <div className="chart-card_admindashbu">
+        <div className="chart-header_admindashbu">
           <div>
-            <h3>Project Overview</h3>
-            <span className="modern-chart-period">Track your quotes and assessments performance</span>
+            <h3 className="chart-title_admindashbu">Project Overview</h3>
+            <span className="chart-subtitle_admindashbu">Track your quotes and assessments performance</span>
           </div>
-          <div className="modern-chart-actions">
-            <span className="modern-legend-dot quote-color"></span> Free Quotes
-            <span className="modern-legend-dot assessment-color"></span> Pre-Assessments
+          <div className="chart-legend_admindashbu">
+            <span className="legend-dot_admindashbu quotes-dot_admindashbu"></span> Free Quotes
+            <span className="legend-dot_admindashbu assessments-dot_admindashbu"></span> Pre-Assessments
           </div>
         </div>
-        <div className="modern-chart-body" style={{ height: '280px' }}>
+        <div className="chart-body_admindashbu">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
-                <linearGradient id="colorQuotes" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#a78bfa" stopOpacity={0}/>
+                <linearGradient id="colorQuotes_admindashbu" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#F39C12" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#F39C12" stopOpacity={0}/>
                 </linearGradient>
-                <linearGradient id="colorAssessments" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f472b6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#f472b6" stopOpacity={0}/>
+                <linearGradient id="colorAssessments_admindashbu" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" />
+              <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="rgba(255,255,255,0.06)" />
               <XAxis 
                 dataKey="name" 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{fill: '#94a3b8', fontSize: 12}} 
+                tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} 
                 dy={10}
               />
               <YAxis 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{fill: '#94a3b8', fontSize: 12}} 
+                tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} 
                 width={30}
               />
-              <Tooltip content={<CustomTooltip />} cursor={{stroke: '#cbd5e1', strokeWidth: 1}} />
+              <Tooltip content={<CustomTooltip />} cursor={{stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1}} />
               <Area 
                 type="monotone" 
                 dataKey="quotes" 
-                stroke="#8b5cf6" 
+                stroke="#F39C12" 
                 strokeWidth={3} 
                 fillOpacity={1} 
-                fill="url(#colorQuotes)" 
-                dot={{ r: 5, fill: '#8b5cf6', strokeWidth: 2, stroke: '#fff' }}
+                fill="url(#colorQuotes_admindashbu)" 
+                dot={{ r: 5, fill: '#F39C12', strokeWidth: 2, stroke: '#1A2533' }}
                 activeDot={{ r: 7 }}
               />
               <Area 
                 type="monotone" 
                 dataKey="assessments" 
-                stroke="#ec4899" 
+                stroke="#10B981" 
                 strokeWidth={3} 
                 fillOpacity={1} 
-                fill="url(#colorAssessments)" 
-                dot={{ r: 5, fill: '#ec4899', strokeWidth: 2, stroke: '#fff' }}
+                fill="url(#colorAssessments_admindashbu)" 
+                dot={{ r: 5, fill: '#10B981', strokeWidth: 2, stroke: '#1A2533' }}
                 activeDot={{ r: 7 }}
               />
             </AreaChart>
@@ -510,7 +493,7 @@ const AdminDashboard = () => {
     );
   };
 
-  /* --- RECHARTS: REVENUE TREND AREA CHART (Right - Green) --- */
+  /* --- REVENUE TREND CHART --- */
   const RevenueTrendChart = () => {
     const chartData = monthlyData.labels.map((label, i) => ({
       name: label,
@@ -520,9 +503,9 @@ const AdminDashboard = () => {
     const CustomTooltip = ({ active, payload, label }) => {
       if (active && payload && payload.length) {
         return (
-          <div className="modern-chart-tooltip">
-            <p className="tooltip-label">{label}</p>
-            <p className="tooltip-item" style={{ color: '#10b981' }}>
+          <div className="chart-tooltip_admindashbu">
+            <p className="tooltip-label_admindashbu">{label}</p>
+            <p className="tooltip-item_admindashbu" style={{ color: '#F39C12' }}>
               Revenue: {formatCurrency(payload[0].value)}
             </p>
           </div>
@@ -532,19 +515,19 @@ const AdminDashboard = () => {
     };
 
     return (
-      <div className="modern-chart-card">
-        <div className="modern-chart-header">
+      <div className="chart-card_admindashbu">
+        <div className="chart-header_admindashbu">
           <div>
-            <h3>Revenue Trend</h3>
-            <span className="modern-chart-period">Monthly revenue overview from Jan to Dec</span>
+            <h3 className="chart-title_admindashbu">Revenue Trend</h3>
+            <span className="chart-subtitle_admindashbu">Monthly revenue overview</span>
           </div>
-          <div className="modern-chart-actions">
-            <span className="modern-legend-dot revenue-color"></span> Monthly Revenue
+          <div className="chart-legend_admindashbu">
+            <span className="legend-dot_admindashbu revenue-dot_admindashbu"></span> Monthly Revenue
           </div>
         </div>
-        <div className="modern-chart-body" style={{ height: '280px' }}>
+        <div className="chart-body_admindashbu">
           {monthlyData.revenue.every(v => v === 0) ? (
-            <div className="modern-empty-chart">
+            <div className="empty-chart_admindashbu">
               <p>No revenue data available</p>
               <small>Complete payments to see revenue trends</small>
             </div>
@@ -552,35 +535,35 @@ const AdminDashboard = () => {
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  <linearGradient id="colorRevenue_admindashbu" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#F39C12" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#F39C12" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" />
+                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="rgba(255,255,255,0.06)" />
                 <XAxis 
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{fill: '#94a3b8', fontSize: 12}} 
+                  tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} 
                   dy={10}
                 />
                 <YAxis 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{fill: '#94a3b8', fontSize: 12}} 
+                  tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} 
                   width={50}
                   tickFormatter={(value) => `₱${value >= 1000 ? (value/1000).toFixed(0) + 'k' : value}`}
                 />
-                <Tooltip content={<CustomTooltip />} cursor={{stroke: '#cbd5e1', strokeWidth: 1}} />
+                <Tooltip content={<CustomTooltip />} cursor={{stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1}} />
                 <Area 
                   type="monotone" 
                   dataKey="revenue" 
-                  stroke="#10b981" 
+                  stroke="#F39C12" 
                   strokeWidth={3} 
                   fillOpacity={1} 
-                  fill="url(#colorRevenue)" 
-                  dot={{ r: 5, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }}
+                  fill="url(#colorRevenue_admindashbu)" 
+                  dot={{ r: 5, fill: '#F39C12', strokeWidth: 2, stroke: '#1A2533' }}
                   activeDot={{ r: 7 }}
                 />
               </AreaChart>
@@ -621,22 +604,22 @@ const AdminDashboard = () => {
     };
 
     return (
-      <div className="modern-activity-container">
-        <div className="modern-activity-header">
-          <div className="modern-activity-title">
-            <FaClock /> Recent Activity
+      <div className="activity-container_admindashbu">
+        <div className="activity-header_admindashbu">
+          <div className="activity-title_admindashbu">
+            <FaClock className="activity-title-icon_admindashbu" /> Recent Activity
           </div>
           <button 
-            className="modern-activity-view-all"
+            className="view-all-btn_admindashbu"
             onClick={() => navigate('/app/admin/siteassessment')}
           >
             View All <FaChevronRight />
           </button>
         </div>
         
-        <div className="modern-activity-list">
+        <div className="activity-list_admindashbu">
           {recentActivities.length === 0 ? (
-            <div className="modern-empty-activity">
+            <div className="empty-activity_admindashbu">
               <p>No recent activities</p>
               <small>Activities will appear here as they happen</small>
             </div>
@@ -649,20 +632,20 @@ const AdminDashboard = () => {
               return (
                 <div 
                   key={activity.id} 
-                  className="modern-activity-item"
+                  className="activity-item_admindashbu"
                   onClick={() => navigate(activity.action)}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => e.key === 'Enter' && navigate(activity.action)}
                 >
-                  <div className={`modern-activity-icon ${statusClass}`}>
+                  <div className={`activity-icon_admindashbu ${statusClass}`}>
                     {getActivityIcon(activity)}
                   </div>
-                  <div className="modern-activity-content">
-                    <p className="modern-activity-message">{activity.message}</p>
-                    <span className="modern-activity-time">{activity.time}</span>
+                  <div className="activity-content_admindashbu">
+                    <p className="activity-message_admindashbu">{activity.message}</p>
+                    <span className="activity-time_admindashbu">{activity.time}</span>
                   </div>
-                  <div className={`modern-activity-status ${statusClass}`}>
+                  <div className={`activity-status_admindashbu ${statusClass}`}>
                     {statusText}
                   </div>
                 </div>
@@ -676,28 +659,28 @@ const AdminDashboard = () => {
 
   /* --- QUICK ACTIONS COMPONENT --- */
   const QuickActions = () => (
-    <div className="modern-quick-actions">
-      <div className="modern-section-header">
-        <h3>Quick Actions</h3>
+    <div className="quick-actions_admindashbu">
+      <div className="quick-actions-header_admindashbu">
+        <h3 className="quick-actions-title_admindashbu">Quick Actions</h3>
       </div>
-      <div className="modern-quick-actions-grid">
+      <div className="quick-actions-grid_admindashbu">
         {quickActions.map((action, index) => (
           <div 
             key={index} 
-            className={`modern-quick-action-item ${action.color}`}
+            className="quick-action-item_admindashbu"
             onClick={() => navigate(action.link)}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => e.key === 'Enter' && navigate(action.link)}
           >
-            <div className="modern-quick-action-icon-wrapper">
+            <div className="quick-action-icon-wrapper_admindashbu">
               {action.icon}
             </div>
-            <div className="modern-quick-action-content">
-              <span className="modern-quick-action-label">{action.label}</span>
-              <span className="modern-quick-action-description">{action.description}</span>
+            <div className="quick-action-content_admindashbu">
+              <span className="quick-action-label_admindashbu">{action.label}</span>
+              <span className="quick-action-description_admindashbu">{action.description}</span>
             </div>
-            <FaArrowRight className="modern-quick-action-arrow" />
+            <FaArrowRight className="quick-action-arrow_admindashbu" />
           </div>
         ))}
       </div>
@@ -706,29 +689,25 @@ const AdminDashboard = () => {
 
   /* --- SKELETON LOADER --- */
   const SkeletonLoader = () => (
-    <div className="modern-admin-dashboard">
-      <div className="modern-welcome-section">
-        <div className="skeleton-title"></div>
-        <div className="skeleton-subtitle"></div>
-      </div>
-      <div className="modern-stats-grid">
+    <div className="dashboard-container_admindashbu">
+      <div className="stats-grid_admindashbu">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="modern-stat-card skeleton-card">
-            <div className="skeleton-stat-main"></div>
+          <div key={i} className="stat-card_admindashbu skeleton-card_admindashbu">
+            <div className="skeleton-stat-main_admindashbu skeleton-line_admindashbu"></div>
           </div>
         ))}
       </div>
-      <div className="modern-quick-actions-grid">
+      <div className="quick-actions-grid_admindashbu">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="skeleton-quick-action"></div>
+          <div key={i} className="skeleton-quick-action_admindashbu skeleton-line_admindashbu"></div>
         ))}
       </div>
-      <div className="modern-charts-row">
-        <div className="modern-chart-card skeleton-card">
-          <div className="skeleton-chart"></div>
+      <div className="charts-row_admindashbu">
+        <div className="chart-card_admindashbu skeleton-card_admindashbu">
+          <div className="skeleton-chart_admindashbu skeleton-line_admindashbu"></div>
         </div>
-        <div className="modern-chart-card skeleton-card">
-          <div className="skeleton-chart"></div>
+        <div className="chart-card_admindashbu skeleton-card_admindashbu">
+          <div className="skeleton-chart_admindashbu skeleton-line_admindashbu"></div>
         </div>
       </div>
     </div>
@@ -747,11 +726,11 @@ const AdminDashboard = () => {
 
   if (error) {
     return (
-      <div className="modern-error-state">
-        <FaExclamationTriangle className="modern-error-icon" />
+      <div className="error-state_admindashbu">
+        <FaExclamationTriangle className="error-icon_admindashbu" />
         <h2>Error Loading Dashboard</h2>
         <p>{error}</p>
-        <button onClick={fetchDashboardData} className="modern-retry-btn">Retry</button>
+        <button onClick={fetchDashboardData} className="retry-btn_admindashbu">Retry</button>
       </div>
     );
   }
@@ -762,15 +741,15 @@ const AdminDashboard = () => {
         <title>Admin Dashboard | Salfer Engineering</title>
       </Helmet>
 
-      <div className="modern-admin-dashboard">
-        {/* Stats Cards with SVG Sparklines */}
+      <div className="dashboard-container_admindashbu">
+        {/* Stats Cards */}
         <StatsCards />
 
         {/* Quick Actions */}
         <QuickActions />
 
-        {/* Charts Row - Both Area Charts */}
-        <div className="modern-charts-row">
+        {/* Charts Row */}
+        <div className="charts-row_admindashbu">
           <ProjectOverviewChart />
           <RevenueTrendChart />
         </div>

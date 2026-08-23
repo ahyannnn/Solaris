@@ -495,22 +495,22 @@ const IoTDevice = () => {
                     <stop offset="95%" stopColor="#ef4444" stopOpacity={0.2}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#E5E7EB" />
+                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="rgba(255,255,255,0.06)" />
                 <XAxis 
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{fill: '#6B7280', fontSize: 12}} 
+                  tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} 
                   dy={10}
                 />
                 <YAxis 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{fill: '#6B7280', fontSize: 12}} 
+                  tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} 
                   width={30} 
                   allowDecimals={false}
                 />
-                <Tooltip content={<CustomTooltip />} cursor={{stroke: '#D1D5DB', strokeWidth: 1}} />
+                <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(255,255,255,0.05)'}} />
                 
                 {/* 4 Magkakahiwalay na Bar na may iba't ibang kulay */}
                 <Bar dataKey="count" fill="url(#colorAvailable)" radius={[4, 4, 0, 0]} barSize={35} />
@@ -752,220 +752,222 @@ const IoTDevice = () => {
                 </button>
               </div>
               
-              {modalMode === 'view' && selectedDevice ? (
-                <div className="iot-device-details-view-iotdevice">
-                  <div className="iot-detail-section-iotdevice">
-                    <h4>Device Information</h4>
-                    <div className="iot-detail-grid-iotdevice">
-                      <div className="iot-detail-item">
-                        <label>Device ID</label>
-                        <p><strong>{selectedDevice.deviceId}</strong></p>
-                      </div>
-                      <div className="iot-detail-item">
-                        <label>Device Name</label>
-                        <p>{selectedDevice.deviceName}</p>
-                      </div>
-                      <div className="iot-detail-item">
-                        <label>Model</label>
-                        <p>{selectedDevice.model}</p>
-                      </div>
-                      <div className="iot-detail-item">
-                        <label>Manufacturer</label>
-                        <p>{selectedDevice.manufacturer || 'N/A'}</p>
-                      </div>
-                      <div className="iot-detail-item">
-                        <label>Serial Number</label>
-                        <p>{selectedDevice.serialNumber || '—'}</p>
-                      </div>
-                      <div className="iot-detail-item">
-                        <label>Firmware Version</label>
-                        <p>v{selectedDevice.firmwareVersion}</p>
-                      </div>
-                      <div className="iot-detail-item">
-                        <label>Status</label>
-                        <p>{getStatusBadge(selectedDevice.status)}</p>
-                      </div>
-                      <div className="iot-detail-item">
-                        <label>Created</label>
-                        <p>{formatDate(selectedDevice.createdAt)}</p>
-                      </div>
-                      <div className="iot-detail-item">
-                        <label>Last Updated</label>
-                        <p>{formatDate(selectedDevice.updatedAt)}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Assigned Information */}
-                  {selectedDevice.assignedToEngineerId && (
+              <div className="iot-modal-body-iotdevice">
+                {modalMode === 'view' && selectedDevice ? (
+                  <div className="iot-device-details-view-iotdevice">
                     <div className="iot-detail-section-iotdevice">
-                      <h4>Assignment Information</h4>
+                      <h4>Device Information</h4>
                       <div className="iot-detail-grid-iotdevice">
                         <div className="iot-detail-item">
-                          <label>Assigned Engineer</label>
-                          <p>{selectedDevice.assignedToEngineerId?.name || 'N/A'}</p>
+                          <label>Device ID</label>
+                          <p><strong>{selectedDevice.deviceId}</strong></p>
                         </div>
-                        {selectedDevice.assignedToPreAssessmentId && (
-                          <div className="iot-detail-item">
-                            <label>Assessment Reference</label>
-                            <p>{selectedDevice.assignedToPreAssessmentId?.bookingReference || 'N/A'}</p>
-                          </div>
-                        )}
-                        {selectedDevice.assignedAt && (
-                          <div className="iot-detail-item">
-                            <label>Assigned At</label>
-                            <p>{formatDate(selectedDevice.assignedAt)}</p>
-                          </div>
-                        )}
+                        <div className="iot-detail-item">
+                          <label>Device Name</label>
+                          <p>{selectedDevice.deviceName}</p>
+                        </div>
+                        <div className="iot-detail-item">
+                          <label>Model</label>
+                          <p>{selectedDevice.model}</p>
+                        </div>
+                        <div className="iot-detail-item">
+                          <label>Manufacturer</label>
+                          <p>{selectedDevice.manufacturer || 'N/A'}</p>
+                        </div>
+                        <div className="iot-detail-item">
+                          <label>Serial Number</label>
+                          <p>{selectedDevice.serialNumber || '—'}</p>
+                        </div>
+                        <div className="iot-detail-item">
+                          <label>Firmware Version</label>
+                          <p>v{selectedDevice.firmwareVersion}</p>
+                        </div>
+                        <div className="iot-detail-item">
+                          <label>Status</label>
+                          <p>{getStatusBadge(selectedDevice.status)}</p>
+                        </div>
+                        <div className="iot-detail-item">
+                          <label>Created</label>
+                          <p>{formatDate(selectedDevice.createdAt)}</p>
+                        </div>
+                        <div className="iot-detail-item">
+                          <label>Last Updated</label>
+                          <p>{formatDate(selectedDevice.updatedAt)}</p>
+                        </div>
                       </div>
                     </div>
-                  )}
 
-                  {/* Deployment History */}
-                  {selectedDevice.deploymentHistory?.length > 0 && (
-                    <div className="iot-detail-section-iotdevice">
-                      <h4>Deployment History</h4>
-                      {selectedDevice.deploymentHistory.slice(-5).map((record, idx) => (
-                        <div key={idx} className="iot-timeline-item-iotdevice">
-                          <div className="timeline-dot"></div>
-                          <div className="timeline-content">
-                            {record.assignedAt && (
-                              <p><strong>Assigned:</strong> {formatDate(record.assignedAt)}</p>
-                            )}
-                            {record.deployedAt && (
-                              <p><strong>Deployed:</strong> {formatDate(record.deployedAt)}</p>
-                            )}
-                            {record.retrievedAt && (
-                              <p><strong>Retrieved:</strong> {formatDate(record.retrievedAt)}</p>
-                            )}
-                            {record.notes && (
-                              <p className="timeline-notes"><strong>Notes:</strong> {record.notes}</p>
-                            )}
+                    {/* Assigned Information */}
+                    {selectedDevice.assignedToEngineerId && (
+                      <div className="iot-detail-section-iotdevice">
+                        <h4>Assignment Information</h4>
+                        <div className="iot-detail-grid-iotdevice">
+                          <div className="iot-detail-item">
+                            <label>Assigned Engineer</label>
+                            <p>{selectedDevice.assignedToEngineerId?.name || 'N/A'}</p>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Maintenance History */}
-                  {selectedDevice.maintenanceHistory?.length > 0 && (
-                    <div className="iot-detail-section-iotdevice">
-                      <h4>Maintenance History</h4>
-                      {selectedDevice.maintenanceHistory.map((record, idx) => (
-                        <div key={idx} className="iot-maintenance-record-iotdevice">
-                          <p><strong>{record.type || 'Maintenance'}:</strong> {record.notes}</p>
-                          <small>{formatDate(record.date)}</small>
-                          {record.performedBy?.name && (
-                            <small> by {record.performedBy.name}</small>
+                          {selectedDevice.assignedToPreAssessmentId && (
+                            <div className="iot-detail-item">
+                              <label>Assessment Reference</label>
+                              <p>{selectedDevice.assignedToPreAssessmentId?.bookingReference || 'N/A'}</p>
+                            </div>
+                          )}
+                          {selectedDevice.assignedAt && (
+                            <div className="iot-detail-item">
+                              <label>Assigned At</label>
+                              <p>{formatDate(selectedDevice.assignedAt)}</p>
+                            </div>
                           )}
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      </div>
+                    )}
 
-                  {/* Alerts */}
-                  {selectedDevice.alerts?.length > 0 && (
-                    <div className="iot-detail-section-iotdevice">
-                      <h4>Recent Alerts</h4>
-                      {selectedDevice.alerts.slice(-5).map((alert, idx) => (
-                        <div key={idx} className={`iot-alert-item-iotdevice ${alert.type || 'info'}`}>
-                          <FaExclamationTriangle />
-                          <div>
-                            <p>{alert.message}</p>
-                            <small>{formatDate(alert.createdAt)}</small>
+                    {/* Deployment History */}
+                    {selectedDevice.deploymentHistory?.length > 0 && (
+                      <div className="iot-detail-section-iotdevice">
+                        <h4>Deployment History</h4>
+                        {selectedDevice.deploymentHistory.slice(-5).map((record, idx) => (
+                          <div key={idx} className="iot-timeline-item-iotdevice">
+                            <div className="timeline-dot"></div>
+                            <div className="timeline-content">
+                              {record.assignedAt && (
+                                <p><strong>Assigned:</strong> {formatDate(record.assignedAt)}</p>
+                              )}
+                              {record.deployedAt && (
+                                <p><strong>Deployed:</strong> {formatDate(record.deployedAt)}</p>
+                              )}
+                              {record.retrievedAt && (
+                                <p><strong>Retrieved:</strong> {formatDate(record.retrievedAt)}</p>
+                              )}
+                              {record.notes && (
+                                <p className="timeline-notes"><strong>Notes:</strong> {record.notes}</p>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="iot-device-form-iotdevice">
-                  <div className="iot-form-group-iotdevice">
-                    <label>Device Name *</label>
-                    <input 
-                      type="text" 
-                      value={formData.deviceName} 
-                      onChange={(e) => setFormData({ ...formData, deviceName: e.target.value })} 
-                      placeholder="e.g., IoT Sensor 01" 
-                      className="iot-form-input-iotdevice"
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  <div className="iot-form-row-iotdevice">
-                    <div className="iot-form-group-iotdevice">
-                      <label>Model *</label>
-                      <input 
-                        type="text" 
-                        value={formData.model} 
-                        onChange={(e) => setFormData({ ...formData, model: e.target.value })} 
-                        placeholder="e.g., ESP32-S3" 
-                        className="iot-form-input-iotdevice"
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                    <div className="iot-form-group-iotdevice">
-                      <label>Manufacturer</label>
-                      <input 
-                        type="text" 
-                        value={formData.manufacturer} 
-                        onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })} 
-                        placeholder="Salfer Engineering" 
-                        className="iot-form-input-iotdevice"
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                  </div>
-                  <div className="iot-form-row-iotdevice">
-                    <div className="iot-form-group-iotdevice">
-                      <label>Serial Number</label>
-                      <input 
-                        type="text" 
-                        value={formData.serialNumber} 
-                        onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })} 
-                        placeholder="Enter serial number" 
-                        className="iot-form-input-iotdevice"
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                    <div className="iot-form-group-iotdevice">
-                      <label>Firmware Version</label>
-                      <input 
-                        type="text" 
-                        value={formData.firmwareVersion} 
-                        onChange={(e) => setFormData({ ...formData, firmwareVersion: e.target.value })} 
-                        placeholder="1.0.0" 
-                        className="iot-form-input-iotdevice"
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Status Dropdown - Only show in Edit mode */}
-                  {modalMode === 'edit' && (
-                    <div className="iot-form-group-iotdevice">
-                      <label>Status</label>
-                      <select
-                        value={formData.status}
-                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                        className="iot-form-select-iotdevice"
-                        disabled={isSubmitting || ['deployed', 'data_collecting'].includes(selectedDevice?.status)}
-                      >
-                        {STATUS_OPTIONS.map(option => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
                         ))}
-                      </select>
-                      {['deployed', 'data_collecting'].includes(selectedDevice?.status) && (
-                        <small className="iot-status-warning-iotdevice">
-                          <FaExclamationTriangle /> Status cannot be changed for {selectedDevice?.status} devices
-                        </small>
-                      )}
+                      </div>
+                    )}
+
+                    {/* Maintenance History */}
+                    {selectedDevice.maintenanceHistory?.length > 0 && (
+                      <div className="iot-detail-section-iotdevice">
+                        <h4>Maintenance History</h4>
+                        {selectedDevice.maintenanceHistory.map((record, idx) => (
+                          <div key={idx} className="iot-maintenance-record-iotdevice">
+                            <p><strong>{record.type || 'Maintenance'}:</strong> {record.notes}</p>
+                            <small>{formatDate(record.date)}</small>
+                            {record.performedBy?.name && (
+                              <small> by {record.performedBy.name}</small>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Alerts */}
+                    {selectedDevice.alerts?.length > 0 && (
+                      <div className="iot-detail-section-iotdevice">
+                        <h4>Recent Alerts</h4>
+                        {selectedDevice.alerts.slice(-5).map((alert, idx) => (
+                          <div key={idx} className={`iot-alert-item-iotdevice ${alert.type || 'info'}`}>
+                            <FaExclamationTriangle />
+                            <div>
+                              <p>{alert.message}</p>
+                              <small>{formatDate(alert.createdAt)}</small>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="iot-device-form-iotdevice">
+                    <div className="iot-form-group-iotdevice">
+                      <label>Device Name *</label>
+                      <input 
+                        type="text" 
+                        value={formData.deviceName} 
+                        onChange={(e) => setFormData({ ...formData, deviceName: e.target.value })} 
+                        placeholder="e.g., IoT Sensor 01" 
+                        className="iot-form-input-iotdevice"
+                        disabled={isSubmitting}
+                      />
                     </div>
-                  )}
-                </div>
-              )}
+                    <div className="iot-form-row-iotdevice">
+                      <div className="iot-form-group-iotdevice">
+                        <label>Model *</label>
+                        <input 
+                          type="text" 
+                          value={formData.model} 
+                          onChange={(e) => setFormData({ ...formData, model: e.target.value })} 
+                          placeholder="e.g., ESP32-S3" 
+                          className="iot-form-input-iotdevice"
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                      <div className="iot-form-group-iotdevice">
+                        <label>Manufacturer</label>
+                        <input 
+                          type="text" 
+                          value={formData.manufacturer} 
+                          onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })} 
+                          placeholder="Salfer Engineering" 
+                          className="iot-form-input-iotdevice"
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                    </div>
+                    <div className="iot-form-row-iotdevice">
+                      <div className="iot-form-group-iotdevice">
+                        <label>Serial Number</label>
+                        <input 
+                          type="text" 
+                          value={formData.serialNumber} 
+                          onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })} 
+                          placeholder="Enter serial number" 
+                          className="iot-form-input-iotdevice"
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                      <div className="iot-form-group-iotdevice">
+                        <label>Firmware Version</label>
+                        <input 
+                          type="text" 
+                          value={formData.firmwareVersion} 
+                          onChange={(e) => setFormData({ ...formData, firmwareVersion: e.target.value })} 
+                          placeholder="1.0.0" 
+                          className="iot-form-input-iotdevice"
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Status Dropdown - Only show in Edit mode */}
+                    {modalMode === 'edit' && (
+                      <div className="iot-form-group-iotdevice">
+                        <label>Status</label>
+                        <select
+                          value={formData.status}
+                          onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                          className="iot-form-select-iotdevice"
+                          disabled={isSubmitting || ['deployed', 'data_collecting'].includes(selectedDevice?.status)}
+                        >
+                          {STATUS_OPTIONS.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                        {['deployed', 'data_collecting'].includes(selectedDevice?.status) && (
+                          <small className="iot-status-warning-iotdevice">
+                            <FaExclamationTriangle /> Status cannot be changed for {selectedDevice?.status} devices
+                          </small>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               
               <div className="iot-modal-actions-iotdevice">
                 <button 
@@ -1014,33 +1016,35 @@ const IoTDevice = () => {
                   <FaTimes />
                 </button>
               </div>
-              <div className="iot-delete-icon-container-iotdevice">
-                <FaExclamationTriangle className="iot-delete-warning-icon-iotdevice" />
-              </div>
-              <p className="iot-delete-message-iotdevice">
-                Are you sure you want to permanently delete this device?
-              </p>
-              <div className="iot-device-info-delete-iotdevice">
-                <div className="delete-info-row">
-                  <span className="delete-label">Device Name:</span>
-                  <span className="delete-value">{selectedDevice.deviceName}</span>
+              <div className="iot-modal-body-iotdevice">
+                <div className="iot-delete-icon-container-iotdevice">
+                  <FaExclamationTriangle className="iot-delete-warning-icon-iotdevice" />
                 </div>
-                <div className="delete-info-row">
-                  <span className="delete-label">Device ID:</span>
-                  <span className="delete-value">{selectedDevice.deviceId}</span>
+                <p className="iot-delete-message-iotdevice">
+                  Are you sure you want to permanently delete this device?
+                </p>
+                <div className="iot-device-info-delete-iotdevice">
+                  <div className="delete-info-row">
+                    <span className="delete-label">Device Name:</span>
+                    <span className="delete-value">{selectedDevice.deviceName}</span>
+                  </div>
+                  <div className="delete-info-row">
+                    <span className="delete-label">Device ID:</span>
+                    <span className="delete-value">{selectedDevice.deviceId}</span>
+                  </div>
+                  <div className="delete-info-row">
+                    <span className="delete-label">Model:</span>
+                    <span className="delete-value">{selectedDevice.model}</span>
+                  </div>
+                  <div className="delete-info-row">
+                    <span className="delete-label">Status:</span>
+                    <span className="delete-value">{getStatusBadge(selectedDevice.status)}</span>
+                  </div>
                 </div>
-                <div className="delete-info-row">
-                  <span className="delete-label">Model:</span>
-                  <span className="delete-value">{selectedDevice.model}</span>
+                <div className="iot-delete-warning-text-iotdevice">
+                  <FaExclamationTriangle className="warning-icon" />
+                  <p>This action cannot be undone. This will permanently delete the device and all its associated data.</p>
                 </div>
-                <div className="delete-info-row">
-                  <span className="delete-label">Status:</span>
-                  <span className="delete-value">{getStatusBadge(selectedDevice.status)}</span>
-                </div>
-              </div>
-              <div className="iot-delete-warning-text-iotdevice">
-                <FaExclamationTriangle className="warning-icon" />
-                <p>This action cannot be undone. This will permanently delete the device and all its associated data.</p>
               </div>
               <div className="iot-modal-actions-iotdevice">
                 <button 

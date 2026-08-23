@@ -1,25 +1,20 @@
-/* styles/Customer/myproject.css - Clean & Optimized */
+/* styles/Customer/myproject.css - Dark Theme */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   ROOT VARIABLES
+   BASE
    ============================================ */
-:root {
-  --border-light: #e2e8f0;
-  --border-medium: #cbd5e1;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --bg-elevated: #ffffff;
-  --bg-surface: #f1f5f9;
-  --bg-highlight: #f8fafc;
-  --sidebar-accent: #f59e0b;
-  --sidebar-accent-hover: #d97706;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --transition-base: 0.2s ease;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0B111A;
+  color: #FFFFFF;
 }
 
 /* ============================================
@@ -28,6 +23,8 @@
 .cuspro-page {
   padding-inline: 24px;
   margin: 0 auto;
+  background: #0B111A;
+  min-height: 100vh;
 }
 
 /* ============================================
@@ -38,7 +35,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem 0 1rem 0;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -47,13 +44,13 @@
 .cuspro-header-card h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0;
 }
 
 .cuspro-header-card p {
   font-size: 0.95rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   margin: 0;
 }
 
@@ -68,13 +65,13 @@
   width: 100%;
   max-width: 400px;
   padding: 0.7rem 1rem;
-  background: var(--bg-elevated);
-  border: 1.5px solid var(--border-light);
-  border-radius: var(--radius-md);
+  background: #1A2533;
+  border: 1.5px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
   font-size: 0.95rem;
-  color: var(--text-primary);
+  color: #FFFFFF;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.2s ease;
   font-weight: 500;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
@@ -84,30 +81,35 @@
 }
 
 .cuspro-project-select:hover {
-  border-color: var(--border-medium);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .cuspro-project-select:focus {
   outline: none;
-  border-color: var(--sidebar-accent);
+  border-color: #F39C12;
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+}
+
+.cuspro-project-select option {
+  background: #1A2533;
+  color: #FFFFFF;
 }
 
 /* ============================================
    HERO CARD
    ============================================ */
 .cuspro-hero-card {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
+  background: #1A2533;
+  border-radius: 14px;
   padding: 1.5rem 2rem;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   margin-bottom: 1.5rem;
-  transition: all var(--transition-base);
+  transition: all 0.2s ease;
 }
 
 .cuspro-hero-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .cuspro-hero-main {
@@ -121,13 +123,13 @@
 .cuspro-hero-main h2 {
   font-size: 1.4rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0 0 0.25rem 0;
 }
 
 .cuspro-project-ref {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   margin: 0;
 }
 
@@ -144,28 +146,39 @@
 }
 
 .cuspro-status-badge.quoted {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(243, 156, 18, 0.15);
+  color: #F39C12;
+  border: 1px solid rgba(243, 156, 18, 0.2);
 }
+
 .cuspro-status-badge.approved {
-  background: #dbeafe;
-  color: #1e40af;
+  background: rgba(59, 130, 246, 0.15);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
+
 .cuspro-status-badge.in_progress {
-  background: #e0e7ff;
-  color: #3730a3;
+  background: rgba(139, 92, 246, 0.15);
+  color: #8B5CF6;
+  border: 1px solid rgba(139, 92, 246, 0.2);
 }
+
 .cuspro-status-badge.progress_paid {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
+
 .cuspro-status-badge.full_paid {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
+
 .cuspro-status-badge.completed {
-  background: #10b981;
-  color: #ffffff;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .cuspro-hero-tags {
@@ -179,26 +192,28 @@
   align-items: center;
   gap: 0.4rem;
   font-size: 0.85rem;
-  color: var(--text-secondary);
-  background: var(--bg-surface);
+  color: rgba(255, 255, 255, 0.6);
+  background: #131C28;
   padding: 0.3rem 0.8rem;
   border-radius: 20px;
 }
 
 .payment-plan-tag {
-  background: var(--sidebar-accent) !important;
-  color: #ffffff !important;
+  background: #F39C12 !important;
+  color: #FFFFFF !important;
   font-weight: 600;
 }
 
 .payment-plan-tag.full {
-  background: #10b981 !important;
+  background: #10B981 !important;
 }
+
 .payment-plan-tag.fifty-fifty {
-  background: #3b82f6 !important;
+  background: #3B82F6 !important;
 }
+
 .payment-plan-tag.thirty-sixty-ten {
-  background: #8b5cf6 !important;
+  background: #8B5CF6 !important;
 }
 
 /* ============================================
@@ -222,17 +237,17 @@
    PROGRESS CARD
    ============================================ */
 .cuspro-progress-card {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
+  background: #1A2533;
+  border-radius: 14px;
   padding: 1.5rem;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .cuspro-progress-card h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0 0 1.25rem 0;
 }
 
@@ -249,11 +264,11 @@
 }
 
 .cuspro-progress-bg {
-  stroke: var(--bg-surface);
+  stroke: #131C28;
 }
 
 .cuspro-progress-fill {
-  stroke: var(--sidebar-accent);
+  stroke: #F39C12;
   transition: stroke-dashoffset 1.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -262,7 +277,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 0.75rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border-light);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .cuspro-stat {
@@ -273,7 +288,7 @@
 
 .cuspro-stat span {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -281,17 +296,17 @@
 .cuspro-stat strong {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #FFFFFF;
 }
 
 .cuspro-stat .solar-amount {
-  color: var(--sidebar-accent);
+  color: #F39C12;
 }
 
 .cuspro-payment-plan-info {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border-light);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -300,7 +315,7 @@
 
 .cuspro-payment-plan-info .plan-label {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -308,29 +323,29 @@
 .cuspro-payment-plan-info .plan-name {
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #FFFFFF;
 }
 
 .cuspro-payment-plan-info .plan-detail {
   font-size: 0.8rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 /* ============================================
    PHOTOS CARD
    ============================================ */
 .cuspro-photos-card {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
+  background: #1A2533;
+  border-radius: 14px;
   padding: 1.5rem;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .cuspro-photos-card h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0 0 0.25rem 0;
   display: flex;
   align-items: center;
@@ -339,7 +354,7 @@
 
 .cuspro-photos-subtitle {
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   margin: 0 0 1rem 0;
 }
 
@@ -353,17 +368,17 @@
 .cuspro-photo-item {
   position: relative;
   aspect-ratio: 1;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
-  background: var(--bg-surface);
+  background: #131C28;
 }
 
 .cuspro-photo-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--transition-base);
+  transition: transform 0.2s ease;
 }
 
 .cuspro-photo-item:hover img {
@@ -378,7 +393,7 @@
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity var(--transition-base);
+  transition: opacity 0.2s ease;
   color: #ffffff;
   font-size: 1.5rem;
 }
@@ -388,7 +403,7 @@
 }
 
 .cuspro-photo-item.more-photos {
-  background: var(--bg-surface);
+  background: #131C28;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -399,7 +414,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   font-size: 1.5rem;
 }
 
@@ -413,38 +428,38 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
+  background: #131C28;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 0.85rem;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.2s ease;
   width: 100%;
   justify-content: center;
 }
 
 .cuspro-view-all-btn:hover {
-  background: var(--bg-highlight);
-  border-color: var(--sidebar-accent);
-  color: var(--text-primary);
+  background: #1A2533;
+  border-color: rgba(243, 156, 18, 0.2);
+  color: #FFFFFF;
 }
 
 /* ============================================
    NEXT STEP CARD
    ============================================ */
 .cuspro-next-card {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
+  background: #1A2533;
+  border-radius: 14px;
   padding: 1.5rem;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .cuspro-next-card h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0 0 0.75rem 0;
 }
 
@@ -455,13 +470,13 @@
 .cuspro-next-content h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0 0 0.25rem 0;
 }
 
 .cuspro-next-content p {
   font-size: 0.9rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   margin: 0;
 }
 
@@ -471,27 +486,21 @@
   flex-wrap: wrap;
 }
 
-.cuspro-btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
-}
-
 /* ============================================
    DETAILS CARD
    ============================================ */
 .cuspro-details-card {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
+  background: #1A2533;
+  border-radius: 14px;
   padding: 1.5rem;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .cuspro-details-card h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0 0 1rem 0;
 }
 
@@ -509,7 +518,7 @@
 
 .cuspro-detail-item span {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -517,13 +526,13 @@
 .cuspro-detail-item strong {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #FFFFFF;
 }
 
 /* Address */
 .cuspro-address p {
   font-size: 0.9rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   margin: 0 0 0.15rem 0;
   line-height: 1.5;
 }
@@ -539,7 +548,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--sidebar-accent);
+  background: #F39C12;
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -552,12 +561,12 @@
 .cuspro-engineer strong {
   display: block;
   font-size: 0.95rem;
-  color: var(--text-primary);
+  color: #FFFFFF;
 }
 
 .cuspro-engineer p {
   font-size: 0.8rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   margin: 0.1rem 0 0 0;
   display: flex;
   align-items: center;
@@ -568,7 +577,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .cuspro-engineer-placeholder svg {
@@ -578,12 +587,12 @@
 .cuspro-engineer-placeholder strong {
   display: block;
   font-size: 0.95rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .cuspro-engineer-placeholder p {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   margin: 0.1rem 0 0 0;
 }
 
@@ -593,7 +602,7 @@
 .cuspro-tab-nav {
   display: flex;
   gap: 0.5rem;
-  border-bottom: 2px solid var(--border-light);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.06);
   margin-bottom: 1.5rem;
 }
 
@@ -603,20 +612,20 @@
   border: none;
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.2s ease;
   position: relative;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  border-radius: 10px 10px 0 0;
 }
 
 .cuspro-tab:hover {
-  color: var(--text-primary);
-  background: var(--bg-surface);
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .cuspro-tab.active {
-  color: var(--sidebar-accent);
+  color: #F39C12;
   font-weight: 600;
 }
 
@@ -627,7 +636,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: var(--sidebar-accent);
+  background: #F39C12;
   border-radius: 2px;
 }
 
@@ -646,17 +655,17 @@
 }
 
 .cuspro-overview-card {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
+  background: #1A2533;
+  border-radius: 14px;
   padding: 1.5rem;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .cuspro-overview-card h4 {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0 0 1rem 0;
 }
 
@@ -677,12 +686,12 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--border-light);
+  background: rgba(255, 255, 255, 0.06);
   flex-shrink: 0;
 }
 
 .cuspro-timeline-mini-item.completed .cuspro-milestone-dot {
-  background: #10b981;
+  background: #10B981;
 }
 
 .cuspro-timeline-mini-item div {
@@ -692,13 +701,13 @@
 .cuspro-timeline-mini-item p {
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0;
 }
 
 .cuspro-timeline-mini-item small {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
 }
 
 /* Payment Mini */
@@ -713,7 +722,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.5rem 0;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .cuspro-payment-mini-item:last-child {
@@ -728,13 +737,13 @@
 
 .cuspro-payment-mini-item span {
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .cuspro-payment-mini-item strong {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #FFFFFF;
 }
 
 .cuspro-payment-mini-status {
@@ -747,29 +756,36 @@
 }
 
 .cuspro-payment-mini-status.paid {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
+
 .cuspro-payment-mini-status.pending {
-  background: #f1f5f9;
-  color: #64748b;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
+
 .cuspro-payment-mini-status.for_verification {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(243, 156, 18, 0.15);
+  color: #F39C12;
+  border: 1px solid rgba(243, 156, 18, 0.2);
 }
+
 .cuspro-payment-mini-status.overdue {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 /* Timeline Full */
 .cuspro-timeline-full {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
+  background: #1A2533;
+  border-radius: 14px;
   padding: 1.5rem;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .cuspro-timeline-full-item {
@@ -777,7 +793,7 @@
   align-items: center;
   gap: 1.5rem;
   padding: 0.75rem 0;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .cuspro-timeline-full-item:last-child {
@@ -788,18 +804,18 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--bg-surface);
+  background: #131C28;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   flex-shrink: 0;
 }
 
 .cuspro-timeline-full-item.completed .cuspro-timeline-marker {
-  background: #10b981;
+  background: #10B981;
   color: #ffffff;
 }
 
@@ -810,13 +826,13 @@
 .cuspro-timeline-info h4 {
   font-size: 0.95rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0;
 }
 
 .cuspro-timeline-date {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
 }
 
 /* Payments Full */
@@ -827,11 +843,11 @@
 }
 
 .cuspro-payment-full-item {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
+  background: #1A2533;
+  border-radius: 14px;
   padding: 1.5rem;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .cuspro-payment-full-header {
@@ -845,13 +861,13 @@
 .cuspro-payment-full-header h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0 0 0.1rem 0;
 }
 
 .cuspro-payment-full-header p {
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   margin: 0;
 }
 
@@ -866,20 +882,27 @@
 }
 
 .cuspro-payment-full-status.paid {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
+
 .cuspro-payment-full-status.pending {
-  background: #f1f5f9;
-  color: #64748b;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
+
 .cuspro-payment-full-status.for_verification {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(243, 156, 18, 0.15);
+  color: #F39C12;
+  border: 1px solid rgba(243, 156, 18, 0.2);
 }
+
 .cuspro-payment-full-status.overdue {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .cuspro-payment-full-amount {
@@ -893,12 +916,12 @@
 .cuspro-payment-full-amount strong {
   font-size: 1.2rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #FFFFFF;
 }
 
 .cuspro-payment-full-amount span {
   font-size: 0.8rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
 }
 
 /* ============================================
@@ -909,20 +932,26 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1.5rem;
-  background: var(--sidebar-accent);
+  background: #F39C12;
   color: #ffffff;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.2s ease;
 }
 
 .cuspro-btn-primary:hover:not(:disabled) {
-  background: var(--sidebar-accent-hover);
+  background: #E67E22;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+}
+
+.cuspro-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
 }
 
 .cuspro-btn-pay {
@@ -930,36 +959,32 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1.5rem;
-  background: var(--sidebar-accent);
+  background: #F39C12;
   color: #ffffff;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.2s ease;
 }
 
 .cuspro-btn-pay:hover {
-  background: var(--sidebar-accent-hover);
+  background: #E67E22;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
 }
 
 /* ============================================
-   EMPTY PAGE - FULL SCREEN NO MARGINS
-   ============================================ */
-/* ============================================
    EMPTY PROJECT STATE
    ============================================ */
-
 .cuspro-empty-page {
   width: 100%;
   min-height: calc(100vh - 112px);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-elevated);
+  background: #0B111A;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -969,42 +994,39 @@
   width: 100%;
   height: 100%;
   min-height: calc(100vh - 112px);
-
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
   padding: 0;
   margin: 0;
-
-  background: var(--bg-elevated);
+  background: #0B111A;
   border-radius: 0;
   border: none;
   box-shadow: none;
-
   text-align: center;
   box-sizing: border-box;
 }
 
 .cuspro-empty-page .cuspro-empty-icon {
   font-size: 4rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   margin-bottom: 1rem;
 }
 
 .cuspro-empty-page h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0 0 0.5rem 0;
 }
 
 .cuspro-empty-page p {
   font-size: 1rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   margin: 0 0 1.5rem 0;
 }
+
 /* ============================================
    PHOTO MODAL
    ============================================ */
@@ -1023,6 +1045,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -1032,8 +1055,8 @@
   position: relative;
   max-width: 90vw;
   max-height: 90vh;
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
+  background: #1A2533;
+  border-radius: 14px;
   overflow: hidden;
   animation: scaleIn 0.3s ease;
 }
@@ -1043,6 +1066,7 @@
     transform: scale(0.9);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;
@@ -1061,7 +1085,7 @@
   color: #ffffff;
   font-size: 1.2rem;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.2s ease;
   z-index: 10;
   display: flex;
   align-items: center;
@@ -1100,7 +1124,7 @@
   color: #ffffff;
   font-size: 1.2rem;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1118,6 +1142,7 @@
 .cuspro-photo-nav.prev {
   left: 1rem;
 }
+
 .cuspro-photo-nav.next {
   right: 1rem;
 }
@@ -1127,15 +1152,15 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1.5rem;
-  background: var(--bg-elevated);
-  border-top: 1px solid var(--border-light);
+  background: #1A2533;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   flex-wrap: wrap;
   gap: 0.5rem;
 }
 
 .cuspro-photo-counter {
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .cuspro-photo-download {
@@ -1143,19 +1168,65 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 1rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
+  background: #131C28;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 0.85rem;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.2s ease;
 }
 
 .cuspro-photo-download:hover {
-  background: var(--bg-highlight);
-  border-color: var(--sidebar-accent);
-  color: var(--text-primary);
+  background: #1A2533;
+  border-color: rgba(243, 156, 18, 0.2);
+  color: #FFFFFF;
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .cuspro-hero-card:hover {
+    transform: none !important;
+  }
+
+  .cuspro-photo-item:hover img {
+    transform: none !important;
+  }
+
+  .cuspro-photo-item:hover .cuspro-photo-overlay {
+    opacity: 0 !important;
+  }
+
+  .cuspro-progress-fill {
+    transition: none !important;
+  }
+
+  .cuspro-btn-primary:hover,
+  .cuspro-btn-pay:hover,
+  .cuspro-photo-download:hover,
+  .cuspro-view-all-btn:hover {
+    transform: none !important;
+  }
+
+  .cuspro-photo-modal-content {
+    animation: none !important;
+  }
+
+  .cuspro-photo-modal-overlay {
+    animation: none !important;
+  }
+
+  .cuspro-photo-modal-close:hover {
+    transform: none !important;
+  }
 }
 
 /* ============================================
@@ -1213,7 +1284,7 @@
 
   .cuspro-hero-card {
     padding: 1rem 1.25rem;
-    border-radius: var(--radius-md);
+    border-radius: 10px;
   }
 
   .cuspro-hero-main {
@@ -1266,13 +1337,6 @@
     font-size: 0.65rem;
   }
 
-  .cuspro-payment-plan-info .plan-name {
-    font-size: 0.8rem;
-  }
-  .cuspro-payment-plan-info .plan-detail {
-    font-size: 0.7rem;
-  }
-
   .cuspro-photos-card {
     padding: 1.25rem;
   }
@@ -1293,6 +1357,7 @@
   .cuspro-detail-item strong {
     font-size: 0.85rem;
   }
+
   .cuspro-detail-item span {
     font-size: 0.65rem;
   }
@@ -1304,6 +1369,7 @@
   .cuspro-next-content h4 {
     font-size: 0.9rem;
   }
+
   .cuspro-next-content p {
     font-size: 0.85rem;
   }
@@ -1369,7 +1435,7 @@
 
   .cuspro-photo-modal-content {
     max-width: 95vw;
-    border-radius: var(--radius-md);
+    border-radius: 10px;
   }
 
   .cuspro-photo-modal-main {
@@ -1389,6 +1455,7 @@
   .cuspro-photo-nav.prev {
     left: 0.5rem;
   }
+
   .cuspro-photo-nav.next {
     right: 0.5rem;
   }
@@ -1467,8 +1534,6 @@
     font-size: 0.85rem;
     padding: 0.5rem 0.75rem;
     padding-right: 2rem;
-    background-position: right 0.75rem center;
-    background-size: 10px;
   }
 
   .cuspro-progress-card {
@@ -1496,7 +1561,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.3rem 0;
-    border-bottom: 1px solid var(--border-light);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   }
 
   .cuspro-stat:last-child {
@@ -1506,6 +1571,7 @@
   .cuspro-stat span {
     font-size: 0.7rem;
   }
+
   .cuspro-stat strong {
     font-size: 0.95rem;
   }
@@ -1519,9 +1585,11 @@
   .cuspro-payment-plan-info .plan-label {
     font-size: 0.65rem;
   }
+
   .cuspro-payment-plan-info .plan-name {
     font-size: 0.8rem;
   }
+
   .cuspro-payment-plan-info .plan-detail {
     font-size: 0.7rem;
   }
@@ -1576,6 +1644,7 @@
   .cuspro-next-content h4 {
     font-size: 0.85rem;
   }
+
   .cuspro-next-content p {
     font-size: 0.8rem;
   }
@@ -1612,6 +1681,7 @@
   .cuspro-timeline-mini-item p {
     font-size: 0.8rem;
   }
+
   .cuspro-timeline-mini-item small {
     font-size: 0.65rem;
   }
@@ -1619,6 +1689,7 @@
   .cuspro-payment-mini-item span {
     font-size: 0.8rem;
   }
+
   .cuspro-payment-mini-item strong {
     font-size: 0.85rem;
   }
@@ -1630,6 +1701,7 @@
   .cuspro-payment-full-header h4 {
     font-size: 0.85rem;
   }
+
   .cuspro-payment-full-header p {
     font-size: 0.75rem;
   }
@@ -1637,6 +1709,7 @@
   .cuspro-payment-full-amount strong {
     font-size: 1rem;
   }
+
   .cuspro-payment-full-amount span {
     font-size: 0.7rem;
   }
@@ -1671,6 +1744,7 @@
   .cuspro-timeline-info h4 {
     font-size: 0.8rem;
   }
+
   .cuspro-timeline-date {
     font-size: 0.7rem;
   }
@@ -1706,6 +1780,7 @@
   .cuspro-photo-nav.prev {
     left: 0.25rem;
   }
+
   .cuspro-photo-nav.next {
     right: 0.25rem;
   }
@@ -1736,6 +1811,7 @@
   .cuspro-engineer strong {
     font-size: 0.85rem;
   }
+
   .cuspro-engineer p {
     font-size: 0.75rem;
   }
@@ -1749,9 +1825,11 @@
   .cuspro-engineer-placeholder svg {
     font-size: 2rem;
   }
+
   .cuspro-engineer-placeholder strong {
     font-size: 0.85rem;
   }
+
   .cuspro-engineer-placeholder p {
     font-size: 0.75rem;
   }
@@ -1849,54 +1927,8 @@
   .cuspro-next-content h4 {
     font-size: 0.8rem;
   }
+
   .cuspro-next-content p {
     font-size: 0.75rem;
   }
 }
-
-/* ============================================
-   REDUCED MOTION
-   ============================================ */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-
-  .cuspro-hero-card:hover {
-    transform: none !important;
-  }
-
-  .cuspro-photo-item:hover img {
-    transform: none !important;
-  }
-
-  .cuspro-photo-item:hover .cuspro-photo-overlay {
-    opacity: 0 !important;
-  }
-
-  .cuspro-progress-fill {
-    transition: none !important;
-  }
-
-  .cuspro-btn-primary:hover,
-  .cuspro-btn-pay:hover,
-  .cuspro-photo-download:hover,
-  .cuspro-view-all-btn:hover {
-    transform: none !important;
-  }
-
-  .cuspro-photo-modal-content {
-    animation: none !important;
-  }
-
-  .cuspro-photo-modal-overlay {
-    animation: none !important;
-  }
-
-  .cuspro-photo-modal-close:hover {
-    transform: none !important;
-  }
-}
-

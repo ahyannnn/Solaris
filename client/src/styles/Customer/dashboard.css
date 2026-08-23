@@ -1,12 +1,17 @@
-/* styles/Customer/dashboard.css - Clean Professional Design - Fully Responsive */
+/* styles/Customer/dashboard.css - Dark Solar Theme (FIXED HEIGHT CARDS) */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   CUSTOMER DASHBOARD - Modern Clean Design
+   BASE LAYOUT
    ============================================ */
-
 .dashboard-container-cusdash {
   padding-inline: 24px;
   margin: 0 auto;
+  background: #0B111A;
+  min-height: 100vh;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #FFFFFF;
 }
 
 /* ============================================
@@ -16,8 +21,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem 0 1.5rem 0;
-  border-bottom: 1px solid var(--border-light);
+  padding: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
@@ -31,14 +36,14 @@
 .page-title-cusdash {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0;
   letter-spacing: -0.3px;
 }
 
 .welcome-greeting-cusdash {
   font-size: 1rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   margin: 0;
 }
 
@@ -48,28 +53,32 @@
   flex-wrap: wrap;
 }
 
+/* ============================================
+   BUTTONS
+   ============================================ */
 .btn-primary-cusdash {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1.25rem;
-  background: var(--sidebar-accent);
-  color: #fff;
+  background: #F39C12;
+  color: #FFFFFF;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 600;
+  font-family: 'Poppins', sans-serif;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 200ms ease;
   text-decoration: none;
   white-space: nowrap;
 }
 
 .btn-primary-cusdash:hover {
-  background: var(--sidebar-accent-hover);
+  background: #E67E22;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
-  color: #fff;
+  color: #FFFFFF;
 }
 
 .btn-secondary-cusdash {
@@ -78,21 +87,23 @@
   gap: 0.5rem;
   padding: 0.6rem 1.25rem;
   background: transparent;
-  color: var(--text-primary);
-  border: 1.5px solid var(--border-medium);
-  border-radius: var(--radius-md);
+  color: #FFFFFF;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 600;
+  font-family: 'Poppins', sans-serif;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 200ms ease;
   text-decoration: none;
   white-space: nowrap;
 }
 
 .btn-secondary-cusdash:hover {
-  background: var(--bg-surface);
-  border-color: var(--text-secondary);
+  background: #131C28;
+  border-color: rgba(255, 255, 255, 0.6);
   transform: translateY(-2px);
+  color: #FFFFFF;
 }
 
 /* ============================================
@@ -103,15 +114,15 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
 
 .alert-icon-cusdash {
-  color: var(--text-muted);
+  color: #F39C12;
   font-size: 1.5rem;
   flex-shrink: 0;
 }
@@ -123,13 +134,13 @@
 .alert-content-cusdash strong {
   display: block;
   font-size: 0.95rem;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin-bottom: 0.1rem;
 }
 
 .alert-content-cusdash p {
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   margin: 0;
 }
 
@@ -138,21 +149,22 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1.25rem;
-  background: var(--primary);
-  color: #fff;
+  background: #F39C12;
+  color: #FFFFFF;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   font-size: 0.85rem;
   font-weight: 600;
+  font-family: 'Poppins', sans-serif;
   text-decoration: none;
-  transition: all var(--transition-base);
+  transition: all 200ms ease;
   white-space: nowrap;
 }
 
 .alert-action-cusdash:hover {
-  background: var(--primary-hover);
+  background: #E67E22;
   transform: translateY(-2px);
-  color: #fff;
+  color: #FFFFFF;
 }
 
 /* ============================================
@@ -165,7 +177,7 @@
 .quick-actions-title-cusdash {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 0.75rem 0;
@@ -182,49 +194,49 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
   text-decoration: none;
-  transition: all var(--transition-base);
-  box-shadow: var(--shadow-sm);
+  transition: all 200ms ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .quick-action-item-cusdash:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--border-medium);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  border-color: rgba(243, 156, 18, 0.12);
 }
 
 .quick-action-icon-cusdash {
   width: 40px;
   height: 40px;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
   flex-shrink: 0;
-  background: var(--bg-surface);
-  color: var(--text-secondary);
+  background: #131C28;
+  color: #F39C12;
 }
 
 .quick-action-label-cusdash {
   flex: 1;
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #FFFFFF;
 }
 
 .quick-action-arrow-cusdash {
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   font-size: 0.75rem;
-  transition: transform var(--transition-base);
+  transition: transform 200ms ease;
 }
 
 .quick-action-item-cusdash:hover .quick-action-arrow-cusdash {
   transform: translateX(4px);
-  color: var(--text-secondary);
+  color: #F39C12;
 }
 
 /* ============================================
@@ -241,7 +253,7 @@
 .selector-label-cusdash {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   letter-spacing: 0.3px;
 }
 
@@ -255,25 +267,31 @@
 .project-select-cusdash {
   width: 100%;
   padding: 0.6rem 2.5rem 0.6rem 1rem;
-  background: var(--bg-elevated);
-  border: 1.5px solid var(--border-light);
-  border-radius: var(--radius-md);
+  background: #1A2533;
+  border: 1.5px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
   font-size: 0.9rem;
-  color: var(--text-primary);
+  color: #FFFFFF;
   appearance: none;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 200ms ease;
   font-weight: 500;
+  font-family: 'Poppins', sans-serif;
 }
 
 .project-select-cusdash:hover {
-  border-color: var(--border-medium);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .project-select-cusdash:focus {
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #F39C12;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+}
+
+.project-select-cusdash option {
+  background: #1A2533;
+  color: #FFFFFF;
 }
 
 .select-icon-cusdash {
@@ -281,7 +299,7 @@
   right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   pointer-events: none;
 }
 
@@ -296,18 +314,18 @@
 }
 
 .stat-card-cusdash {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
+  background: #1A2533;
+  border-radius: 14px;
   padding: 1.25rem 1.5rem;
-  border: 1px solid var(--border-light);
-  transition: all var(--transition-base);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 200ms ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .stat-card-cusdash:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--border-medium);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .stat-content-cusdash {
@@ -319,7 +337,7 @@
 .stat-label-cusdash {
   font-size: 0.8rem;
   font-weight: 500;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -327,23 +345,23 @@
 .stat-value-cusdash {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #FFFFFF;
   line-height: 1.2;
 }
 
 .stat-trend-cusdash {
   font-size: 0.8rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 /* ============================================
-   ROW LAYOUT
+   ROW LAYOUT - FIXED HEIGHT
    ============================================ */
 .row-layout-cusdash {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
-  align-items: start;
+  align-items: stretch;
 }
 
 /* ============================================
@@ -365,7 +383,7 @@
 .section-title-cusdash {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0;
 }
 
@@ -374,37 +392,43 @@
   align-items: center;
   gap: 0.4rem;
   font-size: 0.85rem;
-  color: var(--primary);
+  color: #F39C12;
   text-decoration: none;
   font-weight: 500;
-  transition: all var(--transition-base);
+  transition: all 200ms ease;
 }
 
 .view-all-link-cusdash:hover {
-  color: var(--primary-hover);
+  color: #E67E22;
   gap: 0.6rem;
 }
 
 .arrow-icon-cusdash {
-  transition: transform var(--transition-base);
+  transition: transform 200ms ease;
 }
 
 .view-all-link-cusdash:hover .arrow-icon-cusdash {
   transform: translateX(4px);
 }
 
-/* Project Card */
+/* ============================================
+   PROJECT CARD
+   ============================================ */
 .project-card-enhanced-cusdash {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
+  background: #1A2533;
+  border-radius: 14px;
   padding: 1.5rem;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
-  transition: all var(--transition-base);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  transition: all 200ms ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .project-card-enhanced-cusdash:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  border-color: rgba(243, 156, 18, 0.12);
 }
 
 .project-header-cusdash {
@@ -423,7 +447,7 @@
 .project-name-cusdash {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0 0 0.25rem 0;
   white-space: nowrap;
   overflow: hidden;
@@ -432,11 +456,13 @@
 
 .project-system-cusdash {
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   margin: 0;
 }
 
-/* Status Badges - Plain */
+/* ============================================
+   STATUS BADGES
+   ============================================ */
 .status-badge-cusdash {
   display: inline-block;
   padding: 0.25rem 0.75rem;
@@ -447,63 +473,66 @@
   letter-spacing: 0.3px;
   white-space: nowrap;
   flex-shrink: 0;
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
+  background: #131C28;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.status-pending-cusdash {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
+.status-badge-cusdash.pending,
+.status-badge-cusdash.quoted,
+.status-badge-cusdash.verifying,
+.status-badge-cusdash.processing,
+.status-badge-cusdash.in-progress {
+  background: rgba(243, 156, 18, 0.12);
+  color: #F39C12;
+  border: 1px solid rgba(243, 156, 18, 0.2);
 }
 
-.status-paid-cusdash {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
+.status-badge-cusdash.approved,
+.status-badge-cusdash.paid,
+.status-badge-cusdash.completed {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
-.status-verification-cusdash {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
+.status-badge-cusdash.scheduled {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
-.status-processing-cusdash {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
+.status-badge-cusdash.cancelled {
+  background: rgba(239, 68, 68, 0.12);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
-.status-quoted-cusdash {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
+.status-badge-cusdash.overdue {
+  background: rgba(239, 68, 68, 0.12);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
-.status-approved-cusdash {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
+.status-badge-cusdash.partial {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
-.status-progress-cusdash {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.status-completed-cusdash {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.status-scheduled-cusdash {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-/* Project Content */
+/* ============================================
+   PROJECT CONTENT
+   ============================================ */
 .project-content-layout-cusdash {
   display: flex;
   gap: 1.5rem;
   align-items: center;
+  flex: 1;
 }
 
-/* Progress Ring */
+/* ============================================
+   PROGRESS RING
+   ============================================ */
 .progress-ring-wrapper-cusdash {
   position: relative;
   width: 120px;
@@ -518,11 +547,11 @@
 }
 
 .progress-ring-bg-cusdash {
-  stroke: var(--bg-surface);
+  stroke: #131C28;
 }
 
 .progress-ring-fill-cusdash {
-  stroke: var(--primary);
+  stroke: #F39C12;
   transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -538,19 +567,21 @@
   display: block;
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #FFFFFF;
   line-height: 1.2;
 }
 
 .progress-ring-label-cusdash {
   display: block;
   font-size: 0.7rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
-/* Project Details */
+/* ============================================
+   PROJECT METRICS
+   ============================================ */
 .project-details-cusdash {
   flex: 1;
   display: flex;
@@ -563,7 +594,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.25rem 0;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .project-metric-cusdash:last-of-type {
@@ -572,13 +603,13 @@
 
 .metric-label-cusdash {
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .metric-value-cusdash {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #FFFFFF;
 }
 
 .project-actions-cusdash {
@@ -590,19 +621,19 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: var(--primary);
+  color: #F39C12;
   text-decoration: none;
   font-weight: 500;
-  transition: all var(--transition-base);
+  transition: all 200ms ease;
 }
 
 .action-link-cusdash:hover {
-  color: var(--primary-hover);
+  color: #E67E22;
   gap: 0.7rem;
 }
 
 .action-arrow-cusdash {
-  transition: transform var(--transition-base);
+  transition: transform 200ms ease;
 }
 
 .action-link-cusdash:hover .action-arrow-cusdash {
@@ -610,18 +641,18 @@
 }
 
 /* ============================================
-   MILESTONES - Clean Colors
+   MILESTONES
    ============================================ */
 .milestones-section-cusdash {
   margin-top: 1.25rem;
   padding-top: 1.25rem;
-  border-top: 1px solid var(--border-light);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .milestones-title-cusdash {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   margin: 0 0 0.75rem 0;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -646,16 +677,16 @@
 
 .milestone-item-cusdash .milestone-icon-cusdash {
   font-size: 1.2rem;
-  color: var(--text-muted);
-  transition: all var(--transition-base);
+  color: rgba(255, 255, 255, 0.3);
+  transition: all 200ms ease;
 }
 
 .milestone-item-cusdash.completed-cusdash .milestone-icon-cusdash {
-  color: var(--success) !important;
+  color: #10B981 !important;
 }
 
 .milestone-item-cusdash.active-cusdash .milestone-icon-cusdash {
-  color: var(--primary) !important;
+  color: #F39C12 !important;
 }
 
 .milestone-info-cusdash {
@@ -667,24 +698,24 @@
 
 .milestone-label-cusdash {
   font-size: 0.7rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   text-align: center;
-  transition: color var(--transition-base);
+  transition: color 200ms ease;
 }
 
 .milestone-item-cusdash.completed-cusdash .milestone-label-cusdash {
-  color: var(--success) !important;
+  color: #10B981 !important;
   font-weight: 500;
 }
 
 .milestone-item-cusdash.active-cusdash .milestone-label-cusdash {
-  color: var(--primary) !important;
+  color: #F39C12 !important;
   font-weight: 600;
 }
 
 .milestone-status-cusdash {
   font-size: 0.6rem;
-  color: var(--primary);
+  color: #F39C12;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -696,37 +727,42 @@
   left: calc(50% + 1.2rem);
   width: calc(100% - 2.4rem);
   height: 2px;
-  background: var(--border-light);
+  background: rgba(255, 255, 255, 0.06);
   pointer-events: none;
-  transition: background var(--transition-base);
+  transition: background 200ms ease;
 }
 
 .milestone-item-cusdash.completed-cusdash .milestone-line-cusdash {
-  background: var(--success) !important;
+  background: #10B981 !important;
 }
 
 /* ============================================
-   ACTIVITIES SECTION
+   ACTIVITIES SECTION - FIXED HEIGHT
    ============================================ */
 .activities-section-cusdash {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  height: 100%;
 }
 
 .activities-card-cusdash {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
+  background: #1A2533;
+  border-radius: 14px;
   padding: 1.25rem 1.5rem;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
-  min-height: 200px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .activities-list-cusdash {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  flex: 1;
 }
 
 .activity-item-cusdash {
@@ -734,25 +770,26 @@
   align-items: center;
   gap: 1rem;
   padding: 0.75rem;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-base);
+  border-radius: 10px;
+  transition: all 200ms ease;
+  flex: 1;
 }
 
 .activity-item-cusdash:hover {
-  background: var(--bg-surface);
+  background: #131C28;
 }
 
 .activity-icon-wrapper-cusdash {
   width: 40px;
   height: 40px;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1rem;
   flex-shrink: 0;
-  background: var(--bg-surface);
-  color: var(--text-secondary);
+  background: #131C28;
+  color: #F39C12;
 }
 
 .activity-content-cusdash {
@@ -770,18 +807,18 @@
 .activity-title-cusdash {
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #FFFFFF;
 }
 
 .activity-reference-cusdash {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   font-weight: 400;
 }
 
 .activity-date-cusdash {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   display: block;
   margin-top: 0.1rem;
 }
@@ -792,25 +829,99 @@
 
 .activity-divider-cusdash {
   height: 1px;
-  background: var(--border-light);
+  background: rgba(255, 255, 255, 0.06);
   margin: 0.25rem 0.75rem;
+}
+
+/* ============================================
+   EMPTY STATES
+   ============================================ */
+.empty-state-cusdash {
+  background: #1A2533;
+  border-radius: 14px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  border: 2px dashed rgba(255, 255, 255, 0.06);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.empty-state-content-cusdash {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.empty-state-icon-cusdash {
+  font-size: 3rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.empty-state-title-cusdash {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.empty-state-description-cusdash {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.empty-small-cusdash {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  text-align: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.empty-text-cusdash {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.link-cusdash {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #F39C12;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 200ms ease;
+}
+
+.link-cusdash:hover {
+  color: #E67E22;
+  gap: 0.7rem;
 }
 
 /* ============================================
    APPOINTMENTS SECTION
    ============================================ */
 .appointments-section-cusdash {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
+  background: #1A2533;
+  border-radius: 14px;
   padding: 1.25rem 1.5rem;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .appointments-title-cusdash {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #FFFFFF;
   margin: 0 0 0.75rem 0;
   display: flex;
   align-items: center;
@@ -818,7 +929,7 @@
 }
 
 .appointments-icon-cusdash {
-  color: var(--text-secondary);
+  color: #F39C12;
 }
 
 .appointments-list-cusdash {
@@ -832,13 +943,13 @@
   align-items: center;
   gap: 1rem;
   padding: 0.75rem;
-  border-radius: var(--radius-md);
-  background: var(--bg-surface);
-  transition: all var(--transition-base);
+  border-radius: 10px;
+  background: #131C28;
+  transition: all 200ms ease;
 }
 
 .appointment-item-cusdash:hover {
-  background: var(--bg-highlight);
+  background: rgba(243, 156, 18, 0.06);
 }
 
 .appointment-date-cusdash {
@@ -846,22 +957,22 @@
   flex-direction: column;
   align-items: center;
   padding: 0.25rem 0.5rem;
-  background: var(--bg-elevated);
-  border-radius: var(--radius-sm);
+  background: #1A2533;
+  border-radius: 6px;
   min-width: 48px;
 }
 
 .appointment-day-cusdash {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #FFFFFF;
   line-height: 1.2;
 }
 
 .appointment-month-cusdash {
   font-size: 0.65rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   text-transform: uppercase;
 }
 
@@ -874,7 +985,7 @@
   display: block;
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #FFFFFF;
 }
 
 .appointment-address-cusdash {
@@ -882,7 +993,7 @@
   align-items: center;
   gap: 0.3rem;
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   margin-top: 0.1rem;
 }
 
@@ -895,80 +1006,12 @@
 }
 
 /* ============================================
-   EMPTY STATES
-   ============================================ */
-.empty-state-cusdash {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
-  padding: 2.5rem 2rem;
-  text-align: center;
-  border: 2px dashed var(--border-light);
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.empty-state-content-cusdash {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.empty-state-title-cusdash {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.empty-state-description-cusdash {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.empty-small-cusdash {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem;
-  text-align: center;
-  gap: 0.75rem;
-}
-
-.empty-text-cusdash {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.link-cusdash {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--primary);
-  text-decoration: none;
-  font-weight: 500;
-  transition: all var(--transition-base);
-}
-
-.link-cusdash:hover {
-  color: var(--primary-hover);
-  gap: 0.7rem;
-}
-
-/* ============================================
    SKELETON LOADING
    ============================================ */
 .skeleton-line-cusdash {
-  background: var(--bg-surface);
-  border-radius: var(--radius-sm);
+  border-radius: 6px;
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-highlight) 50%, var(--bg-surface) 75%);
+  background: linear-gradient(90deg, #131C28 25%, rgba(255,255,255,0.04) 50%, #131C28 75%);
   background-size: 200% 100%;
 }
 
@@ -994,13 +1037,13 @@
 .skeleton-button-cusdash {
   width: 120px;
   height: 40px;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
 }
 
 .skeleton-card-cusdash {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-light);
+  background: #1A2533;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   padding: 1.25rem;
 }
 
@@ -1037,6 +1080,7 @@
   height: 120px;
   border-radius: 50%;
   margin: 0 auto;
+  background: #131C28;
 }
 
 .skeleton-activity-title-cusdash {
@@ -1057,106 +1101,86 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN - FULLY OPTIMIZED
+   RESPONSIVE DESIGN
    ============================================ */
 
-/* Large Tablets & Small Laptops */
 @media (max-width: 1200px) {
   .dashboard-container-cusdash {
     padding-inline: 20px;
   }
-
   .stats-grid-cusdash {
     gap: 0.875rem;
   }
-
   .stat-card-cusdash {
     padding: 1rem 1.25rem;
   }
-
   .stat-value-cusdash {
     font-size: 1.75rem;
   }
 }
 
-/* Tablets */
 @media (max-width: 1024px) {
   .row-layout-cusdash {
     grid-template-columns: 1fr;
     gap: 1.25rem;
   }
-  
   .stats-grid-cusdash {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.875rem;
   }
-  
   .action-grid-cusdash {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.625rem;
   }
-
   .dashboard-container-cusdash {
     padding-inline: 18px;
   }
-
   .stat-value-cusdash {
     font-size: 1.5rem;
   }
-
   .project-card-enhanced-cusdash {
     padding: 1.25rem;
   }
-
   .progress-ring-wrapper-cusdash {
     width: 110px;
     height: 110px;
   }
-
   .progress-ring-cusdash {
     width: 110px;
     height: 110px;
   }
-
   .progress-ring-value-cusdash {
     font-size: 1.3rem;
   }
-
   .activities-card-cusdash {
     padding: 1rem 1.25rem;
+    min-height: 220px;
   }
-
   .appointments-section-cusdash {
     padding: 1rem 1.25rem;
   }
 }
 
-/* Mobile Landscape & Small Tablets */
 @media (max-width: 768px) {
   .dashboard-container-cusdash {
     padding-inline: 14px;
   }
-
   .welcome-section-cusdash {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
     padding: 1rem 0 1rem 0;
   }
-
   .page-title-cusdash {
     font-size: 1.3rem;
   }
-
   .welcome-greeting-cusdash {
     font-size: 0.9rem;
   }
-  
   .welcome-actions-cusdash {
     width: 100%;
     gap: 0.5rem;
   }
-  
   .welcome-actions-cusdash .btn-primary-cusdash,
   .welcome-actions-cusdash .btn-secondary-cusdash {
     flex: 1;
@@ -1164,202 +1188,158 @@
     padding: 0.5rem 1rem;
     font-size: 0.85rem;
   }
-  
   .project-selector-container-cusdash {
     flex-direction: column;
     align-items: stretch;
     gap: 0.5rem;
   }
-  
   .custom-select-cusdash {
     max-width: none;
     min-width: auto;
   }
-
   .project-select-cusdash {
     padding: 0.5rem 2.25rem 0.5rem 0.875rem;
     font-size: 0.85rem;
   }
-  
   .stats-grid-cusdash {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.625rem;
   }
-  
   .stat-card-cusdash {
     padding: 0.875rem 1rem;
-    border-radius: var(--radius-md);
+    border-radius: 10px;
   }
-  
   .stat-value-cusdash {
     font-size: 1.3rem;
   }
-
   .stat-label-cusdash {
     font-size: 0.7rem;
   }
-
   .stat-trend-cusdash {
     font-size: 0.7rem;
   }
-  
   .action-grid-cusdash {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
   }
-
   .quick-action-item-cusdash {
     padding: 0.625rem 0.75rem;
-    border-radius: var(--radius-md);
+    border-radius: 10px;
   }
-
   .quick-action-icon-cusdash {
     width: 34px;
     height: 34px;
     font-size: 0.95rem;
   }
-
   .quick-action-label-cusdash {
     font-size: 0.8rem;
   }
-
   .quick-actions-title-cusdash {
     font-size: 0.75rem;
   }
-
   .section-title-cusdash {
     font-size: 1rem;
   }
-
   .view-all-link-cusdash {
     font-size: 0.8rem;
   }
-  
   .project-content-layout-cusdash {
     flex-direction: column;
     align-items: center;
     gap: 1rem;
   }
-  
   .project-details-cusdash {
     width: 100%;
   }
-  
   .project-header-cusdash {
     flex-direction: column;
     align-items: flex-start;
   }
-
   .project-name-cusdash {
     font-size: 1rem;
   }
-
   .project-system-cusdash {
     font-size: 0.8rem;
   }
-
   .metric-label-cusdash {
     font-size: 0.8rem;
   }
-
   .metric-value-cusdash {
     font-size: 0.85rem;
   }
-
   .action-link-cusdash {
     font-size: 0.8rem;
   }
-
   .progress-ring-wrapper-cusdash {
     width: 100px;
     height: 100px;
   }
-
   .progress-ring-cusdash {
     width: 100px;
     height: 100px;
   }
-
   .progress-ring-value-cusdash {
     font-size: 1.2rem;
   }
-
   .progress-ring-label-cusdash {
     font-size: 0.65rem;
   }
-  
   .activities-card-cusdash {
     padding: 0.875rem 1rem;
-    min-height: 150px;
+    min-height: 200px;
   }
-  
   .activity-item-cusdash {
     flex-wrap: wrap;
     padding: 0.5rem;
     gap: 0.5rem;
   }
-
   .activity-icon-wrapper-cusdash {
     width: 34px;
     height: 34px;
     font-size: 0.85rem;
   }
-
   .activity-title-cusdash {
     font-size: 0.8rem;
   }
-
   .activity-reference-cusdash {
     font-size: 0.7rem;
   }
-
   .activity-date-cusdash {
     font-size: 0.7rem;
   }
-
   .activity-status-cusdash {
     margin-left: auto;
   }
-
   .activity-divider-cusdash {
     margin: 0.15rem 0.5rem;
   }
-  
   .appointments-section-cusdash {
     padding: 0.875rem 1rem;
   }
-
   .appointments-title-cusdash {
     font-size: 0.85rem;
   }
-  
   .appointment-item-cusdash {
     flex-wrap: wrap;
     gap: 0.5rem;
     padding: 0.625rem;
   }
-
   .appointment-date-cusdash {
     min-width: 40px;
     padding: 0.2rem 0.4rem;
   }
-
   .appointment-day-cusdash {
     font-size: 0.95rem;
   }
-
   .appointment-month-cusdash {
     font-size: 0.55rem;
   }
-
   .appointment-type-cusdash {
     font-size: 0.8rem;
   }
-
   .appointment-address-cusdash {
     font-size: 0.7rem;
   }
-  
   .milestones-list-cusdash {
     gap: 0.35rem;
     flex-wrap: nowrap;
@@ -1367,146 +1347,116 @@
     -webkit-overflow-scrolling: touch;
     padding-bottom: 0.5rem;
   }
-
   .milestone-item-cusdash {
     min-width: 60px;
     flex: none;
   }
-  
   .milestone-label-cusdash {
     font-size: 0.55rem;
   }
-
   .milestone-icon-cusdash {
     font-size: 1rem;
   }
-
   .milestone-line-cusdash {
     display: none;
   }
-
   .milestones-title-cusdash {
     font-size: 0.75rem;
   }
-  
   .pending-payments-alert-cusdash {
     flex-direction: column;
     text-align: center;
     padding: 0.875rem 1rem;
     gap: 0.75rem;
   }
-
   .alert-content-cusdash strong {
     font-size: 0.85rem;
   }
-
   .alert-content-cusdash p {
     font-size: 0.8rem;
   }
-  
   .alert-action-cusdash {
     width: 100%;
     justify-content: center;
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
   }
-
   .alert-icon-cusdash {
     font-size: 1.25rem;
   }
-
   .empty-state-cusdash {
     padding: 1.5rem 1rem;
     min-height: 150px;
   }
-
   .empty-state-title-cusdash {
     font-size: 0.95rem;
   }
-
   .empty-state-description-cusdash {
     font-size: 0.8rem;
   }
-
   .empty-small-cusdash {
     padding: 1.5rem 0.75rem;
   }
-
   .empty-text-cusdash {
     font-size: 0.8rem;
   }
-
   .link-cusdash {
     font-size: 0.8rem;
   }
-
   .btn-primary-cusdash,
   .btn-secondary-cusdash {
     padding: 0.5rem 1rem;
     font-size: 0.85rem;
-    border-radius: var(--radius-sm);
+    border-radius: 6px;
   }
 }
 
-/* Small Mobile Devices */
 @media (max-width: 480px) {
   .dashboard-container-cusdash {
     padding-inline: 10px;
   }
-
   .stats-grid-cusdash {
     grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
   }
-  
   .stat-card-cusdash {
     padding: 0.75rem;
-    border-radius: var(--radius-sm);
+    border-radius: 6px;
   }
-  
   .stat-value-cusdash {
     font-size: 1.1rem;
   }
-
   .stat-label-cusdash {
     font-size: 0.65rem;
     letter-spacing: 0.3px;
   }
-
   .stat-trend-cusdash {
     font-size: 0.65rem;
   }
-
   .action-grid-cusdash {
     grid-template-columns: 1fr 1fr;
     gap: 0.4rem;
   }
-
   .quick-action-item-cusdash {
     padding: 0.5rem;
     gap: 0.5rem;
-    border-radius: var(--radius-sm);
+    border-radius: 6px;
   }
-
   .quick-action-icon-cusdash {
     width: 30px;
     height: 30px;
     font-size: 0.8rem;
-    border-radius: var(--radius-sm);
+    border-radius: 6px;
   }
-
   .quick-action-label-cusdash {
     font-size: 0.7rem;
   }
-
   .quick-action-arrow-cusdash {
     font-size: 0.6rem;
   }
-
   .welcome-actions-cusdash {
     flex-direction: column;
   }
-  
   .welcome-actions-cusdash .btn-primary-cusdash,
   .welcome-actions-cusdash .btn-secondary-cusdash {
     width: 100%;
@@ -1514,330 +1464,257 @@
     padding: 0.5rem 0.75rem;
     font-size: 0.8rem;
   }
-
   .page-title-cusdash {
     font-size: 1.1rem;
   }
-
   .welcome-greeting-cusdash {
     font-size: 0.8rem;
   }
-  
   .progress-ring-wrapper-cusdash {
     width: 80px;
     height: 80px;
   }
-  
   .progress-ring-cusdash {
     width: 80px;
     height: 80px;
   }
-  
   .progress-ring-value-cusdash {
     font-size: 1rem;
   }
-
   .progress-ring-label-cusdash {
     font-size: 0.55rem;
   }
-
   .project-card-enhanced-cusdash {
     padding: 0.875rem;
-    border-radius: var(--radius-md);
+    border-radius: 10px;
   }
-
   .project-name-cusdash {
     font-size: 0.9rem;
   }
-
   .project-system-cusdash {
     font-size: 0.75rem;
   }
-
   .status-badge-cusdash {
     font-size: 0.6rem;
     padding: 0.2rem 0.5rem;
   }
-
   .metric-label-cusdash {
     font-size: 0.75rem;
   }
-
   .metric-value-cusdash {
     font-size: 0.8rem;
   }
-
   .action-link-cusdash {
     font-size: 0.75rem;
   }
-
   .section-title-cusdash {
     font-size: 0.9rem;
   }
-
   .view-all-link-cusdash {
     font-size: 0.75rem;
   }
-
   .activities-card-cusdash {
     padding: 0.75rem;
-    min-height: 120px;
-    border-radius: var(--radius-md);
+    min-height: 160px;
+    border-radius: 10px;
   }
-
   .activity-item-cusdash {
     padding: 0.4rem;
     gap: 0.4rem;
   }
-
   .activity-icon-wrapper-cusdash {
     width: 28px;
     height: 28px;
     font-size: 0.75rem;
-    border-radius: var(--radius-sm);
+    border-radius: 6px;
   }
-
   .activity-title-cusdash {
     font-size: 0.75rem;
   }
-
   .activity-reference-cusdash {
     font-size: 0.65rem;
   }
-
   .activity-date-cusdash {
     font-size: 0.65rem;
   }
-
   .appointments-section-cusdash {
     padding: 0.75rem;
-    border-radius: var(--radius-md);
+    border-radius: 10px;
   }
-
   .appointments-title-cusdash {
     font-size: 0.8rem;
   }
-
   .appointment-item-cusdash {
     padding: 0.5rem;
     gap: 0.5rem;
-    border-radius: var(--radius-sm);
+    border-radius: 6px;
   }
-
   .appointment-date-cusdash {
     min-width: 34px;
     padding: 0.15rem 0.3rem;
   }
-
   .appointment-day-cusdash {
     font-size: 0.8rem;
   }
-
   .appointment-month-cusdash {
     font-size: 0.5rem;
   }
-
   .appointment-type-cusdash {
     font-size: 0.75rem;
   }
-
   .appointment-address-cusdash {
     font-size: 0.65rem;
   }
-
   .pending-payments-alert-cusdash {
     padding: 0.75rem;
-    border-radius: var(--radius-md);
+    border-radius: 10px;
   }
-
   .alert-icon-cusdash {
     font-size: 1.1rem;
   }
-
   .alert-content-cusdash strong {
     font-size: 0.8rem;
   }
-
   .alert-content-cusdash p {
     font-size: 0.75rem;
   }
-
   .alert-action-cusdash {
     padding: 0.4rem 0.75rem;
     font-size: 0.75rem;
   }
-
   .milestone-item-cusdash {
     min-width: 50px;
   }
-
   .milestone-icon-cusdash {
     font-size: 0.85rem;
   }
-
   .milestone-label-cusdash {
     font-size: 0.5rem;
   }
-
   .milestone-status-cusdash {
     font-size: 0.5rem;
   }
-
   .empty-state-cusdash {
     padding: 1rem 0.75rem;
     min-height: 100px;
-    border-radius: var(--radius-md);
+    border-radius: 10px;
   }
-
   .empty-state-title-cusdash {
     font-size: 0.85rem;
   }
-
   .empty-state-description-cusdash {
     font-size: 0.75rem;
   }
-
   .empty-small-cusdash {
     padding: 1rem 0.5rem;
   }
-
   .empty-text-cusdash {
     font-size: 0.75rem;
   }
-
   .link-cusdash {
     font-size: 0.75rem;
   }
-
   .project-selector-container-cusdash {
     gap: 0.4rem;
   }
-
   .selector-label-cusdash {
     font-size: 0.75rem;
   }
-
   .project-select-cusdash {
     font-size: 0.8rem;
     padding: 0.4rem 2rem 0.4rem 0.75rem;
   }
-
   .select-icon-cusdash {
     right: 0.5rem;
     font-size: 0.8rem;
   }
 }
 
-/* Extra Small Devices */
 @media (max-width: 360px) {
   .dashboard-container-cusdash {
     padding-inline: 8px;
   }
-
   .stats-grid-cusdash {
     grid-template-columns: 1fr 1fr;
     gap: 0.4rem;
   }
-
   .stat-card-cusdash {
     padding: 0.6rem;
   }
-
   .stat-value-cusdash {
     font-size: 0.95rem;
   }
-
   .stat-label-cusdash {
     font-size: 0.6rem;
   }
-
   .action-grid-cusdash {
     grid-template-columns: 1fr;
     gap: 0.35rem;
   }
-
   .quick-action-item-cusdash {
     padding: 0.4rem 0.6rem;
   }
-
   .quick-action-icon-cusdash {
     width: 26px;
     height: 26px;
     font-size: 0.7rem;
   }
-
   .quick-action-label-cusdash {
     font-size: 0.65rem;
   }
-
   .page-title-cusdash {
     font-size: 0.95rem;
   }
-
   .welcome-greeting-cusdash {
     font-size: 0.75rem;
   }
-
   .btn-primary-cusdash,
   .btn-secondary-cusdash {
     font-size: 0.75rem;
     padding: 0.4rem 0.6rem;
   }
-
   .project-card-enhanced-cusdash {
     padding: 0.625rem;
   }
-
   .project-name-cusdash {
     font-size: 0.8rem;
   }
-
   .project-system-cusdash {
     font-size: 0.7rem;
   }
-
   .progress-ring-wrapper-cusdash {
     width: 70px;
     height: 70px;
   }
-
   .progress-ring-cusdash {
     width: 70px;
     height: 70px;
   }
-
   .progress-ring-value-cusdash {
     font-size: 0.85rem;
   }
-
   .progress-ring-label-cusdash {
     font-size: 0.5rem;
   }
-
   .metric-label-cusdash {
     font-size: 0.7rem;
   }
-
   .metric-value-cusdash {
     font-size: 0.75rem;
   }
-
   .activities-card-cusdash {
     padding: 0.5rem;
+    min-height: 140px;
   }
-
   .activity-title-cusdash {
     font-size: 0.7rem;
   }
-
   .appointments-section-cusdash {
     padding: 0.5rem;
   }
-
   .appointment-type-cusdash {
     font-size: 0.7rem;
   }
-
   .pending-payments-alert-cusdash {
     padding: 0.5rem;
   }
@@ -1852,7 +1729,6 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-
   .stat-card-cusdash:hover,
   .quick-action-item-cusdash:hover,
   .activity-item-cusdash:hover,
@@ -1860,12 +1736,10 @@
   .project-card-enhanced-cusdash:hover {
     transform: none !important;
   }
-
   .skeleton-line-cusdash {
     animation: none !important;
-    background: var(--bg-surface) !important;
+    background: #131C28 !important;
   }
-
   .btn-primary-cusdash:hover,
   .btn-secondary-cusdash:hover,
   .alert-action-cusdash:hover,
@@ -1874,114 +1748,16 @@
   .action-link-cusdash:hover {
     transform: none !important;
   }
-
   .quick-action-item-cusdash:hover .quick-action-arrow-cusdash {
     transform: none !important;
   }
-
   .view-all-link-cusdash:hover .arrow-icon-cusdash {
     transform: none !important;
   }
-
   .action-link-cusdash:hover .action-arrow-cusdash {
     transform: none !important;
   }
-
   .progress-ring-fill-cusdash {
     transition: none !important;
-  }
-}
-
-/* ============================================
-   WELCOME SECTION - ENHANCED WITH GREETING
-   ============================================ */
-.welcome-section-cusdash {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem 0 1.5rem 0;
-  border-bottom: 1px solid var(--border-light);
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.welcome-content-cusdash {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.page-title-cusdash {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-  letter-spacing: -0.3px;
-}
-
-.welcome-greeting-cusdash {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.welcome-actions-cusdash {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-/* ============================================
-   RESPONSIVE - WELCOME SECTION
-   ============================================ */
-@media (max-width: 768px) {
-  .welcome-section-cusdash {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 1rem 0 1rem 0;
-  }
-
-  .page-title-cusdash {
-    font-size: 1.3rem;
-  }
-
-  .welcome-greeting-cusdash {
-    font-size: 0.9rem;
-  }
-  
-  .welcome-actions-cusdash {
-    width: 100%;
-    gap: 0.5rem;
-  }
-  
-  .welcome-actions-cusdash .btn-primary-cusdash,
-  .welcome-actions-cusdash .btn-secondary-cusdash {
-    flex: 1;
-    justify-content: center;
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .welcome-actions-cusdash {
-    flex-direction: column;
-  }
-  
-  .welcome-actions-cusdash .btn-primary-cusdash,
-  .welcome-actions-cusdash .btn-secondary-cusdash {
-    width: 100%;
-    justify-content: center;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8rem;
-  }
-
-  .page-title-cusdash {
-    font-size: 1.1rem;
-  }
-
-  .welcome-greeting-cusdash {
-    font-size: 0.8rem;
   }
 }

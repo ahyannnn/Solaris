@@ -1,4 +1,4 @@
-// pages/Admin/Billing.jsx
+// pages/Admin/Billing.jsx - Redesigned with Dark Solar Theme
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -108,6 +108,7 @@ const AdminBilling = () => {
 
   // CHART DATA STATES
   const [paymentMethodChartData, setPaymentMethodChartData] = useState([]);
+  const [revenueChartData, setRevenueChartData] = useState([]);
 
   // Filter and pagination
   const [filter, setFilter] = useState('all');
@@ -237,12 +238,10 @@ const AdminBilling = () => {
   const applyPreAssessmentFilters = () => {
     let filtered = [...allAssessments];
 
-    // Apply status filter
     if (filter !== 'all') {
       filtered = filtered.filter(a => a.paymentStatus === filter);
     }
 
-    // Apply search filter
     if (debouncedSearchTerm) {
       const term = debouncedSearchTerm.toLowerCase();
       filtered = filtered.filter(a => {
@@ -335,7 +334,7 @@ const AdminBilling = () => {
 
       const params = {
         page: 1,
-        limit: 999 // Fetch all for client-side filtering
+        limit: 999
       };
 
       const response = await axios.get(
@@ -581,7 +580,7 @@ const AdminBilling = () => {
         projectPayments: projectPayments
       });
 
-      // --- PROCESS CHART DATA (Payment Methods) ---
+      // --- PROCESS CHART DATA (Payment Method Distribution - COUNTS) ---
       let cashCount = 0;
       let gcashCount = 0;
       let bankCount = 0;
@@ -593,18 +592,77 @@ const AdminBilling = () => {
         else if (a.paymentGateway === 'paymongo' && a.paymentStatus === 'paid') paymongoCount++;
       });
 
-      // Check bank transfers specifically
       const bankTransfersRes = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/payments/bank-transfer/stats`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      bankCount = bankTransfersRes.data.stats?.verified || 0;
+      
+      const bankTransfersData = bankTransfersRes.data.data || [];
+      const verifiedBankTransfers = bankTransfersData.filter(bt => bt.status === 'verified');
+      bankCount = verifiedBankTransfers.length;
 
       setPaymentMethodChartData([
         { name: 'Cash', count: cashCount },
         { name: 'GCash', count: gcashCount },
         { name: 'Bank Transfer', count: bankCount },
         { name: 'PayMongo', count: paymongoCount }
+      ]);
+
+      // --- PROCESS REVENUE CHART DATA (Revenue by Payment Method - AMOUNTS) ---
+      let cashRevenue = 0;
+      let gcashRevenue = 0;
+      let bankRevenue = 0;
+      let paymongoRevenue = 0;
+
+      // 1. Pre-assessment payments
+      assessments.forEach(a => {
+        if (a.paymentMethod === 'cash' && a.paymentStatus === 'paid') {
+          cashRevenue += (a.assessmentFee || 0);
+        } else if (a.paymentMethod === 'gcash' && a.paymentStatus === 'paid') {
+          gcashRevenue += (a.assessmentFee || 0);
+        } else if (a.paymentGateway === 'paymongo' && a.paymentStatus === 'paid') {
+          paymongoRevenue += (a.assessmentFee || 0);
+        }
+      });
+
+      // 2. Bank transfers (only VERIFIED ones)
+      verifiedBankTransfers.forEach(bt => {
+        bankRevenue += (bt.amount || 0);
+      });
+
+      // 3. Solar invoice payments (only PAID or PARTIAL with actual payments)
+      const solarRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/solar-invoices`, {
+        headers: { Authorization: `Bearer ${token}` }
+      }).catch(() => ({ data: { invoices: [] } }));
+
+      const solarInvoices = solarRes.data.invoices || [];
+      solarInvoices.forEach(invoice => {
+        if (invoice.payments && invoice.payments.length > 0) {
+          invoice.payments.forEach(payment => {
+            // Only include actual paid payments
+            if (invoice.paymentStatus === 'paid' || invoice.paymentStatus === 'partial') {
+              const method = payment.method || 'cash';
+              const amount = payment.amount || 0;
+              
+              if (method === 'cash') {
+                cashRevenue += amount;
+              } else if (method === 'gcash') {
+                gcashRevenue += amount;
+              } else if (method === 'paymongo') {
+                paymongoRevenue += amount;
+              } else if (method === 'bank' || method === 'bank_transfer') {
+                bankRevenue += amount;
+              }
+            }
+          });
+        }
+      });
+
+      setRevenueChartData([
+        { name: 'Cash', revenue: cashRevenue },
+        { name: 'GCash', revenue: gcashRevenue },
+        { name: 'Bank Transfer', revenue: bankRevenue },
+        { name: 'PayMongo', revenue: paymongoRevenue }
       ]);
 
     } catch (error) {
@@ -977,9 +1035,20 @@ const AdminBilling = () => {
     });
   };
 
-  // ============ BADGE FUNCTIONS - Plain Text Only ============
+  // ============ BADGE FUNCTIONS ============
   const getPaymentStatusBadge = (status) => {
     const statusMap = {
+      'pending': 'pending',
+      'for_verification': 'for-verification',
+      'paid': 'paid',
+      'partial': 'partial',
+      'failed': 'failed',
+      'overdue': 'overdue',
+      'waiting_verification': 'waiting-verification',
+      'verified': 'verified',
+      'rejected': 'rejected'
+    };
+    const labels = {
       'pending': 'Pending',
       'for_verification': 'Verifying',
       'paid': 'Paid',
@@ -990,27 +1059,39 @@ const AdminBilling = () => {
       'verified': 'Verified',
       'rejected': 'Rejected'
     };
-    return <span className="status-badge-adminbilling">{statusMap[status] || status}</span>;
+    return <span className={`status-badge-adminbilling ${statusMap[status] || 'pending'}`}>{labels[status] || status}</span>;
   };
 
   const getBankTransferStatusBadge = (status) => {
     const statusMap = {
+      'waiting_verification': 'waiting-verification',
+      'verified': 'verified',
+      'rejected': 'rejected'
+    };
+    const labels = {
       'waiting_verification': 'Waiting for Verification',
       'verified': 'Verified',
       'rejected': 'Rejected'
     };
-    return <span className="status-badge-adminbilling">{statusMap[status] || status}</span>;
+    return <span className={`status-badge-adminbilling ${statusMap[status] || 'pending'}`}>{labels[status] || status}</span>;
   };
 
   const getAssessmentStatusBadge = (status) => {
     const statusMap = {
+      'pending_payment': 'pending',
+      'scheduled': 'scheduled',
+      'device_deployed': 'processing',
+      'data_collecting': 'processing',
+      'completed': 'completed'
+    };
+    const labels = {
       'pending_payment': 'Pending',
       'scheduled': 'Scheduled',
       'device_deployed': 'Deployed',
       'data_collecting': 'Collecting',
       'completed': 'Completed'
     };
-    return <span className="status-badge-adminbilling">{statusMap[status] || status}</span>;
+    return <span className={`status-badge-adminbilling ${statusMap[status] || 'pending'}`}>{labels[status] || status}</span>;
   };
 
   const getInvoiceTypeBadge = (type) => {
@@ -1203,10 +1284,24 @@ const AdminBilling = () => {
   const PaymentTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="recharts-custom-tooltip-adminbilling">
+        <div className="chart-tooltip-adminbilling">
           <p className="tooltip-label-adminbilling">{label}</p>
-          <p className="tooltip-item-adminbilling" style={{ color: '#6366f1' }}>
+          <p className="tooltip-item-adminbilling" style={{ color: '#F39C12' }}>
             Count: {payload[0].value}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const RevenueTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="chart-tooltip-adminbilling">
+          <p className="tooltip-label-adminbilling">{label}</p>
+          <p className="tooltip-item-adminbilling" style={{ color: '#10B981' }}>
+            Revenue: {formatCurrency(payload[0].value)}
           </p>
         </div>
       );
@@ -1218,8 +1313,7 @@ const AdminBilling = () => {
   const SkeletonLoader = () => (
     <div className="admin-billing">
       <div className="billing-header-adminbilling">
-        <div className="skeleton-line-large-adminbilling"></div>
-        <div className="skeleton-button-adminbilling"></div>
+        <div className="skeleton-line-adminbilling"></div>
       </div>
       <div className="billing-charts-row-adminbilling">
         <div className="skeleton-chart-adminbilling"></div>
@@ -1260,7 +1354,7 @@ const AdminBilling = () => {
         {/* ============================================ */}
         <div className="billing-charts-row-adminbilling">
 
-          {/* CHART 1: Payment Methods Bar Chart */}
+          {/* CHART 1: Payment Method Distribution */}
           <div className="billing-chart-card-adminbilling">
             <div className="billing-chart-header-adminbilling">
               <h3>Payment Method Distribution</h3>
@@ -1271,14 +1365,14 @@ const AdminBilling = () => {
                 <BarChart data={paymentMethodChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorPayment" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0.2} />
+                      <stop offset="5%" stopColor="#F39C12" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#F39C12" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#E5E7EB" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} width={30} allowDecimals={false} />
-                  <Tooltip content={<PaymentTooltip />} cursor={{ stroke: '#D1D5DB', strokeWidth: 1 }} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} width={30} allowDecimals={false} />
+                  <Tooltip content={<PaymentTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                   <Bar dataKey="count" fill="url(#colorPayment)" radius={[4, 4, 0, 0]} barSize={45} />
                 </BarChart>
               </ResponsiveContainer>
@@ -1289,22 +1383,22 @@ const AdminBilling = () => {
           <div className="billing-chart-card-adminbilling">
             <div className="billing-chart-header-adminbilling">
               <h3>Revenue Overview</h3>
-              <span className="billing-chart-period-adminbilling">Total vs Pending</span>
+              <span className="billing-chart-period-adminbilling">Paid Revenue by Payment Method</span>
             </div>
             <div className="billing-chart-wrapper-adminbilling">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={paymentMethodChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <BarChart data={revenueChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.2} />
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#E5E7EB" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} width={30} allowDecimals={false} />
-                  <Tooltip content={<PaymentTooltip />} cursor={{ stroke: '#D1D5DB', strokeWidth: 1 }} />
-                  <Bar dataKey="count" fill="url(#colorRevenue)" radius={[4, 4, 0, 0]} barSize={45} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} width={30} />
+                  <Tooltip content={<RevenueTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                  <Bar dataKey="revenue" fill="url(#colorRevenue)" radius={[4, 4, 0, 0]} barSize={45} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -1440,7 +1534,6 @@ const AdminBilling = () => {
                       <th>Amount</th>
                       <th>Gateway</th>
                       <th>Payment</th>
-                     
                       <th>Receipt</th>
                       <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
                     </tr>
@@ -1463,7 +1556,6 @@ const AdminBilling = () => {
                             <td data-label="Amount" className="amount-adminbilling">{formatCurrency(assessment.assessmentFee)}</td>
                             <td data-label="Gateway">{getGatewayBadge(assessment)}</td>
                             <td data-label="Payment">{getPaymentStatusBadge(assessment.paymentStatus)}</td>
-                          
                             <td data-label="Receipt" className="receipt-cell-adminbilling">
                               {assessment.receiptUrl ? (
                                 <a href={assessment.receiptUrl} target="_blank" rel="noopener noreferrer" className="receipt-link-adminbilling" onClick={(e) => e.stopPropagation()}>
@@ -1679,7 +1771,6 @@ const AdminBilling = () => {
                     <tr>
                       <th>Date</th>
                       <th>Customer</th>
-                      
                       <th>Bank</th>
                       <th>Amount</th>
                       <th>Reference</th>
@@ -1706,7 +1797,6 @@ const AdminBilling = () => {
                                 <small>{payment.clientEmail}</small>
                               </div>
                             </td>
-                            
                             <td data-label="Bank"><span className="bank-name-adminbilling">{payment.bankName}</span></td>
                             <td data-label="Amount" className="amount-adminbilling">{formatCurrency(payment.amount)}</td>
                             <td data-label="Reference" className="ref-cell-adminbilling">{payment.transactionReference}</td>

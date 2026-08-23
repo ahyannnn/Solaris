@@ -1,109 +1,101 @@
-/* src/styles/Admin/reports.css */
+/* styles/Admin/reports.css - Dark Solar Theme for Reports */
 
-/* =========================================
-   REPORTS - MATCH SITE ASSESSMENT
-   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
-:root {
-  --primary-blue: #2563eb;
-  --primary-blue-light: #dbeafe;
-  --gray-50: #f8fafc;
-  --gray-100: #f1f5f9;
-  --gray-200: #e2e8f0;
-  --gray-300: #cbd5e1;
-  --gray-500: #64748b;
-  --gray-700: #334155;
-  --gray-900: #0f172a;
-  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-  --border-radius: 16px;
-}
-
-/* --- Base Layout - MATCH SITE ASSESSMENT --- */
+/* ============================================
+   BASE LAYOUT
+   ============================================ */
 .reports-container-reports {
-  background-color: var(--gray-50);
+  background: #0B111A;
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: var(--gray-900);
-  /* REMOVED padding: 16px 0; */
-  padding: 0;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #FFFFFF;
 }
 
-/* --- Minimalist Header - MATCH SITE ASSESSMENT --- */
+/* ============================================
+   HEADER
+   ============================================ */
 .reports-header-reports {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  height: 5px; /* MATCH site assessment */
-  padding: 0; /* REMOVED padding: 0 40px; */
+  padding: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
 }
 
-/* =========================================
-   TABS - MATCH SITE ASSESSMENT
-   ========================================= */
+/* ============================================
+   TABS
+   ============================================ */
 .report-tabs-reports {
-  display: flex;
-  gap: 0px;
-  border-bottom: 1px solid var(--gray-200);
-  margin: 0 0 16px 0; /* REMOVED horizontal margins */
-  padding: 0;
+  display: inline-flex;
+  gap: 6px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  background: #1A2533;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  width: auto;
 }
 
 .tab-btn-reports {
+  padding: 10px 20px;
   background: transparent;
   border: none;
-  padding: 14px 24px; /* MATCH site assessment */
-  font-size: 15px; /* MATCH site assessment */
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 500;
-  color: var(--gray-500);
+  color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
 }
 
 .tab-btn-reports:hover {
-  color: var(--primary-blue);
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .tab-btn-reports.active-reports {
-  color: var(--primary-blue);
-  font-weight: 600;
+  background: #F39C12;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
 }
 
-.tab-btn-reports.active-reports::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 24px;
-  right: 24px;
-  height: 3px;
-  background-color: var(--primary-blue);
-  border-radius: 10px 10px 0 0;
-}
-
-/* =========================================
-   CONTROLS - MATCH SITE ASSESSMENT
-   ========================================= */
+/* ============================================
+   REPORT CONTROLS
+   ============================================ */
 .report-controls-reports {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 0; /* REMOVED padding: 0 40px; */
-  margin-bottom: 16px; /* MATCH site assessment */
-  flex-wrap: nowrap;
+  gap: 20px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  background: #1A2533;
+  padding: 20px 24px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .date-range-reports {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 200px;
 }
 
 .date-range-reports label {
+  font-size: 13px;
   font-weight: 500;
-  color: var(--gray-700);
-  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .date-inputs-reports {
@@ -112,137 +104,138 @@
   gap: 8px;
 }
 
-.date-inputs-reports input {
-  padding: 12px 14px; /* MATCH site assessment */
-  border: 1px solid var(--gray-200);
-  border-radius: 10px; /* MATCH site assessment */
-  font-size: 14px;
-  background: #FFFFFF;
-  color: var(--gray-900);
-  outline: none;
-  transition: all 0.2s ease;
+.date-inputs-reports input[type="date"] {
+  padding: 8px 12px;
+  background: #131C28;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #FFFFFF;
+  font-family: 'Poppins', sans-serif;
+  transition: all 200ms ease;
+  flex: 1;
+  min-width: 120px;
 }
 
-.date-inputs-reports input:focus {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 4px var(--primary-blue-light);
+.date-inputs-reports input[type="date"]:focus {
+  outline: none;
+  border-color: #F39C12;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+}
+
+.date-inputs-reports input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
 }
 
 .date-inputs-reports span {
-  color: var(--gray-500);
+  color: rgba(255, 255, 255, 0.3);
   font-size: 14px;
 }
 
 .report-filter-reports {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 180px;
 }
 
 .report-filter-reports label {
+  font-size: 13px;
   font-weight: 500;
-  color: var(--gray-700);
-  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .report-filter-reports select {
-  padding: 12px 44px 12px 16px; /* MATCH site assessment */
-  border: 1px solid var(--gray-200);
-  border-radius: 10px; /* MATCH site assessment */
-  font-size: 14px;
-  font-weight: 500;
-  background: #FFFFFF;
-  color: var(--gray-900);
-  outline: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 200px;
+  padding: 8px 36px 8px 12px;
+  background: #131C28;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #FFFFFF;
+  font-family: 'Poppins', sans-serif;
   appearance: none;
+  cursor: pointer;
+  transition: all 200ms ease;
+  width: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
 }
 
 .report-filter-reports select:focus {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 4px var(--primary-blue-light);
+  outline: none;
+  border-color: #F39C12;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 
-/* Add dropdown arrow for filter */
-.report-filter-reports {
-  position: relative;
+.report-filter-reports select option {
+  background: #1A2533;
+  color: #FFFFFF;
 }
 
-.report-filter-reports::after {
-  content: '▼';
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--gray-500);
-  pointer-events: none;
-  font-size: 10px;
-}
-
-/* =========================================
-   REPORT CONTENT - MATCH SITE ASSESSMENT
-   ========================================= */
+/* ============================================
+   REPORT CONTENT
+   ============================================ */
 .report-content-reports {
-  padding: 0; /* REMOVED padding: 0 40px; */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .report-section-reports {
-  margin-bottom: 24px;
+  background: #1A2533;
+  border-radius: 14px;
+  padding: 20px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .report-section-reports h2 {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--gray-900);
+  font-size: 20px;
+  font-weight: 700;
+  color: #FFFFFF;
   margin: 0 0 4px 0;
 }
 
 .report-section-reports p {
   font-size: 14px;
-  color: var(--gray-500);
+  color: rgba(255, 255, 255, 0.4);
   margin: 0 0 16px 0;
 }
 
-/* =========================================
-   TABLES - MATCH SITE ASSESSMENT
-   ========================================= */
+/* ============================================
+   TABLE
+   ============================================ */
 .table-container-reports {
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
-  border-radius: 0; /* REMOVED rounded corners to match site assessment */
-  overflow: hidden;
-  box-shadow: var(--card-shadow);
+  overflow-x: auto;
 }
 
 .reports-table-reports {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .reports-table-reports thead {
-  background: var(--primary-blue); /* MATCH site assessment - blue header */
-  border-bottom: 1px solid var(--gray-200);
+  background: #131C28;
 }
 
-.reports-table-reports th {
+.reports-table-reports thead th {
+  padding: 12px 16px;
   text-align: left;
-  padding: 14px 18px; /* MATCH site assessment */
   font-weight: 600;
-  color: #FFFFFF;
-  font-size: 13px;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .reports-table-reports tbody tr {
-  border-bottom: 1px solid var(--gray-100);
-  transition: all 0.15s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 200ms ease;
 }
 
 .reports-table-reports tbody tr:last-child {
@@ -250,469 +243,709 @@
 }
 
 .reports-table-reports tbody tr:hover {
-  background-color: var(--gray-50);
+  background: rgba(255, 255, 255, 0.03);
 }
 
-.reports-table-reports tbody tr:nth-child(even) {
-  background-color: #FAFBFC;
-}
-
-.reports-table-reports tbody tr:nth-child(even):hover {
-  background-color: var(--gray-100);
-}
-
-.reports-table-reports td {
-  padding: 14px 18px; /* MATCH site assessment */
-  color: var(--gray-700);
+.reports-table-reports tbody td {
+  padding: 12px 16px;
   vertical-align: middle;
+  color: rgba(255, 255, 255, 0.8);
 }
 
+/* Table Cell Styles */
 .ref-cell-reports {
   font-weight: 500;
-  color: var(--gray-900);
+  color: #FFFFFF;
+  font-family: monospace;
+  font-size: 12px;
 }
 
 .client-cell-reports {
   font-weight: 500;
-  color: var(--gray-900);
+  color: #FFFFFF;
 }
 
 .amount-reports {
-  font-weight: 500;
+  font-weight: 600;
+  color: #F39C12;
 }
 
+/* Empty State */
 .empty-state-reports {
   text-align: center;
   padding: 48px 20px;
-  color: var(--gray-500);
-  font-size: 15px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
 }
 
-/* =========================================
-   BADGES - MATCH SITE ASSESSMENT
-   ========================================= */
-.status-badge-reports,
-.property-type-badge-reports,
-.system-type-badge-reports,
-.client-type-badge-reports,
-.payment-method-reports,
+/* ============================================
+   BADGES
+   ============================================ */
+.status-badge-reports {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.property-type-badge-reports {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+.system-type-badge-reports {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  background: rgba(139, 92, 246, 0.12);
+  color: #8B5CF6;
+  border: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+.client-type-badge-reports {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.payment-method-reports {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.payment-method-reports.cash {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.payment-method-reports.gcash {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+.payment-method-reports.paymongo {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8B5CF6;
+  border: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+.payment-method-reports.manual {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Project Status Badges */
 .project-status-badge-reports {
   display: inline-block;
-  padding: 4px 12px;
-  border-radius: 6px; /* MATCH site assessment - square corners */
-  font-size: 12px;
-  font-weight: 600;
-  background: var(--gray-100);
-  color: var(--gray-700);
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
 }
 
-/* Add specific colors for different status types */
-.status-badge-reports.paid,
-.status-badge-reports.completed {
-  background: #D1FAE5;
-  color: #065F46;
+.project-status-badge-reports.quoted {
+  background: rgba(243, 156, 18, 0.12);
+  color: #F39C12;
+  border: 1px solid rgba(243, 156, 18, 0.2);
 }
 
-.status-badge-reports.pending,
-.status-badge-reports.in-progress {
-  background: #FEF3C7;
-  color: #92400E;
+.project-status-badge-reports.approved {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
-.status-badge-reports.cancelled {
-  background: #FEE2E2;
-  color: #991B1B;
+.project-status-badge-reports.initial_paid {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8B5CF6;
+  border: 1px solid rgba(139, 92, 246, 0.2);
 }
 
-/* =========================================
-   ACTIONS - MATCH SITE ASSESSMENT
-   ========================================= */
+.project-status-badge-reports.in_progress {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8B5CF6;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.project-status-badge-reports.progress_paid {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.project-status-badge-reports.completed {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.project-status-badge-reports.full_paid {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.project-status-badge-reports.cancelled {
+  background: rgba(239, 68, 68, 0.12);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* ============================================
+   REPORT ACTIONS
+   ============================================ */
 .report-actions-reports {
   display: flex;
   gap: 12px;
-  margin-top: 20px;
   flex-wrap: wrap;
+  margin-top: 4px;
 }
 
 .export-btn-reports {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 24px; /* MATCH site assessment */
+  padding: 10px 24px;
   border: none;
-  border-radius: 10px; /* MATCH site assessment */
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
-  color: #FFFFFF;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
 .export-btn-reports:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.export-btn-reports:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
 }
 
 .export-btn-reports.pdf {
-  background: #dc2626;
+  background: #EF4444;
+  color: #FFFFFF;
 }
 
 .export-btn-reports.pdf:hover:not(:disabled) {
-  background: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 .export-btn-reports.excel {
-  background: #16a34a;
+  background: #10B981;
+  color: #FFFFFF;
 }
 
 .export-btn-reports.excel:hover:not(:disabled) {
-  background: #15803d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .export-btn-reports.print {
-  background: var(--gray-700);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .export-btn-reports.print:hover:not(:disabled) {
-  background: var(--gray-900);
+  background: #131C28;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
 }
 
-/* =========================================
-   SKELETON LOADERS - MATCH SITE ASSESSMENT
-   ========================================= */
-.skeleton-line-large-reports {
-  height: 28px;
-  width: 250px;
-  background: var(--gray-200);
+/* ============================================
+   REPORT PREVIEW MODAL
+   ============================================ */
+.report-preview-overlay-reports {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.report-preview-reports {
+  background: #1A2533;
+  border-radius: 18px;
+  max-width: 1000px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+}
+
+.preview-header-reports {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.close-preview-reports {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.close-preview-reports:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #EF4444;
+}
+
+.preview-content-reports {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.preview-content-reports::-webkit-scrollbar {
+  width: 4px;
+}
+
+.preview-content-reports::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 4px;
-  margin-bottom: 8px;
+}
+
+.preview-content-reports::-webkit-scrollbar-thumb {
+  background: #F39C12;
+  border-radius: 4px;
+}
+
+.preview-actions-reports {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px 20px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.preview-note-reports {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  text-align: center;
+  padding: 8px 0 0 0;
+  margin: 0;
+}
+
+.preview-raw-reports {
+  background: #131C28;
+  border-radius: 10px;
+  padding: 16px;
+  overflow-x: auto;
+}
+
+.preview-raw-reports pre {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* ============================================
+   REPORT HEADER IN PREVIEW
+   ============================================ */
+.report-header-reports {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 0 20px 0;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.company-info-reports {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.company-logo-reports {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+}
+
+.company-logo-placeholder-reports {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: rgba(243, 156, 18, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+
+.company-details-reports {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.company-name-reports {
+  font-size: 20px;
+  font-weight: 700;
+  color: #F39C12;
+  margin: 0;
+}
+
+.company-address-reports {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+
+.company-tagline-reports {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 0;
+}
+
+.report-title-section-reports {
+  text-align: right;
+}
+
+.report-title-reports {
+  font-size: 18px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0 0 4px 0;
+}
+
+.report-generated-reports {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 0;
+}
+
+.report-date-range-reports {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 0;
+}
+
+.preview-table-section-reports {
+  margin-bottom: 20px;
+}
+
+.preview-table-section-reports h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 12px 0;
+}
+
+/* ============================================
+   SKELETON LOADING
+   ============================================ */
+.skeleton-line-large-reports {
+  height: 40px;
+  width: 60%;
+  border-radius: 6px;
+  animation: shimmer-reports 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background-size: 200% 100%;
 }
 
 .skeleton-line-medium-reports {
-  height: 16px;
-  width: 300px;
-  background: var(--gray-200);
-  border-radius: 4px;
+  height: 24px;
+  width: 40%;
+  border-radius: 6px;
+  animation: shimmer-reports 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background-size: 200% 100%;
 }
 
 .skeleton-tab-reports {
   height: 40px;
   width: 120px;
-  background: var(--gray-200);
-  border-radius: 4px;
-  margin-right: 12px;
-}
-
-.skeleton-table-reports {
-  height: 400px;
-  background: var(--gray-200);
-  border-radius: 0;
-}
-
-.skeleton-controls-reports {
-  height: 40px;
-  width: 100%;
-  max-width: 400px;
-  background: var(--gray-200);
   border-radius: 8px;
-  margin-bottom: 16px;
+  background: #1A2533;
+  animation: shimmer-reports 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background-size: 200% 100%;
 }
 
 @keyframes shimmer-reports {
-  0% { background-position: -200px 0; }
-  100% { background-position: 200px 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
-.skeleton-line-large-reports,
-.skeleton-line-medium-reports,
-.skeleton-tab-reports,
-.skeleton-table-reports,
-.skeleton-controls-reports {
-  background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
-  background-size: 200px 100%;
-  animation: shimmer-reports 1.5s infinite;
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1200px) {
+  .reports-container-reports {
+    padding-inline: 20px;
+  }
 }
 
-/* =========================================
-   RESPONSIVE - MATCH SITE ASSESSMENT
-   ========================================= */
 @media (max-width: 1024px) {
+  .reports-container-reports {
+    padding-inline: 18px;
+  }
   .report-controls-reports {
     flex-direction: column;
-    align-items: stretch;
     gap: 12px;
   }
-
-  .date-range-reports {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .date-inputs-reports {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
+  .date-range-reports,
   .report-filter-reports {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .report-filter-reports select {
+    min-width: auto;
     width: 100%;
+  }
+  .date-inputs-reports {
+    flex-wrap: wrap;
+  }
+  .date-inputs-reports input[type="date"] {
+    flex: 1;
+    min-width: 100px;
   }
 }
 
 @media (max-width: 768px) {
-  /* Main container */
   .reports-container-reports {
-    padding: 16px !important;
+    padding-inline: 14px;
+    padding-top: 12px;
   }
-
   .reports-header-reports {
-    padding: 0 !important;
+    padding: 0 0 16px 0;
   }
-
-  /* Tabs - scrollable on mobile */
   .report-tabs-reports {
-    overflow-x: auto !important;
-    flex-wrap: nowrap !important;
-    gap: 0 !important;
-    margin: 0 0 12px 0 !important;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    width: 100%;
+    padding: 4px;
+    gap: 4px;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    border-radius: 8px;
   }
-
-  .report-tabs-reports::-webkit-scrollbar {
+  .tab-btn-reports {
+    padding: 8px 14px;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .report-controls-reports {
+    padding: 16px 18px;
+    border-radius: 10px;
+  }
+  .report-section-reports {
+    padding: 16px 18px;
+    border-radius: 10px;
+  }
+  .report-section-reports h2 {
+    font-size: 18px;
+  }
+  .reports-table-reports thead {
     display: none;
   }
-
-  .tab-btn-reports {
-    padding: 10px 16px !important;
-    font-size: 13px !important;
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
-    flex: none !important;
+  .reports-table-reports tbody td {
+    display: block;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   }
-
-  .tab-btn-reports.active-reports::after {
-    left: 16px !important;
-    right: 16px !important;
+  .reports-table-reports tbody td:last-child {
+    border-bottom: none;
   }
-
-  /* Controls - full width on mobile */
-  .report-controls-reports {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 10px !important;
-    padding: 0 !important;
-    margin-bottom: 12px !important;
+  .reports-table-reports tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: inline-block;
+    width: 100px;
   }
-
-  .date-range-reports {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 8px !important;
-  }
-
-  .date-range-reports label {
-    font-size: 13px !important;
-  }
-
-  .date-inputs-reports {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 6px !important;
-  }
-
-  .date-inputs-reports input {
-    padding: 10px 12px !important;
-    font-size: 14px !important;
-    width: 100% !important;
-  }
-
-  .date-inputs-reports span {
-    text-align: center !important;
-  }
-
-  .report-filter-reports {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 6px !important;
-  }
-
-  .report-filter-reports label {
-    font-size: 13px !important;
-  }
-
-  .report-filter-reports select {
-    padding: 10px 40px 10px 14px !important;
-    font-size: 14px !important;
-    width: 100% !important;
-    min-width: auto !important;
-  }
-
-  /* Content */
-  .report-content-reports {
-    padding: 0 !important;
-  }
-
-  .report-section-reports h2 {
-    font-size: 16px !important;
-  }
-
-  .report-section-reports p {
-    font-size: 13px !important;
-  }
-
-  /* Table container */
-  .table-container-reports {
-    margin: 0 !important;
-  }
-
-  /* Mobile card view - table becomes cards */
-  .reports-table-reports thead {
-    display: none !important;
-  }
-
   .reports-table-reports tbody tr {
-    display: block !important;
-    border: 1px solid var(--gray-200) !important;
-    border-radius: 12px !important;
-    margin-bottom: 12px !important;
-    padding: 16px !important;
-    background: #FFFFFF !important;
+    display: block;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   }
-
-  .reports-table-reports tbody tr:nth-child(even) {
-    background: #FFFFFF !important;
+  .reports-table-reports tbody tr:last-child {
+    border-bottom: none;
   }
-
-  .reports-table-reports tbody tr:hover {
-    background: #FFFFFF !important;
-  }
-
-  .reports-table-reports td {
-    display: flex !important;
-    justify-content: space-between !important;
-    padding: 8px 0 !important;
-    border: none !important;
-    text-align: right !important;
-    font-size: 13px !important;
-  }
-
-  .reports-table-reports td::before {
-    content: attr(data-label) !important;
-    font-weight: 600 !important;
-    color: var(--gray-500) !important;
-    text-align: left !important;
-    padding-right: 16px !important;
-    font-size: 12px !important;
-  }
-
-  .ref-cell-reports,
-  .client-cell-reports {
-    font-size: 13px !important;
-  }
-
-  .amount-reports {
-    font-size: 13px !important;
-  }
-
-  /* Actions */
   .report-actions-reports {
-    flex-direction: column !important;
-    gap: 8px !important;
+    flex-direction: column;
   }
-
   .export-btn-reports {
-    justify-content: center !important;
-    padding: 10px !important;
-    font-size: 14px !important;
-    width: 100% !important;
+    justify-content: center;
+    width: 100%;
   }
-
-  /* Empty state */
-  .empty-state-reports {
-    padding: 32px 16px !important;
-    font-size: 14px !important;
+  .report-preview-reports {
+    max-width: 100%;
+    margin: 12px;
+    border-radius: 14px;
+  }
+  .preview-content-reports {
+    padding: 16px 18px;
+  }
+  .preview-actions-reports {
+    flex-direction: column;
+    padding: 14px 18px 18px 18px;
+  }
+  .preview-actions-reports .export-btn-reports {
+    width: 100%;
+    justify-content: center;
+  }
+  .report-header-reports {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .report-title-section-reports {
+    text-align: left;
+    width: 100%;
+  }
+  .company-info-reports {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .company-logo-reports {
+    height: 50px;
   }
 }
 
-/* --- Extra small devices (phones < 480px) --- */
 @media (max-width: 480px) {
   .reports-container-reports {
-    padding: 8px !important;
+    padding-inline: 10px;
   }
-
   .tab-btn-reports {
-    padding: 8px 12px !important;
-    font-size: 11px !important;
+    padding: 6px 10px;
+    font-size: 11px;
   }
-
-  .date-inputs-reports input {
-    padding: 8px 10px !important;
-    font-size: 13px !important;
+  .report-controls-reports {
+    padding: 12px 14px;
   }
-
-  .report-filter-reports select {
-    padding: 8px 36px 8px 12px !important;
-    font-size: 13px !important;
+  .date-inputs-reports input[type="date"] {
+    font-size: 12px;
+    padding: 6px 10px;
   }
-
-  .reports-table-reports tbody tr {
-    padding: 12px !important;
+  .report-section-reports {
+    padding: 12px 14px;
   }
-
-  .reports-table-reports td {
-    font-size: 12px !important;
-    padding: 6px 0 !important;
-  }
-
-  .reports-table-reports td::before {
-    font-size: 11px !important;
-  }
-
-  .export-btn-reports {
-    padding: 8px !important;
-    font-size: 13px !important;
-  }
-
   .report-section-reports h2 {
-    font-size: 14px !important;
+    font-size: 16px;
   }
-
   .report-section-reports p {
-    font-size: 12px !important;
+    font-size: 12px;
   }
-
-  .empty-state-reports {
-    padding: 24px 12px !important;
-    font-size: 13px !important;
+  .reports-table-reports tbody td {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  .reports-table-reports tbody td::before {
+    width: 80px;
+    font-size: 10px;
+  }
+  .export-btn-reports {
+    font-size: 13px;
+    padding: 8px 16px;
+  }
+  .report-preview-reports {
+    border-radius: 12px;
+  }
+  .preview-content-reports {
+    padding: 12px 14px;
+  }
+  .preview-actions-reports {
+    padding: 12px 14px 16px 14px;
+  }
+  .company-name-reports {
+    font-size: 17px;
+  }
+  .report-title-reports {
+    font-size: 16px;
   }
 }
 
-/* --- Touch-friendly improvements for mobile --- */
-@media (hover: none) and (pointer: coarse) {
-  .tab-btn-reports {
-    padding: 12px 16px !important;
-    min-height: 44px !important;
+@media (max-width: 360px) {
+  .reports-container-reports {
+    padding-inline: 6px;
   }
-
-  .date-inputs-reports input {
-    min-height: 44px !important;
+  .date-inputs-reports {
+    flex-direction: column;
+    align-items: stretch;
   }
-
-  .report-filter-reports select {
-    min-height: 44px !important;
+  .date-inputs-reports span {
+    text-align: center;
   }
+}
 
-  .export-btn-reports {
-    min-height: 48px !important;
+/* ============================================
+   REDUCED MOTION PREFERENCES
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reports-table-reports tbody tr:hover {
+    transform: none !important;
+  }
+  .skeleton-line-large-reports,
+  .skeleton-line-medium-reports,
+  .skeleton-tab-reports {
+    animation: none !important;
+    background: #131C28 !important;
+  }
+  .export-btn-reports:hover:not(:disabled) {
+    transform: none !important;
+  }
+  .close-preview-reports:hover {
+    transform: none !important;
   }
 }

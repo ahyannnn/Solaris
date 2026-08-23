@@ -1,119 +1,130 @@
-/* src/styles/Admin/schedule.css */
+/* styles/Admin/schedule.css - Dark Solar Theme for Schedule Management */
 
-/* =========================================
-   SCHEDULE MANAGEMENT - MATCH SITE ASSESSMENT
-   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
-:root {
-  --primary-blue: #2563eb;
-  --primary-blue-light: #dbeafe;
-  --gray-50: #f8fafc;
-  --gray-100: #f1f5f9;
-  --gray-200: #e2e8f0;
-  --gray-300: #cbd5e1;
-  --gray-500: #64748b;
-  --gray-700: #334155;
-  --gray-900: #0f172a;
-  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-  --border-radius: 16px;
-}
-
-/* --- Base Layout - MATCH SITE ASSESSMENT --- */
+/* ============================================
+   BASE LAYOUT
+   ============================================ */
 .schedule-management-adsche {
-  background-color: var(--gray-50);
+  background: #0B111A;
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: var(--gray-900);
-  padding: 0;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #FFFFFF;
 }
 
-/* --- Minimalist Header - MATCH SITE ASSESSMENT --- */
+/* ============================================
+   HEADER
+   ============================================ */
 .schedule-header-adsche {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  height: 5px;
   padding: 0;
-}
-
-/* =========================================
-   TABS - MATCH SITE ASSESSMENT
-   ========================================= */
-.schedule-tabs-adsche {
-  display: flex;
-  gap: 0px;
-  border-bottom: 1px solid var(--gray-200);
-  margin: 0 0 16px 0;
-  padding: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
+/* ============================================
+   TABS
+   ============================================ */
+.schedule-tabs-adsche {
+  display: inline-flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  background: #1A2533;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  width: auto;
+}
+
 .tab-btn-adsche {
+  padding: 10px 20px;
   background: transparent;
   border: none;
-  padding: 14px 24px;
-  font-size: 15px;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 500;
-  color: var(--gray-500);
+  color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
-  display: flex;
+  transition: all 200ms ease;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
 }
 
 .tab-btn-adsche:hover {
-  color: var(--primary-blue);
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .tab-btn-adsche.active-adsche {
-  color: var(--primary-blue);
-  font-weight: 600;
-}
-
-.tab-btn-adsche.active-adsche::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 24px;
-  right: 24px;
-  height: 3px;
-  background-color: var(--primary-blue);
-  border-radius: 10px 10px 0 0;
+  background: #F39C12;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
 }
 
 .tab-badge-adsche {
-  background-color: var(--gray-100);
-  color: var(--gray-500);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
   font-size: 12px;
   font-weight: 600;
-  padding: 2px 10px;
-  border-radius: 50px;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .tab-btn-adsche.active-adsche .tab-badge-adsche {
-  background-color: var(--primary-blue-light);
-  color: var(--primary-blue);
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
 }
 
-/* =========================================
-   TOOLBAR - MATCH SITE ASSESSMENT
-   ========================================= */
+/* ============================================
+   TOOLBAR / FILTERS
+   ============================================ */
 .schedule-filters-adsche {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 0;
+  gap: 12px;
   margin-bottom: 16px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .search-group-adsche {
-  flex: 0 0 280px;
-  max-width: 320px;
   position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 380px;
+}
+
+.search-group-adsche input {
+  width: 100%;
+  padding: 10px 14px 10px 40px;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  font-size: 14px;
+  color: #FFFFFF;
+  font-family: 'Poppins', sans-serif;
+  transition: all 200ms ease;
+}
+
+.search-group-adsche input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.search-group-adsche input:focus {
+  outline: none;
+  border-color: #F39C12;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 
 .search-icon-adsche {
@@ -121,137 +132,116 @@
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--gray-500);
+  color: rgba(255, 255, 255, 0.3);
   font-size: 14px;
-}
-
-.search-group-adsche input {
-  width: 100%;
-  padding: 12px 14px 12px 42px;
-  border: 1px solid var(--gray-200);
-  border-radius: 10px;
-  font-size: 14px;
-  background: #FFFFFF;
-  color: var(--gray-900);
-  outline: none;
-  transition: all 0.2s ease;
-}
-
-.search-group-adsche input:focus {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 4px var(--primary-blue-light);
-}
-
-.search-group-adsche input::placeholder {
-  color: var(--gray-500);
 }
 
 .filter-group-adsche {
-  flex: 0 0 auto;
   position: relative;
+  min-width: 160px;
 }
 
 .filter-group-adsche select {
-  appearance: none;
-  padding: 12px 44px 12px 16px;
-  border: 1px solid var(--gray-200);
+  width: 100%;
+  padding: 10px 36px 10px 14px;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
   font-size: 14px;
-  font-weight: 500;
-  background: #FFFFFF;
-  color: var(--gray-900);
-  outline: none;
+  color: #FFFFFF;
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 150px;
+  font-family: 'Poppins', sans-serif;
+  appearance: none;
+  transition: all 200ms ease;
 }
 
 .filter-group-adsche select:focus {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 4px var(--primary-blue-light);
+  outline: none;
+  border-color: #F39C12;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+}
+
+.filter-group-adsche select option {
+  background: #1A2533;
+  color: #FFFFFF;
 }
 
 .select-arrow-adsche {
   position: absolute;
-  right: 16px;
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--gray-500);
+  color: rgba(255, 255, 255, 0.3);
   pointer-events: none;
   font-size: 12px;
 }
 
 .refresh-btn-adsche {
-  flex: 0 0 auto;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 20px;
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
+  padding: 10px 18px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
   white-space: nowrap;
 }
 
 .refresh-btn-adsche:hover {
-  background: var(--gray-100);
-  border-color: var(--gray-300);
-  color: var(--gray-900);
-}
-
-@keyframes spin-adsche {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  background: #131C28;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
 }
 
 .spinning-adsche {
   animation: spin-adsche 1s linear infinite;
 }
 
-/* =========================================
-   TABLE - MATCH SITE ASSESSMENT
-   ========================================= */
+@keyframes spin-adsche {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   TABLE
+   ============================================ */
 .schedule-table-container-adsche {
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
-  border-radius: 0;
+  background: #1A2533;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   overflow: hidden;
-  box-shadow: var(--card-shadow);
-  margin: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .schedule-table-adsche {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .schedule-table-adsche thead {
-  background: var(--primary-blue);
-  border-bottom: 1px solid var(--gray-200);
+  background: #131C28;
 }
 
-.schedule-table-adsche th {
+.schedule-table-adsche thead th {
+  padding: 14px 16px;
   text-align: left;
-  padding: 14px 18px;
   font-weight: 600;
-  color: #FFFFFF;
-  font-size: 13px;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .schedule-table-adsche tbody tr {
-  border-bottom: 1px solid var(--gray-100);
-  transition: all 0.15s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 200ms ease;
 }
 
 .schedule-table-adsche tbody tr:last-child {
@@ -259,127 +249,192 @@
 }
 
 .schedule-table-adsche tbody tr:hover {
-  background-color: var(--gray-50);
+  background: rgba(255, 255, 255, 0.03);
 }
 
-.schedule-table-adsche tbody tr:nth-child(even) {
-  background-color: #FAFBFC;
-}
-
-.schedule-table-adsche tbody tr:nth-child(even):hover {
-  background-color: var(--gray-100);
-}
-
-.schedule-table-adsche td {
-  padding: 14px 18px;
-  color: var(--gray-700);
+.schedule-table-adsche tbody td {
+  padding: 14px 16px;
   vertical-align: middle;
-  text-align: left;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.empty-state-adsche {
-  text-align: center;
-  padding: 48px 20px;
-  color: var(--gray-500);
-  font-size: 15px;
+/* Table Cell Styles */
+.ref-cell-adsche {
+  min-width: 140px;
 }
 
-/* --- Table Cells --- */
-.ref-cell-adsche .schedule-title-adsche {
+.schedule-title-adsche {
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.schedule-id-adsche {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  font-family: monospace;
+}
+
+.client-cell-adsche {
   font-weight: 500;
-  color: var(--gray-900);
+  color: #FFFFFF;
 }
 
-.ref-cell-adsche .schedule-id-adsche {
-  font-size: 12px;
-  color: var(--gray-500);
-}
-
-.client-cell-adsche .client-contact-adsche {
+.client-contact-adsche {
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: var(--gray-500);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.4);
   margin-top: 2px;
+}
+
+.client-contact-adsche svg {
+  font-size: 11px;
 }
 
 .date-cell-adsche {
   display: flex;
   align-items: center;
   gap: 6px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .time-cell-adsche {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
-  color: var(--gray-500);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
   margin-top: 2px;
 }
 
 .cell-icon-adsche {
   font-size: 13px;
-  color: var(--gray-500);
+  color: rgba(255, 255, 255, 0.3);
 }
 
-/* --- Badges - REMOVED ALL COLORS, PLAIN GRAY ONLY --- */
+/* ============================================
+   STATUS BADGES
+   ============================================ */
 .status-badge-adsche {
   display: inline-block;
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 12px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 11px;
   font-weight: 600;
-  background: var(--gray-100);
-  color: var(--gray-700);
-  text-transform: capitalize;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
-/* REMOVED all status color variants - keeping only plain gray */
+.status-badge-adsche.scheduled {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
 
+.status-badge-adsche.confirmed {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8B5CF6;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.status-badge-adsche.in-progress {
+  background: rgba(243, 156, 18, 0.12);
+  color: #F39C12;
+  border: 1px solid rgba(243, 156, 18, 0.2);
+}
+
+.status-badge-adsche.completed {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-badge-adsche.cancelled {
+  background: rgba(239, 68, 68, 0.12);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.status-badge-adsche.rescheduled {
+  background: rgba(243, 156, 18, 0.12);
+  color: #F39C12;
+  border: 1px solid rgba(243, 156, 18, 0.2);
+}
+
+/* ============================================
+   TYPE BADGES
+   ============================================ */
 .type-badge-adsche {
   display: inline-block;
-  padding: 4px 12px;
+  padding: 3px 12px;
   border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  background: var(--gray-100);
-  color: var(--gray-700);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
-/* REMOVED all type color variants - keeping only plain gray */
+.type-badge-adsche.pre-assessment {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.15);
+}
 
-/* --- Action Dropdowns - MATCH SITE ASSESSMENT --- */
+.type-badge-adsche.site-visit {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.type-badge-adsche.installation {
+  background: rgba(243, 156, 18, 0.12);
+  color: #F39C12;
+  border: 1px solid rgba(243, 156, 18, 0.15);
+}
+
+.type-badge-adsche.inspection {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8B5CF6;
+  border: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+/* ============================================
+   ACTION DROPDOWN
+   ============================================ */
 .action-dropdown-container-adsche {
   position: relative;
   display: inline-block;
 }
 
 .action-dropdown-toggle-adsche {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
+  gap: 8px;
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
 .action-dropdown-toggle-adsche:hover {
-  background: var(--gray-50);
-  border-color: var(--gray-300);
-  color: var(--gray-900);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
 }
 
 .dropdown-arrow-adsche {
   font-size: 10px;
-  transition: transform 0.2s ease;
+  transition: transform 200ms ease;
 }
 
 .dropdown-arrow-adsche.open-adsche {
@@ -388,265 +443,283 @@
 
 .action-dropdown-menu-adsche {
   min-width: 180px;
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
+  max-width: 220px;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
-  padding: 6px 0;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  padding: 6px;
+  backdrop-filter: blur(10px);
   overflow: hidden;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.action-dropdown-menu-adsche::-webkit-scrollbar {
+  width: 3px;
+}
+
+.action-dropdown-menu-adsche::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+.action-dropdown-menu-adsche::-webkit-scrollbar-thumb {
+  background: #F39C12;
+  border-radius: 4px;
 }
 
 .dropdown-item-adsche {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  padding: 10px 16px;
+  padding: 8px 14px;
   background: transparent;
   border: none;
-  font-size: 14px;
-  color: var(--gray-700);
+  border-radius: 6px;
+  font-size: 13px;
   cursor: pointer;
-  transition: background-color 0.15s ease;
   text-align: left;
+  transition: all 150ms ease;
+  font-family: 'Poppins', sans-serif;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .dropdown-item-adsche:hover {
-  background: var(--gray-50);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.dropdown-item-adsche svg {
-  font-size: 14px;
-  color: var(--gray-500);
-  width: 16px;
+.dropdown-item-adsche.primary {
+  color: #3B82F6;
+}
+
+.dropdown-item-adsche.primary:hover {
+  background: rgba(59, 130, 246, 0.12);
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.empty-state-adsche {
   text-align: center;
+  padding: 48px 20px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
 }
 
-/* =========================================
-   PAGINATION - MATCH SITE ASSESSMENT
-   ========================================= */
+/* ============================================
+   PAGINATION
+   ============================================ */
 .pagination-adsche {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 16px 0 0 0;
+  justify-content: space-between;
+  padding: 16px 0 8px 0;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
 }
 
 .pagination-info-adsche {
-  color: var(--gray-500);
-  font-size: 14px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .pagination-controls-adsche {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .page-btn-adsche {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding: 8px 16px;
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
 .page-btn-adsche:hover:not(:disabled) {
-  background: var(--gray-50);
-  border-color: var(--primary-blue);
-  color: var(--primary-blue);
+  background: #131C28;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
 }
 
 .page-btn-adsche:disabled {
-  opacity: 0.5;
-  cursor: default;
-  border-color: var(--gray-100);
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .page-number-adsche {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-width: 36px;
   height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0 8px;
-  background: #FFFFFF;
-  border: 1px solid var(--gray-200);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid transparent;
   border-radius: 8px;
-  font-size: 14px;
-  color: var(--gray-700);
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
-.page-number-adsche:hover:not(.active-adsche) {
-  background: var(--gray-50);
-  border-color: var(--gray-300);
+.page-number-adsche:hover {
+  background: #131C28;
+  color: #FFFFFF;
 }
 
 .page-number-adsche.active-adsche {
-  background: var(--primary-blue);
+  background: #F39C12;
   color: #FFFFFF;
-  border-color: var(--primary-blue);
-  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+  border-color: #F39C12;
 }
 
-/* =========================================
-   DETAIL MODAL - MATCH SITE ASSESSMENT
-   ========================================= */
+/* ============================================
+   DETAIL MODAL
+   ============================================ */
 .modal-overlay-adsche {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(6px);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9998;
+  z-index: 9999;
+  padding: 20px;
 }
 
 .modal-content-adsche {
-  background: #FFFFFF;
-  border-radius: var(--border-radius);
-  max-width: 700px;
-  width: 90%;
+  background: #1A2533;
+  border-radius: 18px;
+  max-width: 640px;
+  width: 100%;
   max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+}
+
+.modal-content-adsche.detail-modal-adsche {
+  max-width: 680px;
 }
 
 .modal-header-adsche {
+  padding: 20px 24px 16px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 24px 28px;
-  border-bottom: 1px solid var(--gray-200);
+  justify-content: space-between;
 }
 
 .modal-header-adsche h3 {
   font-size: 20px;
   font-weight: 700;
-  color: var(--gray-900);
+  color: #FFFFFF;
   margin: 0;
 }
 
-.modal-close-adsche {
-  background: var(--gray-100);
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-size: 18px;
-  color: var(--gray-500);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.modal-close-adsche:hover {
-  background: var(--gray-200);
-  color: var(--gray-900);
-}
-
 .modal-body-adsche {
-  padding: 28px;
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-body-adsche::-webkit-scrollbar {
+  width: 4px;
+}
+
+.modal-body-adsche::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+.modal-body-adsche::-webkit-scrollbar-thumb {
+  background: #F39C12;
+  border-radius: 4px;
 }
 
 .modal-actions-adsche {
+  padding: 16px 24px 20px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
-  justify-content: flex-end;
   gap: 12px;
-  padding: 20px 28px;
-  border-top: 1px solid var(--gray-200);
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
-.modal-actions-adsche button {
-  padding: 10px 24px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  border: 1px solid var(--gray-200);
-  background: #FFFFFF;
-  color: var(--gray-700);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.modal-actions-adsche button:hover:not(:disabled) {
-  background: var(--gray-50);
-}
-
-.close-btn-adsche {
-  background: var(--primary-blue) !important;
-  color: #FFFFFF !important;
-  border-color: var(--primary-blue) !important;
-  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.15) !important;
-}
-
-.close-btn-adsche:hover {
-  background: #1d4ed8 !important;
-  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.25) !important;
-}
-
+/* Detail Section */
 .detail-section-adsche {
-  padding: 16px 0;
-  border-bottom: 1px solid var(--gray-100);
+  margin-bottom: 20px;
 }
 
-.detail-section-adsche:last-of-type {
-  border-bottom: none;
+.detail-section-adsche:last-child {
+  margin-bottom: 0;
 }
 
 .detail-section-adsche h4 {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--gray-500);
-  margin: 0 0 14px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.3px;
+  margin: 0 0 10px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .detail-section-adsche p {
   margin: 6px 0;
   font-size: 14px;
-  color: var(--gray-700);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .detail-section-adsche p strong {
+  color: #FFFFFF;
   font-weight: 600;
-  color: var(--gray-900);
-  margin-right: 6px;
 }
 
-/* --- Site Photos Grid --- */
+/* Site Photos Grid */
 .site-photos-grid-adsche {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 12px;
-  margin-top: 8px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .site-photo-item-adsche {
   position: relative;
-  border-radius: 8px;
-  overflow: hidden;
   aspect-ratio: 1;
-  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #131C28;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.site-photo-item-adsche:hover {
+  transform: scale(1.03);
+  border-color: rgba(243, 156, 18, 0.3);
 }
 
 .site-photo-item-adsche img {
@@ -657,453 +730,322 @@
 
 .photo-overlay-adsche {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  inset: 0;
   background: rgba(0, 0, 0, 0.5);
-  color: #FFFFFF;
-  padding: 4px 8px;
-  text-align: center;
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 200ms ease;
 }
 
-/* =========================================
-   SKELETON LOADERS - MATCH SITE ASSESSMENT
-   ========================================= */
+.site-photo-item-adsche:hover .photo-overlay-adsche {
+  opacity: 1;
+}
+
+.photo-overlay-adsche svg {
+  color: #FFFFFF;
+  font-size: 24px;
+}
+
+/* ============================================
+   MODAL BUTTONS
+   ============================================ */
+.close-btn-adsche {
+  padding: 10px 24px;
+  background: #131C28;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.close-btn-adsche:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================
+   SKELETON LOADING
+   ============================================ */
 .skeleton-line-adsche {
-  height: 20px;
-  background: var(--gray-200);
-  border-radius: 4px;
+  border-radius: 6px;
+  animation: shimmer-adsche 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background-size: 200% 100%;
 }
 
 .skeleton-line-adsche.large {
-  width: 200px;
+  height: 40px;
+  width: 60%;
 }
 
 .skeleton-line-adsche.medium {
-  width: 150px;
+  height: 24px;
+  width: 40%;
 }
 
 .skeleton-tab-adsche {
   height: 40px;
   width: 100px;
-  background: var(--gray-200);
-  border-radius: 4px;
-  margin-right: 12px;
+  border-radius: 8px;
+  background: #1A2533;
+  animation: shimmer-adsche 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background-size: 200% 100%;
 }
 
 .skeleton-select-adsche {
   height: 40px;
   width: 160px;
-  background: var(--gray-200);
   border-radius: 8px;
+  background: #1A2533;
+  animation: shimmer-adsche 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background-size: 200% 100%;
 }
 
 .skeleton-search-adsche {
   height: 40px;
-  width: 250px;
-  background: var(--gray-200);
+  width: 280px;
   border-radius: 8px;
+  background: #1A2533;
+  animation: shimmer-adsche 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background-size: 200% 100%;
 }
 
 .skeleton-table-adsche {
-  height: 400px;
-  background: var(--gray-200);
-  border-radius: 0;
+  height: 300px;
+  border-radius: 14px;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 @keyframes shimmer-adsche {
-  0% { background-position: -200px 0; }
-  100% { background-position: 200px 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
-.skeleton-line-adsche,
-.skeleton-tab-adsche,
-.skeleton-select-adsche,
-.skeleton-search-adsche,
-.skeleton-table-adsche {
-  background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
-  background-size: 200px 100%;
-  animation: shimmer-adsche 1.5s infinite;
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1200px) {
+  .schedule-management-adsche {
+    padding-inline: 20px;
+  }
 }
 
-/* =========================================
-   RESPONSIVE - MATCH SITE ASSESSMENT
-   ========================================= */
 @media (max-width: 1024px) {
+  .schedule-management-adsche {
+    padding-inline: 18px;
+  }
   .site-photos-grid-adsche {
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (max-width: 768px) {
-  /* Main container */
   .schedule-management-adsche {
-    padding: 16px !important;
+    padding-inline: 14px;
+    padding-top: 12px;
   }
-
   .schedule-header-adsche {
-    padding: 0 !important;
+    padding: 0 0 16px 0;
   }
-
-  /* Tabs - scrollable on mobile */
   .schedule-tabs-adsche {
-    overflow-x: auto !important;
-    flex-wrap: nowrap !important;
-    gap: 0 !important;
-    margin: 0 0 12px 0 !important;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    width: 100%;
+    padding: 4px;
+    gap: 4px;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    border-radius: 8px;
   }
-
-  .schedule-tabs-adsche::-webkit-scrollbar {
+  .tab-btn-adsche {
+    padding: 8px 14px;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .tab-badge-adsche {
+    min-width: 18px;
+    height: 18px;
+    font-size: 10px;
+    padding: 0 6px;
+  }
+  .schedule-filters-adsche {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .search-group-adsche {
+    max-width: none;
+    min-width: auto;
+  }
+  .filter-group-adsche {
+    min-width: auto;
+  }
+  .refresh-btn-adsche {
+    justify-content: center;
+  }
+  .schedule-table-adsche thead {
     display: none;
   }
-
-  .tab-btn-adsche {
-    padding: 10px 16px !important;
-    font-size: 13px !important;
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
-    flex: none !important;
+  .schedule-table-adsche tbody td {
+    display: block;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   }
-
-  .tab-btn-adsche.active-adsche::after {
-    left: 16px !important;
-    right: 16px !important;
+  .schedule-table-adsche tbody td:last-child {
+    border-bottom: none;
   }
-
-  .tab-badge-adsche {
-    font-size: 10px !important;
-    padding: 1px 8px !important;
+  .schedule-table-adsche tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: inline-block;
+    width: 100px;
   }
-
-  /* Toolbar - full width on mobile */
-  .schedule-filters-adsche {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 10px !important;
-    padding: 0 !important;
-    margin-bottom: 12px !important;
-  }
-
-  .search-group-adsche {
-    flex: 1 1 auto !important;
-    max-width: 100% !important;
-    min-width: auto !important;
-  }
-
-  .search-group-adsche input {
-    font-size: 14px !important;
-    padding: 10px 14px 10px 38px !important;
-  }
-
-  .filter-group-adsche {
-    width: 100% !important;
-  }
-
-  .filter-group-adsche select {
-    width: 100% !important;
-    min-width: auto !important;
-    font-size: 14px !important;
-    padding: 10px 40px 10px 14px !important;
-  }
-
-  .refresh-btn-adsche {
-    width: 100% !important;
-    justify-content: center !important;
-    padding: 10px !important;
-    font-size: 14px !important;
-  }
-
-  /* Table container */
-  .schedule-table-container-adsche {
-    margin: 0 !important;
-  }
-
-  /* Mobile card view - table becomes cards */
-  .schedule-table-adsche thead {
-    display: none !important;
-  }
-
   .schedule-table-adsche tbody tr {
-    display: block !important;
-    border: 1px solid var(--gray-200) !important;
-    border-radius: 12px !important;
-    margin-bottom: 12px !important;
-    padding: 16px !important;
-    background: #FFFFFF !important;
+    display: block;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   }
-
-  .schedule-table-adsche tbody tr:nth-child(even) {
-    background: #FFFFFF !important;
+  .schedule-table-adsche tbody tr:last-child {
+    border-bottom: none;
   }
-
-  .schedule-table-adsche tbody tr:hover {
-    background: #FFFFFF !important;
-  }
-
-  .schedule-table-adsche td {
-    display: flex !important;
-    justify-content: space-between !important;
-    padding: 8px 0 !important;
-    border: none !important;
-    text-align: right !important;
-    font-size: 13px !important;
-  }
-
-  .schedule-table-adsche td::before {
-    content: attr(data-label) !important;
-    font-weight: 600 !important;
-    color: var(--gray-500) !important;
-    text-align: left !important;
-    padding-right: 16px !important;
-    font-size: 12px !important;
-  }
-
-  .ref-cell-adsche .schedule-title-adsche {
-    font-size: 13px !important;
-  }
-
-  .client-cell-adsche .client-contact-adsche {
-    font-size: 11px !important;
-  }
-
-  .date-cell-adsche {
-    font-size: 13px !important;
-  }
-
-  .time-cell-adsche {
-    font-size: 12px !important;
-  }
-
-  /* Pagination */
-  .pagination-adsche {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 12px !important;
-    padding: 12px 0 0 0 !important;
-  }
-
-  .pagination-info-adsche {
-    text-align: center !important;
-    font-size: 12px !important;
-  }
-
-  .pagination-controls-adsche {
-    justify-content: center !important;
-    flex-wrap: wrap !important;
-    gap: 4px !important;
-  }
-
-  .page-btn-adsche {
-    padding: 6px 12px !important;
-    font-size: 12px !important;
-  }
-
-  .page-number-adsche {
-    min-width: 30px !important;
-    height: 30px !important;
-    font-size: 12px !important;
-    padding: 0 6px !important;
-  }
-
-  /* Modals */
   .modal-content-adsche {
-    max-width: 95% !important;
-    max-height: 95vh !important;
-    border-radius: 12px !important;
-    margin: 10px !important;
+    max-width: 100%;
+    margin: 12px;
+    border-radius: 14px;
   }
-
-  .modal-header-adsche {
-    padding: 16px 20px !important;
+  .modal-content-adsche.detail-modal-adsche {
+    max-width: 100%;
   }
-
   .modal-header-adsche h3 {
-    font-size: 17px !important;
+    font-size: 18px;
   }
-
   .modal-body-adsche {
-    padding: 20px !important;
+    padding: 16px 18px;
   }
-
   .modal-actions-adsche {
-    flex-direction: column-reverse !important;
-    padding: 16px 20px !important;
-    gap: 8px !important;
+    padding: 14px 18px 18px 18px;
+    flex-direction: column;
   }
-
   .modal-actions-adsche button {
-    width: 100% !important;
-    justify-content: center !important;
-    padding: 12px !important;
-    font-size: 14px !important;
+    width: 100%;
+    justify-content: center;
   }
-
-  .detail-section-adsche {
-    padding: 12px 0 !important;
+  .pagination-adsche {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
   }
-
-  .detail-section-adsche h4 {
-    font-size: 13px !important;
+  .pagination-controls-adsche {
+    justify-content: center;
   }
-
-  .detail-section-adsche p {
-    font-size: 13px !important;
-  }
-
   .site-photos-grid-adsche {
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)) !important;
-    gap: 8px !important;
+    grid-template-columns: repeat(2, 1fr);
   }
-
-  /* Action dropdown on mobile */
-  .action-dropdown-toggle-adsche {
-    padding: 4px 10px !important;
-    font-size: 12px !important;
-  }
-
-  .action-dropdown-toggle-adsche span {
-    display: none !important;
-  }
-
-  .action-dropdown-toggle-adsche svg {
-    font-size: 12px !important;
-  }
-
-  .action-dropdown-menu-adsche {
-    min-width: 160px !important;
-    max-width: 200px !important;
-    border-radius: 8px !important;
-  }
-
-  .dropdown-item-adsche {
-    padding: 8px 14px !important;
-    font-size: 13px !important;
-  }
-
-  .dropdown-item-adsche svg {
-    font-size: 13px !important;
+  .detail-section-adsche p {
+    font-size: 13px;
   }
 }
 
-/* --- Extra small devices (phones < 480px) --- */
 @media (max-width: 480px) {
   .schedule-management-adsche {
-    padding: 8px !important;
+    padding-inline: 10px;
   }
-
   .tab-btn-adsche {
-    padding: 8px 12px !important;
-    font-size: 11px !important;
+    padding: 6px 10px;
+    font-size: 11px;
   }
-
-  .tab-badge-adsche {
-    font-size: 9px !important;
-    padding: 1px 6px !important;
-  }
-
-  .schedule-table-adsche tbody tr {
-    padding: 12px !important;
-  }
-
-  .schedule-table-adsche td {
-    font-size: 12px !important;
-    padding: 6px 0 !important;
-  }
-
-  .schedule-table-adsche td::before {
-    font-size: 11px !important;
-  }
-
-  .modal-content-adsche {
-    max-width: 98% !important;
-  }
-
-  .modal-header-adsche {
-    padding: 12px 16px !important;
-  }
-
-  .modal-header-adsche h3 {
-    font-size: 15px !important;
-  }
-
-  .modal-body-adsche {
-    padding: 16px !important;
-  }
-
-  .modal-actions-adsche {
-    padding: 12px 16px !important;
-  }
-
-  .modal-actions-adsche button {
-    font-size: 13px !important;
-    padding: 10px !important;
-  }
-
-  .page-btn-adsche {
-    padding: 4px 10px !important;
-    font-size: 11px !important;
-  }
-
+  .page-btn-adsche,
   .page-number-adsche {
-    min-width: 28px !important;
-    height: 28px !important;
-    font-size: 11px !important;
+    font-size: 12px;
+    padding: 6px 12px;
   }
-
-  .dropdown-item-adsche {
-    padding: 6px 12px !important;
-    font-size: 12px !important;
+  .pagination-info-adsche {
+    font-size: 12px;
   }
-
-  .dropdown-item-adsche svg {
-    font-size: 12px !important;
+  .modal-content-adsche {
+    border-radius: 12px;
   }
-
+  .modal-header-adsche h3 {
+    font-size: 16px;
+  }
+  .modal-body-adsche {
+    padding: 14px 16px;
+  }
   .site-photos-grid-adsche {
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)) !important;
-    gap: 6px !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .site-photo-item-adsche {
+    border-radius: 8px;
+  }
+  .close-btn-adsche {
+    padding: 8px 16px;
+    font-size: 13px;
   }
 }
 
-/* --- Touch-friendly improvements for mobile --- */
-@media (hover: none) and (pointer: coarse) {
-  .tab-btn-adsche {
-    padding: 12px 16px !important;
-    min-height: 44px !important;
+@media (max-width: 360px) {
+  .schedule-management-adsche {
+    padding-inline: 6px;
   }
-
-  .action-dropdown-toggle-adsche {
-    padding: 8px 14px !important;
-    min-height: 40px !important;
+  .site-photos-grid-adsche {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
   }
+}
 
-  .dropdown-item-adsche {
-    padding: 12px 16px !important;
-    min-height: 44px !important;
+/* ============================================
+   REDUCED MOTION PREFERENCES
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
-
-  .page-btn-adsche,
-  .page-number-adsche {
-    min-height: 40px !important;
-    min-width: 40px !important;
+  .schedule-table-adsche tbody tr:hover,
+  .site-photo-item-adsche:hover {
+    transform: none !important;
   }
-
-  .modal-actions-adsche button {
-    min-height: 48px !important;
+  .skeleton-line-adsche,
+  .skeleton-tab-adsche,
+  .skeleton-select-adsche,
+  .skeleton-search-adsche {
+    animation: none !important;
+    background: #131C28 !important;
   }
-
-  .refresh-btn-adsche {
-    min-height: 44px !important;
+  .refresh-btn-adsche:hover,
+  .action-dropdown-toggle-adsche:hover,
+  .close-btn-adsche:hover {
+    transform: none !important;
   }
-
-  .search-group-adsche input {
-    min-height: 44px !important;
+  .spinning-adsche {
+    animation: none !important;
   }
-
-  .filter-group-adsche select {
-    min-height: 44px !important;
+  .dropdown-arrow-adsche.open-adsche {
+    transform: none !important;
+  }
+  .photo-overlay-adsche {
+    opacity: 1 !important;
+    background: rgba(0, 0, 0, 0.3) !important;
   }
 }

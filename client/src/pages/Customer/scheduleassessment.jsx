@@ -1931,7 +1931,7 @@ const ScheduleAssessment = () => {
                           <small>Motor {calculateMotorNonMotorWatts().motorWatts.toFixed(0)} W | Non-Motor {calculateMotorNonMotorWatts().nonMotorWatts.toFixed(0)} W</small>
                         </div>
                       </div>
-                      <div className="result-card-cusset monthly-result" style={{ background: '#e8f5e9', borderColor: '#4caf50' }}>
+                      <div className="result-card-cusset monthly-result">
                         <FaFileInvoice className="result-icon" />
                         <div className="result-info">
                           <span className="result-label">Monthly Consumption</span>
@@ -2522,7 +2522,7 @@ const ScheduleAssessment = () => {
                           <small>Motor {calculateMotorNonMotorWatts().motorWatts.toFixed(0)} W | Non-Motor {calculateMotorNonMotorWatts().nonMotorWatts.toFixed(0)} W</small>
                         </div>
                       </div>
-                      <div className="result-card-cusset monthly-result" style={{ background: '#e8f5e9', borderColor: '#4caf50' }}>
+                      <div className="result-card-cusset monthly-result">
                         <FaFileInvoice className="result-icon" />
                         <div className="result-info">
                           <span className="result-label">Monthly Consumption</span>

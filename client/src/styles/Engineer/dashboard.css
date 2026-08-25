@@ -1,38 +1,16 @@
-/* styles/Engineer/dashboard.css */
-
-:root {
-  --primary: #2563EB;
-  --primary-hover: #1D4ED8;
-  --success: #22C55E;
-  --warning: #F59E0B;
-  --danger: #EF4444;
-  --bg-base: #F8FAFC;
-  --bg-card: #FFFFFF;
-  --bg-elevated: #FFFFFF;
-  --bg-surface: #F1F5F9;
-  --bg-highlight: #E2E8F0;
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #64748B;
-  --border-light: #E2E8F0;
-  --border-medium: #CBD5E1;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.04);
-  --shadow-lg: 0 10px 25px rgba(0,0,0,0.08);
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
-  --radius-2xl: 24px;
-  --transition-base: 0.2s ease;
-}
-
 /* ============================================
-   ENGINEER DASHBOARD
+   ENGINEER DASHBOARD - DARK SOLAR THEME
    ============================================ */
+
 .engdas-dashboard {
-  padding-inline: 24px;
+  padding-inline: 12px;
+  padding-top: 20px;
+  padding-bottom: 40px;
   margin: 0 auto;
+  background: #0B111A;
+  min-height: 100vh;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #FFFFFF;
 }
 
 /* ============================================
@@ -42,84 +20,102 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem 0 1.5rem 0;
-  border-bottom: 1px solid var(--border-light);
-  margin-bottom: 1.5rem;
+  padding: 0 0 20px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 24px;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 16px;
 }
 
 .engdas-welcome-content {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 4px;
 }
 
-.engdas-page-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-  letter-spacing: -0.3px;
+.engdas-welcome-greeting-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.engdas-welcome-icon {
+  font-size: 28px;
+  color: #F39C12;
 }
 
 .engdas-welcome-greeting {
-  font-size: 1rem;
-  color: var(--text-secondary);
+  font-size: 28px;
+  font-weight: 700;
+  color: #FFFFFF;
   margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.engdas-welcome-subtitle {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  font-weight: 400;
 }
 
 .engdas-welcome-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
+/* ============================================
+   BUTTONS
+   ============================================ */
 .btn-primary-engdas {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.25rem;
-  background: var(--primary);
-  color: #fff;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #F39C12;
+  color: #FFFFFF;
   border: none;
-  border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  border-radius: 10px;
+  font-size: 14px;
   font-weight: 600;
+  font-family: 'Poppins', sans-serif;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 200ms ease;
   text-decoration: none;
   white-space: nowrap;
 }
 
 .btn-primary-engdas:hover {
-  background: var(--primary-hover);
+  background: #E67E22;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-  color: #fff;
+  box-shadow: 0 4px 16px rgba(243, 156, 18, 0.25);
+  color: #FFFFFF;
 }
 
 .btn-secondary-engdas {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.25rem;
+  gap: 8px;
+  padding: 10px 20px;
   background: transparent;
-  color: var(--text-primary);
-  border: 1.5px solid var(--border-medium);
-  border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  color: #FFFFFF;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  font-size: 14px;
   font-weight: 600;
+  font-family: 'Poppins', sans-serif;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 200ms ease;
   text-decoration: none;
   white-space: nowrap;
 }
 
 .btn-secondary-engdas:hover {
-  background: var(--bg-surface);
-  border-color: var(--text-secondary);
+  background: #131C28;
+  border-color: rgba(255, 255, 255, 0.4);
   transform: translateY(-2px);
+  color: #FFFFFF;
 }
 
 /* ============================================
@@ -130,15 +126,15 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
-  border-radius: var(--radius-lg);
-  margin-bottom: 1.5rem;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
 .alert-icon-engdas {
-  color: #2563EB;
+  color: #F39C12;
   font-size: 1.5rem;
   flex-shrink: 0;
 }
@@ -150,13 +146,13 @@
 .alert-content-engdas strong {
   display: block;
   font-size: 0.95rem;
-  color: #1E40AF;
+  color: #FFFFFF;
   margin-bottom: 0.1rem;
 }
 
 .alert-content-engdas p {
   font-size: 0.85rem;
-  color: #1E40AF;
+  color: rgba(255, 255, 255, 0.6);
   margin: 0;
 }
 
@@ -165,68 +161,69 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1.25rem;
-  background: #2563EB;
-  color: #fff;
+  background: #F39C12;
+  color: #FFFFFF;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   font-size: 0.85rem;
   font-weight: 600;
+  font-family: 'Poppins', sans-serif;
   text-decoration: none;
-  transition: all var(--transition-base);
+  transition: all 200ms ease;
   white-space: nowrap;
 }
 
 .alert-action-engdas:hover {
-  background: #1D4ED8;
+  background: #E67E22;
   transform: translateY(-2px);
-  color: #fff;
+  color: #FFFFFF;
 }
 
 /* ============================================
    QUICK ACTIONS
    ============================================ */
 .engdas-quick-actions {
-  margin-bottom: 1.5rem;
+  margin-bottom: 24px;
 }
 
 .quick-actions-title-engdas {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 12px 0;
 }
 
 .engdas-action-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
+  gap: 12px;
 }
 
 .quick-action-item-engdas {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
+  gap: 12px;
+  padding: 16px 20px;
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
   text-decoration: none;
-  transition: all var(--transition-base);
-  box-shadow: var(--shadow-sm);
+  transition: all 200ms ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .quick-action-item-engdas:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  border-color: rgba(243, 156, 18, 0.12);
 }
 
 .quick-action-icon-engdas {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -238,55 +235,55 @@
   flex: 1;
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #FFFFFF;
 }
 
 .quick-action-arrow-engdas {
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   font-size: 0.75rem;
-  transition: transform var(--transition-base);
+  transition: transform 200ms ease;
 }
 
 .quick-action-item-engdas:hover .quick-action-arrow-engdas {
   transform: translateX(4px);
-  color: var(--primary);
+  color: #F39C12;
 }
 
 /* ============================================
-   STATS GRID - 4 Cards
+   STATS GRID
    ============================================ */
 .engdas-stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .stat-card-engdas {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem 1.5rem;
-  border: 1px solid var(--border-light);
-  transition: all var(--transition-base);
-  box-shadow: var(--shadow-sm);
+  background: #1A2533;
+  border-radius: 14px;
+  padding: 20px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 200ms ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .stat-card-engdas:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .stat-content-engdas {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 4px;
 }
 
 .stat-label-engdas {
   font-size: 0.8rem;
   font-weight: 500;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -294,65 +291,23 @@
 .stat-value-engdas {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #FFFFFF;
   line-height: 1.2;
 }
 
 .stat-trend-engdas {
   font-size: 0.8rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 /* ============================================
-   ROW LAYOUT
+   ROW LAYOUT - FIXED HEIGHT
    ============================================ */
 .engdas-row-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  align-items: start;
-}
-
-/* ============================================
-   SECTION HEADER
-   ============================================ */
-.section-header-engdas {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 0.25rem;
-  margin-bottom: 0.75rem;
-}
-
-.section-title-engdas {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.view-all-link-engdas {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  color: var(--primary);
-  text-decoration: none;
-  font-weight: 500;
-  transition: all var(--transition-base);
-}
-
-.view-all-link-engdas:hover {
-  color: var(--primary-hover);
-  gap: 0.6rem;
-}
-
-.arrow-icon-engdas {
-  transition: transform var(--transition-base);
-}
-
-.view-all-link-engdas:hover .arrow-icon-engdas {
-  transform: translateX(4px);
+  gap: 20px;
+  align-items: stretch;
 }
 
 /* ============================================
@@ -361,28 +316,66 @@
 .engdas-assessment-section {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 16px;
+  min-height: 280px;
+}
+
+.section-header-engdas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.section-title-engdas {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.view-all-link-engdas {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: #F39C12;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 200ms ease;
+}
+
+.view-all-link-engdas:hover {
+  color: #E67E22;
+  gap: 8px;
+}
+
+.arrow-icon-engdas {
+  transition: transform 200ms ease;
+}
+
+.view-all-link-engdas:hover .arrow-icon-engdas {
+  transform: translateX(4px);
 }
 
 .assessment-card-engdas {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
-  transition: all var(--transition-base);
-}
-
-.assessment-card-engdas:hover {
-  box-shadow: var(--shadow-md);
+  background: #1A2533;
+  border-radius: 14px;
+  padding: 20px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
 }
 
 .assessment-header-engdas {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 1rem;
-  gap: 1rem;
+  margin-bottom: 16px;
+  gap: 12px;
 }
 
 .assessment-info-engdas {
@@ -393,126 +386,103 @@
 .assessment-name-engdas {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 0.25rem 0;
+  color: #FFFFFF;
+  margin: 0 0 4px 0;
 }
 
 .assessment-reference-engdas {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.6);
   margin: 0;
-  font-family: monospace;
 }
 
 .assessment-content-engdas {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  justify-content: center;
 }
 
 .assessment-details-engdas {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .assessment-metric-engdas {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.25rem 0;
-  border-bottom: 1px solid var(--border-light);
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.assessment-metric-engdas:last-of-type {
+.assessment-metric-engdas:last-child {
   border-bottom: none;
 }
 
 .metric-label-engdas {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .metric-value-engdas {
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-primary);
-}
-
-.assessment-footer-engdas {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-light);
-}
-
-.action-link-engdas {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--primary);
-  text-decoration: none;
-  font-weight: 500;
-  transition: all var(--transition-base);
-}
-
-.action-link-engdas:hover {
-  color: var(--primary-hover);
-  gap: 0.7rem;
-}
-
-.action-arrow-engdas {
-  transition: transform var(--transition-base);
-}
-
-.action-link-engdas:hover .action-arrow-engdas {
-  transform: translateX(4px);
+  color: #FFFFFF;
+  text-align: right;
 }
 
 /* ============================================
-   ACTIVITIES SECTION
+   ACTIVITIES SECTION - FIXED HEIGHT
    ============================================ */
 .engdas-activities-section {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 16px;
+  min-height: 280px;
 }
 
 .activities-card-engdas {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem 1.5rem;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
-  min-height: 200px;
+  background: #1A2533;
+  border-radius: 14px;
+  padding: 16px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
 }
 
 .activities-list-engdas {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 4px;
+  flex: 1;
 }
 
 .activity-item-engdas {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-base);
+  gap: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  transition: all 200ms ease;
+  flex: 1;
 }
 
 .activity-item-engdas:hover {
-  background: var(--bg-surface);
+  background: #131C28;
 }
 
 .activity-icon-wrapper-engdas {
   width: 40px;
   height: 40px;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -528,27 +498,27 @@
 .activity-header-engdas {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .activity-title-engdas {
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #FFFFFF;
 }
 
 .activity-reference-engdas {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   font-weight: 400;
 }
 
 .activity-date-engdas {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.3);
   display: block;
-  margin-top: 0.1rem;
+  margin-top: 2px;
 }
 
 .activity-status-engdas {
@@ -557,91 +527,217 @@
 
 .activity-divider-engdas {
   height: 1px;
-  background: var(--border-light);
-  margin: 0.25rem 0.75rem;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 2px 8px;
 }
 
 /* ============================================
-   TODAY SCHEDULES
+   STATUS BADGES
+   ============================================ */
+.status-badge-engdas {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.status-badge-engdas.scheduled-engdas {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.status-badge-engdas.confirmed-engdas {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8B5CF6;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.status-badge-engdas.pending-engdas {
+  background: rgba(243, 156, 18, 0.12);
+  color: #F39C12;
+  border: 1px solid rgba(243, 156, 18, 0.2);
+}
+
+.status-badge-engdas.in-progress-engdas {
+  background: rgba(243, 156, 18, 0.12);
+  color: #F39C12;
+  border: 1px solid rgba(243, 156, 18, 0.2);
+}
+
+.status-badge-engdas.deployed-engdas {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.status-badge-engdas.collecting-engdas {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8B5CF6;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.status-badge-engdas.analyzing-engdas {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8B5CF6;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.status-badge-engdas.completed-engdas {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-badge-engdas.cancelled-engdas {
+  background: rgba(239, 68, 68, 0.12);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.status-badge-engdas.approved-engdas {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* ============================================
+   EMPTY STATES
+   ============================================ */
+.empty-state-engdas {
+  background: #1A2533;
+  border-radius: 14px;
+  padding: 24px 20px;
+  text-align: center;
+  border: 2px dashed rgba(255, 255, 255, 0.06);
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.empty-state-content-engdas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.empty-state-title-engdas {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.empty-state-description-engdas {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 0;
+}
+
+.empty-small-engdas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 12px;
+  text-align: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.empty-text-engdas {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 0;
+}
+
+/* ============================================
+   TODAY'S SCHEDULES
    ============================================ */
 .today-schedules-section-engdas {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem 1.5rem;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .schedules-title-engdas {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 0.75rem 0;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 12px 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .schedules-icon-engdas {
-  color: var(--primary);
+  color: #F39C12;
 }
 
 .schedules-list-engdas {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 8px;
 }
 
 .schedule-item-engdas {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
-  border-radius: var(--radius-md);
-  background: var(--bg-surface);
-  transition: all var(--transition-base);
+  gap: 12px;
+  padding: 10px 14px;
+  background: #131C28;
+  border-radius: 10px;
+  transition: all 200ms ease;
 }
 
 .schedule-item-engdas:hover {
-  background: var(--bg-highlight);
+  background: rgba(243, 156, 18, 0.06);
 }
 
 .schedule-time-engdas {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.25rem 0.5rem;
-  background: var(--bg-elevated);
-  border-radius: var(--radius-sm);
-  min-width: 56px;
+  padding: 4px 8px;
+  background: #1A2533;
+  border-radius: 6px;
+  min-width: 48px;
 }
 
 .schedule-hour-engdas {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #FFFFFF;
   line-height: 1.2;
 }
 
 .schedule-info-engdas {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .schedule-title-engdas {
-  display: block;
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #FFFFFF;
 }
 
 .schedule-client-engdas {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 4px;
   font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-top: 0.1rem;
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .schedule-user-icon-engdas {
@@ -653,126 +749,53 @@
 }
 
 /* ============================================
-   STATUS BADGES - Text in Black
-   ============================================ */
-.status-badge-engdas {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  white-space: nowrap;
-  color: var(--text-primary);
-}
-
-
-
-/* ============================================
-   EMPTY STATES
-   ============================================ */
-.empty-state-engdas {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
-  padding: 2.5rem 2rem;
-  text-align: center;
-  border: 2px dashed var(--border-light);
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.empty-state-content-engdas {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.empty-state-title-engdas {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.empty-state-description-engdas {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.empty-small-engdas {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem;
-  text-align: center;
-  gap: 0.75rem;
-}
-
-.empty-text-engdas {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-/* ============================================
    SKELETON LOADING
    ============================================ */
 .skeleton-line-engdas {
-  background: var(--bg-surface);
-  border-radius: var(--radius-sm);
-  animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-highlight) 50%, var(--bg-surface) 75%);
+  border-radius: 6px;
+  animation: shimmer-engdas 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #131C28 25%, rgba(255,255,255,0.04) 50%, #131C28 75%);
   background-size: 200% 100%;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+@keyframes shimmer-engdas {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 .skeleton-title-engdas {
   width: 60%;
-  height: 28px;
+  height: 32px;
 }
 
 .skeleton-text-engdas {
   width: 40%;
-  height: 18px;
+  height: 20px;
 }
 
 .skeleton-card-engdas {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-light);
-  padding: 1.25rem;
+  background: #1A2533;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 20px;
 }
 
 .skeleton-label-engdas {
   width: 40%;
   height: 14px;
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
 }
 
 .skeleton-value-engdas {
   width: 60%;
   height: 32px;
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
 }
 
 .skeleton-project-name-engdas {
   width: 70%;
   height: 24px;
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
 }
 
 .skeleton-project-system-engdas {
@@ -783,13 +806,13 @@
 .skeleton-activity-title-engdas {
   width: 60%;
   height: 18px;
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
 }
 
 .skeleton-activity-ref-engdas {
   width: 40%;
   height: 14px;
-  margin-bottom: 0.25rem;
+  margin-bottom: 4px;
 }
 
 .skeleton-activity-date-engdas {
@@ -800,149 +823,362 @@
 /* ============================================
    RESPONSIVE DESIGN
    ============================================ */
+
 @media (max-width: 1200px) {
+  .engdas-dashboard {
+    padding-inline: 20px;
+  }
   .engdas-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
   }
 }
 
 @media (max-width: 1024px) {
   .engdas-row-layout {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
-  
+  .engdas-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
   .engdas-action-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 }
 
 @media (max-width: 768px) {
+  .engdas-dashboard {
+    padding-inline: 14px;
+    padding-top: 12px;
+  }
   .engdas-welcome-section {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: 12px;
+    padding: 0 0 16px 0;
   }
-  
+  .engdas-welcome-greeting {
+    font-size: 20px;
+  }
+  .engdas-welcome-icon {
+    font-size: 22px;
+  }
+  .engdas-welcome-subtitle {
+    font-size: 13px;
+  }
   .engdas-welcome-actions {
     width: 100%;
   }
-  
   .engdas-welcome-actions .btn-primary-engdas,
   .engdas-welcome-actions .btn-secondary-engdas {
     flex: 1;
     justify-content: center;
+    padding: 8px 16px;
+    font-size: 13px;
   }
-  
   .engdas-stats-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
+    gap: 10px;
   }
-  
   .stat-card-engdas {
-    padding: 1rem;
+    padding: 14px 16px;
+    border-radius: 10px;
   }
-  
   .stat-value-engdas {
     font-size: 1.5rem;
   }
-  
   .engdas-action-grid {
     grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
-  
-  .assessment-header-engdas {
-    flex-direction: column;
-    align-items: flex-start;
+  .quick-action-item-engdas {
+    padding: 12px 14px;
+    border-radius: 10px;
   }
-  
+  .quick-action-icon-engdas {
+    width: 36px;
+    height: 36px;
+    font-size: 0.95rem;
+  }
+  .quick-action-label-engdas {
+    font-size: 0.8rem;
+  }
+  .assessment-card-engdas {
+    padding: 16px 18px;
+    min-height: 180px;
+  }
   .activities-card-engdas {
-    padding: 1rem;
+    padding: 14px 16px;
+    min-height: 180px;
   }
-  
-  .activity-item-engdas {
-    flex-wrap: wrap;
-    padding: 0.5rem;
+  .assessment-name-engdas {
+    font-size: 1rem;
   }
-  
-  .activity-status-engdas {
-    margin-left: auto;
+  .section-title-engdas {
+    font-size: 1rem;
   }
-  
-  .schedule-item-engdas {
-    flex-wrap: wrap;
-    gap: 0.75rem;
+  .view-all-link-engdas {
+    font-size: 0.8rem;
   }
-  
   .engdas-today-alert {
     flex-direction: column;
     text-align: center;
+    padding: 14px 16px;
+    gap: 10px;
   }
-  
   .alert-action-engdas {
     width: 100%;
     justify-content: center;
   }
+  .schedule-item-engdas {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+  .schedule-time-engdas {
+    min-width: 40px;
+    padding: 2px 6px;
+  }
+  .schedule-hour-engdas {
+    font-size: 0.8rem;
+  }
+  .activity-item-engdas {
+    flex-wrap: wrap;
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  .activity-icon-wrapper-engdas {
+    width: 34px;
+    height: 34px;
+    font-size: 0.85rem;
+  }
+  .activity-title-engdas {
+    font-size: 0.8rem;
+  }
+  .activity-reference-engdas {
+    font-size: 0.7rem;
+  }
+  .activity-date-engdas {
+    font-size: 0.7rem;
+  }
+  .activity-status-engdas {
+    margin-left: auto;
+  }
+  .engdas-assessment-section,
+  .engdas-activities-section {
+    min-height: 200px;
+  }
+  .empty-state-engdas {
+    min-height: 180px;
+    padding: 16px;
+  }
+  .today-schedules-section-engdas {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
 }
 
 @media (max-width: 480px) {
+  .engdas-dashboard {
+    padding-inline: 10px;
+  }
   .engdas-stats-grid {
     grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
-  
+  .stat-card-engdas {
+    padding: 12px;
+    border-radius: 8px;
+  }
+  .stat-value-engdas {
+    font-size: 1.2rem;
+  }
+  .stat-label-engdas {
+    font-size: 0.65rem;
+  }
+  .stat-trend-engdas {
+    font-size: 0.65rem;
+  }
+  .engdas-action-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .quick-action-item-engdas {
+    padding: 10px 12px;
+    gap: 8px;
+    border-radius: 8px;
+  }
+  .quick-action-icon-engdas {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+    border-radius: 8px;
+  }
+  .quick-action-label-engdas {
+    font-size: 0.7rem;
+  }
+  .quick-action-arrow-engdas {
+    font-size: 0.6rem;
+  }
+  .engdas-welcome-greeting {
+    font-size: 18px;
+  }
+  .engdas-welcome-icon {
+    font-size: 18px;
+  }
+  .engdas-welcome-subtitle {
+    font-size: 12px;
+  }
   .engdas-welcome-actions {
     flex-direction: column;
   }
-  
   .engdas-welcome-actions .btn-primary-engdas,
   .engdas-welcome-actions .btn-secondary-engdas {
     width: 100%;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 12px;
   }
-  
-  .engdas-action-grid {
-    grid-template-columns: 1fr;
+  .assessment-card-engdas {
+    padding: 12px 14px;
+    min-height: 150px;
+    border-radius: 10px;
   }
-  
-  .stat-card-engdas {
-    padding: 0.75rem;
+  .activities-card-engdas {
+    padding: 10px 12px;
+    min-height: 150px;
+    border-radius: 10px;
   }
-  
-  .stat-value-engdas {
-    font-size: 1.25rem;
-  }
-  
-  .engdas-page-title {
-    font-size: 1.2rem;
-  }
-  
-  .quick-action-item-engdas {
-    padding: 0.6rem 0.75rem;
-  }
-  
-  .quick-action-icon-engdas {
-    width: 32px;
-    height: 32px;
+  .assessment-name-engdas {
     font-size: 0.9rem;
   }
-  
-  .quick-action-label-engdas {
+  .assessment-reference-engdas {
+    font-size: 0.75rem;
+  }
+  .metric-label-engdas {
+    font-size: 0.75rem;
+  }
+  .metric-value-engdas {
     font-size: 0.8rem;
   }
-  
-  .assessment-card-engdas {
-    padding: 1rem;
+  .engdas-today-alert {
+    padding: 10px 12px;
+    border-radius: 10px;
   }
-  
-  .assessment-name-engdas {
+  .alert-content-engdas strong {
+    font-size: 0.8rem;
+  }
+  .alert-content-engdas p {
+    font-size: 0.75rem;
+  }
+  .alert-action-engdas {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
+  .schedule-item-engdas {
+    padding: 6px 10px;
+  }
+  .schedule-title-engdas {
+    font-size: 0.75rem;
+  }
+  .schedule-client-engdas {
+    font-size: 0.65rem;
+  }
+  .activity-item-engdas {
+    padding: 6px 8px;
+  }
+  .activity-title-engdas {
+    font-size: 0.75rem;
+  }
+  .empty-state-title-engdas {
+    font-size: 0.85rem;
+  }
+  .empty-state-description-engdas {
+    font-size: 0.75rem;
+  }
+  .btn-primary-engdas,
+  .btn-secondary-engdas {
+    padding: 8px 16px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+  .empty-state-engdas {
+    min-height: 150px;
+  }
+  .engdas-assessment-section,
+  .engdas-activities-section {
+    min-height: 160px;
+  }
+}
+
+@media (max-width: 360px) {
+  .engdas-dashboard {
+    padding-inline: 6px;
+  }
+  .engdas-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .stat-card-engdas {
+    padding: 8px 10px;
+  }
+  .stat-value-engdas {
     font-size: 1rem;
+  }
+  .engdas-action-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+  .quick-action-item-engdas {
+    padding: 6px 8px;
+  }
+  .quick-action-icon-engdas {
+    width: 24px;
+    height: 24px;
+    font-size: 0.7rem;
+  }
+  .quick-action-label-engdas {
+    font-size: 0.65rem;
+  }
+  .engdas-welcome-greeting {
+    font-size: 16px;
+  }
+  .engdas-welcome-icon {
+    font-size: 16px;
   }
 }
 
 /* ============================================
-   WELCOME GREETING - BOLD & LARGER
+   REDUCED MOTION PREFERENCES
    ============================================ */
-.engdas-welcome-greeting {
-  font-size: 28px !important;
-  font-weight: 700 !important;
-  color: var(--gray-900);
-  margin: 0;
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .stat-card-engdas:hover,
+  .quick-action-item-engdas:hover,
+  .activity-item-engdas:hover,
+  .schedule-item-engdas:hover {
+    transform: none !important;
+  }
+  .skeleton-line-engdas {
+    animation: none !important;
+    background: #131C28 !important;
+  }
+  .btn-primary-engdas:hover,
+  .btn-secondary-engdas:hover,
+  .alert-action-engdas:hover,
+  .view-all-link-engdas:hover {
+    transform: none !important;
+  }
+  .quick-action-item-engdas:hover .quick-action-arrow-engdas {
+    transform: none !important;
+  }
+  .view-all-link-engdas:hover .arrow-icon-engdas {
+    transform: none !important;
+  }
 }

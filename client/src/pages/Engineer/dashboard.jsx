@@ -24,15 +24,34 @@ import {
   FaChevronRight,
   FaCircle,
   FaBell,
-  FaProjectDiagram
+  FaProjectDiagram,
+  FaSun,
+  FaMoon
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Engineer/dashboard.css';
+
+// Time-based greeting function
+const getTimeBasedGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return 'Good Morning';
+  if (hour >= 12 && hour < 17) return 'Good Afternoon';
+  return 'Good Evening';
+};
+
+// Get greeting icon
+const getGreetingIcon = () => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return <FaSun />;
+  if (hour >= 12 && hour < 17) return <FaSun />;
+  return <FaMoon />;
+};
 
 const EngineerDashboard = () => {
   const navigate = useNavigate();
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [greeting, setGreeting] = useState(getTimeBasedGreeting());
   const [stats, setStats] = useState({
     myProjects: 0,
     myAssessments: 0,
@@ -65,6 +84,13 @@ const EngineerDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
+    
+    // Update greeting every minute
+    const interval = setInterval(() => {
+      setGreeting(getTimeBasedGreeting());
+    }, 60000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const fetchDashboardData = async () => {
@@ -120,7 +146,7 @@ const EngineerDashboard = () => {
         todaySchedules: todayScheds.length
       });
 
-      // Combine activities for timeline
+      // Combine activities for timeline - ONLY 3 MOST RECENT
       const activities = [];
       myAssessmentsList.forEach(a => {
         if (a.assessmentStatus === 'scheduled' || a.assessmentStatus === 'pending_review') {
@@ -139,7 +165,7 @@ const EngineerDashboard = () => {
         activities.push({
           id: s._id,
           type: 'schedule',
-          title: 'Today\'s Schedule',
+          title: "Today's Schedule",
           reference: s.title || 'Site Visit',
           date: s.scheduledDate,
           status: s.status,
@@ -159,8 +185,9 @@ const EngineerDashboard = () => {
           });
         }
       });
+      // Sort by date (newest first) and take only 3
       activities.sort((a, b) => new Date(b.date) - new Date(a.date));
-      setAllActivities(activities.slice(0, 5));
+      setAllActivities(activities.slice(0, 3));
 
       setLoading(false);
     } catch (error) {
@@ -280,7 +307,11 @@ const EngineerDashboard = () => {
         {/* Welcome Section */}
         <div className="engdas-welcome-section">
           <div className="engdas-welcome-content">
-            <p className="engdas-welcome-greeting">Good day, {userName || 'Engineer'}!</p>
+            <div className="engdas-welcome-greeting-wrapper">
+              <span className="engdas-welcome-icon">{getGreetingIcon()}</span>
+              <p className="engdas-welcome-greeting">{greeting}, {userName || 'Engineer'}!</p>
+            </div>
+            <p className="engdas-welcome-subtitle">Here's what's happening with your tasks today.</p>
           </div>
           <div className="engdas-welcome-actions">
             <Link to="/app/engineer/assessment" className="btn-primary-engdas">
@@ -313,28 +344,28 @@ const EngineerDashboard = () => {
           <h3 className="quick-actions-title-engdas">Quick Actions</h3>
           <div className="engdas-action-grid">
             <Link to="/app/engineer/assessment" className="quick-action-item-engdas">
-              <div className="quick-action-icon-engdas" style={{ background: '#EDE9FE', color: '#7C3AED' }}>
+              <div className="quick-action-icon-engdas" style={{ background: 'rgba(139, 92, 246, 0.12)', color: '#8B5CF6' }}>
                 <FaClipboardList />
               </div>
               <span className="quick-action-label-engdas">My Assessments</span>
               <FaChevronRight className="quick-action-arrow-engdas" />
             </Link>
             <Link to="/app/engineer/schedule" className="quick-action-item-engdas">
-              <div className="quick-action-icon-engdas" style={{ background: '#DBEAFE', color: '#2563EB' }}>
+              <div className="quick-action-icon-engdas" style={{ background: 'rgba(59, 130, 246, 0.12)', color: '#3B82F6' }}>
                 <FaCalendarAlt />
               </div>
               <span className="quick-action-label-engdas">My Schedule</span>
               <FaChevronRight className="quick-action-arrow-engdas" />
             </Link>
             <Link to="/app/engineer/project" className="quick-action-item-engdas">
-              <div className="quick-action-icon-engdas" style={{ background: '#FEF3C7', color: '#D97706' }}>
+              <div className="quick-action-icon-engdas" style={{ background: 'rgba(243, 156, 18, 0.12)', color: '#F39C12' }}>
                 <FaTools />
               </div>
               <span className="quick-action-label-engdas">My Projects</span>
               <FaChevronRight className="quick-action-arrow-engdas" />
             </Link>
             <Link to="/app/engineer/device" className="quick-action-item-engdas">
-              <div className="quick-action-icon-engdas" style={{ background: '#D1FAE5', color: '#059669' }}>
+              <div className="quick-action-icon-engdas" style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10B981' }}>
                 <FaMicrochip />
               </div>
               <span className="quick-action-label-engdas">My Devices</span>
@@ -375,9 +406,9 @@ const EngineerDashboard = () => {
           </div>
         </div>
 
-        {/* Row Layout: Active Assessment + Recent Activity */}
+        {/* Row Layout: Active Assessment + Recent Activity - FIXED HEIGHT */}
         <div className="engdas-row-layout">
-          {/* Active Assessment */}
+          {/* Active Assessment - Fixed Height */}
           <div className="engdas-assessment-section">
             <div className="section-header-engdas">
               <h2 className="section-title-engdas">Active Assessment</h2>
@@ -429,7 +460,7 @@ const EngineerDashboard = () => {
             )}
           </div>
 
-          {/* Recent Activity */}
+          {/* Recent Activity - Fixed Height with 3 items max */}
           <div className="engdas-activities-section">
             <div className="section-header-engdas">
               <h2 className="section-title-engdas">Recent Activity</h2>
@@ -485,7 +516,7 @@ const EngineerDashboard = () => {
                   Today's Schedule
                 </h3>
                 <div className="schedules-list-engdas">
-                  {todaySchedules.map(schedule => (
+                  {todaySchedules.slice(0, 3).map(schedule => (
                     <div key={schedule._id} className="schedule-item-engdas">
                       <div className="schedule-time-engdas">
                         <span className="schedule-hour-engdas">{formatTime(schedule.scheduledTime)}</span>

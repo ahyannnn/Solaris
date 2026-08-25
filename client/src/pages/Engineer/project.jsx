@@ -7,31 +7,18 @@ import {
   FaEye,
   FaCheckCircle,
   FaSpinner,
-  FaMoneyBillWave,
-  FaClock,
-  FaExclamationTriangle,
   FaChevronLeft,
   FaChevronRight,
   FaTools,
-  FaMapMarkerAlt,
-  FaCalendarAlt,
-  FaUser,
-  FaEnvelope,
-  FaPhone,
-  FaBuilding,
-  FaSolarPanel,
-  FaMicrochip,
-  FaWifi,
-  FaRulerCombined,
-  FaDownload,
+  FaFilter,
+  FaFolderOpen,
+  FaPlay,
   FaUpload,
   FaCamera,
-  FaMoneyBillWaveAlt,
   FaTrash,
   FaImage,
-  FaPercentage,
-  FaFilter,
-  FaPlus
+  FaCheck,
+  FaClock
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Engineer/project.css';
@@ -53,13 +40,15 @@ const EngineerProject = () => {
   const [newPhotoPreviews, setNewPhotoPreviews] = useState([]);
   const [progressForm, setProgressForm] = useState({
     installationNotes: '',
-    status: '',
   });
 
   useEffect(() => {
     fetchProjects();
   }, [filter, currentPage]);
 
+  // ============================================================
+  // FETCH PROJECTS - API
+  // ============================================================
   const fetchProjects = async () => {
     try {
       setLoading(true);
@@ -80,7 +69,63 @@ const EngineerProject = () => {
     }
   };
 
-  // Upload photos only - separate from progress update
+  // ============================================================
+  // TIMELINE LOGIC
+  // ============================================================
+
+  const isPaymentPaid = (project, paymentType) => {
+    const scheduleItem = project.paymentSchedule?.find(p => p.type === paymentType);
+    if (scheduleItem?.status === 'paid') return true;
+    if (paymentType === 'full' && project.fullPaymentCompleted) return true;
+    return false;
+  };
+
+  const getTimelineItems = (project) => {
+    if (!project) return [];
+
+    const isFullPayment = project.paymentPreference === 'full';
+    const initialPaid = isPaymentPaid(project, 'initial');
+    const progressPaid = isPaymentPaid(project, 'progress');
+    const finalPaid = isPaymentPaid(project, 'final');
+    const fullPaid = isPaymentPaid(project, 'full');
+
+    if (isFullPayment) {
+      return [
+        { key: 'quotation', title: 'Quotation', completed: true, date: project.createdAt },
+        { key: 'payment', title: 'Full Payment', completed: fullPaid, date: project.paymentSchedule?.find(p => p.type === 'full')?.paidAt },
+        { key: 'installation', title: 'Installation', completed: ['full_paid', 'in_progress', 'completed'].includes(project.status), date: project.startDate },
+        { key: 'complete', title: 'Completion', completed: project.status === 'completed', date: project.actualCompletionDate }
+      ];
+    } else if (project.paymentPreference === 'fifty_fifty') {
+      return [
+        { key: 'quotation', title: 'Quotation', completed: true, date: project.createdAt },
+        { key: 'initial', title: 'Initial (50%)', completed: initialPaid || finalPaid, date: project.paymentSchedule?.find(p => p.type === 'initial')?.paidAt },
+        { key: 'installation', title: 'Installation', completed: ['in_progress', 'full_paid', 'completed'].includes(project.status) || finalPaid, date: project.startDate },
+        { key: 'final', title: 'Final (50%)', completed: finalPaid, date: project.paymentSchedule?.find(p => p.type === 'final')?.paidAt },
+        { key: 'complete', title: 'Handover', completed: project.status === 'completed', date: project.actualCompletionDate }
+      ];
+    } else {
+      return [
+        { key: 'quotation', title: 'Quotation', completed: true, date: project.createdAt },
+        { key: 'initial', title: 'Initial (30%)', completed: initialPaid || finalPaid, date: project.paymentSchedule?.find(p => p.type === 'initial')?.paidAt },
+        { key: 'installation', title: 'Installation', completed: ['in_progress', 'progress_paid', 'full_paid', 'completed'].includes(project.status) || finalPaid, date: project.startDate },
+        { key: 'progress', title: 'Progress (60%)', completed: progressPaid || finalPaid, date: project.paymentSchedule?.find(p => p.type === 'progress')?.paidAt },
+        { key: 'final', title: 'Final (10%)', completed: finalPaid, date: project.paymentSchedule?.find(p => p.type === 'final')?.paidAt },
+        { key: 'complete', title: 'Handover', completed: project.status === 'completed', date: project.actualCompletionDate }
+      ];
+    }
+  };
+
+  const getProjectProgress = (project) => {
+    const timeline = getTimelineItems(project);
+    const completed = timeline.filter(item => item.completed).length;
+    return Math.round((completed / timeline.length) * 100);
+  };
+
+  // ============================================================
+  // PHOTO UPLOAD - API
+  // ============================================================
+
   const uploadPhotos = async () => {
     if (!selectedProject) return;
     if (newPhotoFiles.length === 0) {
@@ -108,11 +153,9 @@ const EngineerProject = () => {
       const uploadedPhotoUrls = uploadResponse.data.photos || [];
       console.log('📸 Photos uploaded:', uploadedPhotoUrls);
 
-      // Clear the new photo states
       setNewPhotoFiles([]);
       setNewPhotoPreviews([]);
 
-      // Refresh the project data to show new photos
       await fetchProjects();
 
       showToast(`${uploadedPhotoUrls.length} photo(s) uploaded successfully!`, 'success');
@@ -124,67 +167,21 @@ const EngineerProject = () => {
     }
   };
 
-  const updateProgress = async () => {
-    if (!selectedProject) return;
-
-    setIsSubmitting(true);
-    try {
-      const token = sessionStorage.getItem('token');
-
-      // Get existing photos from the project
-      const existingPhotos = selectedProject.sitePhotos || [];
-
-      // Update project progress (no photo upload here)
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/projects/${selectedProject._id}/progress`,
-        {
-          installationNotes: progressForm.installationNotes,
-          status: progressForm.status,
-          // Don't modify photos here
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      showToast('Project progress updated successfully!', 'success');
-
-      // Close modal and reset form
-      setShowProgressModal(false);
-      setSelectedProject(null);
-      setProgressForm({ installationNotes: '', status: '' });
-      setNewPhotoFiles([]);
-      setNewPhotoPreviews([]);
-      fetchProjects();
-    } catch (error) {
-      console.error('Error updating progress:', error);
-      showToast(error.response?.data?.message || 'Failed to update progress', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Handle file selection - only store new files and previews
   const handlePhotoSelect = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
-    // Create object URLs for preview
     const previews = files.map(file => URL.createObjectURL(file));
 
     setNewPhotoFiles(prev => [...prev, ...files]);
     setNewPhotoPreviews(prev => [...prev, ...previews]);
 
-    // Clear the input so same file can be re-selected
     e.target.value = '';
   };
 
   const removePhoto = (index) => {
-    // Revoke the object URL to avoid memory leaks
     URL.revokeObjectURL(newPhotoPreviews[index]);
-
-    // Remove from previews
     setNewPhotoPreviews(prev => prev.filter((_, i) => i !== index));
-
-    // Remove from files to upload
     setNewPhotoFiles(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -247,19 +244,257 @@ const EngineerProject = () => {
     return badges[status] || <span className="status-badge-engineerproject">{status}</span>;
   };
 
-  // Helper to check if engineer can start installation
-  const canStartInstallation = (status, paymentPreference) => {
-    // Full payment preference: can start when status is full_paid
-    if (paymentPreference === 'full' && status === 'full_paid') {
+  // ============================================================
+  // STEP-BASED WORKFLOW FUNCTIONS - FIXED
+  // ============================================================
+
+  /**
+   * Check if the required initial payment is paid
+   */
+  const isRequiredPaymentPaid = (project) => {
+    const { paymentPreference } = project;
+
+    if (paymentPreference === 'full') {
+      return isPaymentPaid(project, 'full');
+    } else if (paymentPreference === 'fifty_fifty') {
+      return isPaymentPaid(project, 'initial');
+    } else if (paymentPreference === 'thirty_sixty_ten') {
+      return isPaymentPaid(project, 'initial');
+    }
+    return false;
+  };
+
+  /**
+   * Check if project is waiting for payment (no action available)
+   */
+  const isWaitingForPayment = (project) => {
+    const { status, paymentPreference } = project;
+
+    if (status === 'quoted' || status === 'approved') {
       return true;
     }
 
-    // Fifty-fifty or thirty-sixty-ten payment preferences: can start when status is initial_paid
-    if ((paymentPreference === 'fifty_fifty' || paymentPreference === 'thirty_sixty_ten') && status === 'initial_paid') {
-      return true;
+    if (status === 'in_progress') {
+      if (paymentPreference === 'fifty_fifty') {
+        return !isPaymentPaid(project, 'final');
+      }
+      if (paymentPreference === 'thirty_sixty_ten') {
+        if (isPaymentPaid(project, 'progress')) {
+          return !isPaymentPaid(project, 'final');
+        }
+        return true;
+      }
+      if (paymentPreference === 'full') {
+        return !isPaymentPaid(project, 'full');
+      }
+    }
+
+    if (status === 'progress_paid') {
+      if (paymentPreference === 'fifty_fifty') {
+        return !isPaymentPaid(project, 'final');
+      }
+      if (paymentPreference === 'thirty_sixty_ten') {
+        return !isPaymentPaid(project, 'final');
+      }
     }
 
     return false;
+  };
+
+  /**
+   * Check if project is on the final step (ready to complete)
+   */
+  const isFinalStep = (project) => {
+    const { status, paymentPreference } = project;
+
+    // Completed projects are not in final step
+    if (status === 'completed') return false;
+
+    // Full Payment: full_paid means final step (if installation started)
+    if (paymentPreference === 'full') {
+      if (status === 'full_paid' || (status === 'in_progress' && isPaymentPaid(project, 'full'))) {
+        return true;
+      }
+    }
+
+    // 50-50: final payment paid means final step
+    if (paymentPreference === 'fifty_fifty') {
+      if (status === 'full_paid' || (status === 'in_progress' && isPaymentPaid(project, 'final'))) {
+        return true;
+      }
+    }
+
+    // 30-60-10: final (10%) payment paid means final step
+    if (paymentPreference === 'thirty_sixty_ten') {
+      if (status === 'full_paid' || (status === 'in_progress' && isPaymentPaid(project, 'final'))) {
+        return true;
+      }
+      // Also if status is progress_paid and final is paid
+      if (status === 'progress_paid' && isPaymentPaid(project, 'final')) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  /**
+   * Get the current action for a project
+   * 
+   * RULES:
+   * - quoted/approved → NO BUTTON (waiting for payment)
+   * - initial_paid/full_paid (with required payment paid) → Start
+   * - in_progress → Update (ALWAYS may Update, kahit 83% or final step)
+   * - progress_paid → Update
+   * - completed → View
+   * - full_paid for installment → Update (final step)
+   */
+  const getProjectAction = (project) => {
+    const { status, paymentPreference } = project;
+
+    // Completed → View only
+    if (status === 'completed') {
+      return { type: 'view', label: 'View', icon: <FaEye />, isFinal: false };
+    }
+
+    // WAITING FOR PAYMENT → NO BUTTON
+    if (status === 'quoted' || status === 'approved') {
+      return { type: 'none', label: null, icon: null, isFinal: false };
+    }
+
+    // Ready to start → Start Installation
+    if (status === 'initial_paid' && isRequiredPaymentPaid(project)) {
+      return { type: 'start', label: 'Start', icon: <FaTools />, isFinal: false };
+    }
+
+    // Full payment ready to start (ONLY for Full Payment preference)
+    if (status === 'full_paid' && paymentPreference === 'full' && isRequiredPaymentPaid(project)) {
+      // For full payment, if installation hasn't started, show Start
+      return { type: 'start', label: 'Start', icon: <FaTools />, isFinal: false };
+    }
+
+    // ============================================================
+    // FIX: Handle full_paid for INSTALLMENT projects
+    // full_paid in installment = final payment received
+    // Should show UPDATE button (not Complete in table)
+    // ============================================================
+    if (status === 'full_paid' && paymentPreference !== 'full') {
+      return { type: 'update', label: 'Update', icon: <FaCheckCircle />, isFinal: true };
+    }
+
+    // In progress - check if waiting for payment
+    if (status === 'in_progress') {
+      if (isWaitingForPayment(project)) {
+        return { type: 'none', label: null, icon: null, isFinal: false };
+      }
+
+      // Check if this is the final step
+      const finalStep = isFinalStep(project);
+      return { type: 'update', label: 'Update', icon: <FaCheckCircle />, isFinal: finalStep };
+    }
+
+    // Progress paid
+    if (status === 'progress_paid') {
+      if (isWaitingForPayment(project)) {
+        return { type: 'none', label: null, icon: null, isFinal: false };
+      }
+
+      // Check if final payment is paid
+      const finalStep = isFinalStep(project);
+      return { type: 'update', label: 'Update', icon: <FaCheckCircle />, isFinal: finalStep };
+    }
+
+    // No action
+    return { type: 'none', label: null, icon: null, isFinal: false };
+  };
+
+  // ============================================================
+  // UPDATE PROGRESS - API
+  // ============================================================
+
+  const updateProgress = async (actionType, isFinalAction) => {
+    if (!selectedProject) return;
+
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
+
+      // Determine next status based on action type
+      let nextStatus = selectedProject.status;
+      if (actionType === 'start') {
+        nextStatus = 'in_progress';
+      } else if (actionType === 'complete' || isFinalAction) {
+        nextStatus = 'completed';
+      } else if (actionType === 'update') {
+        nextStatus = 'in_progress';
+      }
+
+      const payload = {
+        installationNotes: progressForm.installationNotes,
+      };
+
+      if (nextStatus !== selectedProject.status) {
+        payload.status = nextStatus;
+      }
+
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/projects/${selectedProject._id}/progress`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      let statusMessage = 'Project progress updated successfully!';
+      if (actionType === 'start') statusMessage = 'Installation started successfully!';
+      if (actionType === 'complete' || isFinalAction) statusMessage = 'Project marked as completed!';
+
+      showToast(statusMessage, 'success');
+
+      setShowProgressModal(false);
+      setSelectedProject(null);
+      setProgressForm({ installationNotes: '' });
+      setNewPhotoFiles([]);
+      setNewPhotoPreviews([]);
+      fetchProjects();
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      showToast(error.response?.data?.message || 'Failed to update progress', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // ============================================================
+  // SUMMARY CARDS
+  // ============================================================
+
+  const totalProjects = projects.length;
+  const readyToStart = projects.filter(p => {
+    const action = getProjectAction(p);
+    return action.type === 'start';
+  }).length;
+  const inProgress = projects.filter(p => p.status === 'in_progress').length;
+  const completed = projects.filter(p => p.status === 'completed').length;
+
+  // ============================================================
+  // RENDER PROGRESS INDICATOR
+  // ============================================================
+
+  const renderProgressIndicator = (project) => {
+    const progress = getProjectProgress(project);
+    const isCompleted = project.status === 'completed';
+
+    return (
+      <div className="progress-indicator-compact">
+        <span className={`progress-percentage-text ${isCompleted ? 'completed' : ''}`}>{progress}%</span>
+        <div className="progress-stage-label">
+          {isCompleted ? (
+            <span className="stage-label completed-label">Completed</span>
+          ) : (
+            <span className="stage-label current-label">{getTimelineItems(project).find(i => !i.completed)?.title || ''}</span>
+          )}
+        </div>
+      </div>
+    );
   };
 
   const filteredProjects = projects.filter(project => {
@@ -273,6 +508,14 @@ const EngineerProject = () => {
 
   const SkeletonLoader = () => (
     <div className="engineer-project-container">
+      <div className="summary-cards-grid">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="summary-card skeleton-card">
+            <div className="skeleton-line large"></div>
+            <div className="skeleton-line medium"></div>
+          </div>
+        ))}
+      </div>
       <div className="project-header-engineerproject">
         <div className="skeleton-line large"></div>
         <div className="skeleton-line medium"></div>
@@ -290,6 +533,7 @@ const EngineerProject = () => {
               <th>System</th>
               <th>Address</th>
               <th>Payment</th>
+              <th>Progress</th>
               <th>Status</th>
               <th>Financial</th>
               <th>Actions</th>
@@ -298,6 +542,7 @@ const EngineerProject = () => {
           <tbody>
             {[1, 2, 3, 4, 5].map(i => (
               <tr key={i} className="skeleton-row">
+                <td><div className="skeleton-cell"></div></td>
                 <td><div className="skeleton-cell"></div></td>
                 <td><div className="skeleton-cell"></div></td>
                 <td><div className="skeleton-cell"></div></td>
@@ -325,10 +570,39 @@ const EngineerProject = () => {
       </Helmet>
 
       <div className="engineer-project-container">
-        <div className="project-header-engineerproject">
-          <div>
-            <h1>My Projects</h1>
-            <p>View and track your assigned solar installation projects</p>
+
+        {/* SUMMARY CARDS */}
+        <div className="summary-cards-grid">
+          <div className="summary-card">
+            <div className="summary-card-content">
+              <span className="summary-card-value">{totalProjects}</span>
+              <span className="summary-card-label">Total Projects</span>
+              <span className="summary-card-subtitle">Assigned projects</span>
+            </div>
+          </div>
+
+          <div className="summary-card">
+            <div className="summary-card-content">
+              <span className="summary-card-value">{readyToStart}</span>
+              <span className="summary-card-label">Ready to Start</span>
+              <span className="summary-card-subtitle">Ready for installation</span>
+            </div>
+          </div>
+
+          <div className="summary-card">
+            <div className="summary-card-content">
+              <span className="summary-card-value">{inProgress}</span>
+              <span className="summary-card-label">In Progress</span>
+              <span className="summary-card-subtitle">Active installations</span>
+            </div>
+          </div>
+
+          <div className="summary-card">
+            <div className="summary-card-content">
+              <span className="summary-card-value">{completed}</span>
+              <span className="summary-card-label">Completed</span>
+              <span className="summary-card-subtitle">Finished projects</span>
+            </div>
           </div>
         </div>
 
@@ -376,6 +650,7 @@ const EngineerProject = () => {
                     <th>System</th>
                     <th>Address</th>
                     <th>Payment</th>
+                    <th>Progress</th>
                     <th>Status</th>
                     <th>Financial</th>
                     <th>Actions</th>
@@ -383,9 +658,11 @@ const EngineerProject = () => {
                 </thead>
                 <tbody>
                   {filteredProjects.map(project => {
-                    const canStart = canStartInstallation(project.status, project.paymentPreference);
-                    const isInProgress = project.status === 'in_progress';
-                    const isProgressPaid = project.status === 'progress_paid';
+                    const action = getProjectAction(project);
+                    const isViewOnly = action.type === 'view';
+                    const isStart = action.type === 'start';
+                    const isUpdate = action.type === 'update';
+                    const noAction = action.type === 'none';
 
                     return (
                       <tr key={project._id}>
@@ -418,6 +695,9 @@ const EngineerProject = () => {
                             <span className="payment-desc">{getPaymentTypeDescription(project.paymentPreference)}</span>
                           </div>
                         </td>
+                        <td data-label="Progress">
+                          {renderProgressIndicator(project)}
+                        </td>
                         <td data-label="Status">
                           {getStatusBadge(project.status, project.paymentPreference)}
                         </td>
@@ -429,23 +709,21 @@ const EngineerProject = () => {
                         </td>
                         <td data-label="Actions">
                           <div className="actions-cell">
-                            <button
-                              className="action-btn view"
-                              onClick={() => { setSelectedProject(project); setShowDetailModal(true); }}
-                            >
-                              <FaEye /> View
-                            </button>
+                            {isViewOnly && (
+                              <button
+                                className="action-btn view"
+                                onClick={() => { setSelectedProject(project); setShowDetailModal(true); }}
+                              >
+                                <FaEye /> View
+                              </button>
+                            )}
 
-                            {/* Start Installation button */}
-                            {canStart && (
+                            {isStart && (
                               <button
                                 className="action-btn start"
                                 onClick={() => {
                                   setSelectedProject(project);
-                                  setProgressForm({
-                                    installationNotes: '',
-                                    status: 'in_progress',
-                                  });
+                                  setProgressForm({ installationNotes: '' });
                                   setNewPhotoFiles([]);
                                   setNewPhotoPreviews([]);
                                   setShowProgressModal(true);
@@ -455,16 +733,12 @@ const EngineerProject = () => {
                               </button>
                             )}
 
-                            {/* Update Progress button */}
-                            {project.status !== 'completed' && !canStart&& (
+                            {isUpdate && (
                               <button
                                 className="action-btn update"
                                 onClick={() => {
                                   setSelectedProject(project);
-                                  setProgressForm({
-                                    installationNotes: project.installationNotes || '',
-                                    status: project.status,
-                                  });
+                                  setProgressForm({ installationNotes: project.installationNotes || '' });
                                   setNewPhotoFiles([]);
                                   setNewPhotoPreviews([]);
                                   setShowProgressModal(true);
@@ -472,6 +746,10 @@ const EngineerProject = () => {
                               >
                                 <FaCheckCircle /> Update
                               </button>
+                            )}
+
+                            {noAction && (
+                              <span className="action-placeholder">—</span>
                             )}
                           </div>
                         </td>
@@ -505,98 +783,147 @@ const EngineerProject = () => {
           </>
         )}
 
-        {/* Detail Modal */}
+        {/* ============================================================
+            Detail Modal
+            ============================================================ */}
         {showDetailModal && selectedProject && (
           <div className="modal-overlay-engineerproject" onClick={() => setShowDetailModal(false)}>
             <div className="modal-content-engineerproject detail-modal" onClick={e => e.stopPropagation()}>
-              <button className="modal-close" onClick={() => setShowDetailModal(false)}>×</button>
-              <h3>Project Details</h3>
-
-              <div className="detail-section">
-                <h4>Project Information</h4>
-                <p><strong>Name:</strong> {selectedProject.projectName}</p>
-                <p><strong>Reference:</strong> {selectedProject.projectReference}</p>
-                <p><strong>Status:</strong> {getStatusBadge(selectedProject.status, selectedProject.paymentPreference)}</p>
-                <p><strong>Created:</strong> {formatDate(selectedProject.createdAt)}</p>
-                <p><strong>Payment Method:</strong> {getPaymentTypeLabel(selectedProject.paymentPreference)}</p>
-                <p><strong>Payment Schedule:</strong> {getPaymentTypeDescription(selectedProject.paymentPreference)}</p>
+              <div className="modal-header-engineerproject">
+                <h3>Project Details</h3>
+                <button className="modal-close" onClick={() => setShowDetailModal(false)}>×</button>
               </div>
-
-              <div className="detail-section">
-                <h4>Client Information</h4>
-                <p><strong>Name:</strong> {selectedProject.clientId?.contactFirstName} {selectedProject.clientId?.contactLastName}</p>
-                <p><strong>Contact:</strong> {selectedProject.clientId?.contactNumber}</p>
-                <p><strong>Email:</strong> {selectedProject.clientId?.userId?.email || 'No email provided'}</p>
-                <p><strong>Address:</strong> {selectedProject.addressId?.houseOrBuilding} {selectedProject.addressId?.street}, {selectedProject.addressId?.barangay}, {selectedProject.addressId?.cityMunicipality}</p>
-              </div>
-
-              <div className="detail-section">
-                <h4>System Specifications</h4>
-                <p><strong>System Size:</strong> {selectedProject.systemSize} kWp</p>
-                <p><strong>System Type:</strong> {selectedProject.systemType}</p>
-                <p><strong>Panels Needed:</strong> {selectedProject.panelsNeeded || 'To be determined'}</p>
-                <p><strong>Inverter Type:</strong> {selectedProject.inverterType || 'Standard'}</p>
-                <p><strong>Battery Type:</strong> {selectedProject.batteryType || 'N/A'}</p>
-              </div>
-
-              <div className="detail-section">
-                <h4>Financial Summary</h4>
-                <p><strong>Total Cost:</strong> {formatCurrency(selectedProject.totalCost)}</p>
-                <p><strong>Amount Paid:</strong> {formatCurrency(selectedProject.amountPaid)}</p>
-                <p><strong>Balance:</strong> {formatCurrency(selectedProject.balance)}</p>
-              </div>
-
-              {selectedProject.paymentSchedule && selectedProject.paymentSchedule.length > 0 && (
+              <div className="modal-body-engineerproject">
+                {/* Project Information */}
                 <div className="detail-section">
-                  <h4>Payment Schedule</h4>
-                  <table className="payment-schedule-table">
-                    <thead>
-                      <tr>
-                        <th>Type</th>
-                        <th>Amount</th>
-                        <th>Due Date</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedProject.paymentSchedule.map((p, idx) => (
-                        <tr key={idx}>
-                          <td className="payment-type-cell">{p.type}</td>
-                          <td>{formatCurrency(p.amount)}</td>
-                          <td>{formatDate(p.dueDate)}</td>
-                          <td>
-                            <span className={`payment-status-badge ${p.status}`}>
-                              {p.status === 'paid' ? 'Paid' : p.status === 'pending' ? 'Pending' : 'Overdue'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <h4>Project Information</h4>
+                  <p><strong>Name:</strong> {selectedProject.projectName}</p>
+                  <p><strong>Reference:</strong> {selectedProject.projectReference}</p>
+                  <p><strong>Status:</strong> {getStatusBadge(selectedProject.status, selectedProject.paymentPreference)}</p>
+                  <p><strong>Created:</strong> {formatDate(selectedProject.createdAt)}</p>
+                  <p><strong>Payment Method:</strong> {getPaymentTypeLabel(selectedProject.paymentPreference)}</p>
+                  <p><strong>Payment Schedule:</strong> {getPaymentTypeDescription(selectedProject.paymentPreference)}</p>
                 </div>
-              )}
 
-              {selectedProject.installationNotes && (
-                <div className="detail-section">
-                  <h4>Installation Notes</h4>
-                  <p>{selectedProject.installationNotes}</p>
-                </div>
-              )}
+                {/* PROJECT PROGRESS */}
+                <div className="detail-section progress-section">
+                  <h4>Project Progress</h4>
+                  <div className="modal-timeline">
+                    {getTimelineItems(selectedProject).map((item, index) => {
+                      const isCompleted = item.completed || selectedProject.status === 'completed';
+                      const isCurrent = index === getTimelineItems(selectedProject).findIndex(i => !i.completed) && selectedProject.status !== 'completed';
+                      const isUpcoming = !isCompleted && !isCurrent;
 
-              {selectedProject.sitePhotos?.length > 0 && (
-                <div className="detail-section">
-                  <h4>Site Photos</h4>
-                  <div className="photo-grid">
-                    {selectedProject.sitePhotos.map((photo, idx) => (
-                      <div key={idx} className="photo-item">
-                        <img src={photo} alt={`Site ${idx + 1}`} className="photo-thumb" onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }} />
-                        <a href={photo} target="_blank" rel="noopener noreferrer" className="photo-view-link">View</a>
-                      </div>
-                    ))}
+                      return (
+                        <div key={item.key} className="modal-timeline-item">
+                          <div className="modal-timeline-marker">
+                            {isCompleted ? (
+                              <FaCheckCircle className="timeline-icon completed" />
+                            ) : isCurrent ? (
+                              <div className="timeline-icon current-dot"></div>
+                            ) : (
+                              <div className="timeline-icon upcoming-dot"></div>
+                            )}
+                            {index < getTimelineItems(selectedProject).length - 1 && (
+                              <div className={`modal-timeline-line ${isCompleted ? 'completed' : ''}`} />
+                            )}
+                          </div>
+                          <div className="modal-timeline-content">
+                            <div className="modal-timeline-title">
+                              <span className={isCompleted ? 'completed-text' : isCurrent ? 'current-text' : 'upcoming-text'}>
+                                {item.title}
+                              </span>
+                              {isCompleted && <FaCheck className="check-icon" />}
+                            </div>
+                            <div className="modal-timeline-date">
+                              {item.completed ? formatDate(item.date) : isCurrent ? 'In Progress' : 'Upcoming'}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="modal-progress-percent">
+                    <span className="progress-label">Overall Progress</span>
+                    <span className="progress-value">{getProjectProgress(selectedProject)}%</span>
                   </div>
                 </div>
-              )}
 
+                <div className="detail-section">
+                  <h4>Client Information</h4>
+                  <p><strong>Name:</strong> {selectedProject.clientId?.contactFirstName} {selectedProject.clientId?.contactLastName}</p>
+                  <p><strong>Contact:</strong> {selectedProject.clientId?.contactNumber}</p>
+                  <p><strong>Email:</strong> {selectedProject.clientId?.userId?.email || 'No email provided'}</p>
+                  <p><strong>Address:</strong> {selectedProject.addressId?.houseOrBuilding} {selectedProject.addressId?.street}, {selectedProject.addressId?.barangay}, {selectedProject.addressId?.cityMunicipality}</p>
+                </div>
+
+                <div className="detail-section">
+                  <h4>System Specifications</h4>
+                  <p><strong>System Size:</strong> {selectedProject.systemSize} kWp</p>
+                  <p><strong>System Type:</strong> {selectedProject.systemType}</p>
+                  <p><strong>Panels Needed:</strong> {selectedProject.panelsNeeded || 'To be determined'}</p>
+                  <p><strong>Inverter Type:</strong> {selectedProject.inverterType || 'Standard'}</p>
+                  <p><strong>Battery Type:</strong> {selectedProject.batteryType || 'N/A'}</p>
+                </div>
+
+                <div className="detail-section">
+                  <h4>Financial Summary</h4>
+                  <p><strong>Total Cost:</strong> {formatCurrency(selectedProject.totalCost)}</p>
+                  <p><strong>Amount Paid:</strong> {formatCurrency(selectedProject.amountPaid)}</p>
+                  <p><strong>Balance:</strong> {formatCurrency(selectedProject.balance)}</p>
+                </div>
+
+                {selectedProject.paymentSchedule && selectedProject.paymentSchedule.length > 0 && (
+                  <div className="detail-section">
+                    <h4>Payment Schedule</h4>
+                    <table className="payment-schedule-table">
+                      <thead>
+                        <tr>
+                          <th>Type</th>
+                          <th>Amount</th>
+                          <th>Due Date</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedProject.paymentSchedule.map((p, idx) => (
+                          <tr key={idx}>
+                            <td className="payment-type-cell">{p.type}</td>
+                            <td>{formatCurrency(p.amount)}</td>
+                            <td>{formatDate(p.dueDate)}</td>
+                            <td>
+                              <span className={`payment-status-badge ${p.status}`}>
+                                {p.status === 'paid' ? 'Paid' : p.status === 'pending' ? 'Pending' : 'Overdue'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {selectedProject.installationNotes && (
+                  <div className="detail-section">
+                    <h4>Installation Notes</h4>
+                    <p>{selectedProject.installationNotes}</p>
+                  </div>
+                )}
+
+                {selectedProject.sitePhotos?.length > 0 && (
+                  <div className="detail-section">
+                    <h4>Site Photos</h4>
+                    <div className="photo-grid">
+                      {selectedProject.sitePhotos.map((photo, idx) => (
+                        <div key={idx} className="photo-item">
+                          <img src={photo} alt={`Site ${idx + 1}`} className="photo-thumb" onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }} />
+                          <a href={photo} target="_blank" rel="noopener noreferrer" className="photo-view-link">View</a>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
               <div className="modal-actions">
                 <button className="close-btn" onClick={() => setShowDetailModal(false)}>Close</button>
               </div>
@@ -604,87 +931,110 @@ const EngineerProject = () => {
           </div>
         )}
 
-        {/* Progress Update Modal with Photo Upload */}
+        {/* ============================================================
+            Progress Update Modal
+            ============================================================ */}
         {showProgressModal && selectedProject && (
           <div className="modal-overlay-engineerproject" onClick={() => setShowProgressModal(false)}>
             <div className="modal-content-engineerproject progress-modal" onClick={e => e.stopPropagation()}>
-              <button className="modal-close" onClick={() => {
-                setShowProgressModal(false);
-                setProgressForm({ installationNotes: '', status: '' });
-                setNewPhotoFiles([]);
-                setNewPhotoPreviews([]);
-              }}>×</button>
-              <h3>Update Project Progress</h3>
-              <p><strong>Project:</strong> {selectedProject.projectName}</p>
-
-              {/* Show existing photos count */}
-              {selectedProject.sitePhotos && selectedProject.sitePhotos.length > 0 && (
-                <div className="existing-photos-info">
-                  <FaImage /> {selectedProject.sitePhotos.length} existing photo(s) on file
-                </div>
-              )}
-
-              <div className="form-group">
-                <label>Installation Notes</label>
-                <textarea
-                  rows="4"
-                  value={progressForm.installationNotes}
-                  onChange={(e) => setProgressForm({ ...progressForm, installationNotes: e.target.value })}
-                  placeholder="Describe the progress, challenges, next steps..."
-                />
+              <div className="modal-header-engineerproject">
+                <h3>
+                  {getProjectAction(selectedProject).type === 'start' && 'Start Installation'}
+                  {getProjectAction(selectedProject).type === 'update' && 
+                    (getProjectAction(selectedProject).isFinal ? 'Complete Project' : 'Update Project Progress')}
+                </h3>
+                <button className="modal-close" onClick={() => {
+                  setShowProgressModal(false);
+                  setProgressForm({ installationNotes: '' });
+                  setNewPhotoFiles([]);
+                  setNewPhotoPreviews([]);
+                }}>×</button>
               </div>
+              <div className="modal-body-engineerproject">
+                <p><strong>Project:</strong> {selectedProject.projectName}</p>
 
-              <div className="form-group">
-                <label>Update Status</label>
-                <select
-                  value={progressForm.status}
-                  onChange={(e) => setProgressForm({ ...progressForm, status: e.target.value })}
-                >
-                  <option value="in_progress">In Progress</option>
-                  <option value="progress_paid">Progress Payment Received</option>
-                  <option value="completed">Mark as Completed</option>
-                </select>
-              </div>
+                {/* Progress Chart */}
+                <div className="modal-progress-chart">
+                  <div className="progress-chart-header">
+                    <span className="chart-label">Project Progress</span>
+                    <span className="chart-percentage">{getProjectProgress(selectedProject)}%</span>
+                  </div>
+                  <div className="progress-chart-bar">
+                    <div
+                      className="progress-chart-fill"
+                      style={{ width: `${getProjectProgress(selectedProject)}%` }}
+                    ></div>
+                  </div>
+                  <div className="progress-chart-stages">
+                    {getTimelineItems(selectedProject).map((item, index) => {
+                      const isCompleted = item.completed || selectedProject.status === 'completed';
+                      const isCurrent = index === getTimelineItems(selectedProject).findIndex(i => !i.completed) && selectedProject.status !== 'completed';
 
-              <div className="form-group">
-                <label>Add New Photos</label>
-                <div className="photo-upload-area">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handlePhotoSelect}
-                    disabled={uploadingPhotos}
-                    id="photo-upload"
-                    style={{ display: 'none' }}
-                  />
-                  <label htmlFor="photo-upload" className="upload-white-btn">
-                    <FaCamera /> Select photos to upload
-                  </label>
-                  <p className="upload-hint">
-                    {newPhotoFiles.length > 0
-                      ? `${newPhotoFiles.length} new photo(s) selected`
-                      : 'Select new photos to add to this project'}
-                  </p>
+                      return (
+                        <div key={item.key} className={`chart-stage ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}`}>
+                          <div className="stage-dot"></div>
+                          <span className="stage-label">{item.title}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                {/* Only show new photos that haven't been uploaded yet */}
-                {newPhotoPreviews.length > 0 && (
-                  <div className="photo-preview-grid">
-                    {newPhotoPreviews.map((preview, index) => (
-                      <div key={index} className="photo-preview-item">
-                        <img src={preview} alt={`New upload ${index + 1}`} className="photo-preview-thumb" />
-                        <button
-                          className="remove-photo-btn"
-                          onClick={() => removePhoto(index)}
-                          title="Remove photo"
-                        >
-                          <FaTrash />
-                        </button>
-                      </div>
-                    ))}
+                {selectedProject.sitePhotos && selectedProject.sitePhotos.length > 0 && (
+                  <div className="existing-photos-info">
+                    <FaImage /> {selectedProject.sitePhotos.length} existing photo(s) on file
                   </div>
                 )}
+
+                <div className="form-group">
+                  <label>Installation Notes</label>
+                  <textarea
+                    rows="4"
+                    value={progressForm.installationNotes}
+                    onChange={(e) => setProgressForm({ ...progressForm, installationNotes: e.target.value })}
+                    placeholder="Describe the progress, challenges, next steps..."
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Add New Photos</label>
+                  <div className="photo-upload-area">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handlePhotoSelect}
+                      disabled={uploadingPhotos}
+                      id="photo-upload"
+                      style={{ display: 'none' }}
+                    />
+                    <label htmlFor="photo-upload" className="upload-white-btn">
+                      <FaCamera /> Select photos to upload
+                    </label>
+                    <p className="upload-hint">
+                      {newPhotoFiles.length > 0
+                        ? `${newPhotoFiles.length} new photo(s) selected`
+                        : 'Select new photos to add to this project'}
+                    </p>
+                  </div>
+
+                  {newPhotoPreviews.length > 0 && (
+                    <div className="photo-preview-grid">
+                      {newPhotoPreviews.map((preview, index) => (
+                        <div key={index} className="photo-preview-item">
+                          <img src={preview} alt={`New upload ${index + 1}`} className="photo-preview-thumb" />
+                          <button
+                            className="remove-photo-btn"
+                            onClick={() => removePhoto(index)}
+                            title="Remove photo"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="modal-actions-side-by-side">
@@ -692,7 +1042,7 @@ const EngineerProject = () => {
                   className="cancel-btn"
                   onClick={() => {
                     setShowProgressModal(false);
-                    setProgressForm({ installationNotes: '', status: '' });
+                    setProgressForm({ installationNotes: '' });
                     setNewPhotoFiles([]);
                     setNewPhotoPreviews([]);
                   }}
@@ -710,11 +1060,18 @@ const EngineerProject = () => {
                   </button>
                   <button
                     className="update-btn"
-                    onClick={updateProgress}
+                    onClick={() => {
+                      const action = getProjectAction(selectedProject);
+                      const isFinal = action.isFinal || false;
+                      updateProgress(action.type, isFinal);
+                    }}
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? <FaSpinner className="spinning" /> : null}
-                    {isSubmitting ? 'Updating...' : 'Update Progress'}
+                    {isSubmitting ? 'Submitting...' :
+                      (getProjectAction(selectedProject).type === 'start' ? 'Start Installation' :
+                       getProjectAction(selectedProject).isFinal ? 'Complete Project' :
+                       'Update Progress')}
                   </button>
                 </div>
               </div>

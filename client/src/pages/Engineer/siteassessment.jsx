@@ -2,6 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
+import {
+  FaClipboardList,
+  FaClock,
+  FaSyncAlt,
+  FaCheckCircle
+} from 'react-icons/fa';
 import '../../styles/Engineer/siteassessment.css';
 
 // Import Calculation Card Components
@@ -19,7 +25,7 @@ import SiteInspectionTab from '../../components/Engineer/SiteInspectionTab.jsx';
 // Import Calculation Hook
 import { useSystemCalculation } from '../../hooks/useSystemCalculation.js';
 
-import { useToast, ToastNotification } from '../../assets/toastnotification'; // Add this import
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 
 const MyAssessments = () => {
   const { toast, showToast, hideToast } = useToast();
@@ -49,7 +55,13 @@ const MyAssessments = () => {
   const [systemMetrics, setSystemMetrics] = useState(null);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
 
-
+  // Dashboard Stats
+  const [dashboardStats, setDashboardStats] = useState({
+    total: 0,
+    pending: 0,
+    inProgress: 0,
+    completed: 0
+  });
 
   // ✅ MOVE THIS HERE - Appliance modal states
   const [editingAppliance, setEditingAppliance] = useState(null);
@@ -138,8 +150,8 @@ const MyAssessments = () => {
     overheadContingencyCost: 0,
     contractorProfitCost: 0,
     totalSystemCost: 0,
-    discountAmount: 0,  // ✅ ADD THIS
-    finalAmount: 0      // ✅ ADD THIS
+    discountAmount: 0,
+    finalAmount: 0
   });
   const [calculatedCosts, setCalculatedCosts] = useState({
     panelCost: 0,
@@ -158,7 +170,7 @@ const MyAssessments = () => {
     overheadContingencyCost: 0,
     contractorProfitCost: 0,
     totalSystemCost: 0,
-    discountAmount: 0,  // ✅ ADD THIS
+    discountAmount: 0,
     finalAmount: 0
   });
   const [roiYears, setRoiYears] = useState(0);
@@ -529,8 +541,8 @@ const MyAssessments = () => {
       overheadContingencyCost,
       contractorProfitCost,
       totalSystemCost,
-      discountAmount,  // ✅ ADD THIS
-      finalAmount      // ✅ ADD THIS
+      discountAmount,
+      finalAmount
     });
 
     setFreeQuoteForm(prev => ({
@@ -752,8 +764,8 @@ const MyAssessments = () => {
       overheadContingencyCost,
       contractorProfitCost,
       totalSystemCost,
-      discountAmount,  // ✅ ADD THIS
-      finalAmount      // ✅ ADD THIS
+      discountAmount,
+      finalAmount
     });
 
     setQuotationForm(prev => ({
@@ -978,6 +990,39 @@ const MyAssessments = () => {
       setLoading(false);
     }
   };
+
+  // Calculate dashboard stats
+  useEffect(() => {
+    const total = allAssessments.length;
+
+    // Pending statuses: pending, pending_payment, pending_review
+    const pending = allAssessments.filter(item => {
+      const status = item.type === 'free_quote' ? item.status : item.assessmentStatus;
+      return status === 'pending' || status === 'pending_payment' || status === 'pending_review';
+    }).length;
+
+    // In Progress statuses: assigned, processing, scheduled, site_visit_ongoing, device_deployed, data_collecting, data_analyzing, report_draft, in_progress
+    const inProgress = allAssessments.filter(item => {
+      const status = item.type === 'free_quote' ? item.status : item.assessmentStatus;
+      return status === 'assigned' ||
+        status === 'processing' ||
+        status === 'scheduled' ||
+        status === 'site_visit_ongoing' ||
+        status === 'device_deployed' ||
+        status === 'data_collecting' ||
+        status === 'data_analyzing' ||
+        status === 'report_draft' ||
+        status === 'in_progress';
+    }).length;
+
+    // Completed statuses: completed, accepted
+    const completed = allAssessments.filter(item => {
+      const status = item.type === 'free_quote' ? item.status : item.assessmentStatus;
+      return status === 'completed' || status === 'accepted';
+    }).length;
+
+    setDashboardStats({ total, pending, inProgress, completed });
+  }, [allAssessments]);
 
   const fetchFreeQuoteDetails = async (quoteId) => {
     try {
@@ -1878,7 +1923,6 @@ const MyAssessments = () => {
     return (
       <>
         <Helmet><title>My Assessments | Engineer | SOLARIS</title></Helmet>
-        {/* ADD THIS - Toast Notification at the top level */}
         <ToastNotification
           show={toast.show}
           message={toast.message}
@@ -1888,6 +1932,37 @@ const MyAssessments = () => {
         />
         <div className="my-assessments-enad">
 
+          {/* ===== DASHBOARD STATS CARDS ===== */}
+          <div className="dashboard-stats-enad">
+            <div className="stat-card-enad total">
+
+              <div className="stat-info-enad">
+                <span className="stat-number-enad">{dashboardStats.total}</span>
+                <span className="stat-label-enad">Total Records</span>
+              </div>
+            </div>
+            <div className="stat-card-enad pending">
+
+              <div className="stat-info-enad">
+                <span className="stat-number-enad">{dashboardStats.pending}</span>
+                <span className="stat-label-enad">Pending</span>
+              </div>
+            </div>
+            <div className="stat-card-enad in-progress">
+
+              <div className="stat-info-enad">
+                <span className="stat-number-enad">{dashboardStats.inProgress}</span>
+                <span className="stat-label-enad">In Progress</span>
+              </div>
+            </div>
+            <div className="stat-card-enad completed">
+
+              <div className="stat-info-enad">
+                <span className="stat-number-enad">{dashboardStats.completed}</span>
+                <span className="stat-label-enad">Completed</span>
+              </div>
+            </div>
+          </div>
 
           <div className="search-bar-enad">
             <input
@@ -1929,7 +2004,6 @@ const MyAssessments = () => {
               >
                 <option value="all">All Status</option>
                 {getUniqueStatuses().map(status => {
-                  // First check PRE_ASSESSMENT_STATUS, then FREE_QUOTE_STATUS
                   const statusConfig = PRE_ASSESSMENT_STATUS[status] || FREE_QUOTE_STATUS[status] || { label: status?.replace(/_/g, ' ') };
                   return (
                     <option key={status} value={status}>
@@ -1960,7 +2034,7 @@ const MyAssessments = () => {
                       <th>Status</th>
                       <th>Address</th>
                       <th>Date</th>
-                      <th>Actions</th>
+                      <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1992,16 +2066,12 @@ const MyAssessments = () => {
                           <td className="date-cell-enad">
                             {formatDate(item.siteVisitDate || item.requestedAt)}
                           </td>
-                          <td className="actions-cell-enad">
-                            <button className="view-btn-enad" onClick={(e) => { e.stopPropagation(); handleSelectItem(item); }}>
-                              View
-                            </button>
-                            {item.type === 'pre_assessment' && hasDeviceAssigned(item) && (
-                              <span className="device-indicator-enad" title="Device Assigned"></span>
-                            )}
-                            {item.type === 'free_quote' && item.quotationFile && (
-                              <span className="quotation-indicator-enad" title="Quotation Ready"></span>
-                            )}
+                          <td data-label="Actions" style={{ textAlign: 'center' }}>
+                            <div className="actions-cell-enad">
+                              <button className="view-btn-enad" onClick={(e) => { e.stopPropagation(); handleSelectItem(item); }}>
+                                View
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );

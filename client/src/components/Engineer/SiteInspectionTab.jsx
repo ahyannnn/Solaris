@@ -1,6 +1,7 @@
 // components/Engineer/SiteInspectionTab.jsx
 import React, { useState, useEffect } from 'react';
 import { FaSun, FaMoon, FaLightbulb, FaFileInvoice, FaPlug } from 'react-icons/fa';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 
 const SiteInspectionTab = ({
   assessmentForm,
@@ -16,10 +17,11 @@ const SiteInspectionTab = ({
   isSubmitting,
   ROOF_CONDITIONS,
   STRUCTURAL_INTEGRITY,
-  // Energy Profile Data - passed from parent (used as initial/fallback)
   appliances = [],
   initialCalculationResults = {}
 }) => {
+  const { toast, showToast, hideToast } = useToast();
+
   // Local state for the appliance modal
   const [showApplianceModal, setShowApplianceModal] = useState(false);
   const [editingAppliance, setEditingAppliance] = useState(null);
@@ -32,6 +34,10 @@ const SiteInspectionTab = ({
     isMotor: false
   });
   const [applianceErrors, setApplianceErrors] = useState({});
+
+  // Delete confirmation modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [applianceToDelete, setApplianceToDelete] = useState(null);
 
   // ============ VALIDATION ERRORS STATE ============
   const [validationErrors, setValidationErrors] = useState({
@@ -231,7 +237,6 @@ const SiteInspectionTab = ({
 
     setValidationErrors(errors);
 
-    // Check if there are any errors
     const hasErrors = Object.values(errors).some(error => error !== '');
     return !hasErrors;
   };
@@ -240,7 +245,6 @@ const SiteInspectionTab = ({
   const handleSiteInspectionChange = (field, value) => {
     onSiteInspectionDataChange(field, value);
     
-    // Validate the field that was changed
     let error = '';
     switch(field) {
       case 'monthlyBill':
@@ -331,11 +335,25 @@ const SiteInspectionTab = ({
   };
 
   const deleteSiteAppliance = (index) => {
-    if (window.confirm('Are you sure you want to remove this appliance?')) {
+    setApplianceToDelete(index);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteAppliance = () => {
+    if (applianceToDelete !== null) {
       const updated = [...siteInspectionData.appliances];
-      updated.splice(index, 1);
+      const deletedAppliance = updated[applianceToDelete];
+      updated.splice(applianceToDelete, 1);
       onSiteInspectionDataChange('appliances', updated);
+      setShowDeleteModal(false);
+      setApplianceToDelete(null);
+      showToast(`"${deletedAppliance?.name || 'Appliance'}" removed successfully`, 'success');
     }
+  };
+
+  const cancelDeleteAppliance = () => {
+    setShowDeleteModal(false);
+    setApplianceToDelete(null);
   };
 
   const saveSiteAppliance = () => {
@@ -371,8 +389,10 @@ const SiteInspectionTab = ({
       const updated = [...siteInspectionData.appliances];
       updated[editingAppliance.index] = newAppliance;
       onSiteInspectionDataChange('appliances', updated);
+      showToast(`"${newAppliance.name}" updated successfully`, 'success');
     } else {
       onSiteInspectionDataChange('appliances', [...siteInspectionData.appliances, newAppliance]);
+      showToast(`"${newAppliance.name}" added successfully`, 'success');
     }
 
     setShowApplianceModal(false);
@@ -734,7 +754,7 @@ const SiteInspectionTab = ({
         )}
       </div>
 
-      {/* Appliance Modal */}
+      {/* ===== APPLIANCE MODAL ===== */}
       {showApplianceModal && (
         <div className="modal-overlay-enad" onClick={() => setShowApplianceModal(false)}>
           <div className="modal-content-enad appliance-modal-enad" onClick={e => e.stopPropagation()}>
@@ -837,6 +857,39 @@ const SiteInspectionTab = ({
           </div>
         </div>
       )}
+
+      {/* ===== DELETE CONFIRMATION MODAL ===== */}
+      {showDeleteModal && (
+        <div className="modal-overlay-enad" onClick={cancelDeleteAppliance}>
+          <div className="modal-content-enad confirm-modal-enad" onClick={e => e.stopPropagation()}>
+            <div className="modal-header-enad">
+              <h3>Confirm Delete</h3>
+              <button className="modal-close-enad" onClick={cancelDeleteAppliance}>×</button>
+            </div>
+            <div className="modal-body-enad">
+              <div className="confirm-message-enad">
+                <p>
+                  Are you sure you want to delete <strong>
+                    {applianceToDelete !== null && siteInspectionData.appliances[applianceToDelete]?.name}
+                  </strong>?
+                </p>
+                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="modal-actions-enad">
+              <button className="cancel-btn-enad" onClick={cancelDeleteAppliance}>Cancel</button>
+              <button className="confirm-delete-btn-enad" onClick={confirmDeleteAppliance}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} />
     </div>
   );
 };

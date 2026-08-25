@@ -216,7 +216,7 @@ bool sendToServer(String timestamp, float lat, float lon,
   http.setTimeout(20000);
   String json = "{";
   json += "\"deviceId\":\"" + deviceId + "\",";
-  json += "\"bookingRef\":\"" + bookingReference + "\",";
+  json += "\"bookingReference\":\"" + bookingReference + "\",";
   json += "\"timestamp\":\"" + timestamp + "\",";
   json += "\"irradiance\":" + String(irradiance) + ",";
   json += "\"temperature\":" + String(temp) + ",";

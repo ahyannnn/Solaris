@@ -215,6 +215,17 @@ const ProjectManagement = () => {
 
   const assignEngineer = async () => {
     if (!selectedProject || !formData.engineerId) return;
+    
+    // Defensive check: prevent assignment if project already has an engineer
+    if (selectedProject.assignedEngineerId) {
+      showToast('This project already has an assigned engineer', 'error');
+      setShowAssignModal(false);
+      setSelectedProject(null);
+      setFormData({ ...formData, engineerId: '', assignNotes: '' });
+      setOpenDropdownId(null);
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
@@ -229,6 +240,7 @@ const ProjectManagement = () => {
       setFormData({ ...formData, engineerId: '', assignNotes: '' });
       setOpenDropdownId(null);
       fetchProjects();
+      fetchStats();
     } catch (error) {
       console.error('Error assigning engineer:', error);
       showToast('Failed to assign engineer', 'error');
@@ -314,13 +326,14 @@ const ProjectManagement = () => {
       }
     ];
 
-    if (project.status === 'quoted') {
-      actions.push(
-        { label: 'Approve Project', icon: <FaCheck />, action: () => { setSelectedProject(project); setFormData({ ...formData, newStatus: 'approved' }); setShowStatusModal(true); setOpenDropdownId(null); }, color: 'success' }
-      );
-    }
+    // Check if project has an assigned engineer
+    const hasAssignedEngineer = !!project.assignedEngineerId;
 
-    if (project.status === 'approved' || project.status === 'initial_paid') {
+    // Only show Assign Engineer if status is approved or initial_paid AND no engineer is assigned yet
+    if (
+      (project.status === 'approved' || project.status === 'initial_paid') &&
+      !hasAssignedEngineer
+    ) {
       actions.push(
         { label: 'Assign Engineer', icon: <FaUserCog />, action: () => { setSelectedProject(project); setShowAssignModal(true); setOpenDropdownId(null); }, color: 'primary' }
       );

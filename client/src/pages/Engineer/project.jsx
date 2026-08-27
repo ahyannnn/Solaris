@@ -245,7 +245,7 @@ const EngineerProject = () => {
   };
 
   // ============================================================
-  // STEP-BASED WORKFLOW FUNCTIONS - FIXED
+  // STEP-BASED WORKFLOW FUNCTIONS - FIXED ✅
   // ============================================================
 
   /**
@@ -265,7 +265,7 @@ const EngineerProject = () => {
   };
 
   /**
-   * Check if project is waiting for payment (no action available)
+   * Check if project is waiting for payment (used in modal to lock the submit button)
    */
   const isWaitingForPayment = (project) => {
     const { status, paymentPreference } = project;
@@ -344,10 +344,13 @@ const EngineerProject = () => {
    * RULES:
    * - quoted/approved → NO BUTTON (waiting for payment)
    * - initial_paid/full_paid (with required payment paid) → Start
-   * - in_progress → Update (ALWAYS may Update, kahit 83% or final step)
+   * - in_progress → Update (ALWAYS may Update, kahit 60% pending or final step)
    * - progress_paid → Update
    * - completed → View
    * - full_paid for installment → Update (final step)
+   * 
+   * ✅ FIXED: Removed isWaitingForPayment() check from in_progress
+   * The payment lock now only exists in the modal
    */
   const getProjectAction = (project) => {
     const { status, paymentPreference } = project;
@@ -369,37 +372,33 @@ const EngineerProject = () => {
 
     // Full payment ready to start (ONLY for Full Payment preference)
     if (status === 'full_paid' && paymentPreference === 'full' && isRequiredPaymentPaid(project)) {
-      // For full payment, if installation hasn't started, show Start
       return { type: 'start', label: 'Start', icon: <FaTools />, isFinal: false };
     }
 
     // ============================================================
-    // FIX: Handle full_paid for INSTALLMENT projects
+    // FIX: full_paid for INSTALLMENT projects
     // full_paid in installment = final payment received
     // Should show UPDATE button (not Complete in table)
     // ============================================================
     if (status === 'full_paid' && paymentPreference !== 'full') {
-      return { type: 'update', label: 'Update', icon: <FaCheckCircle />, isFinal: true };
-    }
-
-    // In progress - check if waiting for payment
-    if (status === 'in_progress') {
-      if (isWaitingForPayment(project)) {
-        return { type: 'none', label: null, icon: null, isFinal: false };
-      }
-
-      // Check if this is the final step
       const finalStep = isFinalStep(project);
       return { type: 'update', label: 'Update', icon: <FaCheckCircle />, isFinal: finalStep };
     }
 
-    // Progress paid
-    if (status === 'progress_paid') {
-      if (isWaitingForPayment(project)) {
-        return { type: 'none', label: null, icon: null, isFinal: false };
-      }
+    // ============================================================
+    // ✅ FIXED: in_progress → ALWAYS show Update button
+    // NO payment check here! That belongs in the modal.
+    // ============================================================
+    if (status === 'in_progress') {
+      const finalStep = isFinalStep(project);
+      return { type: 'update', label: 'Update', icon: <FaCheckCircle />, isFinal: finalStep };
+    }
 
-      // Check if final payment is paid
+    // ============================================================
+    // ✅ FIXED: progress_paid → ALWAYS show Update button
+    // NO payment check here! That belongs in the modal.
+    // ============================================================
+    if (status === 'progress_paid') {
       const finalStep = isFinalStep(project);
       return { type: 'update', label: 'Update', icon: <FaCheckCircle />, isFinal: finalStep };
     }
@@ -932,7 +931,8 @@ const EngineerProject = () => {
         )}
 
         {/* ============================================================
-            Progress Update Modal
+            Progress Update Modal - FIXED ✅
+            Just disabled buttons when payment pending - no new UI elements
             ============================================================ */}
         {showProgressModal && selectedProject && (
           <div className="modal-overlay-engineerproject" onClick={() => setShowProgressModal(false)}>
@@ -993,6 +993,7 @@ const EngineerProject = () => {
                     value={progressForm.installationNotes}
                     onChange={(e) => setProgressForm({ ...progressForm, installationNotes: e.target.value })}
                     placeholder="Describe the progress, challenges, next steps..."
+                    disabled={isWaitingForPayment(selectedProject)}
                   />
                 </div>
 
@@ -1004,7 +1005,7 @@ const EngineerProject = () => {
                       accept="image/*"
                       multiple
                       onChange={handlePhotoSelect}
-                      disabled={uploadingPhotos}
+                      disabled={uploadingPhotos || isWaitingForPayment(selectedProject)}
                       id="photo-upload"
                       style={{ display: 'none' }}
                     />
@@ -1014,7 +1015,9 @@ const EngineerProject = () => {
                     <p className="upload-hint">
                       {newPhotoFiles.length > 0
                         ? `${newPhotoFiles.length} new photo(s) selected`
-                        : 'Select new photos to add to this project'}
+                        : isWaitingForPayment(selectedProject) 
+                          ? 'Upload disabled - payment required' 
+                          : 'Select new photos to add to this project'}
                     </p>
                   </div>
 
@@ -1027,6 +1030,7 @@ const EngineerProject = () => {
                             className="remove-photo-btn"
                             onClick={() => removePhoto(index)}
                             title="Remove photo"
+                            disabled={isWaitingForPayment(selectedProject)}
                           >
                             <FaTrash />
                           </button>
@@ -1053,26 +1057,35 @@ const EngineerProject = () => {
                   <button
                     className="upload-photos-btn"
                     onClick={uploadPhotos}
-                    disabled={uploadingPhotos || newPhotoFiles.length === 0}
+                    disabled={uploadingPhotos || newPhotoFiles.length === 0 || isWaitingForPayment(selectedProject)}
                   >
                     {uploadingPhotos ? <FaSpinner className="spinning" /> : <FaUpload />}
                     {uploadingPhotos ? 'Uploading...' : 'Upload Photos'}
                   </button>
-                  <button
-                    className="update-btn"
-                    onClick={() => {
-                      const action = getProjectAction(selectedProject);
-                      const isFinal = action.isFinal || false;
-                      updateProgress(action.type, isFinal);
-                    }}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? <FaSpinner className="spinning" /> : null}
-                    {isSubmitting ? 'Submitting...' :
-                      (getProjectAction(selectedProject).type === 'start' ? 'Start Installation' :
-                       getProjectAction(selectedProject).isFinal ? 'Complete Project' :
-                       'Update Progress')}
-                  </button>
+                  
+                  {(() => {
+                    const action = getProjectAction(selectedProject);
+                    const isFinal = action.isFinal || false;
+                    const progressLocked = isWaitingForPayment(selectedProject);
+
+                    let buttonText = 'Update Progress';
+                    if (action.type === 'start') buttonText = 'Start Installation';
+                    else if (isFinal) buttonText = 'Complete Project';
+
+                    return (
+                      <button
+                        className="update-btn"
+                        onClick={() => {
+                          if (progressLocked) return;
+                          updateProgress(action.type, isFinal);
+                        }}
+                        disabled={isSubmitting || progressLocked}
+                      >
+                        {isSubmitting ? <FaSpinner className="spinning" /> : null}
+                        {isSubmitting ? 'Submitting...' : buttonText}
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

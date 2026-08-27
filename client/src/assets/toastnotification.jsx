@@ -19,13 +19,32 @@ const ToastNotification = ({
   duration = 5000,
   onClose,
 }) => {
-  const [progress, setProgress] = useState(100);
-  const [isPaused, setIsPaused] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
-  const animationRef = useRef(null);
+  // ============================================================
+  // REFS & STATE TRACKING
+  // ============================================================
+
+  const fuseRef = useRef(null);
+  const rafIdRef = useRef(null);
+  const exitTimeoutRef = useRef(null);
+
   const startTimeRef = useRef(null);
-  const elapsedRef = useRef(0);
+  const remainingRef = useRef(duration);
+  const isPausedRef = useRef(false);
+  const isClosingRef = useRef(false);
+  const sessionRef = useRef(0);
+
+  const durationRef = useRef(duration);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    durationRef.current = duration;
+  }, [duration]);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   // ============================================================
   // GET COLOR
@@ -68,71 +87,168 @@ const ToastNotification = ({
   };
 
   // ============================================================
-  // START / RESET TIMER
+  // CLEANUP ANIMATIONS & TIMERS
   // ============================================================
 
-  useEffect(() => {
-    if (!show) {
-      setIsExiting(false);
+  const stopAnimation = () => {
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+  };
+
+  const cleanupAll = () => {
+    stopAnimation();
+    if (exitTimeoutRef.current !== null) {
+      clearTimeout(exitTimeoutRef.current);
+      exitTimeoutRef.current = null;
+    }
+  };
+
+  // ============================================================
+  // CLOSE TOAST
+  // ============================================================
+
+  const triggerClose = (sessionId) => {
+    if (sessionId !== sessionRef.current || isClosingRef.current) {
       return;
     }
 
-    setProgress(100);
-    setIsPaused(false);
-    setIsExiting(false);
-    startTimeRef.current = null;
-    elapsedRef.current = 0;
+    isClosingRef.current = true;
+    isPausedRef.current = false;
 
-    animationRef.current = requestAnimationFrame(animateProgress);
+    cleanupAll();
+
+    if (fuseRef.current) {
+      fuseRef.current.style.width = '0%';
+    }
+
+    setIsExiting(true);
+
+    exitTimeoutRef.current = setTimeout(() => {
+      if (sessionId !== sessionRef.current) {
+        return;
+      }
+      exitTimeoutRef.current = null;
+      if (onCloseRef.current) {
+        onCloseRef.current();
+      }
+    }, 400);
+  };
+
+  // ============================================================
+  // RAF ANIMATION LOOP
+  // ============================================================
+
+  const startAnimation = (sessionId) => {
+    stopAnimation();
+
+    const animate = (now) => {
+      if (
+        sessionId !== sessionRef.current ||
+        isClosingRef.current ||
+        isPausedRef.current
+      ) {
+        return;
+      }
+
+      if (startTimeRef.current === null) {
+        startTimeRef.current = now;
+      }
+
+      const elapsed = now - startTimeRef.current;
+      const currentDuration = Math.max(
+        1,
+        Number(durationRef.current) || 5000
+      );
+      const activeRemaining = Math.max(0, remainingRef.current - elapsed);
+
+      const percent = Math.max(
+        0,
+        Math.min(100, (activeRemaining / currentDuration) * 100)
+      );
+
+      if (fuseRef.current) {
+        fuseRef.current.style.width = `${percent}%`;
+      }
+
+      if (activeRemaining <= 0) {
+        remainingRef.current = 0;
+        startTimeRef.current = null;
+        triggerClose(sessionId);
+        return;
+      }
+
+      rafIdRef.current = requestAnimationFrame(animate);
+    };
+
+    rafIdRef.current = requestAnimationFrame(animate);
+  };
+
+  // ============================================================
+  // LIFECYCLE / SHOW EFFECT
+  // ============================================================
+
+  useEffect(() => {
+    sessionRef.current += 1;
+    const currentSession = sessionRef.current;
+    const safeDuration = Math.max(1, Number(duration) || 5000);
+
+    cleanupAll();
+
+    isPausedRef.current = false;
+    isClosingRef.current = false;
+    startTimeRef.current = null;
+    remainingRef.current = safeDuration;
+
+    if (!show) {
+      setIsExiting(false);
+      return () => cleanupAll();
+    }
+
+    setIsExiting(false);
+
+    if (fuseRef.current) {
+      fuseRef.current.style.width = '100%';
+    }
+
+    startAnimation(currentSession);
 
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      cleanupAll();
     };
   }, [show, duration]);
-
-  // ============================================================
-  // PROGRESS ANIMATION
-  // ============================================================
-
-  const animateProgress = (timestamp) => {
-    if (isPaused) return;
-
-    if (!startTimeRef.current) {
-      startTimeRef.current = timestamp;
-    }
-
-    const elapsed = timestamp - startTimeRef.current + elapsedRef.current;
-    const newProgress = Math.max(0, 100 - (elapsed / duration) * 100);
-
-    setProgress(newProgress);
-
-    if (newProgress > 0) {
-      animationRef.current = requestAnimationFrame(animateProgress);
-    } else {
-      setIsExiting(true);
-      setTimeout(() => {
-        onClose();
-      }, 400);
-    }
-  };
 
   // ============================================================
   // PAUSE ON HOVER
   // ============================================================
 
   const handleMouseEnter = () => {
-    setIsPaused(true);
-
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
+    if (isClosingRef.current || isPausedRef.current) {
+      return;
     }
 
     if (startTimeRef.current !== null) {
-      const currentElapsed = performance.now() - startTimeRef.current + elapsedRef.current;
-      elapsedRef.current = currentElapsed;
-      startTimeRef.current = null;
+      const now = performance.now();
+      const elapsed = now - startTimeRef.current;
+      remainingRef.current = Math.max(0, remainingRef.current - elapsed);
+    }
+
+    startTimeRef.current = null;
+    isPausedRef.current = true;
+    stopAnimation();
+
+    const currentDuration = Math.max(
+      1,
+      Number(durationRef.current) || 5000
+    );
+    const frozenPercent = Math.max(
+      0,
+      Math.min(100, (remainingRef.current / currentDuration) * 100)
+    );
+
+    if (fuseRef.current) {
+      fuseRef.current.style.width = `${frozenPercent}%`;
     }
   };
 
@@ -141,26 +257,41 @@ const ToastNotification = ({
   // ============================================================
 
   const handleMouseLeave = () => {
-    setIsPaused(false);
-    startTimeRef.current = null;
-
-    if (progress > 0) {
-      animationRef.current = requestAnimationFrame(animateProgress);
+    if (isClosingRef.current || !isPausedRef.current) {
+      return;
     }
+
+    if (remainingRef.current <= 0) {
+      isPausedRef.current = false;
+      triggerClose(sessionRef.current);
+      return;
+    }
+
+    isPausedRef.current = false;
+    startTimeRef.current = null;
+    startAnimation(sessionRef.current);
   };
 
   // ============================================================
-  // HANDLE CLOSE
+  // MANUAL CLOSE
   // ============================================================
 
   const handleClose = () => {
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
+    if (isClosingRef.current) {
+      return;
     }
-    setIsExiting(true);
-    setTimeout(() => {
-      onClose();
-    }, 400);
+
+    if (startTimeRef.current !== null) {
+      const now = performance.now();
+      const elapsed = now - startTimeRef.current;
+      remainingRef.current = Math.max(0, remainingRef.current - elapsed);
+    }
+
+    startTimeRef.current = null;
+    isPausedRef.current = false;
+
+    cleanupAll();
+    triggerClose(sessionRef.current);
   };
 
   // ============================================================
@@ -177,7 +308,9 @@ const ToastNotification = ({
 
   return (
     <div
-      className={`toast-notification type-${type} ${isExiting ? 'exit' : ''}`}
+      className={`toast-notification type-${type} ${
+        isExiting ? 'exit' : ''
+      }`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{
@@ -187,12 +320,8 @@ const ToastNotification = ({
       {/* FULL BORDER GLOW */}
       <div className="toast-border-glow" />
 
-      {/* ======================================================
-          TOAST CONTENT
-      ====================================================== */}
-
+      {/* TOAST CONTENT */}
       <div className="toast-content">
-        {/* ICON */}
         <div
           className="toast-icon-wrapper"
           style={{
@@ -202,14 +331,10 @@ const ToastNotification = ({
           {getIcon()}
         </div>
 
-        {/* MESSAGE */}
         <span className="toast-message">{message}</span>
       </div>
 
-      {/* ======================================================
-          CLOSE BUTTON
-      ====================================================== */}
-
+      {/* CLOSE BUTTON */}
       <button
         className="toast-close"
         onClick={handleClose}
@@ -218,15 +343,13 @@ const ToastNotification = ({
         <FaTimes />
       </button>
 
-      {/* ======================================================
-          PROGRESS BAR
-      ====================================================== */}
-
+      {/* PROGRESS BAR */}
       <div className="toast-progress-track">
         <div
+          ref={fuseRef}
           className="toast-progress-fuse"
           style={{
-            width: `${progress}%`,
+            width: '100%',
             background: color,
           }}
         />
@@ -249,7 +372,11 @@ const useToast = (
 ) => {
   const [toast, setToast] = useState(initialState);
 
-  const showToast = (message, type = 'success', duration = 5000) => {
+  const showToast = (
+    message,
+    type = 'success',
+    duration = 5000
+  ) => {
     setToast({
       show: true,
       message,
@@ -276,7 +403,7 @@ const useToast = (
 };
 
 // ============================================================
-// CSS
+// CSS (REMOVED BROKEN CSS TRANSITION PROPERTY)
 // ============================================================
 
 const toastStyles = `
@@ -486,10 +613,8 @@ const toastStyles = `
 
 .toast-progress-fuse {
   height: 100%;
-
-  transition: width 0.08s linear;
-
   border-radius: 0 0 16px 16px;
+  will-change: width;
 }
 
 /* ============================================================
@@ -499,9 +624,11 @@ const toastStyles = `
 .toast-success {
   border-color: #2ecc71 !important;
 }
+
 .toast-success .toast-progress-fuse {
   background: #2ecc71 !important;
 }
+
 .toast-success .toast-icon-wrapper {
   color: #2ecc71 !important;
 }
@@ -509,9 +636,11 @@ const toastStyles = `
 .toast-error {
   border-color: #e74c3c !important;
 }
+
 .toast-error .toast-progress-fuse {
   background: #e74c3c !important;
 }
+
 .toast-error .toast-icon-wrapper {
   color: #e74c3c !important;
 }
@@ -519,9 +648,11 @@ const toastStyles = `
 .toast-warning {
   border-color: #f39c12 !important;
 }
+
 .toast-warning .toast-progress-fuse {
   background: #f39c12 !important;
 }
+
 .toast-warning .toast-icon-wrapper {
   color: #f39c12 !important;
 }
@@ -529,9 +660,11 @@ const toastStyles = `
 .toast-info {
   border-color: #3498db !important;
 }
+
 .toast-info .toast-progress-fuse {
   background: #3498db !important;
 }
+
 .toast-info .toast-icon-wrapper {
   color: #3498db !important;
 }
@@ -545,6 +678,7 @@ const toastStyles = `
     opacity: 0;
     transform: translateX(40px) scale(0.95);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0) scale(1);
@@ -560,6 +694,7 @@ const toastStyles = `
     opacity: 1;
     transform: translateX(0) scale(1);
   }
+
   100% {
     opacity: 0;
     transform: translateX(40px) scale(0.95);
@@ -578,6 +713,7 @@ const toastStyles = `
   0% {
     opacity: 0.3;
   }
+
   100% {
     opacity: 0.7;
   }

@@ -1,33 +1,32 @@
-/* styles/Admin/billing.css - Dark Solar Theme for Billing */
+/* styles/Admin/billing.css - Light Solar Theme for Billing */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE LAYOUT - BILLING
+   BASE LAYOUT - BILLING - LIGHT SOLAR
    ============================================ */
 .admin-billing {
-  
-  background: #0B111A;
+  background: #F3F5F1;
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   HEADER
+   HEADER - LIGHT
    ============================================ */
 .billing-header-adminbilling {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
 /* ============================================
-   CHARTS ROW
+   CHARTS ROW - LIGHT GLASS
    ============================================ */
 .billing-charts-row-adminbilling {
   display: grid;
@@ -37,16 +36,20 @@
 }
 
 .billing-chart-card-adminbilling {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
   padding: 20px 24px 16px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
   transition: all 200ms ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .billing-chart-card-adminbilling:hover {
-  border-color: rgba(243, 156, 18, 0.1);
+  transform: translateY(-2px);
+  border-color: rgba(243, 156, 18, 0.25);
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
 }
 
 .billing-chart-header-adminbilling {
@@ -61,32 +64,32 @@
 .billing-chart-header-adminbilling h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
 .billing-chart-period-adminbilling {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .billing-chart-wrapper-adminbilling {
   height: 200px;
 }
 
-/* Chart Tooltip */
+/* Chart Tooltip - LIGHT */
 .chart-tooltip-adminbilling {
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   padding: 12px 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .tooltip-label-adminbilling {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #98A2B3;
   margin: 0 0 4px 0;
 }
 
@@ -94,11 +97,11 @@
   font-size: 13px;
   font-weight: 500;
   margin: 2px 0;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   TABS
+   TABS - LIGHT GLASS
    ============================================ */
 .billing-tabs-wrapper-adminbilling {
   margin-bottom: 20px;
@@ -108,16 +111,19 @@
   display: none;
   width: 100%;
   padding: 12px 16px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 10px;
-  color: #FFFFFF;
+  color: #17212B;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
   align-items: center;
   justify-content: space-between;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .mobile-tab-toggle-adminbilling .tab-label-adminbilling {
@@ -127,7 +133,7 @@
 
 .toggle-arrow-adminbilling {
   transition: transform 200ms ease;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .toggle-arrow-adminbilling.open {
@@ -138,11 +144,14 @@
   display: inline-flex;
   gap: 6px;
   flex-wrap: wrap;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   padding: 6px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   width: auto;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .tab-btn-adminbilling {
@@ -152,7 +161,7 @@
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   cursor: pointer;
   transition: all 200ms ease;
   display: inline-flex;
@@ -163,8 +172,8 @@
 }
 
 .tab-btn-adminbilling:hover {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.05);
+  color: #17212B;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .tab-btn-adminbilling.active {
@@ -181,10 +190,10 @@
   height: 22px;
   padding: 0 8px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.05);
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #98A2B3;
 }
 
 .tab-btn-adminbilling.active .tab-badge-adminbilling {
@@ -193,7 +202,7 @@
 }
 
 /* ============================================
-   FILTERS / TOOLBAR
+   FILTERS / TOOLBAR - LIGHT
    ============================================ */
 .filters-section-adminbilling {
   display: flex;
@@ -213,17 +222,20 @@
 .search-group-adminbilling input {
   width: 100%;
   padding: 10px 14px 10px 40px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .search-group-adminbilling input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .search-group-adminbilling input:focus {
@@ -237,7 +249,7 @@
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 14px;
 }
 
@@ -249,15 +261,18 @@
 .filter-group-adminbilling select {
   width: 100%;
   padding: 10px 36px 10px 14px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
   appearance: none;
   transition: all 200ms ease;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .filter-group-adminbilling select:focus {
@@ -267,8 +282,8 @@
 }
 
 .filter-group-adminbilling select option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 .select-arrow-adminbilling {
@@ -276,7 +291,7 @@
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   pointer-events: none;
   font-size: 12px;
 }
@@ -286,9 +301,9 @@
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -299,9 +314,9 @@
 }
 
 .refresh-btn-adminbilling:hover {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .spinning-adminbilling {
@@ -313,14 +328,14 @@
 }
 
 /* ============================================
-   TABLE
+   TABLE - LIGHT GLASS
    ============================================ */
 .payments-table-container-adminbilling {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
 }
 
 .table-responsive-adminbilling {
@@ -334,7 +349,7 @@
 }
 
 .payments-table-adminbilling thead {
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .payments-table-adminbilling thead th {
@@ -344,12 +359,12 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: rgba(255, 255, 255, 0.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #98A2B3;
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .payments-table-adminbilling tbody tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
   transition: background 200ms ease;
 }
 
@@ -358,33 +373,33 @@
 }
 
 .payments-table-adminbilling tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .payments-table-adminbilling tbody td {
   padding: 14px 16px;
   vertical-align: middle;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
 .ref-cell-adminbilling {
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: monospace;
   font-size: 12px;
 }
 
 .amount-adminbilling {
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .amount-adminbilling.balance {
-  color: #F39C12;
+  color: #D97706;
 }
 
 /* ============================================
-   STATUS BADGES
+   STATUS BADGES - LIGHT THEME
    ============================================ */
 .status-badge-adminbilling {
   display: inline-block;
@@ -399,58 +414,58 @@
 
 .status-badge-adminbilling.pending,
 .status-badge-adminbilling.waiting-verification {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
-  border: 1px solid rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border: 1px solid rgba(243, 156, 18, 0.20);
 }
 
 .status-badge-adminbilling.for-verification {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .status-badge-adminbilling.paid,
 .status-badge-adminbilling.verified {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .status-badge-adminbilling.partial {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .status-badge-adminbilling.rejected,
 .status-badge-adminbilling.failed,
 .status-badge-adminbilling.overdue {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 .status-badge-adminbilling.scheduled {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .status-badge-adminbilling.processing {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .status-badge-adminbilling.completed {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 /* ============================================
-   INVOICE TYPE BADGES
+   INVOICE TYPE BADGES - LIGHT
    ============================================ */
 .invoice-type-adminbilling {
   display: inline-block;
@@ -463,32 +478,32 @@
 }
 
 .invoice-type-adminbilling.initial {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
 }
 
 .invoice-type-adminbilling.progress {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
 }
 
 .invoice-type-adminbilling.final {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
 }
 
 .invoice-type-adminbilling.full {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
 }
 
 .invoice-type-adminbilling.additional {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
 }
 
 /* ============================================
-   GATEWAY BADGES
+   GATEWAY BADGES - LIGHT
    ============================================ */
 .gateway-badge-adminbilling {
   display: inline-block;
@@ -501,22 +516,22 @@
 }
 
 .gateway-badge-adminbilling.paymongo {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
 }
 
 .gateway-badge-adminbilling.cash {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
 }
 
 .gateway-badge-adminbilling.manual {
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.4);
+  background: #EEF0ED;
+  color: #667085;
 }
 
 /* ============================================
-   RECEIPT CELL
+   RECEIPT CELL - LIGHT
    ============================================ */
 .receipt-cell-adminbilling {
   text-align: center;
@@ -526,7 +541,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #3B82F6;
+  color: #2563EB;
   text-decoration: none;
   font-size: 12px;
   font-weight: 500;
@@ -534,17 +549,17 @@
 }
 
 .receipt-link-adminbilling:hover {
-  color: #60A5FA;
+  color: #3B82F6;
   text-decoration: underline;
 }
 
 .no-receipt-adminbilling {
-  color: rgba(255, 255, 255, 0.2);
+  color: #D1D5DB;
   font-size: 14px;
 }
 
 /* ============================================
-   VERIFIED / FAILED BADGES
+   VERIFIED / FAILED BADGES - LIGHT
    ============================================ */
 .verified-badge-adminbilling {
   display: inline-block;
@@ -552,15 +567,15 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .verified-badge-adminbilling.auto-verified {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .failed-badge-adminbilling {
@@ -569,13 +584,13 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 /* ============================================
-   TRANSACTION TYPE
+   TRANSACTION TYPE - LIGHT
    ============================================ */
 .transaction-type-adminbilling {
   display: inline-block;
@@ -588,17 +603,17 @@
 }
 
 .transaction-type-adminbilling.pre {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
 }
 
 .transaction-type-adminbilling.project {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
 }
 
 /* ============================================
-   ACTION DROPDOWN
+   ACTION DROPDOWN - LIGHT
    ============================================ */
 .action-dropdown-container-adminbilling {
   position: relative;
@@ -610,9 +625,9 @@
   align-items: center;
   gap: 8px;
   padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
@@ -622,9 +637,9 @@
 }
 
 .action-dropdown-toggle-adminbilling:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .dropdown-arrow-adminbilling {
@@ -639,12 +654,11 @@
 .action-dropdown-menu-adminbilling {
   min-width: 200px;
   max-width: 250px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
   padding: 6px;
-  backdrop-filter: blur(10px);
   overflow: hidden;
   max-height: 300px;
   overflow-y: auto;
@@ -655,7 +669,7 @@
 }
 
 .action-dropdown-menu-adminbilling::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -678,60 +692,60 @@
   text-align: left;
   transition: all 150ms ease;
   font-family: 'Poppins', sans-serif;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
 .dropdown-item-adminbilling:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .dropdown-item-adminbilling.success {
-  color: #10B981;
+  color: #059669;
 }
 
 .dropdown-item-adminbilling.success:hover {
-  background: rgba(16, 185, 129, 0.12);
+  background: rgba(16, 185, 129, 0.10);
 }
 
 .dropdown-item-adminbilling.danger {
-  color: #EF4444;
+  color: #DC2626;
 }
 
 .dropdown-item-adminbilling.danger:hover {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.10);
 }
 
 .dropdown-item-adminbilling.warning {
-  color: #F39C12;
+  color: #D97706;
 }
 
 .dropdown-item-adminbilling.warning:hover {
-  background: rgba(243, 156, 18, 0.12);
+  background: rgba(243, 156, 18, 0.10);
 }
 
 .dropdown-item-adminbilling.primary {
-  color: #3B82F6;
+  color: #2563EB;
 }
 
 .dropdown-item-adminbilling.primary:hover {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.10);
 }
 
 .dropdown-item-adminbilling.info {
-  color: #06B6D4;
+  color: #0891B2;
 }
 
 .dropdown-item-adminbilling.info:hover {
-  background: rgba(6, 182, 212, 0.12);
+  background: rgba(6, 182, 212, 0.10);
 }
 
 /* ============================================
-   EMPTY STATE
+   EMPTY STATE - LIGHT
    ============================================ */
 .empty-state-adminbilling {
   text-align: center;
   padding: 48px 20px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   font-size: 14px;
 }
 
@@ -741,7 +755,7 @@
 }
 
 /* ============================================
-   PAGINATION
+   PAGINATION - LIGHT
    ============================================ */
 .pagination-adminbilling {
   display: flex;
@@ -754,7 +768,7 @@
 
 .pagination-info-adminbilling {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .pagination-controls-adminbilling {
@@ -770,8 +784,8 @@
   gap: 6px;
   padding: 8px 16px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -781,9 +795,9 @@
 }
 
 .page-btn-adminbilling:hover:not(:disabled) {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.5);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .page-btn-adminbilling:disabled {
@@ -799,7 +813,7 @@
   justify-content: center;
   padding: 0 8px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   border: 1px solid transparent;
   border-radius: 8px;
   font-size: 13px;
@@ -810,8 +824,8 @@
 }
 
 .page-number-adminbilling:hover {
-  background: #131C28;
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.5);
+  color: #17212B;
 }
 
 .page-number-adminbilling.active {
@@ -821,7 +835,7 @@
 }
 
 /* ============================================
-   MODALS
+   MODALS - LIGHT GLASS
    ============================================ */
 .modal-overlay-adminbilling {
   position: fixed;
@@ -836,15 +850,15 @@
 }
 
 .modal-content-adminbilling {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.98);
   border-radius: 18px;
   max-width: 560px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid #EEF0ED;
   position: relative;
 }
 
@@ -852,9 +866,9 @@
   padding: 20px 24px 16px 24px;
   font-size: 20px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .modal-body-adminbilling {
@@ -868,7 +882,7 @@
 }
 
 .modal-body-adminbilling::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -884,9 +898,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
+  color: #98A2B3;
   font-size: 20px;
   cursor: pointer;
   display: flex;
@@ -897,26 +911,26 @@
 }
 
 .modal-close-adminbilling:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  border-color: #EF4444;
   color: #EF4444;
 }
 
 .modal-actions-adminbilling {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
   display: flex;
   gap: 12px;
   justify-content: flex-end;
   flex-wrap: wrap;
 }
 
-/* Modal Buttons */
+/* Modal Buttons - LIGHT */
 .btn-cancel-adminbilling {
   padding: 10px 24px;
-  background: #131C28;
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #17212B;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -926,7 +940,7 @@
 }
 
 .btn-cancel-adminbilling:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .btn-verify-adminbilling,
@@ -998,8 +1012,8 @@
 .btn-close-adminbilling {
   padding: 10px 24px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -1009,18 +1023,18 @@
 }
 
 .btn-close-adminbilling:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #FFFFFF;
+  background: rgba(0, 0, 0, 0.03);
+  color: #17212B;
 }
 
 /* ============================================
-   DETAIL ROWS IN MODALS
+   DETAIL ROWS IN MODALS - LIGHT
    ============================================ */
 .detail-row-adminbilling {
   display: flex;
   justify-content: space-between;
   padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .detail-row-adminbilling:last-child {
@@ -1028,12 +1042,12 @@
 }
 
 .detail-row-adminbilling span {
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   font-size: 13px;
 }
 
 .detail-row-adminbilling strong {
-  color: #FFFFFF;
+  color: #17212B;
   font-size: 14px;
 }
 
@@ -1048,7 +1062,7 @@
 .detail-section-adminbilling h4 {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   margin: 0 0 8px 0;
@@ -1060,11 +1074,11 @@
 .detail-section-adminbilling p {
   margin: 4px 0;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .detail-section-adminbilling p strong {
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .detail-grid-adminbilling {
@@ -1079,7 +1093,7 @@
 .detail-grid-adminbilling label {
   font-size: 11px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   display: block;
@@ -1088,12 +1102,12 @@
 
 .detail-grid-adminbilling p {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
   margin: 0;
 }
 
 /* ============================================
-   BANK TRANSFER SPECIFIC
+   BANK TRANSFER SPECIFIC - LIGHT
    ============================================ */
 .detail-modal-adminbilling {
   max-width: 700px;
@@ -1101,7 +1115,7 @@
 
 .modal-header-adminbilling {
   padding: 20px 24px 16px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .modal-title-adminbilling {
@@ -1116,19 +1130,19 @@
   border: none;
   font-size: 20px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
 .modal-subtitle-adminbilling {
   margin-top: 4px;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .modal-footer-adminbilling {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
   display: flex;
   gap: 12px;
   justify-content: flex-end;
@@ -1137,14 +1151,14 @@
 
 .bank-name-adminbilling {
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   font-size: 13px;
 }
 
 .customer-cell-adminbilling small {
   display: block;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .rejected-row-adminbilling {
@@ -1166,10 +1180,10 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -1179,34 +1193,35 @@
 }
 
 .proof-btn-adminbilling:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .proof-btn-adminbilling.download {
-  color: #3B82F6;
+  color: #2563EB;
 }
 
 .proof-btn-adminbilling.download:hover {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.10);
 }
 
 .no-proof-adminbilling {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 13px;
 }
 
 .remarks-text-adminbilling {
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   font-size: 13px;
   padding: 8px 12px;
-  background: #131C28;
+  background: #F3F5F1;
   border-radius: 8px;
   margin: 0;
 }
 
 .rejection-text-adminbilling {
-  color: #EF4444;
+  color: #DC2626;
   font-size: 13px;
   padding: 8px 12px;
   background: rgba(239, 68, 68, 0.06);
@@ -1232,10 +1247,10 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
-  color: #3B82F6;
+  color: #2563EB;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -1244,12 +1259,12 @@
 }
 
 .receipt-btn-adminbilling:hover {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.10);
 }
 
 .receipt-number-adminbilling {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-family: monospace;
 }
 
@@ -1266,12 +1281,12 @@
 
 .reject-info-adminbilling p {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0 0 12px 0;
 }
 
 .payment-summary-adminbilling {
-  background: #131C28;
+  background: #F3F5F1;
   border-radius: 10px;
   padding: 12px 16px;
   text-align: left;
@@ -1280,14 +1295,14 @@
 .payment-summary-adminbilling div {
   padding: 4px 0;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .payment-summary-adminbilling div strong {
-  color: #FFFFFF;
+  color: #17212B;
 }
 
-/* Form Groups in Modals */
+/* Form Groups in Modals - LIGHT */
 .form-group-adminbilling {
   display: flex;
   flex-direction: column;
@@ -1298,18 +1313,18 @@
 .form-group-adminbilling label {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .form-group-adminbilling textarea,
 .form-group-adminbilling input,
 .form-group-adminbilling select {
   padding: 10px 14px;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
   width: 100%;
@@ -1337,7 +1352,7 @@
 .invoice-totals-adminbilling {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
 }
 
 .total-row-adminbilling {
@@ -1345,15 +1360,15 @@
   justify-content: space-between;
   font-size: 16px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .total-row-adminbilling strong {
-  color: #F39C12;
+  color: #D97706;
 }
 
 .payment-details-adminbilling {
-  background: #131C28;
+  background: #F3F5F1;
   border-radius: 10px;
   padding: 12px 16px;
   margin-bottom: 16px;
@@ -1365,10 +1380,10 @@
 
 .view-proof-btn-adminbilling {
   padding: 8px 16px;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
-  color: #3B82F6;
+  color: #2563EB;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -1377,13 +1392,13 @@
 }
 
 .view-proof-btn-adminbilling:hover {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.10);
 }
 
 .verification-notes-adminbilling label {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   display: block;
   margin-bottom: 4px;
 }
@@ -1391,20 +1406,20 @@
 .payment-info-adminbilling p {
   margin: 4px 0;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .payment-info-adminbilling p strong {
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   SKELETON LOADING
+   SKELETON LOADING - LIGHT
    ============================================ */
 .skeleton-line-adminbilling {
   border-radius: 6px;
   animation: shimmer-adminbilling 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -1422,7 +1437,7 @@
   width: 60%;
   border-radius: 8px;
   animation: shimmer-adminbilling 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -1431,24 +1446,24 @@
   width: 120px;
   border-radius: 8px;
   animation: shimmer-adminbilling 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
 .skeleton-chart-adminbilling {
   height: 200px;
   border-radius: 14px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
 }
 
 .skeleton-tab-adminbilling {
   height: 40px;
   width: 120px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer-adminbilling 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -1456,9 +1471,9 @@
   height: 40px;
   width: 160px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer-adminbilling 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -1466,21 +1481,21 @@
   height: 40px;
   width: 280px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer-adminbilling 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
 .skeleton-table-adminbilling {
   height: 300px;
   border-radius: 14px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - UNCHANGED STRUCTURE
    ============================================ */
 
 @media (max-width: 1200px) {
@@ -1514,8 +1529,8 @@
     display: none;
     flex-direction: column;
     width: 100%;
-    background: #1A2533;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(255, 255, 255, 0.9);
     border-radius: 10px;
     padding: 4px;
   }
@@ -1549,7 +1564,7 @@
   .payments-table-adminbilling tbody td {
     display: block;
     padding: 8px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid #EEF0ED;
   }
   .payments-table-adminbilling tbody td:last-child {
     border-bottom: none;
@@ -1557,7 +1572,7 @@
   .payments-table-adminbilling tbody td[data-label]::before {
     content: attr(data-label) ": ";
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.4);
+    color: #98A2B3;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -1567,7 +1582,7 @@
   .payments-table-adminbilling tbody tr {
     display: block;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid #EEF0ED;
   }
   .payments-table-adminbilling tbody tr:last-child {
     border-bottom: none;
@@ -1698,7 +1713,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES
+   REDUCED MOTION PREFERENCES - LIGHT
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -1717,7 +1732,7 @@
   .skeleton-select-adminbilling,
   .skeleton-search-adminbilling {
     animation: none !important;
-    background: #131C28 !important;
+    background: #EEF0ED !important;
   }
   .refresh-btn-adminbilling:hover,
   .action-dropdown-toggle-adminbilling:hover,
@@ -1737,4 +1752,4 @@
   .dropdown-arrow-adminbilling.open {
     transform: none !important;
   }
-} 
+}

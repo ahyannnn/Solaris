@@ -1,15 +1,15 @@
-/* styles/Admin/siteassessment.css - Dark Solar Theme for Site Assessment */
+/* styles/Admin/siteassessment.css - Light Solar Theme (Converted from Dark Solar) */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE LAYOUT - SITE ASSESSMENT
+   BASE LAYOUT - SITE ASSESSMENT - LIGHT SOLAR
    ============================================ */
 .site-assessment-adminbills_ {
-  background: #0B111A;
+  background: #F3F5F1;
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
@@ -20,26 +20,30 @@
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
 /* ============================================
-   CHART AREA
+   CHART AREA - LIGHT GLASS
    ============================================ */
 .chart-area-adminbills_ {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
   padding: 20px 24px 16px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
   margin-bottom: 24px;
   transition: all 200ms ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .chart-area-adminbills_:hover {
-  border-color: rgba(243, 156, 18, 0.1);
+  transform: translateY(-2px);
+  border-color: rgba(243, 156, 18, 0.25);
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
 }
 
 .chart-header-adminbills_ {
@@ -54,32 +58,32 @@
 .chart-header-adminbills_ h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
 .chart-period-adminbills_ {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .chart-wrapper-adminbills_ {
   height: 220px;
 }
 
-/* Chart Tooltip */
+/* Chart Tooltip - LIGHT */
 .recharts-custom-tooltip-adminbills_ {
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   padding: 12px 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .tooltip-label-adminbills_ {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #98A2B3;
   margin: 0 0 4px 0;
 }
 
@@ -87,22 +91,25 @@
   font-size: 13px;
   font-weight: 500;
   margin: 2px 0;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   TABS
+   TABS - RECTANGULAR GLASS
    ============================================ */
 .tabs-adminbills_ {
   display: inline-flex;
   gap: 6px;
   margin-bottom: 20px;
   flex-wrap: wrap;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   padding: 6px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   width: auto;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .tab-btn-adminbills_ {
@@ -112,7 +119,7 @@
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   cursor: pointer;
   transition: all 200ms ease;
   display: inline-flex;
@@ -123,8 +130,8 @@
 }
 
 .tab-btn-adminbills_:hover {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.05);
+  color: #17212B;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .tab-btn-adminbills_.active-adminbills_ {
@@ -141,10 +148,10 @@
   height: 22px;
   padding: 0 8px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.05);
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #98A2B3;
 }
 
 .tab-btn-adminbills_.active-adminbills_ .tab-badge-adminbills_ {
@@ -153,7 +160,7 @@
 }
 
 /* ============================================
-   TOOLBAR
+   TOOLBAR - LIGHT
    ============================================ */
 .toolbar-adminbills_ {
   display: flex;
@@ -173,17 +180,20 @@
 .search-group-adminbills_ input {
   width: 100%;
   padding: 10px 14px 10px 40px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .search-group-adminbills_ input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .search-group-adminbills_ input:focus {
@@ -197,7 +207,7 @@
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 14px;
 }
 
@@ -209,15 +219,18 @@
 .filter-group-adminbills_ select {
   width: 100%;
   padding: 10px 36px 10px 14px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
   appearance: none;
   transition: all 200ms ease;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .filter-group-adminbills_ select:focus {
@@ -227,8 +240,8 @@
 }
 
 .filter-group-adminbills_ select option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 .select-arrow-adminbills_ {
@@ -236,7 +249,7 @@
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   pointer-events: none;
   font-size: 12px;
 }
@@ -246,9 +259,9 @@
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -259,9 +272,9 @@
 }
 
 .refresh-btn-adminbills_:hover {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .spinning-adminbills_ {
@@ -273,14 +286,14 @@
 }
 
 /* ============================================
-   TABLE
+   TABLE - LIGHT GLASS
    ============================================ */
-.table-container-adminbills_ {
-  background: #1A2533;
+.billing-customer-table-container {
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
 }
 
 .data-table-adminbills_ {
@@ -290,7 +303,7 @@
 }
 
 .data-table-adminbills_ thead {
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .data-table-adminbills_ thead th {
@@ -300,12 +313,12 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: rgba(255, 255, 255, 0.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #98A2B3;
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .data-table-adminbills_ tbody tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
   transition: background 200ms ease;
 }
 
@@ -314,44 +327,44 @@
 }
 
 .data-table-adminbills_ tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .data-table-adminbills_ tbody td {
   padding: 14px 16px;
   vertical-align: middle;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
 .ref-cell-adminbills_ {
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: monospace;
   font-size: 12px;
 }
 
 .client-cell-adminbills_ {
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .contact-info-adminbills_ {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
 }
 
 .email-cell-adminbills_ {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .amount-cell-adminbills_ {
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   STATUS BADGES
+   STATUS BADGES - LIGHT THEME
    ============================================ */
 .status-badge-adminbills_ {
   display: inline-block;
@@ -368,67 +381,67 @@
 .status-badge-adminbills_.pending-payment,
 .status-badge-adminbills_.pending-review,
 .status-badge-adminbills_.for-verification {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
-  border: 1px solid rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border: 1px solid rgba(243, 156, 18, 0.20);
 }
 
 .status-badge-adminbills_.assigned,
 .status-badge-adminbills_.scheduled {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .status-badge-adminbills_.processing,
 .status-badge-adminbills_.site-visit-ongoing {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .status-badge-adminbills_.paid,
 .status-badge-adminbills_.completed,
 .status-badge-adminbills_.approved,
 .status-badge-adminbills_.accepted {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .status-badge-adminbills_.cancelled,
 .status-badge-adminbills_.overdue {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 .status-badge-adminbills_.quoted {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
-  border: 1px solid rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border: 1px solid rgba(243, 156, 18, 0.20);
 }
 
 .status-badge-adminbills_.verifying {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .status-badge-adminbills_.inprogress {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .status-badge-adminbills_.partial {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 /* ============================================
-   ACTION DROPDOWN
+   ACTION DROPDOWN - LIGHT
    ============================================ */
 .action-dropdown-container-adminbills_ {
   position: relative;
@@ -440,9 +453,9 @@
   align-items: center;
   gap: 8px;
   padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
@@ -452,9 +465,9 @@
 }
 
 .action-dropdown-toggle-adminbills_:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .dropdown-arrow-adminbills_ {
@@ -469,12 +482,11 @@
 .action-dropdown-menu-adminbills_ {
   min-width: 200px;
   max-width: 250px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
   padding: 6px;
-  backdrop-filter: blur(10px);
   overflow: hidden;
   max-height: 300px;
   overflow-y: auto;
@@ -485,7 +497,7 @@
 }
 
 .action-dropdown-menu-adminbills_::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -508,43 +520,43 @@
   text-align: left;
   transition: all 150ms ease;
   font-family: 'Poppins', sans-serif;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
 .dropdown-item-adminbills_:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .dropdown-item-adminbills_.success {
-  color: #10B981;
+  color: #059669;
 }
 
 .dropdown-item-adminbills_.success:hover {
-  background: rgba(16, 185, 129, 0.12);
+  background: rgba(16, 185, 129, 0.10);
 }
 
 .dropdown-item-adminbills_.danger {
-  color: #EF4444;
+  color: #DC2626;
 }
 
 .dropdown-item-adminbills_.danger:hover {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.10);
 }
 
 .dropdown-item-adminbills_.warning {
-  color: #F39C12;
+  color: #D97706;
 }
 
 .dropdown-item-adminbills_.warning:hover {
-  background: rgba(243, 156, 18, 0.12);
+  background: rgba(243, 156, 18, 0.10);
 }
 
 .dropdown-item-adminbills_.primary {
-  color: #3B82F6;
+  color: #2563EB;
 }
 
 .dropdown-item-adminbills_.primary:hover {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.10);
 }
 
 .dropdown-item-adminbills_.disabled-adminbills_ {
@@ -553,17 +565,17 @@
 }
 
 /* ============================================
-   EMPTY STATE
+   EMPTY STATE - LIGHT
    ============================================ */
 .empty-state-adminbills_ {
   text-align: center;
   padding: 48px 20px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   font-size: 14px;
 }
 
 /* ============================================
-   PAGINATION
+   PAGINATION - LIGHT
    ============================================ */
 .pagination-adminbills_ {
   display: flex;
@@ -576,7 +588,7 @@
 
 .pagination-info-adminbills_ {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .pagination-controls-adminbills_ {
@@ -592,8 +604,8 @@
   gap: 6px;
   padding: 8px 16px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -603,9 +615,9 @@
 }
 
 .page-btn-adminbills_:hover:not(:disabled) {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.5);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .page-btn-adminbills_:disabled {
@@ -621,7 +633,7 @@
   justify-content: center;
   padding: 0 8px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   border: 1px solid transparent;
   border-radius: 8px;
   font-size: 13px;
@@ -632,8 +644,8 @@
 }
 
 .page-number-adminbills_:hover {
-  background: #131C28;
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.5);
+  color: #17212B;
 }
 
 .page-number-adminbills_.active-adminbills_ {
@@ -643,7 +655,7 @@
 }
 
 /* ============================================
-   MODALS
+   MODALS - LIGHT GLASS
    ============================================ */
 .modal-overlay-adminbills_ {
   position: fixed;
@@ -658,15 +670,15 @@
 }
 
 .modal-adminbills_ {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.98);
   border-radius: 18px;
   max-width: 560px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid #EEF0ED;
   position: relative;
 }
 
@@ -680,7 +692,7 @@
 
 .modal-header-adminbills_ {
   padding: 20px 24px 16px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -689,7 +701,7 @@
 .modal-header-adminbills_ h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
@@ -697,9 +709,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
+  color: #98A2B3;
   font-size: 20px;
   cursor: pointer;
   display: flex;
@@ -710,8 +722,8 @@
 }
 
 .modal-close-adminbills_:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  border-color: #EF4444;
   color: #EF4444;
 }
 
@@ -726,7 +738,7 @@
 }
 
 .modal-body-adminbills_::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -739,7 +751,7 @@
   display: flex;
   justify-content: space-between;
   padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .detail-row-adminbills_:last-child {
@@ -747,12 +759,12 @@
 }
 
 .detail-row-adminbills_ span {
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   font-size: 13px;
 }
 
 .detail-row-adminbills_ strong {
-  color: #FFFFFF;
+  color: #17212B;
   font-size: 14px;
 }
 
@@ -767,7 +779,7 @@
 .detail-section-adminbills_ h4 {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   margin: 0 0 8px 0;
@@ -776,14 +788,14 @@
 .detail-section-adminbills_ p {
   margin: 4px 0;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .detail-section-adminbills_ p strong {
-  color: #FFFFFF;
+  color: #17212B;
 }
 
-/* Form Groups in Modals */
+/* Form Groups in Modals - LIGHT */
 .form-group-adminbills_ {
   display: flex;
   flex-direction: column;
@@ -794,7 +806,7 @@
 .form-group-adminbills_ label {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .required-field-adminbills_ {
@@ -805,11 +817,11 @@
 .form-group-adminbills_ input,
 .form-group-adminbills_ select {
   padding: 10px 14px;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
   width: 100%;
@@ -830,11 +842,11 @@
 
 .date-input-adminbills_ {
   padding: 10px 14px;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
   width: 100%;
@@ -856,7 +868,7 @@
 }
 
 .validation-hint-adminbills_ label {
-  color: rgba(255, 255, 255, 0.3) !important;
+  color: #98A2B3 !important;
   font-size: 12px;
 }
 
@@ -880,11 +892,11 @@
 
 .info-box-adminbills_ small {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   line-height: 1.5;
 }
 
-/* Engineer Grid */
+/* Engineer Grid - LIGHT */
 .engineer-grid-adminbills_ {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -899,7 +911,7 @@
 }
 
 .engineer-grid-adminbills_::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -913,8 +925,8 @@
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
-  background: #131C28;
-  border: 2px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid #EEF0ED;
   border-radius: 10px;
   cursor: pointer;
   transition: all 200ms ease;
@@ -922,7 +934,7 @@
 }
 
 .engineer-card-adminbills_:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: #D1D5DB;
 }
 
 .engineer-card-adminbills_.selected-adminbills_ {
@@ -934,13 +946,13 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(243, 156, 18, 0.15);
+  background: rgba(243, 156, 18, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
   font-weight: 600;
-  color: #F39C12;
+  color: #D97706;
   flex-shrink: 0;
 }
 
@@ -952,12 +964,12 @@
 .engineer-name-adminbills_ {
   font-size: 13px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .engineer-email-adminbills_ {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .engineer-selected-badge-adminbills_ {
@@ -967,17 +979,17 @@
 }
 
 .no-engineers-adminbills_ {
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   font-size: 13px;
   padding: 12px;
   text-align: center;
   grid-column: 1 / -1;
 }
 
-/* Modal Actions */
+/* Modal Actions - LIGHT */
 .modal-actions-adminbills_ {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
   display: flex;
   gap: 12px;
   justify-content: flex-end;
@@ -986,9 +998,9 @@
 
 .cancel-btn-adminbills_ {
   padding: 10px 24px;
-  background: #131C28;
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #17212B;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -998,7 +1010,7 @@
 }
 
 .cancel-btn-adminbills_:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .approve-btn-adminbills_,
@@ -1059,12 +1071,12 @@
 }
 
 /* ============================================
-   SKELETON LOADING
+   SKELETON LOADING - LIGHT
    ============================================ */
 .skeleton-line-adminbills_ {
   border-radius: 6px;
   animation: shimmer-adminbills_ 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -1089,9 +1101,9 @@
 }
 
 .skeleton-card-adminbills_ {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   padding: 20px;
   min-height: 100px;
 }
@@ -1099,8 +1111,8 @@
 .skeleton-chart-adminbills_ {
   height: 220px;
   border-radius: 14px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   margin-bottom: 24px;
 }
 
@@ -1108,18 +1120,18 @@
   width: 120px;
   height: 40px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
 }
 
 .skeleton-table-adminbills_ {
   height: 300px;
   border-radius: 14px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - UNCHANGED STRUCTURE
    ============================================ */
 
 @media (max-width: 1200px) {
@@ -1327,7 +1339,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES
+   REDUCED MOTION PREFERENCES - LIGHT
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -1341,7 +1353,7 @@
   }
   .skeleton-line-adminbills_ {
     animation: none !important;
-    background: #131C28 !important;
+    background: #EEF0ED !important;
   }
   .refresh-btn-adminbills_:hover,
   .action-dropdown-toggle-adminbills_:hover,

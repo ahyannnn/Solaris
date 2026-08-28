@@ -1,32 +1,32 @@
-/* styles/Admin/project.css - Dark Solar Theme for Project Management */
+/* styles/Admin/project.css - Light Solar Theme for Project Management */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE LAYOUT
+   BASE LAYOUT - LIGHT SOLAR
    ============================================ */
 .project-management {
-  background: #0B111A;
+  background: #F3F5F1;
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   HEADER
+   HEADER - LIGHT
    ============================================ */
 .project-header-projectmanagement {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
 /* ============================================
-   CHARTS ROW
+   CHARTS ROW - LIGHT GLASS
    ============================================ */
 .project-charts-row-projectmanagement {
   display: grid;
@@ -36,16 +36,20 @@
 }
 
 .project-chart-card-projectmanagement {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
   padding: 20px 24px 16px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
   transition: all 200ms ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .project-chart-card-projectmanagement:hover {
-  border-color: rgba(243, 156, 18, 0.1);
+  transform: translateY(-2px);
+  border-color: rgba(243, 156, 18, 0.25);
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
 }
 
 .project-chart-header-projectmanagement {
@@ -60,32 +64,32 @@
 .project-chart-header-projectmanagement h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
 .project-chart-period-projectmanagement {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .project-chart-wrapper-projectmanagement {
   height: 220px;
 }
 
-/* Chart Tooltip */
+/* Chart Tooltip - LIGHT */
 .recharts-custom-tooltip-projectmanagement {
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   padding: 12px 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .tooltip-label-projectmanagement {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #98A2B3;
   margin: 0 0 4px 0;
 }
 
@@ -93,11 +97,11 @@
   font-size: 13px;
   font-weight: 500;
   margin: 2px 0;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   TOOLBAR / FILTERS
+   TOOLBAR / FILTERS - LIGHT
    ============================================ */
 .project-tabs-projectmanagement {
   margin-bottom: 16px;
@@ -121,17 +125,20 @@
 .search-group-projectmanagement input {
   width: 100%;
   padding: 10px 14px 10px 40px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .search-group-projectmanagement input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .search-group-projectmanagement input:focus {
@@ -145,7 +152,7 @@
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 14px;
 }
 
@@ -157,15 +164,18 @@
 .filter-group-projectmanagement select {
   width: 100%;
   padding: 10px 36px 10px 14px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
   appearance: none;
   transition: all 200ms ease;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .filter-group-projectmanagement select:focus {
@@ -175,8 +185,8 @@
 }
 
 .filter-group-projectmanagement select option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 .select-arrow-projectmanagement {
@@ -184,7 +194,7 @@
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   pointer-events: none;
   font-size: 12px;
 }
@@ -194,9 +204,9 @@
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -207,9 +217,9 @@
 }
 
 .refresh-btn-projectmanagement:hover {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .spinning-projectmanagement {
@@ -221,14 +231,14 @@
 }
 
 /* ============================================
-   TABLE
+   TABLE - LIGHT GLASS
    ============================================ */
 .project-table-container-projectmanagement {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
 }
 
 .table-wrapper-projectmanagement {
@@ -242,7 +252,7 @@
 }
 
 .project-table-projectmanagement thead {
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .project-table-projectmanagement thead th {
@@ -252,12 +262,12 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: rgba(255, 255, 255, 0.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #98A2B3;
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .project-table-projectmanagement tbody tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
   transition: background 200ms ease;
 }
 
@@ -266,33 +276,33 @@
 }
 
 .project-table-projectmanagement tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .project-table-projectmanagement tbody td {
   padding: 14px 16px;
   vertical-align: middle;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
 .project-cell-projectmanagement .project-name-projectmanagement {
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .project-cell-projectmanagement .project-ref-projectmanagement {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-family: monospace;
 }
 
 .amount-projectmanagement {
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   STATUS BADGES
+   STATUS BADGES - LIGHT THEME
    ============================================ */
 .status-badge-projectmanagement {
   display: inline-block;
@@ -306,55 +316,55 @@
 }
 
 .status-badge-projectmanagement.quoted {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
-  border: 1px solid rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border: 1px solid rgba(243, 156, 18, 0.20);
 }
 
 .status-badge-projectmanagement.approved {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .status-badge-projectmanagement.initial-paid {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .status-badge-projectmanagement.in-progress {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .status-badge-projectmanagement.progress-paid {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .status-badge-projectmanagement.completed {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .status-badge-projectmanagement.cancelled {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 .status-badge-projectmanagement.full-paid {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 /* ============================================
-   ACTION DROPDOWN
+   ACTION DROPDOWN - LIGHT
    ============================================ */
 .action-dropdown-container-projectmanagement {
   position: relative;
@@ -366,9 +376,9 @@
   align-items: center;
   gap: 8px;
   padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
@@ -378,9 +388,9 @@
 }
 
 .action-dropdown-toggle-projectmanagement:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .dropdown-arrow-projectmanagement {
@@ -395,12 +405,11 @@
 .action-dropdown-menu-projectmanagement {
   min-width: 200px;
   max-width: 250px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
   padding: 6px;
-  backdrop-filter: blur(10px);
   overflow: hidden;
   max-height: 300px;
   overflow-y: auto;
@@ -411,7 +420,7 @@
 }
 
 .action-dropdown-menu-projectmanagement::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -434,65 +443,65 @@
   text-align: left;
   transition: all 150ms ease;
   font-family: 'Poppins', sans-serif;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
 .dropdown-item-projectmanagement:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .dropdown-item-projectmanagement.success {
-  color: #10B981;
+  color: #059669;
 }
 
 .dropdown-item-projectmanagement.success:hover {
-  background: rgba(16, 185, 129, 0.12);
+  background: rgba(16, 185, 129, 0.10);
 }
 
 .dropdown-item-projectmanagement.danger {
-  color: #EF4444;
+  color: #DC2626;
 }
 
 .dropdown-item-projectmanagement.danger:hover {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.10);
 }
 
 .dropdown-item-projectmanagement.warning {
-  color: #F39C12;
+  color: #D97706;
 }
 
 .dropdown-item-projectmanagement.warning:hover {
-  background: rgba(243, 156, 18, 0.12);
+  background: rgba(243, 156, 18, 0.10);
 }
 
 .dropdown-item-projectmanagement.primary {
-  color: #3B82F6;
+  color: #2563EB;
 }
 
 .dropdown-item-projectmanagement.primary:hover {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.10);
 }
 
 .dropdown-item-projectmanagement.info {
-  color: #06B6D4;
+  color: #0891B2;
 }
 
 .dropdown-item-projectmanagement.info:hover {
-  background: rgba(6, 182, 212, 0.12);
+  background: rgba(6, 182, 212, 0.10);
 }
 
 /* ============================================
-   EMPTY STATE
+   EMPTY STATE - LIGHT
    ============================================ */
 .empty-state-projectmanagement {
   text-align: center;
   padding: 48px 20px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   font-size: 14px;
 }
 
 /* ============================================
-   PAGINATION
+   PAGINATION - LIGHT
    ============================================ */
 .pagination-projectmanagement {
   display: flex;
@@ -505,7 +514,7 @@
 
 .pagination-info-projectmanagement {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .pagination-controls-projectmanagement {
@@ -521,8 +530,8 @@
   gap: 6px;
   padding: 8px 16px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -532,9 +541,9 @@
 }
 
 .page-btn-projectmanagement:hover:not(:disabled) {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.5);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .page-btn-projectmanagement:disabled {
@@ -550,7 +559,7 @@
   justify-content: center;
   padding: 0 8px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   border: 1px solid transparent;
   border-radius: 8px;
   font-size: 13px;
@@ -561,8 +570,8 @@
 }
 
 .page-number-projectmanagement:hover {
-  background: #131C28;
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.5);
+  color: #17212B;
 }
 
 .page-number-projectmanagement.active-projectmanagement {
@@ -572,7 +581,7 @@
 }
 
 /* ============================================
-   MODALS
+   MODALS - LIGHT GLASS
    ============================================ */
 .modal-overlay-projectmanagement {
   position: fixed;
@@ -587,15 +596,15 @@
 }
 
 .modal-projectmanagement {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.98);
   border-radius: 18px;
   max-width: 560px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid #EEF0ED;
   position: relative;
 }
 
@@ -609,13 +618,13 @@
 
 .modal-header-projectmanagement {
   padding: 20px 24px 16px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .modal-header-projectmanagement h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
@@ -630,7 +639,7 @@
 }
 
 .modal-body-projectmanagement::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -641,19 +650,19 @@
 
 .modal-actions-projectmanagement {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
   display: flex;
   gap: 12px;
   justify-content: flex-end;
   flex-wrap: wrap;
 }
 
-/* Modal Buttons */
+/* Modal Buttons - LIGHT */
 .cancel-btn-projectmanagement {
   padding: 10px 24px;
-  background: #131C28;
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #17212B;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -663,7 +672,7 @@
 }
 
 .cancel-btn-projectmanagement:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .assign-btn-projectmanagement,
@@ -694,13 +703,13 @@
 }
 
 /* ============================================
-   DETAIL SECTION IN MODALS
+   DETAIL SECTION IN MODALS - LIGHT
    ============================================ */
 .detail-row-projectmanagement {
   display: flex;
   justify-content: space-between;
   padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .detail-row-projectmanagement:last-child {
@@ -708,12 +717,12 @@
 }
 
 .detail-row-projectmanagement span {
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   font-size: 13px;
 }
 
 .detail-row-projectmanagement strong {
-  color: #FFFFFF;
+  color: #17212B;
   font-size: 14px;
 }
 
@@ -728,7 +737,7 @@
 .detail-section-projectmanagement h4 {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   margin: 0 0 8px 0;
@@ -737,15 +746,15 @@
 .detail-section-projectmanagement p {
   margin: 4px 0;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .detail-section-projectmanagement p strong {
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   FORM GROUPS IN MODALS
+   FORM GROUPS IN MODALS - LIGHT
    ============================================ */
 .form-group-projectmanagement {
   display: flex;
@@ -757,18 +766,18 @@
 .form-group-projectmanagement label {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .form-group-projectmanagement textarea,
 .form-group-projectmanagement input,
 .form-group-projectmanagement select {
   padding: 10px 14px;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
   width: 100%;
@@ -788,7 +797,7 @@
 }
 
 /* ============================================
-   ENGINEER GRID
+   ENGINEER GRID - LIGHT
    ============================================ */
 .engineer-grid-projectmanagement {
   display: grid;
@@ -804,7 +813,7 @@
 }
 
 .engineer-grid-projectmanagement::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -818,8 +827,8 @@
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
-  background: #131C28;
-  border: 2px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid #EEF0ED;
   border-radius: 10px;
   cursor: pointer;
   transition: all 200ms ease;
@@ -827,7 +836,7 @@
 }
 
 .engineer-card-projectmanagement:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: #D1D5DB;
 }
 
 .engineer-card-projectmanagement.selected-projectmanagement {
@@ -839,13 +848,13 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(243, 156, 18, 0.15);
+  background: rgba(243, 156, 18, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
   font-weight: 600;
-  color: #F39C12;
+  color: #D97706;
   flex-shrink: 0;
 }
 
@@ -857,12 +866,12 @@
 .engineer-name-projectmanagement {
   font-size: 13px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .engineer-email-projectmanagement {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .engineer-selected-badge-projectmanagement {
@@ -872,7 +881,7 @@
 }
 
 .no-engineers-projectmanagement {
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   font-size: 13px;
   padding: 12px;
   text-align: center;
@@ -880,14 +889,14 @@
 }
 
 /* ============================================
-   SKELETON LOADING
+   SKELETON LOADING - LIGHT
    ============================================ */
 .skeleton-title-projectmanagement {
   width: 40%;
   height: 32px;
   border-radius: 6px;
   animation: shimmer-projectmanagement 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -896,24 +905,24 @@
   height: 20px;
   border-radius: 6px;
   animation: shimmer-projectmanagement 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
 .skeleton-chart-projectmanagement {
   height: 220px;
   border-radius: 14px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
 }
 
 .skeleton-tab-projectmanagement {
   height: 40px;
   width: 120px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer-projectmanagement 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -921,9 +930,9 @@
   height: 40px;
   width: 160px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer-projectmanagement 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -931,17 +940,17 @@
   height: 40px;
   width: 280px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer-projectmanagement 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
 .skeleton-table-projectmanagement {
   height: 300px;
   border-radius: 14px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
 }
 
 @keyframes shimmer-projectmanagement {
@@ -954,7 +963,7 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - UNCHANGED STRUCTURE
    ============================================ */
 
 @media (max-width: 1200px) {
@@ -1005,7 +1014,7 @@
   .project-table-projectmanagement tbody td {
     display: block;
     padding: 8px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid #EEF0ED;
   }
   .project-table-projectmanagement tbody td:last-child {
     border-bottom: none;
@@ -1013,7 +1022,7 @@
   .project-table-projectmanagement tbody td::before {
     content: attr(data-label);
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.4);
+    color: #98A2B3;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -1023,7 +1032,7 @@
   .project-table-projectmanagement tbody tr {
     display: block;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid #EEF0ED;
   }
   .project-table-projectmanagement tbody tr:last-child {
     border-bottom: none;
@@ -1112,7 +1121,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES
+   REDUCED MOTION PREFERENCES - LIGHT
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -1130,7 +1139,7 @@
   .skeleton-select-projectmanagement,
   .skeleton-search-projectmanagement {
     animation: none !important;
-    background: #131C28 !important;
+    background: #EEF0ED !important;
   }
   .refresh-btn-projectmanagement:hover,
   .action-dropdown-toggle-projectmanagement:hover,
@@ -1146,3 +1155,4 @@
     transform: none !important;
   }
 }
+

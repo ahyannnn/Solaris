@@ -1,43 +1,46 @@
-/* styles/Admin/maintenance.css - Dark Solar Theme for Maintenance Panel */
+/* styles/Admin/maintenance.css - Light Solar Theme for Maintenance Panel */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE LAYOUT
+   BASE LAYOUT - LIGHT SOLAR
    ============================================ */
 .maintenance-panel-admain {
-  background: #0B111A;
+  background: #F3F5F1;
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   HEADER
+   HEADER - LIGHT
    ============================================ */
 .panel-header-admain {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
 /* ============================================
-   MAIN TABS
+   MAIN TABS - LIGHT GLASS
    ============================================ */
 .main-tabs-admain {
   display: inline-flex;
   gap: 6px;
   margin-bottom: 24px;
   flex-wrap: wrap;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   padding: 6px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   width: auto;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .main-tab-btn-admain {
@@ -47,7 +50,7 @@
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   cursor: pointer;
   transition: all 200ms ease;
   display: inline-flex;
@@ -58,8 +61,8 @@
 }
 
 .main-tab-btn-admain:hover {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.05);
+  color: #17212B;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .main-tab-btn-admain.active-admain {
@@ -73,32 +76,34 @@
 }
 
 /* ============================================
-   TOGGLE CARD
+   TOGGLE CARD - LIGHT GLASS
    ============================================ */
 .toggle-card-admain {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
   padding: 20px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
   margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .toggle-info-admain h3 {
   font-size: 18px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 4px 0;
 }
 
 .toggle-info-admain p {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   margin: 0;
 }
 
@@ -108,18 +113,18 @@
   gap: 12px;
   margin-top: 8px;
   padding: 4px 14px;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.10);
+  border: 1px solid rgba(239, 68, 68, 0.20);
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
-  color: #EF4444;
+  color: #DC2626;
   text-transform: uppercase;
 }
 
 .active-badge-admain .start-time-admain {
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   text-transform: none;
 }
 
@@ -175,40 +180,44 @@
 }
 
 /* ============================================
-   SETTINGS CARD
+   SETTINGS CARD - LIGHT GLASS
    ============================================ */
 .settings-card-admain {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
   padding: 20px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
   margin-bottom: 20px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .settings-card-admain h3 {
   font-size: 18px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 16px 0;
 }
 
 /* ============================================
-   IPS CARD
+   IPS CARD - LIGHT GLASS
    ============================================ */
 .ips-card-admain {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
   padding: 20px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
   margin-bottom: 20px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .ips-card-admain h3 {
   font-size: 18px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 16px 0;
 }
 
@@ -228,11 +237,11 @@
 .ip-input-wrapper-admain input {
   width: 100%;
   padding: 10px 14px;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
 }
@@ -285,11 +294,11 @@
   align-items: center;
   gap: 10px;
   padding: 6px 12px 6px 16px;
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid #EEF0ED;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
 .ip-item-admain span {
@@ -299,7 +308,7 @@
 .ip-item-admain button {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   cursor: pointer;
   transition: all 200ms ease;
   padding: 2px;
@@ -307,25 +316,27 @@
 }
 
 .ip-item-admain button:hover {
-  color: #EF4444;
+  color: #DC2626;
 }
 
 .no-ips-admain {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 14px;
   padding: 8px 0;
 }
 
 /* ============================================
-   HISTORY CARD
+   HISTORY CARD - LIGHT GLASS
    ============================================ */
 .history-card-admain {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
   padding: 20px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
   margin-bottom: 20px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .history-toggle-admain {
@@ -333,9 +344,9 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -345,9 +356,9 @@
 }
 
 .history-toggle-admain:hover {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .history-list-admain {
@@ -359,11 +370,11 @@
 
 .history-item-admain {
   padding: 12px 16px;
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid #EEF0ED;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .history-item-admain div {
@@ -371,14 +382,16 @@
 }
 
 /* ============================================
-   SYSTEM CONFIG
+   SYSTEM CONFIG - LIGHT GLASS
    ============================================ */
 .system-config-admain {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
   padding: 20px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .config-header-tabs-wrapper-admain {
@@ -400,10 +413,10 @@
 .mobile-subtab-toggle-admain {
   display: none;
   padding: 10px 16px;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
-  color: #FFFFFF;
+  color: #17212B;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -418,12 +431,12 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .toggle-arrow-admain {
   transition: transform 200ms ease;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 12px;
 }
 
@@ -435,10 +448,10 @@
   display: inline-flex;
   gap: 6px;
   flex-wrap: wrap;
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
   padding: 6px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid #EEF0ED;
   width: auto;
 }
 
@@ -449,7 +462,7 @@
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   cursor: pointer;
   transition: all 200ms ease;
   display: inline-flex;
@@ -460,8 +473,8 @@
 }
 
 .subtab-btn-admain:hover {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.05);
+  color: #17212B;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .subtab-btn-admain.active-admain {
@@ -478,10 +491,10 @@
   height: 20px;
   padding: 0 6px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.05);
   font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #98A2B3;
 }
 
 .subtab-btn-admain.active-admain .subtab-badge-admain {
@@ -494,9 +507,9 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -506,9 +519,9 @@
 }
 
 .reset-config-btn-admain:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.2);
-  color: #EF4444;
+  background: rgba(239, 68, 68, 0.10);
+  border-color: rgba(239, 68, 68, 0.20);
+  color: #DC2626;
 }
 
 .reset-config-btn-admain:disabled {
@@ -517,7 +530,7 @@
 }
 
 /* ============================================
-   EQUIPMENT CATALOG
+   EQUIPMENT CATALOG - LIGHT
    ============================================ */
 .equipment-catalog-admain {
   display: flex;
@@ -526,10 +539,10 @@
 }
 
 .equipment-section-admain {
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 12px;
   padding: 16px 18px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid #EEF0ED;
 }
 
 .section-header-admain {
@@ -550,13 +563,13 @@
 .section-title-admain h4 {
   font-size: 15px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
 .item-count-admain {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .btn-add-admain {
@@ -588,7 +601,7 @@
 }
 
 .empty-equipment-admain {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 13px;
   padding: 8px 0;
   text-align: center;
@@ -599,9 +612,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid #EEF0ED;
   flex-wrap: wrap;
   gap: 8px;
 }
@@ -617,7 +630,7 @@
 .equipment-name-admain {
   font-size: 14px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .equipment-details-admain {
@@ -625,11 +638,11 @@
   flex-wrap: wrap;
   gap: 10px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .equipment-details-admain .price-admain {
-  color: #F39C12;
+  color: #D97706;
   font-weight: 600;
 }
 
@@ -640,7 +653,7 @@
 .equipment-details-admain .brand-admain,
 .equipment-details-admain .warranty-admain {
   padding: 2px 8px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 4px;
 }
 
@@ -661,25 +674,25 @@
 }
 
 .btn-edit-admain {
-  background: rgba(59, 130, 246, 0.15);
-  color: #3B82F6;
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
 }
 
 .btn-edit-admain:hover {
-  background: rgba(59, 130, 246, 0.25);
+  background: rgba(59, 130, 246, 0.20);
 }
 
 .btn-remove-admain {
-  background: rgba(239, 68, 68, 0.15);
-  color: #EF4444;
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
 }
 
 .btn-remove-admain:hover {
-  background: rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.20);
 }
 
 /* ============================================
-   FORM STYLES
+   FORM STYLES - LIGHT
    ============================================ */
 .form-group-admain {
   display: flex;
@@ -691,18 +704,18 @@
 .form-group-admain label {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .form-group-admain input,
 .form-group-admain textarea,
 .form-group-admain select {
   padding: 10px 14px;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
   width: 100%;
@@ -718,7 +731,7 @@
 
 .form-group-admain input::placeholder,
 .form-group-admain textarea::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .form-group-admain input.error-admain,
@@ -739,8 +752,8 @@
 }
 
 .form-group-admain select option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 .form-row-admain {
@@ -754,14 +767,14 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   padding: 0 14px;
 }
 
 .input-group-admain span {
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   font-weight: 600;
 }
 
@@ -769,7 +782,7 @@
   border: none;
   padding: 10px 0;
   background: transparent;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
   width: 100%;
@@ -791,7 +804,7 @@
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
   cursor: pointer;
 }
 
@@ -804,11 +817,11 @@
 
 .error-text-admain {
   font-size: 12px;
-  color: #EF4444;
+  color: #DC2626;
 }
 
 /* ============================================
-   BUTTONS
+   BUTTONS - LIGHT
    ============================================ */
 .save-btn-admain {
   display: inline-flex;
@@ -869,7 +882,7 @@
 }
 
 /* ============================================
-   MODALS
+   MODALS - LIGHT GLASS
    ============================================ */
 .modal-overlay-admain {
   position: fixed;
@@ -884,27 +897,27 @@
 }
 
 .modal-content-admain {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.98);
   border-radius: 18px;
   max-width: 560px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid #EEF0ED;
   position: relative;
 }
 
 .modal-header-admain {
   padding: 20px 24px 16px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .modal-header-admain h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
@@ -919,7 +932,7 @@
 }
 
 .modal-body-admain::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -930,13 +943,13 @@
 
 .modal-body-admain p {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
   margin: 0 0 16px 0;
 }
 
 .modal-actions-admain {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
   display: flex;
   gap: 12px;
   justify-content: flex-end;
@@ -945,9 +958,9 @@
 
 .btn-cancel-admain {
   padding: 10px 24px;
-  background: #131C28;
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #17212B;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -957,7 +970,7 @@
 }
 
 .btn-cancel-admain:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .btn-confirm-admain {
@@ -996,12 +1009,12 @@
 }
 
 /* ============================================
-   SKELETON LOADING
+   SKELETON LOADING - LIGHT
    ============================================ */
 .skeleton-line-admain {
   border-radius: 6px;
   animation: shimmer-admain 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -1013,8 +1026,8 @@
 .skeleton-card-admain {
   height: 200px;
   border-radius: 14px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
 }
 
 @keyframes shimmer-admain {
@@ -1027,7 +1040,7 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - UNCHANGED STRUCTURE
    ============================================ */
 
 @media (max-width: 1200px) {
@@ -1110,7 +1123,7 @@
     display: none;
     flex-direction: column;
     width: 100%;
-    background: #131C28;
+    background: rgba(255, 255, 255, 0.5);
     border-radius: 8px;
     padding: 4px;
   }
@@ -1256,7 +1269,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES
+   REDUCED MOTION PREFERENCES - LIGHT
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -1274,7 +1287,7 @@
   .skeleton-line-admain,
   .skeleton-card-admain {
     animation: none !important;
-    background: #131C28 !important;
+    background: #EEF0ED !important;
   }
   .toggle-btn-admain:hover,
   .add-ip-admain button:hover,

@@ -1,43 +1,46 @@
-/* styles/Admin/schedule.css - Dark Solar Theme for Schedule Management */
+/* styles/Admin/schedule.css - Light Solar Theme for Schedule Management */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE LAYOUT
+   BASE LAYOUT - LIGHT SOLAR
    ============================================ */
 .schedule-management-adsche {
-  background: #0B111A;
+  background: #F3F5F1;
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   HEADER
+   HEADER - LIGHT
    ============================================ */
 .schedule-header-adsche {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
 /* ============================================
-   TABS
+   TABS - LIGHT GLASS
    ============================================ */
 .schedule-tabs-adsche {
   display: inline-flex;
   gap: 6px;
   margin-bottom: 20px;
   flex-wrap: wrap;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   padding: 6px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   width: auto;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .tab-btn-adsche {
@@ -47,7 +50,7 @@
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   cursor: pointer;
   transition: all 200ms ease;
   display: inline-flex;
@@ -58,8 +61,8 @@
 }
 
 .tab-btn-adsche:hover {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.05);
+  color: #17212B;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .tab-btn-adsche.active-adsche {
@@ -76,10 +79,10 @@
   height: 22px;
   padding: 0 8px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.05);
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #98A2B3;
 }
 
 .tab-btn-adsche.active-adsche .tab-badge-adsche {
@@ -88,7 +91,7 @@
 }
 
 /* ============================================
-   TOOLBAR / FILTERS
+   TOOLBAR / FILTERS - LIGHT
    ============================================ */
 .schedule-filters-adsche {
   display: flex;
@@ -108,17 +111,20 @@
 .search-group-adsche input {
   width: 100%;
   padding: 10px 14px 10px 40px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .search-group-adsche input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .search-group-adsche input:focus {
@@ -132,7 +138,7 @@
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 14px;
 }
 
@@ -144,15 +150,18 @@
 .filter-group-adsche select {
   width: 100%;
   padding: 10px 36px 10px 14px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
   appearance: none;
   transition: all 200ms ease;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .filter-group-adsche select:focus {
@@ -162,8 +171,8 @@
 }
 
 .filter-group-adsche select option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 .select-arrow-adsche {
@@ -171,7 +180,7 @@
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   pointer-events: none;
   font-size: 12px;
 }
@@ -181,9 +190,9 @@
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -194,9 +203,9 @@
 }
 
 .refresh-btn-adsche:hover {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .spinning-adsche {
@@ -208,14 +217,15 @@
 }
 
 /* ============================================
-   TABLE
+   TABLE - LIGHT GLASS
    ============================================ */
 .schedule-table-container-adsche {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+
 }
 
 .schedule-table-adsche {
@@ -225,7 +235,7 @@
 }
 
 .schedule-table-adsche thead {
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .schedule-table-adsche thead th {
@@ -235,12 +245,12 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: rgba(255, 255, 255, 0.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #98A2B3;
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .schedule-table-adsche tbody tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
   transition: background 200ms ease;
 }
 
@@ -249,34 +259,34 @@
 }
 
 .schedule-table-adsche tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .schedule-table-adsche tbody td {
   padding: 14px 16px;
   vertical-align: middle;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
-/* Table Cell Styles */
+/* Table Cell Styles - LIGHT */
 .ref-cell-adsche {
   min-width: 140px;
 }
 
 .schedule-title-adsche {
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .schedule-id-adsche {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-family: monospace;
 }
 
 .client-cell-adsche {
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .client-contact-adsche {
@@ -285,7 +295,7 @@
   gap: 4px;
   font-size: 12px;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   margin-top: 2px;
 }
 
@@ -298,7 +308,7 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
 }
 
 .time-cell-adsche {
@@ -306,17 +316,17 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   margin-top: 2px;
 }
 
 .cell-icon-adsche {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #D1D5DB;
 }
 
 /* ============================================
-   STATUS BADGES
+   STATUS BADGES - LIGHT THEME
    ============================================ */
 .status-badge-adsche {
   display: inline-block;
@@ -330,43 +340,43 @@
 }
 
 .status-badge-adsche.scheduled {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .status-badge-adsche.confirmed {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .status-badge-adsche.in-progress {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
-  border: 1px solid rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border: 1px solid rgba(243, 156, 18, 0.20);
 }
 
 .status-badge-adsche.completed {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .status-badge-adsche.cancelled {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 .status-badge-adsche.rescheduled {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
-  border: 1px solid rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border: 1px solid rgba(243, 156, 18, 0.20);
 }
 
 /* ============================================
-   TYPE BADGES
+   TYPE BADGES - LIGHT THEME
    ============================================ */
 .type-badge-adsche {
   display: inline-block;
@@ -379,31 +389,31 @@
 }
 
 .type-badge-adsche.pre-assessment {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
   border: 1px solid rgba(59, 130, 246, 0.15);
 }
 
 .type-badge-adsche.site-visit {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
   border: 1px solid rgba(16, 185, 129, 0.15);
 }
 
 .type-badge-adsche.installation {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
   border: 1px solid rgba(243, 156, 18, 0.15);
 }
 
 .type-badge-adsche.inspection {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
   border: 1px solid rgba(139, 92, 246, 0.15);
 }
 
 /* ============================================
-   ACTION DROPDOWN
+   ACTION DROPDOWN - LIGHT
    ============================================ */
 .action-dropdown-container-adsche {
   position: relative;
@@ -415,9 +425,9 @@
   align-items: center;
   gap: 8px;
   padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
@@ -427,9 +437,9 @@
 }
 
 .action-dropdown-toggle-adsche:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .dropdown-arrow-adsche {
@@ -444,12 +454,11 @@
 .action-dropdown-menu-adsche {
   min-width: 180px;
   max-width: 220px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
   padding: 6px;
-  backdrop-filter: blur(10px);
   overflow: hidden;
   max-height: 300px;
   overflow-y: auto;
@@ -460,7 +469,7 @@
 }
 
 .action-dropdown-menu-adsche::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -483,33 +492,33 @@
   text-align: left;
   transition: all 150ms ease;
   font-family: 'Poppins', sans-serif;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
 .dropdown-item-adsche:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .dropdown-item-adsche.primary {
-  color: #3B82F6;
+  color: #2563EB;
 }
 
 .dropdown-item-adsche.primary:hover {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.10);
 }
 
 /* ============================================
-   EMPTY STATE
+   EMPTY STATE - LIGHT
    ============================================ */
 .empty-state-adsche {
   text-align: center;
   padding: 48px 20px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   font-size: 14px;
 }
 
 /* ============================================
-   PAGINATION
+   PAGINATION - LIGHT
    ============================================ */
 .pagination-adsche {
   display: flex;
@@ -522,7 +531,7 @@
 
 .pagination-info-adsche {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .pagination-controls-adsche {
@@ -538,8 +547,8 @@
   gap: 6px;
   padding: 8px 16px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -549,9 +558,9 @@
 }
 
 .page-btn-adsche:hover:not(:disabled) {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.5);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .page-btn-adsche:disabled {
@@ -567,7 +576,7 @@
   justify-content: center;
   padding: 0 8px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   border: 1px solid transparent;
   border-radius: 8px;
   font-size: 13px;
@@ -578,8 +587,8 @@
 }
 
 .page-number-adsche:hover {
-  background: #131C28;
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.5);
+  color: #17212B;
 }
 
 .page-number-adsche.active-adsche {
@@ -589,7 +598,7 @@
 }
 
 /* ============================================
-   DETAIL MODAL
+   DETAIL MODAL - LIGHT GLASS
    ============================================ */
 .modal-overlay-adsche {
   position: fixed;
@@ -604,15 +613,15 @@
 }
 
 .modal-content-adsche {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.98);
   border-radius: 18px;
   max-width: 640px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid #EEF0ED;
   position: relative;
 }
 
@@ -622,7 +631,7 @@
 
 .modal-header-adsche {
   padding: 20px 24px 16px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -631,7 +640,7 @@
 .modal-header-adsche h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
@@ -646,7 +655,7 @@
 }
 
 .modal-body-adsche::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -657,14 +666,14 @@
 
 .modal-actions-adsche {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
   display: flex;
   gap: 12px;
   justify-content: flex-end;
   flex-wrap: wrap;
 }
 
-/* Detail Section */
+/* Detail Section - LIGHT */
 .detail-section-adsche {
   margin-bottom: 20px;
 }
@@ -676,12 +685,12 @@
 .detail-section-adsche h4 {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   margin: 0 0 10px 0;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -690,15 +699,15 @@
 .detail-section-adsche p {
   margin: 6px 0;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
 }
 
 .detail-section-adsche p strong {
-  color: #FFFFFF;
+  color: #17212B;
   font-weight: 600;
 }
 
-/* Site Photos Grid */
+/* Site Photos Grid - LIGHT */
 .site-photos-grid-adsche {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -711,8 +720,8 @@
   aspect-ratio: 1;
   border-radius: 10px;
   overflow: hidden;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #F3F5F1;
+  border: 1px solid #EEF0ED;
   cursor: pointer;
   transition: all 200ms ease;
 }
@@ -749,13 +758,13 @@
 }
 
 /* ============================================
-   MODAL BUTTONS
+   MODAL BUTTONS - LIGHT
    ============================================ */
 .close-btn-adsche {
   padding: 10px 24px;
-  background: #131C28;
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #17212B;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -765,16 +774,16 @@
 }
 
 .close-btn-adsche:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 /* ============================================
-   SKELETON LOADING
+   SKELETON LOADING - LIGHT
    ============================================ */
 .skeleton-line-adsche {
   border-radius: 6px;
   animation: shimmer-adsche 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -792,9 +801,9 @@
   height: 40px;
   width: 100px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer-adsche 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -802,9 +811,9 @@
   height: 40px;
   width: 160px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer-adsche 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -812,17 +821,17 @@
   height: 40px;
   width: 280px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer-adsche 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
 .skeleton-table-adsche {
   height: 300px;
   border-radius: 14px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
 }
 
 @keyframes shimmer-adsche {
@@ -835,7 +844,7 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - UNCHANGED STRUCTURE
    ============================================ */
 
 @media (max-width: 1200px) {
@@ -904,7 +913,7 @@
   .schedule-table-adsche tbody td {
     display: block;
     padding: 8px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid #EEF0ED;
   }
   .schedule-table-adsche tbody td:last-child {
     border-bottom: none;
@@ -912,7 +921,7 @@
   .schedule-table-adsche tbody td::before {
     content: attr(data-label);
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.4);
+    color: #98A2B3;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -922,7 +931,7 @@
   .schedule-table-adsche tbody tr {
     display: block;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid #EEF0ED;
   }
   .schedule-table-adsche tbody tr:last-child {
     border-bottom: none;
@@ -1014,7 +1023,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES
+   REDUCED MOTION PREFERENCES - LIGHT
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -1031,7 +1040,7 @@
   .skeleton-select-adsche,
   .skeleton-search-adsche {
     animation: none !important;
-    background: #131C28 !important;
+    background: #EEF0ED !important;
   }
   .refresh-btn-adsche:hover,
   .action-dropdown-toggle-adsche:hover,

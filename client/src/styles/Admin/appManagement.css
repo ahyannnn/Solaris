@@ -1,9 +1,9 @@
-/* styles/Admin/appManagement.css - Dark Solar Theme for App Management */
+/* styles/Admin/appManagement.css - Light Solar Theme for App Management */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE
+   BASE - LIGHT SOLAR
    ============================================ */
 .app-management-app-admin {
   background: transparent;
@@ -13,18 +13,18 @@
   margin-top: 0;
   padding: 0;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   HEADER
+   HEADER - LIGHT
    ============================================ */
 .app-header-app-admin {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 16px 0 16px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   flex-wrap: wrap;
   gap: 12px;
 }
@@ -33,12 +33,12 @@
   font-size: 16px;
   font-weight: 600;
   margin: 0 0 4px 0;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .app-header-info-app-admin p {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   margin: 0;
 }
 
@@ -71,38 +71,39 @@
 }
 
 /* ============================================
-   EMPTY STATE
+   EMPTY STATE - LIGHT
    ============================================ */
 .app-empty-app-admin {
   text-align: center;
   padding: 48px 20px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .empty-icon-app-admin {
   font-size: 48px;
-  color: rgba(255, 255, 255, 0.1);
+  color: #D1D5DB;
   margin-bottom: 12px;
 }
 
 .app-empty-app-admin h3 {
   font-size: 18px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0 0 8px 0;
 }
 
 .app-empty-app-admin p {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   margin: 0;
 }
 
 /* ============================================
-   TABLE
+   TABLE - LIGHT GLASS
    ============================================ */
 .app-table-wrapper-app-admin {
-  overflow-x: auto;
+  overflow-x: visible;
+  overflow-y: visible;
   padding: 0 0 20px 0;
 }
 
@@ -116,11 +117,11 @@
   text-align: left;
   padding: 12px 12px 12px 0;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .app-table-app-admin thead th.actions-col-app-admin {
@@ -129,7 +130,7 @@
 }
 
 .app-table-app-admin tbody tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
   transition: background 200ms ease;
 }
 
@@ -138,12 +139,12 @@
 }
 
 .app-table-app-admin tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .app-table-app-admin tbody td {
   padding: 14px 12px 14px 0;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
   vertical-align: middle;
   text-align: left;
 }
@@ -157,7 +158,7 @@
   align-items: center;
   gap: 8px;
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .version-icon-app-admin {
@@ -170,14 +171,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 200px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
 }
 
 .date-cell-app-admin {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   font-size: 13px;
 }
 
@@ -186,7 +187,7 @@
 }
 
 /* ============================================
-   STATUS BADGES
+   STATUS BADGES - LIGHT THEME
    ============================================ */
 .status-badge-app-admin {
   display: inline-flex;
@@ -201,25 +202,45 @@
 }
 
 .status-badge-app-admin.published {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .status-badge-app-admin.draft {
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #F3F5F1;
+  color: #98A2B3;
+  border: 1px solid #EEF0ED;
 }
 
 /* ============================================
-   ACTION DROPDOWN
+   ACTION DROPDOWN - LIGHT
    ============================================ */
 .action-dropdown-container-app-admin {
   position: relative;
-  display: inline-block;
-  width: 100%;
-  text-align: right;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: auto;
+}
+
+.action-dropdown-menu-app-admin {
+  position: absolute !important;
+  top: calc(100% + 5px) !important;
+  right: 0 !important;
+  left: auto !important;
+
+  min-width: 180px;
+  max-width: 220px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #EEF0ED;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  overflow: hidden;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 9999;
 }
 
 .action-dropdown-toggle-app-admin {
@@ -227,21 +248,21 @@
   align-items: center;
   gap: 6px;
   padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
   cursor: pointer;
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
 }
 
 .action-dropdown-toggle-app-admin:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .dropdown-arrow-app-admin {
@@ -256,12 +277,11 @@
 .action-dropdown-menu-app-admin {
   min-width: 180px;
   max-width: 220px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
   padding: 6px;
-  backdrop-filter: blur(10px);
   overflow: hidden;
   max-height: 300px;
   overflow-y: auto;
@@ -272,7 +292,7 @@
 }
 
 .action-dropdown-menu-app-admin::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -295,58 +315,58 @@
   text-align: left;
   transition: all 150ms ease;
   font-family: 'Poppins', sans-serif;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
 .dropdown-item-app-admin:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .dropdown-item-app-admin svg {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   width: 16px;
   text-align: center;
 }
 
 .dropdown-item-app-admin.primary {
-  color: #3B82F6;
+  color: #2563EB;
 }
 
 .dropdown-item-app-admin.primary svg {
-  color: #3B82F6;
+  color: #2563EB;
 }
 
 .dropdown-item-app-admin.primary:hover {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.10);
 }
 
 .dropdown-item-app-admin.success {
-  color: #10B981;
+  color: #059669;
 }
 
 .dropdown-item-app-admin.success svg {
-  color: #10B981;
+  color: #059669;
 }
 
 .dropdown-item-app-admin.success:hover {
-  background: rgba(16, 185, 129, 0.12);
+  background: rgba(16, 185, 129, 0.10);
 }
 
 .dropdown-item-app-admin.danger {
-  color: #EF4444;
+  color: #DC2626;
 }
 
 .dropdown-item-app-admin.danger svg {
-  color: #EF4444;
+  color: #DC2626;
 }
 
 .dropdown-item-app-admin.danger:hover {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.10);
 }
 
 /* ============================================
-   MODALS
+   MODALS - LIGHT GLASS
    ============================================ */
 .modal-overlay-app-admin {
   position: fixed;
@@ -364,14 +384,14 @@
 }
 
 .modal-content-app-admin {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.98);
   border-radius: 18px;
   max-width: 600px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid #EEF0ED;
 }
 
 .modal-content-app-admin::-webkit-scrollbar {
@@ -379,7 +399,7 @@
 }
 
 .modal-content-app-admin::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -393,13 +413,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px 16px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .modal-header-app-admin h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
@@ -407,9 +427,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
+  color: #98A2B3;
   font-size: 20px;
   cursor: pointer;
   display: flex;
@@ -420,8 +440,8 @@
 }
 
 .modal-close-app-admin:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  border-color: #EF4444;
   color: #EF4444;
 }
 
@@ -434,7 +454,7 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
   flex-wrap: wrap;
 }
 
@@ -456,13 +476,13 @@
 }
 
 .btn-cancel-app-admin {
-  background: #131C28;
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #17212B;
+  border: 1px solid #EEF0ED;
 }
 
 .btn-cancel-app-admin:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .btn-confirm-app-admin {
@@ -486,7 +506,7 @@
 }
 
 /* ============================================
-   SPINNER
+   SPINNER - LIGHT
    ============================================ */
 @keyframes spin-app-admin {
   from { transform: rotate(0deg); }
@@ -511,12 +531,12 @@
   justify-content: center;
   gap: 8px;
   padding: 40px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   font-size: 14px;
 }
 
 /* ============================================
-   FORM
+   FORM - LIGHT
    ============================================ */
 .form-group-app-admin {
   margin-bottom: 16px;
@@ -526,7 +546,7 @@
   display: block;
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin-bottom: 6px;
 }
 
@@ -535,11 +555,11 @@
 .form-group-app-admin select {
   width: 100%;
   padding: 10px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
-  background: #131C28;
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.5);
+  color: #17212B;
   outline: none;
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
@@ -555,23 +575,23 @@
 
 .form-group-app-admin input::placeholder,
 .form-group-app-admin textarea::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .form-group-app-admin small {
   display: block;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   margin-top: 4px;
 }
 
 .form-group-app-admin select option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   FILE UPLOAD
+   FILE UPLOAD - LIGHT
    ============================================ */
 .file-upload-wrapper-app-admin {
   position: relative;
@@ -591,10 +611,10 @@
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  border: 2px dashed rgba(255, 255, 255, 0.1);
+  border: 2px dashed #EEF0ED;
   border-radius: 10px;
-  background: #131C28;
-  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   font-size: 14px;
   cursor: pointer;
   transition: all 200ms ease;
@@ -608,7 +628,7 @@
 .file-size-app-admin {
   display: block;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   margin-top: 4px;
 }
 
@@ -617,17 +637,17 @@
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   margin-bottom: 8px;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
 }
 
 .current-apk-info-app-admin a.download-link-app-admin {
   margin-left: auto;
-  color: #F39C12;
+  color: #D97706;
   font-weight: 500;
   text-decoration: none;
 }
@@ -637,19 +657,19 @@
 }
 
 .file-hint-app-admin {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 12px;
 }
 
 /* ============================================
-   UPLOAD STATUS
+   UPLOAD STATUS - LIGHT
    ============================================ */
 .upload-status-app-admin {
   margin-top: 16px;
   padding: 20px;
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid #EEF0ED;
 }
 
 .status-container-app-admin {
@@ -670,13 +690,13 @@
 .status-text-app-admin {
   font-size: 15px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
   margin: 0;
 }
 
 .status-subtext-app-admin {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   margin: 0;
 }
 
@@ -690,7 +710,7 @@
 }
 
 /* ============================================
-   RESPONSIVE
+   RESPONSIVE - LIGHT
    ============================================ */
 
 @media (max-width: 768px) {
@@ -910,7 +930,7 @@
 }
 
 /* ============================================
-   TOUCH-FRIENDLY IMPROVEMENTS
+   TOUCH-FRIENDLY IMPROVEMENTS - LIGHT
    ============================================ */
 @media (hover: none) and (pointer: coarse) {
   .action-dropdown-toggle-app-admin {
@@ -939,7 +959,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES
+   REDUCED MOTION PREFERENCES - LIGHT
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {

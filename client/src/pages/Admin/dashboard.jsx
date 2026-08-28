@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { 
-  FaFileInvoiceDollar, 
-  FaClipboardList, 
+import {
+  FaFileInvoiceDollar,
+  FaClipboardList,
   FaChartLine,
   FaMicrochip,
   FaCheckCircle,
@@ -127,7 +127,7 @@ const AdminDashboard = () => {
         }));
 
       const allTransactions = [...preTransactions, ...projectTransactions];
-      
+
       const totalRevenue = allTransactions.reduce((sum, p) => sum + (p.amount || 0), 0);
       const thisMonthRevenue = allTransactions
         .filter(p => p.status === 'Paid' && new Date(p.date).getMonth() === new Date().getMonth())
@@ -145,9 +145,9 @@ const AdminDashboard = () => {
           completed: completedAssessments.length,
           scheduled: scheduledAssessments.length
         },
-        revenue: { 
-          total: totalRevenue, 
-          thisMonth: thisMonthRevenue 
+        revenue: {
+          total: totalRevenue,
+          thisMonth: thisMonthRevenue
         },
         devices: devicesRes.data || { total: 0, active: 0, deployed: 0 }
       });
@@ -156,21 +156,21 @@ const AdminDashboard = () => {
       const monthlyFreeQuotes = new Array(12).fill(0);
       const monthlyAssessments = new Array(12).fill(0);
       const monthlyRevenue = new Array(12).fill(0);
-      
+
       freeQuotes.forEach(quote => {
         if (quote.requestedAt) {
           const month = new Date(quote.requestedAt).getMonth();
           monthlyFreeQuotes[month]++;
         }
       });
-      
+
       assessments.forEach(assessment => {
         if (assessment.bookedAt) {
           const month = new Date(assessment.bookedAt).getMonth();
           monthlyAssessments[month]++;
         }
       });
-      
+
       const completedPayments = allTransactions.filter(p => p.status === 'Paid');
       completedPayments.forEach(payment => {
         if (payment.date) {
@@ -178,7 +178,7 @@ const AdminDashboard = () => {
           monthlyRevenue[month] += payment.amount || 0;
         }
       });
-      
+
       setMonthlyData({
         labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
         freeQuotes: monthlyFreeQuotes,
@@ -203,8 +203,8 @@ const AdminDashboard = () => {
     freeQuotes.slice(0, 2).forEach(quote => {
       let message = '';
       const statusConfig = FREE_QUOTE_STATUS[quote.status] || { label: quote.status || 'Unknown' };
-      
-      switch(quote.status) {
+
+      switch (quote.status) {
         case 'pending':
           message = `New quote request: ${quote.quotationReference}`;
           break;
@@ -226,7 +226,7 @@ const AdminDashboard = () => {
         default:
           message = `Quote update: ${quote.quotationReference}`;
       }
-      
+
       activities.push({
         id: `quote-${quote._id}`,
         type: 'free-quote',
@@ -240,8 +240,8 @@ const AdminDashboard = () => {
     assessments.slice(0, 3).forEach(assessment => {
       let message = '';
       const status = assessment.assessmentStatus || assessment.paymentStatus;
-      
-      switch(status) {
+
+      switch (status) {
         case 'pending_review':
           message = `Pending review: ${assessment.bookingReference}`;
           break;
@@ -281,7 +281,7 @@ const AdminDashboard = () => {
         default:
           message = `Assessment update: ${assessment.bookingReference}`;
       }
-      
+
       activities.push({
         id: `assessment-${assessment._id}`,
         type: 'pre-assessment',
@@ -307,27 +307,27 @@ const AdminDashboard = () => {
 
   // Quick Actions
   const quickActions = [
-    { 
-      icon: <FaClipboardList />, 
-      label: 'Manage Assessments', 
+    {
+      icon: <FaClipboardList />,
+      label: 'Manage Assessments',
       description: 'Review and assign assessments',
       link: '/app/admin/siteassessment'
     },
-    { 
-      icon: <FaProjectDiagram />, 
-      label: 'View Projects', 
+    {
+      icon: <FaProjectDiagram />,
+      label: 'View Projects',
       description: 'Track all projects status',
       link: '/app/admin/project'
     },
-    { 
-      icon: <FaMoneyBillWave />, 
-      label: 'Billing Overview', 
+    {
+      icon: <FaMoneyBillWave />,
+      label: 'Billing Overview',
       description: 'Review payments and invoices',
       link: '/app/admin/billing'
     },
-    { 
-      icon: <FaUsers />, 
-      label: 'User Management', 
+    {
+      icon: <FaUsers />,
+      label: 'User Management',
       description: 'Manage user accounts',
       link: '/app/admin/usermanagement'
     }
@@ -370,7 +370,7 @@ const AdminDashboard = () => {
       <div className="stats-grid_admindashbu">
         {cards.map((card, index) => {
           const maxVal = Math.max(...card.data, 1);
-          
+
           return (
             <div key={index} className="stat-card_admindashbu">
               <div className="stat-card-header_admindashbu">
@@ -403,6 +403,7 @@ const AdminDashboard = () => {
   };
 
   /* --- PROJECT OVERVIEW CHART --- */
+  /* --- PROJECT OVERVIEW CHART --- */
   const ProjectOverviewChart = () => {
     const chartData = monthlyData.labels.map((label, i) => ({
       name: label,
@@ -414,9 +415,9 @@ const AdminDashboard = () => {
       if (active && payload && payload.length) {
         return (
           <div className="chart-tooltip_admindashbu">
-            <p className="tooltip-label_admindashbu">{label}</p>
+            <p className="tooltip-label_admindashbu" style={{ color: '#98A2B3' }}>{label}</p>
             {payload.map((entry, idx) => (
-              <p key={idx} className="tooltip-item_admindashbu" style={{ color: entry.color }}>
+              <p key={idx} className="tooltip-item_admindashbu" style={{ color: '#17212B' }}>
                 {entry.name}: {entry.value}
               </p>
             ))}
@@ -440,50 +441,53 @@ const AdminDashboard = () => {
         </div>
         <div className="chart-body_admindashbu">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <AreaChart
+              data={chartData}
+              margin={{ top: 10, right: 10, left: 5, bottom: 0 }}
+            >
               <defs>
                 <linearGradient id="colorQuotes_admindashbu" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#F39C12" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#F39C12" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#F39C12" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#F39C12" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorAssessments_admindashbu" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="rgba(255,255,255,0.06)" />
-              <XAxis 
-                dataKey="name" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} 
+              <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#EEF0ED" />
+              <XAxis
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
                 dy={10}
               />
-              <YAxis 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} 
-                width={30}
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                width={40}
               />
-              <Tooltip content={<CustomTooltip />} cursor={{stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1}} />
-              <Area 
-                type="monotone" 
-                dataKey="quotes" 
-                stroke="#F39C12" 
-                strokeWidth={3} 
-                fillOpacity={1} 
-                fill="url(#colorQuotes_admindashbu)" 
-                dot={{ r: 5, fill: '#F39C12', strokeWidth: 2, stroke: '#1A2533' }}
+              <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#D1D5DB', strokeWidth: 1 }} />
+              <Area
+                type="monotone"
+                dataKey="quotes"
+                stroke="#F39C12"
+                strokeWidth={3}
+                fillOpacity={1}
+                fill="url(#colorQuotes_admindashbu)"
+                dot={{ r: 5, fill: '#F39C12', strokeWidth: 2, stroke: '#FFFFFF' }}
                 activeDot={{ r: 7 }}
               />
-              <Area 
-                type="monotone" 
-                dataKey="assessments" 
-                stroke="#10B981" 
-                strokeWidth={3} 
-                fillOpacity={1} 
-                fill="url(#colorAssessments_admindashbu)" 
-                dot={{ r: 5, fill: '#10B981', strokeWidth: 2, stroke: '#1A2533' }}
+              <Area
+                type="monotone"
+                dataKey="assessments"
+                stroke="#10B981"
+                strokeWidth={3}
+                fillOpacity={1}
+                fill="url(#colorAssessments_admindashbu)"
+                dot={{ r: 5, fill: '#10B981', strokeWidth: 2, stroke: '#FFFFFF' }}
                 activeDot={{ r: 7 }}
               />
             </AreaChart>
@@ -492,7 +496,7 @@ const AdminDashboard = () => {
       </div>
     );
   };
-
+  /* --- REVENUE TREND CHART --- */
   /* --- REVENUE TREND CHART --- */
   const RevenueTrendChart = () => {
     const chartData = monthlyData.labels.map((label, i) => ({
@@ -504,8 +508,8 @@ const AdminDashboard = () => {
       if (active && payload && payload.length) {
         return (
           <div className="chart-tooltip_admindashbu">
-            <p className="tooltip-label_admindashbu">{label}</p>
-            <p className="tooltip-item_admindashbu" style={{ color: '#F39C12' }}>
+            <p className="tooltip-label_admindashbu" style={{ color: '#98A2B3' }}>{label}</p>
+            <p className="tooltip-item_admindashbu" style={{ color: '#17212B' }}>
               Revenue: {formatCurrency(payload[0].value)}
             </p>
           </div>
@@ -533,37 +537,42 @@ const AdminDashboard = () => {
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart
+                data={chartData}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
                 <defs>
                   <linearGradient id="colorRevenue_admindashbu" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#F39C12" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#F39C12" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#F39C12" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#F39C12" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="rgba(255,255,255,0.06)" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} 
+                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#EEF0ED" />
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
                   dy={10}
                 />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} 
-                  width={50}
-                  tickFormatter={(value) => `₱${value >= 1000 ? (value/1000).toFixed(0) + 'k' : value}`}
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                  width={70}
+                  tickFormatter={(value) =>
+                    `₱${value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value}`
+                  }
                 />
-                <Tooltip content={<CustomTooltip />} cursor={{stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1}} />
-                <Area 
-                  type="monotone" 
-                  dataKey="revenue" 
-                  stroke="#F39C12" 
-                  strokeWidth={3} 
-                  fillOpacity={1} 
-                  fill="url(#colorRevenue_admindashbu)" 
-                  dot={{ r: 5, fill: '#F39C12', strokeWidth: 2, stroke: '#1A2533' }}
+                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#D1D5DB', strokeWidth: 1 }} />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#F39C12"
+                  strokeWidth={3}
+                  fillOpacity={1}
+                  fill="url(#colorRevenue_admindashbu)"
+                  dot={{ r: 5, fill: '#F39C12', strokeWidth: 2, stroke: '#FFFFFF' }}
                   activeDot={{ r: 7 }}
                 />
               </AreaChart>
@@ -573,7 +582,6 @@ const AdminDashboard = () => {
       </div>
     );
   };
-
   /* --- RECENT ACTIVITY COMPONENT --- */
   const RecentActivity = () => {
     const getStatusConfig = (status, type) => {
@@ -609,14 +617,14 @@ const AdminDashboard = () => {
           <div className="activity-title_admindashbu">
             <FaClock className="activity-title-icon_admindashbu" /> Recent Activity
           </div>
-          <button 
+          <button
             className="view-all-btn_admindashbu"
             onClick={() => navigate('/app/admin/siteassessment')}
           >
             View All <FaChevronRight />
           </button>
         </div>
-        
+
         <div className="activity-list_admindashbu">
           {recentActivities.length === 0 ? (
             <div className="empty-activity_admindashbu">
@@ -628,10 +636,10 @@ const AdminDashboard = () => {
               const type = activity.type || 'pre-assessment';
               const statusClass = getStatusClass(activity.status, type);
               const statusText = getStatusText(activity.status, type);
-              
+
               return (
-                <div 
-                  key={activity.id} 
+                <div
+                  key={activity.id}
                   className="activity-item_admindashbu"
                   onClick={() => navigate(activity.action)}
                   role="button"
@@ -665,8 +673,8 @@ const AdminDashboard = () => {
       </div>
       <div className="quick-actions-grid_admindashbu">
         {quickActions.map((action, index) => (
-          <div 
-            key={index} 
+          <div
+            key={index}
             className="quick-action-item_admindashbu"
             onClick={() => navigate(action.link)}
             role="button"

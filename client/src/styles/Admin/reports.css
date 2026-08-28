@@ -1,43 +1,46 @@
-/* styles/Admin/reports.css - Dark Solar Theme for Reports */
+/* styles/Admin/reports.css - Light Solar Theme for Reports */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE LAYOUT
+   BASE LAYOUT - LIGHT SOLAR
    ============================================ */
 .reports-container-reports {
-  background: #0B111A;
+  background: #F3F5F1;
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   HEADER
+   HEADER - LIGHT
    ============================================ */
 .reports-header-reports {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
 /* ============================================
-   TABS
+   TABS - LIGHT GLASS
    ============================================ */
 .report-tabs-reports {
   display: inline-flex;
   gap: 6px;
   margin-bottom: 24px;
   flex-wrap: wrap;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   padding: 6px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   width: auto;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .tab-btn-reports {
@@ -47,7 +50,7 @@
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   cursor: pointer;
   transition: all 200ms ease;
   display: inline-flex;
@@ -58,8 +61,8 @@
 }
 
 .tab-btn-reports:hover {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.05);
+  color: #17212B;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .tab-btn-reports.active-reports {
@@ -69,7 +72,7 @@
 }
 
 /* ============================================
-   REPORT CONTROLS
+   REPORT CONTROLS - LIGHT GLASS
    ============================================ */
 .report-controls-reports {
   display: flex;
@@ -77,11 +80,13 @@
   margin-bottom: 24px;
   flex-wrap: wrap;
   align-items: flex-end;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   padding: 20px 24px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .date-range-reports {
@@ -95,7 +100,7 @@
 .date-range-reports label {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .date-inputs-reports {
@@ -106,11 +111,11 @@
 
 .date-inputs-reports input[type="date"] {
   padding: 8px 12px;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 13px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
   flex: 1;
@@ -124,12 +129,12 @@
 }
 
 .date-inputs-reports input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
+  filter: invert(0.3);
   cursor: pointer;
 }
 
 .date-inputs-reports span {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 14px;
 }
 
@@ -144,22 +149,22 @@
 .report-filter-reports label {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .report-filter-reports select {
   padding: 8px 36px 8px 12px;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 13px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   appearance: none;
   cursor: pointer;
   transition: all 200ms ease;
   width: 100%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2398A2B3' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
 }
@@ -171,12 +176,12 @@
 }
 
 .report-filter-reports select option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   REPORT CONTENT
+   REPORT CONTENT - LIGHT GLASS
    ============================================ */
 .report-content-reports {
   display: flex;
@@ -185,28 +190,30 @@
 }
 
 .report-section-reports {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
   padding: 20px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .report-section-reports h2 {
   font-size: 20px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 4px 0;
 }
 
 .report-section-reports p {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   margin: 0 0 16px 0;
 }
 
 /* ============================================
-   TABLE
+   TABLE - LIGHT GLASS
    ============================================ */
 .table-container-reports {
   overflow-x: auto;
@@ -219,7 +226,7 @@
 }
 
 .reports-table-reports thead {
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .reports-table-reports thead th {
@@ -229,12 +236,12 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: rgba(255, 255, 255, 0.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #98A2B3;
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .reports-table-reports tbody tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
   transition: background 200ms ease;
 }
 
@@ -243,43 +250,43 @@
 }
 
 .reports-table-reports tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .reports-table-reports tbody td {
   padding: 12px 16px;
   vertical-align: middle;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
-/* Table Cell Styles */
+/* Table Cell Styles - LIGHT */
 .ref-cell-reports {
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: monospace;
   font-size: 12px;
 }
 
 .client-cell-reports {
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .amount-reports {
   font-weight: 600;
-  color: #F39C12;
+  color: #D97706;
 }
 
-/* Empty State */
+/* Empty State - LIGHT */
 .empty-state-reports {
   text-align: center;
   padding: 48px 20px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   font-size: 14px;
 }
 
 /* ============================================
-   BADGES
+   BADGES - LIGHT THEME
    ============================================ */
 .status-badge-reports {
   display: inline-block;
@@ -287,9 +294,9 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #F3F5F1;
+  color: #667085;
+  border: 1px solid #EEF0ED;
 }
 
 .property-type-badge-reports {
@@ -298,8 +305,8 @@
   border-radius: 6px;
   font-size: 11px;
   font-weight: 500;
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
   border: 1px solid rgba(59, 130, 246, 0.15);
 }
 
@@ -309,8 +316,8 @@
   border-radius: 6px;
   font-size: 11px;
   font-weight: 500;
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
   border: 1px solid rgba(139, 92, 246, 0.15);
 }
 
@@ -320,8 +327,8 @@
   border-radius: 6px;
   font-size: 11px;
   font-weight: 500;
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
   border: 1px solid rgba(16, 185, 129, 0.15);
 }
 
@@ -334,30 +341,30 @@
 }
 
 .payment-method-reports.cash {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
   border: 1px solid rgba(16, 185, 129, 0.15);
 }
 
 .payment-method-reports.gcash {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
   border: 1px solid rgba(59, 130, 246, 0.15);
 }
 
 .payment-method-reports.paymongo {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
   border: 1px solid rgba(139, 92, 246, 0.15);
 }
 
 .payment-method-reports.manual {
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #F3F5F1;
+  color: #98A2B3;
+  border: 1px solid #EEF0ED;
 }
 
-/* Project Status Badges */
+/* Project Status Badges - LIGHT */
 .project-status-badge-reports {
   display: inline-block;
   padding: 3px 12px;
@@ -367,55 +374,55 @@
 }
 
 .project-status-badge-reports.quoted {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
-  border: 1px solid rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border: 1px solid rgba(243, 156, 18, 0.20);
 }
 
 .project-status-badge-reports.approved {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .project-status-badge-reports.initial_paid {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .project-status-badge-reports.in_progress {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .project-status-badge-reports.progress_paid {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .project-status-badge-reports.completed {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .project-status-badge-reports.full_paid {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .project-status-badge-reports.cancelled {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 /* ============================================
-   REPORT ACTIONS
+   REPORT ACTIONS - LIGHT
    ============================================ */
 .report-actions-reports {
   display: flex;
@@ -465,19 +472,19 @@
 }
 
 .export-btn-reports.print {
-  background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
 }
 
 .export-btn-reports.print:hover:not(:disabled) {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 /* ============================================
-   REPORT PREVIEW MODAL
+   REPORT PREVIEW MODAL - LIGHT GLASS
    ============================================ */
 .report-preview-overlay-reports {
   position: fixed;
@@ -492,15 +499,15 @@
 }
 
 .report-preview-reports {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.98);
   border-radius: 18px;
   max-width: 1000px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid #EEF0ED;
   position: relative;
 }
 
@@ -508,16 +515,16 @@
   display: flex;
   justify-content: flex-end;
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .close-preview-reports {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
+  color: #98A2B3;
   font-size: 18px;
   cursor: pointer;
   display: flex;
@@ -528,8 +535,8 @@
 }
 
 .close-preview-reports:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  border-color: #EF4444;
   color: #EF4444;
 }
 
@@ -544,7 +551,7 @@
 }
 
 .preview-content-reports::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -557,21 +564,21 @@
   display: flex;
   gap: 12px;
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
 .preview-note-reports {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   text-align: center;
   padding: 8px 0 0 0;
   margin: 0;
 }
 
 .preview-raw-reports {
-  background: #131C28;
+  background: #F3F5F1;
   border-radius: 10px;
   padding: 16px;
   overflow-x: auto;
@@ -580,20 +587,20 @@
 .preview-raw-reports pre {
   margin: 0;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   white-space: pre-wrap;
   word-wrap: break-word;
 }
 
 /* ============================================
-   REPORT HEADER IN PREVIEW
+   REPORT HEADER IN PREVIEW - LIGHT
    ============================================ */
 .report-header-reports {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   padding: 16px 0 20px 0;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 2px solid #EEF0ED;
   margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 16px;
@@ -616,7 +623,7 @@
   width: 60px;
   height: 60px;
   border-radius: 12px;
-  background: rgba(243, 156, 18, 0.1);
+  background: rgba(243, 156, 18, 0.10);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -632,19 +639,19 @@
 .company-name-reports {
   font-size: 20px;
   font-weight: 700;
-  color: #F39C12;
+  color: #D97706;
   margin: 0;
 }
 
 .company-address-reports {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   margin: 0;
 }
 
 .company-tagline-reports {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   margin: 0;
 }
 
@@ -655,19 +662,19 @@
 .report-title-reports {
   font-size: 18px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 4px 0;
 }
 
 .report-generated-reports {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   margin: 0;
 }
 
 .report-date-range-reports {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   margin: 0;
 }
 
@@ -678,19 +685,19 @@
 .preview-table-section-reports h4 {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0 0 12px 0;
 }
 
 /* ============================================
-   SKELETON LOADING
+   SKELETON LOADING - LIGHT
    ============================================ */
 .skeleton-line-large-reports {
   height: 40px;
   width: 60%;
   border-radius: 6px;
   animation: shimmer-reports 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -699,7 +706,7 @@
   width: 40%;
   border-radius: 6px;
   animation: shimmer-reports 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -707,9 +714,9 @@
   height: 40px;
   width: 120px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer-reports 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -723,7 +730,7 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - UNCHANGED STRUCTURE
    ============================================ */
 
 @media (max-width: 1200px) {
@@ -795,7 +802,7 @@
   .reports-table-reports tbody td {
     display: block;
     padding: 8px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid #EEF0ED;
   }
   .reports-table-reports tbody td:last-child {
     border-bottom: none;
@@ -803,7 +810,7 @@
   .reports-table-reports tbody td::before {
     content: attr(data-label);
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.4);
+    color: #98A2B3;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -813,7 +820,7 @@
   .reports-table-reports tbody tr {
     display: block;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid #EEF0ED;
   }
   .reports-table-reports tbody tr:last-child {
     border-bottom: none;
@@ -925,7 +932,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES
+   REDUCED MOTION PREFERENCES - LIGHT
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -940,7 +947,7 @@
   .skeleton-line-medium-reports,
   .skeleton-tab-reports {
     animation: none !important;
-    background: #131C28 !important;
+    background: #EEF0ED !important;
   }
   .export-btn-reports:hover:not(:disabled) {
     transform: none !important;

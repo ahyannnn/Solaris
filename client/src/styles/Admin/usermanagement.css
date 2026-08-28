@@ -1,32 +1,32 @@
-/* styles/Admin/usermanagement.css - Dark Solar Theme for User Management */
+/* styles/Admin/usermanagement.css - Light Solar Theme for User Management */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE LAYOUT
+   BASE LAYOUT - LIGHT SOLAR
    ============================================ */
 .user-management-usermanagement {
-  background: #0B111A;
+  background: #F3F5F1;
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   HEADER
+   HEADER - LIGHT
    ============================================ */
 .user-management-header-usermanagement {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
 /* ============================================
-   TABS + BUTTONS WRAPPER
+   TABS + BUTTONS WRAPPER - LIGHT GLASS
    ============================================ */
 .user-tabs-wrapper-usermanagement {
   display: flex;
@@ -41,11 +41,14 @@
   display: inline-flex;
   gap: 6px;
   flex-wrap: wrap;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   padding: 6px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   width: auto;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .tab-btn-usermanagement {
@@ -55,7 +58,7 @@
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   cursor: pointer;
   transition: all 200ms ease;
   display: inline-flex;
@@ -66,8 +69,8 @@
 }
 
 .tab-btn-usermanagement:hover {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.05);
+  color: #17212B;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .tab-btn-usermanagement.active-usermanagement {
@@ -84,10 +87,10 @@
   height: 22px;
   padding: 0 8px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.05);
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #98A2B3;
 }
 
 .tab-btn-usermanagement.active-usermanagement .tab-badge-usermanagement {
@@ -131,9 +134,9 @@
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -144,13 +147,13 @@
 }
 
 .refresh-btn-usermanagement:hover {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 /* ============================================
-   FILTERS
+   FILTERS - LIGHT
    ============================================ */
 .user-filters-section-usermanagement {
   display: flex;
@@ -170,17 +173,20 @@
 .search-box-usermanagement input {
   width: 100%;
   padding: 10px 14px 10px 40px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .search-box-usermanagement input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .search-box-usermanagement input:focus {
@@ -194,7 +200,7 @@
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 14px;
 }
 
@@ -206,15 +212,18 @@
 .filter-role-usermanagement select {
   width: 100%;
   padding: 10px 36px 10px 14px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
   appearance: none;
   transition: all 200ms ease;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .filter-role-usermanagement select:focus {
@@ -224,19 +233,19 @@
 }
 
 .filter-role-usermanagement select option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   TABLE
+   TABLE - LIGHT GLASS
    ============================================ */
 .users-table-container-usermanagement {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
 }
 
 .users-table-usermanagement {
@@ -246,7 +255,7 @@
 }
 
 .users-table-usermanagement thead {
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .users-table-usermanagement thead th {
@@ -256,12 +265,12 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: rgba(255, 255, 255, 0.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #98A2B3;
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .users-table-usermanagement tbody tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
   transition: background 200ms ease;
 }
 
@@ -270,16 +279,16 @@
 }
 
 .users-table-usermanagement tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .users-table-usermanagement tbody td {
   padding: 14px 16px;
   vertical-align: middle;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
-/* User Cell */
+/* User Cell - LIGHT */
 .user-cell-content-usermanagement {
   display: flex;
   align-items: center;
@@ -290,7 +299,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(243, 156, 18, 0.15);
+  background: rgba(243, 156, 18, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -305,17 +314,17 @@
 .avatar-initials-usermanagement {
   font-size: 14px;
   font-weight: 600;
-  color: #F39C12;
+  color: #D97706;
 }
 
 .avatar-icon-usermanagement {
   font-size: 24px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #D1D5DB;
 }
 
 .user-name-usermanagement {
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .email-cell-usermanagement {
@@ -326,15 +335,15 @@
 
 .email-icon-usermanagement {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #D1D5DB;
 }
 
 .email-text-usermanagement {
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
 }
 
 /* ============================================
-   ROLE BADGES
+   ROLE BADGES - LIGHT THEME
    ============================================ */
 .role-badge-usermanagement {
   display: inline-block;
@@ -348,25 +357,25 @@
 }
 
 .role-badge-usermanagement.admin {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 .role-badge-usermanagement.engineer {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .role-badge-usermanagement.user {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 /* ============================================
-   STATUS BADGES
+   STATUS BADGES - LIGHT THEME
    ============================================ */
 .status-badge-usermanagement {
   display: inline-flex;
@@ -382,33 +391,33 @@
 }
 
 .status-badge-usermanagement.active {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .status-badge-usermanagement.inactive {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 /* ============================================
-   MODULE BADGE
+   MODULE BADGE - LIGHT
    ============================================ */
 .module-badge-usermanagement {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 12px;
-  background: rgba(255, 255, 255, 0.05);
+  background: #F3F5F1;
   border-radius: 6px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 /* ============================================
-   ACTION BADGE
+   ACTION BADGE - LIGHT
    ============================================ */
 .action-badge-usermanagement {
   display: inline-block;
@@ -418,28 +427,28 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.5);
+  background: #F3F5F1;
+  color: #98A2B3;
 }
 
 /* ============================================
-   TIMESTAMP CELL
+   TIMESTAMP CELL - LIGHT
    ============================================ */
 .timestamp-cell-usermanagement {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .timestamp-icon-usermanagement {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #D1D5DB;
 }
 
 /* ============================================
-   ACTION DROPDOWN
+   ACTION DROPDOWN - LIGHT
    ============================================ */
 .action-dropdown-container-usermanagement {
   position: relative;
@@ -451,9 +460,9 @@
   align-items: center;
   gap: 8px;
   padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
@@ -463,9 +472,9 @@
 }
 
 .action-dropdown-toggle-usermanagement:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .dropdown-arrow-usermanagement {
@@ -480,12 +489,11 @@
 .action-dropdown-menu-usermanagement {
   min-width: 180px;
   max-width: 220px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
   padding: 6px;
-  backdrop-filter: blur(10px);
   overflow: hidden;
   max-height: 300px;
   overflow-y: auto;
@@ -496,7 +504,7 @@
 }
 
 .action-dropdown-menu-usermanagement::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -519,52 +527,52 @@
   text-align: left;
   transition: all 150ms ease;
   font-family: 'Poppins', sans-serif;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
 .dropdown-item-usermanagement:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .dropdown-item-usermanagement.primary {
-  color: #3B82F6;
+  color: #2563EB;
 }
 
 .dropdown-item-usermanagement.primary:hover {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.10);
 }
 
 .dropdown-item-usermanagement.warning {
-  color: #F39C12;
+  color: #D97706;
 }
 
 .dropdown-item-usermanagement.warning:hover {
-  background: rgba(243, 156, 18, 0.12);
+  background: rgba(243, 156, 18, 0.10);
 }
 
 .dropdown-item-usermanagement.danger {
-  color: #EF4444;
+  color: #DC2626;
 }
 
 .dropdown-item-usermanagement.danger:hover {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.10);
 }
 
 .dropdown-item-usermanagement.success {
-  color: #10B981;
+  color: #059669;
 }
 
 .dropdown-item-usermanagement.success:hover {
-  background: rgba(16, 185, 129, 0.12);
+  background: rgba(16, 185, 129, 0.10);
 }
 
 /* ============================================
-   EMPTY STATE
+   EMPTY STATE - LIGHT
    ============================================ */
 .empty-state-usermanagement {
   text-align: center;
   padding: 48px 20px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
 }
 
 .empty-state-usermanagement p {
@@ -573,7 +581,7 @@
 }
 
 /* ============================================
-   PAGINATION
+   PAGINATION - LIGHT
    ============================================ */
 .pagination-usermanagement {
   display: flex;
@@ -586,7 +594,7 @@
 
 .pagination-info-usermanagement {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .pagination-controls-usermanagement {
@@ -602,8 +610,8 @@
   gap: 6px;
   padding: 8px 16px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -613,9 +621,9 @@
 }
 
 .page-btn-usermanagement:hover:not(:disabled) {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.5);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .page-btn-usermanagement:disabled {
@@ -631,7 +639,7 @@
   justify-content: center;
   padding: 0 8px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   border: 1px solid transparent;
   border-radius: 8px;
   font-size: 13px;
@@ -642,8 +650,8 @@
 }
 
 .page-number-usermanagement:hover {
-  background: #131C28;
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.5);
+  color: #17212B;
 }
 
 .page-number-usermanagement.active-usermanagement {
@@ -653,7 +661,7 @@
 }
 
 /* ============================================
-   MODALS
+   MODALS - LIGHT GLASS
    ============================================ */
 .modal-overlay-usermanagement {
   position: fixed;
@@ -668,15 +676,15 @@
 }
 
 .modal-content-usermanagement {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.98);
   border-radius: 18px;
   max-width: 560px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid #EEF0ED;
   position: relative;
 }
 
@@ -695,7 +703,7 @@
 
 .modal-header-usermanagement {
   padding: 20px 24px 16px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -704,7 +712,7 @@
 .modal-header-usermanagement h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
@@ -712,9 +720,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
+  color: #98A2B3;
   font-size: 24px;
   cursor: pointer;
   display: flex;
@@ -726,8 +734,8 @@
 }
 
 .modal-close-usermanagement:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  border-color: #EF4444;
   color: #EF4444;
 }
 
@@ -742,7 +750,7 @@
 }
 
 .modal-body-usermanagement::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -753,7 +761,7 @@
 
 .modal-actions-usermanagement {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
   display: flex;
   gap: 12px;
   justify-content: flex-end;
@@ -761,7 +769,7 @@
 }
 
 /* ============================================
-   USER DETAILS VIEW
+   USER DETAILS VIEW - LIGHT
    ============================================ */
 .user-details-view-usermanagement {
   display: flex;
@@ -776,19 +784,19 @@
 .detail-section-usermanagement h4 {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   margin: 0 0 10px 0;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .detail-row-usermanagement {
   display: flex;
   justify-content: space-between;
   padding: 6px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .detail-row-usermanagement:last-child {
@@ -796,17 +804,17 @@
 }
 
 .detail-row-usermanagement span {
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   font-size: 13px;
 }
 
 .detail-row-usermanagement strong {
-  color: #FFFFFF;
+  color: #17212B;
   font-size: 14px;
 }
 
 /* ============================================
-   USER FORM
+   USER FORM - LIGHT
    ============================================ */
 .user-form-usermanagement {
   display: flex;
@@ -831,17 +839,17 @@
 .form-group-usermanagement label {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .form-group-usermanagement input,
 .form-group-usermanagement select {
   padding: 10px 14px;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
   width: 100%;
@@ -855,7 +863,7 @@
 }
 
 .form-group-usermanagement input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .form-group-usermanagement input:disabled {
@@ -875,20 +883,20 @@
 
 .form-group-usermanagement small {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .form-group-usermanagement select option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 .error-text-usermanagement {
   font-size: 12px;
-  color: #EF4444;
+  color: #DC2626;
 }
 
-/* Password Input Wrapper */
+/* Password Input Wrapper - LIGHT */
 .password-input-wrapper-usermanagement {
   position: relative;
   display: flex;
@@ -906,7 +914,7 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   cursor: pointer;
   padding: 4px;
   font-size: 18px;
@@ -915,14 +923,14 @@
 }
 
 .password-toggle-btn-usermanagement:hover {
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 /* ============================================
-   USER INFO SUMMARY
+   USER INFO SUMMARY - LIGHT
    ============================================ */
 .user-info-summary-usermanagement {
-  background: #131C28;
+  background: #F3F5F1;
   border-radius: 10px;
   padding: 12px 16px;
   margin-bottom: 16px;
@@ -931,21 +939,21 @@
 .user-info-summary-usermanagement p {
   margin: 4px 0;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .user-info-summary-usermanagement p strong {
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   MODAL BUTTONS
+   MODAL BUTTONS - LIGHT
    ============================================ */
 .cancel-btn-usermanagement {
   padding: 10px 24px;
-  background: #131C28;
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #17212B;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -955,7 +963,7 @@
 }
 
 .cancel-btn-usermanagement:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .save-btn-usermanagement {
@@ -1007,7 +1015,7 @@
 }
 
 /* ============================================
-   CONFIRM MODAL
+   CONFIRM MODAL - LIGHT
    ============================================ */
 .confirm-icon-usermanagement {
   font-size: 48px;
@@ -1018,31 +1026,31 @@
 .confirm-modal-usermanagement h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 8px 0;
 }
 
 .confirm-modal-usermanagement p {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 4px 0;
 }
 
 .warning-text-usermanagement {
   font-size: 13px;
-  color: #EF4444 !important;
+  color: #DC2626 !important;
   margin-top: 8px !important;
 }
 
 /* ============================================
-   SKELETON LOADING
+   SKELETON LOADING - LIGHT
    ============================================ */
 .skeleton-line-large-usermanagement {
   height: 40px;
   width: 60%;
   border-radius: 6px;
   animation: shimmer-usermanagement 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -1051,7 +1059,7 @@
   width: 120px;
   border-radius: 8px;
   animation: shimmer-usermanagement 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -1059,9 +1067,9 @@
   height: 40px;
   width: 100px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer-usermanagement 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -1069,17 +1077,17 @@
   height: 40px;
   width: 280px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer-usermanagement 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
 .skeleton-table-usermanagement {
   height: 300px;
   border-radius: 14px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
 }
 
 @keyframes shimmer-usermanagement {
@@ -1092,7 +1100,7 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - UNCHANGED STRUCTURE
    ============================================ */
 
 @media (max-width: 1200px) {
@@ -1171,7 +1179,7 @@
   .users-table-usermanagement tbody td {
     display: block;
     padding: 8px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid #EEF0ED;
   }
   .users-table-usermanagement tbody td:last-child {
     border-bottom: none;
@@ -1179,7 +1187,7 @@
   .users-table-usermanagement tbody td::before {
     content: attr(data-label);
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.4);
+    color: #98A2B3;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -1189,7 +1197,7 @@
   .users-table-usermanagement tbody tr {
     display: block;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid #EEF0ED;
   }
   .users-table-usermanagement tbody tr:last-child {
     border-bottom: none;
@@ -1296,7 +1304,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES
+   REDUCED MOTION PREFERENCES - LIGHT
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -1312,7 +1320,7 @@
   .skeleton-tab-usermanagement,
   .skeleton-search-usermanagement {
     animation: none !important;
-    background: #131C28 !important;
+    background: #EEF0ED !important;
   }
   .create-user-btn-usermanagement:hover,
   .refresh-btn-usermanagement:hover,

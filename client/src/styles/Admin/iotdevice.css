@@ -1,26 +1,26 @@
-/* styles/Admin/iotdevice.css - Dark Solar Theme for IoT Device Management */
+/* styles/Admin/iotdevice.css - Light Solar Theme for IoT Device Management */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE LAYOUT
+   BASE LAYOUT - LIGHT SOLAR
    ============================================ */
 .iot-device-management {
-  background: #0B111A;
+  background: #F3F5F1;
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   HEADER
+   HEADER - LIGHT
    ============================================ */
 .iot-header-iotdevice {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 0 20px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 16px;
@@ -44,9 +44,9 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 16px;
   cursor: pointer;
@@ -54,9 +54,9 @@
 }
 
 .iot-refresh-btn-iotdevice:hover {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .iot-refresh-btn-iotdevice .spinning {
@@ -68,20 +68,24 @@
 }
 
 /* ============================================
-   CHART AREA
+   CHART AREA - LIGHT GLASS
    ============================================ */
 .iot-chart-area-iotdevice {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
   padding: 20px 24px 16px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
   margin-bottom: 24px;
   transition: all 200ms ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .iot-chart-area-iotdevice:hover {
-  border-color: rgba(243, 156, 18, 0.1);
+  transform: translateY(-2px);
+  border-color: rgba(243, 156, 18, 0.25);
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
 }
 
 .iot-chart-header-iotdevice {
@@ -96,32 +100,32 @@
 .iot-chart-header-iotdevice h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
 .iot-chart-period-iotdevice {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .iot-chart-wrapper-iotdevice {
   height: 220px;
 }
 
-/* Chart Tooltip */
+/* Chart Tooltip - LIGHT */
 .recharts-custom-tooltip-iotdevice {
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   padding: 12px 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .tooltip-label-iotdevice {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #98A2B3;
   margin: 0 0 4px 0;
 }
 
@@ -129,22 +133,25 @@
   font-size: 13px;
   font-weight: 500;
   margin: 2px 0;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   TABS
+   TABS - LIGHT GLASS
    ============================================ */
 .iot-tabs-iotdevice {
   display: inline-flex;
   gap: 6px;
   margin-bottom: 20px;
   flex-wrap: wrap;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   padding: 6px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   width: auto;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .iot-tab-btn-iotdevice {
@@ -154,7 +161,7 @@
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   cursor: pointer;
   transition: all 200ms ease;
   display: inline-flex;
@@ -165,8 +172,8 @@
 }
 
 .iot-tab-btn-iotdevice:hover {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.05);
+  color: #17212B;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .iot-tab-btn-iotdevice.active-iotdevice {
@@ -183,10 +190,10 @@
   height: 22px;
   padding: 0 8px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.05);
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #98A2B3;
 }
 
 .iot-tab-btn-iotdevice.active-iotdevice .iot-tab-badge-iotdevice {
@@ -195,7 +202,7 @@
 }
 
 /* ============================================
-   TOOLBAR
+   TOOLBAR - LIGHT
    ============================================ */
 .iot-toolbar-iotdevice {
   display: flex;
@@ -215,17 +222,20 @@
 .iot-search-input-iotdevice {
   width: 100%;
   padding: 10px 14px 10px 40px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .iot-search-input-iotdevice::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .iot-search-input-iotdevice:focus {
@@ -239,7 +249,7 @@
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 14px;
 }
 
@@ -250,7 +260,7 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 16px;
   cursor: pointer;
   padding: 4px;
@@ -258,7 +268,7 @@
 }
 
 .iot-clear-search-iotdevice:hover {
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .iot-create-btn-iotdevice {
@@ -286,14 +296,14 @@
 }
 
 /* ============================================
-   TABLE
+   TABLE - LIGHT GLASS
    ============================================ */
 .iot-table-container-iotdevice {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
 }
 
 .iot-table-wrapper-iotdevice {
@@ -307,7 +317,7 @@
 }
 
 .iot-device-table-iotdevice thead {
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .iot-device-table-iotdevice thead th {
@@ -317,12 +327,12 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: rgba(255, 255, 255, 0.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #98A2B3;
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .iot-device-table-iotdevice tbody tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
   transition: background 200ms ease;
 }
 
@@ -331,16 +341,16 @@
 }
 
 .iot-device-table-iotdevice tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .iot-device-table-iotdevice tbody td {
   padding: 14px 16px;
   vertical-align: middle;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
-/* Device Cell */
+/* Device Cell - LIGHT */
 .iot-device-cell-iotdevice {
   display: flex;
   align-items: center;
@@ -349,21 +359,21 @@
 
 .iot-device-icon-table-iotdevice {
   font-size: 20px;
-  color: #F39C12;
+  color: #D97706;
 }
 
 .iot-device-name-iotdevice {
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .iot-device-id-iotdevice {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-family: monospace;
 }
 
-/* Model Cell */
+/* Model Cell - LIGHT */
 .iot-model-cell-iotdevice {
   display: flex;
   flex-direction: column;
@@ -372,11 +382,11 @@
 
 .iot-manufacturer-text-iotdevice {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 /* ============================================
-   STATUS BADGES
+   STATUS BADGES - LIGHT THEME
    ============================================ */
 .status-badge-iotdevice {
   display: inline-block;
@@ -390,49 +400,49 @@
 }
 
 .status-badge-iotdevice.available {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .status-badge-iotdevice.assigned {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .status-badge-iotdevice.deployed {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
-  border: 1px solid rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border: 1px solid rgba(243, 156, 18, 0.20);
 }
 
 .status-badge-iotdevice.data_collecting {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .status-badge-iotdevice.maintenance {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 .status-badge-iotdevice.retired {
-  background: rgba(107, 114, 128, 0.12);
-  color: #9CA3AF;
-  border: 1px solid rgba(107, 114, 128, 0.2);
+  background: rgba(107, 114, 128, 0.10);
+  color: #6B7280;
+  border: 1px solid rgba(107, 114, 128, 0.20);
 }
 
 .status-badge-iotdevice.retrieved {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 /* ============================================
-   ACTION DROPDOWN
+   ACTION DROPDOWN - LIGHT
    ============================================ */
 .iot-action-dropdown-container-iotdevice {
   position: relative;
@@ -444,9 +454,9 @@
   align-items: center;
   gap: 8px;
   padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
@@ -456,9 +466,9 @@
 }
 
 .iot-action-dropdown-toggle-iotdevice:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .iot-dropdown-arrow-iotdevice {
@@ -473,12 +483,11 @@
 .iot-action-dropdown-menu-iotdevice {
   min-width: 180px;
   max-width: 220px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
   padding: 6px;
-  backdrop-filter: blur(10px);
   overflow: hidden;
   max-height: 300px;
   overflow-y: auto;
@@ -489,7 +498,7 @@
 }
 
 .iot-action-dropdown-menu-iotdevice::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -512,46 +521,46 @@
   text-align: left;
   transition: all 150ms ease;
   font-family: 'Poppins', sans-serif;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
 .iot-dropdown-item-iotdevice:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .iot-dropdown-item-iotdevice.primary {
-  color: #3B82F6;
+  color: #2563EB;
 }
 
 .iot-dropdown-item-iotdevice.primary:hover {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.10);
 }
 
 .iot-dropdown-item-iotdevice.warning {
-  color: #F39C12;
+  color: #D97706;
 }
 
 .iot-dropdown-item-iotdevice.warning:hover {
-  background: rgba(243, 156, 18, 0.12);
+  background: rgba(243, 156, 18, 0.10);
 }
 
 .iot-dropdown-item-iotdevice.danger {
-  color: #EF4444;
+  color: #DC2626;
 }
 
 .iot-dropdown-item-iotdevice.danger:hover {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.10);
 }
 
-/* Single Action Button */
+/* Single Action Button - LIGHT */
 .iot-single-action-btn-iotdevice {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
@@ -561,31 +570,31 @@
 }
 
 .iot-single-action-btn-iotdevice:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .iot-single-action-btn-iotdevice.primary {
-  color: #3B82F6;
+  color: #2563EB;
 }
 
 .iot-single-action-btn-iotdevice.primary:hover {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.10);
 }
 
 /* ============================================
-   EMPTY STATE
+   EMPTY STATE - LIGHT
    ============================================ */
 .iot-empty-state-iotdevice {
   text-align: center;
   padding: 48px 20px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
 }
 
 .iot-empty-state-iotdevice .empty-icon {
   font-size: 48px;
-  color: rgba(255, 255, 255, 0.1);
+  color: #D1D5DB;
   margin-bottom: 12px;
   display: block;
 }
@@ -593,16 +602,16 @@
 .iot-empty-state-iotdevice p {
   margin: 0 0 4px 0;
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .iot-empty-state-iotdevice span {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 /* ============================================
-   PAGINATION
+   PAGINATION - LIGHT
    ============================================ */
 .iot-pagination-iotdevice {
   display: flex;
@@ -615,7 +624,7 @@
 
 .iot-pagination-info-iotdevice {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .iot-pagination-controls-iotdevice {
@@ -631,8 +640,8 @@
   gap: 6px;
   padding: 8px 16px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -642,9 +651,9 @@
 }
 
 .iot-page-btn-iotdevice:hover:not(:disabled) {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.5);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .iot-page-btn-iotdevice:disabled {
@@ -660,7 +669,7 @@
   justify-content: center;
   padding: 0 8px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   border: 1px solid transparent;
   border-radius: 8px;
   font-size: 13px;
@@ -671,8 +680,8 @@
 }
 
 .iot-page-number-iotdevice:hover {
-  background: #131C28;
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.5);
+  color: #17212B;
 }
 
 .iot-page-number-iotdevice.active-iotdevice {
@@ -682,7 +691,7 @@
 }
 
 /* ============================================
-   MODALS - FIXED WITH PROPER MARGINS
+   MODALS - LIGHT GLASS
    ============================================ */
 .iot-modal-overlay-iotdevice {
   position: fixed;
@@ -697,15 +706,15 @@
 }
 
 .iot-modal-content-iotdevice {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.98);
   border-radius: 18px;
   max-width: 560px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid #EEF0ED;
   position: relative;
   overflow: hidden;
 }
@@ -720,7 +729,7 @@
 
 .iot-modal-header-iotdevice {
   padding: 20px 24px 16px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -730,7 +739,7 @@
 .iot-modal-header-iotdevice h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
@@ -742,9 +751,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
+  color: #98A2B3;
   font-size: 18px;
   cursor: pointer;
   display: flex;
@@ -756,8 +765,8 @@
 }
 
 .iot-modal-close-btn-iotdevice:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  border-color: #EF4444;
   color: #EF4444;
 }
 
@@ -772,7 +781,7 @@
 }
 
 .iot-modal-body-iotdevice::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -783,7 +792,7 @@
 
 .iot-modal-actions-iotdevice {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
   display: flex;
   gap: 12px;
   justify-content: flex-end;
@@ -792,7 +801,7 @@
 }
 
 /* ============================================
-   DEVICE FORM - WITH PROPER SPACING
+   DEVICE FORM - LIGHT
    ============================================ */
 .iot-device-form-iotdevice {
   display: flex;
@@ -814,17 +823,17 @@
 .iot-form-group-iotdevice label {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .iot-form-input-iotdevice,
 .iot-form-select-iotdevice {
   padding: 10px 14px;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
   width: 100%;
@@ -838,7 +847,7 @@
 }
 
 .iot-form-input-iotdevice::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .iot-form-input-iotdevice:disabled {
@@ -847,8 +856,8 @@
 }
 
 .iot-form-select-iotdevice option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 .iot-form-row-iotdevice {
@@ -863,7 +872,7 @@
   gap: 6px;
   margin-top: 4px;
   font-size: 12px;
-  color: #F39C12;
+  color: #D97706;
 }
 
 .iot-status-warning-iotdevice svg {
@@ -871,7 +880,7 @@
 }
 
 /* ============================================
-   DEVICE DETAILS VIEW - WITH PROPER SPACING
+   DEVICE DETAILS VIEW - LIGHT
    ============================================ */
 .iot-device-details-view-iotdevice {
   display: flex;
@@ -886,12 +895,12 @@
 .iot-detail-section-iotdevice h4 {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   margin: 0 0 10px 0;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .iot-detail-grid-iotdevice {
@@ -909,27 +918,27 @@
 .iot-detail-item label {
   font-size: 11px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .iot-detail-item p {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
   margin: 0;
 }
 
 .iot-detail-item p strong {
-  color: #FFFFFF;
+  color: #17212B;
 }
 
-/* Timeline */
+/* Timeline - LIGHT */
 .iot-timeline-item-iotdevice {
   display: flex;
   gap: 12px;
   padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .iot-timeline-item-iotdevice:last-child {
@@ -952,23 +961,23 @@
 .iot-timeline-item-iotdevice .timeline-content p {
   margin: 2px 0;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .iot-timeline-item-iotdevice .timeline-content p strong {
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .iot-timeline-item-iotdevice .timeline-notes {
   font-style: italic;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   font-size: 12px;
 }
 
-/* Maintenance Records */
+/* Maintenance Records - LIGHT */
 .iot-maintenance-record-iotdevice {
   padding: 8px 12px;
-  background: #131C28;
+  background: #F3F5F1;
   border-radius: 8px;
   margin-bottom: 6px;
 }
@@ -976,25 +985,25 @@
 .iot-maintenance-record-iotdevice p {
   margin: 0 0 2px 0;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
 }
 
 .iot-maintenance-record-iotdevice p strong {
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .iot-maintenance-record-iotdevice small {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
-/* Alerts */
+/* Alerts - LIGHT */
 .iot-alert-item-iotdevice {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   padding: 10px 12px;
-  background: #131C28;
+  background: #F3F5F1;
   border-radius: 8px;
   margin-bottom: 6px;
   border-left: 3px solid #F39C12;
@@ -1013,18 +1022,18 @@
 }
 
 .iot-alert-item-iotdevice svg {
-  color: #F39C12;
+  color: #D97706;
   font-size: 16px;
   flex-shrink: 0;
   margin-top: 2px;
 }
 
 .iot-alert-item-iotdevice.error svg {
-  color: #EF4444;
+  color: #DC2626;
 }
 
 .iot-alert-item-iotdevice.info svg {
-  color: #3B82F6;
+  color: #2563EB;
 }
 
 .iot-alert-item-iotdevice div {
@@ -1034,16 +1043,16 @@
 .iot-alert-item-iotdevice p {
   margin: 0;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
 }
 
 .iot-alert-item-iotdevice small {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 /* ============================================
-   DELETE MODAL - WITH PROPER SPACING
+   DELETE MODAL - LIGHT
    ============================================ */
 .iot-delete-icon-container-iotdevice {
   text-align: center;
@@ -1058,12 +1067,12 @@
 .iot-delete-message-iotdevice {
   text-align: center;
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
   margin: 8px 0 16px 0;
 }
 
 .iot-device-info-delete-iotdevice {
-  background: #131C28;
+  background: #F3F5F1;
   border-radius: 10px;
   padding: 12px 16px;
   margin-bottom: 16px;
@@ -1073,7 +1082,7 @@
   display: flex;
   justify-content: space-between;
   padding: 4px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .delete-info-row:last-child {
@@ -1081,12 +1090,12 @@
 }
 
 .delete-label {
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   font-size: 13px;
 }
 
 .delete-value {
-  color: rgba(255, 255, 255, 0.8);
+  color: #17212B;
   font-size: 13px;
   font-weight: 500;
 }
@@ -1112,15 +1121,15 @@
 .iot-delete-warning-text-iotdevice p {
   margin: 0;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
-/* Modal Buttons */
+/* Modal Buttons - LIGHT */
 .iot-cancel-btn-iotdevice {
   padding: 10px 24px;
-  background: #131C28;
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #17212B;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -1130,7 +1139,7 @@
 }
 
 .iot-cancel-btn-iotdevice:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .iot-cancel-btn-iotdevice:disabled {
@@ -1197,14 +1206,14 @@
 }
 
 /* ============================================
-   SKELETON LOADING
+   SKELETON LOADING - LIGHT
    ============================================ */
 .skeleton-title-iotdevice {
   width: 40%;
   height: 32px;
   border-radius: 6px;
   animation: shimmer-iotdevice 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -1213,15 +1222,15 @@
   height: 20px;
   border-radius: 6px;
   animation: shimmer-iotdevice 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
 .skeleton-chart-iotdevice {
   height: 220px;
   border-radius: 14px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   margin-bottom: 24px;
 }
 
@@ -1229,9 +1238,9 @@
   height: 40px;
   width: 100px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer-iotdevice 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -1239,9 +1248,9 @@
   height: 40px;
   width: 280px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer-iotdevice 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -1249,17 +1258,17 @@
   height: 40px;
   width: 140px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer-iotdevice 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
 .skeleton-table-iotdevice {
   height: 300px;
   border-radius: 14px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
 }
 
 @keyframes shimmer-iotdevice {
@@ -1272,7 +1281,7 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - UNCHANGED STRUCTURE
    ============================================ */
 
 @media (max-width: 1200px) {
@@ -1335,7 +1344,7 @@
   .iot-device-table-iotdevice tbody td {
     display: block;
     padding: 8px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid #EEF0ED;
   }
   .iot-device-table-iotdevice tbody td:last-child {
     border-bottom: none;
@@ -1343,7 +1352,7 @@
   .iot-device-table-iotdevice tbody td::before {
     content: attr(data-label);
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.4);
+    color: #98A2B3;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -1353,7 +1362,7 @@
   .iot-device-table-iotdevice tbody tr {
     display: block;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid #EEF0ED;
   }
   .iot-device-table-iotdevice tbody tr:last-child {
     border-bottom: none;
@@ -1481,7 +1490,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES
+   REDUCED MOTION PREFERENCES - LIGHT
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -1499,7 +1508,7 @@
   .skeleton-search-iotdevice,
   .skeleton-button-iotdevice {
     animation: none !important;
-    background: #131C28 !important;
+    background: #EEF0ED !important;
   }
   .iot-refresh-btn-iotdevice:hover,
   .iot-create-btn-iotdevice:hover,

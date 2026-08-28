@@ -1,21 +1,21 @@
-/* styles/Engineer/project.css - Dark Solar Theme for Engineer My Projects */
+/* styles/Engineer/project.css - Light Solar Theme for Engineer My Projects */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE LAYOUT
+   BASE LAYOUT - LIGHT SOLAR
    ============================================ */
 .engineer-project-container {
   padding-top: 20px;
   padding-inline: 24px;
-  background: #0B111A;
+  background: #F3F5F1;
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   HEADER
+   HEADER - LIGHT
    ============================================ */
 .project-header-engineerproject {
   display: flex;
@@ -29,18 +29,18 @@
 .project-header-engineerproject h1 {
   font-size: 26px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 4px 0;
 }
 
 .project-header-engineerproject p {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   margin: 0;
 }
 
 /* ============================================
-   SUMMARY CARDS
+   SUMMARY CARDS - LIGHT GLASS
    ============================================ */
 .summary-cards-grid {
   display: grid;
@@ -50,21 +50,23 @@
 }
 
 .summary-card {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
   padding: 18px 22px;
   display: flex;
   align-items: center;
   gap: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   transition: all 200ms ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .summary-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(243, 156, 18, 0.15);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border-color: rgba(243, 156, 18, 0.12);
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
 }
 
 .summary-card-icon {
@@ -79,23 +81,23 @@
 }
 
 .summary-card-icon.total-icon {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
 }
 
 .summary-card-icon.ready-icon {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
 }
 
 .summary-card-icon.progress-icon {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
 }
 
 .summary-card-icon.completed-icon {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
 }
 
 .summary-card-content {
@@ -107,25 +109,25 @@
 .summary-card-value {
   font-size: 28px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   line-height: 1.2;
 }
 
 .summary-card-label {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   margin-top: 2px;
 }
 
 .summary-card-subtitle {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #D1D5DB;
   margin-top: 1px;
 }
 
 /* ============================================
-   FILTERS
+   FILTERS - LIGHT
    ============================================ */
 .project-filters-engineerproject {
   display: flex;
@@ -139,32 +141,34 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #0F172A;
+  background: rgba(255, 255, 255, 0.86);
   padding: 4px 12px 4px 16px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .filter-group-engineerproject .filter-icon {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 14px;
 }
 
 .filter-group-engineerproject select {
   padding: 8px 32px 8px 0;
-  background: transparent;
+  background: transparent !important;
   border: none;
   font-size: 13px;
-  color: #FFFFFF;
+  color: #17212B !important;
   font-family: 'Poppins', sans-serif;
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2398A2B3' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 8px center;
   background-color: transparent !important;
-  color: #FFFFFF !important;
-  -webkit-text-fill-color: #FFFFFF !important;
+  -webkit-text-fill-color: #17212B !important;
 }
 
 .filter-group-engineerproject select:focus {
@@ -172,25 +176,28 @@
 }
 
 .filter-group-engineerproject select option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 .search-group-engineerproject {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #0F172A;
+  background: rgba(255, 255, 255, 0.86);
   padding: 4px 16px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   flex: 1;
   min-width: 200px;
   max-width: 400px;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .search-group-engineerproject .search-icon {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 14px;
 }
 
@@ -199,15 +206,15 @@
   background: transparent;
   border: none;
   font-size: 13px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   width: 100%;
-  -webkit-text-fill-color: #FFFFFF;
+  -webkit-text-fill-color: #17212B;
 }
 
 .search-group-engineerproject input::placeholder {
-  color: rgba(255, 255, 255, 0.25);
-  -webkit-text-fill-color: rgba(255, 255, 255, 0.25);
+  color: #98A2B3;
+  -webkit-text-fill-color: #98A2B3;
 }
 
 .search-group-engineerproject input:focus {
@@ -215,14 +222,14 @@
 }
 
 /* ============================================
-   PROJECT TABLE
+   PROJECT TABLE - LIGHT GLASS
    ============================================ */
 .projects-table-container-engineerproject {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
   overflow-x: auto;
 }
 
@@ -234,7 +241,7 @@
 }
 
 .projects-table-engineerproject thead {
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .projects-table-engineerproject thead th {
@@ -244,17 +251,17 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: rgba(255, 255, 255, 0.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #98A2B3;
+  border-bottom: 1px solid #EEF0ED;
   white-space: nowrap;
   position: sticky;
   top: 0;
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
   z-index: 2;
 }
 
 .projects-table-engineerproject tbody tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
   transition: background 200ms ease;
 }
 
@@ -263,13 +270,13 @@
 }
 
 .projects-table-engineerproject tbody tr:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .projects-table-engineerproject tbody td {
   padding: 14px 16px;
   vertical-align: middle;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
 /* Column Widths */
@@ -319,16 +326,16 @@
 }
 
 /* ============================================
-   TABLE CELL STYLES
+   TABLE CELL STYLES - LIGHT
    ============================================ */
 .project-name-cell {
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .project-ref-cell {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-family: monospace;
   margin-top: 2px;
 }
@@ -341,12 +348,12 @@
 
 .client-name {
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .client-contact {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .system-cell {
@@ -357,23 +364,22 @@
 
 .system-size {
   font-weight: 600;
-  color: #F39C12;
+  color: #D97706;
   font-size: 14px;
 }
 
 .system-type {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   text-transform: capitalize;
 }
 
 .address-cell .address-text {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #667085;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
- 
 }
 
 .payment-cell {
@@ -385,12 +391,12 @@
 .payment-label {
   font-size: 12px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
 }
 
 .payment-desc {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .financial-cell {
@@ -401,17 +407,17 @@
 
 .amount-paid {
   font-size: 12px;
-  color: #10B981;
+  color: #059669;
   font-weight: 500;
 }
 
 .total-amount {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 /* ============================================
-   PROGRESS INDICATOR - PERCENTAGE ONLY
+   PROGRESS INDICATOR - PERCENTAGE ONLY - LIGHT
    ============================================ */
 .progress-indicator-compact {
   display: flex;
@@ -438,7 +444,7 @@
 }
 
 .progress-circle-bg {
-  stroke: #1A2533;
+  stroke: #EEF0ED;
 }
 
 .progress-circle-fill {
@@ -449,13 +455,13 @@
   position: absolute;
   font-size: 11px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .progress-stage-label {
   font-size: 9px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   white-space: nowrap;
   max-width: 70px;
   overflow: hidden;
@@ -464,15 +470,15 @@
 }
 
 .progress-stage-label .stage-label.completed-label {
-  color: #10B981;
+  color: #059669;
 }
 
 .progress-stage-label .stage-label.current-label {
-  color: #F39C12;
+  color: #D97706;
 }
 
 /* ============================================
-   STATUS BADGES
+   STATUS BADGES - LIGHT THEME
    ============================================ */
 .status-badge-engineerproject {
   display: inline-block;
@@ -486,61 +492,61 @@
 }
 
 .status-badge-engineerproject.quoted {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .status-badge-engineerproject.approved {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .status-badge-engineerproject.initial-paid {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
-  border: 1px solid rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border: 1px solid rgba(243, 156, 18, 0.20);
 }
 
 .status-badge-engineerproject.full-paid {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .status-badge-engineerproject.full-paid-installment {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .status-badge-engineerproject.in-progress {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .status-badge-engineerproject.progress-paid {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .status-badge-engineerproject.completed {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .status-badge-engineerproject.cancelled {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 /* ============================================
-   ACTIONS CELL
+   ACTIONS CELL - LIGHT
    ============================================ */
 .actions-cell {
   display: flex;
@@ -598,13 +604,33 @@
 }
 
 .action-placeholder {
-  color: #334155;
+  color: #D1D5DB;
   font-size: 13px;
   user-select: none;
 }
 
 /* ============================================
-   PAGINATION
+   DISABLED START BUTTON - LIGHT
+   ============================================ */
+.action-btn.start.disabled,
+.action-btn.start:disabled {
+  background: #D1D5DB;
+  color: #98A2B3;
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.action-btn.start.disabled:hover,
+.action-btn.start:disabled:hover {
+  background: #D1D5DB;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ============================================
+   PAGINATION - LIGHT
    ============================================ */
 .pagination-engineerproject {
   display: flex;
@@ -618,8 +644,8 @@
 .page-btn {
   padding: 8px 16px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -632,9 +658,9 @@
 }
 
 .page-btn:hover:not(:disabled) {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.5);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .page-btn:disabled {
@@ -644,40 +670,40 @@
 
 .page-info {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   padding: 0 8px;
 }
 
 /* ============================================
-   EMPTY STATE
+   EMPTY STATE - LIGHT
    ============================================ */
 .empty-state-engineerproject {
   text-align: center;
   padding: 60px 20px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .empty-state-engineerproject .empty-icon {
   font-size: 48px;
-  color: rgba(255, 255, 255, 0.1);
+  color: #D1D5DB;
   margin-bottom: 16px;
 }
 
 .empty-state-engineerproject h3 {
   font-size: 18px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
+  color: #667085;
   margin: 0 0 8px 0;
 }
 
 .empty-state-engineerproject p {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.25);
+  color: #98A2B3;
   margin: 0;
 }
 
 /* ============================================
-   MODALS - SHARED
+   MODALS - LIGHT GLASS
    ============================================ */
 .modal-overlay-engineerproject {
   position: fixed;
@@ -692,15 +718,15 @@
 }
 
 .modal-content-engineerproject {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.98);
   border-radius: 18px;
   max-width: 900px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid #EEF0ED;
   overflow: hidden;
 }
 
@@ -713,21 +739,21 @@
 }
 
 /* ============================================
-   MODAL HEADER
+   MODAL HEADER - LIGHT
    ============================================ */
 .modal-header-engineerproject {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px 12px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   flex-shrink: 0;
 }
 
 .modal-header-engineerproject h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
@@ -735,9 +761,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
+  color: #98A2B3;
   font-size: 20px;
   cursor: pointer;
   display: flex;
@@ -749,13 +775,13 @@
 }
 
 .modal-header-engineerproject .modal-close:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  border-color: #EF4444;
   color: #EF4444;
 }
 
 /* ============================================
-   MODAL BODY - SCROLLABLE
+   MODAL BODY - SCROLLABLE - LIGHT
    ============================================ */
 .modal-body-engineerproject {
   padding: 16px 24px 0 24px;
@@ -769,7 +795,7 @@
 }
 
 .modal-body-engineerproject::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -779,11 +805,11 @@
 }
 
 /* ============================================
-   DETAIL MODAL SECTIONS
+   DETAIL MODAL SECTIONS - LIGHT
    ============================================ */
 .detail-section {
   padding: 16px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .detail-section:last-of-type {
@@ -793,7 +819,7 @@
 .detail-section h4 {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 12px 0;
@@ -802,27 +828,27 @@
 .detail-section p {
   margin: 4px 0;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
 .detail-section p strong {
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   font-weight: 500;
   margin-right: 4px;
 }
 
 /* ============================================
-   MODAL TIMELINE - Detail Modal
+   MODAL TIMELINE - Detail Modal - LIGHT
    ============================================ */
 .detail-section.progress-section {
-  background: #0F172A;
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 10px;
   padding: 16px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid #EEF0ED;
 }
 
 .detail-section.progress-section h4 {
-  color: #FFFFFF;
+  color: #17212B;
   margin-bottom: 16px;
 }
 
@@ -853,7 +879,7 @@
 }
 
 .modal-timeline-marker .timeline-icon.completed {
-  color: #10B981;
+  color: #059669;
 }
 
 .modal-timeline-marker .current-dot {
@@ -875,20 +901,20 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #1A2533;
-  border: 2px solid #334155;
+  background: #EEF0ED;
+  border: 2px solid #D1D5DB;
 }
 
 .modal-timeline-line {
   width: 2px;
   height: 36px;
-  background: #334155;
+  background: #D1D5DB;
   flex-shrink: 0;
   margin-top: 4px;
 }
 
 .modal-timeline-line.completed {
-  background: #10B981;
+  background: #059669;
 }
 
 .modal-timeline-content {
@@ -897,7 +923,7 @@
   align-items: center;
   flex: 1;
   padding: 4px 0 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .modal-timeline-item:last-child .modal-timeline-content {
@@ -914,25 +940,25 @@
 }
 
 .modal-timeline-title .completed-text {
-  color: #10B981;
+  color: #059669;
 }
 
 .modal-timeline-title .current-text {
-  color: #F39C12;
+  color: #D97706;
 }
 
 .modal-timeline-title .upcoming-text {
-  color: #64748B;
+  color: #98A2B3;
 }
 
 .modal-timeline-title .check-icon {
-  color: #10B981;
+  color: #059669;
   font-size: 14px;
 }
 
 .modal-timeline-date {
   font-size: 12px;
-  color: #64748B;
+  color: #98A2B3;
   flex-shrink: 0;
   margin-left: 8px;
 }
@@ -943,30 +969,30 @@
   align-items: center;
   padding-top: 12px;
   margin-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
 }
 
 .modal-progress-percent .progress-label {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   font-weight: 500;
 }
 
 .modal-progress-percent .progress-value {
   font-size: 20px;
   font-weight: 700;
-  color: #F39C12;
+  color: #D97706;
 }
 
 /* ============================================
-   PROGRESS CHART IN UPDATE MODAL
+   PROGRESS CHART IN UPDATE MODAL - LIGHT
    ============================================ */
 .modal-progress-chart {
-  background: #0F172A;
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 12px;
   padding: 16px 20px;
   margin: 12px 0 16px 0;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid #EEF0ED;
 }
 
 .progress-chart-header {
@@ -979,19 +1005,19 @@
 .progress-chart-header .chart-label {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
 }
 
 .progress-chart-header .chart-percentage {
   font-size: 18px;
   font-weight: 700;
-  color: #F39C12;
+  color: #D97706;
 }
 
 .progress-chart-bar {
   width: 100%;
   height: 6px;
-  background: #1A2533;
+  background: #EEF0ED;
   border-radius: 3px;
   overflow: hidden;
   margin-bottom: 14px;
@@ -1025,12 +1051,12 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #334155;
+  background: #D1D5DB;
   transition: all 0.3s ease;
 }
 
 .chart-stage.completed .stage-dot {
-  background: #10B981;
+  background: #059669;
 }
 
 .chart-stage.current .stage-dot {
@@ -1046,7 +1072,7 @@
 
 .chart-stage .stage-label {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   text-align: center;
   line-height: 1.2;
   max-width: 60px;
@@ -1056,40 +1082,40 @@
 }
 
 .chart-stage.completed .stage-label {
-  color: #10B981;
+  color: #059669;
 }
 
 .chart-stage.current .stage-label {
-  color: #F39C12;
+  color: #D97706;
 }
 
 /* ============================================
-   PROGRESS MODAL - FORM
+   PROGRESS MODAL - FORM - LIGHT
    ============================================ */
 .progress-modal .modal-body-engineerproject {
   padding: 8px 20px 0 20px;
 }
 
 .modal-progress-preview {
-  background: #0F172A;
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 10px;
   padding: 10px 16px;
   margin: 8px 0 16px 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid #EEF0ED;
 }
 
 .modal-progress-preview .progress-preview-label {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .modal-progress-preview .progress-preview-value {
   font-size: 16px;
   font-weight: 700;
-  color: #F39C12;
+  color: #D97706;
 }
 
 .existing-photos-info {
@@ -1097,15 +1123,15 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: #0F172A;
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 8px;
   margin: 0 0 16px 0;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .existing-photos-info svg {
-  color: rgba(255, 255, 255, 0.3);
+  color: #D1D5DB;
 }
 
 .form-group {
@@ -1116,7 +1142,7 @@
   display: block;
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: #667085;
   margin-bottom: 6px;
 }
 
@@ -1124,14 +1150,14 @@
 .form-group select {
   width: 100%;
   padding: 10px 14px;
-  background: #0F172A;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
-  -webkit-text-fill-color: #FFFFFF;
+  -webkit-text-fill-color: #17212B;
 }
 
 .form-group textarea:focus,
@@ -1142,16 +1168,16 @@
 }
 
 .form-group textarea::placeholder {
-  color: rgba(255, 255, 255, 0.2);
-  -webkit-text-fill-color: rgba(255, 255, 255, 0.2);
+  color: #98A2B3;
+  -webkit-text-fill-color: #98A2B3;
 }
 
 .form-group select option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
-/* Photo Upload */
+/* Photo Upload - LIGHT */
 .photo-upload-area {
   display: flex;
   flex-direction: column;
@@ -1163,10 +1189,10 @@
   align-items: center;
   gap: 10px;
   padding: 12px 20px;
-  background: #0F172A;
-  border: 2px dashed rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px dashed #EEF0ED;
   border-radius: 10px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -1177,12 +1203,12 @@
 
 .upload-white-btn:hover {
   border-color: rgba(243, 156, 18, 0.3);
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .upload-hint {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.25);
+  color: #98A2B3;
   margin: 0;
 }
 
@@ -1198,8 +1224,8 @@
   aspect-ratio: 1;
   border-radius: 8px;
   overflow: hidden;
-  background: #0F172A;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
 }
 
 .photo-preview-item .photo-preview-thumb {
@@ -1232,11 +1258,11 @@
 }
 
 /* ============================================
-   MODAL ACTIONS
+   MODAL ACTIONS - LIGHT
    ============================================ */
 .modal-actions {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
   display: flex;
   gap: 12px;
   justify-content: flex-end;
@@ -1246,9 +1272,9 @@
 
 .modal-actions .close-btn {
   padding: 10px 24px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -1258,12 +1284,13 @@
 }
 
 .modal-actions .close-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.8);
+  color: #17212B;
 }
 
 .modal-actions-side-by-side {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
   display: flex;
   gap: 12px;
   justify-content: space-between;
@@ -1273,9 +1300,9 @@
 
 .modal-actions-side-by-side .cancel-btn {
   padding: 10px 24px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -1285,7 +1312,8 @@
 }
 
 .modal-actions-side-by-side .cancel-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.8);
+  color: #17212B;
 }
 
 .action-buttons-group {
@@ -1299,9 +1327,9 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: #0F172A;
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -1311,9 +1339,9 @@
 }
 
 .upload-photos-btn:hover:not(:disabled) {
-  background: #1A2533;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .upload-photos-btn:disabled {
@@ -1359,7 +1387,7 @@
 }
 
 /* ============================================
-   PAYMENT SCHEDULE TABLE
+   PAYMENT SCHEDULE TABLE - LIGHT
    ============================================ */
 .payment-schedule-table {
   width: 100%;
@@ -1370,10 +1398,10 @@
 .payment-schedule-table th {
   text-align: left;
   padding: 8px 12px;
-  background: #0F172A;
+  background: rgba(255, 255, 255, 0.5);
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #98A2B3;
+  border-bottom: 1px solid #EEF0ED;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -1381,8 +1409,8 @@
 
 .payment-schedule-table td {
   padding: 8px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.7);
+  border-bottom: 1px solid #EEF0ED;
+  color: #667085;
 }
 
 .payment-schedule-table tr:last-child td {
@@ -1391,7 +1419,7 @@
 
 .payment-type-cell {
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: #667085;
   text-transform: capitalize;
 }
 
@@ -1404,22 +1432,22 @@
 }
 
 .payment-status-badge.paid {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
 }
 
 .payment-status-badge.pending {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
 }
 
 .payment-status-badge.overdue {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
 }
 
 /* ============================================
-   PHOTO GRID
+   PHOTO GRID - LIGHT
    ============================================ */
 .photo-grid {
   display: grid;
@@ -1433,8 +1461,8 @@
   aspect-ratio: 1;
   border-radius: 10px;
   overflow: hidden;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
 }
 
 .photo-item .photo-thumb {
@@ -1463,24 +1491,24 @@
 }
 
 /* ============================================
-   SKELETON LOADING
+   SKELETON LOADING - LIGHT
    ============================================ */
 .skeleton-row {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .skeleton-cell {
   height: 20px;
   border-radius: 4px;
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
 .skeleton-line {
   border-radius: 6px;
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -1498,9 +1526,9 @@
   height: 40px;
   width: 160px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -1508,15 +1536,15 @@
   height: 40px;
   width: 280px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
 .skeleton-card {
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   padding: 18px 22px;
   border-radius: 14px;
 }
@@ -1531,7 +1559,62 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   WAITING PAYMENT MESSAGE IN MODAL - LIGHT
+   ============================================ */
+.waiting-payment-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px 24px 20px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  border: 1px solid #EEF0ED;
+  margin: 8px 0 4px 0;
+}
+
+.waiting-payment-message .waiting-icon {
+  color: #D97706;
+  margin-bottom: 16px;
+  opacity: 0.7;
+}
+
+.waiting-payment-message h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #17212B;
+  margin: 0 0 8px 0;
+}
+
+.waiting-payment-message p {
+  font-size: 14px;
+  color: #667085;
+  margin: 0 0 4px 0;
+  max-width: 380px;
+}
+
+.waiting-payment-message .waiting-subtext {
+  font-size: 13px;
+  color: #98A2B3;
+  margin-top: 8px;
+}
+
+/* ============================================
+   PROGRESS PERCENTAGE TEXT - LIGHT
+   ============================================ */
+.progress-percentage-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: #D97706;
+}
+
+.progress-percentage-text.completed {
+  color: #059669;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN - UNCHANGED STRUCTURE
    ============================================ */
 
 /* Tablet */
@@ -1627,7 +1710,7 @@
     display: flex;
     flex-wrap: wrap;
     padding: 8px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid #EEF0ED;
   }
 
   .projects-table-engineerproject tbody td:last-child {
@@ -1637,7 +1720,7 @@
   .projects-table-engineerproject tbody td::before {
     content: attr(data-label);
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.3);
+    color: #98A2B3;
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -1653,7 +1736,7 @@
   .projects-table-engineerproject tbody tr {
     display: block;
     padding: 6px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid #EEF0ED;
   }
 
   .projects-table-engineerproject tbody tr:last-child {
@@ -1941,6 +2024,22 @@
   .page-info {
     font-size: 11px;
   }
+
+  .waiting-payment-message {
+    padding: 20px 12px 16px 12px;
+  }
+
+  .waiting-payment-message .waiting-icon {
+    font-size: 32px !important;
+  }
+
+  .waiting-payment-message h4 {
+    font-size: 15px;
+  }
+
+  .waiting-payment-message p {
+    font-size: 12px;
+  }
 }
 
 /* Extra Small Mobile */
@@ -1994,7 +2093,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES
+   REDUCED MOTION PREFERENCES - LIGHT
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -2016,7 +2115,7 @@
   .skeleton-select,
   .skeleton-search {
     animation: none !important;
-    background: #131C28 !important;
+    background: #EEF0ED !important;
   }
 
   .progress-step .step-icon.current-icon {
@@ -2033,203 +2132,7 @@
 }
 
 /* ============================================
-   FIX - INPUT FIELDS & DROPDOWNS (Dark Theme)
-   ============================================ */
-/* ============================================
-   FIX - INPUT FIELDS & DROPDOWNS (Dark Theme)
-   ONLY FOR ENGINEER PROJECT PAGE
-   ============================================ */
-
-/* Force dark background on all form elements within engineer-project-container */
-.engineer-project-container .filter-group-engineerproject select,
-.engineer-project-container .search-group-engineerproject input,
-.engineer-project-container .form-group textarea,
-.engineer-project-container .form-group select,
-.engineer-project-container .modal-body-engineerproject textarea,
-.engineer-project-container .modal-body-engineerproject select,
-.engineer-project-container .progress-modal textarea,
-.engineer-project-container .progress-modal select {
-  background-color: #0F172A !important;
-  color: #FFFFFF !important;
-  -webkit-text-fill-color: #FFFFFF !important;
-  caret-color: #FFFFFF !important;
-}
-
-/* Fix for select dropdowns within engineer-project-container */
-.engineer-project-container .filter-group-engineerproject select,
-.engineer-project-container .form-group select,
-.engineer-project-container .modal-body-engineerproject select {
-  background-color: #0F172A !important;
-  color: #FFFFFF !important;
-  -webkit-text-fill-color: #FFFFFF !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
-  background-repeat: no-repeat !important;
-  background-position: right 12px center !important;
-  padding-right: 36px !important;
-  -webkit-appearance: none !important;
-  appearance: none !important;
-}
-
-/* Fix for select options within engineer-project-container */
-.engineer-project-container .filter-group-engineerproject select option,
-.engineer-project-container .form-group select option,
-.engineer-project-container .modal-body-engineerproject select option {
-  background-color: #1A2533 !important;
-  color: #FFFFFF !important;
-}
-
-/* Fix for textarea within engineer-project-container */
-.engineer-project-container .form-group textarea,
-.engineer-project-container .modal-body-engineerproject textarea {
-  background-color: #0F172A !important;
-  color: #FFFFFF !important;
-  -webkit-text-fill-color: #FFFFFF !important;
-}
-
-/* Fix for search input within engineer-project-container */
-.engineer-project-container .search-group-engineerproject input {
-  background-color: transparent !important;
-  color: #FFFFFF !important;
-  -webkit-text-fill-color: #FFFFFF !important;
-}
-
-/* Fix for filter select within engineer-project-container */
-.engineer-project-container .filter-group-engineerproject select {
-  background-color: transparent !important;
-  color: #FFFFFF !important;
-  -webkit-text-fill-color: #FFFFFF !important;
-}
-
-/* Fix for focus states within engineer-project-container */
-.engineer-project-container .filter-group-engineerproject select:focus,
-.engineer-project-container .search-group-engineerproject input:focus,
-.engineer-project-container .form-group textarea:focus,
-.engineer-project-container .form-group select:focus,
-.engineer-project-container .modal-body-engineerproject textarea:focus,
-.engineer-project-container .modal-body-engineerproject select:focus {
-  background-color: #0F172A !important;
-  color: #FFFFFF !important;
-  -webkit-text-fill-color: #FFFFFF !important;
-  outline: none;
-  border-color: #F39C12;
-  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
-}
-
-/* Fix for autofill within engineer-project-container */
-.engineer-project-container .filter-group-engineerproject select:-webkit-autofill,
-.engineer-project-container .search-group-engineerproject input:-webkit-autofill,
-.engineer-project-container .form-group textarea:-webkit-autofill,
-.engineer-project-container .form-group select:-webkit-autofill,
-.engineer-project-container .modal-body-engineerproject textarea:-webkit-autofill,
-.engineer-project-container .modal-body-engineerproject select:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 30px #0F172A inset !important;
-  -webkit-text-fill-color: #FFFFFF !important;
-  box-shadow: 0 0 0 30px #0F172A inset !important;
-  background-color: #0F172A !important;
-}
-
-/* Fix for placeholder text color within engineer-project-container */
-.engineer-project-container .search-group-engineerproject input::placeholder,
-.engineer-project-container .form-group textarea::placeholder,
-.engineer-project-container .modal-body-engineerproject textarea::placeholder {
-  color: rgba(255, 255, 255, 0.25) !important;
-  -webkit-text-fill-color: rgba(255, 255, 255, 0.25) !important;
-  opacity: 1 !important;
-}
-
-/* Fix for filter group background within engineer-project-container */
-.engineer-project-container .filter-group-engineerproject {
-  background-color: #0F172A !important;
-}
-
-/* Fix for search group background within engineer-project-container */
-.engineer-project-container .search-group-engineerproject {
-  background-color: #0F172A !important;
-}
-
-/* Fix for photo upload button within engineer-project-container */
-.engineer-project-container .upload-white-btn {
-  background-color: #0F172A !important;
-  color: rgba(255, 255, 255, 0.5) !important;
-}
-
-.engineer-project-container .upload-white-btn:hover {
-  background-color: #1A2533 !important;
-  color: #FFFFFF !important;
-}
-
-/* Fix for cancel button in modals within engineer-project-container */
-.engineer-project-container .modal-actions-side-by-side .cancel-btn {
-  background-color: transparent !important;
-  color: rgba(255, 255, 255, 0.5) !important;
-}
-
-.engineer-project-container .modal-actions-side-by-side .cancel-btn:hover {
-  background-color: rgba(255, 255, 255, 0.05) !important;
-}
-
-/* Fix for close button in modals within engineer-project-container */
-.engineer-project-container .modal-header-engineerproject .modal-close {
-  background-color: rgba(255, 255, 255, 0.05) !important;
-  color: rgba(255, 255, 255, 0.5) !important;
-}
-
-.engineer-project-container .modal-header-engineerproject .modal-close:hover {
-  background-color: rgba(239, 68, 68, 0.15) !important;
-  color: #EF4444 !important;
-}
-
-/* Fix for existing photos info within engineer-project-container */
-.engineer-project-container .existing-photos-info {
-  background-color: #0F172A !important;
-  color: rgba(255, 255, 255, 0.4) !important;
-}
-
-/* Fix for modal progress preview within engineer-project-container */
-.engineer-project-container .modal-progress-preview {
-  background-color: #0F172A !important;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
-}
-
-/* Fix for progress chart within engineer-project-container */
-.engineer-project-container .modal-progress-chart {
-  background-color: #0F172A !important;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
-}
-
-/* Fix for progress chart bar within engineer-project-container */
-.engineer-project-container .progress-chart-bar {
-  background-color: #1A2533 !important;
-}
-
-/* Fix for detail section progress within engineer-project-container */
-.engineer-project-container .detail-section.progress-section {
-  background-color: #0F172A !important;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
-}
-
-/* Fix for payment schedule table within engineer-project-container */
-.engineer-project-container .payment-schedule-table th {
-  background-color: #0F172A !important;
-}
-
-/* Fix for photo items within engineer-project-container */
-.engineer-project-container .photo-item {
-  background-color: #131C28 !important;
-}
-
-/* Fix for modal body scrollbar within engineer-project-container */
-.engineer-project-container .modal-body-engineerproject::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03) !important;
-}
-
-.engineer-project-container .modal-body-engineerproject::-webkit-scrollbar-thumb {
-  background: #F39C12 !important;
-}
-
-
-/* ============================================
-   ACTIONS CELL
+   ACTIONS CELL (duplicate fix)
    ============================================ */
 .actions-cell {
   display: flex;
@@ -2287,132 +2190,7 @@
 }
 
 .action-placeholder {
-  color: #334155;
+  color: #D1D5DB;
   font-size: 13px;
   user-select: none;
-}
-
-/* ============================================
-   DISABLED START BUTTON
-   ============================================ */
-.action-btn.start.disabled,
-.action-btn.start:disabled {
-  background: #334155;
-  color: rgba(255, 255, 255, 0.4);
-  cursor: not-allowed;
-  opacity: 0.6;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-.action-btn.start.disabled:hover,
-.action-btn.start:disabled:hover {
-  background: #334155;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-/* ============================================
-   PROGRESS PERCENTAGE TEXT - CLEAN
-   ============================================ */
-.progress-percentage-text {
-  font-size: 16px;
-  font-weight: 700;
-  color: #F39C12;
-}
-
-.progress-percentage-text.completed {
-  color: #10B981;
-}
-
-/* ============================================
-   RESPONSIVE FIX FOR PROGRESS
-   ============================================ */
-@media (max-width: 768px) {
-  .progress-percentage-text {
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 480px) {
-  .progress-percentage-text {
-    font-size: 12px;
-  }
-}
-
-/* Add this to your styles/Engineer/project.css file at the end */
-
-/* ============================================
-   WAITING PAYMENT MESSAGE IN MODAL
-   ============================================ */
-.waiting-payment-message {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 20px 24px 20px;
-  text-align: center;
-  background: #0F172A;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  margin: 8px 0 4px 0;
-}
-
-.waiting-payment-message .waiting-icon {
-  color: #F39C12;
-  margin-bottom: 16px;
-  opacity: 0.7;
-}
-
-.waiting-payment-message h4 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #FFFFFF;
-  margin: 0 0 8px 0;
-}
-
-.waiting-payment-message p {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
-  margin: 0 0 4px 0;
-  max-width: 380px;
-}
-
-.waiting-payment-message .waiting-subtext {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.25);
-  margin-top: 8px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .waiting-payment-message {
-    padding: 24px 16px 20px 16px;
-  }
-  
-  .waiting-payment-message h4 {
-    font-size: 16px;
-  }
-  
-  .waiting-payment-message p {
-    font-size: 13px;
-  }
-}
-
-@media (max-width: 480px) {
-  .waiting-payment-message {
-    padding: 20px 12px 16px 12px;
-  }
-  
-  .waiting-payment-message .waiting-icon {
-    font-size: 32px !important;
-  }
-  
-  .waiting-payment-message h4 {
-    font-size: 15px;
-  }
-  
-  .waiting-payment-message p {
-    font-size: 12px;
-  }
 }

@@ -1,21 +1,20 @@
-/* styles/Customer/supports.css - Dark Solar Theme */
-
-/* ============================================
-   SUPPORT - Dark Solar Theme
-   ============================================ */
+/* styles/Customer/supports.css - Light Solar Theme (Matches Dashboard) */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE CONTAINER
+   BASE LAYOUT - SOLAR GRADIENT BACKGROUND
    ============================================ */
 .cusup-container {
   padding-inline: 24px;
   margin: 0 auto;
-  background: #0B111A;
+  /* 🌅 Soft Solar Gradient Background (Warm Sunlight + Clean Green + Soft Sky Blue) */
+  background: 
+    
+    #F3F5F1;
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
@@ -26,7 +25,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
@@ -40,14 +39,14 @@
 .cusup-header-content h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
   letter-spacing: -0.3px;
 }
 
 .cusup-header-content p {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0;
 }
 
@@ -56,21 +55,24 @@
 }
 
 /* ============================================
-   SECTION
+   SECTION - Premium Glass Cards
    ============================================ */
 .cusup-section {
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.25rem 1.5rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
   margin-bottom: 1.5rem;
 }
 
 .cusup-section:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cusup-section-header {
@@ -79,7 +81,7 @@
   gap: 0.75rem;
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .cusup-section-header svg {
@@ -90,12 +92,12 @@
 .cusup-section-header h2 {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
 .cusup-section-description {
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   font-size: 0.95rem;
   margin: 0 0 1.25rem 0;
 }
@@ -110,7 +112,7 @@
 }
 
 .cusup-faq-item {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .cusup-faq-item:last-child {
@@ -127,7 +129,7 @@
   border: none;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
   cursor: pointer;
   text-align: left;
   transition: all 200ms ease;
@@ -140,7 +142,7 @@
 
 .cusup-faq-question svg {
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   flex-shrink: 0;
   margin-left: 0.75rem;
   transition: transform 200ms ease;
@@ -153,7 +155,7 @@
 .cusup-faq-answer {
   padding: 0 0 0.75rem 0;
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   line-height: 1.6;
 }
 
@@ -181,18 +183,18 @@
 .cusup-form-group label {
   font-size: 0.8rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .cusup-form-group input,
 .cusup-form-group textarea,
 .cusup-form-group select {
   padding: 0.6rem 0.875rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid #E5E7EB;
   border-radius: 10px;
   font-size: 0.9rem;
-  color: #FFFFFF;
-  background: #131C28;
+  color: #17212B;
+  background: #FFFFFF;
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
   width: 100%;
@@ -200,7 +202,7 @@
 
 .cusup-form-group input::placeholder,
 .cusup-form-group textarea::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .cusup-form-group input:focus,
@@ -217,8 +219,8 @@
 }
 
 .cusup-form-group select option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 .cusup-submit-btn {
@@ -259,8 +261,8 @@
 }
 
 .cusup-info-card {
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #FFFFFF;
+  border: 1px solid #EEF0ED;
   border-radius: 12px;
   padding: 1.25rem;
   text-align: center;
@@ -268,15 +270,15 @@
 }
 
 .cusup-info-card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  border-color: rgba(243, 156, 18, 0.25);
+  box-shadow: 0 4px 12px rgba(23, 33, 43, 0.06);
   transform: translateY(-2px);
 }
 
 .cusup-info-icon {
   width: 48px;
   height: 48px;
-  background: rgba(243, 156, 18, 0.12);
+  background: rgba(243, 156, 18, 0.10);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -289,20 +291,20 @@
 .cusup-info-card h3 {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 0.25rem 0;
 }
 
 .cusup-info-card p {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0 0 0.25rem 0;
   word-break: break-word;
 }
 
 .cusup-info-card small {
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 /* ============================================
@@ -352,15 +354,16 @@
 }
 
 .cusup-ticket-card {
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #FFFFFF;
+  border: 1px solid #EEF0ED;
   border-radius: 12px;
   padding: 1rem 1.25rem;
   transition: all 200ms ease;
 }
 
 .cusup-ticket-card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(243, 156, 18, 0.25);
+  box-shadow: 0 4px 12px rgba(23, 33, 43, 0.06);
 }
 
 .cusup-ticket-header {
@@ -375,7 +378,7 @@
 .cusup-ticket-id {
   font-size: 0.75rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-family: monospace;
 }
 
@@ -390,33 +393,33 @@
 }
 
 .status-badge-support.open {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
-  border-color: rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border-color: rgba(243, 156, 18, 0.20);
 }
 
 .status-badge-support.in-progress {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border-color: rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border-color: rgba(59, 130, 246, 0.20);
 }
 
 .status-badge-support.resolved {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border-color: rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.20);
 }
 
 .cusup-ticket-subject {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin-bottom: 0.25rem;
 }
 
 .cusup-ticket-description {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin-bottom: 0.5rem;
 }
 
@@ -425,12 +428,12 @@
   justify-content: space-between;
   align-items: center;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .cusup-ticket-date {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .cusup-view-ticket-btn {
@@ -439,7 +442,7 @@
   gap: 0.4rem;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   cursor: pointer;
   font-size: 0.75rem;
   font-weight: 500;
@@ -454,7 +457,7 @@
 .cusup-ticket-details {
   margin-top: 0.75rem;
   padding-top: 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
 }
 
 .cusup-ticket-messages {
@@ -469,7 +472,7 @@
 }
 
 .cusup-message.customer {
-  background: rgba(255, 255, 255, 0.03);
+  background: #F6F8F5;
 }
 
 .cusup-message.support {
@@ -479,18 +482,18 @@
 
 .cusup-message strong {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .cusup-message p {
   font-size: 0.85rem;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0.25rem 0 0 0;
 }
 
 .cusup-message small {
   font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 /* ============================================
@@ -507,8 +510,8 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #FFFFFF;
+  border: 1px solid #EEF0ED;
   border-radius: 12px;
   transition: all 200ms ease;
 }
@@ -519,8 +522,8 @@
 
 .cusup-guide-card.guide-clickable:hover {
   transform: translateX(6px);
-  border-color: rgba(243, 156, 18, 0.2);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  border-color: rgba(243, 156, 18, 0.25);
+  box-shadow: 0 4px 12px rgba(23, 33, 43, 0.06);
 }
 
 .cusup-guide-icon-wrapper {
@@ -529,14 +532,14 @@
   justify-content: center;
   width: 48px;
   height: 48px;
-  background: rgba(243, 156, 18, 0.12);
+  background: rgba(243, 156, 18, 0.10);
   border-radius: 12px;
   flex-shrink: 0;
   transition: all 200ms ease;
 }
 
 .cusup-guide-card:hover .cusup-guide-icon-wrapper {
-  background: rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.20);
   transform: scale(1.05);
 }
 
@@ -552,21 +555,21 @@
 .cusup-guide-info h3 {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 0.25rem 0;
 }
 
 .cusup-guide-info p {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0 0 0.25rem 0;
 }
 
 .cusup-guide-type {
   display: inline-block;
   padding: 0.1rem 0.75rem;
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
   border-radius: 12px;
   font-size: 0.7rem;
   font-weight: 600;
@@ -609,20 +612,20 @@
 
 .cusup-empty-state .empty-icon {
   font-size: 2.5rem;
-  color: rgba(255, 255, 255, 0.15);
+  color: #D1D5DB;
   margin-bottom: 0.75rem;
 }
 
 .cusup-empty-state h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  color: #17212B;
   margin: 0 0 0.25rem 0;
 }
 
 .cusup-empty-state p {
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #667085;
   margin: 0;
 }
 
@@ -635,8 +638,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(23, 33, 43, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -651,14 +655,16 @@
 }
 
 .cusup-modal {
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 18px;
   width: 100%;
   max-width: 520px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  box-shadow: 0 20px 60px rgba(23, 33, 43, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -672,7 +678,7 @@
 }
 
 .cusup-modal::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(23, 33, 43, 0.03);
   border-radius: 4px;
 }
 
@@ -686,13 +692,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .cusup-modal-header h3 {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
@@ -702,7 +708,7 @@
   background: none;
   border: none;
   font-size: 1.25rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   cursor: pointer;
   border-radius: 50%;
   display: flex;
@@ -712,8 +718,8 @@
 }
 
 .cusup-modal-close:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #FFFFFF;
+  background: rgba(23, 33, 43, 0.04);
+  color: #17212B;
 }
 
 .cusup-modal-body {
@@ -733,24 +739,24 @@
   gap: 0.75rem;
   justify-content: flex-end;
   padding: 1rem 1.5rem 1.5rem 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
 }
 
 .cusup-cancel-btn {
   padding: 0.6rem 1.25rem;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid #E5E7EB;
   border-radius: 10px;
   font-size: 0.875rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   cursor: pointer;
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
 }
 
 .cusup-cancel-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: #F6F8F5;
 }
 
 .cusup-submit-ticket-btn {

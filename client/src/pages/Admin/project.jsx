@@ -23,7 +23,13 @@ import '../../styles/Admin/project.css';
 
 // Recharts Imports
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
 } from 'recharts';
 
 const ProjectManagement = () => {
@@ -59,24 +65,73 @@ const ProjectManagement = () => {
   const [projectStatusChartData, setProjectStatusChartData] = useState([]);
   const [financialChartData, setFinancialChartData] = useState({ totalValue: 0, amountPaid: 0, outstandingBalance: 0 });
 
+  // ============================================
+  // COMPACT CURRENCY FORMATTER - ALL SIZES
+  // ============================================
+  const formatCompactCurrency = (amount) => {
+    const value = Number(amount) || 0;
+    
+    // Return empty string for zero
+    if (value === 0) return '';
+    
+    const absValue = Math.abs(value);
+
+    // Billions (1,000,000,000+)
+    if (absValue >= 1000000000) {
+      return `₱${(value / 1000000000).toFixed(1)}B`;
+    }
+
+    // Millions (1,000,000 - 999,999,999)
+    if (absValue >= 1000000) {
+      return `₱${(value / 1000000).toFixed(1)}M`;
+    }
+
+    // Thousands (1,000 - 999,999)
+    if (absValue >= 1000) {
+      return `₱${(value / 1000).toFixed(0)}k`;
+    }
+
+    // Less than 1,000
+    return `₱${value.toFixed(0)}`;
+  };
+
+  // Full currency formatter for tooltips and table
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-PH', { 
+      style: 'currency', 
+      currency: 'PHP', 
+      minimumFractionDigits: 0, 
+      maximumFractionDigits: 0 
+    }).format(amount || 0);
+  };
+
+  // Compact formatter for chart labels with custom logic
+  const formatChartLabel = (value) => {
+    if (value === 0 || value < 1) return '';
+    if (value >= 1000000000) return `₱${(value / 1000000000).toFixed(1)}B`;
+    if (value >= 1000000) return `₱${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `₱${(value / 1000).toFixed(0)}k`;
+    return `₱${value}`;
+  };
+
   useEffect(() => {
     fetchProjects();
     fetchEngineers();
     fetchStats();
-    
+
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setOpenDropdownId(null);
       }
     };
-    
+
     const handleScroll = () => {
       setOpenDropdownId(null);
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     window.addEventListener('scroll', handleScroll, true);
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('scroll', handleScroll, true);
@@ -116,18 +171,16 @@ const ProjectManagement = () => {
   const fetchStats = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      
-      // Fetch stats from API
+
       const statsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/stats`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const data = statsResponse.data.stats || { 
-        total: 0, quoted: 0, approved: 0, inProgress: 0, completed: 0, cancelled: 0, totalRevenue: 0 
+      const data = statsResponse.data.stats || {
+        total: 0, quoted: 0, approved: 0, inProgress: 0, completed: 0, cancelled: 0, totalRevenue: 0
       };
       setStats(data);
 
-      // --- CHART 1: Project Status Overview ---
-      // Exclude "cancelled" from the chart
+      // CHART 1: Project Status Overview
       const statusData = [
         { name: 'Quoted', value: data.quoted || 0 },
         { name: 'Approved', value: data.approved || 0 },
@@ -136,32 +189,29 @@ const ProjectManagement = () => {
         { name: 'Progress Paid', value: data.progressPaid || 0 },
         { name: 'Completed', value: data.completed || 0 }
       ];
-      
+
       setProjectStatusChartData(statusData);
 
-      // --- CHART 2: Financial Overview ---
-      // Fetch all projects to calculate financial totals
+      // CHART 2: Financial Overview
       const projectsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: { limit: 999 } // Get all projects for accurate financial calculation
+        params: { limit: 999 }
       });
-      
+
       const allProjects = projectsResponse.data.projects || [];
-      
-      // Calculate financial totals from actual project data
+
       let totalValue = 0;
       let amountPaid = 0;
-      
+
       allProjects.forEach(project => {
-        // Exclude cancelled projects from financial totals
         if (project.status !== 'cancelled') {
           totalValue += (project.totalCost || 0);
           amountPaid += (project.amountPaid || 0);
         }
       });
-      
+
       const outstandingBalance = totalValue - amountPaid;
-      
+
       setFinancialChartData({
         totalValue: totalValue,
         amountPaid: amountPaid,
@@ -215,8 +265,7 @@ const ProjectManagement = () => {
 
   const assignEngineer = async () => {
     if (!selectedProject || !formData.engineerId) return;
-    
-    // Defensive check: prevent assignment if project already has an engineer
+
     if (selectedProject.assignedEngineerId) {
       showToast('This project already has an assigned engineer', 'error');
       setShowAssignModal(false);
@@ -225,7 +274,7 @@ const ProjectManagement = () => {
       setOpenDropdownId(null);
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
@@ -284,10 +333,6 @@ const ProjectManagement = () => {
     setOpenDropdownId(openDropdownId === projectId ? null : projectId);
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount || 0);
-  };
-
   const formatDate = (date) => {
     if (!date) return 'N/A';
     return new Date(date).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -318,18 +363,16 @@ const ProjectManagement = () => {
 
   const getAvailableActions = (project) => {
     const actions = [
-      { 
-        label: 'View Details', 
-        icon: <FaEye />, 
+      {
+        label: 'View Details',
+        icon: <FaEye />,
         action: () => { setSelectedProject(project); fetchProjectInvoices(project._id); setShowDetailModal(true); setOpenDropdownId(null); },
         color: 'primary'
       }
     ];
 
-    // Check if project has an assigned engineer
     const hasAssignedEngineer = !!project.assignedEngineerId;
 
-    // Only show Assign Engineer if status is approved or initial_paid AND no engineer is assigned yet
     if (
       (project.status === 'approved' || project.status === 'initial_paid') &&
       !hasAssignedEngineer
@@ -360,34 +403,34 @@ const ProjectManagement = () => {
     return actions;
   };
 
-  // Calculate pagination
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
-  // Generate page numbers
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
     let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-    
+
     if (endPage - startPage + 1 < maxVisible) {
       startPage = Math.max(1, endPage - maxVisible + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
     return pages;
   };
 
-  // Custom Tooltips
+  // ============================================
+  // CHART TOOLTIPS
+  // ============================================
   const StatusTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
         <div className="recharts-custom-tooltip-projectmanagement">
-          <p className="tooltip-label-projectmanagement">{label}</p>
+          <p className="tooltip-label-projectmanagement" style={{ color: '#98A2B3' }}>{label}</p>
           <p className="tooltip-item-projectmanagement" style={{ color: '#F39C12' }}>
             Projects: {payload[0].value}
           </p>
@@ -399,11 +442,20 @@ const ProjectManagement = () => {
 
   const FinancialTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
+      const value = payload[0].value || 0;
+      const dataKey = payload[0]?.payload?.name || label;
+      const colors = {
+        'Total Value': '#10B981',
+        'Amount Paid': '#3B82F6',
+        'Outstanding': '#EF4444'
+      };
+      const color = colors[dataKey] || '#10B981';
+
       return (
         <div className="recharts-custom-tooltip-projectmanagement">
-          <p className="tooltip-label-projectmanagement">{label}</p>
-          <p className="tooltip-item-projectmanagement" style={{ color: '#10B981' }}>
-            {formatCurrency(payload[0].value)}
+          <p className="tooltip-label-projectmanagement" style={{ color: '#98A2B3' }}>{label}</p>
+          <p className="tooltip-item-projectmanagement" style={{ color: color }}>
+            {value === 0 ? '₱0' : formatCurrency(value)}
           </p>
         </div>
       );
@@ -458,43 +510,43 @@ const ProjectManagement = () => {
             </div>
             <div className="project-chart-wrapper-projectmanagement">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart 
-                  data={projectStatusChartData} 
+                <BarChart
+                  data={projectStatusChartData}
                   layout="vertical"
                   margin={{ top: 10, right: 10, left: 20, bottom: 0 }}
                 >
                   <defs>
                     <linearGradient id="colorStatus" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="5%" stopColor="#F39C12" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#F39C12" stopOpacity={0.2}/>
+                      <stop offset="5%" stopColor="#F39C12" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#F39C12" stopOpacity={0.2} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} stroke="rgba(255,255,255,0.06)" />
-                  <XAxis 
-                    type="number" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 11}} 
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} stroke="#EEF0ED" />
+                  <XAxis
+                    type="number"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#17212B', fontSize: 11, fontWeight: 500 }}
                     allowDecimals={false}
                   />
-                  <YAxis 
-                    type="category" 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{fill: 'rgba(255,255,255,0.6)', fontSize: 11}} 
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#17212B', fontSize: 11, fontWeight: 500 }}
                     width={100}
                   />
-                  <Tooltip content={<StatusTooltip />} cursor={{fill: 'rgba(255,255,255,0.05)'}} />
-                  <Bar 
-                    dataKey="value" 
-                    fill="url(#colorStatus)" 
-                    radius={[0, 4, 4, 0]} 
-                    barSize={28} 
-                    label={{ 
-                      position: 'right', 
-                      fill: 'rgba(255,255,255,0.6)', 
-                      fontSize: 12, 
+                  <Tooltip content={<StatusTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+                  <Bar
+                    dataKey="value"
+                    fill="url(#colorStatus)"
+                    radius={[0, 4, 4, 0]}
+                    barSize={28}
+                    label={{
+                      position: 'right',
+                      fill: '#17212B',
+                      fontSize: 12,
                       fontWeight: 600,
                       formatter: (value) => value > 0 ? value : ''
                     }}
@@ -504,7 +556,7 @@ const ProjectManagement = () => {
             </div>
           </div>
 
-          {/* CHART 2: Financial Overview */}
+          {/* CHART 2: Financial Overview - COMPACT FORMATTING ALL SIZES */}
           <div className="project-chart-card-projectmanagement">
             <div className="project-chart-header-projectmanagement">
               <h3>Financial Overview</h3>
@@ -512,56 +564,58 @@ const ProjectManagement = () => {
             </div>
             <div className="project-chart-wrapper-projectmanagement">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart 
+                <BarChart
                   data={[
                     { name: 'Total Value', value: financialChartData.totalValue },
                     { name: 'Amount Paid', value: financialChartData.amountPaid },
                     { name: 'Outstanding', value: financialChartData.outstandingBalance }
-                  ]} 
+                  ]}
                   layout="vertical"
                   margin={{ top: 10, right: 10, left: 20, bottom: 0 }}
                 >
                   <defs>
                     <linearGradient id="colorFinancial" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0.2}/>
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0.2} />
                     </linearGradient>
                     <linearGradient id="colorPaid" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.2}/>
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.2} />
                     </linearGradient>
                     <linearGradient id="colorOutstanding" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="5%" stopColor="#EF4444" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#EF4444" stopOpacity={0.2}/>
+                      <stop offset="5%" stopColor="#EF4444" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#EF4444" stopOpacity={0.2} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} stroke="rgba(255,255,255,0.06)" />
-                  <XAxis 
-                    type="number" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 11}}
-                    tickFormatter={(value) => value >= 1000000 ? `₱${(value/1000000).toFixed(1)}M` : value >= 1000 ? `₱${(value/1000).toFixed(0)}k` : `₱${value}`}
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} stroke="#EEF0ED" />
+                  <XAxis
+                    type="number"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#17212B', fontSize: 11, fontWeight: 500 }}
+                    domain={[0, 'auto']}
+                    tickCount={4}
+                    tickFormatter={(value) => formatChartLabel(value)}
                   />
-                  <YAxis 
-                    type="category" 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{fill: 'rgba(255,255,255,0.6)', fontSize: 11}} 
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#17212B', fontSize: 11, fontWeight: 500 }}
                     width={110}
                   />
-                  <Tooltip content={<FinancialTooltip />} cursor={{fill: 'rgba(255,255,255,0.05)'}} />
-                  <Bar 
-                    dataKey="value" 
-                    radius={[0, 4, 4, 0]} 
+                  <Tooltip content={<FinancialTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+                  <Bar
+                    dataKey="value"
+                    radius={[0, 4, 4, 0]}
                     barSize={28}
-                    label={{ 
-                      position: 'right', 
-                      fill: 'rgba(255,255,255,0.6)', 
-                      fontSize: 11, 
+                    label={{
+                      position: 'right',
+                      fill: '#17212B',
+                      fontSize: 11,
                       fontWeight: 600,
-                      formatter: (value) => value > 0 ? formatCurrency(value) : ''
+                      formatter: (value) => formatChartLabel(value)
                     }}
                   >
                     {[
@@ -586,11 +640,11 @@ const ProjectManagement = () => {
         <div className="project-filters-projectmanagement">
           <div className="search-group-projectmanagement">
             <FaSearch className="search-icon-projectmanagement" />
-            <input 
-              type="text" 
-              placeholder="Search projects..." 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
+            <input
+              type="text"
+              placeholder="Search projects..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <div className="filter-group-projectmanagement">
@@ -635,7 +689,7 @@ const ProjectManagement = () => {
                   filteredProjects.map(project => {
                     const actions = getAvailableActions(project);
                     const isOpen = openDropdownId === project._id;
-                    
+
                     return (
                       <tr key={project._id}>
                         <td className="project-cell-projectmanagement">
@@ -649,16 +703,16 @@ const ProjectManagement = () => {
                         <td>{getStatusBadge(project.status)}</td>
                         <td style={{ textAlign: 'center', position: 'relative' }}>
                           <div className="action-dropdown-container-projectmanagement">
-                            <button 
+                            <button
                               className="action-dropdown-toggle-projectmanagement"
                               ref={el => buttonRefs.current[project._id] = el}
                               onClick={(e) => handleDropdownClick(e, project._id)}
                             >
                               Action <FaChevronDown className={`dropdown-arrow-projectmanagement ${isOpen ? 'open' : ''}`} />
                             </button>
-                            
+
                             {isOpen && (
-                              <div 
+                              <div
                                 className="action-dropdown-menu-projectmanagement"
                                 ref={dropdownRef}
                                 style={{
@@ -669,8 +723,8 @@ const ProjectManagement = () => {
                                 }}
                               >
                                 {actions.map((action, idx) => (
-                                  <button 
-                                    key={idx} 
+                                  <button
+                                    key={idx}
                                     className={`dropdown-item-projectmanagement ${action.color || ''}`}
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -699,14 +753,14 @@ const ProjectManagement = () => {
               Showing {startItem} to {endItem} of {totalItems} entries
             </div>
             <div className="pagination-controls-projectmanagement">
-              <button 
-                className="page-btn-projectmanagement" 
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} 
+              <button
+                className="page-btn-projectmanagement"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
               >
                 <FaChevronLeft /> Previous
               </button>
-              
+
               {getPageNumbers().map(page => (
                 <button
                   key={page}
@@ -716,10 +770,10 @@ const ProjectManagement = () => {
                   {page}
                 </button>
               ))}
-              
-              <button 
-                className="page-btn-projectmanagement" 
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} 
+
+              <button
+                className="page-btn-projectmanagement"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
               >
                 Next <FaChevronRight />
@@ -729,7 +783,7 @@ const ProjectManagement = () => {
         )}
 
         {/* ============================================ */}
-        {/* MODALS (NO 'X' BUTTONS)                      */}
+        {/* MODALS                                       */}
         {/* ============================================ */}
 
         {/* Detail Modal */}
@@ -748,14 +802,14 @@ const ProjectManagement = () => {
           </div>
         )}
 
-        {/* Assign Engineer Modal - CARD SELECTION */}
+        {/* Assign Engineer Modal */}
         {showAssignModal && selectedProject && (
           <div className="modal-overlay-projectmanagement" onClick={() => setShowAssignModal(false)}>
             <div className="modal-projectmanagement assign-engineer-modal-projectmanagement" onClick={e => e.stopPropagation()}>
               <div className="modal-header-projectmanagement"><h3>Assign Engineer</h3></div>
               <div className="modal-body-projectmanagement">
                 <div className="detail-row-projectmanagement"><span>Project:</span><strong>{selectedProject.projectName}</strong></div>
-                
+
                 <div className="form-group-projectmanagement">
                   <label>Select Engineer</label>
                   <div className="engineer-grid-projectmanagement">
@@ -763,7 +817,7 @@ const ProjectManagement = () => {
                       <div className="no-engineers-projectmanagement">No engineers available</div>
                     ) : (
                       engineers.map(eng => (
-                        <div 
+                        <div
                           key={eng._id}
                           className={`engineer-card-projectmanagement ${formData.engineerId === eng._id ? 'selected-projectmanagement' : ''}`}
                           onClick={() => setFormData({ ...formData, engineerId: eng._id })}
@@ -785,13 +839,13 @@ const ProjectManagement = () => {
                     )}
                   </div>
                 </div>
-                
+
                 <div className="form-group-projectmanagement">
                   <label>Notes</label>
-                  <textarea 
-                    rows="3" 
-                    value={formData.assignNotes} 
-                    onChange={(e) => setFormData({ ...formData, assignNotes: e.target.value })} 
+                  <textarea
+                    rows="3"
+                    value={formData.assignNotes}
+                    onChange={(e) => setFormData({ ...formData, assignNotes: e.target.value })}
                     placeholder="Add any special instructions or notes..."
                   />
                 </div>

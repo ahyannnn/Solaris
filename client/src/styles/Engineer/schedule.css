@@ -1,21 +1,21 @@
-/* styles/Engineer/schedule.css - Dark Solar Theme for Engineer Schedule */
+/* styles/Engineer/schedule.css - Light Solar Theme for Engineer Schedule */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE LAYOUT
+   BASE LAYOUT - LIGHT SOLAR
    ============================================ */
 .engineer-schedule-container-esch {
   padding-top: 20px;
   padding-inline: 24px;
-  background: #0B111A;
+  background: #F3F5F1;
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   HEADER
+   HEADER - LIGHT
    ============================================ */
 .schedule-header-esch {
   display: flex;
@@ -29,18 +29,18 @@
 .schedule-header-esch h1 {
   font-size: 26px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 4px 0;
 }
 
 .schedule-header-esch p {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   margin: 0;
 }
 
 /* ============================================
-   CONTROLS / FILTERS
+   CONTROLS / FILTERS - LIGHT
    ============================================ */
 .schedule-controls-esch {
   display: flex;
@@ -54,32 +54,34 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #0F172A;
+  background: rgba(255, 255, 255, 0.86);
   padding: 4px 12px 4px 16px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .filter-group-esch .filter-icon-esch {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 14px;
 }
 
 .filter-group-esch select {
   padding: 8px 32px 8px 0;
-  background: transparent;
+  background: transparent !important;
   border: none;
   font-size: 13px;
-  color: #FFFFFF;
+  color: #17212B !important;
   font-family: 'Poppins', sans-serif;
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2398A2B3' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 8px center;
   background-color: transparent !important;
-  color: #FFFFFF !important;
-  -webkit-text-fill-color: #FFFFFF !important;
+  -webkit-text-fill-color: #17212B !important;
 }
 
 .filter-group-esch select:focus {
@@ -87,25 +89,28 @@
 }
 
 .filter-group-esch select option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 .search-group-esch {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #0F172A;
+  background: rgba(255, 255, 255, 0.86);
   padding: 4px 16px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   flex: 1;
   min-width: 200px;
   max-width: 400px;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .search-group-esch .search-icon-esch {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 14px;
 }
 
@@ -114,15 +119,15 @@
   background: transparent;
   border: none;
   font-size: 13px;
-  color: #FFFFFF;
+  color: #17212B;
   font-family: 'Poppins', sans-serif;
   width: 100%;
-  -webkit-text-fill-color: #FFFFFF;
+  -webkit-text-fill-color: #17212B;
 }
 
 .search-group-esch input::placeholder {
-  color: rgba(255, 255, 255, 0.25);
-  -webkit-text-fill-color: rgba(255, 255, 255, 0.25);
+  color: #98A2B3;
+  -webkit-text-fill-color: #98A2B3;
 }
 
 .search-group-esch input:focus {
@@ -130,14 +135,14 @@
 }
 
 /* ============================================
-   TABLE
+   TABLE - LIGHT GLASS
    ============================================ */
 .table-container-esch {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
   overflow-x: auto;
 }
 
@@ -149,7 +154,7 @@
 }
 
 .schedules-table-esch thead {
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .schedules-table-esch thead th {
@@ -159,17 +164,17 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: rgba(255, 255, 255, 0.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #98A2B3;
+  border-bottom: 1px solid #EEF0ED;
   white-space: nowrap;
   position: sticky;
   top: 0;
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
   z-index: 2;
 }
 
 .schedules-table-esch tbody tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
   transition: background 200ms ease;
 }
 
@@ -178,13 +183,13 @@
 }
 
 .schedules-table-esch tbody tr:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .schedules-table-esch tbody td {
   padding: 14px 16px;
   vertical-align: middle;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
 .clickable-row-esch {
@@ -192,7 +197,7 @@
 }
 
 /* ============================================
-   TABLE CELL STYLES
+   TABLE CELL STYLES - LIGHT
    ============================================ */
 .title-cell-esch {
   display: flex;
@@ -202,7 +207,7 @@
 
 .title-text-esch {
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .client-cell-esch {
@@ -213,26 +218,26 @@
 
 .client-name-esch {
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .client-phone-esch {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .date-cell-esch {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
 }
 
 .time-cell-esch {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
 }
 
 /* ============================================
-   STATUS BADGES
+   STATUS BADGES - LIGHT THEME
    ============================================ */
 .status-badge-esch {
   display: inline-block;
@@ -246,43 +251,43 @@
 }
 
 .status-badge-esch.scheduled-esch {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .status-badge-esch.confirmed-esch {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .status-badge-esch.in-progress-esch {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
-  border: 1px solid rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border: 1px solid rgba(243, 156, 18, 0.20);
 }
 
 .status-badge-esch.completed-esch {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .status-badge-esch.cancelled-esch {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 .status-badge-esch.rescheduled-esch {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 /* ============================================
-   TYPE BADGES
+   TYPE BADGES - LIGHT THEME
    ============================================ */
 .type-badge-esch {
   display: inline-block;
@@ -295,30 +300,30 @@
 
 .type-badge-esch.pre-assessment-esch {
   background: rgba(59, 130, 246, 0.08);
-  color: #3B82F6;
+  color: #2563EB;
   border: 1px solid rgba(59, 130, 246, 0.15);
 }
 
 .type-badge-esch.site-visit-esch {
   background: rgba(139, 92, 246, 0.08);
-  color: #8B5CF6;
+  color: #7C3AED;
   border: 1px solid rgba(139, 92, 246, 0.15);
 }
 
 .type-badge-esch.installation-esch {
   background: rgba(243, 156, 18, 0.08);
-  color: #F39C12;
+  color: #D97706;
   border: 1px solid rgba(243, 156, 18, 0.15);
 }
 
 .type-badge-esch.inspection-esch {
   background: rgba(16, 185, 129, 0.08);
-  color: #10B981;
+  color: #059669;
   border: 1px solid rgba(16, 185, 129, 0.15);
 }
 
 /* ============================================
-   ACTION BUTTON
+   ACTION BUTTON - LIGHT
    ============================================ */
 .view-btn-esch {
   padding: 6px 14px;
@@ -343,7 +348,7 @@
 }
 
 /* ============================================
-   PAGINATION
+   PAGINATION - LIGHT
    ============================================ */
 .pagination-esch {
   display: flex;
@@ -357,8 +362,8 @@
 .page-btn-esch {
   padding: 8px 16px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -371,9 +376,9 @@
 }
 
 .page-btn-esch:hover:not(:disabled) {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.5);
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .page-btn-esch:disabled {
@@ -383,17 +388,17 @@
 
 .page-info-esch {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   padding: 0 8px;
 }
 
 /* ============================================
-   EMPTY STATE
+   EMPTY STATE - LIGHT
    ============================================ */
 .empty-state-esch {
   text-align: center;
   padding: 40px 20px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
 }
 
 .empty-state-esch p {
@@ -402,7 +407,7 @@
 }
 
 /* ============================================
-   MODALS
+   MODALS - LIGHT GLASS
    ============================================ */
 .modal-overlay-esch {
   position: fixed;
@@ -417,15 +422,15 @@
 }
 
 .modal-content-esch {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.98);
   border-radius: 18px;
   max-width: 600px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid #EEF0ED;
   overflow: hidden;
   position: relative;
 }
@@ -435,7 +440,7 @@
 }
 
 /* ============================================
-   MODAL HEADER
+   MODAL HEADER - LIGHT
    ============================================ */
 .modal-close-esch {
   position: absolute;
@@ -444,9 +449,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #EEF0ED;
+  color: #98A2B3;
   font-size: 20px;
   cursor: pointer;
   display: flex;
@@ -459,22 +464,22 @@
 }
 
 .modal-close-esch:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  border-color: #EF4444;
   color: #EF4444;
 }
 
 .modal-content-esch h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 16px 24px 0 24px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 /* ============================================
-   MODAL BODY
+   MODAL BODY - LIGHT
    ============================================ */
 .modal-body-esch {
   padding: 0 24px;
@@ -488,7 +493,7 @@
 }
 
 .modal-body-esch::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
 }
 
@@ -498,11 +503,11 @@
 }
 
 /* ============================================
-   DETAIL SECTIONS
+   DETAIL SECTIONS - LIGHT
    ============================================ */
 .detail-section-esch {
   padding: 16px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .detail-section-esch:last-of-type {
@@ -512,7 +517,7 @@
 .detail-section-esch h4 {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 12px 0;
@@ -521,11 +526,11 @@
 .detail-section-esch p {
   margin: 4px 0;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667085;
 }
 
 .detail-section-esch p strong {
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   font-weight: 500;
   margin-right: 4px;
 }
@@ -536,11 +541,11 @@
 }
 
 /* ============================================
-   MODAL ACTIONS
+   MODAL ACTIONS - LIGHT
    ============================================ */
 .modal-actions-esch {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
   display: flex;
   gap: 12px;
   justify-content: flex-end;
@@ -550,9 +555,9 @@
 
 .cancel-btn-esch {
   padding: 10px 24px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.5);
+  color: #667085;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -562,16 +567,17 @@
 }
 
 .cancel-btn-esch:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.8);
+  color: #17212B;
 }
 
 /* ============================================
-   SKELETON LOADING
+   SKELETON LOADING - LIGHT
    ============================================ */
 .skeleton-line-esch {
   border-radius: 6px;
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -589,9 +595,9 @@
   height: 40px;
   width: 160px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -599,9 +605,9 @@
   height: 40px;
   width: 280px;
   border-radius: 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -612,20 +618,20 @@
 .skeleton-table-header-esch {
   height: 40px;
   border-radius: 8px;
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
   margin-bottom: 12px;
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
 .skeleton-table-row-esch {
   height: 48px;
   border-radius: 6px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   margin-bottom: 8px;
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -639,7 +645,7 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - UNCHANGED STRUCTURE
    ============================================ */
 
 /* Tablet */
@@ -682,7 +688,7 @@
     display: flex;
     flex-wrap: wrap;
     padding: 8px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid #EEF0ED;
   }
 
   .schedules-table-esch tbody td:last-child {
@@ -692,7 +698,7 @@
   .schedules-table-esch tbody td::before {
     content: attr(data-label);
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.3);
+    color: #98A2B3;
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -708,7 +714,7 @@
   .schedules-table-esch tbody tr {
     display: block;
     padding: 6px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid #EEF0ED;
   }
 
   .schedules-table-esch tbody tr:last-child {
@@ -844,7 +850,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES
+   REDUCED MOTION PREFERENCES - LIGHT
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -864,24 +870,24 @@
   .skeleton-table-header-esch,
   .skeleton-table-row-esch {
     animation: none !important;
-    background: #131C28 !important;
+    background: #EEF0ED !important;
   }
 }
 
 /* ============================================
-   FIX - INPUT FIELDS & DROPDOWNS (Dark Theme)
+   FIX - INPUT FIELDS & DROPDOWNS (Light Theme)
    ============================================ */
 .engineer-schedule-container-esch .filter-group-esch select,
 .engineer-schedule-container-esch .search-group-esch input {
   background-color: transparent !important;
-  color: #FFFFFF !important;
-  -webkit-text-fill-color: #FFFFFF !important;
-  caret-color: #FFFFFF !important;
+  color: #17212B !important;
+  -webkit-text-fill-color: #17212B !important;
+  caret-color: #17212B !important;
 }
 
 .engineer-schedule-container-esch .filter-group-esch select option {
-  background-color: #1A2533 !important;
-  color: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  color: #17212B !important;
 }
 
 .engineer-schedule-container-esch .filter-group-esch select:focus,
@@ -890,23 +896,23 @@
 }
 
 .engineer-schedule-container-esch .search-group-esch input::placeholder {
-  color: rgba(255, 255, 255, 0.25) !important;
-  -webkit-text-fill-color: rgba(255, 255, 255, 0.25) !important;
+  color: #98A2B3 !important;
+  -webkit-text-fill-color: #98A2B3 !important;
   opacity: 1 !important;
 }
 
 .engineer-schedule-container-esch .filter-group-esch select:-webkit-autofill,
 .engineer-schedule-container-esch .search-group-esch input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 30px #0F172A inset !important;
-  -webkit-text-fill-color: #FFFFFF !important;
-  box-shadow: 0 0 0 30px #0F172A inset !important;
-  background-color: #0F172A !important;
+  -webkit-box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.86) inset !important;
+  -webkit-text-fill-color: #17212B !important;
+  box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.86) inset !important;
+  background-color: rgba(255, 255, 255, 0.86) !important;
 }
 
 .engineer-schedule-container-esch .filter-group-esch {
-  background-color: #0F172A !important;
+  background-color: rgba(255, 255, 255, 0.86) !important;
 }
 
 .engineer-schedule-container-esch .search-group-esch {
-  background-color: #0F172A !important;
+  background-color: rgba(255, 255, 255, 0.86) !important;
 }

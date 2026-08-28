@@ -295,15 +295,15 @@ const SiteAssessment = () => {
     if (!date) {
       return { valid: false, message: 'Site visit date is required' };
     }
-    
+
     const selectedDate = new Date(date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     if (selectedDate < today) {
       return { valid: false, message: 'Site visit date cannot be in the past' };
     }
-    
+
     return { valid: true, message: '' };
   };
 
@@ -460,7 +460,7 @@ const SiteAssessment = () => {
       overdue: 'overdue',
       partial: 'partial'
     };
-    
+
     const mappedStatus = statusMap[status] || 'pending';
     const formattedStatus = formatStatusText(status);
     return <span className={`status-badge-adminbills_ ${mappedStatus}`}>{formattedStatus}</span>;
@@ -667,6 +667,7 @@ const SiteAssessment = () => {
         </div>
 
         {/* --- Analytics Chart (Placed 1st) --- */}
+        {/* --- Analytics Chart (Placed 1st) --- */}
         <div className="chart-area-adminbills_">
           <div className="chart-header-adminbills_">
             <h3>Monthly Volume</h3>
@@ -674,7 +675,7 @@ const SiteAssessment = () => {
           </div>
           <div className="chart-wrapper-adminbills_">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 5, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorQuotes" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#F39C12" stopOpacity={0.3} />
@@ -685,21 +686,21 @@ const SiteAssessment = () => {
                     <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="rgba(255,255,255,0.06)" />
+                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#EEF0ED" />
                 <XAxis
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }}
+                  tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
                   dy={10}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }}
-                  width={30}
+                  tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                  width={40}
                 />
-                <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }} />
+                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#D1D5DB', strokeWidth: 1 }} />
                 <Area
                   type="monotone"
                   dataKey="quotes"
@@ -708,7 +709,7 @@ const SiteAssessment = () => {
                   strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#colorQuotes)"
-                  dot={{ r: 4, fill: '#F39C12', strokeWidth: 2, stroke: '#1A2533' }}
+                  dot={{ r: 4, fill: '#F39C12', strokeWidth: 2, stroke: '#FFFFFF' }}
                   activeDot={{ r: 6 }}
                 />
                 <Area
@@ -719,7 +720,7 @@ const SiteAssessment = () => {
                   strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#colorAssessments)"
-                  dot={{ r: 4, fill: '#10B981', strokeWidth: 2, stroke: '#1A2533' }}
+                  dot={{ r: 4, fill: '#10B981', strokeWidth: 2, stroke: '#FFFFFF' }}
                   activeDot={{ r: 6 }}
                 />
               </AreaChart>
@@ -984,9 +985,9 @@ const SiteAssessment = () => {
                       <div className="no-engineers-adminbills_">No engineers available</div>
                     ) : (
                       engineers.map(eng => (
-                        <div 
-                          key={eng._id} 
-                          className={`engineer-card-adminbills_ ${engineerId === eng._id ? 'selected-adminbills_' : ''}`} 
+                        <div
+                          key={eng._id}
+                          className={`engineer-card-adminbills_ ${engineerId === eng._id ? 'selected-adminbills_' : ''}`}
                           onClick={() => setEngineerId(eng._id)}
                         >
                           <div className="engineer-avatar-adminbills_">
@@ -1004,21 +1005,21 @@ const SiteAssessment = () => {
                     )}
                   </div>
                 </div>
-                
+
                 {activeTab !== 'free-quotes' && (
                   <div className="form-group-adminbills_">
                     <label>
                       Site Visit Date <span className="required-field-adminbills_">*</span>
                     </label>
-                    <input 
-                      type="date" 
-                      className={`date-input-adminbills_ ${siteVisitDate && new Date(siteVisitDate) < new Date(new Date().setHours(0,0,0,0)) ? 'invalid-date-adminbills_' : ''}`}
-                      value={siteVisitDate} 
-                      onChange={(e) => setSiteVisitDate(e.target.value)} 
+                    <input
+                      type="date"
+                      className={`date-input-adminbills_ ${siteVisitDate && new Date(siteVisitDate) < new Date(new Date().setHours(0, 0, 0, 0)) ? 'invalid-date-adminbills_' : ''}`}
+                      value={siteVisitDate}
+                      onChange={(e) => setSiteVisitDate(e.target.value)}
                       min={getTodayDate()}
                       required
                     />
-                    {siteVisitDate && new Date(siteVisitDate) < new Date(new Date().setHours(0,0,0,0)) && (
+                    {siteVisitDate && new Date(siteVisitDate) < new Date(new Date().setHours(0, 0, 0, 0)) && (
                       <div className="validation-error-adminbills_">
                         <label>Site visit date cannot be in the past</label>
                       </div>
@@ -1030,22 +1031,22 @@ const SiteAssessment = () => {
                     )}
                   </div>
                 )}
-                
+
                 <div className="form-group-adminbills_">
                   <label>Notes</label>
-                  <textarea 
-                    rows="3" 
-                    value={siteVisitNotes} 
-                    onChange={(e) => setSiteVisitNotes(e.target.value)} 
+                  <textarea
+                    rows="3"
+                    value={siteVisitNotes}
+                    onChange={(e) => setSiteVisitNotes(e.target.value)}
                     placeholder="Add any special instructions or notes..."
                   />
                 </div>
               </div>
               <div className="modal-actions-adminbills_">
                 <button className="cancel-btn-adminbills_" onClick={() => setShowAssignEngineerModal(false)}>Cancel</button>
-                <button 
-                  className="assign-btn-adminbills_" 
-                  onClick={handleAssignEngineer} 
+                <button
+                  className="assign-btn-adminbills_"
+                  onClick={handleAssignEngineer}
                   disabled={!engineerId || isSubmitting || (activeTab !== 'free-quotes' && !siteVisitDate)}
                 >
                   {isSubmitting ? 'Assigning...' : 'Assign Engineer'}

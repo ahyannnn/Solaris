@@ -1,30 +1,31 @@
-/* styles/Customer/customersettings.css - Dark Solar Theme */
-
-/* ============================================
-   BASE - Dark Solar Theme
-   ============================================ */
+/* styles/Customer/customersettings.css - Light Solar Theme (Matches Dashboard) */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
+/* ============================================
+   BASE LAYOUT - SOLAR GRADIENT BACKGROUND
+   ============================================ */
 .cuset-page {
   padding-inline: 24px;
   margin: 0 auto;
-  background: #0B111A;
+  /* 🌅 Soft Solar Gradient Background (Warm Sunlight + Clean Green + Soft Sky Blue) */
+  background: 
+    
+    #F3F5F1;
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
    HEADER
    ============================================ */
-
 .cuset-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
@@ -38,21 +39,20 @@
 .cuset-header-content h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
   letter-spacing: -0.3px;
 }
 
 .cuset-header-content p {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0;
 }
 
 /* ============================================
    LAYOUT - Content (No Sidebar)
    ============================================ */
-
 .cuset-layout {
   display: flex;
   gap: 1.5rem;
@@ -67,36 +67,38 @@
 /* ============================================
    PROFILE TAB
    ============================================ */
-
 .cuset-profile-tab {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-/* Profile Card */
+/* Profile Card - Premium Glass */
 .cuset-profile-card {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
 }
 
 .cuset-profile-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuset-profile-avatar {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: rgba(243, 156, 18, 0.12);
+  background: rgba(243, 156, 18, 0.10);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -112,13 +114,13 @@
 .cuset-profile-details h2 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 0.25rem 0;
 }
 
 .cuset-profile-email {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0 0 0.5rem 0;
 }
 
@@ -139,33 +141,35 @@
 }
 
 .cuset-badge-client-type {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
   border: 1px solid rgba(243, 156, 18, 0.15);
 }
 
 .cuset-badge-member-since {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
   border: 1px solid rgba(59, 130, 246, 0.15);
 }
 
 /* ============================================
-   FORM CONTAINER
+   FORM CONTAINER - Premium Glass
    ============================================ */
-
 .cuset-form-container {
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
 }
 
 .cuset-form-container:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuset-form-header {
@@ -173,7 +177,7 @@
   align-items: center;
   justify-content: space-between;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   margin-bottom: 1.25rem;
   flex-wrap: wrap;
   gap: 0.75rem;
@@ -185,7 +189,7 @@
   gap: 0.5rem;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
@@ -196,7 +200,6 @@
 /* ============================================
    FORM FIELDS
    ============================================ */
-
 .cuset-form {
   display: flex;
   flex-direction: column;
@@ -224,7 +227,7 @@
 .cuset-form-field label {
   font-size: 0.8rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .cuset-form-field .cuset-required {
@@ -235,11 +238,11 @@
 .cuset-form-field textarea,
 .cuset-form-field select {
   padding: 0.6rem 0.875rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid #E5E7EB;
   border-radius: 10px;
   font-size: 0.9rem;
-  color: #FFFFFF;
-  background: #131C28;
+  color: #17212B;
+  background: #FFFFFF;
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
   width: 100%;
@@ -247,7 +250,7 @@
 
 .cuset-form-field input::placeholder,
 .cuset-form-field textarea::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .cuset-form-field input:focus,
@@ -264,14 +267,20 @@
   border-color: #EF4444;
 }
 
+.cuset-form-field input.error:focus,
+.cuset-form-field textarea.error:focus,
+.cuset-form-field select.error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
+}
+
 .cuset-form-field input.cuset-disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 .cuset-form-field select option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 .cuset-error-text {
@@ -281,13 +290,12 @@
 
 .cuset-hint {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 /* ============================================
    BUTTONS
    ============================================ */
-
 .cuset-btn-save {
   display: inline-flex;
   align-items: center;
@@ -319,7 +327,6 @@
 /* ============================================
    ADDRESSES TAB
    ============================================ */
-
 .cuset-addresses-tab {
   display: flex;
   flex-direction: column;
@@ -330,11 +337,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.25rem 1.5rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   flex-wrap: wrap;
   gap: 0.75rem;
 }
@@ -345,7 +355,7 @@
   gap: 0.5rem;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
@@ -378,7 +388,6 @@
 /* ============================================
    ADDRESSES GRID
    ============================================ */
-
 .cuset-addresses-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -386,18 +395,21 @@
 }
 
 .cuset-address-card {
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.25rem;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
   position: relative;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .cuset-address-card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuset-address-card.cuset-primary {
@@ -410,8 +422,8 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.2rem 0.75rem;
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
   border-radius: 12px;
   font-size: 0.7rem;
   font-weight: 600;
@@ -421,8 +433,8 @@
 .cuset-address-label-tag {
   display: inline-block;
   padding: 0.15rem 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.5);
+  background: #F6F8F5;
+  color: #667085;
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 500;
@@ -438,13 +450,13 @@
 
 .cuset-address-text p {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
   margin: 0;
   line-height: 1.4;
 }
 
 .cuset-address-text .cuset-zip {
-  color: rgba(255, 255, 255, 0.4);
+  color: #98A2B3;
   font-size: 0.8rem;
 }
 
@@ -453,7 +465,7 @@
   gap: 0.5rem;
   flex-wrap: wrap;
   padding-top: 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
 }
 
 .cuset-action-btn {
@@ -462,80 +474,82 @@
   gap: 0.3rem;
   padding: 0.3rem 0.75rem;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid #E5E7EB;
   border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
-  color: rgba(255, 255, 255, 0.5);
+  color: #667085;
 }
 
 .cuset-action-btn:hover {
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
+  border-color: #D1D5DB;
+  color: #17212B;
 }
 
 .cuset-primary-action {
-  color: #F39C12;
+  color: #D97706;
   border-color: rgba(243, 156, 18, 0.15);
 }
 
 .cuset-primary-action:hover {
-  background: rgba(243, 156, 18, 0.1);
+  background: rgba(243, 156, 18, 0.08);
   border-color: #F39C12;
 }
 
 .cuset-edit-action {
-  color: #3B82F6;
+  color: #2563EB;
   border-color: rgba(59, 130, 246, 0.15);
 }
 
 .cuset-edit-action:hover {
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(59, 130, 246, 0.08);
   border-color: #3B82F6;
 }
 
 .cuset-delete-action {
-  color: #EF4444;
+  color: #DC2626;
   border-color: rgba(239, 68, 68, 0.15);
 }
 
 .cuset-delete-action:hover {
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(239, 68, 68, 0.08);
   border-color: #EF4444;
 }
 
 /* ============================================
    EMPTY STATE
    ============================================ */
-
 .cuset-empty-addresses {
   text-align: center;
   padding: 3rem 1.5rem;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .cuset-empty-icon {
   font-size: 2.5rem;
-  color: rgba(255, 255, 255, 0.15);
+  color: #D1D5DB;
   margin-bottom: 0.75rem;
 }
 
 .cuset-empty-addresses h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  color: #17212B;
   margin: 0 0 0.25rem 0;
 }
 
 .cuset-empty-addresses p {
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #667085;
   margin: 0 0 1rem 0;
 }
 
@@ -562,9 +576,8 @@
 }
 
 /* ============================================
-   MODAL - NO SCROLL - FIXED POSITION
+   MODAL - Premium Glass
    ============================================ */
-
 .cuset-modal-overlay {
   position: fixed;
   top: 0;
@@ -573,9 +586,9 @@
   bottom: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(23, 33, 43, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -591,13 +604,15 @@
 }
 
 .cuset-modal-content {
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 18px;
   width: 100%;
   max-width: 560px;
   max-height: 90vh;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+  box-shadow: 0 20px 60px rgba(23, 33, 43, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   animation: cuset-slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
@@ -625,14 +640,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   flex-shrink: 0;
 }
 
 .cuset-modal-header h3 {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
@@ -642,7 +657,7 @@
   background: none;
   border: none;
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   cursor: pointer;
   border-radius: 50%;
   display: flex;
@@ -652,11 +667,11 @@
 }
 
 .cuset-modal-close:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #FFFFFF;
+  background: rgba(23, 33, 43, 0.04);
+  color: #17212B;
 }
 
-/* Modal Body - No Scroll */
+/* Modal Body */
 .cuset-modal-body {
   padding: 1.25rem 1.5rem;
   overflow-y: auto;
@@ -674,14 +689,13 @@
   gap: 0.75rem;
   justify-content: flex-end;
   padding: 1rem 1.5rem 1.5rem 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
   flex-shrink: 0;
 }
 
 /* ============================================
    MODAL FORM
    ============================================ */
-
 .cuset-modal-form-grid {
   display: flex;
   flex-direction: column;
@@ -703,7 +717,7 @@
 .cuset-modal-field label {
   font-size: 0.8rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .cuset-modal-field .cuset-required {
@@ -713,11 +727,11 @@
 .cuset-modal-field input,
 .cuset-modal-field select {
   padding: 0.6rem 0.875rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid #E5E7EB;
   border-radius: 10px;
   font-size: 0.9rem;
-  color: #FFFFFF;
-  background: #131C28;
+  color: #17212B;
+  background: #FFFFFF;
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
   width: 100%;
@@ -741,13 +755,13 @@
 }
 
 .cuset-modal-field select option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 .cuset-modal-field .cuset-hint {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .cuset-modal-field .cuset-error-text {
@@ -766,7 +780,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   cursor: pointer;
   padding-bottom: 0.4rem;
 }
@@ -781,22 +795,21 @@
 /* ============================================
    MODAL BUTTONS
    ============================================ */
-
 .cuset-btn-cancel {
   padding: 0.6rem 1.25rem;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid #E5E7EB;
   border-radius: 10px;
   font-size: 0.875rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   cursor: pointer;
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
 }
 
 .cuset-btn-cancel:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: #F6F8F5;
 }
 
 .cuset-btn-submit {
@@ -826,7 +839,6 @@
 /* ============================================
    CONFIRM MODAL
    ============================================ */
-
 .cuset-confirm-body {
   text-align: center;
   padding: 1.5rem;
@@ -840,17 +852,17 @@
 
 .cuset-confirm-body p {
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: #667085;
   margin: 0 0 0.75rem 0;
 }
 
 .cuset-address-preview-box {
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #F6F8F5;
+  border: 1px solid #EEF0ED;
   border-radius: 10px;
   padding: 0.75rem 1rem;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: #667085;
   margin-bottom: 1.25rem;
   word-break: break-word;
 }
@@ -886,11 +898,10 @@
 /* ============================================
    SKELETON LOADING
    ============================================ */
-
 .cuset-skeleton-line {
   border-radius: 6px;
   animation: cuset-shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255,255,255,0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #F1F2F4 25%, #E5E7EB 50%, #F1F2F4 75%);
   background-size: 200% 100%;
 }
 
@@ -919,10 +930,12 @@
 }
 
 .cuset-skeleton-card {
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.5rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .cuset-skeleton-input {
@@ -931,14 +944,13 @@
   border-radius: 10px;
   margin-bottom: 0.75rem;
   animation: cuset-shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255,255,255,0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #F1F2F4 25%, #E5E7EB 50%, #F1F2F4 75%);
   background-size: 200% 100%;
 }
 
 /* ============================================
    RESPONSIVE
    ============================================ */
-
 @media (max-width: 1024px) {
   .cuset-page {
     padding-inline: 20px;
@@ -1218,7 +1230,6 @@
 /* ============================================
    REDUCED MOTION
    ============================================ */
-
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -1243,7 +1254,7 @@
   .cuset-skeleton-line,
   .cuset-skeleton-input {
     animation: none !important;
-    background: #131C28 !important;
+    background: #F1F2F4 !important;
   }
 
   .cuset-modal-overlay {

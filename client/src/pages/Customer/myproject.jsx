@@ -489,7 +489,7 @@ const MyProject = () => {
                           y="52"
                           textAnchor="middle"
                           dominantBaseline="middle"
-                          fill="#ffffff"
+                          fill="#1a1919"
                           fontSize="26"
                           fontWeight="700"
                         >

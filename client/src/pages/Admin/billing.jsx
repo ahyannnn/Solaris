@@ -596,7 +596,7 @@ const AdminBilling = () => {
         `${import.meta.env.VITE_API_URL}/api/payments/bank-transfer/stats`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       const bankTransfersData = bankTransfersRes.data.data || [];
       const verifiedBankTransfers = bankTransfersData.filter(bt => bt.status === 'verified');
       bankCount = verifiedBankTransfers.length;
@@ -643,7 +643,7 @@ const AdminBilling = () => {
             if (invoice.paymentStatus === 'paid' || invoice.paymentStatus === 'partial') {
               const method = payment.method || 'cash';
               const amount = payment.amount || 0;
-              
+
               if (method === 'cash') {
                 cashRevenue += amount;
               } else if (method === 'gcash') {
@@ -1355,6 +1355,7 @@ const AdminBilling = () => {
         <div className="billing-charts-row-adminbilling">
 
           {/* CHART 1: Payment Method Distribution */}
+          {/* CHART 1: Payment Method Distribution */}
           <div className="billing-chart-card-adminbilling">
             <div className="billing-chart-header-adminbilling">
               <h3>Payment Method Distribution</h3>
@@ -1369,16 +1370,30 @@ const AdminBilling = () => {
                       <stop offset="95%" stopColor="#F39C12" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} width={30} allowDecimals={false} />
-                  <Tooltip content={<PaymentTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#EEF0ED" />
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                    dy={10}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                    width={40}
+                    allowDecimals={false}
+                  />
+                  <Tooltip content={<PaymentTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
                   <Bar dataKey="count" fill="url(#colorPayment)" radius={[4, 4, 0, 0]} barSize={45} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
+          {/* CHART 2: Revenue Overview */}
+          {/* CHART 2: Revenue Overview */}
           {/* CHART 2: Revenue Overview */}
           <div className="billing-chart-card-adminbilling">
             <div className="billing-chart-header-adminbilling">
@@ -1394,10 +1409,26 @@ const AdminBilling = () => {
                       <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} width={30} />
-                  <Tooltip content={<RevenueTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#EEF0ED" />
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                    dy={10}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                    width={65}
+                    tickFormatter={(value) => {
+                      if (value >= 1000000) return `₱${(value / 1000000).toFixed(1)}M`;
+                      if (value >= 1000) return `₱${(value / 1000).toFixed(0)}k`;
+                      return `₱${value}`;
+                    }}
+                  />
+                  <Tooltip content={<RevenueTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
                   <Bar dataKey="revenue" fill="url(#colorRevenue)" radius={[4, 4, 0, 0]} barSize={45} />
                 </BarChart>
               </ResponsiveContainer>
@@ -1466,14 +1497,14 @@ const AdminBilling = () => {
             />
           </div>
           <div className="filter-group-adminbilling">
-            <select value={activeTab === 'bank-transfers' ? bankTransferFilter : filter} 
-                    onChange={(e) => {
-                      if (activeTab === 'bank-transfers') {
-                        setBankTransferFilter(e.target.value);
-                      } else {
-                        setFilter(e.target.value);
-                      }
-                    }}>
+            <select value={activeTab === 'bank-transfers' ? bankTransferFilter : filter}
+              onChange={(e) => {
+                if (activeTab === 'bank-transfers') {
+                  setBankTransferFilter(e.target.value);
+                } else {
+                  setFilter(e.target.value);
+                }
+              }}>
               <option value="all">All Status</option>
               {activeTab === 'pre-assessments' ? (
                 <>
@@ -1504,7 +1535,7 @@ const AdminBilling = () => {
             </select>
             <FaChevronDown className="select-arrow-adminbilling" />
           </div>
-          <button className="refresh-btn-adminbilling" onClick={() => { 
+          <button className="refresh-btn-adminbilling" onClick={() => {
             if (activeTab === 'pre-assessments') fetchPreAssessments();
             else if (activeTab === 'solar-invoices') fetchSolarInvoices();
             else if (activeTab === 'bank-transfers') { fetchBankTransfers(); fetchBankTransferStats(); }

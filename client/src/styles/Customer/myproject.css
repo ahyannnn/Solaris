@@ -1,30 +1,20 @@
-/* styles/Customer/myproject.css - Dark Theme */
+/* styles/Customer/myproject.css - Light Solar Theme (Matches Dashboard) */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE
-   ============================================ */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #0B111A;
-  color: #FFFFFF;
-}
-
-/* ============================================
-   PAGE CONTAINER
+   BASE LAYOUT - SOLAR GRADIENT BACKGROUND
    ============================================ */
 .cuspro-page {
   padding-inline: 24px;
   margin: 0 auto;
-  background: #0B111A;
+  /* 🌅 Soft Solar Gradient Background (Warm Sunlight + Clean Green + Soft Sky Blue) */
+  background: 
+    
+    #F3F5F1;
   min-height: 100vh;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #17212B;
 }
 
 /* ============================================
@@ -35,7 +25,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem 0 1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -44,18 +34,19 @@ body {
 .cuspro-header-card h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
+  letter-spacing: -0.3px;
 }
 
 .cuspro-header-card p {
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0;
 }
 
 /* ============================================
-   PROJECT SELECTOR
+   PROJECT SELECTOR - Premium Glass Card
    ============================================ */
 .cuspro-selector-card {
   margin-bottom: 1.5rem;
@@ -64,24 +55,28 @@ body {
 .cuspro-project-select {
   width: 100%;
   max-width: 400px;
-  padding: 0.7rem 1rem;
-  background: #1A2533;
-  border: 1.5px solid rgba(255, 255, 255, 0.06);
+  padding: 0.6rem 2.5rem 0.6rem 1rem;
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 10px;
-  font-size: 0.95rem;
-  color: #FFFFFF;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 500;
+  font-size: 0.9rem;
+  color: #17212B;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  cursor: pointer;
+  transition: all 200ms ease;
+  font-weight: 500;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2398A2B3' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 1rem center;
-  padding-right: 2.5rem;
 }
 
 .cuspro-project-select:hover {
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuspro-project-select:focus {
@@ -91,25 +86,29 @@ body {
 }
 
 .cuspro-project-select option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   HERO CARD
+   HERO CARD - Premium Glass Card
    ============================================ */
 .cuspro-hero-card {
-  background: #1A2533;
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.5rem 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   margin-bottom: 1.5rem;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
 }
 
 .cuspro-hero-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuspro-hero-main {
@@ -123,21 +122,21 @@ body {
 .cuspro-hero-main h2 {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 0.25rem 0;
 }
 
 .cuspro-project-ref {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   margin: 0;
 }
 
 .cuspro-status-badge {
   display: inline-block;
-  padding: 0.35rem 1rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -145,56 +144,63 @@ body {
   flex-shrink: 0;
 }
 
+/* Status Badges - Light Theme */
 .cuspro-status-badge.quoted {
-  background: rgba(243, 156, 18, 0.15);
-  color: #F39C12;
-  border: 1px solid rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border: 1px solid rgba(243, 156, 18, 0.20);
 }
 
 .cuspro-status-badge.approved {
-  background: rgba(59, 130, 246, 0.15);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .cuspro-status-badge.in_progress {
-  background: rgba(139, 92, 246, 0.15);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .cuspro-status-badge.progress_paid {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .cuspro-status-badge.full_paid {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .cuspro-status-badge.completed {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
+}
+
+.cuspro-status-badge.cancelled {
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 .cuspro-hero-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .cuspro-hero-tags span {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
-  background: #131C28;
-  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  color: #667085;
+  background: #F6F8F5;
+  padding: 0.2rem 0.7rem;
   border-radius: 20px;
 }
 
@@ -234,20 +240,29 @@ body {
 }
 
 /* ============================================
-   PROGRESS CARD
+   PROGRESS CARD - Premium Glass Card
    ============================================ */
 .cuspro-progress-card {
-  background: #1A2533;
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 200ms ease;
+}
+
+.cuspro-progress-card:hover {
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuspro-progress-card h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 1.25rem 0;
 }
 
@@ -264,12 +279,12 @@ body {
 }
 
 .cuspro-progress-bg {
-  stroke: #131C28;
+  stroke: #E5E7EB;
 }
 
 .cuspro-progress-fill {
   stroke: #F39C12;
-  transition: stroke-dashoffset 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .cuspro-progress-stats {
@@ -277,7 +292,7 @@ body {
   grid-template-columns: repeat(3, 1fr);
   gap: 0.75rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
 }
 
 .cuspro-stat {
@@ -288,7 +303,7 @@ body {
 
 .cuspro-stat span {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -296,7 +311,7 @@ body {
 .cuspro-stat strong {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .cuspro-stat .solar-amount {
@@ -306,7 +321,7 @@ body {
 .cuspro-payment-plan-info {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -315,7 +330,7 @@ body {
 
 .cuspro-payment-plan-info .plan-label {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -323,29 +338,38 @@ body {
 .cuspro-payment-plan-info .plan-name {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .cuspro-payment-plan-info .plan-detail {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 /* ============================================
-   PHOTOS CARD
+   PHOTOS CARD - Premium Glass Card
    ============================================ */
 .cuspro-photos-card {
-  background: #1A2533;
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 200ms ease;
+}
+
+.cuspro-photos-card:hover {
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuspro-photos-card h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 0.25rem 0;
   display: flex;
   align-items: center;
@@ -354,7 +378,7 @@ body {
 
 .cuspro-photos-subtitle {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0 0 1rem 0;
 }
 
@@ -371,14 +395,14 @@ body {
   border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
-  background: #131C28;
+  background: #F6F8F5;
 }
 
 .cuspro-photo-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.2s ease;
+  transition: transform 200ms ease;
 }
 
 .cuspro-photo-item:hover img {
@@ -388,13 +412,13 @@ body {
 .cuspro-photo-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(23, 33, 43, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.2s ease;
-  color: #ffffff;
+  transition: opacity 200ms ease;
+  color: #FFFFFF;
   font-size: 1.5rem;
 }
 
@@ -403,7 +427,7 @@ body {
 }
 
 .cuspro-photo-item.more-photos {
-  background: #131C28;
+  background: #F6F8F5;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -414,7 +438,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   font-size: 1.5rem;
 }
 
@@ -428,38 +452,48 @@ body {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #F6F8F5;
+  border: 1px solid #E5E7EB;
   border-radius: 10px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
   width: 100%;
   justify-content: center;
+  font-weight: 500;
 }
 
 .cuspro-view-all-btn:hover {
-  background: #1A2533;
-  border-color: rgba(243, 156, 18, 0.2);
-  color: #FFFFFF;
+  background: #FFFFFF;
+  border-color: rgba(243, 156, 18, 0.25);
+  color: #17212B;
 }
 
 /* ============================================
-   NEXT STEP CARD
+   NEXT STEP CARD - Premium Glass Card
    ============================================ */
 .cuspro-next-card {
-  background: #1A2533;
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 200ms ease;
+}
+
+.cuspro-next-card:hover {
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuspro-next-card h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 0.75rem 0;
 }
 
@@ -470,13 +504,13 @@ body {
 .cuspro-next-content h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 0.25rem 0;
 }
 
 .cuspro-next-content p {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0;
 }
 
@@ -487,20 +521,29 @@ body {
 }
 
 /* ============================================
-   DETAILS CARD
+   DETAILS CARD - Premium Glass Card
    ============================================ */
 .cuspro-details-card {
-  background: #1A2533;
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 200ms ease;
+}
+
+.cuspro-details-card:hover {
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuspro-details-card h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 1rem 0;
 }
 
@@ -518,7 +561,7 @@ body {
 
 .cuspro-detail-item span {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -526,13 +569,13 @@ body {
 .cuspro-detail-item strong {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* Address */
 .cuspro-address p {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0 0 0.15rem 0;
   line-height: 1.5;
 }
@@ -549,7 +592,7 @@ body {
   height: 48px;
   border-radius: 50%;
   background: #F39C12;
-  color: #ffffff;
+  color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -561,12 +604,12 @@ body {
 .cuspro-engineer strong {
   display: block;
   font-size: 0.95rem;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .cuspro-engineer p {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0.1rem 0 0 0;
   display: flex;
   align-items: center;
@@ -577,7 +620,7 @@ body {
   display: flex;
   align-items: center;
   gap: 1rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .cuspro-engineer-placeholder svg {
@@ -587,12 +630,12 @@ body {
 .cuspro-engineer-placeholder strong {
   display: block;
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .cuspro-engineer-placeholder p {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   margin: 0.1rem 0 0 0;
 }
 
@@ -602,7 +645,7 @@ body {
 .cuspro-tab-nav {
   display: flex;
   gap: 0.5rem;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 2px solid #EEF0ED;
   margin-bottom: 1.5rem;
 }
 
@@ -612,16 +655,17 @@ body {
   border: none;
   font-size: 0.9rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
   position: relative;
   border-radius: 10px 10px 0 0;
+  font-family: 'Poppins', sans-serif;
 }
 
 .cuspro-tab:hover {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.03);
+  color: #17212B;
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .cuspro-tab.active {
@@ -655,17 +699,26 @@ body {
 }
 
 .cuspro-overview-card {
-  background: #1A2533;
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 200ms ease;
+}
+
+.cuspro-overview-card:hover {
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuspro-overview-card h4 {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 1rem 0;
 }
 
@@ -686,7 +739,7 @@ body {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
+  background: #E5E7EB;
   flex-shrink: 0;
 }
 
@@ -701,13 +754,13 @@ body {
 .cuspro-timeline-mini-item p {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
 .cuspro-timeline-mini-item small {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 /* Payment Mini */
@@ -722,7 +775,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0.5rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .cuspro-payment-mini-item:last-child {
@@ -737,13 +790,13 @@ body {
 
 .cuspro-payment-mini-item span {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .cuspro-payment-mini-item strong {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .cuspro-payment-mini-status {
@@ -756,36 +809,39 @@ body {
 }
 
 .cuspro-payment-mini-status.paid {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .cuspro-payment-mini-status.pending {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #F6F8F5;
+  color: #667085;
+  border: 1px solid #E5E7EB;
 }
 
 .cuspro-payment-mini-status.for_verification {
-  background: rgba(243, 156, 18, 0.15);
-  color: #F39C12;
-  border: 1px solid rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border: 1px solid rgba(243, 156, 18, 0.20);
 }
 
 .cuspro-payment-mini-status.overdue {
-  background: rgba(239, 68, 68, 0.15);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 /* Timeline Full */
 .cuspro-timeline-full {
-  background: #1A2533;
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .cuspro-timeline-full-item {
@@ -793,7 +849,7 @@ body {
   align-items: center;
   gap: 1.5rem;
   padding: 0.75rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .cuspro-timeline-full-item:last-child {
@@ -804,19 +860,19 @@ body {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #131C28;
+  background: #F6F8F5;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.85rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   flex-shrink: 0;
 }
 
 .cuspro-timeline-full-item.completed .cuspro-timeline-marker {
   background: #10B981;
-  color: #ffffff;
+  color: #FFFFFF;
 }
 
 .cuspro-timeline-info {
@@ -826,13 +882,13 @@ body {
 .cuspro-timeline-info h4 {
   font-size: 0.95rem;
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
 .cuspro-timeline-date {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 /* Payments Full */
@@ -843,11 +899,20 @@ body {
 }
 
 .cuspro-payment-full-item {
-  background: #1A2533;
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 200ms ease;
+}
+
+.cuspro-payment-full-item:hover {
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuspro-payment-full-header {
@@ -861,13 +926,13 @@ body {
 .cuspro-payment-full-header h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 0.1rem 0;
 }
 
 .cuspro-payment-full-header p {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0;
 }
 
@@ -882,27 +947,27 @@ body {
 }
 
 .cuspro-payment-full-status.paid {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .cuspro-payment-full-status.pending {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #F6F8F5;
+  color: #667085;
+  border: 1px solid #E5E7EB;
 }
 
 .cuspro-payment-full-status.for_verification {
-  background: rgba(243, 156, 18, 0.15);
-  color: #F39C12;
-  border: 1px solid rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border: 1px solid rgba(243, 156, 18, 0.20);
 }
 
 .cuspro-payment-full-status.overdue {
-  background: rgba(239, 68, 68, 0.15);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 .cuspro-payment-full-amount {
@@ -916,12 +981,12 @@ body {
 .cuspro-payment-full-amount strong {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .cuspro-payment-full-amount span {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 /* ============================================
@@ -931,21 +996,25 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 1.5rem;
+  padding: 0.6rem 1.25rem;
   background: #F39C12;
-  color: #ffffff;
+  color: #FFFFFF;
   border: none;
   border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 600;
+  font-family: 'Poppins', sans-serif;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .cuspro-btn-primary:hover:not(:disabled) {
   background: #E67E22;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+  color: #FFFFFF;
 }
 
 .cuspro-btn-primary:disabled {
@@ -958,21 +1027,48 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1.5rem;
+  padding: 0.5rem 1.25rem;
   background: #F39C12;
-  color: #ffffff;
+  color: #FFFFFF;
   border: none;
   border-radius: 10px;
   font-size: 0.85rem;
   font-weight: 600;
+  font-family: 'Poppins', sans-serif;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
 }
 
 .cuspro-btn-pay:hover {
   background: #E67E22;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+  color: #FFFFFF;
+}
+
+.cuspro-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: #FFFFFF;
+  color: #17212B;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: all 200ms ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cuspro-btn-secondary:hover {
+  background: #F6F8F5;
+  border-color: #D1D5DB;
+  transform: translateY(-2px);
+  color: #17212B;
 }
 
 /* ============================================
@@ -984,7 +1080,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0B111A;
+  background: #F3F5F1;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -1000,7 +1096,7 @@ body {
   justify-content: center;
   padding: 0;
   margin: 0;
-  background: #0B111A;
+  background: transparent;
   border-radius: 0;
   border: none;
   box-shadow: none;
@@ -1010,20 +1106,20 @@ body {
 
 .cuspro-empty-page .cuspro-empty-icon {
   font-size: 4rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #D1D5DB;
   margin-bottom: 1rem;
 }
 
 .cuspro-empty-page h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 0.5rem 0;
 }
 
 .cuspro-empty-page p {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0 0 1.5rem 0;
 }
 
@@ -1033,7 +1129,9 @@ body {
 .cuspro-photo-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(23, 33, 43, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1045,7 +1143,6 @@ body {
   from {
     opacity: 0;
   }
-
   to {
     opacity: 1;
   }
@@ -1055,9 +1152,13 @@ body {
   position: relative;
   max-width: 90vw;
   max-height: 90vh;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   overflow: hidden;
+  box-shadow: 0 20px 60px rgba(23, 33, 43, 0.2), 0 8px 30px rgba(23, 33, 43, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   animation: scaleIn 0.3s ease;
 }
 
@@ -1066,7 +1167,6 @@ body {
     transform: scale(0.9);
     opacity: 0;
   }
-
   to {
     transform: scale(1);
     opacity: 1;
@@ -1080,12 +1180,14 @@ body {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(23, 33, 43, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   border: none;
-  color: #ffffff;
+  color: #FFFFFF;
   font-size: 1.2rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
   z-index: 10;
   display: flex;
   align-items: center;
@@ -1093,7 +1195,7 @@ body {
 }
 
 .cuspro-photo-modal-close:hover {
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(23, 33, 43, 0.8);
   transform: rotate(90deg);
 }
 
@@ -1119,19 +1221,21 @@ body {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(23, 33, 43, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   border: none;
-  color: #ffffff;
+  color: #FFFFFF;
   font-size: 1.2rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .cuspro-photo-nav:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(23, 33, 43, 0.8);
 }
 
 .cuspro-photo-nav:disabled {
@@ -1152,15 +1256,15 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1.5rem;
-  background: #1A2533;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: #FFFFFF;
+  border-top: 1px solid #EEF0ED;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
 
 .cuspro-photo-counter {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .cuspro-photo-download {
@@ -1168,19 +1272,20 @@ body {
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 1rem;
-  background: #131C28;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #F6F8F5;
+  border: 1px solid #E5E7EB;
   border-radius: 10px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 200ms ease;
+  font-family: 'Poppins', sans-serif;
 }
 
 .cuspro-photo-download:hover {
-  background: #1A2533;
-  border-color: rgba(243, 156, 18, 0.2);
-  color: #FFFFFF;
+  background: #FFFFFF;
+  border-color: rgba(243, 156, 18, 0.25);
+  color: #17212B;
 }
 
 /* ============================================
@@ -1192,38 +1297,45 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-
-  .cuspro-hero-card:hover {
+  
+  .cuspro-hero-card:hover,
+  .cuspro-progress-card:hover,
+  .cuspro-photos-card:hover,
+  .cuspro-next-card:hover,
+  .cuspro-details-card:hover,
+  .cuspro-overview-card:hover,
+  .cuspro-payment-full-item:hover {
     transform: none !important;
   }
-
+  
   .cuspro-photo-item:hover img {
     transform: none !important;
   }
-
+  
   .cuspro-photo-item:hover .cuspro-photo-overlay {
     opacity: 0 !important;
   }
-
+  
   .cuspro-progress-fill {
     transition: none !important;
   }
-
+  
   .cuspro-btn-primary:hover,
   .cuspro-btn-pay:hover,
+  .cuspro-btn-secondary:hover,
   .cuspro-photo-download:hover,
   .cuspro-view-all-btn:hover {
     transform: none !important;
   }
-
+  
   .cuspro-photo-modal-content {
     animation: none !important;
   }
-
+  
   .cuspro-photo-modal-overlay {
     animation: none !important;
   }
-
+  
   .cuspro-photo-modal-close:hover {
     transform: none !important;
   }
@@ -1238,17 +1350,17 @@ body {
   .cuspro-page {
     padding-inline: 20px;
   }
-
+  
   .cuspro-two-col {
     grid-template-columns: 1fr;
     gap: 1.25rem;
   }
-
+  
   .cuspro-overview-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-
+  
   .cuspro-progress-ring {
     width: 120px;
     height: 120px;
@@ -1260,125 +1372,126 @@ body {
   .cuspro-page {
     padding-inline: 16px;
   }
-
+  
   .cuspro-header-card {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
     padding: 1rem 0 0.75rem 0;
   }
-
+  
   .cuspro-header-card h1 {
     font-size: 1.2rem;
   }
-
+  
   .cuspro-header-card p {
     font-size: 0.85rem;
   }
-
+  
   .cuspro-project-select {
     max-width: 100%;
     font-size: 0.9rem;
     padding: 0.6rem 0.875rem;
+    padding-right: 2.25rem;
   }
-
+  
   .cuspro-hero-card {
     padding: 1rem 1.25rem;
     border-radius: 10px;
   }
-
+  
   .cuspro-hero-main {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
-
+  
   .cuspro-hero-main h2 {
     font-size: 1.1rem;
   }
-
+  
   .cuspro-project-ref {
     font-size: 0.8rem;
   }
-
+  
   .cuspro-status-badge {
     font-size: 0.65rem;
     padding: 0.25rem 0.75rem;
   }
-
+  
   .cuspro-hero-tags {
     gap: 0.5rem;
   }
-
+  
   .cuspro-hero-tags span {
     font-size: 0.75rem;
     padding: 0.2rem 0.6rem;
   }
-
+  
   .cuspro-progress-card {
     padding: 1.25rem;
   }
-
+  
   .cuspro-progress-ring {
     width: 110px;
     height: 110px;
   }
-
+  
   .cuspro-progress-stats {
     grid-template-columns: repeat(3, 1fr);
     gap: 0.5rem;
   }
-
+  
   .cuspro-stat strong {
     font-size: 1rem;
   }
-
+  
   .cuspro-stat span {
     font-size: 0.65rem;
   }
-
+  
   .cuspro-photos-card {
     padding: 1.25rem;
   }
-
+  
   .cuspro-photos-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-
+  
   .cuspro-details-card {
     padding: 1.25rem;
   }
-
+  
   .cuspro-details-grid {
     grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
   }
-
+  
   .cuspro-detail-item strong {
     font-size: 0.85rem;
   }
-
+  
   .cuspro-detail-item span {
     font-size: 0.65rem;
   }
-
+  
   .cuspro-next-card {
     padding: 1.25rem;
   }
-
+  
   .cuspro-next-content h4 {
     font-size: 0.9rem;
   }
-
+  
   .cuspro-next-content p {
     font-size: 0.85rem;
   }
-
+  
   .cuspro-tab {
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
   }
-
+  
   .cuspro-tab-nav {
     gap: 0.25rem;
     overflow-x: auto;
@@ -1386,108 +1499,108 @@ body {
     -webkit-overflow-scrolling: touch;
     padding-bottom: 0.25rem;
   }
-
+  
   .cuspro-tab {
     white-space: nowrap;
     flex-shrink: 0;
   }
-
+  
   .cuspro-overview-card {
     padding: 1.25rem;
   }
-
+  
   .cuspro-overview-card h4 {
     font-size: 0.85rem;
   }
-
+  
   .cuspro-timeline-mini-item p {
     font-size: 0.85rem;
   }
-
+  
   .cuspro-payment-full-item {
     padding: 1.25rem;
   }
-
+  
   .cuspro-payment-full-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
-
+  
   .cuspro-payment-full-header h4 {
     font-size: 0.9rem;
   }
-
+  
   .cuspro-payment-full-amount {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
   }
-
+  
   .cuspro-payment-full-amount strong {
     font-size: 1.1rem;
   }
-
+  
   .cuspro-btn-pay {
     font-size: 0.8rem;
     padding: 0.4rem 1.25rem;
   }
-
+  
   .cuspro-photo-modal-content {
     max-width: 95vw;
     border-radius: 10px;
   }
-
+  
   .cuspro-photo-modal-main {
     max-height: 70vh;
   }
-
+  
   .cuspro-photo-modal-main img {
     max-height: 70vh;
   }
-
+  
   .cuspro-photo-nav {
     width: 36px;
     height: 36px;
     font-size: 1rem;
   }
-
+  
   .cuspro-photo-nav.prev {
     left: 0.5rem;
   }
-
+  
   .cuspro-photo-nav.next {
     right: 0.5rem;
   }
-
+  
   .cuspro-photo-modal-footer {
     padding: 0.5rem 1rem;
   }
-
+  
   .cuspro-photo-counter {
     font-size: 0.8rem;
   }
-
+  
   .cuspro-engineer {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
-
+  
   .cuspro-engineer-avatar {
     width: 40px;
     height: 40px;
     font-size: 1rem;
   }
-
+  
   .cuspro-engineer strong {
     font-size: 0.85rem;
   }
-
+  
   .cuspro-empty-page h2 {
     font-size: 1.25rem;
   }
-
+  
   .cuspro-empty-page p {
     font-size: 0.9rem;
   }
@@ -1498,271 +1611,272 @@ body {
   .cuspro-page {
     padding-inline: 12px;
   }
-
+  
   .cuspro-header-card h1 {
     font-size: 1rem;
   }
-
+  
   .cuspro-header-card p {
     font-size: 0.8rem;
   }
-
+  
   .cuspro-hero-card {
     padding: 0.75rem 0.875rem;
   }
-
+  
   .cuspro-hero-main h2 {
     font-size: 1rem;
   }
-
+  
   .cuspro-hero-tags {
     flex-direction: column;
     align-items: flex-start;
     width: 100%;
   }
-
+  
   .cuspro-hero-tags span {
     width: 100%;
     justify-content: flex-start;
   }
-
+  
   .cuspro-status-badge {
     align-self: flex-start;
   }
-
+  
   .cuspro-project-select {
     font-size: 0.85rem;
     padding: 0.5rem 0.75rem;
     padding-right: 2rem;
   }
-
+  
   .cuspro-progress-card {
     padding: 1rem;
   }
-
+  
   .cuspro-progress-card h3 {
     font-size: 0.9rem;
     margin-bottom: 1rem;
   }
-
+  
   .cuspro-progress-ring {
     width: 100px;
     height: 100px;
   }
-
+  
   .cuspro-progress-stats {
     grid-template-columns: 1fr;
     gap: 0.5rem;
     padding-top: 0.75rem;
   }
-
+  
   .cuspro-stat {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
     padding: 0.3rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid #EEF0ED;
   }
-
+  
   .cuspro-stat:last-child {
     border-bottom: none;
   }
-
+  
   .cuspro-stat span {
     font-size: 0.7rem;
   }
-
+  
   .cuspro-stat strong {
     font-size: 0.95rem;
   }
-
+  
   .cuspro-payment-plan-info {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
   }
-
+  
   .cuspro-payment-plan-info .plan-label {
     font-size: 0.65rem;
   }
-
+  
   .cuspro-payment-plan-info .plan-name {
     font-size: 0.8rem;
   }
-
+  
   .cuspro-payment-plan-info .plan-detail {
     font-size: 0.7rem;
   }
-
+  
   .cuspro-photos-card {
     padding: 1rem;
   }
-
+  
   .cuspro-photos-card h3 {
     font-size: 0.9rem;
   }
-
+  
   .cuspro-photos-subtitle {
     font-size: 0.75rem;
   }
-
+  
   .cuspro-photos-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.4rem;
   }
-
+  
   .cuspro-view-all-btn {
     font-size: 0.8rem;
     padding: 0.4rem 0.75rem;
   }
-
+  
   .cuspro-details-card {
     padding: 1rem;
   }
-
+  
   .cuspro-details-card h3 {
     font-size: 0.9rem;
   }
-
+  
   .cuspro-details-grid {
     grid-template-columns: 1fr;
     gap: 0.5rem;
   }
-
+  
   .cuspro-detail-item strong {
     font-size: 0.85rem;
   }
-
+  
   .cuspro-next-card {
     padding: 1rem;
   }
-
+  
   .cuspro-next-card h3 {
     font-size: 0.9rem;
   }
-
+  
   .cuspro-next-content h4 {
     font-size: 0.85rem;
   }
-
+  
   .cuspro-next-content p {
     font-size: 0.8rem;
   }
-
+  
   .cuspro-next-actions {
     flex-direction: column;
     width: 100%;
   }
-
-  .cuspro-next-actions .cuspro-btn-primary {
+  
+  .cuspro-next-actions .cuspro-btn-primary,
+  .cuspro-next-actions .cuspro-btn-secondary {
     width: 100%;
     justify-content: center;
     font-size: 0.85rem;
     padding: 0.5rem 1rem;
   }
-
+  
   .cuspro-tab {
     padding: 0.4rem 0.75rem;
     font-size: 0.75rem;
   }
-
+  
   .cuspro-tab-nav {
     gap: 0.15rem;
   }
-
+  
   .cuspro-overview-card {
     padding: 1rem;
   }
-
+  
   .cuspro-overview-card h4 {
     font-size: 0.85rem;
   }
-
+  
   .cuspro-timeline-mini-item p {
     font-size: 0.8rem;
   }
-
+  
   .cuspro-timeline-mini-item small {
     font-size: 0.65rem;
   }
-
+  
   .cuspro-payment-mini-item span {
     font-size: 0.8rem;
   }
-
+  
   .cuspro-payment-mini-item strong {
     font-size: 0.85rem;
   }
-
+  
   .cuspro-payment-full-item {
     padding: 0.875rem;
   }
-
+  
   .cuspro-payment-full-header h4 {
     font-size: 0.85rem;
   }
-
+  
   .cuspro-payment-full-header p {
     font-size: 0.75rem;
   }
-
+  
   .cuspro-payment-full-amount strong {
     font-size: 1rem;
   }
-
+  
   .cuspro-payment-full-amount span {
     font-size: 0.7rem;
   }
-
+  
   .cuspro-payment-full-status {
     font-size: 0.6rem;
     padding: 0.2rem 0.5rem;
   }
-
+  
   .cuspro-btn-pay {
     font-size: 0.75rem;
     padding: 0.35rem 1rem;
     width: 100%;
     justify-content: center;
   }
-
+  
   .cuspro-timeline-full {
     padding: 1rem;
   }
-
+  
   .cuspro-timeline-full-item {
     gap: 0.75rem;
     padding: 0.5rem 0;
   }
-
+  
   .cuspro-timeline-marker {
     width: 30px;
     height: 30px;
     font-size: 0.7rem;
   }
-
+  
   .cuspro-timeline-info h4 {
     font-size: 0.8rem;
   }
-
+  
   .cuspro-timeline-date {
     font-size: 0.7rem;
   }
-
+  
   .cuspro-photo-modal-content {
     max-width: 100vw;
     max-height: 100vh;
     border-radius: 0;
   }
-
+  
   .cuspro-photo-modal-main {
     max-height: 75vh;
   }
-
+  
   .cuspro-photo-modal-main img {
     max-height: 75vh;
   }
-
+  
   .cuspro-photo-modal-close {
     width: 32px;
     height: 32px;
@@ -1770,96 +1884,91 @@ body {
     top: 0.5rem;
     right: 0.5rem;
   }
-
+  
   .cuspro-photo-nav {
     width: 32px;
     height: 32px;
     font-size: 0.8rem;
   }
-
+  
   .cuspro-photo-nav.prev {
     left: 0.25rem;
   }
-
+  
   .cuspro-photo-nav.next {
     right: 0.25rem;
   }
-
+  
   .cuspro-photo-modal-footer {
     flex-direction: column;
     align-items: stretch;
     gap: 0.5rem;
     padding: 0.5rem;
   }
-
+  
   .cuspro-photo-download {
     justify-content: center;
     font-size: 0.8rem;
     padding: 0.35rem 0.75rem;
   }
-
+  
   .cuspro-engineer {
     gap: 0.4rem;
   }
-
+  
   .cuspro-engineer-avatar {
     width: 36px;
     height: 36px;
     font-size: 0.85rem;
   }
-
+  
   .cuspro-engineer strong {
     font-size: 0.85rem;
   }
-
+  
   .cuspro-engineer p {
     font-size: 0.75rem;
   }
-
+  
   .cuspro-engineer-placeholder {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
   }
-
+  
   .cuspro-engineer-placeholder svg {
     font-size: 2rem;
   }
-
+  
   .cuspro-engineer-placeholder strong {
     font-size: 0.85rem;
   }
-
+  
   .cuspro-engineer-placeholder p {
     font-size: 0.75rem;
   }
-
+  
   .cuspro-address p {
     font-size: 0.8rem;
   }
-
-  .cuspro-btn-primary {
-    font-size: 0.85rem;
-    padding: 0.5rem 1rem;
-  }
-
+  
   .cuspro-empty-page .cuspro-empty-state-card {
     padding: 1rem;
   }
-
+  
   .cuspro-empty-page h2 {
     font-size: 1.1rem;
   }
-
+  
   .cuspro-empty-page p {
     font-size: 0.85rem;
   }
-
+  
   .cuspro-empty-page .cuspro-btn-primary {
     width: 100%;
     justify-content: center;
   }
-
+  
   .cuspro-empty-page .cuspro-empty-icon {
     font-size: 3rem;
   }
@@ -1870,64 +1979,64 @@ body {
   .cuspro-page {
     padding-inline: 8px;
   }
-
+  
   .cuspro-hero-card {
     padding: 0.5rem 0.625rem;
   }
-
+  
   .cuspro-hero-main h2 {
     font-size: 0.9rem;
   }
-
+  
   .cuspro-project-ref {
     font-size: 0.7rem;
   }
-
+  
   .cuspro-status-badge {
     font-size: 0.55rem;
     padding: 0.15rem 0.5rem;
   }
-
+  
   .cuspro-hero-tags span {
     font-size: 0.65rem;
     padding: 0.15rem 0.4rem;
   }
-
+  
   .cuspro-photos-grid {
     grid-template-columns: 1fr 1fr;
     gap: 0.3rem;
   }
-
+  
   .cuspro-progress-ring {
     width: 80px;
     height: 80px;
   }
-
+  
   .cuspro-tab {
     font-size: 0.65rem;
     padding: 0.3rem 0.5rem;
   }
-
+  
   .cuspro-payment-full-item {
     padding: 0.625rem;
   }
-
+  
   .cuspro-payment-full-header h4 {
     font-size: 0.75rem;
   }
-
+  
   .cuspro-payment-full-amount strong {
     font-size: 0.9rem;
   }
-
+  
   .cuspro-detail-item strong {
     font-size: 0.75rem;
   }
-
+  
   .cuspro-next-content h4 {
     font-size: 0.8rem;
   }
-
+  
   .cuspro-next-content p {
     font-size: 0.75rem;
   }

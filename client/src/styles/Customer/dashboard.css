@@ -1,17 +1,18 @@
-/* styles/Customer/dashboard.css - Dark Solar Theme (FIXED HEIGHT CARDS) */
+/* styles/Customer/dashboard.css - Light Solar Theme (FIXED HEIGHT CARDS + PREMIUM GLASS CARDS) */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE LAYOUT
+   BASE LAYOUT - SOLAR GRADIENT BACKGROUND
    ============================================ */
 .dashboard-container-cusdash {
   padding-inline: 24px;
   margin: 0 auto;
-  background: #0B111A;
+  /* 🌅 Soft Solar Gradient Background (Warm Sunlight + Clean Green + Soft Sky Blue) */
+  background: #F3F5F1;
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
@@ -22,7 +23,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
@@ -36,14 +37,14 @@
 .page-title-cusdash {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
   letter-spacing: -0.3px;
 }
 
 .welcome-greeting-cusdash {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0;
 }
 
@@ -86,9 +87,9 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1.25rem;
-  background: transparent;
-  color: #FFFFFF;
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  background: #FFFFFF;
+  color: #17212B;
+  border: 1px solid #E5E7EB;
   border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 600;
@@ -100,25 +101,29 @@
 }
 
 .btn-secondary-cusdash:hover {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.6);
+  background: #F6F8F5;
+  border-color: #D1D5DB;
   transform: translateY(-2px);
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   PENDING PAYMENTS ALERT
+   PENDING PAYMENTS ALERT - Premium Glass Card
    ============================================ */
 .pending-payments-alert-cusdash {
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .alert-icon-cusdash {
@@ -134,13 +139,13 @@
 .alert-content-cusdash strong {
   display: block;
   font-size: 0.95rem;
-  color: #FFFFFF;
+  color: #17212B;
   margin-bottom: 0.1rem;
 }
 
 .alert-content-cusdash p {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0;
 }
 
@@ -168,7 +173,7 @@
 }
 
 /* ============================================
-   QUICK ACTIONS
+   QUICK ACTIONS - Premium Glass Cards
    ============================================ */
 .quick-actions-cusdash {
   margin-bottom: 1.5rem;
@@ -177,7 +182,7 @@
 .quick-actions-title-cusdash {
   font-size: 0.85rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 0.75rem 0;
@@ -194,18 +199,21 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   text-decoration: none;
   transition: all 200ms ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .quick-action-item-cusdash:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  border-color: rgba(243, 156, 18, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .quick-action-icon-cusdash {
@@ -217,7 +225,7 @@
   justify-content: center;
   font-size: 1.1rem;
   flex-shrink: 0;
-  background: #131C28;
+  background: #F6F8F5;
   color: #F39C12;
 }
 
@@ -225,11 +233,11 @@
   flex: 1;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .quick-action-arrow-cusdash {
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-size: 0.75rem;
   transition: transform 200ms ease;
 }
@@ -240,7 +248,7 @@
 }
 
 /* ============================================
-   PROJECT SELECTOR
+   PROJECT SELECTOR - Premium Glass Card
    ============================================ */
 .project-selector-container-cusdash {
   margin-bottom: 1.5rem;
@@ -253,7 +261,7 @@
 .selector-label-cusdash {
   font-size: 0.85rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   letter-spacing: 0.3px;
 }
 
@@ -267,20 +275,24 @@
 .project-select-cusdash {
   width: 100%;
   padding: 0.6rem 2.5rem 0.6rem 1rem;
-  background: #1A2533;
-  border: 1.5px solid rgba(255, 255, 255, 0.06);
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 10px;
   font-size: 0.9rem;
-  color: #FFFFFF;
+  color: #17212B;
   appearance: none;
   cursor: pointer;
   transition: all 200ms ease;
   font-weight: 500;
   font-family: 'Poppins', sans-serif;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .project-select-cusdash:hover {
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .project-select-cusdash:focus {
@@ -290,8 +302,8 @@
 }
 
 .project-select-cusdash option {
-  background: #1A2533;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #17212B;
 }
 
 .select-icon-cusdash {
@@ -299,12 +311,12 @@
   right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   pointer-events: none;
 }
 
 /* ============================================
-   STATS GRID
+   STATS GRID - Premium Glass Cards
    ============================================ */
 .stats-grid-cusdash {
   display: grid;
@@ -314,18 +326,21 @@
 }
 
 .stat-card-cusdash {
-  background: #1A2533;
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.25rem 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
   transition: all 200ms ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .stat-card-cusdash:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .stat-content-cusdash {
@@ -337,7 +352,7 @@
 .stat-label-cusdash {
   font-size: 0.8rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -345,13 +360,13 @@
 .stat-value-cusdash {
   font-size: 2rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   line-height: 1.2;
 }
 
 .stat-trend-cusdash {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 /* ============================================
@@ -383,7 +398,7 @@
 .section-title-cusdash {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
@@ -412,14 +427,17 @@
 }
 
 /* ============================================
-   PROJECT CARD
+   PROJECT CARD - Premium Glass Card
    ============================================ */
 .project-card-enhanced-cusdash {
-  background: #1A2533;
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
   height: 100%;
   display: flex;
@@ -427,8 +445,8 @@
 }
 
 .project-card-enhanced-cusdash:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  border-color: rgba(243, 156, 18, 0.12);
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .project-header-cusdash {
@@ -447,7 +465,7 @@
 .project-name-cusdash {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 0.25rem 0;
   white-space: nowrap;
   overflow: hidden;
@@ -456,12 +474,12 @@
 
 .project-system-cusdash {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0;
 }
 
 /* ============================================
-   STATUS BADGES
+   STATUS BADGES - LIGHT THEME
    ============================================ */
 .status-badge-cusdash {
   display: inline-block;
@@ -473,9 +491,9 @@
   letter-spacing: 0.3px;
   white-space: nowrap;
   flex-shrink: 0;
-  background: #131C28;
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #F1F2F4;
+  color: #667085;
+  border: 1px solid #E5E7EB;
 }
 
 .status-badge-cusdash.pending,
@@ -483,41 +501,41 @@
 .status-badge-cusdash.verifying,
 .status-badge-cusdash.processing,
 .status-badge-cusdash.in-progress {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
-  border: 1px solid rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border: 1px solid rgba(243, 156, 18, 0.20);
 }
 
 .status-badge-cusdash.approved,
 .status-badge-cusdash.paid,
 .status-badge-cusdash.completed {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .status-badge-cusdash.scheduled {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .status-badge-cusdash.cancelled {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 .status-badge-cusdash.overdue {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 .status-badge-cusdash.partial {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 /* ============================================
@@ -531,7 +549,7 @@
 }
 
 /* ============================================
-   PROGRESS RING
+   PROGRESS RING - LIGHT THEME
    ============================================ */
 .progress-ring-wrapper-cusdash {
   position: relative;
@@ -547,7 +565,7 @@
 }
 
 .progress-ring-bg-cusdash {
-  stroke: #131C28;
+  stroke: #E5E7EB;
 }
 
 .progress-ring-fill-cusdash {
@@ -567,14 +585,14 @@
   display: block;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   line-height: 1.2;
 }
 
 .progress-ring-label-cusdash {
   display: block;
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -594,7 +612,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.25rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .project-metric-cusdash:last-of-type {
@@ -603,13 +621,13 @@
 
 .metric-label-cusdash {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .metric-value-cusdash {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .project-actions-cusdash {
@@ -641,18 +659,18 @@
 }
 
 /* ============================================
-   MILESTONES
+   MILESTONES - LIGHT THEME
    ============================================ */
 .milestones-section-cusdash {
   margin-top: 1.25rem;
   padding-top: 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
 }
 
 .milestones-title-cusdash {
   font-size: 0.85rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0 0 0.75rem 0;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -677,7 +695,7 @@
 
 .milestone-item-cusdash .milestone-icon-cusdash {
   font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #D1D5DB;
   transition: all 200ms ease;
 }
 
@@ -698,24 +716,24 @@
 
 .milestone-label-cusdash {
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   text-align: center;
   transition: color 200ms ease;
 }
 
 .milestone-item-cusdash.completed-cusdash .milestone-label-cusdash {
-  color: #10B981 !important;
+  color: #059669 !important;
   font-weight: 500;
 }
 
 .milestone-item-cusdash.active-cusdash .milestone-label-cusdash {
-  color: #F39C12 !important;
+  color: #D97706 !important;
   font-weight: 600;
 }
 
 .milestone-status-cusdash {
   font-size: 0.6rem;
-  color: #F39C12;
+  color: #D97706;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -727,7 +745,7 @@
   left: calc(50% + 1.2rem);
   width: calc(100% - 2.4rem);
   height: 2px;
-  background: rgba(255, 255, 255, 0.06);
+  background: #E5E7EB;
   pointer-events: none;
   transition: background 200ms ease;
 }
@@ -747,11 +765,14 @@
 }
 
 .activities-card-cusdash {
-  background: #1A2533;
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.25rem 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   min-height: 280px;
   display: flex;
   flex-direction: column;
@@ -776,7 +797,7 @@
 }
 
 .activity-item-cusdash:hover {
-  background: #131C28;
+  background: #F6F8F5;
 }
 
 .activity-icon-wrapper-cusdash {
@@ -788,7 +809,7 @@
   justify-content: center;
   font-size: 1rem;
   flex-shrink: 0;
-  background: #131C28;
+  background: #F6F8F5;
   color: #F39C12;
 }
 
@@ -807,18 +828,18 @@
 .activity-title-cusdash {
   font-size: 0.85rem;
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .activity-reference-cusdash {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-weight: 400;
 }
 
 .activity-date-cusdash {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   display: block;
   margin-top: 0.1rem;
 }
@@ -829,24 +850,29 @@
 
 .activity-divider-cusdash {
   height: 1px;
-  background: rgba(255, 255, 255, 0.06);
+  background: #EEF0ED;
   margin: 0.25rem 0.75rem;
 }
 
 /* ============================================
-   EMPTY STATES
+   EMPTY STATES - Premium Glass Card
    ============================================ */
 .empty-state-cusdash {
-  background: #1A2533;
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 2.5rem 2rem;
   text-align: center;
-  border: 2px dashed rgba(255, 255, 255, 0.06);
+  border: 2px dashed #E5E7EB;
   min-height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .empty-state-content-cusdash {
@@ -858,19 +884,19 @@
 
 .empty-state-icon-cusdash {
   font-size: 3rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #D1D5DB;
 }
 
 .empty-state-title-cusdash {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
 .empty-state-description-cusdash {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0;
 }
 
@@ -887,7 +913,7 @@
 
 .empty-text-cusdash {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0;
 }
 
@@ -908,20 +934,23 @@
 }
 
 /* ============================================
-   APPOINTMENTS SECTION
+   APPOINTMENTS SECTION - Premium Glass Card
    ============================================ */
 .appointments-section-cusdash {
-  background: #1A2533;
+  /* 💎 Premium Glass Card */
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   padding: 1.25rem 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .appointments-title-cusdash {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 0.75rem 0;
   display: flex;
   align-items: center;
@@ -944,7 +973,7 @@
   gap: 1rem;
   padding: 0.75rem;
   border-radius: 10px;
-  background: #131C28;
+  background: #F6F8F5;
   transition: all 200ms ease;
 }
 
@@ -957,22 +986,23 @@
   flex-direction: column;
   align-items: center;
   padding: 0.25rem 0.5rem;
-  background: #1A2533;
+  background: #FFFFFF;
   border-radius: 6px;
   min-width: 48px;
+  border: 1px solid #E5E7EB;
 }
 
 .appointment-day-cusdash {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   line-height: 1.2;
 }
 
 .appointment-month-cusdash {
   font-size: 0.65rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   text-transform: uppercase;
 }
 
@@ -985,7 +1015,7 @@
   display: block;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .appointment-address-cusdash {
@@ -993,7 +1023,7 @@
   align-items: center;
   gap: 0.3rem;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #667085;
   margin-top: 0.1rem;
 }
 
@@ -1006,12 +1036,12 @@
 }
 
 /* ============================================
-   SKELETON LOADING
+   SKELETON LOADING - LIGHT THEME
    ============================================ */
 .skeleton-line-cusdash {
   border-radius: 6px;
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255,255,255,0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #F1F2F4 25%, #E5E7EB 50%, #F1F2F4 75%);
   background-size: 200% 100%;
 }
 
@@ -1041,9 +1071,9 @@
 }
 
 .skeleton-card-cusdash {
-  background: #1A2533;
+  background: #FFFFFF;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid #E5E7EB;
   padding: 1.25rem;
 }
 
@@ -1080,7 +1110,7 @@
   height: 120px;
   border-radius: 50%;
   margin: 0 auto;
-  background: #131C28;
+  background: #E5E7EB;
 }
 
 .skeleton-activity-title-cusdash {
@@ -1738,7 +1768,7 @@
   }
   .skeleton-line-cusdash {
     animation: none !important;
-    background: #131C28 !important;
+    background: #F1F2F4 !important;
   }
   .btn-primary-cusdash:hover,
   .btn-secondary-cusdash:hover,

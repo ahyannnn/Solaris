@@ -1,5 +1,5 @@
 /* ============================================
-   ENGINEER DASHBOARD - DARK SOLAR THEME
+   ENGINEER DASHBOARD - LIGHT SOLAR THEME
    ============================================ */
 
 .engdas-dashboard {
@@ -7,21 +7,21 @@
   padding-top: 20px;
   padding-bottom: 40px;
   margin: 0 auto;
-  background: #0B111A;
+  background: #F3F5F1;
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   WELCOME SECTION
+   WELCOME SECTION - LIGHT
    ============================================ */
 .engdas-welcome-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 0 20px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
   margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 16px;
@@ -41,20 +41,20 @@
 
 .engdas-welcome-icon {
   font-size: 28px;
-  color: #F39C12;
+  color: #D97706;
 }
 
 .engdas-welcome-greeting {
   font-size: 28px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
   letter-spacing: -0.5px;
 }
 
 .engdas-welcome-subtitle {
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #98A2B3;
   margin: 0;
   font-weight: 400;
 }
@@ -66,7 +66,7 @@
 }
 
 /* ============================================
-   BUTTONS
+   BUTTONS - LIGHT
    ============================================ */
 .btn-primary-engdas {
   display: inline-flex;
@@ -98,9 +98,9 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: transparent;
-  color: #FFFFFF;
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.5);
+  color: #17212B;
+  border: 1.5px solid #EEF0ED;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
@@ -112,29 +112,32 @@
 }
 
 .btn-secondary-engdas:hover {
-  background: #131C28;
-  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #D1D5DB;
   transform: translateY(-2px);
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 /* ============================================
-   TODAY ALERT
+   TODAY ALERT - LIGHT GLASS
    ============================================ */
 .engdas-today-alert {
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   margin-bottom: 24px;
   flex-wrap: wrap;
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .alert-icon-engdas {
-  color: #F39C12;
+  color: #D97706;
   font-size: 1.5rem;
   flex-shrink: 0;
 }
@@ -146,13 +149,13 @@
 .alert-content-engdas strong {
   display: block;
   font-size: 0.95rem;
-  color: #FFFFFF;
+  color: #17212B;
   margin-bottom: 0.1rem;
 }
 
 .alert-content-engdas p {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0;
 }
 
@@ -180,7 +183,7 @@
 }
 
 /* ============================================
-   QUICK ACTIONS
+   QUICK ACTIONS - LIGHT
    ============================================ */
 .engdas-quick-actions {
   margin-bottom: 24px;
@@ -189,7 +192,7 @@
 .quick-actions-title-engdas {
   font-size: 0.85rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 12px 0;
@@ -206,17 +209,19 @@
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  background: #1A2533;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 14px;
   text-decoration: none;
   transition: all 200ms ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .quick-action-item-engdas:hover {
   transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
   border-color: rgba(243, 156, 18, 0.12);
 }
 
@@ -235,22 +240,22 @@
   flex: 1;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .quick-action-arrow-engdas {
-  color: rgba(255, 255, 255, 0.3);
+  color: #D1D5DB;
   font-size: 0.75rem;
   transition: transform 200ms ease;
 }
 
 .quick-action-item-engdas:hover .quick-action-arrow-engdas {
   transform: translateX(4px);
-  color: #F39C12;
+  color: #D97706;
 }
 
 /* ============================================
-   STATS GRID
+   STATS GRID - LIGHT GLASS
    ============================================ */
 .engdas-stats-grid {
   display: grid;
@@ -260,18 +265,20 @@
 }
 
 .stat-card-engdas {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
   padding: 20px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   transition: all 200ms ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .stat-card-engdas:hover {
   transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  border-color: rgba(243, 156, 18, 0.12);
 }
 
 .stat-content-engdas {
@@ -283,7 +290,7 @@
 .stat-label-engdas {
   font-size: 0.8rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -291,13 +298,13 @@
 .stat-value-engdas {
   font-size: 2rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   line-height: 1.2;
 }
 
 .stat-trend-engdas {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 /* ============================================
@@ -311,7 +318,7 @@
 }
 
 /* ============================================
-   ASSESSMENT SECTION
+   ASSESSMENT SECTION - LIGHT GLASS
    ============================================ */
 .engdas-assessment-section {
   display: flex;
@@ -330,7 +337,7 @@
 .section-title-engdas {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0;
 }
 
@@ -339,7 +346,7 @@
   align-items: center;
   gap: 4px;
   font-size: 0.85rem;
-  color: #F39C12;
+  color: #D97706;
   text-decoration: none;
   font-weight: 500;
   transition: all 200ms ease;
@@ -359,15 +366,17 @@
 }
 
 .assessment-card-engdas {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
   padding: 20px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 220px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .assessment-header-engdas {
@@ -386,13 +395,13 @@
 .assessment-name-engdas {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #17212B;
   margin: 0 0 4px 0;
 }
 
 .assessment-reference-engdas {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #98A2B3;
   margin: 0;
 }
 
@@ -414,7 +423,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 6px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #EEF0ED;
 }
 
 .assessment-metric-engdas:last-child {
@@ -426,18 +435,18 @@
   align-items: center;
   gap: 6px;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
 }
 
 .metric-value-engdas {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
   text-align: right;
 }
 
 /* ============================================
-   ACTIVITIES SECTION - FIXED HEIGHT
+   ACTIVITIES SECTION - LIGHT GLASS
    ============================================ */
 .engdas-activities-section {
   display: flex;
@@ -447,15 +456,17 @@
 }
 
 .activities-card-engdas {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
   padding: 16px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 220px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .activities-list-engdas {
@@ -476,7 +487,7 @@
 }
 
 .activity-item-engdas:hover {
-  background: #131C28;
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .activity-icon-wrapper-engdas {
@@ -505,18 +516,18 @@
 .activity-title-engdas {
   font-size: 0.85rem;
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .activity-reference-engdas {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   font-weight: 400;
 }
 
 .activity-date-engdas {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   display: block;
   margin-top: 2px;
 }
@@ -527,12 +538,12 @@
 
 .activity-divider-engdas {
   height: 1px;
-  background: rgba(255, 255, 255, 0.06);
+  background: #EEF0ED;
   margin: 2px 8px;
 }
 
 /* ============================================
-   STATUS BADGES
+   STATUS BADGES - LIGHT THEME
    ============================================ */
 .status-badge-engdas {
   display: inline-block;
@@ -546,79 +557,81 @@
 }
 
 .status-badge-engdas.scheduled-engdas {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .status-badge-engdas.confirmed-engdas {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .status-badge-engdas.pending-engdas {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
-  border: 1px solid rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border: 1px solid rgba(243, 156, 18, 0.20);
 }
 
 .status-badge-engdas.in-progress-engdas {
-  background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
-  border: 1px solid rgba(243, 156, 18, 0.2);
+  background: rgba(243, 156, 18, 0.10);
+  color: #D97706;
+  border: 1px solid rgba(243, 156, 18, 0.20);
 }
 
 .status-badge-engdas.deployed-engdas {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563EB;
+  border: 1px solid rgba(59, 130, 246, 0.20);
 }
 
 .status-badge-engdas.collecting-engdas {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .status-badge-engdas.analyzing-engdas {
-  background: rgba(139, 92, 246, 0.12);
-  color: #8B5CF6;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.10);
+  color: #7C3AED;
+  border: 1px solid rgba(139, 92, 246, 0.20);
 }
 
 .status-badge-engdas.completed-engdas {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 .status-badge-engdas.cancelled-engdas {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.10);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
 
 .status-badge-engdas.approved-engdas {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10B981;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.10);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.20);
 }
 
 /* ============================================
-   EMPTY STATES
+   EMPTY STATES - LIGHT
    ============================================ */
 .empty-state-engdas {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
   padding: 24px 20px;
   text-align: center;
-  border: 2px dashed rgba(255, 255, 255, 0.06);
+  border: 2px dashed #EEF0ED;
   min-height: 220px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 1;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .empty-state-content-engdas {
@@ -631,13 +644,13 @@
 .empty-state-title-engdas {
   font-size: 1rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #667085;
   margin: 0;
 }
 
 .empty-state-description-engdas {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   margin: 0;
 }
 
@@ -654,23 +667,23 @@
 
 .empty-text-engdas {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
   margin: 0;
 }
 
 /* ============================================
-   TODAY'S SCHEDULES
+   TODAY'S SCHEDULES - LIGHT
    ============================================ */
 .today-schedules-section-engdas {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #EEF0ED;
 }
 
 .schedules-title-engdas {
   font-size: 0.85rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #98A2B3;
   margin: 0 0 12px 0;
   display: flex;
   align-items: center;
@@ -678,7 +691,7 @@
 }
 
 .schedules-icon-engdas {
-  color: #F39C12;
+  color: #D97706;
 }
 
 .schedules-list-engdas {
@@ -692,7 +705,7 @@
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
-  background: #131C28;
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 10px;
   transition: all 200ms ease;
 }
@@ -706,7 +719,7 @@
   flex-direction: column;
   align-items: center;
   padding: 4px 8px;
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 6px;
   min-width: 48px;
 }
@@ -714,7 +727,7 @@
 .schedule-hour-engdas {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #17212B;
   line-height: 1.2;
 }
 
@@ -729,7 +742,7 @@
 .schedule-title-engdas {
   font-size: 0.85rem;
   font-weight: 500;
-  color: #FFFFFF;
+  color: #17212B;
 }
 
 .schedule-client-engdas {
@@ -737,7 +750,7 @@
   align-items: center;
   gap: 4px;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: #98A2B3;
 }
 
 .schedule-user-icon-engdas {
@@ -749,12 +762,12 @@
 }
 
 /* ============================================
-   SKELETON LOADING
+   SKELETON LOADING - LIGHT
    ============================================ */
 .skeleton-line-engdas {
   border-radius: 6px;
   animation: shimmer-engdas 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #131C28 25%, rgba(255,255,255,0.04) 50%, #131C28 75%);
+  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
   background-size: 200% 100%;
 }
 
@@ -774,9 +787,9 @@
 }
 
 .skeleton-card-engdas {
-  background: #1A2533;
+  background: rgba(255, 255, 255, 0.86);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   padding: 20px;
 }
 
@@ -821,7 +834,7 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - UNCHANGED STRUCTURE
    ============================================ */
 
 @media (max-width: 1200px) {
@@ -1151,7 +1164,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES
+   REDUCED MOTION PREFERENCES - LIGHT
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -1167,7 +1180,7 @@
   }
   .skeleton-line-engdas {
     animation: none !important;
-    background: #131C28 !important;
+    background: #EEF0ED !important;
   }
   .btn-primary-engdas:hover,
   .btn-secondary-engdas:hover,

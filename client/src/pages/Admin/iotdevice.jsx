@@ -34,7 +34,7 @@ const IoTDevice = () => {
   const [showDeviceModal, setShowDeviceModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [modalMode, setModalMode] = useState('view');
-  
+
   // --- Tabs ---
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -200,10 +200,10 @@ const IoTDevice = () => {
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
-      
+
       // Check if status is being changed
       const statusChanged = formData.status !== selectedDevice.status;
-      
+
       const payload = {
         deviceName: formData.deviceName,
         model: formData.model,
@@ -211,7 +211,7 @@ const IoTDevice = () => {
         serialNumber: formData.serialNumber,
         firmwareVersion: formData.firmwareVersion
       };
-      
+
       // Only include status if it's changed and allowed
       if (statusChanged) {
         // Don't allow changing status of deployed/assigned devices
@@ -222,7 +222,7 @@ const IoTDevice = () => {
         }
         payload.status = formData.status;
       }
-      
+
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/admin/devices/${selectedDevice._id}`,
         payload,
@@ -343,21 +343,21 @@ const IoTDevice = () => {
 
     // Allow edit for available, maintenance, and retrieved devices
     if (['available', 'maintenance', 'retrieved'].includes(device.status)) {
-      actions.push({ 
-        label: 'Edit', 
-        icon: <FaEdit />, 
-        action: () => openEditModal(device), 
-        color: 'warning' 
+      actions.push({
+        label: 'Edit',
+        icon: <FaEdit />,
+        action: () => openEditModal(device),
+        color: 'warning'
       });
     }
 
     // Allow delete only for available, maintenance, and retrieved devices
     if (['available', 'maintenance', 'retrieved'].includes(device.status)) {
-      actions.push({ 
-        label: 'Delete', 
-        icon: <FaTrash />, 
-        action: () => openDeleteModal(device), 
-        color: 'danger' 
+      actions.push({
+        label: 'Delete',
+        icon: <FaTrash />,
+        action: () => openDeleteModal(device),
+        color: 'danger'
       });
     }
 
@@ -383,11 +383,11 @@ const IoTDevice = () => {
     const maxVisible = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
     let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-    
+
     if (endPage - startPage + 1 < maxVisible) {
       startPage = Math.max(1, endPage - maxVisible + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
@@ -450,24 +450,11 @@ const IoTDevice = () => {
           onClose={hideToast}
           position="bottom-left"
         />
-        
-        {/* --- Minimalist Header with Refresh --- */}
-        <div className="iot-header-iotdevice">
-          <div className="iot-header-left">
-            {/* Empty or can add title here if needed */}
-          </div>
-          <div className="iot-header-right">
-            <button 
-              className="iot-refresh-btn-iotdevice" 
-              onClick={() => { fetchDevices(); fetchStats(); }}
-              title="Refresh data"
-            >
-              <FaSyncAlt className={loading ? 'spinning' : ''} />
-            </button>
-          </div>
-        </div>
+
+
 
         {/* --- CHART: 4 Separate Bars with Glass Gradients --- */}
+        {/* --- CHART: 4 Separate Bars with Glass Gradients - LIGHT THEME --- */}
         <div className="iot-chart-area-iotdevice">
           <div className="iot-chart-header-iotdevice">
             <h3>Device Status Distribution</h3>
@@ -477,44 +464,44 @@ const IoTDevice = () => {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
-                  {/* Gradients for Glass Effect */}
+                  {/* Gradients for Glass Effect - Light Theme */}
                   <linearGradient id="colorAvailable" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.2}/>
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.2} />
                   </linearGradient>
                   <linearGradient id="colorAssigned" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0.2}/>
+                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0.2} />
                   </linearGradient>
                   <linearGradient id="colorDeployed" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.2}/>
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.2} />
                   </linearGradient>
                   <linearGradient id="colorMaintenance" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.2}/>
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.2} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="rgba(255,255,255,0.06)" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} 
+                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#EEF0ED" />
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
                   dy={10}
                 />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} 
-                  width={30} 
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                  width={40}
                   allowDecimals={false}
                 />
-                <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(255,255,255,0.05)'}} />
-                
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+
                 {/* 4 Magkakahiwalay na Bar na may iba't ibang kulay */}
                 <Bar dataKey="count" fill="url(#colorAvailable)" radius={[4, 4, 0, 0]} barSize={35} />
-                
+
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -563,15 +550,15 @@ const IoTDevice = () => {
         <div className="iot-toolbar-iotdevice">
           <div className="iot-search-group-iotdevice">
             <FaSearch className="iot-search-icon-iotdevice" />
-            <input 
-              type="text" 
-              placeholder="Search by ID, name, model, or serial..." 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
+            <input
+              type="text"
+              placeholder="Search by ID, name, model, or serial..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="iot-search-input-iotdevice"
             />
             {searchTerm && (
-              <button 
+              <button
                 className="iot-clear-search-iotdevice"
                 onClick={clearSearch}
                 type="button"
@@ -704,14 +691,14 @@ const IoTDevice = () => {
               Showing {startItem} to {endItem} of {totalItems} entries
             </div>
             <div className="iot-pagination-controls-iotdevice">
-              <button 
-                className="iot-page-btn-iotdevice" 
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} 
+              <button
+                className="iot-page-btn-iotdevice"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
               >
                 <FaChevronLeft /> Previous
               </button>
-              
+
               {getPageNumbers().map(page => (
                 <button
                   key={page}
@@ -721,10 +708,10 @@ const IoTDevice = () => {
                   {page}
                 </button>
               ))}
-              
-              <button 
-                className="iot-page-btn-iotdevice" 
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} 
+
+              <button
+                className="iot-page-btn-iotdevice"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
               >
                 Next <FaChevronRight />
@@ -743,15 +730,15 @@ const IoTDevice = () => {
                   {modalMode === 'edit' && 'Edit Device'}
                   {modalMode === 'view' && 'Device Details'}
                 </h3>
-                <button 
-                  className="iot-modal-close-btn-iotdevice" 
+                <button
+                  className="iot-modal-close-btn-iotdevice"
                   onClick={() => setShowDeviceModal(false)}
                   type="button"
                 >
                   <FaTimes />
                 </button>
               </div>
-              
+
               <div className="iot-modal-body-iotdevice">
                 {modalMode === 'view' && selectedDevice ? (
                   <div className="iot-device-details-view-iotdevice">
@@ -884,11 +871,11 @@ const IoTDevice = () => {
                   <div className="iot-device-form-iotdevice">
                     <div className="iot-form-group-iotdevice">
                       <label>Device Name *</label>
-                      <input 
-                        type="text" 
-                        value={formData.deviceName} 
-                        onChange={(e) => setFormData({ ...formData, deviceName: e.target.value })} 
-                        placeholder="e.g., IoT Sensor 01" 
+                      <input
+                        type="text"
+                        value={formData.deviceName}
+                        onChange={(e) => setFormData({ ...formData, deviceName: e.target.value })}
+                        placeholder="e.g., IoT Sensor 01"
                         className="iot-form-input-iotdevice"
                         disabled={isSubmitting}
                       />
@@ -896,22 +883,22 @@ const IoTDevice = () => {
                     <div className="iot-form-row-iotdevice">
                       <div className="iot-form-group-iotdevice">
                         <label>Model *</label>
-                        <input 
-                          type="text" 
-                          value={formData.model} 
-                          onChange={(e) => setFormData({ ...formData, model: e.target.value })} 
-                          placeholder="e.g., ESP32-S3" 
+                        <input
+                          type="text"
+                          value={formData.model}
+                          onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                          placeholder="e.g., ESP32-S3"
                           className="iot-form-input-iotdevice"
                           disabled={isSubmitting}
                         />
                       </div>
                       <div className="iot-form-group-iotdevice">
                         <label>Manufacturer</label>
-                        <input 
-                          type="text" 
-                          value={formData.manufacturer} 
-                          onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })} 
-                          placeholder="Salfer Engineering" 
+                        <input
+                          type="text"
+                          value={formData.manufacturer}
+                          onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })}
+                          placeholder="Salfer Engineering"
                           className="iot-form-input-iotdevice"
                           disabled={isSubmitting}
                         />
@@ -920,22 +907,22 @@ const IoTDevice = () => {
                     <div className="iot-form-row-iotdevice">
                       <div className="iot-form-group-iotdevice">
                         <label>Serial Number</label>
-                        <input 
-                          type="text" 
-                          value={formData.serialNumber} 
-                          onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })} 
-                          placeholder="Enter serial number" 
+                        <input
+                          type="text"
+                          value={formData.serialNumber}
+                          onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
+                          placeholder="Enter serial number"
                           className="iot-form-input-iotdevice"
                           disabled={isSubmitting}
                         />
                       </div>
                       <div className="iot-form-group-iotdevice">
                         <label>Firmware Version</label>
-                        <input 
-                          type="text" 
-                          value={formData.firmwareVersion} 
-                          onChange={(e) => setFormData({ ...formData, firmwareVersion: e.target.value })} 
-                          placeholder="1.0.0" 
+                        <input
+                          type="text"
+                          value={formData.firmwareVersion}
+                          onChange={(e) => setFormData({ ...formData, firmwareVersion: e.target.value })}
+                          placeholder="1.0.0"
                           className="iot-form-input-iotdevice"
                           disabled={isSubmitting}
                         />
@@ -968,29 +955,29 @@ const IoTDevice = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="iot-modal-actions-iotdevice">
-                <button 
-                  className="iot-cancel-btn-iotdevice" 
+                <button
+                  className="iot-cancel-btn-iotdevice"
                   onClick={() => setShowDeviceModal(false)}
                   disabled={isSubmitting}
                 >
                   {modalMode === 'view' ? 'Close' : 'Cancel'}
                 </button>
                 {(modalMode === 'create' || modalMode === 'edit') && (
-                  <button 
-                    className="iot-save-btn-iotdevice" 
-                    onClick={modalMode === 'create' ? handleCreateDevice : handleUpdateDevice} 
+                  <button
+                    className="iot-save-btn-iotdevice"
+                    onClick={modalMode === 'create' ? handleCreateDevice : handleUpdateDevice}
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
                       <>
-                        <FaSpinner className="iot-spinning-iotdevice" /> 
+                        <FaSpinner className="iot-spinning-iotdevice" />
                         {modalMode === 'create' ? 'Creating...' : 'Updating...'}
                       </>
                     ) : (
                       <>
-                        <FaCheck /> 
+                        <FaCheck />
                         {modalMode === 'create' ? 'Create Device' : 'Update Device'}
                       </>
                     )}
@@ -1007,8 +994,8 @@ const IoTDevice = () => {
             <div className="iot-modal-content-iotdevice delete-modal-iotdevice" onClick={e => e.stopPropagation()}>
               <div className="iot-modal-header-iotdevice">
                 <h3 className="text-danger">Confirm Delete</h3>
-                <button 
-                  className="iot-modal-close-btn-iotdevice" 
+                <button
+                  className="iot-modal-close-btn-iotdevice"
                   onClick={() => setShowDeleteModal(false)}
                   type="button"
                   disabled={isSubmitting}
@@ -1047,26 +1034,26 @@ const IoTDevice = () => {
                 </div>
               </div>
               <div className="iot-modal-actions-iotdevice">
-                <button 
-                  className="iot-cancel-btn-iotdevice" 
+                <button
+                  className="iot-cancel-btn-iotdevice"
                   onClick={() => setShowDeleteModal(false)}
                   disabled={isSubmitting}
                 >
                   Cancel
                 </button>
-                <button 
-                  className="iot-delete-btn-iotdevice" 
-                  onClick={handleDeleteDevice} 
+                <button
+                  className="iot-delete-btn-iotdevice"
+                  onClick={handleDeleteDevice}
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
                     <>
-                      <FaSpinner className="iot-spinning-iotdevice" /> 
+                      <FaSpinner className="iot-spinning-iotdevice" />
                       Deleting...
                     </>
                   ) : (
                     <>
-                      <FaTrash /> 
+                      <FaTrash />
                       Delete Permanently
                     </>
                   )}

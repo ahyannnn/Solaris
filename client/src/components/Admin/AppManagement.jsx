@@ -1,10 +1,10 @@
 // components/Admin/AppManagement.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  FaPlus, 
-  FaEdit, 
-  FaTrash, 
-  FaSpinner, 
+import {
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaSpinner,
   FaCheckCircle,
   FaFileDownload,
   FaUpload,
@@ -158,7 +158,7 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
       formDataToSend.append('version', formData.version);
       formDataToSend.append('releaseNotes', formData.releaseNotes);
       formDataToSend.append('status', formData.status);
-      
+
       if (selectedFile) {
         formDataToSend.append('apkFile', selectedFile);
       }
@@ -200,7 +200,7 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
             `${import.meta.env.VITE_API_URL}/api/applications`,
             { headers: { Authorization: `Bearer ${verifyToken}` } }
           );
-          
+
           const newApps = verifyResponse.data.apps || [];
           const newCount = newApps.length;
 
@@ -208,7 +208,7 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
             clearInterval(pollInterval);
             setUploadStatus('success');
             setApplications(newApps);
-            
+
             setTimeout(() => {
               handleCloseModal();
               showToast('APK uploaded successfully!', 'success');
@@ -221,7 +221,7 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
               clearInterval(pollInterval);
               setUploadStatus('success');
               setApplications(newApps);
-              
+
               setTimeout(() => {
                 handleCloseModal();
                 showToast('APK updated successfully!', 'success');
@@ -375,8 +375,8 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
           <h4>Android APK Management</h4>
           <p>Upload and manage APK versions for your mobile application</p>
         </div>
-        <button 
-          className="fab-add-app-app-admin" 
+        <button
+          className="fab-add-app-app-admin"
           onClick={() => handleOpenModal()}
           disabled={savingConfig}
         >
@@ -442,13 +442,7 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
                           <div
                             className="action-dropdown-menu-app-admin"
                             ref={dropdownRef}
-                            style={{
-                              position: 'fixed',
-                              top: dropdownPosition.top,
-                              right: dropdownPosition.right,
-                              zIndex: 9999,
-                            }}
-                          >
+                          > 
                             {actions.map((action, idx) => (
                               <button
                                 key={idx}
@@ -485,7 +479,7 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
               <h3>{editingApp ? 'Edit' : 'Upload New'} APK</h3>
               <button className="modal-close-app-admin" onClick={handleCloseModal}>×</button>
             </div>
-            
+
             <div className="modal-body-app-admin">
               <div className="form-group-app-admin">
                 <label>Version *</label>
@@ -529,9 +523,9 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
                     <FaFileDownload />
                     <span>{editingApp.fileName || 'APK file'}</span>
                     {editingApp.apkUrl && (
-                      <a 
-                        href={editingApp.apkUrl} 
-                        target="_blank" 
+                      <a
+                        href={editingApp.apkUrl}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="download-link-app-admin"
                       >
@@ -609,15 +603,15 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
             </div>
 
             <div className="modal-actions-app-admin">
-              <button 
-                className="btn-cancel-app-admin" 
+              <button
+                className="btn-cancel-app-admin"
                 onClick={handleCloseModal}
                 disabled={uploading || uploadStatus === 'uploading' || uploadStatus === 'waiting'}
               >
                 Cancel
               </button>
-              <button 
-                className="btn-confirm-app-admin" 
+              <button
+                className="btn-confirm-app-admin"
                 onClick={handleSubmit}
                 disabled={uploading || uploadStatus !== 'idle'}
               >

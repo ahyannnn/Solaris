@@ -1,6 +1,76 @@
-/* styles/Customer/dashboard.css - Light Solar Theme (FIXED HEIGHT CARDS + PREMIUM GLASS CARDS) */
+/* styles/Customer/dashboard.css - Unified Light/Dark Solar Theme for Customer Dashboard */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ============================================
+   CSS VARIABLES - LIGHT MODE (Default)
+   ============================================ */
+:root {
+  --bg-primary: #F3F5F1;
+  --bg-card: rgba(255, 255, 255, 0.86);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: #F6F8F5;
+  --bg-hover-light: rgba(0, 0, 0, 0.02);
+  --text-primary: #17212B;
+  --text-secondary: #667085;
+  --text-muted: #98A2B3;
+  --text-white: #17212B;
+  --border-color: #EEF0ED;
+  --border-card: rgba(255, 255, 255, 0.9);
+  --border-medium: #E5E7EB;
+  --shadow-card: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  --shadow-card-hover: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  --glass-bg: rgba(255, 255, 255, 0.92);
+  --glass-border: rgba(255, 255, 255, 0.9);
+  --skeleton-bg: #F1F2F4;
+  --skeleton-gradient: linear-gradient(90deg, #F1F2F4 25%, #E5E7EB 50%, #F1F2F4 75%);
+  --input-bg: #FFFFFF;
+  --input-border: #E5E7EB;
+  --badge-bg: #F6F8F5;
+  --badge-border: #E5E7EB;
+  --progress-bg: #E5E7EB;
+  --divider-color: #EEF0ED;
+  --appointment-bg: #F6F8F5;
+  --select-option-bg: #FFFFFF;
+  --select-option-text: #17212B;
+}
+
+/* ============================================
+   CSS VARIABLES - DARK MODE
+   ============================================ */
+body.dark-mode {
+  --bg-primary: #0B111A;
+  --bg-card: #1A2533;
+  --bg-card-hover: #1F2C3D;
+  --bg-surface: #131C28;
+  --bg-elevated: #1A2533;
+  --bg-hover: #131C28;
+  --bg-hover-light: rgba(255, 255, 255, 0.03);
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-white: #FFFFFF;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.08);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --glass-bg: rgba(26, 37, 51, 0.92);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --skeleton-bg: #131C28;
+  --skeleton-gradient: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  --input-bg: #1A2533;
+  --input-border: rgba(255, 255, 255, 0.06);
+  --badge-bg: #131C28;
+  --badge-border: rgba(255, 255, 255, 0.06);
+  --progress-bg: rgba(255, 255, 255, 0.08);
+  --divider-color: rgba(255, 255, 255, 0.06);
+  --appointment-bg: #131C28;
+  --select-option-bg: #1A2533;
+  --select-option-text: #FFFFFF;
+}
 
 /* ============================================
    BASE LAYOUT - SOLAR GRADIENT BACKGROUND
@@ -8,11 +78,11 @@
 .dashboard-container-cusdash {
   padding-inline: 24px;
   margin: 0 auto;
-  /* 🌅 Soft Solar Gradient Background (Warm Sunlight + Clean Green + Soft Sky Blue) */
-  background: #F3F5F1;
+  background: var(--bg-primary);
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ============================================
@@ -23,9 +93,10 @@
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
+  transition: border-color 0.3s ease;
 }
 
 .welcome-content-cusdash {
@@ -37,15 +108,17 @@
 .page-title-cusdash {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.3px;
+  transition: color 0.3s ease;
 }
 
 .welcome-greeting-cusdash {
   font-size: 1rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .welcome-actions-cusdash {
@@ -87,9 +160,9 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1.25rem;
-  background: #FFFFFF;
-  color: #17212B;
-  border: 1px solid #E5E7EB;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
   border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 600;
@@ -101,10 +174,10 @@
 }
 
 .btn-secondary-cusdash:hover {
-  background: #F6F8F5;
-  border-color: #D1D5DB;
+  background: var(--bg-hover);
+  border-color: rgba(243, 156, 18, 0.25);
   transform: translateY(-2px);
-  color: #17212B;
+  color: var(--text-primary);
 }
 
 /* ============================================
@@ -115,15 +188,15 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
 }
 
 .alert-icon-cusdash {
@@ -139,14 +212,16 @@
 .alert-content-cusdash strong {
   display: block;
   font-size: 0.95rem;
-  color: #17212B;
+  color: var(--text-primary);
   margin-bottom: 0.1rem;
+  transition: color 0.3s ease;
 }
 
 .alert-content-cusdash p {
   font-size: 0.85rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .alert-action-cusdash {
@@ -182,10 +257,11 @@
 .quick-actions-title-cusdash {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #667085;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 0.75rem 0;
+  transition: color 0.3s ease;
 }
 
 .action-grid-cusdash {
@@ -199,20 +275,19 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   text-decoration: none;
   transition: all 200ms ease;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 .quick-action-item-cusdash:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.25);
 }
 
@@ -225,21 +300,23 @@
   justify-content: center;
   font-size: 1.1rem;
   flex-shrink: 0;
-  background: #F6F8F5;
+  background: var(--bg-hover);
   color: #F39C12;
+  transition: background 0.3s ease;
 }
 
 .quick-action-label-cusdash {
   flex: 1;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .quick-action-arrow-cusdash {
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 0.75rem;
-  transition: transform 200ms ease;
+  transition: transform 200ms ease, color 0.3s ease;
 }
 
 .quick-action-item-cusdash:hover .quick-action-arrow-cusdash {
@@ -261,8 +338,9 @@
 .selector-label-cusdash {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #667085;
+  color: var(--text-secondary);
   letter-spacing: 0.3px;
+  transition: color 0.3s ease;
 }
 
 .custom-select-cusdash {
@@ -275,18 +353,17 @@
 .project-select-cusdash {
   width: 100%;
   padding: 0.6rem 2.5rem 0.6rem 1rem;
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 10px;
   font-size: 0.9rem;
-  color: #17212B;
+  color: var(--text-primary);
   appearance: none;
   cursor: pointer;
   transition: all 200ms ease;
   font-weight: 500;
   font-family: 'Poppins', sans-serif;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -302,8 +379,8 @@
 }
 
 .project-select-cusdash option {
-  background: #FFFFFF;
-  color: #17212B;
+  background: var(--select-option-bg);
+  color: var(--select-option-text);
 }
 
 .select-icon-cusdash {
@@ -311,8 +388,9 @@
   right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #98A2B3;
+  color: var(--text-muted);
   pointer-events: none;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -326,20 +404,19 @@
 }
 
 .stat-card-cusdash {
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.25rem 1.5rem;
   transition: all 200ms ease;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 .stat-card-cusdash:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.25);
 }
 
@@ -352,21 +429,24 @@
 .stat-label-cusdash {
   font-size: 0.8rem;
   font-weight: 500;
-  color: #98A2B3;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  transition: color 0.3s ease;
 }
 
 .stat-value-cusdash {
   font-size: 2rem;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   line-height: 1.2;
+  transition: color 0.3s ease;
 }
 
 .stat-trend-cusdash {
   font-size: 0.8rem;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -398,8 +478,9 @@
 .section-title-cusdash {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .view-all-link-cusdash {
@@ -430,12 +511,11 @@
    PROJECT CARD - Premium Glass Card
    ============================================ */
 .project-card-enhanced-cusdash {
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.5rem;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
@@ -445,7 +525,7 @@
 }
 
 .project-card-enhanced-cusdash:hover {
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.25);
 }
 
@@ -465,21 +545,23 @@
 .project-name-cusdash {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.3s ease;
 }
 
 .project-system-cusdash {
   font-size: 0.85rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   STATUS BADGES - LIGHT THEME
+   STATUS BADGES - Theme Aware
    ============================================ */
 .status-badge-cusdash {
   display: inline-block;
@@ -491,9 +573,10 @@
   letter-spacing: 0.3px;
   white-space: nowrap;
   flex-shrink: 0;
-  background: #F1F2F4;
-  color: #667085;
-  border: 1px solid #E5E7EB;
+  background: var(--badge-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--badge-border);
+  transition: all 0.3s ease;
 }
 
 .status-badge-cusdash.pending,
@@ -549,7 +632,7 @@
 }
 
 /* ============================================
-   PROGRESS RING - LIGHT THEME
+   PROGRESS RING - Theme Aware
    ============================================ */
 .progress-ring-wrapper-cusdash {
   position: relative;
@@ -565,7 +648,8 @@
 }
 
 .progress-ring-bg-cusdash {
-  stroke: #E5E7EB;
+  stroke: var(--progress-bg);
+  transition: stroke 0.3s ease;
 }
 
 .progress-ring-fill-cusdash {
@@ -585,16 +669,18 @@
   display: block;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   line-height: 1.2;
+  transition: color 0.3s ease;
 }
 
 .progress-ring-label-cusdash {
   display: block;
   font-size: 0.7rem;
-  color: #98A2B3;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -612,7 +698,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.25rem 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--divider-color);
+  transition: border-color 0.3s ease;
 }
 
 .project-metric-cusdash:last-of-type {
@@ -621,13 +708,15 @@
 
 .metric-label-cusdash {
   font-size: 0.85rem;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .metric-value-cusdash {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .project-actions-cusdash {
@@ -659,21 +748,23 @@
 }
 
 /* ============================================
-   MILESTONES - LIGHT THEME
+   MILESTONES - Theme Aware
    ============================================ */
 .milestones-section-cusdash {
   margin-top: 1.25rem;
   padding-top: 1.25rem;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--divider-color);
+  transition: border-color 0.3s ease;
 }
 
 .milestones-title-cusdash {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 0.75rem 0;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  transition: color 0.3s ease;
 }
 
 .milestones-list-cusdash {
@@ -695,7 +786,7 @@
 
 .milestone-item-cusdash .milestone-icon-cusdash {
   font-size: 1.2rem;
-  color: #D1D5DB;
+  color: var(--text-muted);
   transition: all 200ms ease;
 }
 
@@ -716,7 +807,7 @@
 
 .milestone-label-cusdash {
   font-size: 0.7rem;
-  color: #98A2B3;
+  color: var(--text-muted);
   text-align: center;
   transition: color 200ms ease;
 }
@@ -745,7 +836,7 @@
   left: calc(50% + 1.2rem);
   width: calc(100% - 2.4rem);
   height: 2px;
-  background: #E5E7EB;
+  background: var(--progress-bg);
   pointer-events: none;
   transition: background 200ms ease;
 }
@@ -765,18 +856,18 @@
 }
 
 .activities-card-cusdash {
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.25rem 1.5rem;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   min-height: 280px;
   display: flex;
   flex-direction: column;
   flex: 1;
+  transition: all 0.3s ease;
 }
 
 .activities-list-cusdash {
@@ -797,7 +888,7 @@
 }
 
 .activity-item-cusdash:hover {
-  background: #F6F8F5;
+  background: var(--bg-hover);
 }
 
 .activity-icon-wrapper-cusdash {
@@ -809,8 +900,9 @@
   justify-content: center;
   font-size: 1rem;
   flex-shrink: 0;
-  background: #F6F8F5;
+  background: var(--bg-hover);
   color: #F39C12;
+  transition: background 0.3s ease;
 }
 
 .activity-content-cusdash {
@@ -828,20 +920,23 @@
 .activity-title-cusdash {
   font-size: 0.85rem;
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .activity-reference-cusdash {
   font-size: 0.75rem;
-  color: #98A2B3;
+  color: var(--text-muted);
   font-weight: 400;
+  transition: color 0.3s ease;
 }
 
 .activity-date-cusdash {
   font-size: 0.75rem;
-  color: #98A2B3;
+  color: var(--text-muted);
   display: block;
   margin-top: 0.1rem;
+  transition: color 0.3s ease;
 }
 
 .activity-status-cusdash {
@@ -850,29 +945,29 @@
 
 .activity-divider-cusdash {
   height: 1px;
-  background: #EEF0ED;
+  background: var(--divider-color);
   margin: 0.25rem 0.75rem;
+  transition: background 0.3s ease;
 }
 
 /* ============================================
    EMPTY STATES - Premium Glass Card
    ============================================ */
 .empty-state-cusdash {
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 2px dashed var(--border-medium);
   border-radius: 14px;
   padding: 2.5rem 2rem;
   text-align: center;
-  border: 2px dashed #E5E7EB;
   min-height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
 }
 
 .empty-state-content-cusdash {
@@ -884,20 +979,23 @@
 
 .empty-state-icon-cusdash {
   font-size: 3rem;
-  color: #D1D5DB;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .empty-state-title-cusdash {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .empty-state-description-cusdash {
   font-size: 0.9rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .empty-small-cusdash {
@@ -913,8 +1011,9 @@
 
 .empty-text-cusdash {
   font-size: 0.9rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .link-cusdash {
@@ -937,24 +1036,25 @@
    APPOINTMENTS SECTION - Premium Glass Card
    ============================================ */
 .appointments-section-cusdash {
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.25rem 1.5rem;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
 }
 
 .appointments-title-cusdash {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 0.75rem 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  transition: color 0.3s ease;
 }
 
 .appointments-icon-cusdash {
@@ -973,12 +1073,12 @@
   gap: 1rem;
   padding: 0.75rem;
   border-radius: 10px;
-  background: #F6F8F5;
+  background: var(--appointment-bg);
   transition: all 200ms ease;
 }
 
 .appointment-item-cusdash:hover {
-  background: rgba(243, 156, 18, 0.06);
+  background: var(--bg-hover-light);
 }
 
 .appointment-date-cusdash {
@@ -986,24 +1086,27 @@
   flex-direction: column;
   align-items: center;
   padding: 0.25rem 0.5rem;
-  background: #FFFFFF;
+  background: var(--bg-surface);
   border-radius: 6px;
   min-width: 48px;
-  border: 1px solid #E5E7EB;
+  border: 1px solid var(--border-medium);
+  transition: all 0.3s ease;
 }
 
 .appointment-day-cusdash {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   line-height: 1.2;
+  transition: color 0.3s ease;
 }
 
 .appointment-month-cusdash {
   font-size: 0.65rem;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
   text-transform: uppercase;
+  transition: color 0.3s ease;
 }
 
 .appointment-info-cusdash {
@@ -1015,7 +1118,8 @@
   display: block;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .appointment-address-cusdash {
@@ -1023,8 +1127,9 @@
   align-items: center;
   gap: 0.3rem;
   font-size: 0.75rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin-top: 0.1rem;
+  transition: color 0.3s ease;
 }
 
 .appointment-location-icon-cusdash {
@@ -1036,12 +1141,12 @@
 }
 
 /* ============================================
-   SKELETON LOADING - LIGHT THEME
+   SKELETON LOADING - Theme Aware
    ============================================ */
 .skeleton-line-cusdash {
   border-radius: 6px;
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #F1F2F4 25%, #E5E7EB 50%, #F1F2F4 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -1071,9 +1176,9 @@
 }
 
 .skeleton-card-cusdash {
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 14px;
-  border: 1px solid #E5E7EB;
+  border: 1px solid var(--border-color);
   padding: 1.25rem;
 }
 
@@ -1110,7 +1215,7 @@
   height: 120px;
   border-radius: 50%;
   margin: 0 auto;
-  background: #E5E7EB;
+  background: var(--progress-bg);
 }
 
 .skeleton-activity-title-cusdash {
@@ -1131,7 +1236,7 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN (unchanged - just using variables)
    ============================================ */
 
 @media (max-width: 1200px) {
@@ -1768,7 +1873,7 @@
   }
   .skeleton-line-cusdash {
     animation: none !important;
-    background: #F1F2F4 !important;
+    background: var(--skeleton-bg) !important;
   }
   .btn-primary-cusdash:hover,
   .btn-secondary-cusdash:hover,

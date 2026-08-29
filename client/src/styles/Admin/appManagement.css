@@ -1,45 +1,197 @@
-/* styles/Admin/appManagement.css - Light Solar Theme for App Management */
+/* styles/Admin/appManagement.css - Unified Light/Dark Solar Theme for App Management */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE - LIGHT SOLAR
+   CSS VARIABLES - LIGHT MODE (Default)
+   ============================================ */
+:root {
+  --bg-primary: transparent;
+  --bg-card: transparent;
+  --bg-card-hover: transparent;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: rgba(0, 0, 0, 0.02);
+  --bg-section: rgba(255, 255, 255, 0.5);
+  --bg-table-header: transparent;
+  --bg-table-row-hover: rgba(255, 255, 255, 0.3);
+  --bg-modal: rgba(255, 255, 255, 0.98);
+  --bg-input: rgba(255, 255, 255, 0.5);
+  --bg-dropdown: rgba(255, 255, 255, 0.98);
+  --bg-select-option: #FFFFFF;
+  --bg-published-row: rgba(16, 185, 129, 0.05);
+  --bg-file-upload: rgba(255, 255, 255, 0.5);
+  --bg-upload-status: rgba(255, 255, 255, 0.5);
+  --bg-current-apk: rgba(255, 255, 255, 0.5);
+  --text-primary: #17212B;
+  --text-secondary: #667085;
+  --text-muted: #98A2B3;
+  --text-white: #17212B;
+  --text-dark: #17212B;
+  --border-color: #EEF0ED;
+  --border-card: rgba(255, 255, 255, 0.9);
+  --border-medium: #E5E7EB;
+  --border-input: #EEF0ED;
+  --border-modal: #EEF0ED;
+  --border-dropdown: #EEF0ED;
+  --border-upload: #EEF0ED;
+  --shadow-card: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  --shadow-card-hover: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.15);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.12);
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+  --icon-color: #F39C12;
+  --icon-info: #2563EB;
+  --icon-success: #059669;
+  --icon-danger: #DC2626;
+  --icon-warning: #D97706;
+  --text-danger: #DC2626;
+  --text-danger-hover: #EF4444;
+  --text-edit: #2563EB;
+  --text-edit-hover: #3B82F6;
+  --text-success: #059669;
+  --text-success-hover: #10B981;
+  --btn-cancel-bg: rgba(255, 255, 255, 0.5);
+  --btn-cancel-hover: rgba(0, 0, 0, 0.05);
+  --btn-confirm-bg: #F39C12;
+  --btn-confirm-hover: #E67E22;
+  --btn-danger-bg: #EF4444;
+  --btn-danger-hover: #DC2626;
+  --btn-fab-bg: #F39C12;
+  --btn-fab-hover: #E67E22;
+  --status-published-bg: rgba(16, 185, 129, 0.10);
+  --status-published-text: #059669;
+  --status-draft-bg: #F3F5F1;
+  --status-draft-text: #98A2B3;
+  --version-icon-color: #3DDC84;
+  --dropdown-item-hover: rgba(0, 0, 0, 0.03);
+  --dropdown-item-primary-hover: rgba(59, 130, 246, 0.10);
+  --dropdown-item-success-hover: rgba(16, 185, 129, 0.10);
+  --dropdown-item-danger-hover: rgba(239, 68, 68, 0.10);
+  --required-color: #EF4444;
+  --error-color: #DC2626;
+  --spinner-color: #F39C12;
+  --empty-icon-color: #D1D5DB;
+  --download-link-color: #D97706;
+  --success-icon-color: #10B981;
+}
+
+/* ============================================
+   CSS VARIABLES - DARK MODE
+   ============================================ */
+body.dark-mode {
+  --bg-primary: transparent;
+  --bg-card: transparent;
+  --bg-card-hover: transparent;
+  --bg-surface: #131C28;
+  --bg-elevated: #1A2533;
+  --bg-hover: rgba(255, 255, 255, 0.03);
+  --bg-section: rgba(255, 255, 255, 0.05);
+  --bg-table-header: transparent;
+  --bg-table-row-hover: rgba(255, 255, 255, 0.03);
+  --bg-modal: rgba(26, 37, 51, 0.98);
+  --bg-input: rgba(255, 255, 255, 0.05);
+  --bg-dropdown: #1A2533;
+  --bg-select-option: #1A2533;
+  --bg-published-row: rgba(16, 185, 129, 0.08);
+  --bg-file-upload: rgba(255, 255, 255, 0.05);
+  --bg-upload-status: rgba(255, 255, 255, 0.05);
+  --bg-current-apk: rgba(255, 255, 255, 0.05);
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-white: #FFFFFF;
+  --text-dark: #FFFFFF;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.08);
+  --border-input: rgba(255, 255, 255, 0.06);
+  --border-modal: rgba(255, 255, 255, 0.06);
+  --border-dropdown: rgba(255, 255, 255, 0.06);
+  --border-upload: rgba(255, 255, 255, 0.06);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.4);
+  --overlay-bg: rgba(0, 0, 0, 0.8);
+  --icon-color: #F39C12;
+  --icon-info: #3B82F6;
+  --icon-success: #10B981;
+  --icon-danger: #EF4444;
+  --icon-warning: #F39C12;
+  --text-danger: #EF4444;
+  --text-danger-hover: #EF4444;
+  --text-edit: #3B82F6;
+  --text-edit-hover: #3B82F6;
+  --text-success: #10B981;
+  --text-success-hover: #10B981;
+  --btn-cancel-bg: rgba(255, 255, 255, 0.05);
+  --btn-cancel-hover: rgba(255, 255, 255, 0.1);
+  --btn-confirm-bg: #F39C12;
+  --btn-confirm-hover: #E67E22;
+  --btn-danger-bg: #EF4444;
+  --btn-danger-hover: #DC2626;
+  --btn-fab-bg: #F39C12;
+  --btn-fab-hover: #E67E22;
+  --status-published-bg: rgba(16, 185, 129, 0.12);
+  --status-published-text: #10B981;
+  --status-draft-bg: rgba(255, 255, 255, 0.05);
+  --status-draft-text: rgba(255, 255, 255, 0.4);
+  --version-icon-color: #3DDC84;
+  --dropdown-item-hover: rgba(255, 255, 255, 0.03);
+  --dropdown-item-primary-hover: rgba(59, 130, 246, 0.12);
+  --dropdown-item-success-hover: rgba(16, 185, 129, 0.12);
+  --dropdown-item-danger-hover: rgba(239, 68, 68, 0.12);
+  --required-color: #EF4444;
+  --error-color: #EF4444;
+  --spinner-color: #F39C12;
+  --empty-icon-color: rgba(255, 255, 255, 0.2);
+  --download-link-color: #F39C12;
+  --success-icon-color: #10B981;
+}
+
+/* ============================================
+   BASE
    ============================================ */
 .app-management-app-admin {
-  background: transparent;
+  background: var(--bg-primary);
   border-radius: 0;
   border: none;
   box-shadow: none;
   margin-top: 0;
   padding: 0;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ============================================
-   HEADER - LIGHT
+   HEADER
    ============================================ */
 .app-header-app-admin {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 16px 0 16px 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
   flex-wrap: wrap;
   gap: 12px;
+  transition: border-color 0.3s ease;
 }
 
 .app-header-info-app-admin h4 {
   font-size: 16px;
   font-weight: 600;
   margin: 0 0 4px 0;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .app-header-info-app-admin p {
   font-size: 13px;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .fab-add-app-app-admin {
@@ -47,7 +199,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: #F39C12;
+  background: var(--btn-fab-bg);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -59,7 +211,7 @@
 }
 
 .fab-add-app-app-admin:hover:not(:disabled) {
-  background: #E67E22;
+  background: var(--btn-fab-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(243, 156, 18, 0.25);
 }
@@ -71,35 +223,39 @@
 }
 
 /* ============================================
-   EMPTY STATE - LIGHT
+   EMPTY STATE
    ============================================ */
 .app-empty-app-admin {
   text-align: center;
   padding: 48px 20px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .empty-icon-app-admin {
   font-size: 48px;
-  color: #D1D5DB;
+  color: var(--empty-icon-color);
   margin-bottom: 12px;
+  transition: color 0.3s ease;
 }
 
 .app-empty-app-admin h3 {
   font-size: 18px;
   font-weight: 600;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 8px 0;
+  transition: color 0.3s ease;
 }
 
 .app-empty-app-admin p {
   font-size: 14px;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   TABLE - LIGHT GLASS
+   TABLE
    ============================================ */
 .app-table-wrapper-app-admin {
   overflow-x: visible;
@@ -117,11 +273,12 @@
   text-align: left;
   padding: 12px 12px 12px 0;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .app-table-app-admin thead th.actions-col-app-admin {
@@ -130,8 +287,8 @@
 }
 
 .app-table-app-admin tbody tr {
-  border-bottom: 1px solid #EEF0ED;
-  transition: background 200ms ease;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 200ms ease, border-color 0.3s ease;
 }
 
 .app-table-app-admin tbody tr:last-child {
@@ -139,18 +296,19 @@
 }
 
 .app-table-app-admin tbody tr:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--bg-table-row-hover);
 }
 
 .app-table-app-admin tbody td {
   padding: 14px 12px 14px 0;
-  color: #667085;
+  color: var(--text-secondary);
   vertical-align: middle;
   text-align: left;
+  transition: color 0.3s ease;
 }
 
 .published-row-app-admin {
-  background: rgba(16, 185, 129, 0.05);
+  background: var(--bg-published-row);
 }
 
 .version-cell-app-admin {
@@ -158,11 +316,12 @@
   align-items: center;
   gap: 8px;
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .version-icon-app-admin {
-  color: #3DDC84;
+  color: var(--version-icon-color);
   font-size: 16px;
 }
 
@@ -171,15 +330,17 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 200px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .date-cell-app-admin {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 13px;
+  transition: color 0.3s ease;
 }
 
 .date-cell-app-admin svg {
@@ -187,7 +348,7 @@
 }
 
 /* ============================================
-   STATUS BADGES - LIGHT THEME
+   STATUS BADGES - Theme Aware
    ============================================ */
 .status-badge-app-admin {
   display: inline-flex;
@@ -202,19 +363,19 @@
 }
 
 .status-badge-app-admin.published {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--status-published-bg);
+  color: var(--status-published-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-app-admin.draft {
-  background: #F3F5F1;
-  color: #98A2B3;
-  border: 1px solid #EEF0ED;
+  background: var(--status-draft-bg);
+  color: var(--status-draft-text);
+  border: 1px solid var(--border-medium);
 }
 
 /* ============================================
-   ACTION DROPDOWN - LIGHT
+   ACTION DROPDOWN
    ============================================ */
 .action-dropdown-container-app-admin {
   position: relative;
@@ -229,18 +390,18 @@
   top: calc(100% + 5px) !important;
   right: 0 !important;
   left: auto !important;
-
   min-width: 180px;
   max-width: 220px;
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid #EEF0ED;
+  background: var(--bg-dropdown);
+  border: 1px solid var(--border-dropdown);
   border-radius: 10px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-dropdown);
   padding: 6px;
   overflow: hidden;
   max-height: 300px;
   overflow-y: auto;
   z-index: 9999;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .action-dropdown-toggle-app-admin {
@@ -248,21 +409,21 @@
   align-items: center;
   gap: 6px;
   padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
 }
 
 .action-dropdown-toggle-app-admin:hover {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: #D1D5DB;
-  color: #17212B;
+  background: var(--bg-card-hover);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 .dropdown-arrow-app-admin {
@@ -272,19 +433,6 @@
 
 .dropdown-arrow-app-admin.open-app-admin {
   transform: rotate(180deg);
-}
-
-.action-dropdown-menu-app-admin {
-  min-width: 180px;
-  max-width: 220px;
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid #EEF0ED;
-  border-radius: 10px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
-  padding: 6px;
-  overflow: hidden;
-  max-height: 300px;
-  overflow-y: auto;
 }
 
 .action-dropdown-menu-app-admin::-webkit-scrollbar {
@@ -297,7 +445,7 @@
 }
 
 .action-dropdown-menu-app-admin::-webkit-scrollbar-thumb {
-  background: #F39C12;
+  background: var(--icon-color);
   border-radius: 4px;
 }
 
@@ -315,58 +463,60 @@
   text-align: left;
   transition: all 150ms ease;
   font-family: 'Poppins', sans-serif;
-  color: #667085;
+  color: var(--text-secondary);
 }
 
 .dropdown-item-app-admin:hover {
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--dropdown-item-hover);
+  color: var(--text-primary);
 }
 
 .dropdown-item-app-admin svg {
   font-size: 14px;
-  color: #98A2B3;
+  color: var(--text-muted);
   width: 16px;
   text-align: center;
+  transition: color 0.3s ease;
 }
 
 .dropdown-item-app-admin.primary {
-  color: #2563EB;
+  color: var(--text-edit);
 }
 
 .dropdown-item-app-admin.primary svg {
-  color: #2563EB;
+  color: var(--text-edit);
 }
 
 .dropdown-item-app-admin.primary:hover {
-  background: rgba(59, 130, 246, 0.10);
+  background: var(--dropdown-item-primary-hover);
 }
 
 .dropdown-item-app-admin.success {
-  color: #059669;
+  color: var(--text-success);
 }
 
 .dropdown-item-app-admin.success svg {
-  color: #059669;
+  color: var(--text-success);
 }
 
 .dropdown-item-app-admin.success:hover {
-  background: rgba(16, 185, 129, 0.10);
+  background: var(--dropdown-item-success-hover);
 }
 
 .dropdown-item-app-admin.danger {
-  color: #DC2626;
+  color: var(--text-danger);
 }
 
 .dropdown-item-app-admin.danger svg {
-  color: #DC2626;
+  color: var(--text-danger);
 }
 
 .dropdown-item-app-admin.danger:hover {
-  background: rgba(239, 68, 68, 0.10);
+  background: var(--dropdown-item-danger-hover);
 }
 
 /* ============================================
-   MODALS - LIGHT GLASS
+   MODALS - GLASS
    ============================================ */
 .modal-overlay-app-admin {
   position: fixed;
@@ -374,7 +524,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -384,14 +534,15 @@
 }
 
 .modal-content-app-admin {
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--bg-modal);
   border-radius: 18px;
   max-width: 600px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  border: 1px solid #EEF0ED;
+  box-shadow: var(--shadow-modal);
+  border: 1px solid var(--border-modal);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .modal-content-app-admin::-webkit-scrollbar {
@@ -404,7 +555,7 @@
 }
 
 .modal-content-app-admin::-webkit-scrollbar-thumb {
-  background: #F39C12;
+  background: var(--icon-color);
   border-radius: 4px;
 }
 
@@ -413,23 +564,25 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px 16px 24px;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .modal-header-app-admin h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .modal-close-app-admin {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
-  color: #98A2B3;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
   font-size: 20px;
   cursor: pointer;
   display: flex;
@@ -441,8 +594,8 @@
 
 .modal-close-app-admin:hover {
   background: rgba(239, 68, 68, 0.10);
-  border-color: #EF4444;
-  color: #EF4444;
+  border-color: var(--text-danger);
+  color: var(--text-danger);
 }
 
 .modal-body-app-admin {
@@ -454,8 +607,9 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--border-color);
   flex-wrap: wrap;
+  transition: border-color 0.3s ease;
 }
 
 .modal-actions-app-admin button {
@@ -476,37 +630,37 @@
 }
 
 .btn-cancel-app-admin {
-  background: rgba(255, 255, 255, 0.5);
-  color: #17212B;
-  border: 1px solid #EEF0ED;
+  background: var(--btn-cancel-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .btn-cancel-app-admin:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--btn-cancel-hover);
 }
 
 .btn-confirm-app-admin {
-  background: #F39C12;
+  background: var(--btn-confirm-bg);
   color: #FFFFFF;
 }
 
 .btn-confirm-app-admin:hover:not(:disabled) {
-  background: #E67E22;
+  background: var(--btn-confirm-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.25);
 }
 
 .btn-confirm-app-admin.btn-danger-app-admin {
-  background: #EF4444;
+  background: var(--btn-danger-bg);
 }
 
 .btn-confirm-app-admin.btn-danger-app-admin:hover:not(:disabled) {
-  background: #DC2626;
+  background: var(--btn-danger-hover);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
 }
 
 /* ============================================
-   SPINNER - LIGHT
+   SPINNER
    ============================================ */
 @keyframes spin-app-admin {
   from { transform: rotate(0deg); }
@@ -521,8 +675,9 @@
 .spinner-large-app-admin {
   display: inline-block;
   font-size: 32px;
-  color: #F39C12;
+  color: var(--spinner-color);
   animation: spin-app-admin 1s linear infinite !important;
+  transition: color 0.3s ease;
 }
 
 .loading-state-app-admin {
@@ -531,12 +686,13 @@
   justify-content: center;
   gap: 8px;
   padding: 40px;
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   FORM - LIGHT
+   FORM
    ============================================ */
 .form-group-app-admin {
   margin-bottom: 16px;
@@ -546,8 +702,9 @@
   display: block;
   font-size: 13px;
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
   margin-bottom: 6px;
+  transition: color 0.3s ease;
 }
 
 .form-group-app-admin input,
@@ -555,11 +712,11 @@
 .form-group-app-admin select {
   width: 100%;
   padding: 10px 14px;
-  border: 1px solid #EEF0ED;
+  border: 1px solid var(--border-input);
   border-radius: 10px;
   font-size: 14px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #17212B;
+  background: var(--bg-input);
+  color: var(--text-primary);
   outline: none;
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
@@ -569,29 +726,30 @@
 .form-group-app-admin input:focus,
 .form-group-app-admin textarea:focus,
 .form-group-app-admin select:focus {
-  border-color: #F39C12;
+  border-color: var(--icon-color);
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 
 .form-group-app-admin input::placeholder,
 .form-group-app-admin textarea::placeholder {
-  color: #98A2B3;
+  color: var(--text-muted);
 }
 
 .form-group-app-admin small {
   display: block;
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin-top: 4px;
+  transition: color 0.3s ease;
 }
 
 .form-group-app-admin select option {
-  background: #FFFFFF;
-  color: #17212B;
+  background: var(--bg-select-option);
+  color: var(--text-primary);
 }
 
 /* ============================================
-   FILE UPLOAD - LIGHT
+   FILE UPLOAD
    ============================================ */
 .file-upload-wrapper-app-admin {
   position: relative;
@@ -611,10 +769,10 @@
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  border: 2px dashed #EEF0ED;
+  border: 2px dashed var(--border-upload);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #98A2B3;
+  background: var(--bg-file-upload);
+  color: var(--text-muted);
   font-size: 14px;
   cursor: pointer;
   transition: all 200ms ease;
@@ -628,8 +786,9 @@
 .file-size-app-admin {
   display: block;
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin-top: 4px;
+  transition: color 0.3s ease;
 }
 
 .current-apk-info-app-admin {
@@ -637,19 +796,21 @@
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
+  background: var(--bg-current-apk);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   margin-bottom: 8px;
   font-size: 14px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .current-apk-info-app-admin a.download-link-app-admin {
   margin-left: auto;
-  color: #D97706;
+  color: var(--download-link-color);
   font-weight: 500;
   text-decoration: none;
+  transition: color 0.3s ease;
 }
 
 .current-apk-info-app-admin a.download-link-app-admin:hover {
@@ -657,19 +818,21 @@
 }
 
 .file-hint-app-admin {
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 12px;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   UPLOAD STATUS - LIGHT
+   UPLOAD STATUS
    ============================================ */
 .upload-status-app-admin {
   margin-top: 16px;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-upload-status);
   border-radius: 10px;
-  border: 1px solid #EEF0ED;
+  border: 1px solid var(--border-color);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .status-container-app-admin {
@@ -690,27 +853,29 @@
 .status-text-app-admin {
   font-size: 15px;
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .status-subtext-app-admin {
   font-size: 13px;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .success-state-app-admin .success-icon-app-admin {
   font-size: 40px;
-  color: #10B981;
+  color: var(--success-icon-color);
 }
 
 .success-state-app-admin .success-text-app-admin {
-  color: #10B981;
+  color: var(--success-icon-color);
 }
 
 /* ============================================
-   RESPONSIVE - LIGHT
+   RESPONSIVE
    ============================================ */
 
 @media (max-width: 768px) {
@@ -930,7 +1095,7 @@
 }
 
 /* ============================================
-   TOUCH-FRIENDLY IMPROVEMENTS - LIGHT
+   TOUCH-FRIENDLY IMPROVEMENTS
    ============================================ */
 @media (hover: none) and (pointer: coarse) {
   .action-dropdown-toggle-app-admin {
@@ -959,7 +1124,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES - LIGHT
+   REDUCED MOTION PREFERENCES
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {

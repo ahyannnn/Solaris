@@ -26,7 +26,10 @@ import {
   FaClipboardList,
   FaUser,
   FaCog,
-  FaCalendarAlt
+  FaCalendarAlt,
+  FaUserShield,
+  FaUserTie,
+  FaUserFriends
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/usermanagement.css';
@@ -253,7 +256,6 @@ const UserManagement = () => {
         }
       });
       
-      // Backend already paginates - use data directly
       setAuditLogs(response.data.data || []);
       setAuditTotalItems(response.data.total || 0);
     } catch (error) {
@@ -268,7 +270,6 @@ const UserManagement = () => {
   // EFFECTS
   // ============================================
 
-  // Handle tab switching and initial data fetch
   useEffect(() => {
     if (activeTab === 'users') {
       fetchUsers();
@@ -294,16 +295,14 @@ const UserManagement = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('scroll', handleScroll, true);
     };
-  }, [activeTab]); // Only re-run when tab changes
+  }, [activeTab]);
 
-  // Fetch users when pagination or filters change
   useEffect(() => {
     if (activeTab === 'users') {
       fetchUsers();
     }
   }, [currentPage, filterRole]);
 
-  // Fetch audit logs when audit page changes
   useEffect(() => {
     if (activeTab === 'audit') {
       fetchAuditLogs();
@@ -341,7 +340,6 @@ const UserManagement = () => {
       user.clientInfo?.contactNumber?.includes(searchTerm);
   });
 
-  // Filter logs for display (search filter) - only client-side search
   const filteredAuditLogs = auditLogs.filter(log => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
@@ -354,7 +352,6 @@ const UserManagement = () => {
     );
   });
 
-  // Use total from API for pagination
   const auditTotalPages = Math.max(1, Math.ceil(auditTotalItems / auditItemsPerPage));
   const auditStartItem = (auditCurrentPage - 1) * auditItemsPerPage + 1;
   const auditEndItem = Math.min(auditCurrentPage * auditItemsPerPage, auditTotalItems);
@@ -669,7 +666,6 @@ const UserManagement = () => {
     return actions;
   };
 
-  // Calculate pagination for users
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
@@ -689,7 +685,6 @@ const UserManagement = () => {
     return pages;
   };
 
-  // Get page numbers
   const pageNumbers = getPageNumbers(totalPages, currentPage);
   const auditPageNumbers = getPageNumbers(auditTotalPages, auditCurrentPage);
 
@@ -714,6 +709,44 @@ const UserManagement = () => {
     </div>
   );
 
+  // --- Stats Cards Component ---
+  const StatsCards = () => {
+    const { byRole } = stats;
+    
+    return (
+      <div className="user-stats-grid-usermanagement">
+        <div className="user-stat-card-usermanagement">
+          
+          <div className="user-stat-content-usermanagement">
+            <span className="user-stat-value-usermanagement">{byRole.admin || 0}</span>
+            <span className="user-stat-label-usermanagement">Admins</span>
+          </div>
+        </div>
+        <div className="user-stat-card-usermanagement">
+        
+          <div className="user-stat-content-usermanagement">
+            <span className="user-stat-value-usermanagement">{byRole.engineer || 0}</span>
+            <span className="user-stat-label-usermanagement">Engineers</span>
+          </div>
+        </div>
+        <div className="user-stat-card-usermanagement">
+         
+          <div className="user-stat-content-usermanagement">
+            <span className="user-stat-value-usermanagement">{byRole.user || 0}</span>
+            <span className="user-stat-label-usermanagement">Customers</span>
+          </div>
+        </div>
+        <div className="user-stat-card-usermanagement total">
+          
+          <div className="user-stat-content-usermanagement">
+            <span className="user-stat-value-usermanagement">{stats.total || 0}</span>
+            <span className="user-stat-label-usermanagement">Total Users</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (loading && users.length === 0 && activeTab === 'users') {
     return <SkeletonLoader />;
   }
@@ -730,9 +763,10 @@ const UserManagement = () => {
 
       <div className="user-management-usermanagement">
         {/* --- Minimalist Header --- */}
-        <div className="user-management-header-usermanagement">
-          <div></div>
-        </div>
+      
+
+        {/* --- Stats Cards --- */}
+        <StatsCards />
 
         {/* --- Tabs + Buttons Wrapper --- */}
         <div className="user-tabs-wrapper-usermanagement">
@@ -1133,6 +1167,7 @@ const UserManagement = () => {
                         >
                           <option value="admin">Admin</option>
                           <option value="engineer">Engineer</option>
+                          <option value="user">Customer</option>
                         </select>
                         {formErrors.role && <span className="error-text-usermanagement">{formErrors.role}</span>}
                         <small>Select the user's role and permissions</small>

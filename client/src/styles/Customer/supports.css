@@ -1,6 +1,108 @@
-/* styles/Customer/supports.css - Light Solar Theme (Matches Dashboard) */
+/* styles/Customer/supports.css - Unified Light/Dark Solar Theme */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ============================================
+   CSS VARIABLES - LIGHT MODE (Default)
+   ============================================ */
+:root {
+  --bg-primary: #F3F5F1;
+  --bg-card: rgba(255, 255, 255, 0.86);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: #F6F8F5;
+  --bg-hover-light: rgba(0, 0, 0, 0.02);
+  --bg-section: rgba(255, 255, 255, 0.5);
+  --bg-modal: rgba(255, 255, 255, 0.95);
+  --bg-ticket: #FFFFFF;
+  --bg-guide: #FFFFFF;
+  --bg-message-customer: #F6F8F5;
+  --bg-message-support: rgba(243, 156, 18, 0.06);
+  --bg-info-icon: rgba(243, 156, 18, 0.10);
+  --bg-guide-icon: rgba(243, 156, 18, 0.10);
+  --bg-guide-icon-hover: rgba(243, 156, 18, 0.20);
+  --text-primary: #17212B;
+  --text-secondary: #667085;
+  --text-muted: #98A2B3;
+  --text-white: #17212B;
+  --border-color: #EEF0ED;
+  --border-card: rgba(255, 255, 255, 0.9);
+  --border-medium: #E5E7EB;
+  --border-ticket: #EEF0ED;
+  --shadow-card: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  --shadow-card-hover: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  --shadow-modal: 0 20px 60px rgba(23, 33, 43, 0.2);
+  --overlay-bg: rgba(23, 33, 43, 0.5);
+  --skeleton-bg: #F1F2F4;
+  --skeleton-gradient: linear-gradient(90deg, #F1F2F4 25%, #E5E7EB 50%, #F1F2F4 75%);
+  --input-bg: #FFFFFF;
+  --input-border: #E5E7EB;
+  --input-focus: rgba(243, 156, 18, 0.08);
+  --badge-bg: #F6F8F5;
+  --badge-border: #E5E7EB;
+  --divider-color: #EEF0ED;
+  --status-open-bg: rgba(243, 156, 18, 0.10);
+  --status-open-text: #D97706;
+  --status-inprogress-bg: rgba(59, 130, 246, 0.10);
+  --status-inprogress-text: #2563EB;
+  --status-resolved-bg: rgba(16, 185, 129, 0.10);
+  --status-resolved-text: #059669;
+  --guide-type-bg: rgba(243, 156, 18, 0.10);
+  --guide-type-text: #D97706;
+  --icon-color: #F39C12;
+}
+
+/* ============================================
+   CSS VARIABLES - DARK MODE
+   ============================================ */
+body.dark-mode {
+  --bg-primary: #0B111A;
+  --bg-card: #1A2533;
+  --bg-card-hover: #1F2C3D;
+  --bg-surface: #131C28;
+  --bg-elevated: #1A2533;
+  --bg-hover: #131C28;
+  --bg-hover-light: rgba(255, 255, 255, 0.03);
+  --bg-section: rgba(255, 255, 255, 0.05);
+  --bg-modal: rgba(26, 37, 51, 0.95);
+  --bg-ticket: #1A2533;
+  --bg-guide: #1A2533;
+  --bg-message-customer: #131C28;
+  --bg-message-support: rgba(243, 156, 18, 0.08);
+  --bg-info-icon: rgba(243, 156, 18, 0.12);
+  --bg-guide-icon: rgba(243, 156, 18, 0.12);
+  --bg-guide-icon-hover: rgba(243, 156, 18, 0.20);
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-white: #FFFFFF;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.08);
+  --border-ticket: rgba(255, 255, 255, 0.06);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+  --skeleton-bg: #131C28;
+  --skeleton-gradient: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-border: rgba(255, 255, 255, 0.06);
+  --input-focus: rgba(243, 156, 18, 0.12);
+  --badge-bg: #131C28;
+  --badge-border: rgba(255, 255, 255, 0.06);
+  --divider-color: rgba(255, 255, 255, 0.06);
+  --status-open-bg: rgba(243, 156, 18, 0.12);
+  --status-open-text: #F39C12;
+  --status-inprogress-bg: rgba(59, 130, 246, 0.12);
+  --status-inprogress-text: #3B82F6;
+  --status-resolved-bg: rgba(16, 185, 129, 0.12);
+  --status-resolved-text: #10B981;
+  --guide-type-bg: rgba(243, 156, 18, 0.12);
+  --guide-type-text: #F39C12;
+  --icon-color: #F39C12;
+}
 
 /* ============================================
    BASE LAYOUT - SOLAR GRADIENT BACKGROUND
@@ -8,13 +110,11 @@
 .cusup-container {
   padding-inline: 24px;
   margin: 0 auto;
-  /* 🌅 Soft Solar Gradient Background (Warm Sunlight + Clean Green + Soft Sky Blue) */
-  background: 
-    
-    #F3F5F1;
+  background: var(--bg-primary);
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ============================================
@@ -25,9 +125,10 @@
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
+  transition: border-color 0.3s ease;
 }
 
 .cusup-header-content {
@@ -39,15 +140,17 @@
 .cusup-header-content h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.3px;
+  transition: color 0.3s ease;
 }
 
 .cusup-header-content p {
   font-size: 1rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .cusup-header-icon {
@@ -58,12 +161,11 @@
    SECTION - Premium Glass Cards
    ============================================ */
 .cusup-section {
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.25rem 1.5rem;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
@@ -71,7 +173,7 @@
 }
 
 .cusup-section:hover {
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.25);
 }
 
@@ -81,25 +183,28 @@
   gap: 0.75rem;
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .cusup-section-header svg {
   font-size: 1.2rem;
-  color: #F39C12;
+  color: var(--icon-color);
 }
 
 .cusup-section-header h2 {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .cusup-section-description {
-  color: #667085;
+  color: var(--text-secondary);
   font-size: 0.95rem;
   margin: 0 0 1.25rem 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -112,7 +217,8 @@
 }
 
 .cusup-faq-item {
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .cusup-faq-item:last-child {
@@ -129,7 +235,7 @@
   border: none;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
   cursor: pointer;
   text-align: left;
   transition: all 200ms ease;
@@ -137,15 +243,15 @@
 }
 
 .cusup-faq-question:hover {
-  color: #F39C12;
+  color: var(--icon-color);
 }
 
 .cusup-faq-question svg {
   font-size: 0.875rem;
-  color: #98A2B3;
+  color: var(--text-muted);
   flex-shrink: 0;
   margin-left: 0.75rem;
-  transition: transform 200ms ease;
+  transition: transform 200ms ease, color 0.3s ease;
 }
 
 .cusup-faq-question.open svg {
@@ -155,8 +261,9 @@
 .cusup-faq-answer {
   padding: 0 0 0.75rem 0;
   font-size: 0.875rem;
-  color: #667085;
+  color: var(--text-secondary);
   line-height: 1.6;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -183,18 +290,19 @@
 .cusup-form-group label {
   font-size: 0.8rem;
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .cusup-form-group input,
 .cusup-form-group textarea,
 .cusup-form-group select {
   padding: 0.6rem 0.875rem;
-  border: 1px solid #E5E7EB;
+  border: 1px solid var(--input-border);
   border-radius: 10px;
   font-size: 0.9rem;
-  color: #17212B;
-  background: #FFFFFF;
+  color: var(--text-primary);
+  background: var(--input-bg);
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
   width: 100%;
@@ -202,15 +310,15 @@
 
 .cusup-form-group input::placeholder,
 .cusup-form-group textarea::placeholder {
-  color: #98A2B3;
+  color: var(--text-muted);
 }
 
 .cusup-form-group input:focus,
 .cusup-form-group textarea:focus,
 .cusup-form-group select:focus {
   outline: none;
-  border-color: #F39C12;
-  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.08);
+  border-color: var(--icon-color);
+  box-shadow: 0 0 0 3px var(--input-focus);
 }
 
 .cusup-form-group textarea {
@@ -219,13 +327,13 @@
 }
 
 .cusup-form-group select option {
-  background: #FFFFFF;
-  color: #17212B;
+  background: var(--bg-surface);
+  color: var(--text-primary);
 }
 
 .cusup-submit-btn {
   padding: 0.75rem 1.5rem;
-  background: #F39C12;
+  background: var(--icon-color);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -261,8 +369,8 @@
 }
 
 .cusup-info-card {
-  background: #FFFFFF;
-  border: 1px solid #EEF0ED;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1.25rem;
   text-align: center;
@@ -278,33 +386,37 @@
 .cusup-info-icon {
   width: 48px;
   height: 48px;
-  background: rgba(243, 156, 18, 0.10);
+  background: var(--bg-info-icon);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 0.75rem;
-  color: #F39C12;
+  color: var(--icon-color);
   font-size: 1.25rem;
+  transition: background 0.3s ease;
 }
 
 .cusup-info-card h3 {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
+  transition: color 0.3s ease;
 }
 
 .cusup-info-card p {
   font-size: 0.8rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 0.25rem 0;
   word-break: break-word;
+  transition: color 0.3s ease;
 }
 
 .cusup-info-card small {
   font-size: 0.7rem;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -330,7 +442,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1.25rem;
-  background: #F39C12;
+  background: var(--icon-color);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -354,8 +466,8 @@
 }
 
 .cusup-ticket-card {
-  background: #FFFFFF;
-  border: 1px solid #EEF0ED;
+  background: var(--bg-ticket);
+  border: 1px solid var(--border-ticket);
   border-radius: 12px;
   padding: 1rem 1.25rem;
   transition: all 200ms ease;
@@ -378,8 +490,9 @@
 .cusup-ticket-id {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
   font-family: monospace;
+  transition: color 0.3s ease;
 }
 
 .status-badge-support {
@@ -393,34 +506,36 @@
 }
 
 .status-badge-support.open {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
-  border-color: rgba(243, 156, 18, 0.20);
+  background: var(--status-open-bg);
+  color: var(--status-open-text);
+  border-color: var(--border-medium);
 }
 
 .status-badge-support.in-progress {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
-  border-color: rgba(59, 130, 246, 0.20);
+  background: var(--status-inprogress-bg);
+  color: var(--status-inprogress-text);
+  border-color: var(--border-medium);
 }
 
 .status-badge-support.resolved {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border-color: rgba(16, 185, 129, 0.20);
+  background: var(--status-resolved-bg);
+  color: var(--status-resolved-text);
+  border-color: var(--border-medium);
 }
 
 .cusup-ticket-subject {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin-bottom: 0.25rem;
+  transition: color 0.3s ease;
 }
 
 .cusup-ticket-description {
   font-size: 0.85rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin-bottom: 0.5rem;
+  transition: color 0.3s ease;
 }
 
 .cusup-ticket-footer {
@@ -428,12 +543,13 @@
   justify-content: space-between;
   align-items: center;
   font-size: 0.75rem;
-  color: #98A2B3;
+  color: var(--text-muted);
 }
 
 .cusup-ticket-date {
   font-size: 0.75rem;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .cusup-view-ticket-btn {
@@ -442,7 +558,7 @@
   gap: 0.4rem;
   background: none;
   border: none;
-  color: #98A2B3;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 0.75rem;
   font-weight: 500;
@@ -451,13 +567,14 @@
 }
 
 .cusup-view-ticket-btn:hover {
-  color: #F39C12;
+  color: var(--icon-color);
 }
 
 .cusup-ticket-details {
   margin-top: 0.75rem;
   padding-top: 0.75rem;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .cusup-ticket-messages {
@@ -472,28 +589,31 @@
 }
 
 .cusup-message.customer {
-  background: #F6F8F5;
+  background: var(--bg-message-customer);
 }
 
 .cusup-message.support {
-  background: rgba(243, 156, 18, 0.06);
-  border-left: 3px solid #F39C12;
+  background: var(--bg-message-support);
+  border-left: 3px solid var(--icon-color);
 }
 
 .cusup-message strong {
   font-size: 0.75rem;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .cusup-message p {
   font-size: 0.85rem;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0.25rem 0 0 0;
+  transition: color 0.3s ease;
 }
 
 .cusup-message small {
   font-size: 0.65rem;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -510,8 +630,8 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  background: #FFFFFF;
-  border: 1px solid #EEF0ED;
+  background: var(--bg-guide);
+  border: 1px solid var(--border-ticket);
   border-radius: 12px;
   transition: all 200ms ease;
 }
@@ -532,20 +652,20 @@
   justify-content: center;
   width: 48px;
   height: 48px;
-  background: rgba(243, 156, 18, 0.10);
+  background: var(--bg-guide-icon);
   border-radius: 12px;
   flex-shrink: 0;
   transition: all 200ms ease;
 }
 
 .cusup-guide-card:hover .cusup-guide-icon-wrapper {
-  background: rgba(243, 156, 18, 0.20);
+  background: var(--bg-guide-icon-hover);
   transform: scale(1.05);
 }
 
 .cusup-guide-icon-wrapper svg {
   font-size: 1.5rem;
-  color: #F39C12;
+  color: var(--icon-color);
 }
 
 .cusup-guide-info {
@@ -555,21 +675,23 @@
 .cusup-guide-info h3 {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
+  transition: color 0.3s ease;
 }
 
 .cusup-guide-info p {
   font-size: 0.85rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 0.25rem 0;
+  transition: color 0.3s ease;
 }
 
 .cusup-guide-type {
   display: inline-block;
   padding: 0.1rem 0.75rem;
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
+  background: var(--guide-type-bg);
+  color: var(--guide-type-text);
   border-radius: 12px;
   font-size: 0.7rem;
   font-weight: 600;
@@ -580,7 +702,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1.25rem;
-  background: #F39C12;
+  background: var(--icon-color);
   color: #FFFFFF;
   border: none;
   border-radius: 8px;
@@ -612,21 +734,24 @@
 
 .cusup-empty-state .empty-icon {
   font-size: 2.5rem;
-  color: #D1D5DB;
+  color: var(--text-muted);
   margin-bottom: 0.75rem;
+  transition: color 0.3s ease;
 }
 
 .cusup-empty-state h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
+  transition: color 0.3s ease;
 }
 
 .cusup-empty-state p {
   font-size: 0.875rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -638,7 +763,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(23, 33, 43, 0.5);
+  background: var(--overlay-bg);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
@@ -655,17 +780,18 @@
 }
 
 .cusup-modal {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-modal);
+  border: 1px solid var(--border-card);
   border-radius: 18px;
   width: 100%;
   max-width: 520px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(23, 33, 43, 0.2);
+  box-shadow: var(--shadow-modal);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 @keyframes slideUp {
@@ -683,7 +809,7 @@
 }
 
 .cusup-modal::-webkit-scrollbar-thumb {
-  background: #F39C12;
+  background: var(--icon-color);
   border-radius: 4px;
 }
 
@@ -692,14 +818,16 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .cusup-modal-header h3 {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .cusup-modal-close {
@@ -708,7 +836,7 @@
   background: none;
   border: none;
   font-size: 1.25rem;
-  color: #98A2B3;
+  color: var(--text-muted);
   cursor: pointer;
   border-radius: 50%;
   display: flex;
@@ -718,8 +846,8 @@
 }
 
 .cusup-modal-close:hover {
-  background: rgba(23, 33, 43, 0.04);
-  color: #17212B;
+  background: var(--bg-hover-light);
+  color: var(--text-primary);
 }
 
 .cusup-modal-body {
@@ -739,29 +867,30 @@
   gap: 0.75rem;
   justify-content: flex-end;
   padding: 1rem 1.5rem 1.5rem 1.5rem;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .cusup-cancel-btn {
   padding: 0.6rem 1.25rem;
   background: transparent;
-  border: 1px solid #E5E7EB;
+  border: 1px solid var(--border-medium);
   border-radius: 10px;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
 }
 
 .cusup-cancel-btn:hover {
-  background: #F6F8F5;
+  background: var(--bg-hover);
 }
 
 .cusup-submit-ticket-btn {
   padding: 0.6rem 1.5rem;
-  background: #F39C12;
+  background: var(--icon-color);
   border: none;
   border-radius: 10px;
   font-size: 0.875rem;

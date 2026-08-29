@@ -39,7 +39,9 @@ import {
   FaInfoCircle as FaInfoIcon,
   FaExclamationCircle,
   FaTimes as FaTimesIcon,
-  FaBullhorn
+  FaBullhorn,
+  FaMoon,
+  FaSun
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
 import '../../styles/Dashboard/dashboard.css';
@@ -63,11 +65,37 @@ const Dashboard = () => {
   const [userRole, setUserRole] = useState('user');
   const [userName, setUserName] = useState('Customer User');
   
+  // Dark mode state - initialize from localStorage
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      return savedTheme === 'dark';
+    }
+    // Check system preference
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
   // Dropdown states
   const [openDropdowns, setOpenDropdowns] = useState({
     support: false,
     settingsSub: false
   });
+
+  // Apply dark mode class to body when darkMode changes
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark-mode');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.body.classList.remove('dark-mode');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
+
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    setDarkMode(prev => !prev);
+  };
 
   // OPTIMIZED: Set dashboard as ready immediately
   useEffect(() => {
@@ -1004,6 +1032,16 @@ const Dashboard = () => {
                 <span className="maintenance-text">Maintenance Mode Active</span>
               </div>
             )}
+
+            {/* Dark Mode Toggle Button */}
+            <button
+              className="dark-mode-toggle-btn"
+              onClick={toggleDarkMode}
+              aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {darkMode ? <FaSun className="dark-mode-icon" /> : <FaMoon className="dark-mode-icon" />}
+            </button>
 
             {/* Notification Button */}
             <div className="notification-wrapper">

@@ -1,6 +1,120 @@
-/* styles/Customer/customersettings.css - Light Solar Theme (Matches Dashboard) */
+/* styles/Customer/customersettings.css - Unified Light/Dark Solar Theme */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ============================================
+   CSS VARIABLES - LIGHT MODE (Default)
+   ============================================ */
+:root {
+  --bg-primary: #F3F5F1;
+  --bg-card: rgba(255, 255, 255, 0.86);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: #F6F8F5;
+  --bg-hover-light: rgba(0, 0, 0, 0.02);
+  --bg-section: rgba(255, 255, 255, 0.5);
+  --bg-modal: rgba(255, 255, 255, 0.95);
+  --bg-primary-address: rgba(243, 156, 18, 0.04);
+  --bg-address-preview: #F6F8F5;
+  --bg-badge-client: rgba(243, 156, 18, 0.10);
+  --bg-badge-since: rgba(59, 130, 246, 0.10);
+  --bg-label-tag: #F6F8F5;
+  --bg-delete: #EF4444;
+  --bg-delete-hover: #DC2626;
+  --bg-avatar: rgba(243, 156, 18, 0.10);
+  --text-primary: #17212B;
+  --text-secondary: #667085;
+  --text-muted: #98A2B3;
+  --text-white: #17212B;
+  --border-color: #EEF0ED;
+  --border-card: rgba(255, 255, 255, 0.9);
+  --border-medium: #E5E7EB;
+  --border-input: #E5E7EB;
+  --border-modal: #EEF0ED;
+  --shadow-card: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  --shadow-card-hover: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  --shadow-modal: 0 20px 60px rgba(23, 33, 43, 0.2);
+  --overlay-bg: rgba(23, 33, 43, 0.5);
+  --skeleton-bg: #F1F2F4;
+  --skeleton-gradient: linear-gradient(90deg, #F1F2F4 25%, #E5E7EB 50%, #F1F2F4 75%);
+  --input-bg: #FFFFFF;
+  --input-border: #E5E7EB;
+  --input-focus: rgba(243, 156, 18, 0.08);
+  --divider-color: #EEF0ED;
+  --icon-color: #F39C12;
+  --text-danger: #DC2626;
+  --text-danger-hover: #EF4444;
+  --text-edit: #2563EB;
+  --text-edit-hover: #3B82F6;
+  --text-primary-action: #D97706;
+  --text-primary-action-hover: #F39C12;
+  --badge-client-text: #D97706;
+  --badge-since-text: #2563EB;
+  --label-tag-text: #667085;
+  --required-color: #EF4444;
+  --error-color: #EF4444;
+  --confirm-icon: #F39C12;
+  --bg-select-option: #FFFFFF;
+  --text-select-option: #17212B;
+}
+
+/* ============================================
+   CSS VARIABLES - DARK MODE
+   ============================================ */
+body.dark-mode {
+  --bg-primary: #0B111A;
+  --bg-card: #1A2533;
+  --bg-card-hover: #1F2C3D;
+  --bg-surface: #131C28;
+  --bg-elevated: #1A2533;
+  --bg-hover: #131C28;
+  --bg-hover-light: rgba(255, 255, 255, 0.03);
+  --bg-section: rgba(255, 255, 255, 0.05);
+  --bg-modal: rgba(26, 37, 51, 0.95);
+  --bg-primary-address: rgba(243, 156, 18, 0.08);
+  --bg-address-preview: #131C28;
+  --bg-badge-client: rgba(243, 156, 18, 0.12);
+  --bg-badge-since: rgba(59, 130, 246, 0.12);
+  --bg-label-tag: #131C28;
+  --bg-delete: #EF4444;
+  --bg-delete-hover: #DC2626;
+  --bg-avatar: rgba(243, 156, 18, 0.12);
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-white: #FFFFFF;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.08);
+  --border-input: rgba(255, 255, 255, 0.06);
+  --border-modal: rgba(255, 255, 255, 0.06);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+  --skeleton-bg: #131C28;
+  --skeleton-gradient: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-border: rgba(255, 255, 255, 0.06);
+  --input-focus: rgba(243, 156, 18, 0.12);
+  --divider-color: rgba(255, 255, 255, 0.06);
+  --icon-color: #F39C12;
+  --text-danger: #EF4444;
+  --text-danger-hover: #EF4444;
+  --text-edit: #3B82F6;
+  --text-edit-hover: #3B82F6;
+  --text-primary-action: #F39C12;
+  --text-primary-action-hover: #F39C12;
+  --badge-client-text: #F39C12;
+  --badge-since-text: #3B82F6;
+  --label-tag-text: rgba(255, 255, 255, 0.6);
+  --required-color: #EF4444;
+  --error-color: #EF4444;
+  --confirm-icon: #F39C12;
+  --bg-select-option: #1A2533;
+  --text-select-option: #FFFFFF;
+}
 
 /* ============================================
    BASE LAYOUT - SOLAR GRADIENT BACKGROUND
@@ -8,13 +122,11 @@
 .cuset-page {
   padding-inline: 24px;
   margin: 0 auto;
-  /* 🌅 Soft Solar Gradient Background (Warm Sunlight + Clean Green + Soft Sky Blue) */
-  background: 
-    
-    #F3F5F1;
+  background: var(--bg-primary);
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ============================================
@@ -25,9 +137,10 @@
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
+  transition: border-color 0.3s ease;
 }
 
 .cuset-header-content {
@@ -39,15 +152,17 @@
 .cuset-header-content h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.3px;
+  transition: color 0.3s ease;
 }
 
 .cuset-header-content p {
   font-size: 1rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -78,19 +193,18 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.5rem;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
 }
 
 .cuset-profile-card:hover {
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.25);
 }
 
@@ -98,13 +212,14 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: rgba(243, 156, 18, 0.10);
+  background: var(--bg-avatar);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 3.5rem;
-  color: #F39C12;
+  color: var(--icon-color);
   flex-shrink: 0;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .cuset-profile-details {
@@ -114,14 +229,16 @@
 .cuset-profile-details h2 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
+  transition: color 0.3s ease;
 }
 
 .cuset-profile-email {
   font-size: 0.9rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 0.5rem 0;
+  transition: color 0.3s ease;
 }
 
 .cuset-profile-badges {
@@ -141,34 +258,33 @@
 }
 
 .cuset-badge-client-type {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
-  border: 1px solid rgba(243, 156, 18, 0.15);
+  background: var(--bg-badge-client);
+  color: var(--badge-client-text);
+  border: 1px solid var(--border-medium);
 }
 
 .cuset-badge-member-since {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
-  border: 1px solid rgba(59, 130, 246, 0.15);
+  background: var(--bg-badge-since);
+  color: var(--badge-since-text);
+  border: 1px solid var(--border-medium);
 }
 
 /* ============================================
    FORM CONTAINER - Premium Glass
    ============================================ */
 .cuset-form-container {
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.5rem;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
 }
 
 .cuset-form-container:hover {
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.25);
 }
 
@@ -177,10 +293,11 @@
   align-items: center;
   justify-content: space-between;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 1.25rem;
   flex-wrap: wrap;
   gap: 0.75rem;
+  transition: border-color 0.3s ease;
 }
 
 .cuset-form-header h3 {
@@ -189,12 +306,13 @@
   gap: 0.5rem;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .cuset-form-header h3 svg {
-  color: #F39C12;
+  color: var(--icon-color);
 }
 
 /* ============================================
@@ -227,22 +345,23 @@
 .cuset-form-field label {
   font-size: 0.8rem;
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .cuset-form-field .cuset-required {
-  color: #EF4444;
+  color: var(--required-color);
 }
 
 .cuset-form-field input,
 .cuset-form-field textarea,
 .cuset-form-field select {
   padding: 0.6rem 0.875rem;
-  border: 1px solid #E5E7EB;
+  border: 1px solid var(--input-border);
   border-radius: 10px;
   font-size: 0.9rem;
-  color: #17212B;
-  background: #FFFFFF;
+  color: var(--text-primary);
+  background: var(--input-bg);
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
   width: 100%;
@@ -250,21 +369,21 @@
 
 .cuset-form-field input::placeholder,
 .cuset-form-field textarea::placeholder {
-  color: #98A2B3;
+  color: var(--text-muted);
 }
 
 .cuset-form-field input:focus,
 .cuset-form-field textarea:focus,
 .cuset-form-field select:focus {
   outline: none;
-  border-color: #F39C12;
-  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.08);
+  border-color: var(--icon-color);
+  box-shadow: 0 0 0 3px var(--input-focus);
 }
 
 .cuset-form-field input.error,
 .cuset-form-field textarea.error,
 .cuset-form-field select.error {
-  border-color: #EF4444;
+  border-color: var(--error-color);
 }
 
 .cuset-form-field input.error:focus,
@@ -279,18 +398,19 @@
 }
 
 .cuset-form-field select option {
-  background: #FFFFFF;
-  color: #17212B;
+  background: var(--bg-select-option);
+  color: var(--text-select-option);
 }
 
 .cuset-error-text {
   font-size: 0.75rem;
-  color: #EF4444;
+  color: var(--error-color);
 }
 
 .cuset-hint {
   font-size: 0.75rem;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -301,7 +421,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1.25rem;
-  background: #F39C12;
+  background: var(--icon-color);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -337,16 +457,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.25rem 1.5rem;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   flex-wrap: wrap;
   gap: 0.75rem;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .cuset-addresses-header h3 {
@@ -355,12 +475,13 @@
   gap: 0.5rem;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .cuset-addresses-header h3 svg {
-  color: #F39C12;
+  color: var(--icon-color);
 }
 
 .cuset-btn-add-address {
@@ -368,7 +489,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1.25rem;
-  background: #F39C12;
+  background: var(--icon-color);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -395,12 +516,11 @@
 }
 
 .cuset-address-card {
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.25rem;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
@@ -408,13 +528,13 @@
 }
 
 .cuset-address-card:hover {
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuset-address-card.cuset-primary {
-  border-color: #F39C12;
-  background: rgba(243, 156, 18, 0.04);
+  border-color: var(--icon-color);
+  background: var(--bg-primary-address);
 }
 
 .cuset-primary-tag {
@@ -422,8 +542,8 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.2rem 0.75rem;
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
+  background: var(--bg-badge-client);
+  color: var(--badge-client-text);
   border-radius: 12px;
   font-size: 0.7rem;
   font-weight: 600;
@@ -433,12 +553,13 @@
 .cuset-address-label-tag {
   display: inline-block;
   padding: 0.15rem 0.75rem;
-  background: #F6F8F5;
-  color: #667085;
+  background: var(--bg-label-tag);
+  color: var(--label-tag-text);
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .cuset-address-text {
@@ -450,14 +571,16 @@
 
 .cuset-address-text p {
   font-size: 0.85rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
   line-height: 1.4;
+  transition: color 0.3s ease;
 }
 
 .cuset-address-text .cuset-zip {
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 0.8rem;
+  transition: color 0.3s ease;
 }
 
 .cuset-address-actions {
@@ -465,7 +588,8 @@
   gap: 0.5rem;
   flex-wrap: wrap;
   padding-top: 0.75rem;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .cuset-action-btn {
@@ -474,49 +598,52 @@
   gap: 0.3rem;
   padding: 0.3rem 0.75rem;
   background: transparent;
-  border: 1px solid #E5E7EB;
+  border: 1px solid var(--border-medium);
   border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
-  color: #667085;
+  color: var(--text-secondary);
 }
 
 .cuset-action-btn:hover {
-  border-color: #D1D5DB;
-  color: #17212B;
+  border-color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 .cuset-primary-action {
-  color: #D97706;
+  color: var(--text-primary-action);
   border-color: rgba(243, 156, 18, 0.15);
 }
 
 .cuset-primary-action:hover {
   background: rgba(243, 156, 18, 0.08);
-  border-color: #F39C12;
+  border-color: var(--icon-color);
+  color: var(--text-primary-action-hover);
 }
 
 .cuset-edit-action {
-  color: #2563EB;
+  color: var(--text-edit);
   border-color: rgba(59, 130, 246, 0.15);
 }
 
 .cuset-edit-action:hover {
   background: rgba(59, 130, 246, 0.08);
-  border-color: #3B82F6;
+  border-color: var(--text-edit-hover);
+  color: var(--text-edit-hover);
 }
 
 .cuset-delete-action {
-  color: #DC2626;
+  color: var(--text-danger);
   border-color: rgba(239, 68, 68, 0.15);
 }
 
 .cuset-delete-action:hover {
   background: rgba(239, 68, 68, 0.08);
-  border-color: #EF4444;
+  border-color: var(--text-danger-hover);
+  color: var(--text-danger-hover);
 }
 
 /* ============================================
@@ -525,32 +652,35 @@
 .cuset-empty-addresses {
   text-align: center;
   padding: 3rem 1.5rem;
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .cuset-empty-icon {
   font-size: 2.5rem;
-  color: #D1D5DB;
+  color: var(--text-muted);
   margin-bottom: 0.75rem;
+  transition: color 0.3s ease;
 }
 
 .cuset-empty-addresses h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
+  transition: color 0.3s ease;
 }
 
 .cuset-empty-addresses p {
   font-size: 0.875rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 1rem 0;
+  transition: color 0.3s ease;
 }
 
 .cuset-btn-add-first {
@@ -558,7 +688,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1.5rem;
-  background: #F39C12;
+  background: var(--icon-color);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -586,7 +716,7 @@
   bottom: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(23, 33, 43, 0.5);
+  background: var(--overlay-bg);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
@@ -604,13 +734,13 @@
 }
 
 .cuset-modal-content {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-modal);
+  border: 1px solid var(--border-card);
   border-radius: 18px;
   width: 100%;
   max-width: 560px;
   max-height: 90vh;
-  box-shadow: 0 20px 60px rgba(23, 33, 43, 0.2);
+  box-shadow: var(--shadow-modal);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   animation: cuset-slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -619,6 +749,7 @@
   overflow: hidden;
   position: relative;
   z-index: 100000;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 @keyframes cuset-slideUp {
@@ -640,15 +771,17 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
+  transition: border-color 0.3s ease;
 }
 
 .cuset-modal-header h3 {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .cuset-modal-close {
@@ -657,7 +790,7 @@
   background: none;
   border: none;
   font-size: 1.1rem;
-  color: #98A2B3;
+  color: var(--text-muted);
   cursor: pointer;
   border-radius: 50%;
   display: flex;
@@ -667,8 +800,8 @@
 }
 
 .cuset-modal-close:hover {
-  background: rgba(23, 33, 43, 0.04);
-  color: #17212B;
+  background: var(--bg-hover-light);
+  color: var(--text-primary);
 }
 
 /* Modal Body */
@@ -689,8 +822,9 @@
   gap: 0.75rem;
   justify-content: flex-end;
   padding: 1rem 1.5rem 1.5rem 1.5rem;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--border-color);
   flex-shrink: 0;
+  transition: border-color 0.3s ease;
 }
 
 /* ============================================
@@ -717,21 +851,22 @@
 .cuset-modal-field label {
   font-size: 0.8rem;
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .cuset-modal-field .cuset-required {
-  color: #EF4444;
+  color: var(--required-color);
 }
 
 .cuset-modal-field input,
 .cuset-modal-field select {
   padding: 0.6rem 0.875rem;
-  border: 1px solid #E5E7EB;
+  border: 1px solid var(--input-border);
   border-radius: 10px;
   font-size: 0.9rem;
-  color: #17212B;
-  background: #FFFFFF;
+  color: var(--text-primary);
+  background: var(--input-bg);
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
   width: 100%;
@@ -740,13 +875,13 @@
 .cuset-modal-field input:focus,
 .cuset-modal-field select:focus {
   outline: none;
-  border-color: #F39C12;
-  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.08);
+  border-color: var(--icon-color);
+  box-shadow: 0 0 0 3px var(--input-focus);
 }
 
 .cuset-modal-field input.error,
 .cuset-modal-field select.error {
-  border-color: #EF4444;
+  border-color: var(--error-color);
 }
 
 .cuset-modal-field input.error:focus,
@@ -755,18 +890,19 @@
 }
 
 .cuset-modal-field select option {
-  background: #FFFFFF;
-  color: #17212B;
+  background: var(--bg-select-option);
+  color: var(--text-select-option);
 }
 
 .cuset-modal-field .cuset-hint {
   font-size: 0.75rem;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .cuset-modal-field .cuset-error-text {
   font-size: 0.75rem;
-  color: #EF4444;
+  color: var(--error-color);
 }
 
 .cuset-checkbox-field {
@@ -780,15 +916,16 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: #667085;
+  color: var(--text-secondary);
   cursor: pointer;
   padding-bottom: 0.4rem;
+  transition: color 0.3s ease;
 }
 
 .cuset-checkbox-label input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  accent-color: #F39C12;
+  accent-color: var(--icon-color);
   cursor: pointer;
 }
 
@@ -798,23 +935,23 @@
 .cuset-btn-cancel {
   padding: 0.6rem 1.25rem;
   background: transparent;
-  border: 1px solid #E5E7EB;
+  border: 1px solid var(--border-medium);
   border-radius: 10px;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
 }
 
 .cuset-btn-cancel:hover {
-  background: #F6F8F5;
+  background: var(--bg-hover);
 }
 
 .cuset-btn-submit {
   padding: 0.6rem 1.5rem;
-  background: #F39C12;
+  background: var(--icon-color);
   border: none;
   border-radius: 10px;
   font-size: 0.875rem;
@@ -846,25 +983,27 @@
 
 .cuset-confirm-icon {
   font-size: 2.5rem;
-  color: #F39C12;
+  color: var(--confirm-icon);
   margin-bottom: 0.75rem;
 }
 
 .cuset-confirm-body p {
   font-size: 0.95rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 0.75rem 0;
+  transition: color 0.3s ease;
 }
 
 .cuset-address-preview-box {
-  background: #F6F8F5;
-  border: 1px solid #EEF0ED;
+  background: var(--bg-address-preview);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 0.75rem 1rem;
   font-size: 0.85rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin-bottom: 1.25rem;
   word-break: break-word;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 .cuset-confirm-actions {
@@ -878,7 +1017,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1.5rem;
-  background: #EF4444;
+  background: var(--bg-delete);
   border: none;
   border-radius: 10px;
   font-size: 0.875rem;
@@ -890,7 +1029,7 @@
 }
 
 .cuset-btn-delete:hover {
-  background: #DC2626;
+  background: var(--bg-delete-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
@@ -901,7 +1040,7 @@
 .cuset-skeleton-line {
   border-radius: 6px;
   animation: cuset-shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #F1F2F4 25%, #E5E7EB 50%, #F1F2F4 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -930,8 +1069,8 @@
 }
 
 .cuset-skeleton-card {
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.5rem;
   backdrop-filter: blur(12px);
@@ -944,7 +1083,7 @@
   border-radius: 10px;
   margin-bottom: 0.75rem;
   animation: cuset-shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #F1F2F4 25%, #E5E7EB 50%, #F1F2F4 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -1254,7 +1393,7 @@
   .cuset-skeleton-line,
   .cuset-skeleton-input {
     animation: none !important;
-    background: #F1F2F4 !important;
+    background: var(--skeleton-bg) !important;
   }
 
   .cuset-modal-overlay {

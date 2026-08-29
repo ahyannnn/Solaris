@@ -1,4 +1,4 @@
-// src/pages/Admin/SiteAssessment.jsx - Redesigned with Dark Solar Theme
+// src/pages/Admin/SiteAssessment.jsx - Redesigned with Dark/Light Solar Theme Support
 import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -634,14 +634,14 @@ const SiteAssessment = () => {
     return <SkeletonLoader />;
   }
 
-  /* --- Recharts Custom Tooltip --- */
+  /* --- Recharts Custom Tooltip - Uses CSS variables for theming --- */
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
         <div className="recharts-custom-tooltip-adminbills_">
           <p className="tooltip-label-adminbills_">{label}</p>
           {payload.map((entry, idx) => (
-            <p key={idx} className="tooltip-item-adminbills_" style={{ color: entry.color }}>
+            <p key={idx} className="tooltip-item-adminbills_">
               {entry.name}: {entry.value}
             </p>
           ))}
@@ -662,11 +662,8 @@ const SiteAssessment = () => {
 
       <div className="site-assessment-adminbills_">
         {/* --- Minimalist Header (No Title Text) --- */}
-        <div className="header-adminbills_">
-          <div></div>
-        </div>
+       
 
-        {/* --- Analytics Chart (Placed 1st) --- */}
         {/* --- Analytics Chart (Placed 1st) --- */}
         <div className="chart-area-adminbills_">
           <div className="chart-header-adminbills_">
@@ -686,21 +683,21 @@ const SiteAssessment = () => {
                     <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#EEF0ED" />
+                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="var(--border-color, #EEF0ED)" />
                 <XAxis
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                  tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 12, fontWeight: 500 }}
                   dy={10}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                  tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 12, fontWeight: 500 }}
                   width={40}
                 />
-                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#D1D5DB', strokeWidth: 1 }} />
+                <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-color, #D1D5DB)', strokeWidth: 1 }} />
                 <Area
                   type="monotone"
                   dataKey="quotes"
@@ -709,7 +706,7 @@ const SiteAssessment = () => {
                   strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#colorQuotes)"
-                  dot={{ r: 4, fill: '#F39C12', strokeWidth: 2, stroke: '#FFFFFF' }}
+                  dot={{ r: 4, fill: '#F39C12', strokeWidth: 2, stroke: 'var(--bg-card, #FFFFFF)' }}
                   activeDot={{ r: 6 }}
                 />
                 <Area
@@ -720,7 +717,7 @@ const SiteAssessment = () => {
                   strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#colorAssessments)"
-                  dot={{ r: 4, fill: '#10B981', strokeWidth: 2, stroke: '#FFFFFF' }}
+                  dot={{ r: 4, fill: '#10B981', strokeWidth: 2, stroke: 'var(--bg-card, #FFFFFF)' }}
                   activeDot={{ r: 6 }}
                 />
               </AreaChart>

@@ -394,13 +394,13 @@ const IoTDevice = () => {
     return pages;
   };
 
-  /* --- Recharts Custom Tooltip --- */
+  /* --- Recharts Custom Tooltip - Uses CSS variables for theming --- */
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
         <div className="recharts-custom-tooltip-iotdevice">
           <p className="tooltip-label-iotdevice">{label}</p>
-          <p className="tooltip-item-iotdevice" style={{ color: payload[0].color }}>
+          <p className="tooltip-item-iotdevice">
             Count: {payload[0].value}
           </p>
         </div>
@@ -454,7 +454,6 @@ const IoTDevice = () => {
 
 
         {/* --- CHART: 4 Separate Bars with Glass Gradients --- */}
-        {/* --- CHART: 4 Separate Bars with Glass Gradients - LIGHT THEME --- */}
         <div className="iot-chart-area-iotdevice">
           <div className="iot-chart-header-iotdevice">
             <h3>Device Status Distribution</h3>
@@ -464,7 +463,7 @@ const IoTDevice = () => {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
-                  {/* Gradients for Glass Effect - Light Theme */}
+                  {/* Gradients for Glass Effect */}
                   <linearGradient id="colorAvailable" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0.2} />
@@ -482,24 +481,24 @@ const IoTDevice = () => {
                     <stop offset="95%" stopColor="#ef4444" stopOpacity={0.2} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#EEF0ED" />
+                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="var(--border-color, #EEF0ED)" />
                 <XAxis
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                  tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 12, fontWeight: 500 }}
                   dy={10}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                  tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 12, fontWeight: 500 }}
                   width={40}
                   allowDecimals={false}
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
 
-                {/* 4 Magkakahiwalay na Bar na may iba't ibang kulay */}
+                {/* 4 Separate Bars with different colors */}
                 <Bar dataKey="count" fill="url(#colorAvailable)" radius={[4, 4, 0, 0]} barSize={35} />
 
               </BarChart>

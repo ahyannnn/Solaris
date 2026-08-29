@@ -1,32 +1,307 @@
-/* styles/Admin/usermanagement.css - Light Solar Theme for User Management */
+/* styles/Admin/usermanagement.css - Unified Light/Dark Solar Theme for User Management */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE LAYOUT - LIGHT SOLAR
+   CSS VARIABLES - LIGHT MODE (Default)
    ============================================ */
-.user-management-usermanagement {
-  background: #F3F5F1;
-  min-height: 100vh;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #17212B;
+:root {
+  --bg-primary: #F3F5F1;
+  --bg-card: rgba(255, 255, 255, 0.86);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: rgba(0, 0, 0, 0.02);
+  --bg-section: rgba(255, 255, 255, 0.5);
+  --bg-table-header: rgba(255, 255, 255, 0.5);
+  --bg-table-row-hover: rgba(255, 255, 255, 0.3);
+  --bg-modal: rgba(255, 255, 255, 0.98);
+  --bg-input: rgba(255, 255, 255, 0.5);
+  --bg-tabs: rgba(255, 255, 255, 0.86);
+  --bg-filter: rgba(255, 255, 255, 0.86);
+  --bg-dropdown: rgba(255, 255, 255, 0.98);
+  --bg-select-option: #FFFFFF;
+  --bg-avatar: rgba(243, 156, 18, 0.12);
+  --bg-user-info: #F3F5F1;
+  --bg-confirm: #F3F5F1;
+  --bg-module: #F3F5F1;
+  --bg-action: #F3F5F1;
+  --text-primary: #17212B;
+  --text-secondary: #667085;
+  --text-muted: #98A2B3;
+  --text-white: #17212B;
+  --text-dark: #17212B;
+  --border-color: #EEF0ED;
+  --border-card: rgba(255, 255, 255, 0.9);
+  --border-medium: #E5E7EB;
+  --border-input: #EEF0ED;
+  --border-modal: #EEF0ED;
+  --border-dropdown: #EEF0ED;
+  --shadow-card: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  --shadow-card-hover: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.15);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.12);
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+  --skeleton-bg: #EEF0ED;
+  --skeleton-gradient: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  --icon-color: #F39C12;
+  --icon-info: #2563EB;
+  --icon-success: #059669;
+  --icon-danger: #DC2626;
+  --icon-warning: #D97706;
+  --text-danger: #DC2626;
+  --text-danger-hover: #EF4444;
+  --text-edit: #2563EB;
+  --text-edit-hover: #3B82F6;
+  --text-success: #059669;
+  --text-success-hover: #10B981;
+  --btn-primary-bg: #10B981;
+  --btn-primary-hover: #059669;
+  --btn-danger-bg: #EF4444;
+  --btn-danger-hover: #DC2626;
+  --btn-cancel-bg: rgba(255, 255, 255, 0.5);
+  --btn-cancel-hover: rgba(0, 0, 0, 0.05);
+  --role-admin-bg: rgba(239, 68, 68, 0.10);
+  --role-admin-text: #DC2626;
+  --role-engineer-bg: rgba(59, 130, 246, 0.10);
+  --role-engineer-text: #2563EB;
+  --role-user-bg: rgba(16, 185, 129, 0.10);
+  --role-user-text: #059669;
+  --status-active-bg: rgba(16, 185, 129, 0.10);
+  --status-active-text: #059669;
+  --status-inactive-bg: rgba(239, 68, 68, 0.10);
+  --status-inactive-text: #DC2626;
+  --dropdown-item-hover: rgba(0, 0, 0, 0.03);
+  --dropdown-item-primary-hover: rgba(59, 130, 246, 0.10);
+  --dropdown-item-warning-hover: rgba(243, 156, 18, 0.10);
+  --dropdown-item-danger-hover: rgba(239, 68, 68, 0.10);
+  --dropdown-item-success-hover: rgba(16, 185, 129, 0.10);
+  --required-color: #EF4444;
+  --error-color: #DC2626;
+  --avatar-initials: #D97706;
+  --avatar-icon: #D1D5DB;
+  --email-icon: #D1D5DB;
+  --timestamp-icon: #D1D5DB;
+  --confirm-icon-color: #F39C12;
+  --warning-text-color: #DC2626;
+  --password-toggle-color: #98A2B3;
+  --password-toggle-hover: #667085;
+  --stat-admin-bg: rgba(239, 68, 68, 0.10);
+  --stat-admin-color: #DC2626;
+  --stat-engineer-bg: rgba(59, 130, 246, 0.10);
+  --stat-engineer-color: #2563EB;
+  --stat-customer-bg: rgba(16, 185, 129, 0.10);
+  --stat-customer-color: #059669;
+  --stat-total-bg: rgba(243, 156, 18, 0.10);
+  --stat-total-color: #F39C12;
 }
 
 /* ============================================
-   HEADER - LIGHT
+   CSS VARIABLES - DARK MODE
+   ============================================ */
+body.dark-mode {
+  --bg-primary: #0B111A;
+  --bg-card: #1A2533;
+  --bg-card-hover: #1F2C3D;
+  --bg-surface: #131C28;
+  --bg-elevated: #1A2533;
+  --bg-hover: rgba(255, 255, 255, 0.03);
+  --bg-section: rgba(255, 255, 255, 0.05);
+  --bg-table-header: rgba(255, 255, 255, 0.05);
+  --bg-table-row-hover: rgba(255, 255, 255, 0.03);
+  --bg-modal: rgba(26, 37, 51, 0.98);
+  --bg-input: rgba(255, 255, 255, 0.05);
+  --bg-tabs: #1A2533;
+  --bg-filter: #1A2533;
+  --bg-dropdown: #1A2533;
+  --bg-select-option: #1A2533;
+  --bg-avatar: rgba(243, 156, 18, 0.12);
+  --bg-user-info: #131C28;
+  --bg-confirm: #131C28;
+  --bg-module: #131C28;
+  --bg-action: #131C28;
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-white: #FFFFFF;
+  --text-dark: #FFFFFF;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.08);
+  --border-input: rgba(255, 255, 255, 0.06);
+  --border-modal: rgba(255, 255, 255, 0.06);
+  --border-dropdown: rgba(255, 255, 255, 0.06);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.4);
+  --overlay-bg: rgba(0, 0, 0, 0.8);
+  --skeleton-bg: #131C28;
+  --skeleton-gradient: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  --icon-color: #F39C12;
+  --icon-info: #3B82F6;
+  --icon-success: #10B981;
+  --icon-danger: #EF4444;
+  --icon-warning: #F39C12;
+  --text-danger: #EF4444;
+  --text-danger-hover: #EF4444;
+  --text-edit: #3B82F6;
+  --text-edit-hover: #3B82F6;
+  --text-success: #10B981;
+  --text-success-hover: #10B981;
+  --btn-primary-bg: #10B981;
+  --btn-primary-hover: #059669;
+  --btn-danger-bg: #EF4444;
+  --btn-danger-hover: #DC2626;
+  --btn-cancel-bg: rgba(255, 255, 255, 0.05);
+  --btn-cancel-hover: rgba(255, 255, 255, 0.1);
+  --role-admin-bg: rgba(239, 68, 68, 0.12);
+  --role-admin-text: #EF4444;
+  --role-engineer-bg: rgba(59, 130, 246, 0.12);
+  --role-engineer-text: #3B82F6;
+  --role-user-bg: rgba(16, 185, 129, 0.12);
+  --role-user-text: #10B981;
+  --status-active-bg: rgba(16, 185, 129, 0.12);
+  --status-active-text: #10B981;
+  --status-inactive-bg: rgba(239, 68, 68, 0.12);
+  --status-inactive-text: #EF4444;
+  --dropdown-item-hover: rgba(255, 255, 255, 0.03);
+  --dropdown-item-primary-hover: rgba(59, 130, 246, 0.12);
+  --dropdown-item-warning-hover: rgba(243, 156, 18, 0.12);
+  --dropdown-item-danger-hover: rgba(239, 68, 68, 0.12);
+  --dropdown-item-success-hover: rgba(16, 185, 129, 0.12);
+  --required-color: #EF4444;
+  --error-color: #EF4444;
+  --avatar-initials: #F39C12;
+  --avatar-icon: rgba(255, 255, 255, 0.2);
+  --email-icon: rgba(255, 255, 255, 0.2);
+  --timestamp-icon: rgba(255, 255, 255, 0.2);
+  --confirm-icon-color: #F39C12;
+  --warning-text-color: #EF4444;
+  --password-toggle-color: rgba(255, 255, 255, 0.4);
+  --password-toggle-hover: rgba(255, 255, 255, 0.6);
+  --stat-admin-bg: rgba(239, 68, 68, 0.12);
+  --stat-admin-color: #EF4444;
+  --stat-engineer-bg: rgba(59, 130, 246, 0.12);
+  --stat-engineer-color: #3B82F6;
+  --stat-customer-bg: rgba(16, 185, 129, 0.12);
+  --stat-customer-color: #10B981;
+  --stat-total-bg: rgba(243, 156, 18, 0.12);
+  --stat-total-color: #F39C12;
+}
+
+/* ============================================
+   BASE LAYOUT
+   ============================================ */
+.user-management-usermanagement {
+  background: var(--bg-primary);
+  min-height: 100vh;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* ============================================
+   HEADER
    ============================================ */
 .user-management-header-usermanagement {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 24px;
   flex-wrap: wrap;
+  transition: border-color 0.3s ease;
 }
 
 /* ============================================
-   TABS + BUTTONS WRAPPER - LIGHT GLASS
+   USER STATS CARDS - Premium Glass
+   ============================================ */
+.user-stats-grid-usermanagement {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.user-stat-card-usermanagement {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 200ms ease;
+}
+
+.user-stat-card-usermanagement:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: rgba(243, 156, 18, 0.25);
+}
+
+.user-stat-icon-usermanagement {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.user-stat-icon-usermanagement.admin {
+  background: var(--stat-admin-bg);
+  color: var(--stat-admin-color);
+}
+
+.user-stat-icon-usermanagement.engineer {
+  background: var(--stat-engineer-bg);
+  color: var(--stat-engineer-color);
+}
+
+.user-stat-icon-usermanagement.customer {
+  background: var(--stat-customer-bg);
+  color: var(--stat-customer-color);
+}
+
+.user-stat-icon-usermanagement.total {
+  background: var(--stat-total-bg);
+  color: var(--stat-total-color);
+}
+
+.user-stat-content-usermanagement {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-stat-value-usermanagement {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  transition: color 0.3s ease;
+}
+
+.user-stat-label-usermanagement {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: color 0.3s ease;
+}
+
+/* ============================================
+   TABS + BUTTONS WRAPPER
    ============================================ */
 .user-tabs-wrapper-usermanagement {
   display: flex;
@@ -41,14 +316,15 @@
   display: inline-flex;
   gap: 6px;
   flex-wrap: wrap;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-tabs);
   padding: 6px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   width: auto;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .tab-btn-usermanagement {
@@ -58,7 +334,7 @@
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #98A2B3;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 200ms ease;
   display: inline-flex;
@@ -69,12 +345,12 @@
 }
 
 .tab-btn-usermanagement:hover {
-  color: #17212B;
-  background: rgba(255, 255, 255, 0.5);
+  color: var(--text-primary);
+  background: var(--bg-hover);
 }
 
 .tab-btn-usermanagement.active-usermanagement {
-  background: #F39C12;
+  background: var(--icon-color);
   color: #FFFFFF;
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
 }
@@ -87,10 +363,11 @@
   height: 22px;
   padding: 0 8px;
   border-radius: 20px;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--bg-hover);
   font-size: 12px;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .tab-btn-usermanagement.active-usermanagement .tab-badge-usermanagement {
@@ -110,7 +387,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 24px;
-  background: #F39C12;
+  background: var(--icon-color);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -134,9 +411,9 @@
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  background: var(--bg-section);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -147,13 +424,13 @@
 }
 
 .refresh-btn-usermanagement:hover {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: #D1D5DB;
-  color: #17212B;
+  background: var(--bg-card-hover);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 /* ============================================
-   FILTERS - LIGHT
+   FILTERS
    ============================================ */
 .user-filters-section-usermanagement {
   display: flex;
@@ -173,25 +450,25 @@
 .search-box-usermanagement input {
   width: 100%;
   padding: 10px 14px 10px 40px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 10px;
   font-size: 14px;
-  color: #17212B;
+  color: var(--text-primary);
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 .search-box-usermanagement input::placeholder {
-  color: #98A2B3;
+  color: var(--text-muted);
 }
 
 .search-box-usermanagement input:focus {
   outline: none;
-  border-color: #F39C12;
+  border-color: var(--icon-color);
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 
@@ -200,8 +477,9 @@
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 .filter-role-usermanagement {
@@ -212,40 +490,41 @@
 .filter-role-usermanagement select {
   width: 100%;
   padding: 10px 36px 10px 14px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 10px;
   font-size: 14px;
-  color: #17212B;
+  color: var(--text-primary);
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
   appearance: none;
   transition: all 200ms ease;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 .filter-role-usermanagement select:focus {
   outline: none;
-  border-color: #F39C12;
+  border-color: var(--icon-color);
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 
 .filter-role-usermanagement select option {
-  background: #FFFFFF;
-  color: #17212B;
+  background: var(--bg-select-option);
+  color: var(--text-primary);
 }
 
 /* ============================================
-   TABLE - LIGHT GLASS
+   TABLE
    ============================================ */
 .users-table-container-usermanagement {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   overflow: hidden;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .users-table-usermanagement {
@@ -255,7 +534,7 @@
 }
 
 .users-table-usermanagement thead {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-table-header);
 }
 
 .users-table-usermanagement thead th {
@@ -265,13 +544,14 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #98A2B3;
-  border-bottom: 1px solid #EEF0ED;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .users-table-usermanagement tbody tr {
-  border-bottom: 1px solid #EEF0ED;
-  transition: background 200ms ease;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 200ms ease, border-color 0.3s ease;
 }
 
 .users-table-usermanagement tbody tr:last-child {
@@ -279,16 +559,17 @@
 }
 
 .users-table-usermanagement tbody tr:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--bg-table-row-hover);
 }
 
 .users-table-usermanagement tbody td {
   padding: 14px 16px;
   vertical-align: middle;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
-/* User Cell - LIGHT */
+/* User Cell */
 .user-cell-content-usermanagement {
   display: flex;
   align-items: center;
@@ -299,11 +580,12 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(243, 156, 18, 0.12);
+  background: var(--bg-avatar);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: background 0.3s ease;
 }
 
 .user-avatar-usermanagement.small-avatar-usermanagement {
@@ -314,17 +596,20 @@
 .avatar-initials-usermanagement {
   font-size: 14px;
   font-weight: 600;
-  color: #D97706;
+  color: var(--avatar-initials);
+  transition: color 0.3s ease;
 }
 
 .avatar-icon-usermanagement {
   font-size: 24px;
-  color: #D1D5DB;
+  color: var(--avatar-icon);
+  transition: color 0.3s ease;
 }
 
 .user-name-usermanagement {
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .email-cell-usermanagement {
@@ -335,15 +620,17 @@
 
 .email-icon-usermanagement {
   font-size: 13px;
-  color: #D1D5DB;
+  color: var(--email-icon);
+  transition: color 0.3s ease;
 }
 
 .email-text-usermanagement {
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   ROLE BADGES - LIGHT THEME
+   ROLE BADGES
    ============================================ */
 .role-badge-usermanagement {
   display: inline-block;
@@ -357,25 +644,25 @@
 }
 
 .role-badge-usermanagement.admin {
-  background: rgba(239, 68, 68, 0.10);
-  color: #DC2626;
-  border: 1px solid rgba(239, 68, 68, 0.20);
+  background: var(--role-admin-bg);
+  color: var(--role-admin-text);
+  border: 1px solid var(--border-medium);
 }
 
 .role-badge-usermanagement.engineer {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
-  border: 1px solid rgba(59, 130, 246, 0.20);
+  background: var(--role-engineer-bg);
+  color: var(--role-engineer-text);
+  border: 1px solid var(--border-medium);
 }
 
 .role-badge-usermanagement.user {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--role-user-bg);
+  color: var(--role-user-text);
+  border: 1px solid var(--border-medium);
 }
 
 /* ============================================
-   STATUS BADGES - LIGHT THEME
+   STATUS BADGES
    ============================================ */
 .status-badge-usermanagement {
   display: inline-flex;
@@ -391,33 +678,34 @@
 }
 
 .status-badge-usermanagement.active {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--status-active-bg);
+  color: var(--status-active-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-usermanagement.inactive {
-  background: rgba(239, 68, 68, 0.10);
-  color: #DC2626;
-  border: 1px solid rgba(239, 68, 68, 0.20);
+  background: var(--status-inactive-bg);
+  color: var(--status-inactive-text);
+  border: 1px solid var(--border-medium);
 }
 
 /* ============================================
-   MODULE BADGE - LIGHT
+   MODULE BADGE
    ============================================ */
 .module-badge-usermanagement {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 12px;
-  background: #F3F5F1;
+  background: var(--bg-module);
   border-radius: 6px;
   font-size: 12px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ============================================
-   ACTION BADGE - LIGHT
+   ACTION BADGE
    ============================================ */
 .action-badge-usermanagement {
   display: inline-block;
@@ -427,28 +715,31 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  background: #F3F5F1;
-  color: #98A2B3;
+  background: var(--bg-action);
+  color: var(--text-muted);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ============================================
-   TIMESTAMP CELL - LIGHT
+   TIMESTAMP CELL
    ============================================ */
 .timestamp-cell-usermanagement {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .timestamp-icon-usermanagement {
   font-size: 12px;
-  color: #D1D5DB;
+  color: var(--timestamp-icon);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   ACTION DROPDOWN - LIGHT
+   ACTION DROPDOWN
    ============================================ */
 .action-dropdown-container-usermanagement {
   position: relative;
@@ -460,9 +751,9 @@
   align-items: center;
   gap: 8px;
   padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  background: var(--bg-section);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
@@ -472,9 +763,9 @@
 }
 
 .action-dropdown-toggle-usermanagement:hover {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: #D1D5DB;
-  color: #17212B;
+  background: var(--bg-card-hover);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 .dropdown-arrow-usermanagement {
@@ -489,14 +780,15 @@
 .action-dropdown-menu-usermanagement {
   min-width: 180px;
   max-width: 220px;
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid #EEF0ED;
+  background: var(--bg-dropdown);
+  border: 1px solid var(--border-dropdown);
   border-radius: 10px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-dropdown);
   padding: 6px;
   overflow: hidden;
   max-height: 300px;
   overflow-y: auto;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .action-dropdown-menu-usermanagement::-webkit-scrollbar {
@@ -509,7 +801,7 @@
 }
 
 .action-dropdown-menu-usermanagement::-webkit-scrollbar-thumb {
-  background: #F39C12;
+  background: var(--icon-color);
   border-radius: 4px;
 }
 
@@ -527,61 +819,63 @@
   text-align: left;
   transition: all 150ms ease;
   font-family: 'Poppins', sans-serif;
-  color: #667085;
+  color: var(--text-secondary);
 }
 
 .dropdown-item-usermanagement:hover {
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--dropdown-item-hover);
+  color: var(--text-primary);
 }
 
 .dropdown-item-usermanagement.primary {
-  color: #2563EB;
+  color: var(--text-edit);
 }
 
 .dropdown-item-usermanagement.primary:hover {
-  background: rgba(59, 130, 246, 0.10);
+  background: var(--dropdown-item-primary-hover);
 }
 
 .dropdown-item-usermanagement.warning {
-  color: #D97706;
+  color: var(--icon-warning);
 }
 
 .dropdown-item-usermanagement.warning:hover {
-  background: rgba(243, 156, 18, 0.10);
+  background: var(--dropdown-item-warning-hover);
 }
 
 .dropdown-item-usermanagement.danger {
-  color: #DC2626;
+  color: var(--text-danger);
 }
 
 .dropdown-item-usermanagement.danger:hover {
-  background: rgba(239, 68, 68, 0.10);
+  background: var(--dropdown-item-danger-hover);
 }
 
 .dropdown-item-usermanagement.success {
-  color: #059669;
+  color: var(--text-success);
 }
 
 .dropdown-item-usermanagement.success:hover {
-  background: rgba(16, 185, 129, 0.10);
+  background: var(--dropdown-item-success-hover);
 }
 
 /* ============================================
-   EMPTY STATE - LIGHT
+   EMPTY STATE
    ============================================ */
 .empty-state-usermanagement {
   text-align: center;
   padding: 48px 20px;
-  color: #98A2B3;
+  color: var(--text-muted);
 }
 
 .empty-state-usermanagement p {
   margin: 0;
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   PAGINATION - LIGHT
+   PAGINATION
    ============================================ */
 .pagination-usermanagement {
   display: flex;
@@ -594,7 +888,8 @@
 
 .pagination-info-usermanagement {
   font-size: 13px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .pagination-controls-usermanagement {
@@ -610,8 +905,8 @@
   gap: 6px;
   padding: 8px 16px;
   background: transparent;
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -621,9 +916,9 @@
 }
 
 .page-btn-usermanagement:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.5);
-  border-color: #D1D5DB;
-  color: #17212B;
+  background: var(--bg-section);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 .page-btn-usermanagement:disabled {
@@ -639,7 +934,7 @@
   justify-content: center;
   padding: 0 8px;
   background: transparent;
-  color: #667085;
+  color: var(--text-secondary);
   border: 1px solid transparent;
   border-radius: 8px;
   font-size: 13px;
@@ -650,23 +945,23 @@
 }
 
 .page-number-usermanagement:hover {
-  background: rgba(255, 255, 255, 0.5);
-  color: #17212B;
+  background: var(--bg-section);
+  color: var(--text-primary);
 }
 
 .page-number-usermanagement.active-usermanagement {
-  background: #F39C12;
+  background: var(--icon-color);
   color: #FFFFFF;
-  border-color: #F39C12;
+  border-color: var(--icon-color);
 }
 
 /* ============================================
-   MODALS - LIGHT GLASS
+   MODALS
    ============================================ */
 .modal-overlay-usermanagement {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -676,16 +971,17 @@
 }
 
 .modal-content-usermanagement {
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--bg-modal);
   border-radius: 18px;
   max-width: 560px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  border: 1px solid #EEF0ED;
+  box-shadow: var(--shadow-modal);
+  border: 1px solid var(--border-modal);
   position: relative;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .modal-content-usermanagement.user-modal-usermanagement.view {
@@ -703,26 +999,28 @@
 
 .modal-header-usermanagement {
   padding: 20px 24px 16px 24px;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  transition: border-color 0.3s ease;
 }
 
 .modal-header-usermanagement h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .modal-close-usermanagement {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
-  color: #98A2B3;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
   font-size: 24px;
   cursor: pointer;
   display: flex;
@@ -735,8 +1033,8 @@
 
 .modal-close-usermanagement:hover {
   background: rgba(239, 68, 68, 0.10);
-  border-color: #EF4444;
-  color: #EF4444;
+  border-color: var(--text-danger);
+  color: var(--text-danger);
 }
 
 .modal-body-usermanagement {
@@ -755,21 +1053,22 @@
 }
 
 .modal-body-usermanagement::-webkit-scrollbar-thumb {
-  background: #F39C12;
+  background: var(--icon-color);
   border-radius: 4px;
 }
 
 .modal-actions-usermanagement {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--border-color);
   display: flex;
   gap: 12px;
   justify-content: flex-end;
   flex-wrap: wrap;
+  transition: border-color 0.3s ease;
 }
 
 /* ============================================
-   USER DETAILS VIEW - LIGHT
+   USER DETAILS VIEW
    ============================================ */
 .user-details-view-usermanagement {
   display: flex;
@@ -784,19 +1083,21 @@
 .detail-section-usermanagement h4 {
   font-size: 13px;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   margin: 0 0 10px 0;
   padding-bottom: 8px;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .detail-row-usermanagement {
   display: flex;
   justify-content: space-between;
   padding: 6px 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .detail-row-usermanagement:last-child {
@@ -804,17 +1105,19 @@
 }
 
 .detail-row-usermanagement span {
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 13px;
+  transition: color 0.3s ease;
 }
 
 .detail-row-usermanagement strong {
-  color: #17212B;
+  color: var(--text-primary);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   USER FORM - LIGHT
+   USER FORM
    ============================================ */
 .user-form-usermanagement {
   display: flex;
@@ -839,17 +1142,18 @@
 .form-group-usermanagement label {
   font-size: 13px;
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .form-group-usermanagement input,
 .form-group-usermanagement select {
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
   border-radius: 10px;
   font-size: 14px;
-  color: #17212B;
+  color: var(--text-primary);
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
   width: 100%;
@@ -858,12 +1162,12 @@
 .form-group-usermanagement input:focus,
 .form-group-usermanagement select:focus {
   outline: none;
-  border-color: #F39C12;
+  border-color: var(--icon-color);
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 
 .form-group-usermanagement input::placeholder {
-  color: #98A2B3;
+  color: var(--text-muted);
 }
 
 .form-group-usermanagement input:disabled {
@@ -873,7 +1177,7 @@
 
 .form-group-usermanagement input.error,
 .form-group-usermanagement select.error {
-  border-color: #EF4444;
+  border-color: var(--required-color);
 }
 
 .form-group-usermanagement input.error:focus,
@@ -883,20 +1187,21 @@
 
 .form-group-usermanagement small {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .form-group-usermanagement select option {
-  background: #FFFFFF;
-  color: #17212B;
+  background: var(--bg-select-option);
+  color: var(--text-primary);
 }
 
 .error-text-usermanagement {
   font-size: 12px;
-  color: #DC2626;
+  color: var(--error-color);
 }
 
-/* Password Input Wrapper - LIGHT */
+/* Password Input Wrapper */
 .password-input-wrapper-usermanagement {
   position: relative;
   display: flex;
@@ -914,7 +1219,7 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #98A2B3;
+  color: var(--password-toggle-color);
   cursor: pointer;
   padding: 4px;
   font-size: 18px;
@@ -923,37 +1228,40 @@
 }
 
 .password-toggle-btn-usermanagement:hover {
-  color: #667085;
+  color: var(--password-toggle-hover);
 }
 
 /* ============================================
-   USER INFO SUMMARY - LIGHT
+   USER INFO SUMMARY
    ============================================ */
 .user-info-summary-usermanagement {
-  background: #F3F5F1;
+  background: var(--bg-user-info);
   border-radius: 10px;
   padding: 12px 16px;
   margin-bottom: 16px;
+  transition: background 0.3s ease;
 }
 
 .user-info-summary-usermanagement p {
   margin: 4px 0;
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .user-info-summary-usermanagement p strong {
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   MODAL BUTTONS - LIGHT
+   MODAL BUTTONS
    ============================================ */
 .cancel-btn-usermanagement {
   padding: 10px 24px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #17212B;
-  border: 1px solid #EEF0ED;
+  background: var(--btn-cancel-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -963,12 +1271,12 @@
 }
 
 .cancel-btn-usermanagement:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--btn-cancel-hover);
 }
 
 .save-btn-usermanagement {
   padding: 10px 24px;
-  background: #10B981;
+  background: var(--btn-primary-bg);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -980,6 +1288,7 @@
 }
 
 .save-btn-usermanagement:hover:not(:disabled) {
+  background: var(--btn-primary-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
 }
@@ -992,7 +1301,7 @@
 
 .delete-btn-usermanagement {
   padding: 10px 24px;
-  background: #EF4444;
+  background: var(--btn-danger-bg);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -1004,6 +1313,7 @@
 }
 
 .delete-btn-usermanagement:hover:not(:disabled) {
+  background: var(--btn-danger-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
 }
@@ -1015,42 +1325,44 @@
 }
 
 /* ============================================
-   CONFIRM MODAL - LIGHT
+   CONFIRM MODAL
    ============================================ */
 .confirm-icon-usermanagement {
   font-size: 48px;
-  color: #F39C12;
+  color: var(--confirm-icon-color);
   margin: 8px 0 12px 0;
 }
 
 .confirm-modal-usermanagement h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 8px 0;
+  transition: color 0.3s ease;
 }
 
 .confirm-modal-usermanagement p {
   font-size: 14px;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 4px 0;
+  transition: color 0.3s ease;
 }
 
 .warning-text-usermanagement {
   font-size: 13px;
-  color: #DC2626 !important;
+  color: var(--warning-text-color) !important;
   margin-top: 8px !important;
 }
 
 /* ============================================
-   SKELETON LOADING - LIGHT
+   SKELETON LOADING
    ============================================ */
 .skeleton-line-large-usermanagement {
   height: 40px;
   width: 60%;
   border-radius: 6px;
   animation: shimmer-usermanagement 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -1059,7 +1371,7 @@
   width: 120px;
   border-radius: 8px;
   animation: shimmer-usermanagement 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -1067,9 +1379,9 @@
   height: 40px;
   width: 100px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   animation: shimmer-usermanagement 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -1077,17 +1389,17 @@
   height: 40px;
   width: 280px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   animation: shimmer-usermanagement 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
 .skeleton-table-usermanagement {
   height: 300px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
 }
 
 @keyframes shimmer-usermanagement {
@@ -1100,7 +1412,7 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN - UNCHANGED STRUCTURE
+   RESPONSIVE DESIGN
    ============================================ */
 
 @media (max-width: 1200px) {
@@ -1115,6 +1427,10 @@
   }
   .form-row-usermanagement {
     grid-template-columns: 1fr 1fr;
+  }
+  .user-stats-grid-usermanagement {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 }
 
@@ -1179,7 +1495,7 @@
   .users-table-usermanagement tbody td {
     display: block;
     padding: 8px 12px;
-    border-bottom: 1px solid #EEF0ED;
+    border-bottom: 1px solid var(--border-color);
   }
   .users-table-usermanagement tbody td:last-child {
     border-bottom: none;
@@ -1187,7 +1503,7 @@
   .users-table-usermanagement tbody td::before {
     content: attr(data-label);
     font-weight: 600;
-    color: #98A2B3;
+    color: var(--text-muted);
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -1197,7 +1513,7 @@
   .users-table-usermanagement tbody tr {
     display: block;
     padding: 8px 0;
-    border-bottom: 1px solid #EEF0ED;
+    border-bottom: 1px solid var(--border-color);
   }
   .users-table-usermanagement tbody tr:last-child {
     border-bottom: none;
@@ -1257,6 +1573,21 @@
   .detail-row-usermanagement strong {
     font-size: 13px;
   }
+  .user-stats-grid-usermanagement {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .user-stat-card-usermanagement {
+    padding: 14px 16px;
+  }
+  .user-stat-value-usermanagement {
+    font-size: 20px;
+  }
+  .user-stat-icon-usermanagement {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1295,16 +1626,52 @@
   .confirm-modal-usermanagement h3 {
     font-size: 18px;
   }
+  .user-stats-grid-usermanagement {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .user-stat-card-usermanagement {
+    padding: 12px;
+    border-radius: 10px;
+  }
+  .user-stat-value-usermanagement {
+    font-size: 17px;
+  }
+  .user-stat-label-usermanagement {
+    font-size: 11px;
+  }
+  .user-stat-icon-usermanagement {
+    width: 34px;
+    height: 34px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
 }
 
 @media (max-width: 360px) {
   .user-management-usermanagement {
     padding-inline: 6px;
   }
+  .user-stats-grid-usermanagement {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .user-stat-card-usermanagement {
+    padding: 8px 10px;
+    gap: 10px;
+  }
+  .user-stat-value-usermanagement {
+    font-size: 14px;
+  }
+  .user-stat-icon-usermanagement {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES - LIGHT
+   REDUCED MOTION PREFERENCES
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -1312,7 +1679,8 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  .users-table-usermanagement tbody tr:hover {
+  .users-table-usermanagement tbody tr:hover,
+  .user-stat-card-usermanagement:hover {
     transform: none !important;
   }
   .skeleton-line-large-usermanagement,
@@ -1320,7 +1688,7 @@
   .skeleton-tab-usermanagement,
   .skeleton-search-usermanagement {
     animation: none !important;
-    background: #EEF0ED !important;
+    background: var(--skeleton-bg) !important;
   }
   .create-user-btn-usermanagement:hover,
   .refresh-btn-usermanagement:hover,

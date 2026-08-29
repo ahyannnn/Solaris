@@ -424,14 +424,14 @@ const ProjectManagement = () => {
   };
 
   // ============================================
-  // CHART TOOLTIPS
+  // CHART TOOLTIPS - Uses CSS variables for theming
   // ============================================
   const StatusTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
         <div className="recharts-custom-tooltip-projectmanagement">
-          <p className="tooltip-label-projectmanagement" style={{ color: '#98A2B3' }}>{label}</p>
-          <p className="tooltip-item-projectmanagement" style={{ color: '#F39C12' }}>
+          <p className="tooltip-label-projectmanagement">{label}</p>
+          <p className="tooltip-item-projectmanagement">
             Projects: {payload[0].value}
           </p>
         </div>
@@ -453,8 +453,8 @@ const ProjectManagement = () => {
 
       return (
         <div className="recharts-custom-tooltip-projectmanagement">
-          <p className="tooltip-label-projectmanagement" style={{ color: '#98A2B3' }}>{label}</p>
-          <p className="tooltip-item-projectmanagement" style={{ color: color }}>
+          <p className="tooltip-label-projectmanagement">{label}</p>
+          <p className="tooltip-item-projectmanagement">
             {value === 0 ? '₱0' : formatCurrency(value)}
           </p>
         </div>
@@ -494,9 +494,7 @@ const ProjectManagement = () => {
 
       <div className="project-management">
         {/* --- Minimalist Header (Empty) --- */}
-        <div className="project-header-projectmanagement">
-          <div></div>
-        </div>
+       
 
         {/* ============================================ */}
         {/* CHARTS ROW                                   */}
@@ -521,12 +519,12 @@ const ProjectManagement = () => {
                       <stop offset="95%" stopColor="#F39C12" stopOpacity={0.2} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} stroke="#EEF0ED" />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} stroke="var(--border-color, #EEF0ED)" />
                   <XAxis
                     type="number"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#17212B', fontSize: 11, fontWeight: 500 }}
+                    tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11, fontWeight: 500 }}
                     allowDecimals={false}
                   />
                   <YAxis
@@ -534,7 +532,7 @@ const ProjectManagement = () => {
                     dataKey="name"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#17212B', fontSize: 11, fontWeight: 500 }}
+                    tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11, fontWeight: 500 }}
                     width={100}
                   />
                   <Tooltip content={<StatusTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
@@ -545,7 +543,7 @@ const ProjectManagement = () => {
                     barSize={28}
                     label={{
                       position: 'right',
-                      fill: '#17212B',
+                      fill: 'var(--text-primary, #17212B)',
                       fontSize: 12,
                       fontWeight: 600,
                       formatter: (value) => value > 0 ? value : ''
@@ -587,12 +585,12 @@ const ProjectManagement = () => {
                       <stop offset="95%" stopColor="#EF4444" stopOpacity={0.2} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} stroke="#EEF0ED" />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} stroke="var(--border-color, #EEF0ED)" />
                   <XAxis
                     type="number"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#17212B', fontSize: 11, fontWeight: 500 }}
+                    tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11, fontWeight: 500 }}
                     domain={[0, 'auto']}
                     tickCount={4}
                     tickFormatter={(value) => formatChartLabel(value)}
@@ -602,7 +600,7 @@ const ProjectManagement = () => {
                     dataKey="name"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#17212B', fontSize: 11, fontWeight: 500 }}
+                    tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11, fontWeight: 500 }}
                     width={110}
                   />
                   <Tooltip content={<FinancialTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
@@ -612,7 +610,7 @@ const ProjectManagement = () => {
                     barSize={28}
                     label={{
                       position: 'right',
-                      fill: '#17212B',
+                      fill: 'var(--text-primary, #17212B)',
                       fontSize: 11,
                       fontWeight: 600,
                       formatter: (value) => formatChartLabel(value)

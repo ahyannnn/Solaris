@@ -1,30 +1,203 @@
 /* ============================================
-   ENGINEER DASHBOARD - LIGHT SOLAR THEME
+   ENGINEER DASHBOARD - UNIFIED LIGHT/DARK SOLAR THEME
    ============================================ */
 
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ============================================
+   CSS VARIABLES - LIGHT MODE (Default)
+   ============================================ */
+:root {
+  --bg-primary: #F3F5F1;
+  --bg-card: rgba(255, 255, 255, 0.86);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: rgba(0, 0, 0, 0.02);
+  --bg-hover-light: rgba(0, 0, 0, 0.03);
+  --bg-section: rgba(255, 255, 255, 0.5);
+  --bg-table-row-hover: rgba(0, 0, 0, 0.03);
+  --bg-schedule-item: rgba(255, 255, 255, 0.5);
+  --bg-schedule-item-hover: rgba(243, 156, 18, 0.06);
+  --bg-empty: rgba(255, 255, 255, 0.86);
+  --bg-today-alert: rgba(255, 255, 255, 0.86);
+  --text-primary: #17212B;
+  --text-secondary: #667085;
+  --text-muted: #98A2B3;
+  --text-white: #17212B;
+  --border-color: #EEF0ED;
+  --border-card: rgba(255, 255, 255, 0.9);
+  --border-medium: #E5E7EB;
+  --shadow-card: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  --shadow-card-hover: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  --divider-color: #EEF0ED;
+  --skeleton-bg: #EEF0ED;
+  --skeleton-gradient: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  --icon-color: #F39C12;
+  --icon-info: #2563EB;
+  --icon-success: #059669;
+  --icon-danger: #DC2626;
+  --icon-warning: #D97706;
+  --icon-primary: #D97706;
+  --text-danger: #DC2626;
+  --text-success: #059669;
+  --text-edit: #2563EB;
+  --btn-primary-bg: #F39C12;
+  --btn-primary-hover: #E67E22;
+  --btn-secondary-bg: rgba(255, 255, 255, 0.5);
+  --btn-secondary-hover: rgba(255, 255, 255, 0.8);
+  --btn-secondary-border: #EEF0ED;
+  --btn-secondary-border-hover: #D1D5DB;
+  --alert-bg: rgba(255, 255, 255, 0.86);
+  --alert-border: rgba(255, 255, 255, 0.9);
+  --alert-action-bg: #F39C12;
+  --alert-action-hover: #E67E22;
+  --status-scheduled-bg: rgba(59, 130, 246, 0.10);
+  --status-scheduled-text: #2563EB;
+  --status-confirmed-bg: rgba(139, 92, 246, 0.10);
+  --status-confirmed-text: #7C3AED;
+  --status-pending-bg: rgba(243, 156, 18, 0.10);
+  --status-pending-text: #D97706;
+  --status-inprogress-bg: rgba(243, 156, 18, 0.10);
+  --status-inprogress-text: #D97706;
+  --status-deployed-bg: rgba(59, 130, 246, 0.10);
+  --status-deployed-text: #2563EB;
+  --status-collecting-bg: rgba(139, 92, 246, 0.10);
+  --status-collecting-text: #7C3AED;
+  --status-analyzing-bg: rgba(139, 92, 246, 0.10);
+  --status-analyzing-text: #7C3AED;
+  --status-completed-bg: rgba(16, 185, 129, 0.10);
+  --status-completed-text: #059669;
+  --status-cancelled-bg: rgba(239, 68, 68, 0.10);
+  --status-cancelled-text: #DC2626;
+  --status-approved-bg: rgba(16, 185, 129, 0.10);
+  --status-approved-text: #059669;
+  --quick-action-icon-bg: #F6F8F5;
+  --quick-action-icon-color: #D97706;
+  --quick-action-arrow-color: #D1D5DB;
+  --quick-action-arrow-hover: #D97706;
+  --activity-icon-bg: #F6F8F5;
+  --activity-icon-color: #D97706;
+  --schedule-time-bg: rgba(255, 255, 255, 0.5);
+  --schedule-user-icon: #D1D5DB;
+  --empty-border: #EEF0ED;
+  --empty-title-color: #667085;
+  --empty-desc-color: #98A2B3;
+  --required-color: #EF4444;
+  --error-color: #DC2626;
+}
+
+/* ============================================
+   CSS VARIABLES - DARK MODE
+   ============================================ */
+body.dark-mode {
+  --bg-primary: #0B111A;
+  --bg-card: #1A2533;
+  --bg-card-hover: #1F2C3D;
+  --bg-surface: #131C28;
+  --bg-elevated: #1A2533;
+  --bg-hover: rgba(255, 255, 255, 0.03);
+  --bg-hover-light: rgba(255, 255, 255, 0.03);
+  --bg-section: rgba(255, 255, 255, 0.05);
+  --bg-table-row-hover: rgba(255, 255, 255, 0.03);
+  --bg-schedule-item: rgba(255, 255, 255, 0.05);
+  --bg-schedule-item-hover: rgba(243, 156, 18, 0.08);
+  --bg-empty: #1A2533;
+  --bg-today-alert: #1A2533;
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-white: #FFFFFF;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.08);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --divider-color: rgba(255, 255, 255, 0.06);
+  --skeleton-bg: #131C28;
+  --skeleton-gradient: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  --icon-color: #F39C12;
+  --icon-info: #3B82F6;
+  --icon-success: #10B981;
+  --icon-danger: #EF4444;
+  --icon-warning: #F39C12;
+  --icon-primary: #F39C12;
+  --text-danger: #EF4444;
+  --text-success: #10B981;
+  --text-edit: #3B82F6;
+  --btn-primary-bg: #F39C12;
+  --btn-primary-hover: #E67E22;
+  --btn-secondary-bg: rgba(255, 255, 255, 0.05);
+  --btn-secondary-hover: rgba(255, 255, 255, 0.1);
+  --btn-secondary-border: rgba(255, 255, 255, 0.06);
+  --btn-secondary-border-hover: rgba(255, 255, 255, 0.12);
+  --alert-bg: #1A2533;
+  --alert-border: rgba(255, 255, 255, 0.06);
+  --alert-action-bg: #F39C12;
+  --alert-action-hover: #E67E22;
+  --status-scheduled-bg: rgba(59, 130, 246, 0.12);
+  --status-scheduled-text: #3B82F6;
+  --status-confirmed-bg: rgba(139, 92, 246, 0.12);
+  --status-confirmed-text: #8B5CF6;
+  --status-pending-bg: rgba(243, 156, 18, 0.12);
+  --status-pending-text: #F39C12;
+  --status-inprogress-bg: rgba(243, 156, 18, 0.12);
+  --status-inprogress-text: #F39C12;
+  --status-deployed-bg: rgba(59, 130, 246, 0.12);
+  --status-deployed-text: #3B82F6;
+  --status-collecting-bg: rgba(139, 92, 246, 0.12);
+  --status-collecting-text: #8B5CF6;
+  --status-analyzing-bg: rgba(139, 92, 246, 0.12);
+  --status-analyzing-text: #8B5CF6;
+  --status-completed-bg: rgba(16, 185, 129, 0.12);
+  --status-completed-text: #10B981;
+  --status-cancelled-bg: rgba(239, 68, 68, 0.12);
+  --status-cancelled-text: #EF4444;
+  --status-approved-bg: rgba(16, 185, 129, 0.12);
+  --status-approved-text: #10B981;
+  --quick-action-icon-bg: #131C28;
+  --quick-action-icon-color: #F39C12;
+  --quick-action-arrow-color: rgba(255, 255, 255, 0.2);
+  --quick-action-arrow-hover: #F39C12;
+  --activity-icon-bg: #131C28;
+  --activity-icon-color: #F39C12;
+  --schedule-time-bg: rgba(255, 255, 255, 0.05);
+  --schedule-user-icon: rgba(255, 255, 255, 0.2);
+  --empty-border: rgba(255, 255, 255, 0.06);
+  --empty-title-color: rgba(255, 255, 255, 0.6);
+  --empty-desc-color: rgba(255, 255, 255, 0.4);
+  --required-color: #EF4444;
+  --error-color: #EF4444;
+}
+
+/* ============================================
+   BASE LAYOUT
+   ============================================ */
 .engdas-dashboard {
   padding-inline: 12px;
   padding-top: 20px;
   padding-bottom: 40px;
   margin: 0 auto;
-  background: #F3F5F1;
+  background: var(--bg-primary);
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ============================================
-   WELCOME SECTION - LIGHT
+   WELCOME SECTION
    ============================================ */
 .engdas-welcome-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 0 20px 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 16px;
+  transition: border-color 0.3s ease;
 }
 
 .engdas-welcome-content {
@@ -41,22 +214,25 @@
 
 .engdas-welcome-icon {
   font-size: 28px;
-  color: #D97706;
+  color: var(--icon-primary);
+  transition: color 0.3s ease;
 }
 
 .engdas-welcome-greeting {
   font-size: 28px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.5px;
+  transition: color 0.3s ease;
 }
 
 .engdas-welcome-subtitle {
   font-size: 15px;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0;
   font-weight: 400;
+  transition: color 0.3s ease;
 }
 
 .engdas-welcome-actions {
@@ -66,14 +242,14 @@
 }
 
 /* ============================================
-   BUTTONS - LIGHT
+   BUTTONS
    ============================================ */
 .btn-primary-engdas {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: #F39C12;
+  background: var(--btn-primary-bg);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -87,7 +263,7 @@
 }
 
 .btn-primary-engdas:hover {
-  background: #E67E22;
+  background: var(--btn-primary-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(243, 156, 18, 0.25);
   color: #FFFFFF;
@@ -98,9 +274,9 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #17212B;
-  border: 1.5px solid #EEF0ED;
+  background: var(--btn-secondary-bg);
+  color: var(--text-primary);
+  border: 1.5px solid var(--btn-secondary-border);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
@@ -112,34 +288,36 @@
 }
 
 .btn-secondary-engdas:hover {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: #D1D5DB;
+  background: var(--btn-secondary-hover);
+  border-color: var(--btn-secondary-border-hover);
   transform: translateY(-2px);
-  color: #17212B;
+  color: var(--text-primary);
 }
 
 /* ============================================
-   TODAY ALERT - LIGHT GLASS
+   TODAY ALERT - GLASS
    ============================================ */
 .engdas-today-alert {
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-today-alert);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   margin-bottom: 24px;
   flex-wrap: wrap;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .alert-icon-engdas {
-  color: #D97706;
+  color: var(--icon-primary);
   font-size: 1.5rem;
   flex-shrink: 0;
+  transition: color 0.3s ease;
 }
 
 .alert-content-engdas {
@@ -149,14 +327,16 @@
 .alert-content-engdas strong {
   display: block;
   font-size: 0.95rem;
-  color: #17212B;
+  color: var(--text-primary);
   margin-bottom: 0.1rem;
+  transition: color 0.3s ease;
 }
 
 .alert-content-engdas p {
   font-size: 0.85rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .alert-action-engdas {
@@ -164,7 +344,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1.25rem;
-  background: #F39C12;
+  background: var(--alert-action-bg);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -177,13 +357,13 @@
 }
 
 .alert-action-engdas:hover {
-  background: #E67E22;
+  background: var(--alert-action-hover);
   transform: translateY(-2px);
   color: #FFFFFF;
 }
 
 /* ============================================
-   QUICK ACTIONS - LIGHT
+   QUICK ACTIONS
    ============================================ */
 .engdas-quick-actions {
   margin-bottom: 24px;
@@ -192,10 +372,11 @@
 .quick-actions-title-engdas {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 12px 0;
+  transition: color 0.3s ease;
 }
 
 .engdas-action-grid {
@@ -209,19 +390,19 @@
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   text-decoration: none;
   transition: all 200ms ease;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 .quick-action-item-engdas:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.12);
 }
 
@@ -234,28 +415,32 @@
   justify-content: center;
   font-size: 1.1rem;
   flex-shrink: 0;
+  background: var(--quick-action-icon-bg);
+  color: var(--quick-action-icon-color);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .quick-action-label-engdas {
   flex: 1;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .quick-action-arrow-engdas {
-  color: #D1D5DB;
+  color: var(--quick-action-arrow-color);
   font-size: 0.75rem;
-  transition: transform 200ms ease;
+  transition: transform 200ms ease, color 0.3s ease;
 }
 
 .quick-action-item-engdas:hover .quick-action-arrow-engdas {
   transform: translateX(4px);
-  color: #D97706;
+  color: var(--quick-action-arrow-hover);
 }
 
 /* ============================================
-   STATS GRID - LIGHT GLASS
+   STATS GRID - GLASS
    ============================================ */
 .engdas-stats-grid {
   display: grid;
@@ -265,19 +450,19 @@
 }
 
 .stat-card-engdas {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   border-radius: 14px;
   padding: 20px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   transition: all 200ms ease;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 .stat-card-engdas:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.12);
 }
 
@@ -290,25 +475,28 @@
 .stat-label-engdas {
   font-size: 0.8rem;
   font-weight: 500;
-  color: #98A2B3;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  transition: color 0.3s ease;
 }
 
 .stat-value-engdas {
   font-size: 2rem;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   line-height: 1.2;
+  transition: color 0.3s ease;
 }
 
 .stat-trend-engdas {
   font-size: 0.8rem;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   ROW LAYOUT - FIXED HEIGHT
+   ROW LAYOUT
    ============================================ */
 .engdas-row-layout {
   display: grid;
@@ -318,7 +506,7 @@
 }
 
 /* ============================================
-   ASSESSMENT SECTION - LIGHT GLASS
+   ASSESSMENT SECTION - GLASS
    ============================================ */
 .engdas-assessment-section {
   display: flex;
@@ -337,8 +525,9 @@
 .section-title-engdas {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .view-all-link-engdas {
@@ -346,7 +535,7 @@
   align-items: center;
   gap: 4px;
   font-size: 0.85rem;
-  color: #D97706;
+  color: var(--icon-primary);
   text-decoration: none;
   font-weight: 500;
   transition: all 200ms ease;
@@ -366,17 +555,18 @@
 }
 
 .assessment-card-engdas {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   border-radius: 14px;
   padding: 20px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-card);
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 220px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .assessment-header-engdas {
@@ -395,14 +585,16 @@
 .assessment-name-engdas {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 4px 0;
+  transition: color 0.3s ease;
 }
 
 .assessment-reference-engdas {
   font-size: 0.85rem;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .assessment-content-engdas {
@@ -423,7 +615,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 6px 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--divider-color);
+  transition: border-color 0.3s ease;
 }
 
 .assessment-metric-engdas:last-child {
@@ -435,18 +628,20 @@
   align-items: center;
   gap: 6px;
   font-size: 0.85rem;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .metric-value-engdas {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
   text-align: right;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   ACTIVITIES SECTION - LIGHT GLASS
+   ACTIVITIES SECTION - GLASS
    ============================================ */
 .engdas-activities-section {
   display: flex;
@@ -456,17 +651,18 @@
 }
 
 .activities-card-engdas {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   border-radius: 14px;
   padding: 16px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-card);
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 220px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .activities-list-engdas {
@@ -487,7 +683,7 @@
 }
 
 .activity-item-engdas:hover {
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--bg-hover-light);
 }
 
 .activity-icon-wrapper-engdas {
@@ -499,6 +695,9 @@
   justify-content: center;
   font-size: 1rem;
   flex-shrink: 0;
+  background: var(--activity-icon-bg);
+  color: var(--activity-icon-color);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .activity-content-engdas {
@@ -516,20 +715,23 @@
 .activity-title-engdas {
   font-size: 0.85rem;
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .activity-reference-engdas {
   font-size: 0.75rem;
-  color: #98A2B3;
+  color: var(--text-muted);
   font-weight: 400;
+  transition: color 0.3s ease;
 }
 
 .activity-date-engdas {
   font-size: 0.75rem;
-  color: #98A2B3;
+  color: var(--text-muted);
   display: block;
   margin-top: 2px;
+  transition: color 0.3s ease;
 }
 
 .activity-status-engdas {
@@ -538,12 +740,13 @@
 
 .activity-divider-engdas {
   height: 1px;
-  background: #EEF0ED;
+  background: var(--divider-color);
   margin: 2px 8px;
+  transition: background 0.3s ease;
 }
 
 /* ============================================
-   STATUS BADGES - LIGHT THEME
+   STATUS BADGES - Theme Aware
    ============================================ */
 .status-badge-engdas {
   display: inline-block;
@@ -557,74 +760,74 @@
 }
 
 .status-badge-engdas.scheduled-engdas {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
-  border: 1px solid rgba(59, 130, 246, 0.20);
+  background: var(--status-scheduled-bg);
+  color: var(--status-scheduled-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engdas.confirmed-engdas {
-  background: rgba(139, 92, 246, 0.10);
-  color: #7C3AED;
-  border: 1px solid rgba(139, 92, 246, 0.20);
+  background: var(--status-confirmed-bg);
+  color: var(--status-confirmed-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engdas.pending-engdas {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
-  border: 1px solid rgba(243, 156, 18, 0.20);
+  background: var(--status-pending-bg);
+  color: var(--status-pending-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engdas.in-progress-engdas {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
-  border: 1px solid rgba(243, 156, 18, 0.20);
+  background: var(--status-inprogress-bg);
+  color: var(--status-inprogress-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engdas.deployed-engdas {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
-  border: 1px solid rgba(59, 130, 246, 0.20);
+  background: var(--status-deployed-bg);
+  color: var(--status-deployed-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engdas.collecting-engdas {
-  background: rgba(139, 92, 246, 0.10);
-  color: #7C3AED;
-  border: 1px solid rgba(139, 92, 246, 0.20);
+  background: var(--status-collecting-bg);
+  color: var(--status-collecting-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engdas.analyzing-engdas {
-  background: rgba(139, 92, 246, 0.10);
-  color: #7C3AED;
-  border: 1px solid rgba(139, 92, 246, 0.20);
+  background: var(--status-analyzing-bg);
+  color: var(--status-analyzing-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engdas.completed-engdas {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--status-completed-bg);
+  color: var(--status-completed-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engdas.cancelled-engdas {
-  background: rgba(239, 68, 68, 0.10);
-  color: #DC2626;
-  border: 1px solid rgba(239, 68, 68, 0.20);
+  background: var(--status-cancelled-bg);
+  color: var(--status-cancelled-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engdas.approved-engdas {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--status-approved-bg);
+  color: var(--status-approved-text);
+  border: 1px solid var(--border-medium);
 }
 
 /* ============================================
-   EMPTY STATES - LIGHT
+   EMPTY STATES
    ============================================ */
 .empty-state-engdas {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-empty);
   border-radius: 14px;
   padding: 24px 20px;
   text-align: center;
-  border: 2px dashed #EEF0ED;
+  border: 2px dashed var(--empty-border);
   min-height: 220px;
   display: flex;
   align-items: center;
@@ -632,6 +835,7 @@
   flex: 1;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .empty-state-content-engdas {
@@ -644,14 +848,16 @@
 .empty-state-title-engdas {
   font-size: 1rem;
   font-weight: 600;
-  color: #667085;
+  color: var(--empty-title-color);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .empty-state-description-engdas {
   font-size: 0.85rem;
-  color: #98A2B3;
+  color: var(--empty-desc-color);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .empty-small-engdas {
@@ -667,31 +873,35 @@
 
 .empty-text-engdas {
   font-size: 0.85rem;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   TODAY'S SCHEDULES - LIGHT
+   TODAY'S SCHEDULES
    ============================================ */
 .today-schedules-section-engdas {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--divider-color);
+  transition: border-color 0.3s ease;
 }
 
 .schedules-title-engdas {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0 0 12px 0;
   display: flex;
   align-items: center;
   gap: 8px;
+  transition: color 0.3s ease;
 }
 
 .schedules-icon-engdas {
-  color: #D97706;
+  color: var(--icon-primary);
+  transition: color 0.3s ease;
 }
 
 .schedules-list-engdas {
@@ -705,13 +915,13 @@
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-schedule-item);
   border-radius: 10px;
   transition: all 200ms ease;
 }
 
 .schedule-item-engdas:hover {
-  background: rgba(243, 156, 18, 0.06);
+  background: var(--bg-schedule-item-hover);
 }
 
 .schedule-time-engdas {
@@ -719,16 +929,18 @@
   flex-direction: column;
   align-items: center;
   padding: 4px 8px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--schedule-time-bg);
   border-radius: 6px;
   min-width: 48px;
+  transition: background 0.3s ease;
 }
 
 .schedule-hour-engdas {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   line-height: 1.2;
+  transition: color 0.3s ease;
 }
 
 .schedule-info-engdas {
@@ -742,7 +954,8 @@
 .schedule-title-engdas {
   font-size: 0.85rem;
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .schedule-client-engdas {
@@ -750,11 +963,14 @@
   align-items: center;
   gap: 4px;
   font-size: 0.75rem;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .schedule-user-icon-engdas {
   font-size: 0.7rem;
+  color: var(--schedule-user-icon);
+  transition: color 0.3s ease;
 }
 
 .schedule-status-engdas {
@@ -762,12 +978,12 @@
 }
 
 /* ============================================
-   SKELETON LOADING - LIGHT
+   SKELETON LOADING
    ============================================ */
 .skeleton-line-engdas {
   border-radius: 6px;
   animation: shimmer-engdas 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -787,9 +1003,9 @@
 }
 
 .skeleton-card-engdas {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   padding: 20px;
 }
 
@@ -834,7 +1050,7 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN - UNCHANGED STRUCTURE
+   RESPONSIVE DESIGN
    ============================================ */
 
 @media (max-width: 1200px) {
@@ -1164,7 +1380,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES - LIGHT
+   REDUCED MOTION PREFERENCES
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -1180,7 +1396,7 @@
   }
   .skeleton-line-engdas {
     animation: none !important;
-    background: #EEF0ED !important;
+    background: var(--skeleton-bg) !important;
   }
   .btn-primary-engdas:hover,
   .btn-secondary-engdas:hover,

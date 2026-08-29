@@ -1,6 +1,92 @@
-/* styles/Customer/myproject.css - Light Solar Theme (Matches Dashboard) */
+/* styles/Customer/myproject.css - Unified Light/Dark Solar Theme */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ============================================
+   CSS VARIABLES - LIGHT MODE (Default)
+   ============================================ */
+:root {
+  --bg-primary: #F3F5F1;
+  --bg-card: rgba(255, 255, 255, 0.86);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: #F6F8F5;
+  --bg-hover-light: rgba(0, 0, 0, 0.02);
+  --bg-photo: #F6F8F5;
+  --text-primary: #17212B;
+  --text-secondary: #667085;
+  --text-muted: #98A2B3;
+  --text-white: #17212B;
+  --border-color: #EEF0ED;
+  --border-card: rgba(255, 255, 255, 0.9);
+  --border-medium: #E5E7EB;
+  --shadow-card: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  --shadow-card-hover: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  --glass-bg: rgba(255, 255, 255, 0.92);
+  --glass-border: rgba(255, 255, 255, 0.9);
+  --skeleton-bg: #F1F2F4;
+  --skeleton-gradient: linear-gradient(90deg, #F1F2F4 25%, #E5E7EB 50%, #F1F2F4 75%);
+  --input-bg: #FFFFFF;
+  --input-border: #E5E7EB;
+  --badge-bg: #F6F8F5;
+  --badge-border: #E5E7EB;
+  --progress-bg: #E5E7EB;
+  --divider-color: #EEF0ED;
+  --appointment-bg: #F6F8F5;
+  --select-option-bg: #FFFFFF;
+  --select-option-text: #17212B;
+  --modal-overlay: rgba(23, 33, 43, 0.85);
+  --modal-bg: rgba(255, 255, 255, 0.95);
+  --nav-bg: rgba(23, 33, 43, 0.5);
+  --nav-hover: rgba(23, 33, 43, 0.8);
+  --payment-status-bg: #F6F8F5;
+  --payment-status-text: #667085;
+  --payment-status-border: #E5E7EB;
+}
+
+/* ============================================
+   CSS VARIABLES - DARK MODE
+   ============================================ */
+body.dark-mode {
+  --bg-primary: #0B111A;
+  --bg-card: #1A2533;
+  --bg-card-hover: #1F2C3D;
+  --bg-surface: #131C28;
+  --bg-elevated: #1A2533;
+  --bg-hover: #131C28;
+  --bg-hover-light: rgba(255, 255, 255, 0.03);
+  --bg-photo: #131C28;
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-white: #FFFFFF;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.08);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --glass-bg: rgba(26, 37, 51, 0.92);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --skeleton-bg: #131C28;
+  --skeleton-gradient: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  --input-bg: #1A2533;
+  --input-border: rgba(255, 255, 255, 0.06);
+  --badge-bg: #131C28;
+  --badge-border: rgba(255, 255, 255, 0.06);
+  --progress-bg: rgba(255, 255, 255, 0.08);
+  --divider-color: rgba(255, 255, 255, 0.06);
+  --appointment-bg: #131C28;
+  --select-option-bg: #1A2533;
+  --select-option-text: #FFFFFF;
+  --modal-overlay: rgba(0, 0, 0, 0.85);
+  --modal-bg: rgba(26, 37, 51, 0.95);
+  --nav-bg: rgba(0, 0, 0, 0.5);
+  --nav-hover: rgba(0, 0, 0, 0.8);
+  --payment-status-bg: #131C28;
+  --payment-status-text: rgba(255, 255, 255, 0.4);
+  --payment-status-border: rgba(255, 255, 255, 0.06);
+}
 
 /* ============================================
    BASE LAYOUT - SOLAR GRADIENT BACKGROUND
@@ -8,13 +94,11 @@
 .cuspro-page {
   padding-inline: 24px;
   margin: 0 auto;
-  /* 🌅 Soft Solar Gradient Background (Warm Sunlight + Clean Green + Soft Sky Blue) */
-  background: 
-    
-    #F3F5F1;
+  background: var(--bg-primary);
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ============================================
@@ -25,24 +109,27 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem 0 1rem 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
   gap: 0.5rem;
+  transition: border-color 0.3s ease;
 }
 
 .cuspro-header-card h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.3px;
+  transition: color 0.3s ease;
 }
 
 .cuspro-header-card p {
   font-size: 0.95rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -56,18 +143,17 @@
   width: 100%;
   max-width: 400px;
   padding: 0.6rem 2.5rem 0.6rem 1rem;
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 10px;
   font-size: 0.9rem;
-  color: #17212B;
+  color: var(--text-primary);
   appearance: none;
   cursor: pointer;
   transition: all 200ms ease;
   font-weight: 500;
   font-family: 'Poppins', sans-serif;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2398A2B3' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
@@ -86,20 +172,19 @@
 }
 
 .cuspro-project-select option {
-  background: #FFFFFF;
-  color: #17212B;
+  background: var(--select-option-bg);
+  color: var(--select-option-text);
 }
 
 /* ============================================
    HERO CARD - Premium Glass Card
    ============================================ */
 .cuspro-hero-card {
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.5rem 2rem;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   margin-bottom: 1.5rem;
@@ -107,7 +192,7 @@
 }
 
 .cuspro-hero-card:hover {
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.25);
 }
 
@@ -122,14 +207,16 @@
 .cuspro-hero-main h2 {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
+  transition: color 0.3s ease;
 }
 
 .cuspro-project-ref {
   font-size: 0.85rem;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .cuspro-status-badge {
@@ -144,7 +231,7 @@
   flex-shrink: 0;
 }
 
-/* Status Badges - Light Theme */
+/* Status Badges - Theme Aware */
 .cuspro-status-badge.quoted {
   background: rgba(243, 156, 18, 0.10);
   color: #D97706;
@@ -198,10 +285,11 @@
   align-items: center;
   gap: 0.4rem;
   font-size: 0.8rem;
-  color: #667085;
-  background: #F6F8F5;
+  color: var(--text-secondary);
+  background: var(--bg-hover);
   padding: 0.2rem 0.7rem;
   border-radius: 20px;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .payment-plan-tag {
@@ -243,27 +331,27 @@
    PROGRESS CARD - Premium Glass Card
    ============================================ */
 .cuspro-progress-card {
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.5rem;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
 }
 
 .cuspro-progress-card:hover {
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuspro-progress-card h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 1.25rem 0;
+  transition: color 0.3s ease;
 }
 
 .cuspro-progress-ring-wrapper {
@@ -279,7 +367,8 @@
 }
 
 .cuspro-progress-bg {
-  stroke: #E5E7EB;
+  stroke: var(--progress-bg);
+  transition: stroke 0.3s ease;
 }
 
 .cuspro-progress-fill {
@@ -292,7 +381,8 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 0.75rem;
   padding-top: 1rem;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--divider-color);
+  transition: border-color 0.3s ease;
 }
 
 .cuspro-stat {
@@ -303,15 +393,17 @@
 
 .cuspro-stat span {
   font-size: 0.75rem;
-  color: #98A2B3;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  transition: color 0.3s ease;
 }
 
 .cuspro-stat strong {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .cuspro-stat .solar-amount {
@@ -321,65 +413,70 @@
 .cuspro-payment-plan-info {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--divider-color);
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+  transition: border-color 0.3s ease;
 }
 
 .cuspro-payment-plan-info .plan-label {
   font-size: 0.75rem;
-  color: #98A2B3;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  transition: color 0.3s ease;
 }
 
 .cuspro-payment-plan-info .plan-name {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .cuspro-payment-plan-info .plan-detail {
   font-size: 0.8rem;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
    PHOTOS CARD - Premium Glass Card
    ============================================ */
 .cuspro-photos-card {
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.5rem;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
 }
 
 .cuspro-photos-card:hover {
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuspro-photos-card h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  transition: color 0.3s ease;
 }
 
 .cuspro-photos-subtitle {
   font-size: 0.85rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 1rem 0;
+  transition: color 0.3s ease;
 }
 
 .cuspro-photos-grid {
@@ -395,7 +492,8 @@
   border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
-  background: #F6F8F5;
+  background: var(--bg-photo);
+  transition: background 0.3s ease;
 }
 
 .cuspro-photo-item img {
@@ -427,7 +525,7 @@
 }
 
 .cuspro-photo-item.more-photos {
-  background: #F6F8F5;
+  background: var(--bg-photo);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -438,8 +536,9 @@
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  color: #667085;
+  color: var(--text-secondary);
   font-size: 1.5rem;
+  transition: color 0.3s ease;
 }
 
 .more-photos-overlay span {
@@ -452,10 +551,10 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: #F6F8F5;
-  border: 1px solid #E5E7EB;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-medium);
   border-radius: 10px;
-  color: #667085;
+  color: var(--text-secondary);
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 200ms ease;
@@ -465,36 +564,36 @@
 }
 
 .cuspro-view-all-btn:hover {
-  background: #FFFFFF;
+  background: var(--bg-surface);
   border-color: rgba(243, 156, 18, 0.25);
-  color: #17212B;
+  color: var(--text-primary);
 }
 
 /* ============================================
    NEXT STEP CARD - Premium Glass Card
    ============================================ */
 .cuspro-next-card {
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.5rem;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
 }
 
 .cuspro-next-card:hover {
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuspro-next-card h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 0.75rem 0;
+  transition: color 0.3s ease;
 }
 
 .cuspro-next-content {
@@ -504,14 +603,16 @@
 .cuspro-next-content h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
+  transition: color 0.3s ease;
 }
 
 .cuspro-next-content p {
   font-size: 0.9rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .cuspro-next-actions {
@@ -524,27 +625,27 @@
    DETAILS CARD - Premium Glass Card
    ============================================ */
 .cuspro-details-card {
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.5rem;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
 }
 
 .cuspro-details-card:hover {
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuspro-details-card h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 1rem 0;
+  transition: color 0.3s ease;
 }
 
 .cuspro-details-grid {
@@ -561,23 +662,26 @@
 
 .cuspro-detail-item span {
   font-size: 0.75rem;
-  color: #98A2B3;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  transition: color 0.3s ease;
 }
 
 .cuspro-detail-item strong {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 /* Address */
 .cuspro-address p {
   font-size: 0.9rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 0.15rem 0;
   line-height: 1.5;
+  transition: color 0.3s ease;
 }
 
 /* Engineer */
@@ -604,23 +708,25 @@
 .cuspro-engineer strong {
   display: block;
   font-size: 0.95rem;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .cuspro-engineer p {
   font-size: 0.8rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0.1rem 0 0 0;
   display: flex;
   align-items: center;
   gap: 0.3rem;
+  transition: color 0.3s ease;
 }
 
 .cuspro-engineer-placeholder {
   display: flex;
   align-items: center;
   gap: 1rem;
-  color: #98A2B3;
+  color: var(--text-muted);
 }
 
 .cuspro-engineer-placeholder svg {
@@ -630,13 +736,15 @@
 .cuspro-engineer-placeholder strong {
   display: block;
   font-size: 0.95rem;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .cuspro-engineer-placeholder p {
   font-size: 0.85rem;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0.1rem 0 0 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -645,8 +753,9 @@
 .cuspro-tab-nav {
   display: flex;
   gap: 0.5rem;
-  border-bottom: 2px solid #EEF0ED;
+  border-bottom: 2px solid var(--border-color);
   margin-bottom: 1.5rem;
+  transition: border-color 0.3s ease;
 }
 
 .cuspro-tab {
@@ -655,7 +764,7 @@
   border: none;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 200ms ease;
   position: relative;
@@ -664,8 +773,8 @@
 }
 
 .cuspro-tab:hover {
-  color: #17212B;
-  background: rgba(0, 0, 0, 0.02);
+  color: var(--text-primary);
+  background: var(--bg-hover-light);
 }
 
 .cuspro-tab.active {
@@ -699,27 +808,27 @@
 }
 
 .cuspro-overview-card {
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.5rem;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
 }
 
 .cuspro-overview-card:hover {
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.25);
 }
 
 .cuspro-overview-card h4 {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 1rem 0;
+  transition: color 0.3s ease;
 }
 
 /* Timeline Mini */
@@ -739,8 +848,9 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #E5E7EB;
+  background: var(--progress-bg);
   flex-shrink: 0;
+  transition: background 0.3s ease;
 }
 
 .cuspro-timeline-mini-item.completed .cuspro-milestone-dot {
@@ -754,13 +864,15 @@
 .cuspro-timeline-mini-item p {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .cuspro-timeline-mini-item small {
   font-size: 0.75rem;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 /* Payment Mini */
@@ -775,7 +887,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--divider-color);
+  transition: border-color 0.3s ease;
 }
 
 .cuspro-payment-mini-item:last-child {
@@ -790,13 +903,15 @@
 
 .cuspro-payment-mini-item span {
   font-size: 0.85rem;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .cuspro-payment-mini-item strong {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .cuspro-payment-mini-status {
@@ -815,9 +930,9 @@
 }
 
 .cuspro-payment-mini-status.pending {
-  background: #F6F8F5;
-  color: #667085;
-  border: 1px solid #E5E7EB;
+  background: var(--payment-status-bg);
+  color: var(--payment-status-text);
+  border: 1px solid var(--payment-status-border);
 }
 
 .cuspro-payment-mini-status.for_verification {
@@ -834,12 +949,11 @@
 
 /* Timeline Full */
 .cuspro-timeline-full {
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.5rem;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -849,7 +963,8 @@
   align-items: center;
   gap: 1.5rem;
   padding: 0.75rem 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--divider-color);
+  transition: border-color 0.3s ease;
 }
 
 .cuspro-timeline-full-item:last-child {
@@ -860,14 +975,15 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #F6F8F5;
+  background: var(--bg-hover);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #667085;
+  color: var(--text-secondary);
   flex-shrink: 0;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .cuspro-timeline-full-item.completed .cuspro-timeline-marker {
@@ -882,13 +998,15 @@
 .cuspro-timeline-info h4 {
   font-size: 0.95rem;
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .cuspro-timeline-date {
   font-size: 0.85rem;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 /* Payments Full */
@@ -899,19 +1017,18 @@
 }
 
 .cuspro-payment-full-item {
-  /* 💎 Premium Glass Card */
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 1.5rem;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
 }
 
 .cuspro-payment-full-item:hover {
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.25);
 }
 
@@ -926,14 +1043,16 @@
 .cuspro-payment-full-header h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 0.1rem 0;
+  transition: color 0.3s ease;
 }
 
 .cuspro-payment-full-header p {
   font-size: 0.85rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .cuspro-payment-full-status {
@@ -953,9 +1072,9 @@
 }
 
 .cuspro-payment-full-status.pending {
-  background: #F6F8F5;
-  color: #667085;
-  border: 1px solid #E5E7EB;
+  background: var(--payment-status-bg);
+  color: var(--payment-status-text);
+  border: 1px solid var(--payment-status-border);
 }
 
 .cuspro-payment-full-status.for_verification {
@@ -981,12 +1100,14 @@
 .cuspro-payment-full-amount strong {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .cuspro-payment-full-amount span {
   font-size: 0.8rem;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -1051,9 +1172,9 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1.25rem;
-  background: #FFFFFF;
-  color: #17212B;
-  border: 1px solid #E5E7EB;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
   border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 600;
@@ -1065,10 +1186,10 @@
 }
 
 .cuspro-btn-secondary:hover {
-  background: #F6F8F5;
-  border-color: #D1D5DB;
+  background: var(--bg-hover);
+  border-color: rgba(243, 156, 18, 0.25);
   transform: translateY(-2px);
-  color: #17212B;
+  color: var(--text-primary);
 }
 
 /* ============================================
@@ -1080,10 +1201,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #F3F5F1;
+  background: var(--bg-primary);
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  transition: background 0.3s ease;
 }
 
 .cuspro-empty-page .cuspro-empty-state-card {
@@ -1106,21 +1228,24 @@
 
 .cuspro-empty-page .cuspro-empty-icon {
   font-size: 4rem;
-  color: #D1D5DB;
+  color: var(--text-muted);
   margin-bottom: 1rem;
+  transition: color 0.3s ease;
 }
 
 .cuspro-empty-page h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 0.5rem 0;
+  transition: color 0.3s ease;
 }
 
 .cuspro-empty-page p {
   font-size: 1rem;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 1.5rem 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -1129,7 +1254,7 @@
 .cuspro-photo-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(23, 33, 43, 0.85);
+  background: var(--modal-overlay);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
@@ -1152,14 +1277,15 @@
   position: relative;
   max-width: 90vw;
   max-height: 90vh;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--modal-bg);
+  border: 1px solid var(--border-card);
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(23, 33, 43, 0.2), 0 8px 30px rgba(23, 33, 43, 0.1);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   animation: scaleIn 0.3s ease;
+  transition: background 0.3s ease;
 }
 
 @keyframes scaleIn {
@@ -1180,7 +1306,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(23, 33, 43, 0.5);
+  background: var(--nav-bg);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   border: none;
@@ -1195,7 +1321,7 @@
 }
 
 .cuspro-photo-modal-close:hover {
-  background: rgba(23, 33, 43, 0.8);
+  background: var(--nav-hover);
   transform: rotate(90deg);
 }
 
@@ -1221,7 +1347,7 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: rgba(23, 33, 43, 0.5);
+  background: var(--nav-bg);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   border: none;
@@ -1235,7 +1361,7 @@
 }
 
 .cuspro-photo-nav:hover:not(:disabled) {
-  background: rgba(23, 33, 43, 0.8);
+  background: var(--nav-hover);
 }
 
 .cuspro-photo-nav:disabled {
@@ -1256,15 +1382,17 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1.5rem;
-  background: #FFFFFF;
-  border-top: 1px solid #EEF0ED;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-color);
   flex-wrap: wrap;
   gap: 0.5rem;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .cuspro-photo-counter {
   font-size: 0.85rem;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .cuspro-photo-download {
@@ -1272,10 +1400,10 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 1rem;
-  background: #F6F8F5;
-  border: 1px solid #E5E7EB;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-medium);
   border-radius: 10px;
-  color: #667085;
+  color: var(--text-secondary);
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 200ms ease;
@@ -1283,9 +1411,9 @@
 }
 
 .cuspro-photo-download:hover {
-  background: #FFFFFF;
+  background: var(--bg-surface);
   border-color: rgba(243, 156, 18, 0.25);
-  color: #17212B;
+  color: var(--text-primary);
 }
 
 /* ============================================
@@ -1342,7 +1470,7 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN (unchanged - using variables)
    ============================================ */
 
 /* Tablets & Small Laptops */
@@ -1674,7 +1802,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.3rem 0;
-    border-bottom: 1px solid #EEF0ED;
+    border-bottom: 1px solid var(--divider-color);
   }
   
   .cuspro-stat:last-child {
@@ -2040,4 +2168,17 @@
   .cuspro-next-content p {
     font-size: 0.75rem;
   }
+}
+
+/* Add to styles/Customer/myproject.css */
+
+/* Progress percentage text - uses CSS variables for dark mode */
+.cuspro-progress-percentage {
+  fill: var(--text-primary, #1a1919);
+  transition: fill 0.3s ease;
+}
+
+.cuspro-progress-label {
+  fill: var(--text-muted, #64748B);
+  transition: fill 0.3s ease;
 }

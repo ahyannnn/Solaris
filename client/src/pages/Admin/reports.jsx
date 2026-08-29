@@ -332,9 +332,7 @@ const Reports = () => {
 
       <div className="reports-container-reports">
         {/* --- Minimalist Header --- */}
-        <div className="reports-header-reports">
-          <div></div>
-        </div>
+      
 
         {/* Report Type Tabs */}
         <div className="report-tabs-reports">

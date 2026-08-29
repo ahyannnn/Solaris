@@ -96,23 +96,23 @@ const IoTDevice = () => {
   };
 
   const formatAxisDate = (timestamp) => {
-  if (!timestamp) return '';
-  const date = new Date(timestamp);
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
-  });
-};  
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
 
-  // ==================== CUSTOM TOOLTIP ====================
+  // ==================== CUSTOM TOOLTIP - Uses CSS variables ====================
   const CustomChartTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
         <div className="custom-chart-tooltip-fixed">
           <div className="tooltip-time">{formatTooltipDate(label)}</div>
           {payload.map((entry, index) => (
-            <div key={index} className="tooltip-item" style={{ color: entry.color }}>
+            <div key={index} className="tooltip-item">
               <span className="tooltip-label">{entry.name}:</span>
               <span className="tooltip-value">
                 {entry.value}
@@ -223,7 +223,6 @@ const IoTDevice = () => {
       setGpsData(stats.gps || null);
       setLastUpdated(new Date());
       
-      // Check if stats have valid data
       const hasValidStats = stats.totalReadings > 0 && stats.peakSunHours > 0;
       setHasStats(hasValidStats);
       
@@ -251,13 +250,11 @@ const IoTDevice = () => {
   };
 
   const openConfirmModal = () => {
-    // Validate that stats exist before opening confirm modal
     if (!hasStats || Object.keys(sensorStats).length === 0) {
       showToast('No data available to retrieve. Please wait for data collection.', 'warning');
       return;
     }
     
-    // Validate specific fields
     if (!sensorStats.totalReadings || sensorStats.totalReadings === 0) {
       showToast('No readings available. Device may not have collected data yet.', 'warning');
       return;
@@ -274,7 +271,6 @@ const IoTDevice = () => {
   const handleRetrieveDevice = async () => {
     if (!selectedDevice) return;
 
-    // Double-check stats before sending
     if (!sensorStats || Object.keys(sensorStats).length === 0) {
       showToast('No data to save. Please refresh and try again.', 'error');
       return;
@@ -286,33 +282,27 @@ const IoTDevice = () => {
     try {
       const token = sessionStorage.getItem('token');
 
-      // Prepare stats payload with all fields (matching what getIoTData returns)
       const statsPayload = {
         totalReadings: sensorStats.totalReadings || 0,
         dataCollectionStart: sensorStats.dataCollectionStart || null,
         dataCollectionEnd: sensorStats.dataCollectionEnd || null,
         
-        // Irradiance Metrics
         averageIrradiance: sensorStats.averageIrradiance || 0,
         maxIrradiance: sensorStats.maxIrradiance || 0,
         minIrradiance: sensorStats.minIrradiance || 0,
         peakSunHours: sensorStats.peakSunHours || 0,
         
-        // Temperature Metrics
         averageTemperature: sensorStats.averageTemperature || 0,
         maxTemperature: sensorStats.maxTemperature || 0,
         minTemperature: sensorStats.minTemperature || 0,
         
-        // Humidity Metrics
         averageHumidity: sensorStats.averageHumidity || 0,
         maxHumidity: sensorStats.maxHumidity || 0,
         minHumidity: sensorStats.minHumidity || 0,
         
-        // GPS
         gps: sensorStats.gps || null
       };
 
-      // Validate payload before sending
       if (statsPayload.totalReadings === 0) {
         showToast('Cannot retrieve device: No readings found.', 'error');
         setRetrieving(false);
@@ -588,77 +578,102 @@ const IoTDevice = () => {
                   </div>
                 )}
 
-                  {/* CHARTS */}
-                  {chartData.length > 0 && hasValidSensorData && (
-                    <>
-                      <div className="chart-container-iotdevicead">
-                        <h4>Solar Irradiance (W/m²)</h4>
-                        <div className="chart-iotdevicead">
-                          <ResponsiveContainer width="100%" height={300}>
-                            <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="timestamp" tickFormatter={formatAxisDate} domain={['auto', 'auto']} tick={{ fontSize: 11 }} />
-                              <YAxis
-                                domain={[0, 'auto']}
-                                label={{ value: 'Irradiance (W/m²)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }}
-                                tick={{ fontSize: 11 }}
-                              />
-                              <Tooltip content={<CustomChartTooltip />} cursor={{ stroke: '#f97316', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
-                              <Legend wrapperStyle={{ fontSize: '12px' }} />
-                              <Area type="monotone" dataKey="irradiance" stroke="#f97316" fill="#fed7aa" name="Irradiance" isAnimationActive={false} activeDot={{ r: 6, strokeWidth: 2 }} />
-                            </AreaChart>
-                          </ResponsiveContainer>
-                        </div>
+                {/* CHARTS */}
+                {chartData.length > 0 && hasValidSensorData && (
+                  <>
+                    <div className="chart-container-iotdevicead">
+                      <h4>Solar Irradiance (W/m²)</h4>
+                      <div className="chart-iotdevicead">
+                        <ResponsiveContainer width="100%" height={300}>
+                          <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #EEF0ED)" />
+                            <XAxis 
+                              dataKey="timestamp" 
+                              tickFormatter={formatAxisDate} 
+                              domain={['auto', 'auto']} 
+                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }} 
+                            />
+                            <YAxis
+                              domain={[0, 'auto']}
+                              label={{ 
+                                value: 'Irradiance (W/m²)', 
+                                angle: -90, 
+                                position: 'insideLeft', 
+                                style: { fontSize: '11px', fill: 'var(--text-secondary, #64748b)' } 
+                              }}
+                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }}
+                            />
+                            <Tooltip content={<CustomChartTooltip />} cursor={{ stroke: '#f97316', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
+                            <Legend wrapperStyle={{ fontSize: '12px', color: 'var(--text-primary, #17212B)' }} />
+                            <Area type="monotone" dataKey="irradiance" stroke="#f97316" fill="#fed7aa" name="Irradiance" isAnimationActive={false} activeDot={{ r: 6, strokeWidth: 2 }} />
+                          </AreaChart>
+                        </ResponsiveContainer>
                       </div>
+                    </div>
 
-                      <div className="chart-container-iotdevicead">
-                        <h4>Temperature (°C) & Humidity (%)</h4>
-                        <div className="chart-iotdevicead">
-                          <ResponsiveContainer width="100%" height={300}>
-                            <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="timestamp" tickFormatter={formatAxisDate} domain={['auto', 'auto']} tick={{ fontSize: 11 }} />
-                              <YAxis
-                                yAxisId="left"
-                                domain={[0, 50]}
-                                label={{ value: 'Temperature (°C)', angle: -90, position: 'insideLeft', style: { fontSize: '11px', fill: '#64748b' } }}
-                                tick={{ fontSize: 11 }}
-                              />
-                              <YAxis
-                                yAxisId="right"
-                                orientation="right"
-                                domain={[0, 100]}
-                                label={{ value: 'Humidity (%)', angle: 90, position: 'insideRight', style: { fontSize: '11px', fill: '#64748b' } }}
-                                tick={{ fontSize: 11 }}
-                              />
-                              <Tooltip content={<CustomChartTooltip />} cursor={{ stroke: '#94a3b8', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
-                              <Legend wrapperStyle={{ fontSize: '12px' }} />
-                              <Line
-                                yAxisId="left"
-                                type="monotone"
-                                dataKey="temperature"
-                                stroke="#ef4444"
-                                name="Temperature"
-                                dot={false}
-                                isAnimationActive={false}
-                                activeDot={{ r: 6, strokeWidth: 2 }}
-                              />
-                              <Line
-                                yAxisId="right"
-                                type="monotone"
-                                dataKey="humidity"
-                                stroke="#3b82f6"
-                                name="Humidity"
-                                dot={false}
-                                isAnimationActive={false}
-                                activeDot={{ r: 6, strokeWidth: 2 }}
-                              />
-                            </ComposedChart>
-                          </ResponsiveContainer>
-                        </div>
+                    <div className="chart-container-iotdevicead">
+                      <h4>Temperature (°C) & Humidity (%)</h4>
+                      <div className="chart-iotdevicead">
+                        <ResponsiveContainer width="100%" height={300}>
+                          <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #EEF0ED)" />
+                            <XAxis 
+                              dataKey="timestamp" 
+                              tickFormatter={formatAxisDate} 
+                              domain={['auto', 'auto']} 
+                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }} 
+                            />
+                            <YAxis
+                              yAxisId="left"
+                              domain={[0, 50]}
+                              label={{ 
+                                value: 'Temperature (°C)', 
+                                angle: -90, 
+                                position: 'insideLeft', 
+                                style: { fontSize: '11px', fill: 'var(--text-secondary, #64748b)' } 
+                              }}
+                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }}
+                            />
+                            <YAxis
+                              yAxisId="right"
+                              orientation="right"
+                              domain={[0, 100]}
+                              label={{ 
+                                value: 'Humidity (%)', 
+                                angle: 90, 
+                                position: 'insideRight', 
+                                style: { fontSize: '11px', fill: 'var(--text-secondary, #64748b)' } 
+                              }}
+                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }}
+                            />
+                            <Tooltip content={<CustomChartTooltip />} cursor={{ stroke: '#94a3b8', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
+                            <Legend wrapperStyle={{ fontSize: '12px', color: 'var(--text-primary, #17212B)' }} />
+                            <Line
+                              yAxisId="left"
+                              type="monotone"
+                              dataKey="temperature"
+                              stroke="#ef4444"
+                              name="Temperature"
+                              dot={false}
+                              isAnimationActive={false}
+                              activeDot={{ r: 6, strokeWidth: 2 }}
+                            />
+                            <Line
+                              yAxisId="right"
+                              type="monotone"
+                              dataKey="humidity"
+                              stroke="#3b82f6"
+                              name="Humidity"
+                              dot={false}
+                              isAnimationActive={false}
+                              activeDot={{ r: 6, strokeWidth: 2 }}
+                            />
+                          </ComposedChart>
+                        </ResponsiveContainer>
                       </div>
-                    </>
-                  )}
+                    </div>
+                  </>
+                )}
 
                 {/* Recent Readings Table */}
                 {sensorData.length > 0 && hasValidSensorData && (
@@ -667,7 +682,12 @@ const IoTDevice = () => {
                     <div className="table-container-iotdevicead">
                       <table className="readings-table">
                         <thead>
-                          <tr><th>Timestamp</th><th>Irradiance (W/m²)</th><th>Temperature (°C)</th><th>Humidity (%)</th></tr>
+                          <tr>
+                            <th>Timestamp</th>
+                            <th>Irradiance (W/m²)</th>
+                            <th>Temperature (°C)</th>
+                            <th>Humidity (%)</th>
+                          </tr>
                         </thead>
                         <tbody>
                           {sensorData.slice(0, 20).map((reading, idx) => (
@@ -697,12 +717,17 @@ const IoTDevice = () => {
               {gpsData && (gpsData.latitude || gpsData.longitude) && (
                 <div className="gps-location-iotdevicead">
                   <h4>Device Location</h4>
-                  <div className="gps-coords">
+                  <div className="gps-coords-iotdevicead">
                     <p><strong>Latitude:</strong> {gpsData.latitude || 'N/A'}</p>
                     <p><strong>Longitude:</strong> {gpsData.longitude || 'N/A'}</p>
                   </div>
                   {gpsData.latitude && gpsData.longitude && (
-                    <a href={`https://www.google.com/maps?q=${gpsData.latitude},${gpsData.longitude}`} target="_blank" rel="noopener noreferrer" className="view-map-btn">
+                    <a 
+                      href={`https://www.google.com/maps?q=${gpsData.latitude},${gpsData.longitude}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="view-map-btn-iotdevicead"
+                    >
                       View on Google Maps
                     </a>
                   )}
@@ -739,10 +764,22 @@ const IoTDevice = () => {
                 <p>Are you sure you want to retrieve this device?</p>
 
                 <div className="device-details-confirm-iotdevicead">
-                  <div className="detail-row-iotdevicead"><span className="detail-label-iotdevicead">Device ID:</span><span className="detail-value-iotdevicead">{selectedDevice.deviceId}</span></div>
-                  <div className="detail-row-iotdevicead"><span className="detail-label-iotdevicead">Device Name:</span><span className="detail-value-iotdevicead">{selectedDevice.deviceName}</span></div>
-                  <div className="detail-row-iotdevicead"><span className="detail-label-iotdevicead">Assessment:</span><span className="detail-value-iotdevicead">{selectedDevice.bookingReference}</span></div>
-                  <div className="detail-row-iotdevicead"><span className="detail-label-iotdevicead">Client:</span><span className="detail-value-iotdevicead">{selectedDevice.clientName}</span></div>
+                  <div className="detail-row-iotdevicead">
+                    <span className="detail-label-iotdevicead">Device ID:</span>
+                    <span className="detail-value-iotdevicead">{selectedDevice.deviceId}</span>
+                  </div>
+                  <div className="detail-row-iotdevicead">
+                    <span className="detail-label-iotdevicead">Device Name:</span>
+                    <span className="detail-value-iotdevicead">{selectedDevice.deviceName}</span>
+                  </div>
+                  <div className="detail-row-iotdevicead">
+                    <span className="detail-label-iotdevicead">Assessment:</span>
+                    <span className="detail-value-iotdevicead">{selectedDevice.bookingReference}</span>
+                  </div>
+                  <div className="detail-row-iotdevicead">
+                    <span className="detail-label-iotdevicead">Client:</span>
+                    <span className="detail-value-iotdevicead">{selectedDevice.clientName}</span>
+                  </div>
                 </div>
 
                 {/* Show stats summary in confirmation */}

@@ -1,32 +1,252 @@
-/* styles/Admin/billing.css - Light Solar Theme for Billing */
+/* styles/Admin/billing.css - Unified Light/Dark Solar Theme for Billing */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE LAYOUT - BILLING - LIGHT SOLAR
+   CSS VARIABLES - LIGHT MODE (Default)
    ============================================ */
-.admin-billing {
-  background: #F3F5F1;
-  min-height: 100vh;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #17212B;
+:root {
+  --bg-primary: #F3F5F1;
+  --bg-card: rgba(255, 255, 255, 0.86);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: rgba(0, 0, 0, 0.02);
+  --bg-section: rgba(255, 255, 255, 0.5);
+  --bg-table-header: rgba(255, 255, 255, 0.5);
+  --bg-table-row-hover: rgba(255, 255, 255, 0.3);
+  --bg-modal: rgba(255, 255, 255, 0.98);
+  --bg-input: rgba(255, 255, 255, 0.5);
+  --bg-tabs: rgba(255, 255, 255, 0.86);
+  --bg-filter: rgba(255, 255, 255, 0.86);
+  --bg-dropdown: rgba(255, 255, 255, 0.98);
+  --bg-select-option: #FFFFFF;
+  --bg-mobile-toggle: rgba(255, 255, 255, 0.86);
+  --bg-detail-section: #F3F5F1;
+  --bg-rejected: rgba(239, 68, 68, 0.05);
+  --bg-rejection-text: rgba(239, 68, 68, 0.06);
+  --bg-payment-summary: #F3F5F1;
+  --bg-remarks: #F3F5F1;
+  --text-primary: #17212B;
+  --text-secondary: #667085;
+  --text-muted: #98A2B3;
+  --text-white: #17212B;
+  --text-dark: #17212B;
+  --border-color: #EEF0ED;
+  --border-card: rgba(255, 255, 255, 0.9);
+  --border-medium: #E5E7EB;
+  --border-input: #EEF0ED;
+  --border-modal: #EEF0ED;
+  --border-dropdown: #EEF0ED;
+  --shadow-card: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  --shadow-card-hover: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.15);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.12);
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+  --skeleton-bg: #EEF0ED;
+  --skeleton-gradient: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  --icon-color: #F39C12;
+  --icon-info: #2563EB;
+  --icon-success: #059669;
+  --icon-danger: #DC2626;
+  --icon-warning: #D97706;
+  --text-danger: #DC2626;
+  --text-danger-hover: #EF4444;
+  --text-edit: #2563EB;
+  --text-edit-hover: #3B82F6;
+  --text-success: #059669;
+  --text-success-hover: #10B981;
+  --status-pending-bg: rgba(243, 156, 18, 0.10);
+  --status-pending-text: #D97706;
+  --status-verifying-bg: rgba(59, 130, 246, 0.10);
+  --status-verifying-text: #2563EB;
+  --status-paid-bg: rgba(16, 185, 129, 0.10);
+  --status-paid-text: #059669;
+  --status-partial-bg: rgba(139, 92, 246, 0.10);
+  --status-partial-text: #7C3AED;
+  --status-rejected-bg: rgba(239, 68, 68, 0.10);
+  --status-rejected-text: #DC2626;
+  --status-scheduled-bg: rgba(59, 130, 246, 0.10);
+  --status-scheduled-text: #2563EB;
+  --status-processing-bg: rgba(139, 92, 246, 0.10);
+  --status-processing-text: #7C3AED;
+  --status-completed-bg: rgba(16, 185, 129, 0.10);
+  --status-completed-text: #059669;
+  --invoice-initial-bg: rgba(243, 156, 18, 0.10);
+  --invoice-initial-text: #D97706;
+  --invoice-progress-bg: rgba(59, 130, 246, 0.10);
+  --invoice-progress-text: #2563EB;
+  --invoice-final-bg: rgba(16, 185, 129, 0.10);
+  --invoice-final-text: #059669;
+  --invoice-full-bg: rgba(139, 92, 246, 0.10);
+  --invoice-full-text: #7C3AED;
+  --invoice-additional-bg: rgba(239, 68, 68, 0.10);
+  --invoice-additional-text: #DC2626;
+  --gateway-paymongo-bg: rgba(139, 92, 246, 0.10);
+  --gateway-paymongo-text: #7C3AED;
+  --gateway-cash-bg: rgba(16, 185, 129, 0.10);
+  --gateway-cash-text: #059669;
+  --gateway-manual-bg: #EEF0ED;
+  --gateway-manual-text: #667085;
+  --transaction-pre-bg: rgba(59, 130, 246, 0.10);
+  --transaction-pre-text: #2563EB;
+  --transaction-project-bg: rgba(16, 185, 129, 0.10);
+  --transaction-project-text: #059669;
+  --btn-primary-bg: #10B981;
+  --btn-primary-hover: #059669;
+  --btn-danger-bg: #EF4444;
+  --btn-danger-hover: #DC2626;
+  --btn-cancel-bg: rgba(255, 255, 255, 0.5);
+  --btn-cancel-hover: rgba(0, 0, 0, 0.05);
+  --btn-close-bg: transparent;
+  --btn-close-hover: rgba(0, 0, 0, 0.03);
+  --required-color: #EF4444;
+  --error-color: #EF4444;
+  --receipt-link-color: #2563EB;
+  --receipt-link-hover: #3B82F6;
+  --no-receipt-color: #D1D5DB;
+  --balance-color: #D97706;
+  --rejection-border: rgba(239, 68, 68, 0.15);
+  --verified-auto-bg: rgba(139, 92, 246, 0.10);
+  --verified-auto-text: #7C3AED;
 }
 
 /* ============================================
-   HEADER - LIGHT
+   CSS VARIABLES - DARK MODE
+   ============================================ */
+body.dark-mode {
+  --bg-primary: #0B111A;
+  --bg-card: #1A2533;
+  --bg-card-hover: #1F2C3D;
+  --bg-surface: #131C28;
+  --bg-elevated: #1A2533;
+  --bg-hover: rgba(255, 255, 255, 0.03);
+  --bg-section: rgba(255, 255, 255, 0.05);
+  --bg-table-header: rgba(255, 255, 255, 0.05);
+  --bg-table-row-hover: rgba(255, 255, 255, 0.03);
+  --bg-modal: rgba(26, 37, 51, 0.98);
+  --bg-input: rgba(255, 255, 255, 0.05);
+  --bg-tabs: #1A2533;
+  --bg-filter: #1A2533;
+  --bg-dropdown: #1A2533;
+  --bg-select-option: #1A2533;
+  --bg-mobile-toggle: #1A2533;
+  --bg-detail-section: #131C28;
+  --bg-rejected: rgba(239, 68, 68, 0.08);
+  --bg-rejection-text: rgba(239, 68, 68, 0.10);
+  --bg-payment-summary: #131C28;
+  --bg-remarks: #131C28;
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-white: #FFFFFF;
+  --text-dark: #FFFFFF;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.08);
+  --border-input: rgba(255, 255, 255, 0.06);
+  --border-modal: rgba(255, 255, 255, 0.06);
+  --border-dropdown: rgba(255, 255, 255, 0.06);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.4);
+  --overlay-bg: rgba(0, 0, 0, 0.8);
+  --skeleton-bg: #131C28;
+  --skeleton-gradient: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  --icon-color: #F39C12;
+  --icon-info: #3B82F6;
+  --icon-success: #10B981;
+  --icon-danger: #EF4444;
+  --icon-warning: #F39C12;
+  --text-danger: #EF4444;
+  --text-danger-hover: #EF4444;
+  --text-edit: #3B82F6;
+  --text-edit-hover: #3B82F6;
+  --text-success: #10B981;
+  --text-success-hover: #10B981;
+  --status-pending-bg: rgba(243, 156, 18, 0.12);
+  --status-pending-text: #F39C12;
+  --status-verifying-bg: rgba(59, 130, 246, 0.12);
+  --status-verifying-text: #3B82F6;
+  --status-paid-bg: rgba(16, 185, 129, 0.12);
+  --status-paid-text: #10B981;
+  --status-partial-bg: rgba(139, 92, 246, 0.12);
+  --status-partial-text: #8B5CF6;
+  --status-rejected-bg: rgba(239, 68, 68, 0.12);
+  --status-rejected-text: #EF4444;
+  --status-scheduled-bg: rgba(59, 130, 246, 0.12);
+  --status-scheduled-text: #3B82F6;
+  --status-processing-bg: rgba(139, 92, 246, 0.12);
+  --status-processing-text: #8B5CF6;
+  --status-completed-bg: rgba(16, 185, 129, 0.12);
+  --status-completed-text: #10B981;
+  --invoice-initial-bg: rgba(243, 156, 18, 0.12);
+  --invoice-initial-text: #F39C12;
+  --invoice-progress-bg: rgba(59, 130, 246, 0.12);
+  --invoice-progress-text: #3B82F6;
+  --invoice-final-bg: rgba(16, 185, 129, 0.12);
+  --invoice-final-text: #10B981;
+  --invoice-full-bg: rgba(139, 92, 246, 0.12);
+  --invoice-full-text: #8B5CF6;
+  --invoice-additional-bg: rgba(239, 68, 68, 0.12);
+  --invoice-additional-text: #EF4444;
+  --gateway-paymongo-bg: rgba(139, 92, 246, 0.12);
+  --gateway-paymongo-text: #8B5CF6;
+  --gateway-cash-bg: rgba(16, 185, 129, 0.12);
+  --gateway-cash-text: #10B981;
+  --gateway-manual-bg: rgba(255, 255, 255, 0.05);
+  --gateway-manual-text: rgba(255, 255, 255, 0.6);
+  --transaction-pre-bg: rgba(59, 130, 246, 0.12);
+  --transaction-pre-text: #3B82F6;
+  --transaction-project-bg: rgba(16, 185, 129, 0.12);
+  --transaction-project-text: #10B981;
+  --btn-primary-bg: #10B981;
+  --btn-primary-hover: #059669;
+  --btn-danger-bg: #EF4444;
+  --btn-danger-hover: #DC2626;
+  --btn-cancel-bg: rgba(255, 255, 255, 0.05);
+  --btn-cancel-hover: rgba(255, 255, 255, 0.1);
+  --btn-close-bg: transparent;
+  --btn-close-hover: rgba(255, 255, 255, 0.05);
+  --required-color: #EF4444;
+  --error-color: #EF4444;
+  --receipt-link-color: #3B82F6;
+  --receipt-link-hover: #3B82F6;
+  --no-receipt-color: rgba(255, 255, 255, 0.2);
+  --balance-color: #F39C12;
+  --rejection-border: rgba(239, 68, 68, 0.20);
+  --verified-auto-bg: rgba(139, 92, 246, 0.12);
+  --verified-auto-text: #8B5CF6;
+}
+
+/* ============================================
+   BASE LAYOUT - BILLING
+   ============================================ */
+.admin-billing {
+  background: var(--bg-primary);
+  min-height: 100vh;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* ============================================
+   HEADER
    ============================================ */
 .billing-header-adminbilling {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 24px;
   flex-wrap: wrap;
+  transition: border-color 0.3s ease;
 }
 
 /* ============================================
-   CHARTS ROW - LIGHT GLASS
+   CHARTS ROW - GLASS
    ============================================ */
 .billing-charts-row-adminbilling {
   display: grid;
@@ -36,11 +256,11 @@
 }
 
 .billing-chart-card-adminbilling {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   border-radius: 14px;
   padding: 20px 24px 16px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-card);
   transition: all 200ms ease;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -49,7 +269,7 @@
 .billing-chart-card-adminbilling:hover {
   transform: translateY(-2px);
   border-color: rgba(243, 156, 18, 0.25);
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .billing-chart-header-adminbilling {
@@ -64,44 +284,49 @@
 .billing-chart-header-adminbilling h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .billing-chart-period-adminbilling {
   font-size: 13px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .billing-chart-wrapper-adminbilling {
   height: 200px;
 }
 
-/* Chart Tooltip - LIGHT */
+/* Chart Tooltip */
 .chart-tooltip-adminbilling {
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid #EEF0ED;
+  background: var(--bg-modal);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 12px 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-dropdown);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .tooltip-label-adminbilling {
   font-size: 12px;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0 0 4px 0;
+  transition: color 0.3s ease;
 }
 
 .tooltip-item-adminbilling {
   font-size: 13px;
   font-weight: 500;
   margin: 2px 0;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   TABS - LIGHT GLASS
+   TABS - GLASS
    ============================================ */
 .billing-tabs-wrapper-adminbilling {
   margin-bottom: 20px;
@@ -111,19 +336,20 @@
   display: none;
   width: 100%;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-mobile-toggle);
+  border: 1px solid var(--border-card);
   border-radius: 10px;
-  color: #17212B;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .mobile-tab-toggle-adminbilling .tab-label-adminbilling {
@@ -133,7 +359,7 @@
 
 .toggle-arrow-adminbilling {
   transition: transform 200ms ease;
-  color: #98A2B3;
+  color: var(--text-muted);
 }
 
 .toggle-arrow-adminbilling.open {
@@ -144,14 +370,15 @@
   display: inline-flex;
   gap: 6px;
   flex-wrap: wrap;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-tabs);
   padding: 6px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   width: auto;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .tab-btn-adminbilling {
@@ -161,7 +388,7 @@
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #98A2B3;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 200ms ease;
   display: inline-flex;
@@ -172,12 +399,12 @@
 }
 
 .tab-btn-adminbilling:hover {
-  color: #17212B;
-  background: rgba(255, 255, 255, 0.5);
+  color: var(--text-primary);
+  background: var(--bg-hover);
 }
 
 .tab-btn-adminbilling.active {
-  background: #F39C12;
+  background: var(--icon-color);
   color: #FFFFFF;
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
 }
@@ -190,10 +417,11 @@
   height: 22px;
   padding: 0 8px;
   border-radius: 20px;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--bg-hover);
   font-size: 12px;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .tab-btn-adminbilling.active .tab-badge-adminbilling {
@@ -202,7 +430,7 @@
 }
 
 /* ============================================
-   FILTERS / TOOLBAR - LIGHT
+   FILTERS / TOOLBAR
    ============================================ */
 .filters-section-adminbilling {
   display: flex;
@@ -222,25 +450,25 @@
 .search-group-adminbilling input {
   width: 100%;
   padding: 10px 14px 10px 40px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 10px;
   font-size: 14px;
-  color: #17212B;
+  color: var(--text-primary);
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 .search-group-adminbilling input::placeholder {
-  color: #98A2B3;
+  color: var(--text-muted);
 }
 
 .search-group-adminbilling input:focus {
   outline: none;
-  border-color: #F39C12;
+  border-color: var(--icon-color);
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 
@@ -249,8 +477,9 @@
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 .filter-group-adminbilling {
@@ -261,29 +490,29 @@
 .filter-group-adminbilling select {
   width: 100%;
   padding: 10px 36px 10px 14px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 10px;
   font-size: 14px;
-  color: #17212B;
+  color: var(--text-primary);
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
   appearance: none;
   transition: all 200ms ease;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 .filter-group-adminbilling select:focus {
   outline: none;
-  border-color: #F39C12;
+  border-color: var(--icon-color);
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 
 .filter-group-adminbilling select option {
-  background: #FFFFFF;
-  color: #17212B;
+  background: var(--bg-select-option);
+  color: var(--text-primary);
 }
 
 .select-arrow-adminbilling {
@@ -291,9 +520,10 @@
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #98A2B3;
+  color: var(--text-muted);
   pointer-events: none;
   font-size: 12px;
+  transition: color 0.3s ease;
 }
 
 .refresh-btn-adminbilling {
@@ -301,9 +531,9 @@
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  background: var(--bg-section);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -314,9 +544,9 @@
 }
 
 .refresh-btn-adminbilling:hover {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: #D1D5DB;
-  color: #17212B;
+  background: var(--bg-card-hover);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 .spinning-adminbilling {
@@ -328,14 +558,15 @@
 }
 
 /* ============================================
-   TABLE - LIGHT GLASS
+   TABLE - GLASS
    ============================================ */
 .payments-table-container-adminbilling {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   overflow: hidden;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .table-responsive-adminbilling {
@@ -349,7 +580,7 @@
 }
 
 .payments-table-adminbilling thead {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-table-header);
 }
 
 .payments-table-adminbilling thead th {
@@ -359,13 +590,14 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #98A2B3;
-  border-bottom: 1px solid #EEF0ED;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .payments-table-adminbilling tbody tr {
-  border-bottom: 1px solid #EEF0ED;
-  transition: background 200ms ease;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 200ms ease, border-color 0.3s ease;
 }
 
 .payments-table-adminbilling tbody tr:last-child {
@@ -373,33 +605,36 @@
 }
 
 .payments-table-adminbilling tbody tr:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--bg-table-row-hover);
 }
 
 .payments-table-adminbilling tbody td {
   padding: 14px 16px;
   vertical-align: middle;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .ref-cell-adminbilling {
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
   font-family: monospace;
   font-size: 12px;
+  transition: color 0.3s ease;
 }
 
 .amount-adminbilling {
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .amount-adminbilling.balance {
-  color: #D97706;
+  color: var(--balance-color);
 }
 
 /* ============================================
-   STATUS BADGES - LIGHT THEME
+   STATUS BADGES - Theme Aware
    ============================================ */
 .status-badge-adminbilling {
   display: inline-block;
@@ -414,58 +649,58 @@
 
 .status-badge-adminbilling.pending,
 .status-badge-adminbilling.waiting-verification {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
-  border: 1px solid rgba(243, 156, 18, 0.20);
+  background: var(--status-pending-bg);
+  color: var(--status-pending-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-adminbilling.for-verification {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
-  border: 1px solid rgba(59, 130, 246, 0.20);
+  background: var(--status-verifying-bg);
+  color: var(--status-verifying-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-adminbilling.paid,
 .status-badge-adminbilling.verified {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--status-paid-bg);
+  color: var(--status-paid-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-adminbilling.partial {
-  background: rgba(139, 92, 246, 0.10);
-  color: #7C3AED;
-  border: 1px solid rgba(139, 92, 246, 0.20);
+  background: var(--status-partial-bg);
+  color: var(--status-partial-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-adminbilling.rejected,
 .status-badge-adminbilling.failed,
 .status-badge-adminbilling.overdue {
-  background: rgba(239, 68, 68, 0.10);
-  color: #DC2626;
-  border: 1px solid rgba(239, 68, 68, 0.20);
+  background: var(--status-rejected-bg);
+  color: var(--status-rejected-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-adminbilling.scheduled {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
-  border: 1px solid rgba(59, 130, 246, 0.20);
+  background: var(--status-scheduled-bg);
+  color: var(--status-scheduled-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-adminbilling.processing {
-  background: rgba(139, 92, 246, 0.10);
-  color: #7C3AED;
-  border: 1px solid rgba(139, 92, 246, 0.20);
+  background: var(--status-processing-bg);
+  color: var(--status-processing-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-adminbilling.completed {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--status-completed-bg);
+  color: var(--status-completed-text);
+  border: 1px solid var(--border-medium);
 }
 
 /* ============================================
-   INVOICE TYPE BADGES - LIGHT
+   INVOICE TYPE BADGES
    ============================================ */
 .invoice-type-adminbilling {
   display: inline-block;
@@ -478,32 +713,32 @@
 }
 
 .invoice-type-adminbilling.initial {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
+  background: var(--invoice-initial-bg);
+  color: var(--invoice-initial-text);
 }
 
 .invoice-type-adminbilling.progress {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
+  background: var(--invoice-progress-bg);
+  color: var(--invoice-progress-text);
 }
 
 .invoice-type-adminbilling.final {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
+  background: var(--invoice-final-bg);
+  color: var(--invoice-final-text);
 }
 
 .invoice-type-adminbilling.full {
-  background: rgba(139, 92, 246, 0.10);
-  color: #7C3AED;
+  background: var(--invoice-full-bg);
+  color: var(--invoice-full-text);
 }
 
 .invoice-type-adminbilling.additional {
-  background: rgba(239, 68, 68, 0.10);
-  color: #DC2626;
+  background: var(--invoice-additional-bg);
+  color: var(--invoice-additional-text);
 }
 
 /* ============================================
-   GATEWAY BADGES - LIGHT
+   GATEWAY BADGES
    ============================================ */
 .gateway-badge-adminbilling {
   display: inline-block;
@@ -516,22 +751,22 @@
 }
 
 .gateway-badge-adminbilling.paymongo {
-  background: rgba(139, 92, 246, 0.10);
-  color: #7C3AED;
+  background: var(--gateway-paymongo-bg);
+  color: var(--gateway-paymongo-text);
 }
 
 .gateway-badge-adminbilling.cash {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
+  background: var(--gateway-cash-bg);
+  color: var(--gateway-cash-text);
 }
 
 .gateway-badge-adminbilling.manual {
-  background: #EEF0ED;
-  color: #667085;
+  background: var(--gateway-manual-bg);
+  color: var(--gateway-manual-text);
 }
 
 /* ============================================
-   RECEIPT CELL - LIGHT
+   RECEIPT CELL
    ============================================ */
 .receipt-cell-adminbilling {
   text-align: center;
@@ -541,7 +776,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #2563EB;
+  color: var(--receipt-link-color);
   text-decoration: none;
   font-size: 12px;
   font-weight: 500;
@@ -549,17 +784,17 @@
 }
 
 .receipt-link-adminbilling:hover {
-  color: #3B82F6;
+  color: var(--receipt-link-hover);
   text-decoration: underline;
 }
 
 .no-receipt-adminbilling {
-  color: #D1D5DB;
+  color: var(--no-receipt-color);
   font-size: 14px;
 }
 
 /* ============================================
-   VERIFIED / FAILED BADGES - LIGHT
+   VERIFIED / FAILED BADGES
    ============================================ */
 .verified-badge-adminbilling {
   display: inline-block;
@@ -567,15 +802,15 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--status-paid-bg);
+  color: var(--status-paid-text);
+  border: 1px solid var(--border-medium);
 }
 
 .verified-badge-adminbilling.auto-verified {
-  background: rgba(139, 92, 246, 0.10);
-  color: #7C3AED;
-  border: 1px solid rgba(139, 92, 246, 0.20);
+  background: var(--verified-auto-bg);
+  color: var(--verified-auto-text);
+  border: 1px solid var(--border-medium);
 }
 
 .failed-badge-adminbilling {
@@ -584,13 +819,13 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  background: rgba(239, 68, 68, 0.10);
-  color: #DC2626;
-  border: 1px solid rgba(239, 68, 68, 0.20);
+  background: var(--status-rejected-bg);
+  color: var(--status-rejected-text);
+  border: 1px solid var(--border-medium);
 }
 
 /* ============================================
-   TRANSACTION TYPE - LIGHT
+   TRANSACTION TYPE
    ============================================ */
 .transaction-type-adminbilling {
   display: inline-block;
@@ -603,17 +838,17 @@
 }
 
 .transaction-type-adminbilling.pre {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
+  background: var(--transaction-pre-bg);
+  color: var(--transaction-pre-text);
 }
 
 .transaction-type-adminbilling.project {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
+  background: var(--transaction-project-bg);
+  color: var(--transaction-project-text);
 }
 
 /* ============================================
-   ACTION DROPDOWN - LIGHT
+   ACTION DROPDOWN
    ============================================ */
 .action-dropdown-container-adminbilling {
   position: relative;
@@ -625,9 +860,9 @@
   align-items: center;
   gap: 8px;
   padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  background: var(--bg-section);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
@@ -637,9 +872,9 @@
 }
 
 .action-dropdown-toggle-adminbilling:hover {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: #D1D5DB;
-  color: #17212B;
+  background: var(--bg-card-hover);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 .dropdown-arrow-adminbilling {
@@ -654,14 +889,15 @@
 .action-dropdown-menu-adminbilling {
   min-width: 200px;
   max-width: 250px;
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid #EEF0ED;
+  background: var(--bg-dropdown);
+  border: 1px solid var(--border-dropdown);
   border-radius: 10px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-dropdown);
   padding: 6px;
   overflow: hidden;
   max-height: 300px;
   overflow-y: auto;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .action-dropdown-menu-adminbilling::-webkit-scrollbar {
@@ -674,7 +910,7 @@
 }
 
 .action-dropdown-menu-adminbilling::-webkit-scrollbar-thumb {
-  background: #F39C12;
+  background: var(--icon-color);
   border-radius: 4px;
 }
 
@@ -692,15 +928,16 @@
   text-align: left;
   transition: all 150ms ease;
   font-family: 'Poppins', sans-serif;
-  color: #667085;
+  color: var(--text-secondary);
 }
 
 .dropdown-item-adminbilling:hover {
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .dropdown-item-adminbilling.success {
-  color: #059669;
+  color: var(--text-success);
 }
 
 .dropdown-item-adminbilling.success:hover {
@@ -708,7 +945,7 @@
 }
 
 .dropdown-item-adminbilling.danger {
-  color: #DC2626;
+  color: var(--text-danger);
 }
 
 .dropdown-item-adminbilling.danger:hover {
@@ -716,7 +953,7 @@
 }
 
 .dropdown-item-adminbilling.warning {
-  color: #D97706;
+  color: var(--icon-warning);
 }
 
 .dropdown-item-adminbilling.warning:hover {
@@ -724,7 +961,7 @@
 }
 
 .dropdown-item-adminbilling.primary {
-  color: #2563EB;
+  color: var(--text-edit);
 }
 
 .dropdown-item-adminbilling.primary:hover {
@@ -740,22 +977,23 @@
 }
 
 /* ============================================
-   EMPTY STATE - LIGHT
+   EMPTY STATE
    ============================================ */
 .empty-state-adminbilling {
   text-align: center;
   padding: 48px 20px;
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 .empty-state-adminbilling svg {
   margin-right: 8px;
-  color: #F39C12;
+  color: var(--icon-color);
 }
 
 /* ============================================
-   PAGINATION - LIGHT
+   PAGINATION
    ============================================ */
 .pagination-adminbilling {
   display: flex;
@@ -768,7 +1006,8 @@
 
 .pagination-info-adminbilling {
   font-size: 13px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .pagination-controls-adminbilling {
@@ -784,8 +1023,8 @@
   gap: 6px;
   padding: 8px 16px;
   background: transparent;
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -795,9 +1034,9 @@
 }
 
 .page-btn-adminbilling:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.5);
-  border-color: #D1D5DB;
-  color: #17212B;
+  background: var(--bg-section);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 .page-btn-adminbilling:disabled {
@@ -813,7 +1052,7 @@
   justify-content: center;
   padding: 0 8px;
   background: transparent;
-  color: #667085;
+  color: var(--text-secondary);
   border: 1px solid transparent;
   border-radius: 8px;
   font-size: 13px;
@@ -824,23 +1063,23 @@
 }
 
 .page-number-adminbilling:hover {
-  background: rgba(255, 255, 255, 0.5);
-  color: #17212B;
+  background: var(--bg-section);
+  color: var(--text-primary);
 }
 
 .page-number-adminbilling.active {
-  background: #F39C12;
+  background: var(--icon-color);
   color: #FFFFFF;
-  border-color: #F39C12;
+  border-color: var(--icon-color);
 }
 
 /* ============================================
-   MODALS - LIGHT GLASS
+   MODALS - GLASS
    ============================================ */
 .modal-overlay-adminbilling {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -850,25 +1089,27 @@
 }
 
 .modal-content-adminbilling {
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--bg-modal);
   border-radius: 18px;
   max-width: 560px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  border: 1px solid #EEF0ED;
+  box-shadow: var(--shadow-modal);
+  border: 1px solid var(--border-modal);
   position: relative;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .modal-content-adminbilling h3 {
   padding: 20px 24px 16px 24px;
   font-size: 20px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .modal-body-adminbilling {
@@ -887,7 +1128,7 @@
 }
 
 .modal-body-adminbilling::-webkit-scrollbar-thumb {
-  background: #F39C12;
+  background: var(--icon-color);
   border-radius: 4px;
 }
 
@@ -898,9 +1139,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
-  color: #98A2B3;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
   font-size: 20px;
   cursor: pointer;
   display: flex;
@@ -912,25 +1153,26 @@
 
 .modal-close-adminbilling:hover {
   background: rgba(239, 68, 68, 0.10);
-  border-color: #EF4444;
-  color: #EF4444;
+  border-color: var(--text-danger);
+  color: var(--text-danger);
 }
 
 .modal-actions-adminbilling {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--border-color);
   display: flex;
   gap: 12px;
   justify-content: flex-end;
   flex-wrap: wrap;
+  transition: border-color 0.3s ease;
 }
 
-/* Modal Buttons - LIGHT */
+/* Modal Buttons */
 .btn-cancel-adminbilling {
   padding: 10px 24px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #17212B;
-  border: 1px solid #EEF0ED;
+  background: var(--btn-cancel-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -940,7 +1182,7 @@
 }
 
 .btn-cancel-adminbilling:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--btn-cancel-hover);
 }
 
 .btn-verify-adminbilling,
@@ -948,7 +1190,7 @@
 .btn-record-adminbilling,
 .btn-save-adminbilling {
   padding: 10px 24px;
-  background: #10B981;
+  background: var(--btn-primary-bg);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -966,6 +1208,7 @@
 .btn-approve-adminbilling:hover:not(:disabled),
 .btn-record-adminbilling:hover:not(:disabled),
 .btn-save-adminbilling:hover:not(:disabled) {
+  background: var(--btn-primary-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
 }
@@ -982,7 +1225,7 @@
 .btn-reject-adminbilling,
 .btn-reject-confirm-adminbilling {
   padding: 10px 24px;
-  background: #EF4444;
+  background: var(--btn-danger-bg);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -998,6 +1241,7 @@
 
 .btn-reject-adminbilling:hover:not(:disabled),
 .btn-reject-confirm-adminbilling:hover:not(:disabled) {
+  background: var(--btn-danger-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
 }
@@ -1011,9 +1255,9 @@
 
 .btn-close-adminbilling {
   padding: 10px 24px;
-  background: transparent;
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  background: var(--btn-close-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -1023,18 +1267,19 @@
 }
 
 .btn-close-adminbilling:hover {
-  background: rgba(0, 0, 0, 0.03);
-  color: #17212B;
+  background: var(--btn-close-hover);
+  color: var(--text-primary);
 }
 
 /* ============================================
-   DETAIL ROWS IN MODALS - LIGHT
+   DETAIL ROWS IN MODALS
    ============================================ */
 .detail-row-adminbilling {
   display: flex;
   justify-content: space-between;
   padding: 8px 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .detail-row-adminbilling:last-child {
@@ -1042,13 +1287,15 @@
 }
 
 .detail-row-adminbilling span {
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 13px;
+  transition: color 0.3s ease;
 }
 
 .detail-row-adminbilling strong {
-  color: #17212B;
+  color: var(--text-primary);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 .detail-section-adminbilling {
@@ -1062,23 +1309,26 @@
 .detail-section-adminbilling h4 {
   font-size: 13px;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   margin: 0 0 8px 0;
   display: flex;
   align-items: center;
   gap: 8px;
+  transition: color 0.3s ease;
 }
 
 .detail-section-adminbilling p {
   margin: 4px 0;
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .detail-section-adminbilling p strong {
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .detail-grid-adminbilling {
@@ -1093,21 +1343,23 @@
 .detail-grid-adminbilling label {
   font-size: 11px;
   font-weight: 500;
-  color: #98A2B3;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   display: block;
   margin-bottom: 2px;
+  transition: color 0.3s ease;
 }
 
 .detail-grid-adminbilling p {
   font-size: 14px;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   BANK TRANSFER SPECIFIC - LIGHT
+   BANK TRANSFER SPECIFIC
    ============================================ */
 .detail-modal-adminbilling {
   max-width: 700px;
@@ -1115,7 +1367,8 @@
 
 .modal-header-adminbilling {
   padding: 20px 24px 16px 24px;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .modal-title-adminbilling {
@@ -1130,39 +1383,44 @@
   border: none;
   font-size: 20px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .modal-subtitle-adminbilling {
   margin-top: 4px;
   font-size: 13px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .modal-footer-adminbilling {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--border-color);
   display: flex;
   gap: 12px;
   justify-content: flex-end;
   flex-wrap: wrap;
+  transition: border-color 0.3s ease;
 }
 
 .bank-name-adminbilling {
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   font-size: 13px;
+  transition: color 0.3s ease;
 }
 
 .customer-cell-adminbilling small {
   display: block;
   font-size: 11px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .rejected-row-adminbilling {
-  background: rgba(239, 68, 68, 0.05);
+  background: var(--bg-rejected);
 }
 
 .proof-container-adminbilling {
@@ -1180,10 +1438,10 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  color: #667085;
+  color: var(--text-secondary);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -1193,13 +1451,13 @@
 }
 
 .proof-btn-adminbilling:hover {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: #D1D5DB;
-  color: #17212B;
+  background: var(--bg-card-hover);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 .proof-btn-adminbilling.download {
-  color: #2563EB;
+  color: var(--receipt-link-color);
 }
 
 .proof-btn-adminbilling.download:hover {
@@ -1207,31 +1465,33 @@
 }
 
 .no-proof-adminbilling {
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 13px;
+  transition: color 0.3s ease;
 }
 
 .remarks-text-adminbilling {
-  color: #667085;
+  color: var(--text-secondary);
   font-size: 13px;
   padding: 8px 12px;
-  background: #F3F5F1;
+  background: var(--bg-remarks);
   border-radius: 8px;
   margin: 0;
+  transition: color 0.3s ease, background 0.3s ease;
 }
 
 .rejection-text-adminbilling {
-  color: #DC2626;
+  color: var(--text-danger);
   font-size: 13px;
   padding: 8px 12px;
-  background: rgba(239, 68, 68, 0.06);
+  background: var(--bg-rejection-text);
   border-radius: 8px;
   margin: 0;
-  border: 1px solid rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--rejection-border);
 }
 
 .detail-section-adminbilling.rejected {
-  border-left: 3px solid #EF4444;
+  border-left: 3px solid var(--text-danger);
   padding-left: 12px;
 }
 
@@ -1247,10 +1507,10 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  color: #2563EB;
+  color: var(--receipt-link-color);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -1264,8 +1524,9 @@
 
 .receipt-number-adminbilling {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
   font-family: monospace;
+  transition: color 0.3s ease;
 }
 
 .reject-info-adminbilling {
@@ -1275,34 +1536,38 @@
 
 .warning-icon-adminbilling {
   font-size: 32px;
-  color: #EF4444;
+  color: var(--text-danger);
   margin-bottom: 8px;
 }
 
 .reject-info-adminbilling p {
   font-size: 14px;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 12px 0;
+  transition: color 0.3s ease;
 }
 
 .payment-summary-adminbilling {
-  background: #F3F5F1;
+  background: var(--bg-payment-summary);
   border-radius: 10px;
   padding: 12px 16px;
   text-align: left;
+  transition: background 0.3s ease;
 }
 
 .payment-summary-adminbilling div {
   padding: 4px 0;
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .payment-summary-adminbilling div strong {
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
-/* Form Groups in Modals - LIGHT */
+/* Form Groups in Modals */
 .form-group-adminbilling {
   display: flex;
   flex-direction: column;
@@ -1313,18 +1578,19 @@
 .form-group-adminbilling label {
   font-size: 13px;
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .form-group-adminbilling textarea,
 .form-group-adminbilling input,
 .form-group-adminbilling select {
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
   border-radius: 10px;
   font-size: 14px;
-  color: #17212B;
+  color: var(--text-primary);
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
   width: 100%;
@@ -1334,7 +1600,7 @@
 .form-group-adminbilling input:focus,
 .form-group-adminbilling select:focus {
   outline: none;
-  border-color: #F39C12;
+  border-color: var(--icon-color);
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 
@@ -1352,7 +1618,8 @@
 .invoice-totals-adminbilling {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .total-row-adminbilling {
@@ -1360,18 +1627,20 @@
   justify-content: space-between;
   font-size: 16px;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .total-row-adminbilling strong {
-  color: #D97706;
+  color: var(--balance-color);
 }
 
 .payment-details-adminbilling {
-  background: #F3F5F1;
+  background: var(--bg-payment-summary);
   border-radius: 10px;
   padding: 12px 16px;
   margin-bottom: 16px;
+  transition: background 0.3s ease;
 }
 
 .payment-proof-adminbilling {
@@ -1380,10 +1649,10 @@
 
 .view-proof-btn-adminbilling {
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  color: #2563EB;
+  color: var(--receipt-link-color);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -1398,28 +1667,31 @@
 .verification-notes-adminbilling label {
   font-size: 13px;
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
   display: block;
   margin-bottom: 4px;
+  transition: color 0.3s ease;
 }
 
 .payment-info-adminbilling p {
   margin: 4px 0;
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .payment-info-adminbilling p strong {
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   SKELETON LOADING - LIGHT
+   SKELETON LOADING
    ============================================ */
 .skeleton-line-adminbilling {
   border-radius: 6px;
   animation: shimmer-adminbilling 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -1437,7 +1709,7 @@
   width: 60%;
   border-radius: 8px;
   animation: shimmer-adminbilling 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -1446,24 +1718,24 @@
   width: 120px;
   border-radius: 8px;
   animation: shimmer-adminbilling 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
 .skeleton-chart-adminbilling {
   height: 200px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
 }
 
 .skeleton-tab-adminbilling {
   height: 40px;
   width: 120px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   animation: shimmer-adminbilling 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -1471,9 +1743,9 @@
   height: 40px;
   width: 160px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   animation: shimmer-adminbilling 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -1481,17 +1753,17 @@
   height: 40px;
   width: 280px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   animation: shimmer-adminbilling 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
 .skeleton-table-adminbilling {
   height: 300px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
 }
 
 /* ============================================
@@ -1529,8 +1801,8 @@
     display: none;
     flex-direction: column;
     width: 100%;
-    background: rgba(255, 255, 255, 0.86);
-    border: 1px solid rgba(255, 255, 255, 0.9);
+    background: var(--bg-tabs);
+    border: 1px solid var(--border-card);
     border-radius: 10px;
     padding: 4px;
   }
@@ -1564,7 +1836,7 @@
   .payments-table-adminbilling tbody td {
     display: block;
     padding: 8px 12px;
-    border-bottom: 1px solid #EEF0ED;
+    border-bottom: 1px solid var(--border-color);
   }
   .payments-table-adminbilling tbody td:last-child {
     border-bottom: none;
@@ -1572,7 +1844,7 @@
   .payments-table-adminbilling tbody td[data-label]::before {
     content: attr(data-label) ": ";
     font-weight: 600;
-    color: #98A2B3;
+    color: var(--text-muted);
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -1582,7 +1854,7 @@
   .payments-table-adminbilling tbody tr {
     display: block;
     padding: 8px 0;
-    border-bottom: 1px solid #EEF0ED;
+    border-bottom: 1px solid var(--border-color);
   }
   .payments-table-adminbilling tbody tr:last-child {
     border-bottom: none;
@@ -1713,7 +1985,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES - LIGHT
+   REDUCED MOTION PREFERENCES
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -1732,7 +2004,7 @@
   .skeleton-select-adminbilling,
   .skeleton-search-adminbilling {
     animation: none !important;
-    background: #EEF0ED !important;
+    background: var(--skeleton-bg) !important;
   }
   .refresh-btn-adminbilling:hover,
   .action-dropdown-toggle-adminbilling:hover,

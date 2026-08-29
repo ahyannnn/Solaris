@@ -389,8 +389,6 @@ const MyProject = () => {
     );
   }
 
-  // pages/Customer/MyProject.cuspro.jsx
-
   if (projects.length === 0) {
     return (
       <>
@@ -489,7 +487,7 @@ const MyProject = () => {
                           y="52"
                           textAnchor="middle"
                           dominantBaseline="middle"
-                          fill="#1a1919"
+                          className="cuspro-progress-percentage"
                           fontSize="26"
                           fontWeight="700"
                         >
@@ -500,7 +498,7 @@ const MyProject = () => {
                           y="72"
                           textAnchor="middle"
                           dominantBaseline="middle"
-                          fill="#64748B"
+                          className="cuspro-progress-label"
                           fontSize="11"
                           fontWeight="500"
                         >

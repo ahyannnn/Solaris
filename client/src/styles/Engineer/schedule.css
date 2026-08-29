@@ -1,21 +1,184 @@
-/* styles/Engineer/schedule.css - Light Solar Theme for Engineer Schedule */
+/* styles/Engineer/schedule.css - Unified Light/Dark Solar Theme for Engineer Schedule */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE LAYOUT - LIGHT SOLAR
+   CSS VARIABLES - LIGHT MODE (Default)
+   ============================================ */
+:root {
+  --bg-primary: #F3F5F1;
+  --bg-card: rgba(255, 255, 255, 0.86);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: rgba(0, 0, 0, 0.02);
+  --bg-section: rgba(255, 255, 255, 0.5);
+  --bg-table-header: rgba(255, 255, 255, 0.5);
+  --bg-table-row-hover: rgba(255, 255, 255, 0.3);
+  --bg-modal: rgba(255, 255, 255, 0.98);
+  --bg-input: rgba(255, 255, 255, 0.5);
+  --bg-filter: rgba(255, 255, 255, 0.86);
+  --bg-dropdown: rgba(255, 255, 255, 0.98);
+  --bg-select-option: #FFFFFF;
+  --text-primary: #17212B;
+  --text-secondary: #667085;
+  --text-muted: #98A2B3;
+  --text-white: #17212B;
+  --text-dark: #17212B;
+  --border-color: #EEF0ED;
+  --border-card: rgba(255, 255, 255, 0.9);
+  --border-medium: #E5E7EB;
+  --border-input: #EEF0ED;
+  --border-modal: #EEF0ED;
+  --border-dropdown: #EEF0ED;
+  --shadow-card: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  --shadow-card-hover: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.15);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.12);
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+  --skeleton-bg: #EEF0ED;
+  --skeleton-gradient: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  --icon-color: #F39C12;
+  --icon-info: #2563EB;
+  --icon-success: #059669;
+  --icon-danger: #DC2626;
+  --icon-warning: #D97706;
+  --text-danger: #DC2626;
+  --text-danger-hover: #EF4444;
+  --text-edit: #2563EB;
+  --text-edit-hover: #3B82F6;
+  --text-success: #059669;
+  --text-success-hover: #10B981;
+  --btn-cancel-bg: rgba(255, 255, 255, 0.5);
+  --btn-cancel-hover: rgba(255, 255, 255, 0.8);
+  --btn-view-bg: #3B82F6;
+  --btn-view-hover: #2563EB;
+  --status-scheduled-bg: rgba(59, 130, 246, 0.10);
+  --status-scheduled-text: #2563EB;
+  --status-confirmed-bg: rgba(16, 185, 129, 0.10);
+  --status-confirmed-text: #059669;
+  --status-inprogress-bg: rgba(243, 156, 18, 0.10);
+  --status-inprogress-text: #D97706;
+  --status-completed-bg: rgba(16, 185, 129, 0.10);
+  --status-completed-text: #059669;
+  --status-cancelled-bg: rgba(239, 68, 68, 0.10);
+  --status-cancelled-text: #DC2626;
+  --status-rescheduled-bg: rgba(139, 92, 246, 0.10);
+  --status-rescheduled-text: #7C3AED;
+  --type-preassessment-bg: rgba(59, 130, 246, 0.08);
+  --type-preassessment-text: #2563EB;
+  --type-sitevisit-bg: rgba(139, 92, 246, 0.08);
+  --type-sitevisit-text: #7C3AED;
+  --type-installation-bg: rgba(243, 156, 18, 0.08);
+  --type-installation-text: #D97706;
+  --type-inspection-bg: rgba(16, 185, 129, 0.08);
+  --type-inspection-text: #059669;
+  --dropdown-item-hover: rgba(0, 0, 0, 0.03);
+  --dropdown-item-primary-hover: rgba(59, 130, 246, 0.10);
+  --required-color: #EF4444;
+  --error-color: #DC2626;
+  --spinner-color: #F39C12;
+  --detail-label-color: #98A2B3;
+  --detail-value-color: #667085;
+  --detail-strong-color: #98A2B3;
+}
+
+/* ============================================
+   CSS VARIABLES - DARK MODE
+   ============================================ */
+body.dark-mode {
+  --bg-primary: #0B111A;
+  --bg-card: #1A2533;
+  --bg-card-hover: #1F2C3D;
+  --bg-surface: #131C28;
+  --bg-elevated: #1A2533;
+  --bg-hover: rgba(255, 255, 255, 0.03);
+  --bg-section: rgba(255, 255, 255, 0.05);
+  --bg-table-header: rgba(255, 255, 255, 0.05);
+  --bg-table-row-hover: rgba(255, 255, 255, 0.03);
+  --bg-modal: rgba(26, 37, 51, 0.98);
+  --bg-input: rgba(255, 255, 255, 0.05);
+  --bg-filter: #1A2533;
+  --bg-dropdown: #1A2533;
+  --bg-select-option: #1A2533;
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-white: #FFFFFF;
+  --text-dark: #FFFFFF;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.08);
+  --border-input: rgba(255, 255, 255, 0.06);
+  --border-modal: rgba(255, 255, 255, 0.06);
+  --border-dropdown: rgba(255, 255, 255, 0.06);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.4);
+  --overlay-bg: rgba(0, 0, 0, 0.8);
+  --skeleton-bg: #131C28;
+  --skeleton-gradient: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  --icon-color: #F39C12;
+  --icon-info: #3B82F6;
+  --icon-success: #10B981;
+  --icon-danger: #EF4444;
+  --icon-warning: #F39C12;
+  --text-danger: #EF4444;
+  --text-danger-hover: #EF4444;
+  --text-edit: #3B82F6;
+  --text-edit-hover: #3B82F6;
+  --text-success: #10B981;
+  --text-success-hover: #10B981;
+  --btn-cancel-bg: rgba(255, 255, 255, 0.05);
+  --btn-cancel-hover: rgba(255, 255, 255, 0.1);
+  --btn-view-bg: #3B82F6;
+  --btn-view-hover: #2563EB;
+  --status-scheduled-bg: rgba(59, 130, 246, 0.12);
+  --status-scheduled-text: #3B82F6;
+  --status-confirmed-bg: rgba(16, 185, 129, 0.12);
+  --status-confirmed-text: #10B981;
+  --status-inprogress-bg: rgba(243, 156, 18, 0.12);
+  --status-inprogress-text: #F39C12;
+  --status-completed-bg: rgba(16, 185, 129, 0.12);
+  --status-completed-text: #10B981;
+  --status-cancelled-bg: rgba(239, 68, 68, 0.12);
+  --status-cancelled-text: #EF4444;
+  --status-rescheduled-bg: rgba(139, 92, 246, 0.12);
+  --status-rescheduled-text: #8B5CF6;
+  --type-preassessment-bg: rgba(59, 130, 246, 0.10);
+  --type-preassessment-text: #3B82F6;
+  --type-sitevisit-bg: rgba(139, 92, 246, 0.10);
+  --type-sitevisit-text: #8B5CF6;
+  --type-installation-bg: rgba(243, 156, 18, 0.10);
+  --type-installation-text: #F39C12;
+  --type-inspection-bg: rgba(16, 185, 129, 0.10);
+  --type-inspection-text: #10B981;
+  --dropdown-item-hover: rgba(255, 255, 255, 0.03);
+  --dropdown-item-primary-hover: rgba(59, 130, 246, 0.12);
+  --required-color: #EF4444;
+  --error-color: #EF4444;
+  --spinner-color: #F39C12;
+  --detail-label-color: rgba(255, 255, 255, 0.4);
+  --detail-value-color: rgba(255, 255, 255, 0.6);
+  --detail-strong-color: rgba(255, 255, 255, 0.4);
+}
+
+/* ============================================
+   BASE LAYOUT
    ============================================ */
 .engineer-schedule-container-esch {
   padding-top: 20px;
   padding-inline: 24px;
-  background: #F3F5F1;
+  background: var(--bg-primary);
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ============================================
-   HEADER - LIGHT
+   HEADER
    ============================================ */
 .schedule-header-esch {
   display: flex;
@@ -29,18 +192,20 @@
 .schedule-header-esch h1 {
   font-size: 26px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 4px 0;
+  transition: color 0.3s ease;
 }
 
 .schedule-header-esch p {
   font-size: 14px;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   CONTROLS / FILTERS - LIGHT
+   CONTROLS / FILTERS
    ============================================ */
 .schedule-controls-esch {
   display: flex;
@@ -54,18 +219,20 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-filter);
   padding: 4px 12px 4px 16px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .filter-group-esch .filter-icon-esch {
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 .filter-group-esch select {
@@ -73,7 +240,7 @@
   background: transparent !important;
   border: none;
   font-size: 13px;
-  color: #17212B !important;
+  color: var(--text-primary) !important;
   font-family: 'Poppins', sans-serif;
   cursor: pointer;
   appearance: none;
@@ -81,7 +248,7 @@
   background-repeat: no-repeat;
   background-position: right 8px center;
   background-color: transparent !important;
-  -webkit-text-fill-color: #17212B !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
 }
 
 .filter-group-esch select:focus {
@@ -89,29 +256,31 @@
 }
 
 .filter-group-esch select option {
-  background: #FFFFFF;
-  color: #17212B;
+  background: var(--bg-select-option);
+  color: var(--text-primary);
 }
 
 .search-group-esch {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-filter);
   padding: 4px 16px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   flex: 1;
   min-width: 200px;
   max-width: 400px;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .search-group-esch .search-icon-esch {
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 .search-group-esch input {
@@ -119,15 +288,15 @@
   background: transparent;
   border: none;
   font-size: 13px;
-  color: #17212B;
+  color: var(--text-primary);
   font-family: 'Poppins', sans-serif;
   width: 100%;
-  -webkit-text-fill-color: #17212B;
+  -webkit-text-fill-color: var(--text-primary);
 }
 
 .search-group-esch input::placeholder {
-  color: #98A2B3;
-  -webkit-text-fill-color: #98A2B3;
+  color: var(--text-muted);
+  -webkit-text-fill-color: var(--text-muted);
 }
 
 .search-group-esch input:focus {
@@ -135,15 +304,16 @@
 }
 
 /* ============================================
-   TABLE - LIGHT GLASS
+   TABLE - GLASS
    ============================================ */
 .table-container-esch {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   overflow: hidden;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   overflow-x: auto;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .schedules-table-esch {
@@ -154,7 +324,7 @@
 }
 
 .schedules-table-esch thead {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-table-header);
 }
 
 .schedules-table-esch thead th {
@@ -164,18 +334,19 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #98A2B3;
-  border-bottom: 1px solid #EEF0ED;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
   position: sticky;
   top: 0;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-table-header);
   z-index: 2;
+  transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
 }
 
 .schedules-table-esch tbody tr {
-  border-bottom: 1px solid #EEF0ED;
-  transition: background 200ms ease;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 200ms ease, border-color 0.3s ease;
 }
 
 .schedules-table-esch tbody tr:last-child {
@@ -183,13 +354,14 @@
 }
 
 .schedules-table-esch tbody tr:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--bg-table-row-hover);
 }
 
 .schedules-table-esch tbody td {
   padding: 14px 16px;
   vertical-align: middle;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .clickable-row-esch {
@@ -197,7 +369,7 @@
 }
 
 /* ============================================
-   TABLE CELL STYLES - LIGHT
+   TABLE CELL STYLES
    ============================================ */
 .title-cell-esch {
   display: flex;
@@ -207,7 +379,8 @@
 
 .title-text-esch {
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .client-cell-esch {
@@ -218,26 +391,30 @@
 
 .client-name-esch {
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .client-phone-esch {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .date-cell-esch {
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .time-cell-esch {
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   STATUS BADGES - LIGHT THEME
+   STATUS BADGES - Theme Aware
    ============================================ */
 .status-badge-esch {
   display: inline-block;
@@ -251,43 +428,43 @@
 }
 
 .status-badge-esch.scheduled-esch {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
-  border: 1px solid rgba(59, 130, 246, 0.20);
+  background: var(--status-scheduled-bg);
+  color: var(--status-scheduled-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-esch.confirmed-esch {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--status-confirmed-bg);
+  color: var(--status-confirmed-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-esch.in-progress-esch {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
-  border: 1px solid rgba(243, 156, 18, 0.20);
+  background: var(--status-inprogress-bg);
+  color: var(--status-inprogress-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-esch.completed-esch {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--status-completed-bg);
+  color: var(--status-completed-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-esch.cancelled-esch {
-  background: rgba(239, 68, 68, 0.10);
-  color: #DC2626;
-  border: 1px solid rgba(239, 68, 68, 0.20);
+  background: var(--status-cancelled-bg);
+  color: var(--status-cancelled-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-esch.rescheduled-esch {
-  background: rgba(139, 92, 246, 0.10);
-  color: #7C3AED;
-  border: 1px solid rgba(139, 92, 246, 0.20);
+  background: var(--status-rescheduled-bg);
+  color: var(--status-rescheduled-text);
+  border: 1px solid var(--border-medium);
 }
 
 /* ============================================
-   TYPE BADGES - LIGHT THEME
+   TYPE BADGES - Theme Aware
    ============================================ */
 .type-badge-esch {
   display: inline-block;
@@ -299,31 +476,31 @@
 }
 
 .type-badge-esch.pre-assessment-esch {
-  background: rgba(59, 130, 246, 0.08);
-  color: #2563EB;
-  border: 1px solid rgba(59, 130, 246, 0.15);
+  background: var(--type-preassessment-bg);
+  color: var(--type-preassessment-text);
+  border: 1px solid var(--border-medium);
 }
 
 .type-badge-esch.site-visit-esch {
-  background: rgba(139, 92, 246, 0.08);
-  color: #7C3AED;
-  border: 1px solid rgba(139, 92, 246, 0.15);
+  background: var(--type-sitevisit-bg);
+  color: var(--type-sitevisit-text);
+  border: 1px solid var(--border-medium);
 }
 
 .type-badge-esch.installation-esch {
-  background: rgba(243, 156, 18, 0.08);
-  color: #D97706;
-  border: 1px solid rgba(243, 156, 18, 0.15);
+  background: var(--type-installation-bg);
+  color: var(--type-installation-text);
+  border: 1px solid var(--border-medium);
 }
 
 .type-badge-esch.inspection-esch {
-  background: rgba(16, 185, 129, 0.08);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.15);
+  background: var(--type-inspection-bg);
+  color: var(--type-inspection-text);
+  border: 1px solid var(--border-medium);
 }
 
 /* ============================================
-   ACTION BUTTON - LIGHT
+   ACTION BUTTON
    ============================================ */
 .view-btn-esch {
   padding: 6px 14px;
@@ -337,18 +514,18 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #3B82F6;
+  background: var(--btn-view-bg);
   color: #FFFFFF;
 }
 
 .view-btn-esch:hover {
-  background: #2563EB;
+  background: var(--btn-view-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 /* ============================================
-   PAGINATION - LIGHT
+   PAGINATION
    ============================================ */
 .pagination-esch {
   display: flex;
@@ -362,8 +539,8 @@
 .page-btn-esch {
   padding: 8px 16px;
   background: transparent;
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -376,9 +553,9 @@
 }
 
 .page-btn-esch:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.5);
-  border-color: #D1D5DB;
-  color: #17212B;
+  background: var(--bg-section);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 .page-btn-esch:disabled {
@@ -388,31 +565,34 @@
 
 .page-info-esch {
   font-size: 13px;
-  color: #98A2B3;
+  color: var(--text-muted);
   padding: 0 8px;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   EMPTY STATE - LIGHT
+   EMPTY STATE
    ============================================ */
 .empty-state-esch {
   text-align: center;
   padding: 40px 20px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .empty-state-esch p {
   font-size: 16px;
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   MODALS - LIGHT GLASS
+   MODALS - GLASS
    ============================================ */
 .modal-overlay-esch {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -422,17 +602,18 @@
 }
 
 .modal-content-esch {
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--bg-modal);
   border-radius: 18px;
   max-width: 600px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  border: 1px solid #EEF0ED;
+  box-shadow: var(--shadow-modal);
+  border: 1px solid var(--border-modal);
   overflow: hidden;
   position: relative;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .modal-content-esch.detail-modal-esch {
@@ -440,7 +621,7 @@
 }
 
 /* ============================================
-   MODAL HEADER - LIGHT
+   MODAL HEADER
    ============================================ */
 .modal-close-esch {
   position: absolute;
@@ -449,9 +630,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
-  color: #98A2B3;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
   font-size: 20px;
   cursor: pointer;
   display: flex;
@@ -465,21 +646,22 @@
 
 .modal-close-esch:hover {
   background: rgba(239, 68, 68, 0.10);
-  border-color: #EF4444;
-  color: #EF4444;
+  border-color: var(--text-danger);
+  color: var(--text-danger);
 }
 
 .modal-content-esch h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 16px 24px 0 24px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 /* ============================================
-   MODAL BODY - LIGHT
+   MODAL BODY
    ============================================ */
 .modal-body-esch {
   padding: 0 24px;
@@ -498,16 +680,17 @@
 }
 
 .modal-body-esch::-webkit-scrollbar-thumb {
-  background: #3B82F6;
+  background: var(--icon-info);
   border-radius: 4px;
 }
 
 /* ============================================
-   DETAIL SECTIONS - LIGHT
+   DETAIL SECTIONS
    ============================================ */
 .detail-section-esch {
   padding: 16px 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .detail-section-esch:last-of-type {
@@ -517,22 +700,25 @@
 .detail-section-esch h4 {
   font-size: 13px;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--detail-label-color);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 12px 0;
+  transition: color 0.3s ease;
 }
 
 .detail-section-esch p {
   margin: 4px 0;
   font-size: 14px;
-  color: #667085;
+  color: var(--detail-value-color);
+  transition: color 0.3s ease;
 }
 
 .detail-section-esch p strong {
-  color: #98A2B3;
+  color: var(--detail-strong-color);
   font-weight: 500;
   margin-right: 4px;
+  transition: color 0.3s ease;
 }
 
 .detail-section-esch .status-badge-esch,
@@ -541,23 +727,24 @@
 }
 
 /* ============================================
-   MODAL ACTIONS - LIGHT
+   MODAL ACTIONS
    ============================================ */
 .modal-actions-esch {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--border-color);
   display: flex;
   gap: 12px;
   justify-content: flex-end;
   flex-wrap: wrap;
   flex-shrink: 0;
+  transition: border-color 0.3s ease;
 }
 
 .cancel-btn-esch {
   padding: 10px 24px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  background: var(--btn-cancel-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -567,17 +754,17 @@
 }
 
 .cancel-btn-esch:hover {
-  background: rgba(255, 255, 255, 0.8);
-  color: #17212B;
+  background: var(--btn-cancel-hover);
+  color: var(--text-primary);
 }
 
 /* ============================================
-   SKELETON LOADING - LIGHT
+   SKELETON LOADING
    ============================================ */
 .skeleton-line-esch {
   border-radius: 6px;
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -595,9 +782,9 @@
   height: 40px;
   width: 160px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -605,9 +792,9 @@
   height: 40px;
   width: 280px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -618,20 +805,20 @@
 .skeleton-table-header-esch {
   height: 40px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-section);
   margin-bottom: 12px;
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
 .skeleton-table-row-esch {
   height: 48px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   margin-bottom: 8px;
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -645,7 +832,7 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN - UNCHANGED STRUCTURE
+   RESPONSIVE DESIGN
    ============================================ */
 
 /* Tablet */
@@ -688,7 +875,7 @@
     display: flex;
     flex-wrap: wrap;
     padding: 8px 12px;
-    border-bottom: 1px solid #EEF0ED;
+    border-bottom: 1px solid var(--border-color);
   }
 
   .schedules-table-esch tbody td:last-child {
@@ -698,7 +885,7 @@
   .schedules-table-esch tbody td::before {
     content: attr(data-label);
     font-weight: 600;
-    color: #98A2B3;
+    color: var(--text-muted);
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -714,7 +901,7 @@
   .schedules-table-esch tbody tr {
     display: block;
     padding: 6px 0;
-    border-bottom: 1px solid #EEF0ED;
+    border-bottom: 1px solid var(--border-color);
   }
 
   .schedules-table-esch tbody tr:last-child {
@@ -850,7 +1037,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES - LIGHT
+   REDUCED MOTION PREFERENCES
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -870,24 +1057,24 @@
   .skeleton-table-header-esch,
   .skeleton-table-row-esch {
     animation: none !important;
-    background: #EEF0ED !important;
+    background: var(--skeleton-bg) !important;
   }
 }
 
 /* ============================================
-   FIX - INPUT FIELDS & DROPDOWNS (Light Theme)
+   FIX - INPUT FIELDS & DROPDOWNS
    ============================================ */
 .engineer-schedule-container-esch .filter-group-esch select,
 .engineer-schedule-container-esch .search-group-esch input {
   background-color: transparent !important;
-  color: #17212B !important;
-  -webkit-text-fill-color: #17212B !important;
-  caret-color: #17212B !important;
+  color: var(--text-primary) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--text-primary) !important;
 }
 
 .engineer-schedule-container-esch .filter-group-esch select option {
-  background-color: #FFFFFF !important;
-  color: #17212B !important;
+  background-color: var(--bg-select-option) !important;
+  color: var(--text-primary) !important;
 }
 
 .engineer-schedule-container-esch .filter-group-esch select:focus,
@@ -896,23 +1083,23 @@
 }
 
 .engineer-schedule-container-esch .search-group-esch input::placeholder {
-  color: #98A2B3 !important;
-  -webkit-text-fill-color: #98A2B3 !important;
+  color: var(--text-muted) !important;
+  -webkit-text-fill-color: var(--text-muted) !important;
   opacity: 1 !important;
 }
 
 .engineer-schedule-container-esch .filter-group-esch select:-webkit-autofill,
 .engineer-schedule-container-esch .search-group-esch input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.86) inset !important;
-  -webkit-text-fill-color: #17212B !important;
-  box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.86) inset !important;
-  background-color: rgba(255, 255, 255, 0.86) !important;
+  -webkit-box-shadow: 0 0 0 30px var(--bg-filter) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  box-shadow: 0 0 0 30px var(--bg-filter) inset !important;
+  background-color: var(--bg-filter) !important;
 }
 
 .engineer-schedule-container-esch .filter-group-esch {
-  background-color: rgba(255, 255, 255, 0.86) !important;
+  background-color: var(--bg-filter) !important;
 }
 
 .engineer-schedule-container-esch .search-group-esch {
-  background-color: rgba(255, 255, 255, 0.86) !important;
+  background-color: var(--bg-filter) !important;
 }

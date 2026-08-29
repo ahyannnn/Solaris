@@ -1,6 +1,182 @@
-/* styles/Customer/quotation.css - Light Solar Theme (COLORS ONLY - NO STRUCTURAL CHANGES) */
+/* styles/Customer/quotation.css - Unified Light/Dark Solar Theme */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ============================================
+   CSS VARIABLES - LIGHT MODE (Default)
+   ============================================ */
+:root {
+  --bg-primary: #F3F5F1;
+  --bg-card: rgba(255, 255, 255, 0.86);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: rgba(0, 0, 0, 0.02);
+  --bg-section: rgba(255, 255, 255, 0.5);
+  --bg-table-header: rgba(255, 255, 255, 0.5);
+  --bg-table-row-hover: rgba(255, 255, 255, 0.3);
+  --bg-modal: rgba(255, 255, 255, 0.98);
+  --bg-processing: rgba(255, 255, 255, 0.98);
+  --bg-success: rgba(16, 185, 129, 0.10);
+  --bg-payment-summary: rgba(255, 255, 255, 0.5);
+  --bg-method-option: rgba(255, 255, 255, 0.5);
+  --bg-method-selected: rgba(243, 156, 18, 0.06);
+  --bg-input: rgba(255, 255, 255, 0.5);
+  --bg-fee: rgba(243, 156, 18, 0.06);
+  --bg-notice: rgba(243, 156, 18, 0.06);
+  --bg-bank-card: rgba(255, 255, 255, 0.5);
+  --bg-bank-card-selected: rgba(243, 156, 18, 0.06);
+  --bg-file-upload: rgba(255, 255, 255, 0.3);
+  --bg-details: rgba(255, 255, 255, 0.5);
+  --bg-success-page: rgba(255, 255, 255, 0.86);
+  --bg-reference: rgba(255, 255, 255, 0.5);
+  --bg-dropdown: rgba(255, 255, 255, 0.98);
+  --bg-tabs: rgba(255, 255, 255, 0.86);
+  --text-primary: #17212B;
+  --text-secondary: #667085;
+  --text-muted: #98A2B3;
+  --text-white: #17212B;
+  --text-dark: #17212B;
+  --border-color: #EEF0ED;
+  --border-card: rgba(255, 255, 255, 0.9);
+  --border-medium: #E5E7EB;
+  --border-input: #EEF0ED;
+  --border-modal: #EEF0ED;
+  --border-dropdown: #EEF0ED;
+  --border-method: #EEF0ED;
+  --border-method-hover: #D1D5DB;
+  --border-bank: #EEF0ED;
+  --border-bank-hover: #D1D5DB;
+  --border-upload: #EEF0ED;
+  --border-upload-hover: #D1D5DB;
+  --shadow-card: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  --shadow-card-hover: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.3);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.2);
+  --shadow-success: 0 10px 40px rgba(0, 0, 0, 0.1);
+  --shadow-processing: 0 20px 60px rgba(0, 0, 0, 0.2);
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+  --skeleton-bg: #F1F2F4;
+  --status-pending-bg: rgba(243, 156, 18, 0.10);
+  --status-pending-text: #D97706;
+  --status-paid-bg: rgba(16, 185, 129, 0.10);
+  --status-paid-text: #059669;
+  --status-verifying-bg: rgba(59, 130, 246, 0.10);
+  --status-verifying-text: #2563EB;
+  --status-processing-bg: rgba(139, 92, 246, 0.10);
+  --status-processing-text: #7C3AED;
+  --status-quoted-bg: rgba(243, 156, 18, 0.10);
+  --status-quoted-text: #D97706;
+  --status-completed-bg: rgba(16, 185, 129, 0.10);
+  --status-completed-text: #059669;
+  --status-cancelled-bg: rgba(239, 68, 68, 0.10);
+  --status-cancelled-text: #DC2626;
+  --status-overdue-bg: rgba(239, 68, 68, 0.10);
+  --status-overdue-text: #DC2626;
+  --status-partial-bg: rgba(59, 130, 246, 0.10);
+  --status-partial-text: #2563EB;
+  --invoice-initial-bg: rgba(243, 156, 18, 0.10);
+  --invoice-initial-text: #D97706;
+  --invoice-progress-bg: rgba(59, 130, 246, 0.10);
+  --invoice-progress-text: #2563EB;
+  --invoice-final-bg: rgba(16, 185, 129, 0.10);
+  --invoice-final-text: #059669;
+  --invoice-full-bg: rgba(139, 92, 246, 0.10);
+  --invoice-full-text: #7C3AED;
+  --dropdown-view-details: #2563EB;
+  --dropdown-view-receipt: #7C3AED;
+  --dropdown-download-receipt: #059669;
+  --gcash-bg: rgba(255, 255, 255, 0.5);
+  --gcash-border: #EEF0ED;
+}
+
+/* ============================================
+   CSS VARIABLES - DARK MODE
+   ============================================ */
+body.dark-mode {
+  --bg-primary: #0B111A;
+  --bg-card: #1A2533;
+  --bg-card-hover: #1F2C3D;
+  --bg-surface: #131C28;
+  --bg-elevated: #1A2533;
+  --bg-hover: rgba(255, 255, 255, 0.03);
+  --bg-section: rgba(255, 255, 255, 0.05);
+  --bg-table-header: rgba(255, 255, 255, 0.05);
+  --bg-table-row-hover: rgba(255, 255, 255, 0.03);
+  --bg-modal: rgba(26, 37, 51, 0.98);
+  --bg-processing: rgba(26, 37, 51, 0.98);
+  --bg-success: rgba(16, 185, 129, 0.12);
+  --bg-payment-summary: rgba(255, 255, 255, 0.05);
+  --bg-method-option: rgba(255, 255, 255, 0.05);
+  --bg-method-selected: rgba(243, 156, 18, 0.08);
+  --bg-input: rgba(255, 255, 255, 0.05);
+  --bg-fee: rgba(243, 156, 18, 0.08);
+  --bg-notice: rgba(243, 156, 18, 0.08);
+  --bg-bank-card: rgba(255, 255, 255, 0.05);
+  --bg-bank-card-selected: rgba(243, 156, 18, 0.08);
+  --bg-file-upload: rgba(255, 255, 255, 0.05);
+  --bg-details: rgba(255, 255, 255, 0.05);
+  --bg-success-page: #1A2533;
+  --bg-reference: rgba(255, 255, 255, 0.05);
+  --bg-dropdown: #1A2533;
+  --bg-tabs: #1A2533;
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-white: #FFFFFF;
+  --text-dark: #FFFFFF;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.08);
+  --border-input: rgba(255, 255, 255, 0.06);
+  --border-modal: rgba(255, 255, 255, 0.06);
+  --border-dropdown: rgba(255, 255, 255, 0.06);
+  --border-method: rgba(255, 255, 255, 0.06);
+  --border-method-hover: rgba(255, 255, 255, 0.12);
+  --border-bank: rgba(255, 255, 255, 0.06);
+  --border-bank-hover: rgba(255, 255, 255, 0.12);
+  --border-upload: rgba(255, 255, 255, 0.06);
+  --border-upload-hover: rgba(255, 255, 255, 0.12);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.4);
+  --shadow-success: 0 10px 40px rgba(0, 0, 0, 0.4);
+  --shadow-processing: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --overlay-bg: rgba(0, 0, 0, 0.8);
+  --skeleton-bg: #131C28;
+  --status-pending-bg: rgba(243, 156, 18, 0.12);
+  --status-pending-text: #F39C12;
+  --status-paid-bg: rgba(16, 185, 129, 0.12);
+  --status-paid-text: #10B981;
+  --status-verifying-bg: rgba(59, 130, 246, 0.12);
+  --status-verifying-text: #3B82F6;
+  --status-processing-bg: rgba(139, 92, 246, 0.12);
+  --status-processing-text: #8B5CF6;
+  --status-quoted-bg: rgba(243, 156, 18, 0.12);
+  --status-quoted-text: #F39C12;
+  --status-completed-bg: rgba(16, 185, 129, 0.12);
+  --status-completed-text: #10B981;
+  --status-cancelled-bg: rgba(239, 68, 68, 0.12);
+  --status-cancelled-text: #EF4444;
+  --status-overdue-bg: rgba(239, 68, 68, 0.12);
+  --status-overdue-text: #EF4444;
+  --status-partial-bg: rgba(59, 130, 246, 0.12);
+  --status-partial-text: #3B82F6;
+  --invoice-initial-bg: rgba(243, 156, 18, 0.12);
+  --invoice-initial-text: #F39C12;
+  --invoice-progress-bg: rgba(59, 130, 246, 0.12);
+  --invoice-progress-text: #3B82F6;
+  --invoice-final-bg: rgba(16, 185, 129, 0.12);
+  --invoice-final-text: #10B981;
+  --invoice-full-bg: rgba(139, 92, 246, 0.12);
+  --invoice-full-text: #8B5CF6;
+  --dropdown-view-details: #3B82F6;
+  --dropdown-view-receipt: #8B5CF6;
+  --dropdown-download-receipt: #10B981;
+  --gcash-bg: rgba(255, 255, 255, 0.05);
+  --gcash-border: rgba(255, 255, 255, 0.06);
+}
 
 /* ============================================
    BASE - LIGHT SOLAR
@@ -13,8 +189,9 @@
 
 body {
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #F3F5F1;
-  color: #17212B;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ============================================
@@ -23,12 +200,11 @@ body {
 .billing-customer-container {
   padding-inline: 24px;
   margin: 0 auto;
-  background: 
-   
-    #F3F5F1;
+  background: var(--bg-primary);
   min-height: 100vh;
   font-family: 'Poppins', sans-serif;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ============================================
@@ -41,15 +217,17 @@ body {
 .billing-customer-header h1 {
   font-size: 28px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 4px 0;
   letter-spacing: -0.5px;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-header p {
   font-size: 14px;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -63,12 +241,12 @@ body {
 }
 
 .billing-customer-stat-card {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   border-radius: 12px;
   padding: 16px 18px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   transition: all 0.2s ease;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -76,28 +254,31 @@ body {
 .billing-customer-stat-card:hover {
   transform: translateY(-2px);
   border-color: rgba(243, 156, 18, 0.25);
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .billing-customer-stat-label {
   font-size: 11px;
   font-weight: 500;
-  color: #98A2B3;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 4px 0 2px 0;
   line-height: 1.2;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-stat-sub {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -108,14 +289,15 @@ body {
   gap: 6px;
   margin-bottom: 20px;
   flex-wrap: wrap;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-tabs);
   padding: 6px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   width: auto;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .billing-customer-tab-btn {
@@ -125,7 +307,7 @@ body {
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #98A2B3;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
   display: inline-flex;
@@ -136,8 +318,8 @@ body {
 }
 
 .billing-customer-tab-btn:hover {
-  color: #17212B;
-  background: rgba(255, 255, 255, 0.5);
+  color: var(--text-primary);
+  background: var(--bg-hover);
 }
 
 .billing-customer-tab-btn.active {
@@ -159,11 +341,11 @@ body {
 
 .billing-customer-filter-group select {
   padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 8px;
   font-size: 13px;
-  color: #17212B;
+  color: var(--text-primary);
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
   min-width: 140px;
@@ -172,9 +354,10 @@ body {
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 36px;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .billing-customer-filter-group select:focus {
@@ -184,8 +367,8 @@ body {
 }
 
 .billing-customer-filter-group select option {
-  background: #FFFFFF;
-  color: #17212B;
+  background: var(--bg-surface);
+  color: var(--text-primary);
 }
 
 .billing-customer-search-group {
@@ -198,20 +381,20 @@ body {
   width: 100%;
   padding: 8px 14px;
   padding-right: 36px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 8px;
   font-size: 13px;
-  color: #17212B;
+  color: var(--text-primary);
   font-family: 'Poppins', sans-serif;
   transition: all 0.2s ease;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 .billing-customer-search-group input::placeholder {
-  color: #98A2B3;
+  color: var(--text-muted);
 }
 
 .billing-customer-search-group input:focus {
@@ -227,14 +410,15 @@ body {
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 18px;
   cursor: pointer;
   padding: 0 4px;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-clear-search:hover {
-  color: #17212B;
+  color: var(--text-primary);
 }
 
 .billing-customer-clear-filters-btn {
@@ -256,18 +440,20 @@ body {
 .billing-customer-results-count {
   margin-bottom: 16px;
   font-size: 13px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
    TABLE - CARD STYLE - GLASS
    ============================================ */
 .billing-customer-table-container {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   overflow: hidden;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .billing-customer-table-wrapper {
@@ -281,7 +467,7 @@ body {
 }
 
 .billing-customer-table thead {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-table-header);
 }
 
 .billing-customer-table thead th {
@@ -291,13 +477,14 @@ body {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #98A2B3;
-  border-bottom: 1px solid #EEF0ED;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .billing-customer-table tbody tr {
-  border-bottom: 1px solid #EEF0ED;
-  transition: background 0.2s ease;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.2s ease, border-color 0.3s ease;
 }
 
 .billing-customer-table tbody tr:last-child {
@@ -305,13 +492,14 @@ body {
 }
 
 .billing-customer-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--bg-table-row-hover);
 }
 
 .billing-customer-table tbody td {
   padding: 14px 16px;
   vertical-align: middle;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-transaction-cell {
@@ -322,7 +510,8 @@ body {
 
 .billing-customer-transaction-name {
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-invoice-type-label {
@@ -336,29 +525,30 @@ body {
 }
 
 .billing-customer-invoice-type-label.initial {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
+  background: var(--invoice-initial-bg);
+  color: var(--invoice-initial-text);
 }
 
 .billing-customer-invoice-type-label.progress {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
+  background: var(--invoice-progress-bg);
+  color: var(--invoice-progress-text);
 }
 
 .billing-customer-invoice-type-label.final {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
+  background: var(--invoice-final-bg);
+  color: var(--invoice-final-text);
 }
 
 .billing-customer-invoice-type-label.full {
-  background: rgba(139, 92, 246, 0.10);
-  color: #7C3AED;
+  background: var(--invoice-full-bg);
+  color: var(--invoice-full-text);
 }
 
 .billing-customer-reference-cell .billing-customer-ref-id {
   font-family: monospace;
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-amount-cell {
@@ -369,16 +559,18 @@ body {
 
 .billing-customer-amount-main {
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-amount-balance {
   font-size: 11px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   STATUS BADGES - LIGHT THEME
+   STATUS BADGES - Theme Aware
    ============================================ */
 .billing-customer-status-badge {
   display: inline-block;
@@ -393,57 +585,57 @@ body {
 
 .billing-customer-status-badge.pending,
 .billing-customer-status-badge.pending_payment {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
-  border: 1px solid rgba(243, 156, 18, 0.20);
+  background: var(--status-pending-bg);
+  color: var(--status-pending-text);
+  border: 1px solid var(--border-medium);
 }
 
 .billing-customer-status-badge.paid {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--status-paid-bg);
+  color: var(--status-paid-text);
+  border: 1px solid var(--border-medium);
 }
 
 .billing-customer-status-badge.for-verification {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
-  border: 1px solid rgba(59, 130, 246, 0.20);
+  background: var(--status-verifying-bg);
+  color: var(--status-verifying-text);
+  border: 1px solid var(--border-medium);
 }
 
 .billing-customer-status-badge.processing {
-  background: rgba(139, 92, 246, 0.10);
-  color: #7C3AED;
-  border: 1px solid rgba(139, 92, 246, 0.20);
+  background: var(--status-processing-bg);
+  color: var(--status-processing-text);
+  border: 1px solid var(--border-medium);
 }
 
 .billing-customer-status-badge.quoted {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
-  border: 1px solid rgba(243, 156, 18, 0.20);
+  background: var(--status-quoted-bg);
+  color: var(--status-quoted-text);
+  border: 1px solid var(--border-medium);
 }
 
 .billing-customer-status-badge.completed {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--status-completed-bg);
+  color: var(--status-completed-text);
+  border: 1px solid var(--border-medium);
 }
 
 .billing-customer-status-badge.cancelled {
-  background: rgba(239, 68, 68, 0.10);
-  color: #DC2626;
-  border: 1px solid rgba(239, 68, 68, 0.20);
+  background: var(--status-cancelled-bg);
+  color: var(--status-cancelled-text);
+  border: 1px solid var(--border-medium);
 }
 
 .billing-customer-status-badge.overdue {
-  background: rgba(239, 68, 68, 0.10);
-  color: #DC2626;
-  border: 1px solid rgba(239, 68, 68, 0.20);
+  background: var(--status-overdue-bg);
+  color: var(--status-overdue-text);
+  border: 1px solid var(--border-medium);
 }
 
 .billing-customer-status-badge.partial {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
-  border: 1px solid rgba(59, 130, 246, 0.20);
+  background: var(--status-partial-bg);
+  color: var(--status-partial-text);
+  border: 1px solid var(--border-medium);
 }
 
 /* ============================================
@@ -485,9 +677,9 @@ body {
 /* Action Dropdown Trigger - GRAY (NOT ORANGE) */
 .billing-customer-dropdown-trigger-btn {
   padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  background: var(--bg-section);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
@@ -497,27 +689,28 @@ body {
 }
 
 .billing-customer-dropdown-trigger-btn:hover {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: #D1D5DB;
-  color: #17212B;
+  background: var(--bg-card-hover);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
 }
 
 /* ============================================
-   DROPDOWN MENU - UNCHANGED STRUCTURE
+   DROPDOWN MENU - Theme Aware
    ============================================ */
 .billing-customer-dropdown-menu {
   position: fixed !important;
   min-width: 200px !important;
   max-width: 250px !important;
-  background: rgba(255, 255, 255, 0.98) !important;
-  border: 1px solid #EEF0ED !important;
+  background: var(--bg-dropdown) !important;
+  border: 1px solid var(--border-dropdown) !important;
   border-radius: 10px !important;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
+  box-shadow: var(--shadow-dropdown) !important;
   z-index: 99999 !important;
   padding: 6px !important;
   overflow: hidden !important;
   max-height: 300px !important;
   overflow-y: auto !important;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .billing-customer-dropdown-menu::-webkit-scrollbar {
@@ -553,7 +746,7 @@ body {
 
 /* View Details - BLUE */
 .billing-customer-dropdown-item.view-details {
-  color: #2563EB;
+  color: var(--dropdown-view-details);
 }
 
 .billing-customer-dropdown-item.view-details:hover {
@@ -562,7 +755,7 @@ body {
 
 /* View Receipt - PURPLE */
 .billing-customer-dropdown-item.view-receipt {
-  color: #7C3AED;
+  color: var(--dropdown-view-receipt);
 }
 
 .billing-customer-dropdown-item.view-receipt:hover {
@@ -571,7 +764,7 @@ body {
 
 /* Download Receipt - GREEN */
 .billing-customer-dropdown-item.download-receipt {
-  color: #059669;
+  color: var(--dropdown-download-receipt);
 }
 
 .billing-customer-dropdown-item.download-receipt:hover {
@@ -588,14 +781,16 @@ body {
 
 .billing-customer-empty-state h3 {
   font-size: 18px;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 8px 0;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-empty-state p {
   font-size: 14px;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -608,13 +803,14 @@ body {
 }
 
 .billing-customer-mobile-card {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   padding: 16px;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .billing-customer-mobile-card-header {
@@ -634,13 +830,15 @@ body {
 .billing-customer-mobile-card-title .billing-customer-ref-id {
   font-family: monospace;
   font-size: 13px;
-  color: #17212B;
+  color: var(--text-primary);
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-mobile-card-title .billing-customer-ref-project {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-mobile-card-body {
@@ -654,7 +852,8 @@ body {
   display: flex;
   justify-content: space-between;
   padding: 4px 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .billing-customer-mobile-card-item:last-child {
@@ -663,13 +862,15 @@ body {
 
 .billing-customer-mobile-card-item .billing-customer-label {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-mobile-card-item .billing-customer-value {
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
   text-align: right;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-mobile-card-footer {
@@ -677,12 +878,14 @@ body {
   justify-content: space-between;
   align-items: center;
   padding-top: 12px;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .billing-customer-mobile-card-footer .billing-customer-transaction-name {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -691,7 +894,7 @@ body {
 .billing-customer-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -701,24 +904,26 @@ body {
 }
 
 .billing-customer-modal {
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--bg-modal);
   border-radius: 18px;
   max-width: 560px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  border: 1px solid #EEF0ED;
+  box-shadow: var(--shadow-modal);
+  border: 1px solid var(--border-modal);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .billing-customer-modal h3 {
   padding: 20px 24px 16px 24px;
   font-size: 20px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .billing-customer-modal-scroll-content {
@@ -748,9 +953,9 @@ body {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
-  color: #98A2B3;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
   font-size: 20px;
   cursor: pointer;
   display: flex;
@@ -770,15 +975,16 @@ body {
   gap: 12px;
   justify-content: flex-end;
   padding-top: 16px;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--border-color);
   margin-top: 16px;
+  transition: border-color 0.3s ease;
 }
 
 .billing-customer-cancel-btn {
   padding: 10px 24px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #17212B;
-  border: 1px solid #EEF0ED;
+  background: var(--bg-section);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -788,34 +994,38 @@ body {
 }
 
 .billing-customer-cancel-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--bg-hover);
 }
 
 /* ============================================
    PAYMENT MODAL
    ============================================ */
 .billing-customer-payment-summary {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-payment-summary);
   border-radius: 10px;
   padding: 16px;
   margin-bottom: 20px;
+  transition: background 0.3s ease;
 }
 
 .billing-customer-payment-summary p {
   margin: 4px 0;
   font-size: 14px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-payment-summary strong {
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-payment-methods h4 {
   font-size: 15px;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 12px 0;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-method-options {
@@ -829,20 +1039,20 @@ body {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 2px solid #EEF0ED;
+  background: var(--bg-method-option);
+  border: 2px solid var(--border-method);
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .billing-customer-method-option:hover {
-  border-color: #D1D5DB;
+  border-color: var(--border-method-hover);
 }
 
 .billing-customer-method-option.selected {
   border-color: #F39C12;
-  background: rgba(243, 156, 18, 0.06);
+  background: var(--bg-method-selected);
 }
 
 .billing-customer-method-option input[type="radio"] {
@@ -860,12 +1070,14 @@ body {
 
 .billing-customer-method-option strong {
   font-size: 14px;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-method-option small {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -885,18 +1097,19 @@ body {
 .billing-customer-form-group label {
   font-size: 13px;
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-form-group input,
 .billing-customer-form-group textarea,
 .billing-customer-form-group select {
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
   border-radius: 10px;
   font-size: 14px;
-  color: #17212B;
+  color: var(--text-primary);
   font-family: 'Poppins', sans-serif;
   transition: all 0.2s ease;
   width: 100%;
@@ -927,7 +1140,8 @@ body {
 
 .billing-customer-form-group small {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-error-message {
@@ -937,7 +1151,8 @@ body {
 
 .billing-customer-hint-text {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-confirm-btn {
@@ -996,50 +1211,58 @@ body {
    GCASH DETAILS
    ============================================ */
 .billing-customer-gcash-details {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--gcash-bg);
   border-radius: 10px;
   padding: 16px;
   margin-bottom: 16px;
+  border: 1px solid var(--gcash-border);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .billing-customer-gcash-details h4 {
   font-size: 14px;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 8px 0;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-gcash-details p {
   margin: 4px 0;
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-gcash-details strong {
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
    CASH DETAILS
    ============================================ */
 .billing-customer-cash-details .billing-customer-info-box {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-payment-summary);
   border-radius: 10px;
   padding: 16px;
   margin-bottom: 16px;
+  transition: background 0.3s ease;
 }
 
 .billing-customer-cash-details .billing-customer-info-box strong {
   display: block;
   font-size: 14px;
-  color: #17212B;
+  color: var(--text-primary);
   margin-bottom: 8px;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-cash-details .billing-customer-info-box p {
   margin: 4px 0;
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -1052,18 +1275,20 @@ body {
 .billing-customer-bank-transfer-info h4 {
   font-size: 15px;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 4px 0;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-bank-transfer-info > p {
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 16px 0;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-bank-transfer-notice {
-  background: rgba(243, 156, 18, 0.06);
+  background: var(--bg-notice);
   border: 1px solid rgba(243, 156, 18, 0.15);
   border-radius: 10px;
   padding: 12px 16px;
@@ -1072,7 +1297,8 @@ body {
 
 .billing-customer-bank-transfer-notice small {
   font-size: 12px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-bank-transfer-notice strong {
@@ -1086,14 +1312,16 @@ body {
 
 .billing-customer-bank-transfer-notice li {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-invoice-summary-box {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-payment-summary);
   border-radius: 10px;
   padding: 16px;
   margin-bottom: 16px;
+  transition: background 0.3s ease;
 }
 
 .billing-customer-summary-row {
@@ -1101,11 +1329,13 @@ body {
   justify-content: space-between;
   padding: 4px 0;
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-summary-row strong {
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-summary-row .billing-customer-amount-due {
@@ -1116,9 +1346,10 @@ body {
 .billing-customer-bank-selection-group label {
   font-size: 13px;
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
   display: block;
   margin-bottom: 8px;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-bank-grid {
@@ -1129,8 +1360,8 @@ body {
 }
 
 .billing-customer-bank-card {
-  background: rgba(255, 255, 255, 0.5);
-  border: 2px solid #EEF0ED;
+  background: var(--bg-bank-card);
+  border: 2px solid var(--border-bank);
   border-radius: 10px;
   padding: 12px 14px;
   cursor: pointer;
@@ -1138,12 +1369,12 @@ body {
 }
 
 .billing-customer-bank-card:hover {
-  border-color: #D1D5DB;
+  border-color: var(--border-bank-hover);
 }
 
 .billing-customer-bank-card.selected {
   border-color: #F39C12;
-  background: rgba(243, 156, 18, 0.06);
+  background: var(--bg-bank-card-selected);
 }
 
 .billing-customer-bank-card-header {
@@ -1156,7 +1387,8 @@ body {
 .billing-customer-bank-name {
   font-size: 14px;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-check-indicator {
@@ -1170,34 +1402,37 @@ body {
   flex-direction: column;
   gap: 1px;
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-bank-card-details .billing-customer-detail-item strong {
-  color: #667085;
+  color: var(--text-secondary);
   font-size: 13px;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-transfer-form h5 {
   font-size: 14px;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 12px 0;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-file-upload-area {
-  border: 2px dashed #EEF0ED;
+  border: 2px dashed var(--border-upload);
   border-radius: 10px;
   padding: 20px;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--bg-file-upload);
 }
 
 .billing-customer-file-upload-area:hover {
-  border-color: #D1D5DB;
+  border-color: var(--border-upload-hover);
 }
 
 .billing-customer-file-upload-area.error {
@@ -1218,7 +1453,8 @@ body {
 
 .billing-customer-file-upload-area small {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-file-name {
@@ -1267,22 +1503,23 @@ body {
 }
 
 .billing-customer-success-page-card {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-success-page);
   border-radius: 24px;
   padding: 48px 40px;
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-success);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   width: 100%;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .billing-customer-success-page-icon {
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: rgba(16, 185, 129, 0.10);
+  background: var(--bg-success);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1299,37 +1536,42 @@ body {
 .billing-customer-success-page-title {
   font-size: 28px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 8px 0;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-success-page-subtitle {
   font-size: 18px;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 8px 0;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-success-page-message {
   font-size: 15px;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 16px 0;
   line-height: 1.6;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-success-page-reference {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-reference);
   border-radius: 10px;
   padding: 12px 16px;
   display: inline-flex;
   align-items: center;
   gap: 12px;
   margin: 8px 0 16px 0;
+  transition: background 0.3s ease;
 }
 
 .billing-customer-success-page-ref-label {
   font-size: 13px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-success-page-ref-value {
@@ -1368,7 +1610,7 @@ body {
 .billing-customer-processing-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -1377,20 +1619,21 @@ body {
 }
 
 .billing-customer-processing-modal {
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--bg-processing);
   border-radius: 18px;
   padding: 40px 48px;
   max-width: 400px;
   width: 100%;
   text-align: center;
-  border: 1px solid #EEF0ED;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  border: 1px solid var(--border-modal);
+  box-shadow: var(--shadow-processing);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .billing-customer-processing-spinner-circle {
   width: 48px;
   height: 48px;
-  border: 4px solid #EEF0ED;
+  border: 4px solid var(--border-color);
   border-top-color: #F39C12;
   border-radius: 50%;
   animation: billingSpinnerRotate 0.8s linear infinite !important;
@@ -1398,6 +1641,7 @@ body {
   display: block;
   will-change: transform;
   margin: 0 auto 16px;
+  transition: border-color 0.3s ease;
 }
 
 @keyframes billingSpinnerRotate {
@@ -1408,14 +1652,16 @@ body {
 .billing-customer-processing-message {
   font-size: 16px;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 4px 0;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-processing-submessage {
   font-size: 13px;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -1423,33 +1669,37 @@ body {
    ============================================ */
 .billing-customer-skeleton-header {
   height: 60px;
-  background: #F1F2F4;
+  background: var(--skeleton-bg);
   border-radius: 12px;
   margin-bottom: 20px;
   animation: shimmer 1.5s infinite;
+  transition: background 0.3s ease;
 }
 
 .billing-customer-skeleton-tabs {
   height: 48px;
-  background: #F1F2F4;
+  background: var(--skeleton-bg);
   border-radius: 12px;
   margin-bottom: 20px;
   animation: shimmer 1.5s infinite;
+  transition: background 0.3s ease;
 }
 
 .billing-customer-skeleton-filters {
   height: 40px;
-  background: #F1F2F4;
+  background: var(--skeleton-bg);
   border-radius: 12px;
   margin-bottom: 16px;
   animation: shimmer 1.5s infinite;
+  transition: background 0.3s ease;
 }
 
 .billing-customer-skeleton-table {
   height: 300px;
-  background: #F1F2F4;
+  background: var(--skeleton-bg);
   border-radius: 14px;
   animation: shimmer 1.5s infinite;
+  transition: background 0.3s ease;
 }
 
 @keyframes shimmer {
@@ -1470,20 +1720,23 @@ body {
 .billing-customer-details-section h4 {
   font-size: 14px;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0 0 8px 0;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  transition: color 0.3s ease;
 }
 
 .billing-customer-details-section p {
   margin: 4px 0;
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .billing-customer-details-section p strong {
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
@@ -1749,7 +2002,7 @@ body {
   .billing-customer-processing-spinner-circle {
     animation: billingSpinnerRotate 0.8s linear infinite !important;
     animation-play-state: running !important;
-    border-color: #EEF0ED !important;
+    border-color: var(--border-color) !important;
     border-top-color: #F39C12 !important;
     transform-origin: center center !important;
   }

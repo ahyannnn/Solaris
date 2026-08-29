@@ -1,21 +1,200 @@
-/* styles/Engineer/iotdevice.css - Light Solar Theme for IoT Device */
+/* styles/Engineer/iotdevice.css - Unified Light/Dark Solar Theme for IoT Device */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE LAYOUT - LIGHT SOLAR
+   CSS VARIABLES - LIGHT MODE (Default)
+   ============================================ */
+:root {
+  --bg-primary: #F3F5F1;
+  --bg-card: rgba(255, 255, 255, 0.86);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: rgba(0, 0, 0, 0.02);
+  --bg-section: rgba(255, 255, 255, 0.5);
+  --bg-table-header: rgba(255, 255, 255, 0.5);
+  --bg-table-row-hover: rgba(255, 255, 255, 0.3);
+  --bg-modal: rgba(255, 255, 255, 0.98);
+  --bg-input: rgba(255, 255, 255, 0.5);
+  --bg-filter: rgba(255, 255, 255, 0.86);
+  --bg-dropdown: rgba(255, 255, 255, 0.98);
+  --bg-select-option: #FFFFFF;
+  --bg-summary-item: rgba(255, 255, 255, 0.5);
+  --bg-stat-card: rgba(255, 255, 255, 0.5);
+  --bg-chart: rgba(255, 255, 255, 0.5);
+  --bg-gps: rgba(255, 255, 255, 0.5);
+  --bg-confirm-details: rgba(255, 255, 255, 0.5);
+  --bg-confirm-stats: rgba(255, 255, 255, 0.5);
+  --bg-info-message: rgba(59, 130, 246, 0.06);
+  --bg-no-data: rgba(255, 255, 255, 0.86);
+  --text-primary: #17212B;
+  --text-secondary: #667085;
+  --text-muted: #98A2B3;
+  --text-white: #17212B;
+  --text-dark: #17212B;
+  --border-color: #EEF0ED;
+  --border-card: rgba(255, 255, 255, 0.9);
+  --border-medium: #E5E7EB;
+  --border-input: #EEF0ED;
+  --border-modal: #EEF0ED;
+  --border-dropdown: #EEF0ED;
+  --shadow-card: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  --shadow-card-hover: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.15);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.12);
+  --shadow-tooltip: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+  --skeleton-bg: #EEF0ED;
+  --skeleton-gradient: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  --icon-color: #F39C12;
+  --icon-info: #2563EB;
+  --icon-success: #059669;
+  --icon-danger: #DC2626;
+  --icon-warning: #D97706;
+  --text-danger: #DC2626;
+  --text-danger-hover: #EF4444;
+  --text-edit: #2563EB;
+  --text-edit-hover: #3B82F6;
+  --text-success: #059669;
+  --text-success-hover: #10B981;
+  --btn-primary-bg: #10B981;
+  --btn-primary-hover: #059669;
+  --btn-danger-bg: #EF4444;
+  --btn-danger-hover: #DC2626;
+  --btn-cancel-bg: rgba(255, 255, 255, 0.5);
+  --btn-cancel-hover: rgba(255, 255, 255, 0.8);
+  --btn-view-bg: #3B82F6;
+  --btn-view-hover: #2563EB;
+  --btn-download-bg: #10B981;
+  --btn-download-hover: #059669;
+  --btn-retrieve-bg: #F39C12;
+  --btn-retrieve-hover: #E67E22;
+  --btn-confirm-retrieve-bg: #EF4444;
+  --btn-confirm-retrieve-hover: #DC2626;
+  --btn-close-bg: rgba(255, 255, 255, 0.5);
+  --btn-close-hover: rgba(255, 255, 255, 0.8);
+  --stat-irradiance-color: #D97706;
+  --stat-temperature-color: #DC2626;
+  --stat-humidity-color: #2563EB;
+  --chart-tooltip-bg: rgba(255, 255, 255, 0.98);
+  --chart-tooltip-border: #EEF0ED;
+  --tooltip-label-color: #98A2B3;
+  --tooltip-value-color: #17212B;
+  --no-data-icon-color: #D1D5DB;
+  --no-data-text-color: #98A2B3;
+  --spinner-color: #F39C12;
+  --required-color: #EF4444;
+  --error-color: #DC2626;
+  --info-border-color: rgba(59, 130, 246, 0.12);
+  --detail-label-color: #98A2B3;
+  --detail-value-color: #17212B;
+}
+
+/* ============================================
+   CSS VARIABLES - DARK MODE
+   ============================================ */
+body.dark-mode {
+  --bg-primary: #0B111A;
+  --bg-card: #1A2533;
+  --bg-card-hover: #1F2C3D;
+  --bg-surface: #131C28;
+  --bg-elevated: #1A2533;
+  --bg-hover: rgba(255, 255, 255, 0.03);
+  --bg-section: rgba(255, 255, 255, 0.05);
+  --bg-table-header: rgba(255, 255, 255, 0.05);
+  --bg-table-row-hover: rgba(255, 255, 255, 0.03);
+  --bg-modal: rgba(26, 37, 51, 0.98);
+  --bg-input: rgba(255, 255, 255, 0.05);
+  --bg-filter: #1A2533;
+  --bg-dropdown: #1A2533;
+  --bg-select-option: #1A2533;
+  --bg-summary-item: rgba(255, 255, 255, 0.05);
+  --bg-stat-card: rgba(255, 255, 255, 0.05);
+  --bg-chart: rgba(255, 255, 255, 0.05);
+  --bg-gps: rgba(255, 255, 255, 0.05);
+  --bg-confirm-details: rgba(255, 255, 255, 0.05);
+  --bg-confirm-stats: rgba(255, 255, 255, 0.05);
+  --bg-info-message: rgba(59, 130, 246, 0.08);
+  --bg-no-data: #1A2533;
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-white: #FFFFFF;
+  --text-dark: #FFFFFF;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.08);
+  --border-input: rgba(255, 255, 255, 0.06);
+  --border-modal: rgba(255, 255, 255, 0.06);
+  --border-dropdown: rgba(255, 255, 255, 0.06);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.4);
+  --shadow-tooltip: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --overlay-bg: rgba(0, 0, 0, 0.8);
+  --skeleton-bg: #131C28;
+  --skeleton-gradient: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  --icon-color: #F39C12;
+  --icon-info: #3B82F6;
+  --icon-success: #10B981;
+  --icon-danger: #EF4444;
+  --icon-warning: #F39C12;
+  --text-danger: #EF4444;
+  --text-danger-hover: #EF4444;
+  --text-edit: #3B82F6;
+  --text-edit-hover: #3B82F6;
+  --text-success: #10B981;
+  --text-success-hover: #10B981;
+  --btn-primary-bg: #10B981;
+  --btn-primary-hover: #059669;
+  --btn-danger-bg: #EF4444;
+  --btn-danger-hover: #DC2626;
+  --btn-cancel-bg: rgba(255, 255, 255, 0.05);
+  --btn-cancel-hover: rgba(255, 255, 255, 0.1);
+  --btn-view-bg: #3B82F6;
+  --btn-view-hover: #2563EB;
+  --btn-download-bg: #10B981;
+  --btn-download-hover: #059669;
+  --btn-retrieve-bg: #F39C12;
+  --btn-retrieve-hover: #E67E22;
+  --btn-confirm-retrieve-bg: #EF4444;
+  --btn-confirm-retrieve-hover: #DC2626;
+  --btn-close-bg: rgba(255, 255, 255, 0.05);
+  --btn-close-hover: rgba(255, 255, 255, 0.1);
+  --stat-irradiance-color: #F39C12;
+  --stat-temperature-color: #EF4444;
+  --stat-humidity-color: #3B82F6;
+  --chart-tooltip-bg: #1A2533;
+  --chart-tooltip-border: rgba(255, 255, 255, 0.06);
+  --tooltip-label-color: rgba(255, 255, 255, 0.4);
+  --tooltip-value-color: #FFFFFF;
+  --no-data-icon-color: rgba(255, 255, 255, 0.2);
+  --no-data-text-color: rgba(255, 255, 255, 0.4);
+  --spinner-color: #F39C12;
+  --required-color: #EF4444;
+  --error-color: #EF4444;
+  --info-border-color: rgba(59, 130, 246, 0.20);
+  --detail-label-color: rgba(255, 255, 255, 0.4);
+  --detail-value-color: #FFFFFF;
+}
+
+/* ============================================
+   BASE LAYOUT
    ============================================ */
 .iot-device-engineer-iotdevicead {
   padding-top: 20px;
   padding-inline: 24px;
-  background: #F3F5F1;
+  background: var(--bg-primary);
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ============================================
-   HEADER - LIGHT
+   HEADER
    ============================================ */
 .iot-header-iotdevicead {
   display: flex;
@@ -29,18 +208,20 @@
 .iot-header-iotdevicead h1 {
   font-size: 26px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 4px 0;
+  transition: color 0.3s ease;
 }
 
 .iot-header-iotdevicead p {
   font-size: 14px;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   FILTERS - LIGHT
+   FILTERS
    ============================================ */
 .iot-filters-iotdevicead {
   display: flex;
@@ -54,21 +235,23 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   padding: 4px 16px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   flex: 1;
   min-width: 200px;
   max-width: 400px;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .search-group-iotdevicead .search-icon-iotdevicead {
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 .search-group-iotdevicead input {
@@ -76,15 +259,15 @@
   background: transparent;
   border: none;
   font-size: 13px;
-  color: #17212B;
+  color: var(--text-primary);
   font-family: 'Poppins', sans-serif;
   width: 100%;
-  -webkit-text-fill-color: #17212B;
+  -webkit-text-fill-color: var(--text-primary);
 }
 
 .search-group-iotdevicead input::placeholder {
-  color: #98A2B3;
-  -webkit-text-fill-color: #98A2B3;
+  color: var(--text-muted);
+  -webkit-text-fill-color: var(--text-muted);
 }
 
 .search-group-iotdevicead input:focus {
@@ -92,17 +275,18 @@
 }
 
 /* ============================================
-   TABLE - LIGHT GLASS
+   TABLE - GLASS
    ============================================ */
 .table-container-iotdevicead {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   overflow: hidden;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   overflow-x: auto;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .devices-table-iotdevicead {
@@ -113,7 +297,7 @@
 }
 
 .devices-table-iotdevicead thead {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-table-header);
 }
 
 .devices-table-iotdevicead thead th {
@@ -123,18 +307,19 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #98A2B3;
-  border-bottom: 1px solid #EEF0ED;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
   position: sticky;
   top: 0;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-table-header);
   z-index: 2;
+  transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
 }
 
 .devices-table-iotdevicead tbody tr {
-  border-bottom: 1px solid #EEF0ED;
-  transition: background 200ms ease;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 200ms ease, border-color 0.3s ease;
 }
 
 .devices-table-iotdevicead tbody tr:last-child {
@@ -142,17 +327,18 @@
 }
 
 .devices-table-iotdevicead tbody tr:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--bg-table-row-hover);
 }
 
 .devices-table-iotdevicead tbody td {
   padding: 14px 16px;
   vertical-align: middle;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   TABLE CELL STYLES - LIGHT
+   TABLE CELL STYLES
    ============================================ */
 .device-cell-iotdevicead {
   display: flex;
@@ -162,13 +348,15 @@
 
 .device-name-iotdevicead {
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .device-id-iotdevicead {
   font-size: 11px;
-  color: #98A2B3;
+  color: var(--text-muted);
   font-family: monospace;
+  transition: color 0.3s ease;
 }
 
 .client-cell-iotdevicead {
@@ -179,17 +367,19 @@
 
 .client-name-iotdevicead {
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .ref-cell-iotdevicead {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
   font-family: monospace;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   ACTION BUTTON - LIGHT
+   ACTION BUTTON
    ============================================ */
 .view-btn-iotdevicead {
   padding: 6px 14px;
@@ -203,18 +393,18 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #3B82F6;
+  background: var(--btn-view-bg);
   color: #FFFFFF;
 }
 
 .view-btn-iotdevicead:hover {
-  background: #2563EB;
+  background: var(--btn-view-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 /* ============================================
-   PAGINATION - LIGHT
+   PAGINATION
    ============================================ */
 .pagination-iotdevicead {
   display: flex;
@@ -228,8 +418,8 @@
 .page-btn-iotdevicead {
   padding: 8px 16px;
   background: transparent;
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -242,9 +432,9 @@
 }
 
 .page-btn-iotdevicead:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.5);
-  border-color: #D1D5DB;
-  color: #17212B;
+  background: var(--bg-section);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 .page-btn-iotdevicead:disabled {
@@ -254,45 +444,50 @@
 
 .page-info-iotdevicead {
   font-size: 13px;
-  color: #98A2B3;
+  color: var(--text-muted);
   padding: 0 8px;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   EMPTY STATE - LIGHT
+   EMPTY STATE
    ============================================ */
 .empty-state-iotdevicead {
   text-align: center;
   padding: 60px 20px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .empty-state-iotdevicead .empty-icon-iotdevicead {
   font-size: 48px;
-  color: #D1D5DB;
+  color: var(--text-muted);
   margin-bottom: 16px;
+  transition: color 0.3s ease;
 }
 
 .empty-state-iotdevicead h3 {
   font-size: 18px;
   font-weight: 600;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 8px 0;
+  transition: color 0.3s ease;
 }
 
 .empty-state-iotdevicead p {
   font-size: 14px;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   MODALS - LIGHT GLASS
+   MODALS - GLASS
    ============================================ */
 .modal-overlay-iotdevicead {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -302,16 +497,17 @@
 }
 
 .modal-content-iotdevicead {
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--bg-modal);
   border-radius: 18px;
   max-width: 1100px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  border: 1px solid #EEF0ED;
+  box-shadow: var(--shadow-modal);
+  border: 1px solid var(--border-modal);
   overflow: hidden;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .modal-content-iotdevicead.data-modal-iotdevicead {
@@ -323,31 +519,33 @@
 }
 
 /* ============================================
-   MODAL HEADER - LIGHT
+   MODAL HEADER
    ============================================ */
 .modal-header-iotdevicead {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px 12px 24px;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
+  transition: border-color 0.3s ease;
 }
 
 .modal-header-iotdevicead h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .modal-close-iotdevicead {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
-  color: #98A2B3;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
   font-size: 20px;
   cursor: pointer;
   display: flex;
@@ -360,12 +558,12 @@
 
 .modal-close-iotdevicead:hover {
   background: rgba(239, 68, 68, 0.10);
-  border-color: #EF4444;
-  color: #EF4444;
+  border-color: var(--text-danger);
+  color: var(--text-danger);
 }
 
 /* ============================================
-   MODAL BODY - LIGHT
+   MODAL BODY
    ============================================ */
 .modal-body-iotdevicead {
   padding: 16px 24px 0 24px;
@@ -384,34 +582,36 @@
 }
 
 .modal-body-iotdevicead::-webkit-scrollbar-thumb {
-  background: #3B82F6;
+  background: var(--icon-info);
   border-radius: 4px;
 }
 
 /* ============================================
-   DEVICE SUMMARY - LIGHT
+   DEVICE SUMMARY
    ============================================ */
 .device-summary-iotdevicead {
   display: flex;
   gap: 20px;
   flex-wrap: wrap;
   padding: 12px 0 16px 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 16px;
+  transition: border-color 0.3s ease;
 }
 
 .summary-item-iotdevicead {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-summary-item);
   padding: 8px 16px;
   border-radius: 10px;
-  border: 1px solid #EEF0ED;
+  border: 1px solid var(--border-color);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .summary-item-iotdevicead svg {
-  color: #3B82F6;
+  color: var(--icon-info);
   font-size: 18px;
 }
 
@@ -419,19 +619,21 @@
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #98A2B3;
+  color: var(--text-muted);
   display: block;
+  transition: color 0.3s ease;
 }
 
 .summary-item-iotdevicead p {
   font-size: 13px;
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   STATS CARDS - LIGHT
+   STATS CARDS
    ============================================ */
 .stats-cards-iotdevicead {
   display: grid;
@@ -441,13 +643,13 @@
 }
 
 .stat-card-iotdevicead {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-stat-card);
   border-radius: 12px;
   padding: 14px 16px;
   display: flex;
   align-items: center;
   gap: 14px;
-  border: 1px solid #EEF0ED;
+  border: 1px solid var(--border-color);
   transition: all 200ms ease;
 }
 
@@ -462,15 +664,15 @@
 }
 
 .stat-card-iotdevicead.irradiance-iotdevicead svg {
-  color: #D97706;
+  color: var(--stat-irradiance-color);
 }
 
 .stat-card-iotdevicead.temperature-iotdevicead svg {
-  color: #DC2626;
+  color: var(--stat-temperature-color);
 }
 
 .stat-card-iotdevicead.humidity-iotdevicead svg {
-  color: #2563EB;
+  color: var(--stat-humidity-color);
 }
 
 .stat-card-iotdevicead div {
@@ -482,23 +684,26 @@
 .stat-value-iotdevicead {
   font-size: 20px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   line-height: 1.2;
+  transition: color 0.3s ease;
 }
 
 .stat-label-iotdevicead {
   font-size: 11px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .stat-trend-iotdevicead {
   font-size: 10px;
-  color: #D1D5DB;
+  color: var(--text-muted);
   margin-top: 2px;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   RANGE SELECTOR / CONTROLS - LIGHT
+   RANGE SELECTOR / CONTROLS
    ============================================ */
 .range-selector-iotdevicead {
   display: flex;
@@ -510,32 +715,33 @@
 
 .range-selector-iotdevicead select {
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 8px;
   font-size: 13px;
-  color: #17212B;
+  color: var(--text-primary);
   font-family: 'Poppins', sans-serif;
   cursor: pointer;
-  -webkit-text-fill-color: #17212B;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  -webkit-text-fill-color: var(--text-primary);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .range-selector-iotdevicead select:focus {
   outline: none;
-  border-color: #F39C12;
+  border-color: var(--icon-color);
 }
 
 .range-selector-iotdevicead select option {
-  background: #FFFFFF;
-  color: #17212B;
+  background: var(--bg-select-option);
+  color: var(--text-primary);
 }
 
 .download-btn-iotdevicead {
   padding: 8px 18px;
-  background: #10B981;
+  background: var(--btn-download-bg);
   color: #FFFFFF;
   border: none;
   border-radius: 8px;
@@ -550,7 +756,7 @@
 }
 
 .download-btn-iotdevicead:hover:not(:disabled) {
-  background: #059669;
+  background: var(--btn-download-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
@@ -562,21 +768,23 @@
 }
 
 /* ============================================
-   CHARTS - LIGHT
+   CHARTS
    ============================================ */
 .chart-container-iotdevicead {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-chart);
   border-radius: 12px;
   padding: 16px 20px;
   margin-bottom: 16px;
-  border: 1px solid #EEF0ED;
+  border: 1px solid var(--border-color);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .chart-container-iotdevicead h4 {
   font-size: 14px;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0 0 12px 0;
+  transition: color 0.3s ease;
 }
 
 .chart-iotdevicead {
@@ -585,23 +793,25 @@
 }
 
 /* ============================================
-   CUSTOM CHART TOOLTIP - LIGHT
+   CUSTOM CHART TOOLTIP
    ============================================ */
 .custom-chart-tooltip-fixed {
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--chart-tooltip-bg);
   border-radius: 10px;
   padding: 12px 16px;
-  border: 1px solid #EEF0ED;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--chart-tooltip-border);
+  box-shadow: var(--shadow-tooltip);
   min-width: 160px;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .custom-chart-tooltip-fixed .tooltip-time {
   font-size: 11px;
-  color: #98A2B3;
-  border-bottom: 1px solid #EEF0ED;
+  color: var(--tooltip-label-color);
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: 6px;
   margin-bottom: 6px;
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .custom-chart-tooltip-fixed .tooltip-item {
@@ -613,16 +823,18 @@
 }
 
 .custom-chart-tooltip-fixed .tooltip-label {
-  color: #98A2B3;
+  color: var(--tooltip-label-color);
+  transition: color 0.3s ease;
 }
 
 .custom-chart-tooltip-fixed .tooltip-value {
   font-weight: 600;
-  color: #17212B;
+  color: var(--tooltip-value-color);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   READINGS TABLE - LIGHT
+   READINGS TABLE
    ============================================ */
 .readings-table-iotdevicead {
   margin-top: 16px;
@@ -631,8 +843,9 @@
 .readings-table-iotdevicead h4 {
   font-size: 14px;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0 0 12px 0;
+  transition: color 0.3s ease;
 }
 
 .readings-table-iotdevicead .table-container-iotdevicead {
@@ -650,7 +863,7 @@
 }
 
 .readings-table-iotdevicead .table-container-iotdevicead::-webkit-scrollbar-thumb {
-  background: #3B82F6;
+  background: var(--icon-info);
   border-radius: 4px;
 }
 
@@ -673,15 +886,17 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #98A2B3;
-  background: rgba(255, 255, 255, 0.5);
-  border-bottom: 1px solid #EEF0ED;
+  color: var(--text-muted);
+  background: var(--bg-table-header);
+  border-bottom: 1px solid var(--border-color);
+  transition: color 0.3s ease, background 0.3s ease, border-color 0.3s ease;
 }
 
 .readings-table tbody td {
   padding: 8px 16px;
-  border-bottom: 1px solid #EEF0ED;
-  color: #667085;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .readings-table tbody tr:last-child td {
@@ -689,25 +904,27 @@
 }
 
 .readings-table tbody tr:hover td {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--bg-table-row-hover);
 }
 
 /* ============================================
-   GPS LOCATION - LIGHT
+   GPS LOCATION
    ============================================ */
 .gps-location-iotdevicead {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-gps);
   border-radius: 12px;
   padding: 16px 20px;
   margin: 12px 0 0 0;
-  border: 1px solid #EEF0ED;
+  border: 1px solid var(--border-color);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .gps-location-iotdevicead h4 {
   font-size: 14px;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0 0 10px 0;
+  transition: color 0.3s ease;
 }
 
 .gps-coords-iotdevicead {
@@ -719,12 +936,14 @@
 
 .gps-coords-iotdevicead p {
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .gps-coords-iotdevicead strong {
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .view-map-btn-iotdevicead {
@@ -732,7 +951,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: #3B82F6;
+  background: var(--btn-view-bg);
   color: #FFFFFF;
   border-radius: 8px;
   text-decoration: none;
@@ -742,55 +961,60 @@
 }
 
 .view-map-btn-iotdevicead:hover {
-  background: #2563EB;
+  background: var(--btn-view-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 /* ============================================
-   NO DATA - LIGHT
+   NO DATA
    ============================================ */
 .no-data-iotdevicead {
   text-align: center;
   padding: 40px 20px;
-  color: #98A2B3;
+  color: var(--no-data-text-color);
+  transition: color 0.3s ease;
 }
 
 .no-data-iotdevicead svg {
   font-size: 40px;
-  color: #D1D5DB;
+  color: var(--no-data-icon-color);
   margin-bottom: 12px;
+  transition: color 0.3s ease;
 }
 
 .no-data-iotdevicead p {
   font-size: 16px;
   font-weight: 500;
   margin: 0 0 4px 0;
+  transition: color 0.3s ease;
 }
 
 .no-data-iotdevicead small {
   font-size: 13px;
-  color: #D1D5DB;
+  color: var(--no-data-icon-color);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   MODAL ACTIONS - LIGHT
+   MODAL ACTIONS
    ============================================ */
 .modal-actions-iotdevicead {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--border-color);
   display: flex;
   gap: 12px;
   justify-content: flex-end;
   flex-wrap: wrap;
   flex-shrink: 0;
+  transition: border-color 0.3s ease;
 }
 
 .close-btn-iotdevicead {
   padding: 10px 24px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  background: var(--btn-close-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -800,13 +1024,13 @@
 }
 
 .close-btn-iotdevicead:hover {
-  background: rgba(255, 255, 255, 0.8);
-  color: #17212B;
+  background: var(--btn-close-hover);
+  color: var(--text-primary);
 }
 
 .retrieve-btn-iotdevicead {
   padding: 10px 24px;
-  background: #F39C12;
+  background: var(--btn-retrieve-bg);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -821,7 +1045,7 @@
 }
 
 .retrieve-btn-iotdevicead:hover:not(:disabled) {
-  background: #E67E22;
+  background: var(--btn-retrieve-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.25);
 }
@@ -833,7 +1057,7 @@
 }
 
 /* ============================================
-   CONFIRM MODAL - LIGHT
+   CONFIRM MODAL
    ============================================ */
 .confirm-modal-iotdevicead .confirm-modal-body-iotdevicead {
   padding: 16px 20px 0 20px;
@@ -841,16 +1065,18 @@
 
 .confirm-modal-iotdevicead .confirm-modal-body-iotdevicead p {
   font-size: 15px;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 16px 0;
+  transition: color 0.3s ease;
 }
 
 .device-details-confirm-iotdevicead {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-confirm-details);
   border-radius: 10px;
   padding: 12px 16px;
   margin-bottom: 16px;
-  border: 1px solid #EEF0ED;
+  border: 1px solid var(--border-color);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .detail-row-iotdevicead {
@@ -861,27 +1087,31 @@
 }
 
 .detail-row-iotdevicead .detail-label-iotdevicead {
-  color: #98A2B3;
+  color: var(--detail-label-color);
+  transition: color 0.3s ease;
 }
 
 .detail-row-iotdevicead .detail-value-iotdevicead {
-  color: #17212B;
+  color: var(--detail-value-color);
   font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .stats-summary-confirm-iotdevicead {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-confirm-stats);
   border-radius: 10px;
   padding: 12px 16px;
   margin-bottom: 16px;
-  border: 1px solid #EEF0ED;
+  border: 1px solid var(--border-color);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .stats-summary-confirm-iotdevicead p {
   font-size: 13px;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0 0 8px 0;
+  transition: color 0.3s ease;
 }
 
 .stats-summary-confirm-iotdevicead ul {
@@ -892,28 +1122,31 @@
 
 .stats-summary-confirm-iotdevicead ul li {
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
   padding: 2px 0;
+  transition: color 0.3s ease;
 }
 
 .stats-summary-confirm-iotdevicead ul li::before {
   content: "• ";
-  color: #3B82F6;
+  color: var(--icon-info);
 }
 
 .info-message-iotdevicead {
-  background: rgba(59, 130, 246, 0.06);
-  border: 1px solid rgba(59, 130, 246, 0.12);
+  background: var(--bg-info-message);
+  border: 1px solid var(--info-border-color);
   border-radius: 10px;
   padding: 12px 16px;
   margin-bottom: 16px;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .info-message-iotdevicead p {
   font-size: 13px;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0 0 8px 0;
+  transition: color 0.3s ease;
 }
 
 .info-message-iotdevicead ul {
@@ -924,13 +1157,14 @@
 
 .info-message-iotdevicead ul li {
   font-size: 13px;
-  color: #667085;
+  color: var(--text-secondary);
   padding: 2px 0;
+  transition: color 0.3s ease;
 }
 
 .info-message-iotdevicead ul li::before {
   content: "• ";
-  color: #3B82F6;
+  color: var(--icon-info);
 }
 
 .confirm-actions-iotdevicead {
@@ -939,9 +1173,9 @@
 
 .cancel-btn-iotdevicead {
   padding: 10px 24px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  background: var(--btn-cancel-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -951,13 +1185,13 @@
 }
 
 .cancel-btn-iotdevicead:hover {
-  background: rgba(255, 255, 255, 0.8);
-  color: #17212B;
+  background: var(--btn-cancel-hover);
+  color: var(--text-primary);
 }
 
 .confirm-retrieve-btn-iotdevicead {
   padding: 10px 24px;
-  background: #EF4444;
+  background: var(--btn-confirm-retrieve-bg);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -972,7 +1206,7 @@
 }
 
 .confirm-retrieve-btn-iotdevicead:hover:not(:disabled) {
-  background: #DC2626;
+  background: var(--btn-confirm-retrieve-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
 }
@@ -984,7 +1218,7 @@
 }
 
 /* ============================================
-   SPINNER - LIGHT
+   SPINNER
    ============================================ */
 .spinner-enad {
   animation: spin 1s linear infinite;
@@ -996,12 +1230,12 @@
 }
 
 /* ============================================
-   SKELETON LOADING - LIGHT
+   SKELETON LOADING
    ============================================ */
 .skeleton-line-iotdevicead {
   border-radius: 6px;
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -1019,9 +1253,9 @@
   height: 40px;
   width: 280px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -1032,20 +1266,20 @@
 .skeleton-table-header-iotdevicead {
   height: 40px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-section);
   margin-bottom: 12px;
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
 .skeleton-table-row-iotdevicead {
   height: 48px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   margin-bottom: 8px;
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -1059,7 +1293,7 @@
 }
 
 /* ============================================
-   RESPONSIVE DESIGN - UNCHANGED STRUCTURE
+   RESPONSIVE DESIGN
    ============================================ */
 
 /* Tablet */
@@ -1106,7 +1340,7 @@
     display: flex;
     flex-wrap: wrap;
     padding: 8px 12px;
-    border-bottom: 1px solid #EEF0ED;
+    border-bottom: 1px solid var(--border-color);
   }
 
   .devices-table-iotdevicead tbody td:last-child {
@@ -1116,7 +1350,7 @@
   .devices-table-iotdevicead tbody td::before {
     content: attr(data-label);
     font-weight: 600;
-    color: #98A2B3;
+    color: var(--text-muted);
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -1132,7 +1366,7 @@
   .devices-table-iotdevicead tbody tr {
     display: block;
     padding: 6px 0;
-    border-bottom: 1px solid #EEF0ED;
+    border-bottom: 1px solid var(--border-color);
   }
 
   .devices-table-iotdevicead tbody tr:last-child {
@@ -1345,7 +1579,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES - LIGHT
+   REDUCED MOTION PREFERENCES
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -1368,42 +1602,42 @@
   .skeleton-table-header-iotdevicead,
   .skeleton-table-row-iotdevicead {
     animation: none !important;
-    background: #EEF0ED !important;
+    background: var(--skeleton-bg) !important;
   }
 }
 
 /* ============================================
-   FIX - INPUT FIELDS & DROPDOWNS (Light Theme)
+   FIX - INPUT FIELDS & DROPDOWNS
    ============================================ */
 .iot-device-engineer-iotdevicead .range-selector-iotdevicead select,
 .iot-device-engineer-iotdevicead .search-group-iotdevicead input {
   background-color: transparent !important;
-  color: #17212B !important;
-  -webkit-text-fill-color: #17212B !important;
-  caret-color: #17212B !important;
+  color: var(--text-primary) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--text-primary) !important;
 }
 
 .iot-device-engineer-iotdevicead .range-selector-iotdevicead select option {
-  background-color: #FFFFFF !important;
-  color: #17212B !important;
+  background-color: var(--bg-select-option) !important;
+  color: var(--text-primary) !important;
 }
 
 .iot-device-engineer-iotdevicead .range-selector-iotdevicead select:focus,
 .iot-device-engineer-iotdevicead .search-group-iotdevicead input:focus {
   outline: none;
-  border-color: #F39C12;
+  border-color: var(--icon-color);
 }
 
 .iot-device-engineer-iotdevicead .search-group-iotdevicead input::placeholder {
-  color: #98A2B3 !important;
-  -webkit-text-fill-color: #98A2B3 !important;
+  color: var(--text-muted) !important;
+  -webkit-text-fill-color: var(--text-muted) !important;
   opacity: 1 !important;
 }
 
 .iot-device-engineer-iotdevicead .range-selector-iotdevicead select:-webkit-autofill,
 .iot-device-engineer-iotdevicead .search-group-iotdevicead input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.86) inset !important;
-  -webkit-text-fill-color: #17212B !important;
-  box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.86) inset !important;
-  background-color: rgba(255, 255, 255, 0.86) !important;
+  -webkit-box-shadow: 0 0 0 30px var(--bg-card) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  box-shadow: 0 0 0 30px var(--bg-card) inset !important;
+  background-color: var(--bg-card) !important;
 }

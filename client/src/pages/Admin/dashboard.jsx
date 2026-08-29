@@ -1,4 +1,4 @@
-// pages/Admin/AdminDashboard.cuspro.jsx - Redesigned with Dark Solar Theme
+// pages/Admin/AdminDashboard.cuspro.jsx - Redesigned with Dark Solar Theme Support
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
@@ -403,7 +403,6 @@ const AdminDashboard = () => {
   };
 
   /* --- PROJECT OVERVIEW CHART --- */
-  /* --- PROJECT OVERVIEW CHART --- */
   const ProjectOverviewChart = () => {
     const chartData = monthlyData.labels.map((label, i) => ({
       name: label,
@@ -411,13 +410,14 @@ const AdminDashboard = () => {
       assessments: monthlyData.assessments[i]
     }));
 
+    // Custom Tooltip - uses CSS variables for dark mode support
     const CustomTooltip = ({ active, payload, label }) => {
       if (active && payload && payload.length) {
         return (
           <div className="chart-tooltip_admindashbu">
-            <p className="tooltip-label_admindashbu" style={{ color: '#98A2B3' }}>{label}</p>
+            <p className="tooltip-label_admindashbu">{label}</p>
             {payload.map((entry, idx) => (
-              <p key={idx} className="tooltip-item_admindashbu" style={{ color: '#17212B' }}>
+              <p key={idx} className="tooltip-item_admindashbu">
                 {entry.name}: {entry.value}
               </p>
             ))}
@@ -455,21 +455,21 @@ const AdminDashboard = () => {
                   <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#EEF0ED" />
+              <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="var(--border-color, #EEF0ED)" />
               <XAxis
                 dataKey="name"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                tick={{ fill: 'var(--text-secondary, #667085)', fontSize: 12, fontWeight: 500 }}
                 dy={10}
               />
               <YAxis
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                tick={{ fill: 'var(--text-secondary, #667085)', fontSize: 12, fontWeight: 500 }}
                 width={40}
               />
-              <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#D1D5DB', strokeWidth: 1 }} />
+              <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-color, #D1D5DB)', strokeWidth: 1 }} />
               <Area
                 type="monotone"
                 dataKey="quotes"
@@ -477,7 +477,7 @@ const AdminDashboard = () => {
                 strokeWidth={3}
                 fillOpacity={1}
                 fill="url(#colorQuotes_admindashbu)"
-                dot={{ r: 5, fill: '#F39C12', strokeWidth: 2, stroke: '#FFFFFF' }}
+                dot={{ r: 5, fill: '#F39C12', strokeWidth: 2, stroke: 'var(--bg-card, #FFFFFF)' }}
                 activeDot={{ r: 7 }}
               />
               <Area
@@ -487,7 +487,7 @@ const AdminDashboard = () => {
                 strokeWidth={3}
                 fillOpacity={1}
                 fill="url(#colorAssessments_admindashbu)"
-                dot={{ r: 5, fill: '#10B981', strokeWidth: 2, stroke: '#FFFFFF' }}
+                dot={{ r: 5, fill: '#10B981', strokeWidth: 2, stroke: 'var(--bg-card, #FFFFFF)' }}
                 activeDot={{ r: 7 }}
               />
             </AreaChart>
@@ -496,7 +496,7 @@ const AdminDashboard = () => {
       </div>
     );
   };
-  /* --- REVENUE TREND CHART --- */
+
   /* --- REVENUE TREND CHART --- */
   const RevenueTrendChart = () => {
     const chartData = monthlyData.labels.map((label, i) => ({
@@ -504,12 +504,13 @@ const AdminDashboard = () => {
       revenue: monthlyData.revenue[i]
     }));
 
+    // Custom Tooltip - uses CSS variables for dark mode support
     const CustomTooltip = ({ active, payload, label }) => {
       if (active && payload && payload.length) {
         return (
           <div className="chart-tooltip_admindashbu">
-            <p className="tooltip-label_admindashbu" style={{ color: '#98A2B3' }}>{label}</p>
-            <p className="tooltip-item_admindashbu" style={{ color: '#17212B' }}>
+            <p className="tooltip-label_admindashbu">{label}</p>
+            <p className="tooltip-item_admindashbu">
               Revenue: {formatCurrency(payload[0].value)}
             </p>
           </div>
@@ -547,24 +548,24 @@ const AdminDashboard = () => {
                     <stop offset="95%" stopColor="#F39C12" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#EEF0ED" />
+                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="var(--border-color, #EEF0ED)" />
                 <XAxis
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                  tick={{ fill: 'var(--text-secondary, #667085)', fontSize: 12, fontWeight: 500 }}
                   dy={10}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                  tick={{ fill: 'var(--text-secondary, #667085)', fontSize: 12, fontWeight: 500 }}
                   width={70}
                   tickFormatter={(value) =>
                     `₱${value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value}`
                   }
                 />
-                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#D1D5DB', strokeWidth: 1 }} />
+                <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-color, #D1D5DB)', strokeWidth: 1 }} />
                 <Area
                   type="monotone"
                   dataKey="revenue"
@@ -572,7 +573,7 @@ const AdminDashboard = () => {
                   strokeWidth={3}
                   fillOpacity={1}
                   fill="url(#colorRevenue_admindashbu)"
-                  dot={{ r: 5, fill: '#F39C12', strokeWidth: 2, stroke: '#FFFFFF' }}
+                  dot={{ r: 5, fill: '#F39C12', strokeWidth: 2, stroke: 'var(--bg-card, #FFFFFF)' }}
                   activeDot={{ r: 7 }}
                 />
               </AreaChart>
@@ -582,6 +583,7 @@ const AdminDashboard = () => {
       </div>
     );
   };
+
   /* --- RECENT ACTIVITY COMPONENT --- */
   const RecentActivity = () => {
     const getStatusConfig = (status, type) => {

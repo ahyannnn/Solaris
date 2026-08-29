@@ -1,4 +1,4 @@
-// pages/Admin/Billing.jsx - Redesigned with Dark Solar Theme
+// pages/Admin/Billing.jsx - Redesigned with Dark/Light Solar Theme Support
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -1280,13 +1280,13 @@ const AdminBilling = () => {
     return items.slice(startIndex, endIndex);
   };
 
-  // ============ CUSTOM TOOLTIPS ============
+  // ============ CUSTOM TOOLTIPS - Uses CSS variables for theming ============
   const PaymentTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
         <div className="chart-tooltip-adminbilling">
           <p className="tooltip-label-adminbilling">{label}</p>
-          <p className="tooltip-item-adminbilling" style={{ color: '#F39C12' }}>
+          <p className="tooltip-item-adminbilling">
             Count: {payload[0].value}
           </p>
         </div>
@@ -1300,7 +1300,7 @@ const AdminBilling = () => {
       return (
         <div className="chart-tooltip-adminbilling">
           <p className="tooltip-label-adminbilling">{label}</p>
-          <p className="tooltip-item-adminbilling" style={{ color: '#10B981' }}>
+          <p className="tooltip-item-adminbilling">
             Revenue: {formatCurrency(payload[0].value)}
           </p>
         </div>
@@ -1345,16 +1345,13 @@ const AdminBilling = () => {
       <div className="admin-billing">
 
         {/* --- Minimalist Header (Empty) --- */}
-        <div className="billing-header-adminbilling">
-          <div></div>
-        </div>
+       
 
         {/* ============================================ */}
         {/* CHARTS ROW                                  */}
         {/* ============================================ */}
         <div className="billing-charts-row-adminbilling">
 
-          {/* CHART 1: Payment Method Distribution */}
           {/* CHART 1: Payment Method Distribution */}
           <div className="billing-chart-card-adminbilling">
             <div className="billing-chart-header-adminbilling">
@@ -1370,18 +1367,18 @@ const AdminBilling = () => {
                       <stop offset="95%" stopColor="#F39C12" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#EEF0ED" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="var(--border-color, #EEF0ED)" />
                   <XAxis
                     dataKey="name"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                    tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 12, fontWeight: 500 }}
                     dy={10}
                   />
                   <YAxis
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                    tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 12, fontWeight: 500 }}
                     width={40}
                     allowDecimals={false}
                   />
@@ -1392,8 +1389,6 @@ const AdminBilling = () => {
             </div>
           </div>
 
-          {/* CHART 2: Revenue Overview */}
-          {/* CHART 2: Revenue Overview */}
           {/* CHART 2: Revenue Overview */}
           <div className="billing-chart-card-adminbilling">
             <div className="billing-chart-header-adminbilling">
@@ -1409,18 +1404,18 @@ const AdminBilling = () => {
                       <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#EEF0ED" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="var(--border-color, #EEF0ED)" />
                   <XAxis
                     dataKey="name"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                    tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 12, fontWeight: 500 }}
                     dy={10}
                   />
                   <YAxis
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#17212B', fontSize: 12, fontWeight: 500 }}
+                    tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 12, fontWeight: 500 }}
                     width={65}
                     tickFormatter={(value) => {
                       if (value >= 1000000) return `₱${(value / 1000000).toFixed(1)}M`;

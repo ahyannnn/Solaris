@@ -103,9 +103,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background:
-
-    #F3F5F1;
+  background: #F3F5F1;
   transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -148,7 +146,6 @@
    ============================================ */
 .dashboard-header-layout-dashboard {
   background: transparent;
-  /* Matches background */
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   padding: 0.75rem 2rem;
@@ -160,11 +157,9 @@
   top: 0;
   z-index: 100;
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-  /* Soft glass border */
   min-height: 80px;
   width: 100%;
   box-shadow: none;
-  /* Remove hard shadow, let gradient show through */
 }
 
 /* Page Title - Dark Navy */
@@ -209,7 +204,6 @@
   align-items: center;
   gap: 0.5rem;
   background: rgba(255, 255, 255, 0.6);
-  /* Glassy background */
   color: var(--sidebar-accent) !important;
   padding: 0.35rem 0.9rem;
   border-radius: 20px;
@@ -241,46 +235,83 @@
   flex-shrink: 0;
 }
 
-/* Notification Button - Orange Accent (Glass style) */
+/* ============================================
+   DARK MODE TOGGLE BUTTON - LIGHT MODE
+   ============================================ */
+.dark-mode-toggle-btn {
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333333;
+  transition: all 0.3s ease;
+  width: 40px;
+  height: 40px;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.dark-mode-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #F39C12;
+  transform: scale(1.05);
+}
+
+.dark-mode-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.dark-mode-toggle-btn .dark-mode-icon {
+  transition: transform 0.5s ease;
+  font-size: 1.1rem;
+}
+
+.dark-mode-toggle-btn:hover .dark-mode-icon {
+  transform: rotate(30deg);
+}
+
+/* ============================================
+   NOTIFICATION BUTTON - LIGHT MODE
+   ============================================ */
 .notification-btn {
   position: relative;
   width: 40px;
   height: 40px;
   border: none;
-  background: rgba(255, 255, 255, 0.6);
-  /* Glassy background */
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all var(--transition-base);
-  color: var(--text-secondary);
+  color: #333333;
   font-size: 1.1rem;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .notification-btn:hover {
-  background: rgba(243, 156, 18, 0.15);
-  color: var(--sidebar-accent);
+  background: rgba(0, 0, 0, 0.08);
+  color: #F39C12;
   transform: scale(1.05);
-  border-color: rgba(243, 156, 18, 0.25);
 }
 
 .notification-btn.has-unread {
-  color: var(--sidebar-accent);
+  color: #F39C12;
 }
 
 .notification-btn.has-unread:hover {
   background: rgba(243, 156, 18, 0.15);
-  color: var(--sidebar-accent);
+  color: #F39C12;
 }
 
 .notification-btn.active {
   background: rgba(243, 156, 18, 0.15);
-  color: var(--sidebar-accent);
+  color: #F39C12;
 }
 
 .notification-badge-header {
@@ -310,7 +341,6 @@
   padding: 0.25rem 0.75rem;
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.6);
-  /* Glassy background */
   border-radius: 30px;
   border: 1px solid rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(4px);
@@ -359,7 +389,6 @@
     align-items: center;
   }
 
-  /* Hide page title and description on mobile */
   .page-title-layout-dashboard,
   .page-description-layout-dashboard {
     display: none !important;
@@ -404,7 +433,6 @@
 }
 
 @media (min-width: 769px) {
-
   .page-title-layout-dashboard,
   .page-description-layout-dashboard {
     display: block !important;
@@ -1723,3 +1751,367 @@
   }
 }
 
+/* ============================================
+   DARK MODE STYLES - COMPLETE
+   ============================================ */
+
+/* When dark mode is active on body */
+body.dark-mode {
+  --sidebar-bg: #0B111A;
+  --sidebar-bg-secondary: #131C28;
+  --sidebar-border: #1A2533;
+  --sidebar-text: rgba(255, 255, 255, 0.5);
+  --sidebar-text-hover: rgba(255, 255, 255, 0.9);
+  --sidebar-text-active: #FFFFFF;
+  --sidebar-hover: rgba(255, 255, 255, 0.04);
+  --sidebar-active: rgba(243, 156, 18, 0.08);
+  --bg-primary: #0B111A;
+  --bg-elevated: #1A2533;
+  --bg-surface: #131C28;
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.3);
+  --border-light: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(26, 37, 51, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.06);
+}
+
+/* Dark mode specific overrides */
+body.dark-mode .dashboard-header-layout-dashboard {
+  background: var(--glass-bg);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+body.dark-mode .page-title-layout-dashboard {
+  color: #FFFFFF !important;
+}
+
+body.dark-mode .page-description-layout-dashboard {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ============================================
+   FIX: USER NAME IN DARK MODE
+   ============================================ */
+body.dark-mode .header-user-name-layout-dashboard {
+  color: #FFFFFF !important;
+}
+
+body.dark-mode .header-user-initials-avatar {
+  background: linear-gradient(135deg, #F39C12 0%, #E67E22 100%);
+  color: #FFFFFF;
+  border-color: rgba(243, 156, 18, 0.3);
+}
+
+/* ============================================
+   FIX: NOTIFICATION BUTTON IN DARK MODE
+   ============================================ */
+body.dark-mode .notification-btn {
+  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .notification-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+
+body.dark-mode .notification-btn.active {
+  background: rgba(243, 156, 18, 0.15);
+  color: #F39C12;
+}
+
+body.dark-mode .notification-btn.has-unread {
+  color: #F39C12;
+}
+
+body.dark-mode .notification-btn.has-unread:hover {
+  background: rgba(243, 156, 18, 0.15);
+  color: #F39C12;
+}
+
+/* ============================================
+   FIX: DARK MODE TOGGLE BUTTON IN DARK MODE
+   ============================================ */
+body.dark-mode .dark-mode-toggle-btn {
+  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .dark-mode-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #F39C12;
+}
+
+body.dark-mode .dark-mode-toggle-btn.active {
+  color: #F39C12;
+  background: rgba(243, 156, 18, 0.12);
+}
+
+body.dark-mode .dark-mode-toggle-btn.active:hover {
+  background: rgba(243, 156, 18, 0.18);
+}
+
+/* ============================================
+   NOTIFICATION BADGE IN DARK MODE
+   ============================================ */
+body.dark-mode .notification-badge-header {
+  border-color: var(--bg-primary);
+}
+
+/* ============================================
+   REST OF DARK MODE STYLES
+   ============================================ */
+body.dark-mode .sidebar-layout-dashboard {
+  background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg-secondary) 100%);
+  border-right: 1px solid var(--sidebar-border);
+}
+
+body.dark-mode .sidebar-section-title-layout-dashboard {
+  color: var(--sidebar-text);
+}
+
+body.dark-mode .nav-item-layout-dashboard {
+  color: var(--sidebar-text);
+}
+
+body.dark-mode .nav-item-layout-dashboard.active-layout-dashboard {
+  background: var(--sidebar-active);
+  color: var(--sidebar-text-active);
+}
+
+body.dark-mode .nav-item-layout-dashboard.active-layout-dashboard::before {
+  background: var(--sidebar-accent);
+}
+
+body.dark-mode .nav-item-layout-dashboard:hover {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-text-hover);
+}
+
+body.dark-mode .nav-item-layout-dashboard:hover .nav-icon-layout-dashboard {
+  color: var(--sidebar-accent);
+}
+
+body.dark-mode .logo-text-layout-dashboard {
+  background: linear-gradient(135deg, #FFFFFF 0%, var(--sidebar-accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+body.dark-mode .main-content-layout-dashboard {
+  background: var(--bg-primary);
+}
+
+body.dark-mode .content-area-layout-dashboard {
+  background: var(--bg-primary);
+}
+
+body.dark-mode .notification-popover {
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .notification-popover-header h3 {
+  color: #FFFFFF;
+}
+
+body.dark-mode .mark-all-read-btn {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+body.dark-mode .mark-all-read-btn:hover {
+  color: #F39C12;
+}
+
+body.dark-mode .notif-item {
+  border-bottom-color: rgba(255, 255, 255, 0.03);
+}
+
+body.dark-mode .notif-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+body.dark-mode .notif-item.unread {
+  background: rgba(243, 156, 18, 0.04);
+  border-left-color: #F39C12;
+}
+
+body.dark-mode .notif-item.unread:hover {
+  background: rgba(243, 156, 18, 0.08);
+}
+
+body.dark-mode .notif-item.read {
+  background: transparent;
+}
+
+body.dark-mode .notif-item.read:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+body.dark-mode .notif-title {
+  color: #FFFFFF;
+}
+
+body.dark-mode .notif-item.unread .notif-title {
+  color: #FFFFFF;
+}
+
+body.dark-mode .notif-item.read .notif-title {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+body.dark-mode .notif-message {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+body.dark-mode .notif-item.unread .notif-message {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+body.dark-mode .notif-item.read .notif-message {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+body.dark-mode .notif-time {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+body.dark-mode .notif-empty span {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+body.dark-mode .notif-empty p {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+body.dark-mode .notif-loading {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+body.dark-mode .view-all-btn {
+  color: #F39C12;
+}
+
+body.dark-mode .view-all-btn:hover {
+  background: rgba(243, 156, 18, 0.08);
+}
+
+body.dark-mode .logout-modal-container {
+  background: #1A2533;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+body.dark-mode .logout-modal-title {
+  color: #FFFFFF;
+}
+
+body.dark-mode .logout-modal-message {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+body.dark-mode .logout-modal-sub-message {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+body.dark-mode .logout-modal-btn-cancel {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .logout-modal-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+}
+
+body.dark-mode .logout-modal-btn-confirm {
+  background: #EF4444;
+  color: white;
+}
+
+body.dark-mode .logout-modal-btn-confirm:hover {
+  background: #DC2626;
+}
+
+body.dark-mode .notification-badge-sidebar {
+  background: #EF4444;
+  color: white;
+}
+
+body.dark-mode .nav-item-layout-dashboard.active-layout-dashboard .notification-badge-sidebar {
+  background: var(--sidebar-accent);
+  color: #FFFFFF;
+}
+
+body.dark-mode .mobile-hamburger-btn .hamburger-line {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+body.dark-mode .mobile-hamburger-btn:hover .hamburger-line {
+  background: var(--sidebar-accent);
+}
+
+body.dark-mode .sidebar-overlay-layout-dashboard {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+body.dark-mode .maintenance-warning {
+  background: var(--warning-light);
+  border: 1px solid rgba(243, 156, 18, 0.1);
+}
+
+body.dark-mode .maintenance-text {
+  color: var(--sidebar-accent) !important;
+}
+
+/* Scrollbar dark mode */
+body.dark-mode .sidebar-nav-layout-dashboard::-webkit-scrollbar-thumb {
+  background: var(--sidebar-border);
+}
+
+body.dark-mode .sidebar-nav-layout-dashboard::-webkit-scrollbar-thumb:hover {
+  background: var(--sidebar-accent);
+}
+
+body.dark-mode .notification-popover-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Responsive dark mode toggle */
+@media (max-width: 768px) {
+  .dark-mode-toggle-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dark-mode-toggle-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+    padding: 0.35rem;
+  }
+}
+
+/* ============================================
+   FIX: USER NAME IN DARK MODE
+   ============================================ */
+body.dark-mode .header-user-name-layout-dashboard {
+  color: #FFFFFF !important;
+}
+
+body.dark-mode .header-user-info-layout-dashboard {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .header-user-initials-avatar {
+  background: linear-gradient(135deg, #F39C12 0%, #E67E22 100%);
+  color: #FFFFFF;
+  border-color: rgba(243, 156, 18, 0.3);
+}

@@ -1,21 +1,288 @@
-/* styles/Engineer/project.css - Light Solar Theme for Engineer My Projects */
+/* styles/Engineer/project.css - Unified Light/Dark Solar Theme for Engineer My Projects */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ============================================
-   BASE LAYOUT - LIGHT SOLAR
+   CSS VARIABLES - LIGHT MODE (Default)
+   ============================================ */
+:root {
+  --bg-primary: #F3F5F1;
+  --bg-card: rgba(255, 255, 255, 0.86);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: rgba(0, 0, 0, 0.02);
+  --bg-section: rgba(255, 255, 255, 0.5);
+  --bg-table-header: rgba(255, 255, 255, 0.5);
+  --bg-table-row-hover: rgba(255, 255, 255, 0.3);
+  --bg-modal: rgba(255, 255, 255, 0.98);
+  --bg-input: rgba(255, 255, 255, 0.5);
+  --bg-filter: rgba(255, 255, 255, 0.86);
+  --bg-dropdown: rgba(255, 255, 255, 0.98);
+  --bg-select-option: #FFFFFF;
+  --bg-progress-section: rgba(255, 255, 255, 0.5);
+  --bg-progress-chart: rgba(255, 255, 255, 0.5);
+  --bg-progress-preview: rgba(255, 255, 255, 0.5);
+  --bg-existing-photos: rgba(255, 255, 255, 0.5);
+  --bg-waiting-payment: rgba(255, 255, 255, 0.5);
+  --bg-photo-item: rgba(255, 255, 255, 0.5);
+  --text-primary: #17212B;
+  --text-secondary: #667085;
+  --text-muted: #98A2B3;
+  --text-white: #17212B;
+  --text-dark: #17212B;
+  --border-color: #EEF0ED;
+  --border-card: rgba(255, 255, 255, 0.9);
+  --border-medium: #E5E7EB;
+  --border-input: #EEF0ED;
+  --border-modal: #EEF0ED;
+  --border-dropdown: #EEF0ED;
+  --shadow-card: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  --shadow-card-hover: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.15);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.12);
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+  --skeleton-bg: #EEF0ED;
+  --skeleton-gradient: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  --icon-color: #F39C12;
+  --icon-info: #2563EB;
+  --icon-success: #059669;
+  --icon-danger: #DC2626;
+  --icon-warning: #D97706;
+  --text-danger: #DC2626;
+  --text-danger-hover: #EF4444;
+  --text-edit: #2563EB;
+  --text-edit-hover: #3B82F6;
+  --text-success: #059669;
+  --text-success-hover: #10B981;
+  --btn-primary-bg: #10B981;
+  --btn-primary-hover: #059669;
+  --btn-danger-bg: #EF4444;
+  --btn-danger-hover: #DC2626;
+  --btn-cancel-bg: rgba(255, 255, 255, 0.5);
+  --btn-cancel-hover: rgba(255, 255, 255, 0.8);
+  --btn-view-bg: #3B82F6;
+  --btn-view-hover: #2563EB;
+  --btn-start-bg: #F39C12;
+  --btn-start-hover: #E67E22;
+  --btn-update-bg: #10B981;
+  --btn-update-hover: #059669;
+  --btn-update-progress-bg: #F39C12;
+  --btn-update-progress-hover: #E67E22;
+  --btn-upload-photos-bg: rgba(255, 255, 255, 0.5);
+  --btn-upload-photos-hover: rgba(255, 255, 255, 0.8);
+  --btn-upload-photos-border: #EEF0ED;
+  --btn-upload-photos-border-hover: #D1D5DB;
+  --status-quoted-bg: rgba(59, 130, 246, 0.10);
+  --status-quoted-text: #2563EB;
+  --status-approved-bg: rgba(139, 92, 246, 0.10);
+  --status-approved-text: #7C3AED;
+  --status-initial-paid-bg: rgba(243, 156, 18, 0.10);
+  --status-initial-paid-text: #D97706;
+  --status-full-paid-bg: rgba(16, 185, 129, 0.10);
+  --status-full-paid-text: #059669;
+  --status-in-progress-bg: rgba(139, 92, 246, 0.10);
+  --status-in-progress-text: #7C3AED;
+  --status-progress-paid-bg: rgba(59, 130, 246, 0.10);
+  --status-progress-paid-text: #2563EB;
+  --status-completed-bg: rgba(16, 185, 129, 0.10);
+  --status-completed-text: #059669;
+  --status-cancelled-bg: rgba(239, 68, 68, 0.10);
+  --status-cancelled-text: #DC2626;
+  --payment-paid-bg: rgba(16, 185, 129, 0.10);
+  --payment-paid-text: #059669;
+  --payment-pending-bg: rgba(243, 156, 18, 0.10);
+  --payment-pending-text: #D97706;
+  --payment-overdue-bg: rgba(239, 68, 68, 0.10);
+  --payment-overdue-text: #DC2626;
+  --summary-total-bg: rgba(59, 130, 246, 0.10);
+  --summary-total-color: #2563EB;
+  --summary-ready-bg: rgba(243, 156, 18, 0.10);
+  --summary-ready-color: #D97706;
+  --summary-progress-bg: rgba(139, 92, 246, 0.10);
+  --summary-progress-color: #7C3AED;
+  --summary-completed-bg: rgba(16, 185, 129, 0.10);
+  --summary-completed-color: #059669;
+  --progress-fill-color: #F39C12;
+  --progress-fill-gradient: linear-gradient(90deg, #F39C12, #F59E0B);
+  --progress-bg-color: #EEF0ED;
+  --progress-percent-color: #D97706;
+  --progress-percent-completed: #059669;
+  --photo-overlay-bg: rgba(0, 0, 0, 0.5);
+  --remove-photo-bg: rgba(239, 68, 68, 0.85);
+  --remove-photo-hover: #EF4444;
+  --waiting-icon-color: #D97706;
+  --dropdown-item-hover: rgba(0, 0, 0, 0.03);
+  --dropdown-item-primary-hover: rgba(59, 130, 246, 0.10);
+  --dropdown-item-success-hover: rgba(16, 185, 129, 0.10);
+  --dropdown-item-danger-hover: rgba(239, 68, 68, 0.10);
+  --required-color: #EF4444;
+  --error-color: #DC2626;
+  --system-size-color: #D97706;
+  --amount-paid-color: #059669;
+  --total-amount-color: #98A2B3;
+  --action-placeholder-color: #D1D5DB;
+  --progress-stage-current: #D97706;
+  --progress-stage-completed: #059669;
+  --progress-stage-upcoming: #98A2B3;
+  --timeline-line-color: #D1D5DB;
+  --timeline-line-completed: #059669;
+  --chart-stage-dot-bg: #D1D5DB;
+  --chart-stage-dot-completed: #059669;
+  --chart-stage-dot-current: #F39C12;
+  --chart-stage-label-completed: #059669;
+  --chart-stage-label-current: #D97706;
+  --spinner-color: #F39C12;
+}
+
+/* ============================================
+   CSS VARIABLES - DARK MODE
+   ============================================ */
+body.dark-mode {
+  --bg-primary: #0B111A;
+  --bg-card: #1A2533;
+  --bg-card-hover: #1F2C3D;
+  --bg-surface: #131C28;
+  --bg-elevated: #1A2533;
+  --bg-hover: rgba(255, 255, 255, 0.03);
+  --bg-section: rgba(255, 255, 255, 0.05);
+  --bg-table-header: rgba(255, 255, 255, 0.05);
+  --bg-table-row-hover: rgba(255, 255, 255, 0.03);
+  --bg-modal: rgba(26, 37, 51, 0.98);
+  --bg-input: rgba(255, 255, 255, 0.05);
+  --bg-filter: #1A2533;
+  --bg-dropdown: #1A2533;
+  --bg-select-option: #1A2533;
+  --bg-progress-section: rgba(255, 255, 255, 0.05);
+  --bg-progress-chart: rgba(255, 255, 255, 0.05);
+  --bg-progress-preview: rgba(255, 255, 255, 0.05);
+  --bg-existing-photos: rgba(255, 255, 255, 0.05);
+  --bg-waiting-payment: rgba(255, 255, 255, 0.05);
+  --bg-photo-item: rgba(255, 255, 255, 0.05);
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-white: #FFFFFF;
+  --text-dark: #FFFFFF;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.08);
+  --border-input: rgba(255, 255, 255, 0.06);
+  --border-modal: rgba(255, 255, 255, 0.06);
+  --border-dropdown: rgba(255, 255, 255, 0.06);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.4);
+  --overlay-bg: rgba(0, 0, 0, 0.8);
+  --skeleton-bg: #131C28;
+  --skeleton-gradient: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
+  --icon-color: #F39C12;
+  --icon-info: #3B82F6;
+  --icon-success: #10B981;
+  --icon-danger: #EF4444;
+  --icon-warning: #F39C12;
+  --text-danger: #EF4444;
+  --text-danger-hover: #EF4444;
+  --text-edit: #3B82F6;
+  --text-edit-hover: #3B82F6;
+  --text-success: #10B981;
+  --text-success-hover: #10B981;
+  --btn-primary-bg: #10B981;
+  --btn-primary-hover: #059669;
+  --btn-danger-bg: #EF4444;
+  --btn-danger-hover: #DC2626;
+  --btn-cancel-bg: rgba(255, 255, 255, 0.05);
+  --btn-cancel-hover: rgba(255, 255, 255, 0.1);
+  --btn-view-bg: #3B82F6;
+  --btn-view-hover: #2563EB;
+  --btn-start-bg: #F39C12;
+  --btn-start-hover: #E67E22;
+  --btn-update-bg: #10B981;
+  --btn-update-hover: #059669;
+  --btn-update-progress-bg: #F39C12;
+  --btn-update-progress-hover: #E67E22;
+  --btn-upload-photos-bg: rgba(255, 255, 255, 0.05);
+  --btn-upload-photos-hover: rgba(255, 255, 255, 0.1);
+  --btn-upload-photos-border: rgba(255, 255, 255, 0.06);
+  --btn-upload-photos-border-hover: rgba(255, 255, 255, 0.12);
+  --status-quoted-bg: rgba(59, 130, 246, 0.12);
+  --status-quoted-text: #3B82F6;
+  --status-approved-bg: rgba(139, 92, 246, 0.12);
+  --status-approved-text: #8B5CF6;
+  --status-initial-paid-bg: rgba(243, 156, 18, 0.12);
+  --status-initial-paid-text: #F39C12;
+  --status-full-paid-bg: rgba(16, 185, 129, 0.12);
+  --status-full-paid-text: #10B981;
+  --status-in-progress-bg: rgba(139, 92, 246, 0.12);
+  --status-in-progress-text: #8B5CF6;
+  --status-progress-paid-bg: rgba(59, 130, 246, 0.12);
+  --status-progress-paid-text: #3B82F6;
+  --status-completed-bg: rgba(16, 185, 129, 0.12);
+  --status-completed-text: #10B981;
+  --status-cancelled-bg: rgba(239, 68, 68, 0.12);
+  --status-cancelled-text: #EF4444;
+  --payment-paid-bg: rgba(16, 185, 129, 0.12);
+  --payment-paid-text: #10B981;
+  --payment-pending-bg: rgba(243, 156, 18, 0.12);
+  --payment-pending-text: #F39C12;
+  --payment-overdue-bg: rgba(239, 68, 68, 0.12);
+  --payment-overdue-text: #EF4444;
+  --summary-total-bg: rgba(59, 130, 246, 0.12);
+  --summary-total-color: #3B82F6;
+  --summary-ready-bg: rgba(243, 156, 18, 0.12);
+  --summary-ready-color: #F39C12;
+  --summary-progress-bg: rgba(139, 92, 246, 0.12);
+  --summary-progress-color: #8B5CF6;
+  --summary-completed-bg: rgba(16, 185, 129, 0.12);
+  --summary-completed-color: #10B981;
+  --progress-fill-color: #F39C12;
+  --progress-fill-gradient: linear-gradient(90deg, #F39C12, #F59E0B);
+  --progress-bg-color: rgba(255, 255, 255, 0.08);
+  --progress-percent-color: #F39C12;
+  --progress-percent-completed: #10B981;
+  --photo-overlay-bg: rgba(0, 0, 0, 0.6);
+  --remove-photo-bg: rgba(239, 68, 68, 0.85);
+  --remove-photo-hover: #EF4444;
+  --waiting-icon-color: #F39C12;
+  --dropdown-item-hover: rgba(255, 255, 255, 0.03);
+  --dropdown-item-primary-hover: rgba(59, 130, 246, 0.12);
+  --dropdown-item-success-hover: rgba(16, 185, 129, 0.12);
+  --dropdown-item-danger-hover: rgba(239, 68, 68, 0.12);
+  --required-color: #EF4444;
+  --error-color: #EF4444;
+  --system-size-color: #F39C12;
+  --amount-paid-color: #10B981;
+  --total-amount-color: rgba(255, 255, 255, 0.4);
+  --action-placeholder-color: rgba(255, 255, 255, 0.2);
+  --progress-stage-current: #F39C12;
+  --progress-stage-completed: #10B981;
+  --progress-stage-upcoming: rgba(255, 255, 255, 0.4);
+  --timeline-line-color: rgba(255, 255, 255, 0.08);
+  --timeline-line-completed: #10B981;
+  --chart-stage-dot-bg: rgba(255, 255, 255, 0.08);
+  --chart-stage-dot-completed: #10B981;
+  --chart-stage-dot-current: #F39C12;
+  --chart-stage-label-completed: #10B981;
+  --chart-stage-label-current: #F39C12;
+  --spinner-color: #F39C12;
+}
+
+/* ============================================
+   BASE LAYOUT
    ============================================ */
 .engineer-project-container {
   padding-top: 20px;
   padding-inline: 24px;
-  background: #F3F5F1;
+  background: var(--bg-primary);
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ============================================
-   HEADER - LIGHT
+   HEADER
    ============================================ */
 .project-header-engineerproject {
   display: flex;
@@ -29,18 +296,20 @@
 .project-header-engineerproject h1 {
   font-size: 26px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 4px 0;
+  transition: color 0.3s ease;
 }
 
 .project-header-engineerproject p {
   font-size: 14px;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   SUMMARY CARDS - LIGHT GLASS
+   SUMMARY CARDS - GLASS
    ============================================ */
 .summary-cards-grid {
   display: grid;
@@ -50,15 +319,15 @@
 }
 
 .summary-card {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   border-radius: 14px;
   padding: 18px 22px;
   display: flex;
   align-items: center;
   gap: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   transition: all 200ms ease;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -66,7 +335,7 @@
 .summary-card:hover {
   transform: translateY(-2px);
   border-color: rgba(243, 156, 18, 0.12);
-  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .summary-card-icon {
@@ -81,23 +350,23 @@
 }
 
 .summary-card-icon.total-icon {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
+  background: var(--summary-total-bg);
+  color: var(--summary-total-color);
 }
 
 .summary-card-icon.ready-icon {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
+  background: var(--summary-ready-bg);
+  color: var(--summary-ready-color);
 }
 
 .summary-card-icon.progress-icon {
-  background: rgba(139, 92, 246, 0.10);
-  color: #7C3AED;
+  background: var(--summary-progress-bg);
+  color: var(--summary-progress-color);
 }
 
 .summary-card-icon.completed-icon {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
+  background: var(--summary-completed-bg);
+  color: var(--summary-completed-color);
 }
 
 .summary-card-content {
@@ -109,25 +378,28 @@
 .summary-card-value {
   font-size: 28px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   line-height: 1.2;
+  transition: color 0.3s ease;
 }
 
 .summary-card-label {
   font-size: 13px;
   font-weight: 500;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin-top: 2px;
+  transition: color 0.3s ease;
 }
 
 .summary-card-subtitle {
   font-size: 11px;
-  color: #D1D5DB;
+  color: var(--text-muted);
   margin-top: 1px;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   FILTERS - LIGHT
+   FILTERS
    ============================================ */
 .project-filters-engineerproject {
   display: flex;
@@ -141,18 +413,20 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   padding: 4px 12px 4px 16px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .filter-group-engineerproject .filter-icon {
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 .filter-group-engineerproject select {
@@ -160,7 +434,7 @@
   background: transparent !important;
   border: none;
   font-size: 13px;
-  color: #17212B !important;
+  color: var(--text-primary) !important;
   font-family: 'Poppins', sans-serif;
   cursor: pointer;
   appearance: none;
@@ -168,7 +442,7 @@
   background-repeat: no-repeat;
   background-position: right 8px center;
   background-color: transparent !important;
-  -webkit-text-fill-color: #17212B !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
 }
 
 .filter-group-engineerproject select:focus {
@@ -176,29 +450,31 @@
 }
 
 .filter-group-engineerproject select option {
-  background: #FFFFFF;
-  color: #17212B;
+  background: var(--bg-select-option);
+  color: var(--text-primary);
 }
 
 .search-group-engineerproject {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   padding: 4px 16px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   flex: 1;
   min-width: 200px;
   max-width: 400px;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .search-group-engineerproject .search-icon {
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 .search-group-engineerproject input {
@@ -206,15 +482,15 @@
   background: transparent;
   border: none;
   font-size: 13px;
-  color: #17212B;
+  color: var(--text-primary);
   font-family: 'Poppins', sans-serif;
   width: 100%;
-  -webkit-text-fill-color: #17212B;
+  -webkit-text-fill-color: var(--text-primary);
 }
 
 .search-group-engineerproject input::placeholder {
-  color: #98A2B3;
-  -webkit-text-fill-color: #98A2B3;
+  color: var(--text-muted);
+  -webkit-text-fill-color: var(--text-muted);
 }
 
 .search-group-engineerproject input:focus {
@@ -222,15 +498,16 @@
 }
 
 /* ============================================
-   PROJECT TABLE - LIGHT GLASS
+   PROJECT TABLE - GLASS
    ============================================ */
 .projects-table-container-engineerproject {
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-card);
   overflow: hidden;
-  box-shadow: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
+  box-shadow: var(--shadow-card);
   overflow-x: auto;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .projects-table-engineerproject {
@@ -241,7 +518,7 @@
 }
 
 .projects-table-engineerproject thead {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-table-header);
 }
 
 .projects-table-engineerproject thead th {
@@ -251,18 +528,19 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #98A2B3;
-  border-bottom: 1px solid #EEF0ED;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
   position: sticky;
   top: 0;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-table-header);
   z-index: 2;
+  transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
 }
 
 .projects-table-engineerproject tbody tr {
-  border-bottom: 1px solid #EEF0ED;
-  transition: background 200ms ease;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 200ms ease, border-color 0.3s ease;
 }
 
 .projects-table-engineerproject tbody tr:last-child {
@@ -270,13 +548,14 @@
 }
 
 .projects-table-engineerproject tbody tr:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--bg-table-row-hover);
 }
 
 .projects-table-engineerproject tbody td {
   padding: 14px 16px;
   vertical-align: middle;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 /* Column Widths */
@@ -326,18 +605,20 @@
 }
 
 /* ============================================
-   TABLE CELL STYLES - LIGHT
+   TABLE CELL STYLES
    ============================================ */
 .project-name-cell {
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .project-ref-cell {
   font-size: 11px;
-  color: #98A2B3;
+  color: var(--text-muted);
   font-family: monospace;
   margin-top: 2px;
+  transition: color 0.3s ease;
 }
 
 .client-cell {
@@ -348,12 +629,14 @@
 
 .client-name {
   font-weight: 500;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .client-contact {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .system-cell {
@@ -364,22 +647,25 @@
 
 .system-size {
   font-weight: 600;
-  color: #D97706;
+  color: var(--system-size-color);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 .system-type {
   font-size: 11px;
-  color: #98A2B3;
+  color: var(--text-muted);
   text-transform: capitalize;
+  transition: color 0.3s ease;
 }
 
 .address-cell .address-text {
   font-size: 12px;
-  color: #667085;
+  color: var(--text-secondary);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  transition: color 0.3s ease;
 }
 
 .payment-cell {
@@ -391,12 +677,14 @@
 .payment-label {
   font-size: 12px;
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .payment-desc {
   font-size: 10px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .financial-cell {
@@ -407,17 +695,19 @@
 
 .amount-paid {
   font-size: 12px;
-  color: #059669;
+  color: var(--amount-paid-color);
   font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .total-amount {
   font-size: 11px;
-  color: #98A2B3;
+  color: var(--total-amount-color);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   PROGRESS INDICATOR - PERCENTAGE ONLY - LIGHT
+   PROGRESS INDICATOR - PERCENTAGE ONLY
    ============================================ */
 .progress-indicator-compact {
   display: flex;
@@ -444,41 +734,45 @@
 }
 
 .progress-circle-bg {
-  stroke: #EEF0ED;
+  stroke: var(--progress-bg-color);
+  transition: stroke 0.3s ease;
 }
 
 .progress-circle-fill {
   transition: stroke-dasharray 0.5s ease;
+  stroke: var(--progress-fill-color);
 }
 
 .progress-percent-number {
   position: absolute;
   font-size: 11px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .progress-stage-label {
   font-size: 9px;
   font-weight: 500;
-  color: #98A2B3;
+  color: var(--text-muted);
   white-space: nowrap;
   max-width: 70px;
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
+  transition: color 0.3s ease;
 }
 
 .progress-stage-label .stage-label.completed-label {
-  color: #059669;
+  color: var(--progress-stage-completed);
 }
 
 .progress-stage-label .stage-label.current-label {
-  color: #D97706;
+  color: var(--progress-stage-current);
 }
 
 /* ============================================
-   STATUS BADGES - LIGHT THEME
+   STATUS BADGES - Theme Aware
    ============================================ */
 .status-badge-engineerproject {
   display: inline-block;
@@ -492,61 +786,61 @@
 }
 
 .status-badge-engineerproject.quoted {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
-  border: 1px solid rgba(59, 130, 246, 0.20);
+  background: var(--status-quoted-bg);
+  color: var(--status-quoted-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engineerproject.approved {
-  background: rgba(139, 92, 246, 0.10);
-  color: #7C3AED;
-  border: 1px solid rgba(139, 92, 246, 0.20);
+  background: var(--status-approved-bg);
+  color: var(--status-approved-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engineerproject.initial-paid {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
-  border: 1px solid rgba(243, 156, 18, 0.20);
+  background: var(--status-initial-paid-bg);
+  color: var(--status-initial-paid-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engineerproject.full-paid {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--status-full-paid-bg);
+  color: var(--status-full-paid-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engineerproject.full-paid-installment {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--status-full-paid-bg);
+  color: var(--status-full-paid-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engineerproject.in-progress {
-  background: rgba(139, 92, 246, 0.10);
-  color: #7C3AED;
-  border: 1px solid rgba(139, 92, 246, 0.20);
+  background: var(--status-in-progress-bg);
+  color: var(--status-in-progress-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engineerproject.progress-paid {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
-  border: 1px solid rgba(59, 130, 246, 0.20);
+  background: var(--status-progress-paid-bg);
+  color: var(--status-progress-paid-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engineerproject.completed {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--status-completed-bg);
+  color: var(--status-completed-text);
+  border: 1px solid var(--border-medium);
 }
 
 .status-badge-engineerproject.cancelled {
-  background: rgba(239, 68, 68, 0.10);
-  color: #DC2626;
-  border: 1px solid rgba(239, 68, 68, 0.20);
+  background: var(--status-cancelled-bg);
+  color: var(--status-cancelled-text);
+  border: 1px solid var(--border-medium);
 }
 
 /* ============================================
-   ACTIONS CELL - LIGHT
+   ACTIONS CELL
    ============================================ */
 .actions-cell {
   display: flex;
@@ -574,48 +868,49 @@
 }
 
 .action-btn.view {
-  background: #3B82F6;
+  background: var(--btn-view-bg);
   color: #FFFFFF;
 }
 
 .action-btn.view:hover {
-  background: #2563EB;
+  background: var(--btn-view-hover);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .action-btn.start {
-  background: #F39C12;
+  background: var(--btn-start-bg);
   color: #FFFFFF;
 }
 
 .action-btn.start:hover {
-  background: #E67E22;
+  background: var(--btn-start-hover);
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
 }
 
 .action-btn.update {
-  background: #8B5CF6;
+  background: var(--btn-update-bg);
   color: #FFFFFF;
 }
 
 .action-btn.update:hover {
-  background: #7C3AED;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  background: var(--btn-update-hover);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .action-placeholder {
-  color: #D1D5DB;
+  color: var(--action-placeholder-color);
   font-size: 13px;
   user-select: none;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   DISABLED START BUTTON - LIGHT
+   DISABLED START BUTTON
    ============================================ */
 .action-btn.start.disabled,
 .action-btn.start:disabled {
-  background: #D1D5DB;
-  color: #98A2B3;
+  background: var(--text-muted);
+  color: var(--text-secondary);
   cursor: not-allowed;
   opacity: 0.6;
   transform: none !important;
@@ -624,13 +919,13 @@
 
 .action-btn.start.disabled:hover,
 .action-btn.start:disabled:hover {
-  background: #D1D5DB;
+  background: var(--text-muted);
   transform: none !important;
   box-shadow: none !important;
 }
 
 /* ============================================
-   PAGINATION - LIGHT
+   PAGINATION
    ============================================ */
 .pagination-engineerproject {
   display: flex;
@@ -644,8 +939,8 @@
 .page-btn {
   padding: 8px 16px;
   background: transparent;
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -658,9 +953,9 @@
 }
 
 .page-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.5);
-  border-color: #D1D5DB;
-  color: #17212B;
+  background: var(--bg-section);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 .page-btn:disabled {
@@ -670,45 +965,50 @@
 
 .page-info {
   font-size: 13px;
-  color: #98A2B3;
+  color: var(--text-muted);
   padding: 0 8px;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   EMPTY STATE - LIGHT
+   EMPTY STATE
    ============================================ */
 .empty-state-engineerproject {
   text-align: center;
   padding: 60px 20px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .empty-state-engineerproject .empty-icon {
   font-size: 48px;
-  color: #D1D5DB;
+  color: var(--text-muted);
   margin-bottom: 16px;
+  transition: color 0.3s ease;
 }
 
 .empty-state-engineerproject h3 {
   font-size: 18px;
   font-weight: 600;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 8px 0;
+  transition: color 0.3s ease;
 }
 
 .empty-state-engineerproject p {
   font-size: 14px;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   MODALS - LIGHT GLASS
+   MODALS - GLASS
    ============================================ */
 .modal-overlay-engineerproject {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -718,16 +1018,17 @@
 }
 
 .modal-content-engineerproject {
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--bg-modal);
   border-radius: 18px;
   max-width: 900px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  border: 1px solid #EEF0ED;
+  box-shadow: var(--shadow-modal);
+  border: 1px solid var(--border-modal);
   overflow: hidden;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .modal-content-engineerproject.detail-modal {
@@ -739,31 +1040,33 @@
 }
 
 /* ============================================
-   MODAL HEADER - LIGHT
+   MODAL HEADER
    ============================================ */
 .modal-header-engineerproject {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px 12px 24px;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
+  transition: border-color 0.3s ease;
 }
 
 .modal-header-engineerproject h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .modal-header-engineerproject .modal-close {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
-  color: #98A2B3;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
   font-size: 20px;
   cursor: pointer;
   display: flex;
@@ -776,12 +1079,12 @@
 
 .modal-header-engineerproject .modal-close:hover {
   background: rgba(239, 68, 68, 0.10);
-  border-color: #EF4444;
-  color: #EF4444;
+  border-color: var(--text-danger);
+  color: var(--text-danger);
 }
 
 /* ============================================
-   MODAL BODY - SCROLLABLE - LIGHT
+   MODAL BODY - SCROLLABLE
    ============================================ */
 .modal-body-engineerproject {
   padding: 16px 24px 0 24px;
@@ -800,16 +1103,17 @@
 }
 
 .modal-body-engineerproject::-webkit-scrollbar-thumb {
-  background: #F39C12;
+  background: var(--icon-color);
   border-radius: 4px;
 }
 
 /* ============================================
-   DETAIL MODAL SECTIONS - LIGHT
+   DETAIL MODAL SECTIONS
    ============================================ */
 .detail-section {
   padding: 16px 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .detail-section:last-of-type {
@@ -819,37 +1123,42 @@
 .detail-section h4 {
   font-size: 14px;
   font-weight: 600;
-  color: #98A2B3;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 12px 0;
+  transition: color 0.3s ease;
 }
 
 .detail-section p {
   margin: 4px 0;
   font-size: 14px;
-  color: #667085;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .detail-section p strong {
-  color: #98A2B3;
+  color: var(--text-muted);
   font-weight: 500;
   margin-right: 4px;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   MODAL TIMELINE - Detail Modal - LIGHT
+   MODAL TIMELINE - Detail Modal
    ============================================ */
 .detail-section.progress-section {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-progress-section);
   border-radius: 10px;
   padding: 16px 20px;
-  border: 1px solid #EEF0ED;
+  border: 1px solid var(--border-color);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .detail-section.progress-section h4 {
-  color: #17212B;
+  color: var(--text-primary);
   margin-bottom: 16px;
+  transition: color 0.3s ease;
 }
 
 .modal-timeline {
@@ -879,15 +1188,15 @@
 }
 
 .modal-timeline-marker .timeline-icon.completed {
-  color: #059669;
+  color: var(--progress-stage-completed);
 }
 
 .modal-timeline-marker .current-dot {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #F39C12;
-  border: 2px solid #F39C12;
+  background: var(--progress-stage-current);
+  border: 2px solid var(--progress-stage-current);
   box-shadow: 0 0 0 4px rgba(243, 156, 18, 0.15);
   animation: pulse-dot-modal 1.5s ease-in-out infinite;
 }
@@ -901,20 +1210,22 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #EEF0ED;
-  border: 2px solid #D1D5DB;
+  background: var(--border-color);
+  border: 2px solid var(--text-muted);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .modal-timeline-line {
   width: 2px;
   height: 36px;
-  background: #D1D5DB;
+  background: var(--timeline-line-color);
   flex-shrink: 0;
   margin-top: 4px;
+  transition: background 0.3s ease;
 }
 
 .modal-timeline-line.completed {
-  background: #059669;
+  background: var(--timeline-line-completed);
 }
 
 .modal-timeline-content {
@@ -923,7 +1234,8 @@
   align-items: center;
   flex: 1;
   padding: 4px 0 12px 0;
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .modal-timeline-item:last-child .modal-timeline-content {
@@ -940,27 +1252,28 @@
 }
 
 .modal-timeline-title .completed-text {
-  color: #059669;
+  color: var(--progress-stage-completed);
 }
 
 .modal-timeline-title .current-text {
-  color: #D97706;
+  color: var(--progress-stage-current);
 }
 
 .modal-timeline-title .upcoming-text {
-  color: #98A2B3;
+  color: var(--progress-stage-upcoming);
 }
 
 .modal-timeline-title .check-icon {
-  color: #059669;
+  color: var(--progress-stage-completed);
   font-size: 14px;
 }
 
 .modal-timeline-date {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
   flex-shrink: 0;
   margin-left: 8px;
+  transition: color 0.3s ease;
 }
 
 .modal-progress-percent {
@@ -969,30 +1282,34 @@
   align-items: center;
   padding-top: 12px;
   margin-top: 8px;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .modal-progress-percent .progress-label {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
   font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .modal-progress-percent .progress-value {
   font-size: 20px;
   font-weight: 700;
-  color: #D97706;
+  color: var(--progress-percent-color);
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   PROGRESS CHART IN UPDATE MODAL - LIGHT
+   PROGRESS CHART IN UPDATE MODAL
    ============================================ */
 .modal-progress-chart {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-progress-chart);
   border-radius: 12px;
   padding: 16px 20px;
   margin: 12px 0 16px 0;
-  border: 1px solid #EEF0ED;
+  border: 1px solid var(--border-color);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .progress-chart-header {
@@ -1005,27 +1322,30 @@
 .progress-chart-header .chart-label {
   font-size: 13px;
   font-weight: 500;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .progress-chart-header .chart-percentage {
   font-size: 18px;
   font-weight: 700;
-  color: #D97706;
+  color: var(--progress-percent-color);
+  transition: color 0.3s ease;
 }
 
 .progress-chart-bar {
   width: 100%;
   height: 6px;
-  background: #EEF0ED;
+  background: var(--progress-bg-color);
   border-radius: 3px;
   overflow: hidden;
   margin-bottom: 14px;
+  transition: background 0.3s ease;
 }
 
 .progress-chart-fill {
   height: 100%;
-  background: linear-gradient(90deg, #F39C12, #F59E0B);
+  background: var(--progress-fill-gradient);
   border-radius: 3px;
   transition: width 0.5s ease;
 }
@@ -1051,16 +1371,16 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #D1D5DB;
+  background: var(--chart-stage-dot-bg);
   transition: all 0.3s ease;
 }
 
 .chart-stage.completed .stage-dot {
-  background: #059669;
+  background: var(--chart-stage-dot-completed);
 }
 
 .chart-stage.current .stage-dot {
-  background: #F39C12;
+  background: var(--chart-stage-dot-current);
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.2);
   animation: pulse-dot 1.5s ease-in-out infinite;
 }
@@ -1072,50 +1392,54 @@
 
 .chart-stage .stage-label {
   font-size: 9px;
-  color: #98A2B3;
+  color: var(--text-muted);
   text-align: center;
   line-height: 1.2;
   max-width: 60px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color 0.3s ease;
 }
 
 .chart-stage.completed .stage-label {
-  color: #059669;
+  color: var(--chart-stage-label-completed);
 }
 
 .chart-stage.current .stage-label {
-  color: #D97706;
+  color: var(--chart-stage-label-current);
 }
 
 /* ============================================
-   PROGRESS MODAL - FORM - LIGHT
+   PROGRESS MODAL - FORM
    ============================================ */
 .progress-modal .modal-body-engineerproject {
   padding: 8px 20px 0 20px;
 }
 
 .modal-progress-preview {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-progress-preview);
   border-radius: 10px;
   padding: 10px 16px;
   margin: 8px 0 16px 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid #EEF0ED;
+  border: 1px solid var(--border-color);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .modal-progress-preview .progress-preview-label {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .modal-progress-preview .progress-preview-value {
   font-size: 16px;
   font-weight: 700;
-  color: #D97706;
+  color: var(--progress-percent-color);
+  transition: color 0.3s ease;
 }
 
 .existing-photos-info {
@@ -1123,15 +1447,17 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-existing-photos);
   border-radius: 8px;
   margin: 0 0 16px 0;
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .existing-photos-info svg {
-  color: #D1D5DB;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 .form-group {
@@ -1142,42 +1468,43 @@
   display: block;
   font-size: 13px;
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
   margin-bottom: 6px;
+  transition: color 0.3s ease;
 }
 
 .form-group textarea,
 .form-group select {
   width: 100%;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
   border-radius: 10px;
   font-size: 14px;
-  color: #17212B;
+  color: var(--text-primary);
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
-  -webkit-text-fill-color: #17212B;
+  -webkit-text-fill-color: var(--text-primary);
 }
 
 .form-group textarea:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #F39C12;
+  border-color: var(--icon-color);
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 
 .form-group textarea::placeholder {
-  color: #98A2B3;
-  -webkit-text-fill-color: #98A2B3;
+  color: var(--text-muted);
+  -webkit-text-fill-color: var(--text-muted);
 }
 
 .form-group select option {
-  background: #FFFFFF;
-  color: #17212B;
+  background: var(--bg-select-option);
+  color: var(--text-primary);
 }
 
-/* Photo Upload - LIGHT */
+/* Photo Upload */
 .photo-upload-area {
   display: flex;
   flex-direction: column;
@@ -1189,10 +1516,10 @@
   align-items: center;
   gap: 10px;
   padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 2px dashed #EEF0ED;
+  background: var(--btn-upload-photos-bg);
+  border: 2px dashed var(--btn-upload-photos-border);
   border-radius: 10px;
-  color: #98A2B3;
+  color: var(--text-muted);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -1203,13 +1530,14 @@
 
 .upload-white-btn:hover {
   border-color: rgba(243, 156, 18, 0.3);
-  color: #17212B;
+  color: var(--text-primary);
 }
 
 .upload-hint {
   font-size: 12px;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .photo-preview-grid {
@@ -1224,8 +1552,9 @@
   aspect-ratio: 1;
   border-radius: 8px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
+  background: var(--bg-photo-item);
+  border: 1px solid var(--border-color);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .photo-preview-item .photo-preview-thumb {
@@ -1241,7 +1570,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(239, 68, 68, 0.85);
+  background: var(--remove-photo-bg);
   border: none;
   color: #FFFFFF;
   cursor: pointer;
@@ -1253,28 +1582,29 @@
 }
 
 .remove-photo-btn:hover {
-  background: #EF4444;
+  background: var(--remove-photo-hover);
   transform: scale(1.1);
 }
 
 /* ============================================
-   MODAL ACTIONS - LIGHT
+   MODAL ACTIONS
    ============================================ */
 .modal-actions {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--border-color);
   display: flex;
   gap: 12px;
   justify-content: flex-end;
   flex-wrap: wrap;
   flex-shrink: 0;
+  transition: border-color 0.3s ease;
 }
 
 .modal-actions .close-btn {
   padding: 10px 24px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  background: var(--btn-cancel-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -1284,25 +1614,26 @@
 }
 
 .modal-actions .close-btn:hover {
-  background: rgba(255, 255, 255, 0.8);
-  color: #17212B;
+  background: var(--btn-cancel-hover);
+  color: var(--text-primary);
 }
 
 .modal-actions-side-by-side {
   padding: 16px 24px 20px 24px;
-  border-top: 1px solid #EEF0ED;
+  border-top: 1px solid var(--border-color);
   display: flex;
   gap: 12px;
   justify-content: space-between;
   flex-wrap: wrap;
   flex-shrink: 0;
+  transition: border-color 0.3s ease;
 }
 
 .modal-actions-side-by-side .cancel-btn {
   padding: 10px 24px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  background: var(--btn-cancel-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -1312,8 +1643,8 @@
 }
 
 .modal-actions-side-by-side .cancel-btn:hover {
-  background: rgba(255, 255, 255, 0.8);
-  color: #17212B;
+  background: var(--btn-cancel-hover);
+  color: var(--text-primary);
 }
 
 .action-buttons-group {
@@ -1327,9 +1658,9 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #667085;
-  border: 1px solid #EEF0ED;
+  background: var(--btn-upload-photos-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--btn-upload-photos-border);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -1339,9 +1670,9 @@
 }
 
 .upload-photos-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: #D1D5DB;
-  color: #17212B;
+  background: var(--btn-upload-photos-hover);
+  border-color: var(--btn-upload-photos-border-hover);
+  color: var(--text-primary);
 }
 
 .upload-photos-btn:disabled {
@@ -1354,7 +1685,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 24px;
-  background: #F39C12;
+  background: var(--btn-update-progress-bg);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -1366,7 +1697,7 @@
 }
 
 .update-btn:hover:not(:disabled) {
-  background: #E67E22;
+  background: var(--btn-update-progress-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.25);
 }
@@ -1387,7 +1718,7 @@
 }
 
 /* ============================================
-   PAYMENT SCHEDULE TABLE - LIGHT
+   PAYMENT SCHEDULE TABLE
    ============================================ */
 .payment-schedule-table {
   width: 100%;
@@ -1398,19 +1729,21 @@
 .payment-schedule-table th {
   text-align: left;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-section);
   font-weight: 600;
-  color: #98A2B3;
-  border-bottom: 1px solid #EEF0ED;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .payment-schedule-table td {
   padding: 8px 12px;
-  border-bottom: 1px solid #EEF0ED;
-  color: #667085;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .payment-schedule-table tr:last-child td {
@@ -1419,8 +1752,9 @@
 
 .payment-type-cell {
   font-weight: 500;
-  color: #667085;
+  color: var(--text-secondary);
   text-transform: capitalize;
+  transition: color 0.3s ease;
 }
 
 .payment-status-badge {
@@ -1432,22 +1766,22 @@
 }
 
 .payment-status-badge.paid {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
+  background: var(--payment-paid-bg);
+  color: var(--payment-paid-text);
 }
 
 .payment-status-badge.pending {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
+  background: var(--payment-pending-bg);
+  color: var(--payment-pending-text);
 }
 
 .payment-status-badge.overdue {
-  background: rgba(239, 68, 68, 0.10);
-  color: #DC2626;
+  background: var(--payment-overdue-bg);
+  color: var(--payment-overdue-text);
 }
 
 /* ============================================
-   PHOTO GRID - LIGHT
+   PHOTO GRID
    ============================================ */
 .photo-grid {
   display: grid;
@@ -1461,8 +1795,9 @@
   aspect-ratio: 1;
   border-radius: 10px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #EEF0ED;
+  background: var(--bg-photo-item);
+  border: 1px solid var(--border-color);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .photo-item .photo-thumb {
@@ -1477,7 +1812,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--photo-overlay-bg);
   color: #FFFFFF;
   text-decoration: none;
   font-size: 12px;
@@ -1491,24 +1826,25 @@
 }
 
 /* ============================================
-   SKELETON LOADING - LIGHT
+   SKELETON LOADING
    ============================================ */
 .skeleton-row {
-  border-bottom: 1px solid #EEF0ED;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .skeleton-cell {
   height: 20px;
   border-radius: 4px;
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
 .skeleton-line {
   border-radius: 6px;
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -1526,9 +1862,9 @@
   height: 40px;
   width: 160px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
@@ -1536,15 +1872,15 @@
   height: 40px;
   width: 280px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--bg-card);
   animation: shimmer 1.5s ease-in-out infinite;
-  background: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  background: var(--skeleton-gradient);
   background-size: 200% 100%;
 }
 
 .skeleton-card {
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   padding: 18px 22px;
   border-radius: 14px;
 }
@@ -1559,7 +1895,7 @@
 }
 
 /* ============================================
-   WAITING PAYMENT MESSAGE IN MODAL - LIGHT
+   WAITING PAYMENT MESSAGE IN MODAL
    ============================================ */
 .waiting-payment-message {
   display: flex;
@@ -1568,49 +1904,55 @@
   justify-content: center;
   padding: 32px 20px 24px 20px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-waiting-payment);
   border-radius: 12px;
-  border: 1px solid #EEF0ED;
+  border: 1px solid var(--border-color);
   margin: 8px 0 4px 0;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .waiting-payment-message .waiting-icon {
-  color: #D97706;
+  color: var(--waiting-icon-color);
   margin-bottom: 16px;
   opacity: 0.7;
+  transition: color 0.3s ease;
 }
 
 .waiting-payment-message h4 {
   font-size: 18px;
   font-weight: 600;
-  color: #17212B;
+  color: var(--text-primary);
   margin: 0 0 8px 0;
+  transition: color 0.3s ease;
 }
 
 .waiting-payment-message p {
   font-size: 14px;
-  color: #667085;
+  color: var(--text-secondary);
   margin: 0 0 4px 0;
   max-width: 380px;
+  transition: color 0.3s ease;
 }
 
 .waiting-payment-message .waiting-subtext {
   font-size: 13px;
-  color: #98A2B3;
+  color: var(--text-muted);
   margin-top: 8px;
+  transition: color 0.3s ease;
 }
 
 /* ============================================
-   PROGRESS PERCENTAGE TEXT - LIGHT
+   PROGRESS PERCENTAGE TEXT
    ============================================ */
 .progress-percentage-text {
   font-size: 16px;
   font-weight: 700;
-  color: #D97706;
+  color: var(--progress-percent-color);
+  transition: color 0.3s ease;
 }
 
 .progress-percentage-text.completed {
-  color: #059669;
+  color: var(--progress-percent-completed);
 }
 
 /* ============================================
@@ -1710,7 +2052,7 @@
     display: flex;
     flex-wrap: wrap;
     padding: 8px 12px;
-    border-bottom: 1px solid #EEF0ED;
+    border-bottom: 1px solid var(--border-color);
   }
 
   .projects-table-engineerproject tbody td:last-child {
@@ -1720,7 +2062,7 @@
   .projects-table-engineerproject tbody td::before {
     content: attr(data-label);
     font-weight: 600;
-    color: #98A2B3;
+    color: var(--text-muted);
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -1736,7 +2078,7 @@
   .projects-table-engineerproject tbody tr {
     display: block;
     padding: 6px 0;
-    border-bottom: 1px solid #EEF0ED;
+    border-bottom: 1px solid var(--border-color);
   }
 
   .projects-table-engineerproject tbody tr:last-child {
@@ -2093,7 +2435,7 @@
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES - LIGHT
+   REDUCED MOTION PREFERENCES
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -2115,7 +2457,7 @@
   .skeleton-select,
   .skeleton-search {
     animation: none !important;
-    background: #EEF0ED !important;
+    background: var(--skeleton-bg) !important;
   }
 
   .progress-step .step-icon.current-icon {
@@ -2160,37 +2502,38 @@
 }
 
 .action-btn.view {
-  background: #3B82F6;
+  background: var(--btn-view-bg);
   color: #FFFFFF;
 }
 
 .action-btn.view:hover {
-  background: #2563EB;
+  background: var(--btn-view-hover);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .action-btn.start {
-  background: #F39C12;
+  background: var(--btn-start-bg);
   color: #FFFFFF;
 }
 
 .action-btn.start:hover {
-  background: #E67E22;
+  background: var(--btn-start-hover);
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
 }
 
 .action-btn.update {
-  background: #10B981;
+  background: var(--btn-update-bg);
   color: #FFFFFF;
 }
 
 .action-btn.update:hover {
-  background: #059669;
+  background: var(--btn-update-hover);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .action-placeholder {
-  color: #D1D5DB;
+  color: var(--action-placeholder-color);
   font-size: 13px;
   user-select: none;
+  transition: color 0.3s ease;
 }

@@ -20,18 +20,18 @@
   --sidebar-accent-hover: #E67E22;
 
   /* Main Content Colors - LIGHT SOLAR THEME */
-  --bg-primary: #F3F5F1;
+  --bg-primary: #F4F1EC;
   --bg-elevated: #FFFFFF;
-  --bg-surface: #FFFFFF;
+  --bg-surface: #FAF8F5;
 
   /* Text Colors - Dark for readability */
-  --text-primary: #17212B;
-  --text-secondary: #667085;
-  --text-muted: #98A2B3;
+  --text-primary: #1A1E24;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
 
   /* Border Colors - Soft neutrals */
-  --border-light: #EEF0ED;
-  --border-medium: #E5E7EB;
+  --border-light: #E8E4DE;
+  --border-medium: #D5D0C9;
 
   /* Status Colors - UNCHANGED */
   --success: #10B981;
@@ -55,7 +55,7 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
-  --shadow-header: 0 4px 16px rgba(23, 33, 43, 0.06);
+  --shadow-header: 0 1px 3px rgba(0, 0, 0, 0.05);
   --shadow-glow: 0 0 30px rgba(243, 156, 18, 0.06);
 
   /* Transitions */
@@ -71,6 +71,46 @@
   --hamburger-size: 44px;
   --hamburger-gap: 1rem;
   --header-padding-right: 1rem;
+
+  /* Header Colors - Light Mode */
+  --header-bg: #FFFFFF;
+  --header-border: #E8E4DE;
+  --header-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --header-user-bg: #F5F2ED;
+  --header-user-border: #E8E4DE;
+  --header-blur: none;
+}
+
+/* ============================================
+   CSS VARIABLES - DARK MODE
+   ============================================ */
+body.dark-mode {
+  --sidebar-bg: #0B111A;
+  --sidebar-bg-secondary: #131C28;
+  --sidebar-border: #1A2533;
+  --sidebar-text: rgba(255, 255, 255, 0.5);
+  --sidebar-text-hover: rgba(255, 255, 255, 0.9);
+  --sidebar-text-active: #FFFFFF;
+  --sidebar-hover: rgba(255, 255, 255, 0.04);
+  --sidebar-active: rgba(243, 156, 18, 0.08);
+  --bg-primary: #0B111A;
+  --bg-elevated: #1A2533;
+  --bg-surface: #131C28;
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.3);
+  --border-light: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(26, 37, 51, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  
+  /* Header Colors - Dark Mode */
+  --header-bg: rgba(26, 37, 51, 0.6);
+  --header-border: rgba(255, 255, 255, 0.06);
+  --header-shadow: none;
+  --header-user-bg: rgba(255, 255, 255, 0.05);
+  --header-user-border: rgba(255, 255, 255, 0.08);
+  --header-blur: blur(10px);
 }
 
 /* ============================================
@@ -103,7 +143,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #F3F5F1;
+  background: var(--bg-primary);
   transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -142,12 +182,12 @@
 }
 
 /* ============================================
-   DASHBOARD HEADER - Blends with Solar Gradient
+   DASHBOARD HEADER - White in Light Mode
    ============================================ */
 .dashboard-header-layout-dashboard {
-  background: transparent;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: var(--header-bg);
+  backdrop-filter: var(--header-blur);
+  -webkit-backdrop-filter: var(--header-blur);
   padding: 0.75rem 2rem;
   display: flex;
   align-items: center;
@@ -156,10 +196,10 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  border-bottom: 1px solid var(--header-border);
   min-height: 80px;
   width: 100%;
-  box-shadow: none;
+  box-shadow: var(--header-shadow);
 }
 
 /* Page Title - Dark Navy */
@@ -333,18 +373,18 @@
   border: 2px solid #FFFFFF;
 }
 
-/* Header User Info - Glassy background */
+/* Header User Info - Solid background in light mode */
 .header-user-info-layout-dashboard {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.25rem 0.75rem;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--header-user-bg);
   border-radius: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid var(--header-user-border);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 /* Force header text colors */
@@ -1755,32 +1795,11 @@
    DARK MODE STYLES - COMPLETE
    ============================================ */
 
-/* When dark mode is active on body */
-body.dark-mode {
-  --sidebar-bg: #0B111A;
-  --sidebar-bg-secondary: #131C28;
-  --sidebar-border: #1A2533;
-  --sidebar-text: rgba(255, 255, 255, 0.5);
-  --sidebar-text-hover: rgba(255, 255, 255, 0.9);
-  --sidebar-text-active: #FFFFFF;
-  --sidebar-hover: rgba(255, 255, 255, 0.04);
-  --sidebar-active: rgba(243, 156, 18, 0.08);
-  --bg-primary: #0B111A;
-  --bg-elevated: #1A2533;
-  --bg-surface: #131C28;
-  --text-primary: rgba(255, 255, 255, 0.95);
-  --text-secondary: rgba(255, 255, 255, 0.6);
-  --text-muted: rgba(255, 255, 255, 0.3);
-  --border-light: rgba(255, 255, 255, 0.06);
-  --border-medium: rgba(255, 255, 255, 0.1);
-  --glass-bg: rgba(26, 37, 51, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.06);
-}
-
 /* Dark mode specific overrides */
 body.dark-mode .dashboard-header-layout-dashboard {
-  background: var(--glass-bg);
-  border-bottom: 1px solid var(--glass-border);
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  box-shadow: var(--header-shadow);
 }
 
 body.dark-mode .page-title-layout-dashboard {
@@ -1802,6 +1821,11 @@ body.dark-mode .header-user-initials-avatar {
   background: linear-gradient(135deg, #F39C12 0%, #E67E22 100%);
   color: #FFFFFF;
   border-color: rgba(243, 156, 18, 0.3);
+}
+
+body.dark-mode .header-user-info-layout-dashboard {
+  background: var(--header-user-bg);
+  border-color: var(--header-user-border);
 }
 
 /* ============================================
@@ -2096,22 +2120,4 @@ body.dark-mode .notification-popover-body::-webkit-scrollbar-thumb {
     font-size: 0.85rem;
     padding: 0.35rem;
   }
-}
-
-/* ============================================
-   FIX: USER NAME IN DARK MODE
-   ============================================ */
-body.dark-mode .header-user-name-layout-dashboard {
-  color: #FFFFFF !important;
-}
-
-body.dark-mode .header-user-info-layout-dashboard {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-body.dark-mode .header-user-initials-avatar {
-  background: linear-gradient(135deg, #F39C12 0%, #E67E22 100%);
-  color: #FFFFFF;
-  border-color: rgba(243, 156, 18, 0.3);
 }

@@ -25,8 +25,6 @@ import {
   FaCircle,
   FaBell,
   FaProjectDiagram,
-  FaSun,
-  FaMoon
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Engineer/dashboard.css';
@@ -37,14 +35,6 @@ const getTimeBasedGreeting = () => {
   if (hour >= 5 && hour < 12) return 'Good Morning';
   if (hour >= 12 && hour < 17) return 'Good Afternoon';
   return 'Good Evening';
-};
-
-// Get greeting icon
-const getGreetingIcon = () => {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return <FaSun />;
-  if (hour >= 12 && hour < 17) return <FaSun />;
-  return <FaMoon />;
 };
 
 const EngineerDashboard = () => {
@@ -308,7 +298,6 @@ const EngineerDashboard = () => {
         <div className="engdas-welcome-section">
           <div className="engdas-welcome-content">
             <div className="engdas-welcome-greeting-wrapper">
-              <span className="engdas-welcome-icon">{getGreetingIcon()}</span>
               <p className="engdas-welcome-greeting">{greeting}, {userName || 'Engineer'}!</p>
             </div>
             <p className="engdas-welcome-subtitle">Here's what's happening with your tasks today.</p>

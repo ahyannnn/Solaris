@@ -6,32 +6,64 @@
    CSS VARIABLES - LIGHT MODE (Default)
    ============================================ */
 :root {
-  --bg-primary: #F3F5F1;
-  --bg-card: rgba(255, 255, 255, 0.86);
-  --bg-card-hover: rgba(255, 255, 255, 0.95);
-  --bg-surface: #FFFFFF;
+  --bg-primary: #F0F2F5;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #FFFFFF;
+  --bg-surface: #F7F8FA;
   --bg-elevated: #FFFFFF;
-  --bg-hover: rgba(0, 0, 0, 0.02);
-  --text-primary: #17212B;
-  --text-secondary: #667085;
-  --text-muted: #98A2B3;
-  --text-white: #17212B;
-  --border-color: #EEF0ED;
-  --border-card: rgba(255, 255, 255, 0.9);
-  --shadow-card: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
-  --shadow-card-hover: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
+  --bg-hover: rgba(0, 0, 0, 0.035);
+  --text-primary: #1A1E24;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+  --text-white: #1A1E24;
+  --border-color: #E8EAED;
+  --border-card: #E8EAED;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.07), 0 2px 6px rgba(0, 0, 0, 0.05);
   --glass-bg: rgba(255, 255, 255, 0.92);
   --glass-border: rgba(255, 255, 255, 0.9);
   --skeleton-bg: #F1F2F4;
   --skeleton-gradient: linear-gradient(90deg, #F1F2F4 25%, #E5E7EB 50%, #F1F2F4 75%);
   --input-bg: #FFFFFF;
-  --input-border: #EEF0ED;
-  --badge-bg: #F6F8F5;
-  --badge-border: #EEF0ED;
+  --input-border: #E8EAED;
+  --badge-bg: #F3F4F6;
+  --badge-border: #E8EAED;
+
+  /* Refined Accent Colors for Light Mode */
+  --accent-primary: #D97A0E;
+  --accent-primary-hover: #C06A0C;
+  --accent-primary-light: rgba(217, 122, 14, 0.12);
+  --accent-primary-subtle: rgba(217, 122, 14, 0.06);
+  --accent-secondary: #F59E0B;
+  --accent-border: #FCD34D;
+
+  /* Semantic Colors - Light Mode */
+  --semantic-success: #059669;
+  --semantic-success-bg: rgba(5, 150, 105, 0.12);
+  --semantic-success-border: rgba(5, 150, 105, 0.15);
+  --semantic-info: #2563EB;
+  --semantic-info-bg: rgba(37, 99, 235, 0.12);
+  --semantic-info-border: rgba(37, 99, 235, 0.15);
+  --semantic-error: #DC2626;
+  --semantic-error-bg: rgba(220, 38, 38, 0.12);
+  --semantic-error-border: rgba(220, 38, 38, 0.15);
+  --semantic-warning: #D97706;
+  --semantic-warning-bg: rgba(217, 119, 6, 0.12);
+  --semantic-warning-border: rgba(217, 119, 6, 0.15);
+
+  /* Stat Card Icon Colors */
+  --stat-icon-1: #D97A0E;
+  --stat-icon-1-bg: rgba(217, 122, 14, 0.12);
+  --stat-icon-2: #2563EB;
+  --stat-icon-2-bg: rgba(37, 99, 235, 0.12);
+  --stat-icon-3: #059669;
+  --stat-icon-3-bg: rgba(5, 150, 105, 0.12);
+  --stat-icon-4: #7C3AED;
+  --stat-icon-4-bg: rgba(124, 58, 237, 0.12);
 }
 
 /* ============================================
-   CSS VARIABLES - DARK MODE
+   CSS VARIABLES - DARK MODE (UNTOUCHED)
    ============================================ */
 body.dark-mode {
   --bg-primary: #0B111A;
@@ -56,6 +88,36 @@ body.dark-mode {
   --input-border: rgba(255, 255, 255, 0.06);
   --badge-bg: #131C28;
   --badge-border: rgba(255, 255, 255, 0.06);
+
+  /* Dark mode accent overrides - keeping original orange */
+  --accent-primary: #F39C12;
+  --accent-primary-hover: #E67E22;
+  --accent-primary-light: rgba(243, 156, 18, 0.10);
+  --accent-primary-subtle: rgba(243, 156, 18, 0.05);
+  --accent-secondary: #F39C12;
+  --accent-border: rgba(243, 156, 18, 0.20);
+
+  --semantic-success: #10B981;
+  --semantic-success-bg: rgba(16, 185, 129, 0.10);
+  --semantic-success-border: rgba(16, 185, 129, 0.20);
+  --semantic-info: #3B82F6;
+  --semantic-info-bg: rgba(59, 130, 246, 0.10);
+  --semantic-info-border: rgba(59, 130, 246, 0.20);
+  --semantic-error: #EF4444;
+  --semantic-error-bg: rgba(239, 68, 68, 0.10);
+  --semantic-error-border: rgba(239, 68, 68, 0.20);
+  --semantic-warning: #D97706;
+  --semantic-warning-bg: rgba(243, 156, 18, 0.10);
+  --semantic-warning-border: rgba(243, 156, 18, 0.20);
+
+  --stat-icon-1: #F39C12;
+  --stat-icon-1-bg: rgba(243, 156, 18, 0.15);
+  --stat-icon-2: #3B82F6;
+  --stat-icon-2-bg: rgba(59, 130, 246, 0.15);
+  --stat-icon-3: #10B981;
+  --stat-icon-3-bg: rgba(16, 185, 129, 0.15);
+  --stat-icon-4: #8B5CF6;
+  --stat-icon-4-bg: rgba(139, 92, 246, 0.15);
 }
 
 /* ============================================
@@ -98,7 +160,7 @@ body.dark-mode {
 
 .welcome-icon_admindashbu {
   font-size: 28px;
-  color: #F39C12;
+  color: var(--accent-primary);
 }
 
 .welcome-title_admindashbu {
@@ -125,17 +187,17 @@ body.dark-mode {
 }
 
 /* ============================================
-   BUTTONS
+   BUTTONS - Premium Light Mode Refinements
    ============================================ */
 .btn-primary_admindashbu {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: #F39C12;
+  background: var(--accent-primary);
   color: #FFFFFF;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   font-family: 'Poppins', sans-serif;
@@ -143,12 +205,13 @@ body.dark-mode {
   transition: all 200ms ease;
   text-decoration: none;
   white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .btn-primary_admindashbu:hover {
-  background: #E67E22;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(243, 156, 18, 0.25);
+  background: var(--accent-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(217, 122, 14, 0.20);
   color: #FFFFFF;
 }
 
@@ -159,10 +222,10 @@ body.dark-mode {
   padding: 10px 20px;
   background: transparent;
   color: var(--text-primary);
-  border: 1.5px solid var(--border-color);
-  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   font-family: 'Poppins', sans-serif;
   cursor: pointer;
   transition: all 200ms ease;
@@ -172,13 +235,13 @@ body.dark-mode {
 
 .btn-secondary_admindashbu:hover {
   background: var(--bg-hover);
-  border-color: rgba(243, 156, 18, 0.3);
-  transform: translateY(-2px);
+  border-color: var(--border-color);
+  transform: translateY(-1px);
   color: var(--text-primary);
 }
 
 /* ============================================
-   STATS GRID - PREMIUM GLASS CARDS
+   STATS GRID - Premium KPI Cards with Colored Icons
    ============================================ */
 .stats-grid_admindashbu {
   display: grid;
@@ -189,7 +252,7 @@ body.dark-mode {
 
 .stat-card_admindashbu {
   background: var(--bg-card);
-  border-radius: 14px;
+  border-radius: 10px;
   padding: 20px 24px 16px 24px;
   border: 1px solid var(--border-card);
   transition: all 200ms ease;
@@ -199,9 +262,9 @@ body.dark-mode {
 }
 
 .stat-card_admindashbu:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-card-hover);
-  border-color: rgba(243, 156, 18, 0.25);
+  border-color: var(--border-color);
 }
 
 .stat-card-header_admindashbu {
@@ -209,6 +272,31 @@ body.dark-mode {
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 12px;
+}
+
+/* Individual stat icon colors - Light Mode */
+.stat-card_admindashbu:nth-child(1) .stat-icon-wrapper_admindashbu {
+  background: var(--stat-icon-1-bg);
+  color: var(--stat-icon-1);
+  border-color: transparent;
+}
+
+.stat-card_admindashbu:nth-child(2) .stat-icon-wrapper_admindashbu {
+  background: var(--stat-icon-2-bg);
+  color: var(--stat-icon-2);
+  border-color: transparent;
+}
+
+.stat-card_admindashbu:nth-child(3) .stat-icon-wrapper_admindashbu {
+  background: var(--stat-icon-3-bg);
+  color: var(--stat-icon-3);
+  border-color: transparent;
+}
+
+.stat-card_admindashbu:nth-child(4) .stat-icon-wrapper_admindashbu {
+  background: var(--stat-icon-4-bg);
+  color: var(--stat-icon-4);
+  border-color: transparent;
 }
 
 .stat-icon-wrapper_admindashbu {
@@ -219,9 +307,12 @@ body.dark-mode {
   align-items: center;
   justify-content: center;
   font-size: 20px;
-  background: rgba(243, 156, 18, 0.10);
-  color: #F39C12;
   flex-shrink: 0;
+  transition: all 200ms ease;
+}
+
+.stat-card_admindashbu:hover .stat-icon-wrapper_admindashbu {
+  transform: scale(1.05);
 }
 
 .stat-card-content_admindashbu {
@@ -236,14 +327,19 @@ body.dark-mode {
   color: var(--text-primary);
   line-height: 1.2;
   transition: color 0.3s ease;
+  letter-spacing: -0.3px;
+}
+
+.stat-value_admindashbu .accent {
+  color: var(--accent-primary);
 }
 
 .stat-label_admindashbu {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   transition: color 0.3s ease;
 }
 
@@ -251,20 +347,21 @@ body.dark-mode {
   font-size: 13px;
   color: var(--text-secondary);
   transition: color 0.3s ease;
+  font-weight: 400;
 }
 
 .stat-sparkline_admindashbu {
   margin-top: 12px;
   height: 30px;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .stat-sparkline_admindashbu svg {
-  color: #F39C12;
+  color: var(--accent-primary);
 }
 
 /* ============================================
-   QUICK ACTIONS - PREMIUM GLASS CARDS
+   QUICK ACTIONS - Compact Navigation Tiles with Colored Icons
    ============================================ */
 .quick-actions_admindashbu {
   margin-bottom: 24px;
@@ -275,11 +372,11 @@ body.dark-mode {
 }
 
 .quick-actions-title_admindashbu {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   margin: 0;
   transition: color 0.3s ease;
 }
@@ -294,32 +391,60 @@ body.dark-mode {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 20px;
+  padding: 14px 18px;
   background: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-radius: 14px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 200ms ease;
   box-shadow: var(--shadow-card);
 }
 
 .quick-action-item_admindashbu:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-card-hover);
-  border-color: rgba(243, 156, 18, 0.25);
+  border-color: var(--border-color);
+}
+
+/* Individual quick action icon colors */
+.quick-action-item_admindashbu:nth-child(1) .quick-action-icon-wrapper_admindashbu {
+  background: var(--stat-icon-1-bg);
+  color: var(--stat-icon-1);
+  border-color: transparent;
+}
+
+.quick-action-item_admindashbu:nth-child(2) .quick-action-icon-wrapper_admindashbu {
+  background: var(--stat-icon-2-bg);
+  color: var(--stat-icon-2);
+  border-color: transparent;
+}
+
+.quick-action-item_admindashbu:nth-child(3) .quick-action-icon-wrapper_admindashbu {
+  background: var(--stat-icon-3-bg);
+  color: var(--stat-icon-3);
+  border-color: transparent;
+}
+
+.quick-action-item_admindashbu:nth-child(4) .quick-action-icon-wrapper_admindashbu {
+  background: var(--stat-icon-4-bg);
+  color: var(--stat-icon-4);
+  border-color: transparent;
 }
 
 .quick-action-icon-wrapper_admindashbu {
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
-  background: rgba(243, 156, 18, 0.10);
-  color: #F39C12;
   flex-shrink: 0;
+  transition: all 200ms ease;
+}
+
+.quick-action-item_admindashbu:hover .quick-action-icon-wrapper_admindashbu {
+  transform: scale(1.05);
 }
 
 .quick-action-content_admindashbu {
@@ -349,12 +474,12 @@ body.dark-mode {
 }
 
 .quick-action-item_admindashbu:hover .quick-action-arrow_admindashbu {
-  transform: translateX(4px);
-  color: #F39C12;
+  transform: translateX(3px);
+  color: var(--accent-primary);
 }
 
 /* ============================================
-   CHARTS ROW - PREMIUM GLASS CARDS
+   CHARTS ROW - Integrated Chart Containers
    ============================================ */
 .charts-row_admindashbu {
   display: grid;
@@ -365,7 +490,7 @@ body.dark-mode {
 
 .chart-card_admindashbu {
   background: var(--bg-card);
-  border-radius: 14px;
+  border-radius: 10px;
   padding: 20px 24px 16px 24px;
   border: 1px solid var(--border-card);
   box-shadow: var(--shadow-card);
@@ -373,7 +498,7 @@ body.dark-mode {
 }
 
 .chart-card_admindashbu:hover {
-  border-color: rgba(243, 156, 18, 0.15);
+  border-color: var(--border-color);
 }
 
 .chart-header_admindashbu {
@@ -398,6 +523,7 @@ body.dark-mode {
   color: var(--text-secondary);
   display: block;
   transition: color 0.3s ease;
+  font-weight: 400;
 }
 
 .chart-legend_admindashbu {
@@ -407,26 +533,27 @@ body.dark-mode {
   font-size: 12px;
   color: var(--text-secondary);
   transition: color 0.3s ease;
+  font-weight: 400;
 }
 
 .legend-dot_admindashbu {
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   margin-right: 4px;
 }
 
 .quotes-dot_admindashbu {
-  background: #F39C12;
+  background: var(--accent-primary);
 }
 
 .assessments-dot_admindashbu {
-  background: #10B981;
+  background: var(--semantic-success);
 }
 
 .revenue-dot_admindashbu {
-  background: #F39C12;
+  background: var(--accent-primary);
 }
 
 .chart-body_admindashbu {
@@ -437,7 +564,7 @@ body.dark-mode {
 .chart-tooltip_admindashbu {
   background: var(--bg-elevated);
   border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 12px 16px;
   box-shadow: var(--shadow-card);
 }
@@ -477,11 +604,11 @@ body.dark-mode {
 }
 
 /* ============================================
-   ACTIVITY / RECENT ACTIVITY - PREMIUM GLASS
+   ACTIVITY / RECENT ACTIVITY - Premium Timeline
    ============================================ */
 .activity-container_admindashbu {
   background: var(--bg-card);
-  border-radius: 14px;
+  border-radius: 10px;
   padding: 20px 24px;
   border: 1px solid var(--border-card);
   box-shadow: var(--shadow-card);
@@ -505,7 +632,7 @@ body.dark-mode {
 }
 
 .activity-title-icon_admindashbu {
-  color: #F39C12;
+  color: var(--accent-primary);
 }
 
 .view-all-btn_admindashbu {
@@ -513,7 +640,7 @@ body.dark-mode {
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: #F39C12;
+  color: var(--accent-primary);
   background: none;
   border: none;
   cursor: pointer;
@@ -523,14 +650,14 @@ body.dark-mode {
 }
 
 .view-all-btn_admindashbu:hover {
-  color: #E67E22;
+  color: var(--accent-primary-hover);
   gap: 10px;
 }
 
 .activity-list_admindashbu {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .activity-item_admindashbu {
@@ -538,7 +665,7 @@ body.dark-mode {
   align-items: center;
   gap: 14px;
   padding: 12px 14px;
-  border-radius: 10px;
+  border-radius: 8px;
   transition: all 200ms ease;
   cursor: pointer;
 }
@@ -548,46 +675,50 @@ body.dark-mode {
 }
 
 .activity-icon_admindashbu {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
   flex-shrink: 0;
-  background: var(--bg-hover);
-  color: #F39C12;
 }
 
 .activity-icon_admindashbu.pending {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
+  background: var(--semantic-warning-bg);
+  color: var(--semantic-warning);
+  border: 1px solid var(--semantic-warning-border);
 }
 
 .activity-icon_admindashbu.completed {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
+  background: var(--semantic-success-bg);
+  color: var(--semantic-success);
+  border: 1px solid var(--semantic-success-border);
 }
 
 .activity-icon_admindashbu.scheduled {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
+  background: var(--semantic-info-bg);
+  color: var(--semantic-info);
+  border: 1px solid var(--semantic-info-border);
 }
 
 .activity-icon_admindashbu.cancelled {
-  background: rgba(239, 68, 68, 0.10);
-  color: #DC2626;
+  background: var(--semantic-error-bg);
+  color: var(--semantic-error);
+  border: 1px solid var(--semantic-error-border);
 }
 
 .activity-icon_admindashbu.processing {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
+  background: var(--semantic-warning-bg);
+  color: var(--semantic-warning);
+  border: 1px solid var(--semantic-warning-border);
 }
 
 .activity-icon_admindashbu.accepted {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
+  background: var(--semantic-success-bg);
+  color: var(--semantic-success);
+  border: 1px solid var(--semantic-success-border);
 }
 
 .activity-content_admindashbu {
@@ -626,39 +757,39 @@ body.dark-mode {
 }
 
 .activity-status_admindashbu.pending {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
-  border: 1px solid rgba(243, 156, 18, 0.20);
+  background: var(--semantic-warning-bg);
+  color: var(--semantic-warning);
+  border: 1px solid var(--semantic-warning-border);
 }
 
 .activity-status_admindashbu.completed {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--semantic-success-bg);
+  color: var(--semantic-success);
+  border: 1px solid var(--semantic-success-border);
 }
 
 .activity-status_admindashbu.scheduled {
-  background: rgba(59, 130, 246, 0.10);
-  color: #2563EB;
-  border: 1px solid rgba(59, 130, 246, 0.20);
+  background: var(--semantic-info-bg);
+  color: var(--semantic-info);
+  border: 1px solid var(--semantic-info-border);
 }
 
 .activity-status_admindashbu.cancelled {
-  background: rgba(239, 68, 68, 0.10);
-  color: #DC2626;
-  border: 1px solid rgba(239, 68, 68, 0.20);
+  background: var(--semantic-error-bg);
+  color: var(--semantic-error);
+  border: 1px solid var(--semantic-error-border);
 }
 
 .activity-status_admindashbu.processing {
-  background: rgba(243, 156, 18, 0.10);
-  color: #D97706;
-  border: 1px solid rgba(243, 156, 18, 0.20);
+  background: var(--semantic-warning-bg);
+  color: var(--semantic-warning);
+  border: 1px solid var(--semantic-warning-border);
 }
 
 .activity-status_admindashbu.accepted {
-  background: rgba(16, 185, 129, 0.10);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.20);
+  background: var(--semantic-success-bg);
+  color: var(--semantic-success);
+  border: 1px solid var(--semantic-success-border);
 }
 
 /* Empty Activity */
@@ -697,7 +828,7 @@ body.dark-mode {
 
 .error-icon_admindashbu {
   font-size: 48px;
-  color: #EF4444;
+  color: var(--semantic-error);
   margin-bottom: 16px;
 }
 
@@ -717,25 +848,26 @@ body.dark-mode {
 
 .retry-btn_admindashbu {
   padding: 10px 32px;
-  background: #F39C12;
+  background: var(--accent-primary);
   color: #FFFFFF;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   font-family: 'Poppins', sans-serif;
   cursor: pointer;
   transition: all 200ms ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .retry-btn_admindashbu:hover {
-  background: #E67E22;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(243, 156, 18, 0.25);
+  background: var(--accent-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(217, 122, 14, 0.20);
 }
 
 /* ============================================
-   SKELETON LOADING
+   SKELETON LOADING (UNTOUCHED - uses variables)
    ============================================ */
 .skeleton-line_admindashbu {
   border-radius: 6px;
@@ -792,7 +924,7 @@ body.dark-mode {
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN (UNTOUCHED)
    ============================================ */
 
 @media (max-width: 1200px) {
@@ -877,7 +1009,7 @@ body.dark-mode {
   }
   .stat-card_admindashbu {
     padding: 14px 16px;
-    border-radius: 10px;
+    border-radius: 8px;
   }
   .stat-value_admindashbu {
     font-size: 20px;
@@ -889,9 +1021,9 @@ body.dark-mode {
     font-size: 11px;
   }
   .stat-icon-wrapper_admindashbu {
-    width: 36px;
-    height: 36px;
-    font-size: 16px;
+    width: 38px;
+    height: 38px;
+    font-size: 17px;
   }
   .quick-actions-grid_admindashbu {
     grid-template-columns: repeat(2, 1fr);
@@ -899,12 +1031,12 @@ body.dark-mode {
   }
   .quick-action-item_admindashbu {
     padding: 12px 14px;
-    border-radius: 10px;
+    border-radius: 8px;
   }
   .quick-action-icon-wrapper_admindashbu {
-    width: 36px;
-    height: 36px;
-    font-size: 14px;
+    width: 38px;
+    height: 38px;
+    font-size: 16px;
   }
   .quick-action-label_admindashbu {
     font-size: 13px;
@@ -917,7 +1049,7 @@ body.dark-mode {
   }
   .chart-card_admindashbu {
     padding: 14px 16px;
-    border-radius: 10px;
+    border-radius: 8px;
   }
   .chart-title_admindashbu {
     font-size: 14px;
@@ -934,7 +1066,7 @@ body.dark-mode {
   }
   .activity-container_admindashbu {
     padding: 14px 16px;
-    border-radius: 10px;
+    border-radius: 8px;
   }
   .activity-title_admindashbu {
     font-size: 14px;
@@ -966,7 +1098,7 @@ body.dark-mode {
   .btn-secondary_admindashbu {
     padding: 8px 16px;
     font-size: 13px;
-    border-radius: 8px;
+    border-radius: 6px;
   }
 }
 
@@ -980,7 +1112,7 @@ body.dark-mode {
   }
   .stat-card_admindashbu {
     padding: 12px;
-    border-radius: 8px;
+    border-radius: 6px;
   }
   .stat-value_admindashbu {
     font-size: 17px;
@@ -993,9 +1125,9 @@ body.dark-mode {
     font-size: 10px;
   }
   .stat-icon-wrapper_admindashbu {
-    width: 30px;
-    height: 30px;
-    font-size: 13px;
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
     border-radius: 8px;
   }
   .stat-sparkline_admindashbu {
@@ -1009,12 +1141,12 @@ body.dark-mode {
   .quick-action-item_admindashbu {
     padding: 10px 12px;
     gap: 8px;
-    border-radius: 8px;
+    border-radius: 6px;
   }
   .quick-action-icon-wrapper_admindashbu {
-    width: 30px;
-    height: 30px;
-    font-size: 12px;
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
     border-radius: 8px;
   }
   .quick-action-label_admindashbu {
@@ -1047,7 +1179,7 @@ body.dark-mode {
   }
   .chart-card_admindashbu {
     padding: 12px;
-    border-radius: 8px;
+    border-radius: 6px;
   }
   .chart-title_admindashbu {
     font-size: 13px;
@@ -1068,7 +1200,7 @@ body.dark-mode {
   }
   .activity-container_admindashbu {
     padding: 12px;
-    border-radius: 8px;
+    border-radius: 6px;
   }
   .activity-title_admindashbu {
     font-size: 13px;
@@ -1078,9 +1210,9 @@ body.dark-mode {
     gap: 8px;
   }
   .activity-icon_admindashbu {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
     border-radius: 8px;
   }
   .activity-message_admindashbu {
@@ -1100,7 +1232,7 @@ body.dark-mode {
   .btn-secondary_admindashbu {
     padding: 6px 12px;
     font-size: 12px;
-    border-radius: 6px;
+    border-radius: 4px;
   }
   .error-state_admindashbu h2 {
     font-size: 20px;
@@ -1135,9 +1267,9 @@ body.dark-mode {
     font-size: 9px;
   }
   .stat-icon-wrapper_admindashbu {
-    width: 24px;
-    height: 24px;
-    font-size: 11px;
+    width: 26px;
+    height: 26px;
+    font-size: 12px;
   }
   .quick-actions-grid_admindashbu {
     grid-template-columns: 1fr;
@@ -1147,9 +1279,9 @@ body.dark-mode {
     padding: 8px 10px;
   }
   .quick-action-icon-wrapper_admindashbu {
-    width: 26px;
-    height: 26px;
-    font-size: 11px;
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
   }
   .quick-action-label_admindashbu {
     font-size: 11px;
@@ -1172,7 +1304,7 @@ body.dark-mode {
 }
 
 /* ============================================
-   REDUCED MOTION PREFERENCES
+   REDUCED MOTION PREFERENCES (UNTOUCHED)
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
   * {

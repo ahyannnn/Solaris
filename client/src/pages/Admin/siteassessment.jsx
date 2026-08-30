@@ -1,4 +1,4 @@
-// src/pages/Admin/SiteAssessment.jsx - Redesigned with Dark/Light Solar Theme Support
+// src/pages/Admin/SiteAssessment.jsx - Updated with Shared Assignment Modal
 import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -18,7 +18,8 @@ import {
   FaWifi,
   FaChevronDown,
   FaUpload,
-  FaSyncAlt
+  FaSyncAlt,
+  FaArrowLeft
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/siteassessment.css';
@@ -38,14 +39,14 @@ const SiteAssessment = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
-  const [showAssignEngineerModal, setShowAssignEngineerModal] = useState(false);
-  const [showAssignDeviceModal, setShowAssignDeviceModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assignmentStep, setAssignmentStep] = useState('engineer'); // 'engineer' or 'iot'
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [approveNotes, setApproveNotes] = useState('');
   const [verificationNote, setVerificationNote] = useState('');
-  const [engineerId, setEngineerId] = useState('');
-  const [deviceId, setDeviceId] = useState('');
+  const [selectedEngineerId, setSelectedEngineerId] = useState('');
+  const [selectedDeviceId, setSelectedDeviceId] = useState('');
   const [siteVisitDate, setSiteVisitDate] = useState('');
   const [siteVisitNotes, setSiteVisitNotes] = useState('');
   const [quotationFile, setQuotationFile] = useState(null);
@@ -307,12 +308,58 @@ const SiteAssessment = () => {
     return { valid: true, message: '' };
   };
 
-  const handleAssignEngineer = async () => {
-    if (!selectedItem || !engineerId) {
+  // --- NEW: Handle opening the shared assignment modal ---
+  const handleOpenAssignModal = (item) => {
+    setSelectedItem(item);
+    setSelectedEngineerId('');
+    setSelectedDeviceId('');
+    setSiteVisitDate('');
+    setSiteVisitNotes('');
+    setAssignmentStep('engineer');
+    setShowAssignModal(true);
+    setOpenDropdownId(null);
+  };
+
+  // --- NEW: Handle moving from engineer step to IoT step ---
+  const handleProceedToIoT = () => {
+    if (!selectedEngineerId) {
+      showToast('Please select an engineer first', 'warning');
+      return;
+    }
+
+    if (!selectedItem || activeTab !== 'free-quotes') {
+      const validation = validateSiteVisitDate(siteVisitDate);
+      if (!validation.valid) {
+        showToast(validation.message, 'warning');
+        return;
+      }
+    }
+
+    setAssignmentStep('iot');
+  };
+
+  // --- NEW: Handle going back to engineer step ---
+  const handleBackToEngineer = () => {
+    setAssignmentStep('engineer');
+  };
+
+  // --- MODIFIED: Handle final assignment submission ---
+  const handleFinalAssign = async () => {
+    if (!selectedItem) return;
+    
+    // Validate engineer
+    if (!selectedEngineerId) {
       showToast('Please select an engineer', 'warning');
       return;
     }
 
+    // Validate device
+    if (!selectedDeviceId) {
+      showToast('Please select an IoT device', 'warning');
+      return;
+    }
+
+    // Validate site visit date for pre-assessments
     if (activeTab !== 'free-quotes') {
       const validation = validateSiteVisitDate(siteVisitDate);
       if (!validation.valid) {
@@ -324,94 +371,64 @@ const SiteAssessment = () => {
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
+      
       if (activeTab === 'free-quotes') {
+        // For free quotes, only assign engineer
         await axios.put(
           `${import.meta.env.VITE_API_URL}/api/free-quotes/${selectedItem._id}/assign-engineer`,
-          { engineerId, notes: siteVisitNotes },
+          { engineerId: selectedEngineerId, notes: siteVisitNotes },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         showToast('Engineer assigned to free quote successfully', 'success');
       } else {
+        // For pre-assessments, assign both engineer and device
+        // Step 1: Assign engineer
         await axios.put(
           `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}/assign-engineer`,
-          { engineerId, siteVisitDate, notes: siteVisitNotes },
+          { engineerId: selectedEngineerId, siteVisitDate, notes: siteVisitNotes },
           { headers: { Authorization: `Bearer ${token}` } }
         );
+
+        // Step 2: Create schedule if site visit date is set
         if (siteVisitDate) {
           await axios.post(
             `${import.meta.env.VITE_API_URL}/api/schedules/create-from-preassessment`,
-            { preAssessmentId: selectedItem._id, engineerId, siteVisitDate, siteVisitTime: '09:00' },
+            { preAssessmentId: selectedItem._id, engineerId: selectedEngineerId, siteVisitDate, siteVisitTime: '09:00' },
             { headers: { Authorization: `Bearer ${token}` } }
           );
         }
-        showToast('Engineer assigned and schedule created successfully', 'success');
+
+        // Step 3: Assign device
+        await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/admin/devices/${selectedDeviceId}/assign`,
+          { 
+            engineerId: selectedEngineerId, 
+            preAssessmentId: selectedItem._id, 
+            notes: `Assigned to pre-assessment ${selectedItem.bookingReference}` 
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        showToast('Engineer and IoT device assigned successfully', 'success');
       }
-      setShowAssignEngineerModal(false);
+
+      // Close modal and reset state
+      setShowAssignModal(false);
       setSelectedItem(null);
-      setEngineerId('');
+      setSelectedEngineerId('');
+      setSelectedDeviceId('');
       setSiteVisitDate('');
       setSiteVisitNotes('');
-      setOpenDropdownId(null);
-      fetchData();
-      fetchStats();
-    } catch (error) {
-      console.error('Error assigning engineer:', error);
-      showToast(error.response?.data?.message || 'Failed to assign engineer', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleAssignDevice = async () => {
-    if (!selectedItem || !deviceId) return;
-    setIsSubmitting(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/admin/devices/${deviceId}/assign`,
-        { engineerId: selectedItem.assignedEngineerId, preAssessmentId: selectedItem._id, notes: `Assigned to pre-assessment ${selectedItem.bookingReference}` },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      showToast('Device assigned successfully', 'success');
-      setShowAssignDeviceModal(false);
-      setSelectedItem(null);
-      setDeviceId('');
+      setAssignmentStep('engineer');
       setOpenDropdownId(null);
       fetchData();
       fetchStats();
       fetchDevices();
     } catch (error) {
-      console.error('Error assigning device:', error);
-      showToast(error.response?.data?.message || 'Failed to assign device', 'error');
+      console.error('Error in assignment:', error);
+      showToast(error.response?.data?.message || 'Failed to complete assignment', 'error');
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleUploadQuotation = async () => {
-    if (!selectedItem || !quotationFile) return;
-    setUploading(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      const formData = new FormData();
-      formData.append('quotation', quotationFile);
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/free-quotes/${selectedItem._id}/upload-quotation`,
-        formData,
-        { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
-      );
-      showToast('Quotation uploaded and sent to customer', 'success');
-      setShowUploadModal(false);
-      setSelectedItem(null);
-      setQuotationFile(null);
-      setOpenDropdownId(null);
-      fetchData();
-      fetchStats();
-    } catch (error) {
-      console.error('Error uploading quotation:', error);
-      showToast('Failed to upload quotation', 'error');
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -560,12 +577,7 @@ const SiteAssessment = () => {
       }
       if (item.paymentStatus === 'paid' && item.assessmentStatus === 'scheduled' && !item.assignedEngineerId) {
         actions.push(
-          { label: 'Assign Engineer', icon: <FaUserCog />, action: () => { setSelectedItem(item); setShowAssignEngineerModal(true); setOpenDropdownId(null); }, color: 'primary' }
-        );
-      }
-      if (item.paymentStatus === 'paid' && item.assignedEngineerId && !hasDeviceAssigned(item)) {
-        actions.push(
-          { label: 'Assign Device', icon: <FaMicrochip />, action: () => { setSelectedItem(item); setShowAssignDeviceModal(true); setOpenDropdownId(null); }, color: 'primary' }
+          { label: 'Assign Engineer & Device', icon: <FaUserCog />, action: () => handleOpenAssignModal(item), color: 'primary' }
         );
       }
       if ((item.paymentGateway === 'paymongo' || item.autoVerified === true) && item.paymentStatus === 'paid') {
@@ -661,9 +673,6 @@ const SiteAssessment = () => {
       <Helmet><title>Site Assessment | Admin | Salfer Engineering</title></Helmet>
 
       <div className="site-assessment-adminbills_">
-        {/* --- Minimalist Header (No Title Text) --- */}
-       
-
         {/* --- Analytics Chart (Placed 1st) --- */}
         <div className="chart-area-adminbills_">
           <div className="chart-header-adminbills_">
@@ -783,96 +792,114 @@ const SiteAssessment = () => {
           </button>
         </div>
 
-        {/* --- Table --- */}
-        <div className="table-container-adminbills_">
-          <table className="data-table-adminbills_">
-            <thead>
-              <tr>
-                <th>Reference</th>
-                <th>Client</th>
-                <th>Contact</th>
-                <th>Date</th>
-                {activeTab === 'free-quotes' ? <th>Monthly Bill</th> : <th>Property</th>}
-                {activeTab === 'pre-assessments' && <th>Amount</th>}
-                <th>Status</th>
-                <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredItems.length === 0 ? (
-                <tr><td colSpan="9" className="empty-state-adminbills_">No {activeTab === 'free-quotes' ? 'free quotes' : 'pre-assessments'} found</td></tr>
-              ) : (
-                filteredItems.map(item => {
-                  const actions = getAvailableActions(item);
-                  const isOpen = openDropdownId === item._id;
+        {/* --- TABLE --- */}
+        <div className="billing-customer-table-container">
+          <div className="table-responsive-adminbills_">
+            <table className="data-table-adminbills_">
+              <thead>
+                <tr>
+                  <th>Reference</th>
+                  <th>Client</th>
+                  <th>Contact</th>
+                  <th>Date</th>
+                  {activeTab === 'free-quotes' ? <th>Monthly Bill</th> : <th>Property</th>}
+                  {activeTab === 'pre-assessments' && <th>Amount</th>}
+                  <th>Status</th>
+                  <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredItems.length === 0 ? (
+                  <tr>
+                    <td colSpan="9" className="empty-state-adminbills_">
+                      No {activeTab === 'free-quotes' ? 'free quotes' : 'pre-assessments'} found
+                    </td>
+                  </tr>
+                ) : (
+                  filteredItems.map(item => {
+                    const actions = getAvailableActions(item);
+                    const isOpen = openDropdownId === item._id;
 
-                  return (
-                    <tr key={item._id}>
-                      <td className="ref-cell-adminbills_">{activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference}</td>
-                      <td className="client-cell-adminbills_">{item.clientId?.contactFirstName} {item.clientId?.contactLastName}</td>
-                      <td>
-                        <div className="contact-info-adminbills_">{item.clientId?.contactNumber || 'N/A'}</div>
-                        <div className="email-cell-adminbills_">{item.clientId?.userId?.email || 'N/A'}</div>
-                      </td>
-                      <td>{formatDate(activeTab === 'free-quotes' ? item.requestedAt : item.bookedAt)}</td>
-                      {activeTab === 'free-quotes' ? (
-                        <td className="amount-cell-adminbills_">{formatCurrency(item.monthlyBill)}</td>
-                      ) : (
-                        <>
-                          <td>{item.propertyType}</td>
-                          <td className="amount-cell-adminbills_">{formatCurrency(item.assessmentFee)}</td>
-                        </>
-                      )}
-                      <td>{getStatusBadge(getDisplayStatus(item), activeTab === 'free-quotes' ? 'free-quote' : 'pre-assessment')}</td>
-                      <td style={{ textAlign: 'center', position: 'relative' }}>
-                        <div className="action-dropdown-container-adminbills_">
-                          <button
-                            className="action-dropdown-toggle-adminbills_"
-                            ref={el => buttonRefs.current[item._id] = el}
-                            onClick={(e) => handleDropdownClick(e, item._id)}
-                          >
-                            Action <FaChevronDown className={`dropdown-arrow-adminbills_ ${isOpen ? 'open-adminbills_' : ''}`} />
-                          </button>
-
-                          {isOpen && (
-                            <div
-                              className="action-dropdown-menu-adminbills_"
-                              ref={dropdownRef}
-                              style={{
-                                position: 'fixed',
-                                top: dropdownPosition.top,
-                                right: dropdownPosition.right,
-                                zIndex: 9999,
-                              }}
+                    return (
+                      <tr key={item._id}>
+                        <td data-label="Reference" className="ref-cell-adminbills_">
+                          {activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference}
+                        </td>
+                        <td data-label="Client" className="client-cell-adminbills_">
+                          {item.clientId?.contactFirstName} {item.clientId?.contactLastName}
+                        </td>
+                        <td data-label="Contact">
+                          <div className="contact-info-adminbills_">{item.clientId?.contactNumber || 'N/A'}</div>
+                          <div className="email-cell-adminbills_">{item.clientId?.userId?.email || 'N/A'}</div>
+                        </td>
+                        <td data-label="Date">
+                          {formatDate(activeTab === 'free-quotes' ? item.requestedAt : item.bookedAt)}
+                        </td>
+                        {activeTab === 'free-quotes' ? (
+                          <td data-label="Monthly Bill" className="amount-cell-adminbills_">
+                            {formatCurrency(item.monthlyBill)}
+                          </td>
+                        ) : (
+                          <>
+                            <td data-label="Property">{item.propertyType}</td>
+                            <td data-label="Amount" className="amount-cell-adminbills_">
+                              {formatCurrency(item.assessmentFee)}
+                            </td>
+                          </>
+                        )}
+                        <td data-label="Status">
+                          {getStatusBadge(getDisplayStatus(item), activeTab === 'free-quotes' ? 'free-quote' : 'pre-assessment')}
+                        </td>
+                        <td data-label="Actions" style={{ textAlign: 'center', position: 'relative' }}>
+                          <div className="action-dropdown-container-adminbills_">
+                            <button
+                              className="action-dropdown-toggle-adminbills_"
+                              ref={el => buttonRefs.current[item._id] = el}
+                              onClick={(e) => handleDropdownClick(e, item._id)}
                             >
-                              {actions.map((action, idx) => (
-                                action.disabled ? (
-                                  <div key={idx} className={`dropdown-item-adminbills_ disabled-adminbills_ ${action.color || ''}`}>
-                                    {action.icon} <span>{action.label}</span>
-                                  </div>
-                                ) : (
-                                  <button
-                                    key={idx}
-                                    className={`dropdown-item-adminbills_ ${action.color || ''}`}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      action.action();
-                                    }}
-                                  >
-                                    {action.icon} <span>{action.label}</span>
-                                  </button>
-                                )
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                              Action <FaChevronDown className={`dropdown-arrow-adminbills_ ${isOpen ? 'open-adminbills_' : ''}`} />
+                            </button>
+
+                            {isOpen && (
+                              <div
+                                className="action-dropdown-menu-adminbills_"
+                                ref={dropdownRef}
+                                style={{
+                                  position: 'fixed',
+                                  top: dropdownPosition.top,
+                                  right: dropdownPosition.right,
+                                  zIndex: 9999,
+                                }}
+                              >
+                                {actions.map((action, idx) => (
+                                  action.disabled ? (
+                                    <div key={idx} className={`dropdown-item-adminbills_ disabled-adminbills_ ${action.color || ''}`}>
+                                      {action.icon} <span>{action.label}</span>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      key={idx}
+                                      className={`dropdown-item-adminbills_ ${action.color || ''}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        action.action();
+                                      }}
+                                    >
+                                      {action.icon} <span>{action.label}</span>
+                                    </button>
+                                  )
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* --- Pagination --- */}
@@ -911,7 +938,210 @@ const SiteAssessment = () => {
           </div>
         )}
 
-        {/* --- MODALS (All business logic preserved) --- */}
+        {/* --- SHARED ASSIGNMENT MODAL (Two Steps) --- */}
+        {showAssignModal && selectedItem && (
+          <div className="modal-overlay-adminbills_" onClick={() => setShowAssignModal(false)}>
+            <div className="modal-adminbills_ assign-engineer-modal-adminbills_" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-adminbills_">
+                <h3>
+                  {assignmentStep === 'engineer' ? 'Assign Engineer' : 'Assign IoT Device'}
+                </h3>
+                <button className="modal-close-adminbills_" onClick={() => {
+                  setShowAssignModal(false);
+                  setSelectedEngineerId('');
+                  setSelectedDeviceId('');
+                  setAssignmentStep('engineer');
+                }}>×</button>
+              </div>
+              <div className="modal-body-adminbills_">
+                <div className="detail-row-adminbills_">
+                  <span>Reference:</span>
+                  <strong>{activeTab === 'free-quotes' ? selectedItem.quotationReference : selectedItem.bookingReference}</strong>
+                </div>
+                <div className="detail-row-adminbills_">
+                  <span>Client:</span>
+                  <strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong>
+                </div>
+
+                {/* --- STEP 1: Engineer Selection --- */}
+                {assignmentStep === 'engineer' && (
+                  <>
+                    <div className="form-group-adminbills_">
+                      <label>Select Engineer <span className="required-field-adminbills_">*</span></label>
+                      <div className="engineer-grid-adminbills_">
+                        {engineers.length === 0 ? (
+                          <div className="no-engineers-adminbills_">No engineers available</div>
+                        ) : (
+                          engineers.map(eng => (
+                            <div
+                              key={eng._id}
+                              className={`engineer-card-adminbills_ ${selectedEngineerId === eng._id ? 'selected-adminbills_' : ''}`}
+                              onClick={() => setSelectedEngineerId(eng._id)}
+                            >
+                              <div className="engineer-avatar-adminbills_">
+                                <span>{eng.fullName?.charAt(0) || 'E'}</span>
+                              </div>
+                              <div className="engineer-info-adminbills_">
+                                <div className="engineer-name-adminbills_">{eng.fullName || 'Engineer'}</div>
+                                <div className="engineer-email-adminbills_">{eng.email}</div>
+                              </div>
+                              {selectedEngineerId === eng._id && (
+                                <div className="engineer-selected-badge-adminbills_"><FaCheckCircle /></div>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {activeTab !== 'free-quotes' && (
+                      <div className="form-group-adminbills_">
+                        <label>
+                          Site Visit Date <span className="required-field-adminbills_">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          className={`date-input-adminbills_ ${siteVisitDate && new Date(siteVisitDate) < new Date(new Date().setHours(0, 0, 0, 0)) ? 'invalid-date-adminbills_' : ''}`}
+                          value={siteVisitDate}
+                          onChange={(e) => setSiteVisitDate(e.target.value)}
+                          min={getTodayDate()}
+                          required
+                        />
+                        {siteVisitDate && new Date(siteVisitDate) < new Date(new Date().setHours(0, 0, 0, 0)) && (
+                          <div className="validation-error-adminbills_">
+                            <label>Site visit date cannot be in the past</label>
+                          </div>
+                        )}
+                        {!siteVisitDate && (
+                          <div className="validation-hint-adminbills_">
+                            <label>Please select a future date for the site visit</label>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="form-group-adminbills_">
+                      <label>Notes</label>
+                      <textarea
+                        rows="3"
+                        value={siteVisitNotes}
+                        onChange={(e) => setSiteVisitNotes(e.target.value)}
+                        placeholder="Add any special instructions or notes..."
+                      />
+                    </div>
+
+                    {/* Show selected engineer summary */}
+                    {selectedEngineerId && (
+                      <div className="info-box-adminbills_">
+                        <FaCheckCircle />
+                        <small>
+                          Selected: <strong>{engineers.find(e => e._id === selectedEngineerId)?.fullName || 'Engineer'}</strong>
+                          {activeTab !== 'free-quotes' && siteVisitDate && ` • Site Visit: ${formatDate(siteVisitDate)}`}
+                        </small>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* --- STEP 2: IoT Device Selection --- */}
+                {assignmentStep === 'iot' && (
+                  <>
+                    {/* Show selected engineer summary */}
+                    <div className="info-box-adminbills_" style={{ marginBottom: '16px' }}>
+                      <FaCheckCircle />
+                      <small>
+                        Engineer: <strong>{engineers.find(e => e._id === selectedEngineerId)?.fullName || 'Engineer'}</strong>
+                        {activeTab !== 'free-quotes' && siteVisitDate && ` • Site Visit: ${formatDate(siteVisitDate)}`}
+                      </small>
+                    </div>
+
+                    <div className="form-group-adminbills_">
+                      <label>Select IoT Device <span className="required-field-adminbills_">*</span></label>
+                      <div className="device-grid-adminbills_">
+                        {devices.length === 0 ? (
+                          <div className="no-devices-adminbills_">No available IoT devices</div>
+                        ) : (
+                          devices.map(device => (
+                            <div
+                              key={device._id}
+                              className={`device-card-adminbills_ ${selectedDeviceId === device._id ? 'selected-adminbills_' : ''}`}
+                              onClick={() => setSelectedDeviceId(device._id)}
+                            >
+                              <div className="device-icon-adminbills_">
+                                <FaMicrochip />
+                              </div>
+                              <div className="device-info-adminbills_">
+                                <div className="device-name-adminbills_">{device.deviceName || 'IoT Device'}</div>
+                                <div className="device-id-adminbills_">ID: {device.deviceId}</div>
+                                <div className="device-status-adminbills_">
+                                  <span className="device-available-badge">Available</span>
+                                </div>
+                              </div>
+                              {selectedDeviceId === device._id && (
+                                <div className="device-selected-badge-adminbills_"><FaCheckCircle /></div>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Show selected device summary */}
+                    {selectedDeviceId && (
+                      <div className="info-box-adminbills_">
+                        <FaCheckCircle />
+                        <small>
+                          Selected Device: <strong>{devices.find(d => d._id === selectedDeviceId)?.deviceName || 'Device'}</strong>
+                          {' '}({devices.find(d => d._id === selectedDeviceId)?.deviceId || 'N/A'})
+                        </small>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+              <div className="modal-actions-adminbills_">
+                <button 
+                  className="cancel-btn-adminbills_" 
+                  onClick={() => {
+                    setShowAssignModal(false);
+                    setSelectedEngineerId('');
+                    setSelectedDeviceId('');
+                    setAssignmentStep('engineer');
+                  }}
+                >
+                  Cancel
+                </button>
+                
+                {assignmentStep === 'engineer' && (
+                  <>
+                    <button
+                      className="assign-btn-adminbills_"
+                      onClick={handleProceedToIoT}
+                      disabled={!selectedEngineerId || isSubmitting || (activeTab !== 'free-quotes' && !siteVisitDate)}
+                    >
+                      {isSubmitting ? 'Processing...' : 'Assign Engineer'}
+                    </button>
+                  </>
+                )}
+
+                {assignmentStep === 'iot' && (
+                  <>
+                  
+                    <button
+                      className="assign-btn-adminbills_"
+                      onClick={handleFinalAssign}
+                      disabled={!selectedDeviceId || isSubmitting}
+                    >
+                      {isSubmitting ? 'Assigning...' : 'Assign IoT Device'}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- OTHER MODALS --- */}
         {showApproveModal && selectedItem && (
           <div className="modal-overlay-adminbills_" onClick={() => setShowApproveModal(false)}>
             <div className="modal-adminbills_" onClick={e => e.stopPropagation()}>
@@ -964,122 +1194,6 @@ const SiteAssessment = () => {
                 {selectedItem.paymentGateway === 'paymongo' && (<div className="info-box-adminbills_"><FaInfoCircle /><small>Auto-verified via PayMongo. No action needed.</small></div>)}
               </div>
               {selectedItem.paymentGateway === 'paymongo' && (<div className="modal-actions-adminbills_"><button className="cancel-btn-adminbills_" onClick={() => setShowVerifyModal(false)}>Close</button></div>)}
-            </div>
-          </div>
-        )}
-
-        {showAssignEngineerModal && selectedItem && (
-          <div className="modal-overlay-adminbills_" onClick={() => setShowAssignEngineerModal(false)}>
-            <div className="modal-adminbills_ assign-engineer-modal-adminbills_" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-adminbills_"><h3>Assign Engineer</h3><button className="modal-close-adminbills_" onClick={() => setShowAssignEngineerModal(false)}>×</button></div>
-              <div className="modal-body-adminbills_">
-                <div className="detail-row-adminbills_"><span>Reference:</span><strong>{activeTab === 'free-quotes' ? selectedItem.quotationReference : selectedItem.bookingReference}</strong></div>
-                <div className="detail-row-adminbills_"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
-                <div className="form-group-adminbills_">
-                  <label>Select Engineer <span className="required-field-adminbills_">*</span></label>
-                  <div className="engineer-grid-adminbills_">
-                    {engineers.length === 0 ? (
-                      <div className="no-engineers-adminbills_">No engineers available</div>
-                    ) : (
-                      engineers.map(eng => (
-                        <div
-                          key={eng._id}
-                          className={`engineer-card-adminbills_ ${engineerId === eng._id ? 'selected-adminbills_' : ''}`}
-                          onClick={() => setEngineerId(eng._id)}
-                        >
-                          <div className="engineer-avatar-adminbills_">
-                            <span>{eng.fullName?.charAt(0) || 'E'}</span>
-                          </div>
-                          <div className="engineer-info-adminbills_">
-                            <div className="engineer-name-adminbills_">{eng.fullName || 'Engineer'}</div>
-                            <div className="engineer-email-adminbills_">{eng.email}</div>
-                          </div>
-                          {engineerId === eng._id && (
-                            <div className="engineer-selected-badge-adminbills_"><FaCheckCircle /></div>
-                          )}
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                {activeTab !== 'free-quotes' && (
-                  <div className="form-group-adminbills_">
-                    <label>
-                      Site Visit Date <span className="required-field-adminbills_">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      className={`date-input-adminbills_ ${siteVisitDate && new Date(siteVisitDate) < new Date(new Date().setHours(0, 0, 0, 0)) ? 'invalid-date-adminbills_' : ''}`}
-                      value={siteVisitDate}
-                      onChange={(e) => setSiteVisitDate(e.target.value)}
-                      min={getTodayDate()}
-                      required
-                    />
-                    {siteVisitDate && new Date(siteVisitDate) < new Date(new Date().setHours(0, 0, 0, 0)) && (
-                      <div className="validation-error-adminbills_">
-                        <label>Site visit date cannot be in the past</label>
-                      </div>
-                    )}
-                    {!siteVisitDate && (
-                      <div className="validation-hint-adminbills_">
-                        <label>Please select a future date for the site visit</label>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className="form-group-adminbills_">
-                  <label>Notes</label>
-                  <textarea
-                    rows="3"
-                    value={siteVisitNotes}
-                    onChange={(e) => setSiteVisitNotes(e.target.value)}
-                    placeholder="Add any special instructions or notes..."
-                  />
-                </div>
-              </div>
-              <div className="modal-actions-adminbills_">
-                <button className="cancel-btn-adminbills_" onClick={() => setShowAssignEngineerModal(false)}>Cancel</button>
-                <button
-                  className="assign-btn-adminbills_"
-                  onClick={handleAssignEngineer}
-                  disabled={!engineerId || isSubmitting || (activeTab !== 'free-quotes' && !siteVisitDate)}
-                >
-                  {isSubmitting ? 'Assigning...' : 'Assign Engineer'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {showAssignDeviceModal && selectedItem && (
-          <div className="modal-overlay-adminbills_" onClick={() => setShowAssignDeviceModal(false)}>
-            <div className="modal-adminbills_" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-adminbills_"><h3>Assign Device</h3><button className="modal-close-adminbills_" onClick={() => setShowAssignDeviceModal(false)}>×</button></div>
-              <div className="modal-body-adminbills_">
-                <div className="detail-row-adminbills_"><span>Assessment:</span><strong>{selectedItem.bookingReference}</strong></div>
-                <div className="detail-row-adminbills_"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
-                <div className="detail-row-adminbills_"><span>Engineer:</span><strong>{getEngineerName(selectedItem.assignedEngineerId)}</strong></div>
-                <div className="form-group-adminbills_">
-                  <label>Select Device <span className="required-field-adminbills_">*</span></label>
-                  <select value={deviceId} onChange={(e) => setDeviceId(e.target.value)}>
-                    <option value="">Select...</option>
-                    {devices.map(device => (
-                      <option key={device._id} value={device._id}>
-                        {device.deviceId} - {device.deviceName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="info-box-adminbills_"><FaWifi /><small>The device will be deployed on site during the site visit.</small></div>
-              </div>
-              <div className="modal-actions-adminbills_">
-                <button className="cancel-btn-adminbills_" onClick={() => setShowAssignDeviceModal(false)}>Cancel</button>
-                <button className="assign-btn-adminbills_" onClick={handleAssignDevice} disabled={!deviceId || isSubmitting}>
-                  {isSubmitting ? 'Assigning...' : 'Assign'}
-                </button>
-              </div>
             </div>
           </div>
         )}

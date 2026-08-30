@@ -66,7 +66,7 @@ const solarInvoiceSchema = new mongoose.Schema({
   // Status - ✅ ADD 'pending'
   status: {
     type: String,
-    enum: ['draft', 'pending', 'sent', 'approved', 'paid', 'cancelled', 'overdue'], // ✅ Added 'pending'
+    enum: ['draft', 'pending', 'for_verification', 'sent', 'approved', 'paid', 'cancelled', 'overdue'], // ✅ Added 'for_verification'
     default: 'draft'
   },
   

@@ -190,8 +190,8 @@ exports.paySolarInvoiceCash = async (req, res) => {
       receivedBy: null
     });
 
-    invoice.paymentStatus = 'pending';
-    invoice.status = 'pending';
+    invoice.paymentStatus = 'for_verification';
+    invoice.status = 'for_verification';
 
     await invoice.save();
 

@@ -211,7 +211,8 @@ const Quotation = () => {
         amount: invoice.totalAmount,
         status: invoice.paymentStatus === 'paid' ? 'paid' :
           invoice.paymentStatus === 'partial' ? 'partial' :
-            invoice.paymentStatus === 'overdue' ? 'overdue' : 'pending',
+            invoice.paymentStatus === 'overdue' ? 'overdue' :
+              invoice.paymentStatus === 'for_verification' ? 'for_verification' : 'pending',
         description: invoice.description,
         type: 'project',
         typeLabel: 'Project Bill',
@@ -1457,7 +1458,7 @@ const Quotation = () => {
   // =========================================
   // FIXED: DROPDOWN POSITIONING
   // =========================================
-  
+
   const toggleDropdown = (itemId, event) => {
     if (activeDropdown === itemId) {
       setActiveDropdown(null);
@@ -1563,7 +1564,7 @@ const Quotation = () => {
     };
 
     window.addEventListener('scroll', handleScroll, true);
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll, true);
     };
@@ -1792,6 +1793,7 @@ const Quotation = () => {
                     const isPreAssessment = item.type === 'pre-assessment';
                     const isPaid = item.status === 'paid';
                     const isPending = item.status === 'pending' || item.status === 'pending_payment';
+                    const isVerifying = item.status === 'for_verification';
                     const isPayNowButtonDisabled = isPayNowDisabled(item);
                     const hasReceipt = item.receiptUrl;
                     const isDropdownOpen = activeDropdown === item.id;
@@ -1838,7 +1840,40 @@ const Quotation = () => {
                               ) : (
                                 <span className="billing-customer-no-action">—</span>
                               )
+                            ) : isVerifying ? (
+                              // For verification status - show dropdown with only View Details
+                              <div className="billing-customer-dropdown-menu-container">
+                                <button
+                                  className="billing-customer-dropdown-trigger-btn"
+                                  onClick={(e) => toggleDropdown(item.id, e)}
+                                >
+                                  Action ▾
+                                </button>
+
+                                {isDropdownOpen && (
+                                  <div
+                                    className="billing-customer-dropdown-menu"
+                                    style={{
+                                      position: 'fixed',
+                                      top: dropdownPosition.top + 'px',
+                                      left: dropdownPosition.left + 'px',
+                                      zIndex: 99999,
+                                    }}
+                                  >
+                                    <button
+                                      className="billing-customer-dropdown-item view-details"
+                                      onClick={() => {
+                                        setActiveDropdown(null);
+                                        handleViewDetails(item);
+                                      }}
+                                    >
+                                      View Details
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
                             ) : isPaid ? (
+                              // For paid status - show dropdown with all actions
                               <div className="billing-customer-dropdown-menu-container">
                                 <button
                                   className="billing-customer-dropdown-trigger-btn"
@@ -1918,6 +1953,7 @@ const Quotation = () => {
               const isPreAssessment = item.type === 'pre-assessment';
               const isPaid = item.status === 'paid';
               const isPending = item.status === 'pending' || item.status === 'pending_payment';
+              const isVerifying = item.status === 'for_verification';
               const isPayNowButtonDisabled = isPayNowDisabled(item);
               const hasReceipt = item.receiptUrl;
               const isDropdownOpen = activeDropdown === item.id;
@@ -1974,7 +2010,40 @@ const Quotation = () => {
                       ) : (
                         <span className="billing-customer-no-action">—</span>
                       )
+                    ) : isVerifying ? (
+                      // For verification status - show dropdown with only View Details
+                      <div className="billing-customer-dropdown-menu-container">
+                        <button
+                          className="billing-customer-dropdown-trigger-btn"
+                          onClick={(e) => toggleDropdown(item.id, e)}
+                        >
+                          Action ▾
+                        </button>
+
+                        {isDropdownOpen && (
+                          <div
+                            className="billing-customer-dropdown-menu"
+                            style={{
+                              position: 'fixed',
+                              top: dropdownPosition.top + 'px',
+                              left: dropdownPosition.left + 'px',
+                              zIndex: 99999,
+                            }}
+                          >
+                            <button
+                              className="billing-customer-dropdown-item view-details"
+                              onClick={() => {
+                                setActiveDropdown(null);
+                                handleViewDetails(item);
+                              }}
+                            >
+                              View Details
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     ) : isPaid ? (
+                      // For paid status - show dropdown with all actions
                       <div className="billing-customer-dropdown-menu-container">
                         <button
                           className="billing-customer-dropdown-trigger-btn"

@@ -1322,7 +1322,7 @@ exports.cashPayment = async (req, res) => {
     }
 
     preAssessment.paymentMethod = 'cash';
-    preAssessment.paymentStatus = 'pending';
+    preAssessment.paymentStatus = 'for_verification';
     preAssessment.assessmentStatus = 'scheduled';
 
     await preAssessment.save();
@@ -1341,7 +1341,7 @@ exports.cashPayment = async (req, res) => {
           customerName: customerName,
           customerId: client._id,
           paymentMethod: 'cash',
-          paymentStatus: 'pending',
+          paymentStatus: 'for_verification',
           assessmentStatus: 'scheduled',
           amount: preAssessment.assessmentFee,
           invoiceNumber: preAssessment.invoiceNumber,

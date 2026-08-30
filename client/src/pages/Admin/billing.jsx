@@ -1147,7 +1147,7 @@ const AdminBilling = () => {
       );
     }
 
-    if (assessment.paymentMethod === 'cash' && assessment.paymentStatus === 'pending') {
+    if (assessment.paymentMethod === 'cash' && assessment.paymentStatus === 'for_verification') {
       actions.push(
         { label: 'Mark as Paid', action: () => { setSelectedAssessment(assessment); setEditStatusData({ paymentStatus: assessment.paymentStatus, notes: '' }); setShowEditStatusModal(true); setOpenDropdownId(null); }, color: 'warning' }
       );
@@ -2018,7 +2018,6 @@ const AdminBilling = () => {
                   <label>Status</label>
                   <select value={editStatusData.paymentStatus} onChange={(e) => setEditStatusData({ ...editStatusData, paymentStatus: e.target.value })}>
                     <option value="">Select</option>
-                    <option value="pending">Pending</option>
                     <option value="paid">Paid</option>
                     <option value="failed">Cancel</option>
                   </select>

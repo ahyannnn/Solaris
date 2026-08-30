@@ -6,12 +6,15 @@ const Client = require('../models/Clients');
 const SolarInvoice = require('../models/SolarInvoice');
 const User = require('../models/Users');        // ✅ Add this
 const Address = require('../models/Address');    // ✅ Add this
+const path = require('path'); // ✅ Add this for file path handling
+const fs = require('fs'); // ✅ Add this for file existence check
 
 // Company Information
 const COMPANY_INFO = {
   name: 'Salfer Engineering',
   address: 'San Nicolas St. Bunsuran 3rd, Pandi, Bulacan',
-  tagline: 'Solar Technology Enterprise'
+  tagline: 'Solar Technology Enterprise',
+  logoPath: path.join(__dirname, '../assets/logo.png')
 };
 
 const REPORT_THEME = {
@@ -42,25 +45,55 @@ const getExcelColumnName = (number) => {
 
   return column;
 };
-// Helper function to add company header to PDF
+const getLogoBuffer = () => {
+  try {
+    if (fs.existsSync(COMPANY_INFO.logoPath)) {
+      return fs.readFileSync(COMPANY_INFO.logoPath);
+    }
+    return null;
+  } catch (err) {
+    console.warn('⚠️ Logo not found at:', COMPANY_INFO.logoPath);
+    return null;
+  }
+};
+
+// ✅ UPDATED: Helper function to add company header with logo to PDF
 const addCompanyHeaderToPDF = (doc) => {
-  // Company Name
   const { left, right } = doc.page.margins;
   const width = doc.page.width - left - right;
+  const logoSize = 80; // Logo size
+  const logoMargin = 10;
+  
   doc.save();
+  
+  // Try to add logo
+  const logoBuffer = getLogoBuffer();
+  if (logoBuffer) {
+    try {
+      // Position logo on the left
+      doc.image(logoBuffer, left + 90, 20, { width: logoSize, height: logoSize });
+    } catch (err) {
+      console.warn('⚠️ Failed to add logo to PDF:', err.message);
+    }
+  }
+  
+  // Company Name - shifted right if logo exists
+  const textStartX = logoBuffer ? left + logoSize + logoMargin : left;
+  const textWidth = logoBuffer ? width - logoSize - logoMargin : width;
+  
   doc.fillColor(REPORT_THEME.navy).font('Helvetica-Bold').fontSize(17)
-    .text(COMPANY_INFO.name, left, 27, { width, align: 'center', lineBreak: false });
+    .text(COMPANY_INFO.name, textStartX, 27, { width: textWidth, align: 'center', lineBreak: false });
   doc.font('Helvetica').fontSize(8.5).fillColor(REPORT_THEME.muted)
-    .text(COMPANY_INFO.address, left, 50, { width, align: 'center', lineBreak: false });
+    .text(COMPANY_INFO.address, textStartX, 50, { width: textWidth, align: 'center', lineBreak: false });
   doc.font('Helvetica-Oblique').fontSize(8).fillColor(REPORT_THEME.blue)
-    .text(COMPANY_INFO.tagline, left, 64, { width, align: 'center', lineBreak: false });
+    .text(COMPANY_INFO.tagline, textStartX, 64, { width: textWidth, align: 'center', lineBreak: false });
   doc.strokeColor(REPORT_THEME.blue).lineWidth(2).moveTo(left, 83).lineTo(left + width, 83).stroke();
   doc.restore();
   doc.y = 105;
 };
 
 const addPdfFooter = (doc) => {
-  const y = doc.page.height - 70;
+  const y = doc.page.height - 60;
   doc.save();
   doc.strokeColor(REPORT_THEME.border).lineWidth(0.5)
     .moveTo(50, y - 8).lineTo(doc.page.width - 50, y - 8).stroke();
@@ -110,14 +143,17 @@ const drawPdfTable = (doc, headers, rows, columnWidths) => {
   doc.y = y;
 };
 
+// ✅ UPDATED: Helper function to add company header with logo to Excel
 const addCompanyHeaderToWorksheet = (
   worksheet,
   title,
   sectionTitle,
   recordCount
 ) => {
-
   const lastColumn = getExcelColumnName(worksheet.columns.length);
+
+  // Add logo placeholder (Excel doesn't support images easily via exceljs without extra libraries)
+  // We'll add a text placeholder or you can use a different approach for Excel images
 
   for (let col = 1; col <= worksheet.columns.length; col++) {
     worksheet.getCell(4, col).border = {
@@ -135,16 +171,18 @@ const addCompanyHeaderToWorksheet = (
   worksheet.mergeCells(`A6:${lastColumn}6`);
   worksheet.mergeCells(`A8:${lastColumn}8`);
 
-  worksheet.getCell("A1").value = COMPANY_INFO.name;
+  // ✅ Add a logo indicator or you can use the first column for logo text
+  // Option 1: Add a small text indicator
+  worksheet.getCell("A1").value = `${COMPANY_INFO.name}`;
   worksheet.getCell("A1").font = {
     bold: true,
     size: 20,
     color: { argb: "FF123047" }
   };
   worksheet.getCell("A1").alignment = {
-  horizontal: "center",
-  vertical: "middle"
-};
+    horizontal: "center",
+    vertical: "middle"
+  };
 
   worksheet.getCell("A2").value = COMPANY_INFO.address;
   worksheet.getCell("A2").font = {
@@ -167,8 +205,6 @@ const addCompanyHeaderToWorksheet = (
     vertical: "middle"
   };
 
- 
-
   worksheet.getCell("A5").value = title;
   worksheet.getCell("A5").font = {
     bold: true,
@@ -187,14 +223,12 @@ const addCompanyHeaderToWorksheet = (
     size: 10,
     color: { argb: "FF666666" }
   };
-
   worksheet.getCell("A6").alignment = {
     horizontal: "center",
     vertical: "middle"
   };
 
   worksheet.getCell("A8").value = sectionTitle;
-
   worksheet.getCell("A8").font = {
     bold: true,
     size: 13,
@@ -209,7 +243,6 @@ const addCompanyHeaderToWorksheet = (
 
   return 9;
 };
-
 const styleWorksheetTable = (worksheet, headerRow) => {
 
   const header = worksheet.getRow(headerRow);
@@ -302,7 +335,8 @@ const styleWorksheetTable = (worksheet, headerRow) => {
 
 };
 
-const buildExcelReport = ({
+// ✅ Make this async and add logo support
+const buildExcelReport = async ({
   workbook,
   sheetName,
   reportTitle,
@@ -310,7 +344,6 @@ const buildExcelReport = ({
   headers,
   rows
 }) => {
-
   const worksheet = workbook.addWorksheet(sheetName);
 
   worksheet.columns = headers.map(() => ({
@@ -324,8 +357,10 @@ const buildExcelReport = ({
     rows.length
   );
 
-  const header = worksheet.addRow(headers);
+  // ✅ Add logo to Excel
+  // await addLogoToExcel(worksheet, workbook);
 
+  const header = worksheet.addRow(headers);
   rows.forEach(row => worksheet.addRow(row));
 
   styleWorksheetTable(
@@ -334,7 +369,31 @@ const buildExcelReport = ({
   );
 
   return worksheet;
+};
+// ✅ For Excel with actual image support (requires additional setup)
+// If you want to add actual images to Excel, you can use this approach:
+// Note: This requires the 'exceljs' library with image support
 
+const addLogoToExcel = async (worksheet, workbook) => {
+  try {
+    const logoBuffer = getLogoBuffer();
+    if (logoBuffer) {
+      // Add image to workbook
+      const imageId = workbook.addImage({
+        buffer: logoBuffer,
+        extension: 'png',
+      });
+      
+      // Add image to worksheet at a specific position
+      // This needs to be adjusted based on your layout
+      worksheet.addImage(imageId, {
+        tl: { col: 0.1, row: 0.1 },
+        ext: { width: 80, height: 80 }
+      });
+    }
+  } catch (err) {
+    console.warn('⚠️ Failed to add logo to Excel:', err.message);
+  }
 };
 // Helper function to convert assessment status string to number
 const getStatusNumber = (statusString) => {
@@ -839,7 +898,7 @@ exports.exportProjectSummaryReport = async (req, res) => {
         ])
 
       });
-      styleWorksheetTable(worksheet, dataRow.number);
+      
 
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename=project-summary-report-${Date.now()}.xlsx`);

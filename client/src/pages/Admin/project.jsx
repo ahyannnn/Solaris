@@ -448,6 +448,7 @@ const ProjectManagement = () => {
       );
     }
 
+    // FIX: Only show Cancel Project if status is NOT completed or cancelled
     if (statusLower !== 'cancelled' && statusLower !== 'completed') {
       actions.push(
         { 
@@ -988,6 +989,7 @@ const ProjectManagement = () => {
                       <option value="completed">Complete</option>
                     )}
                     
+                    {/* FIX: Only show Cancel if not completed or cancelled */}
                     {selectedProject.status?.toLowerCase() !== 'cancelled' && 
                      selectedProject.status?.toLowerCase() !== 'completed' && (
                       <option value="cancelled">Cancel</option>

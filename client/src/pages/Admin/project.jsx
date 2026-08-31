@@ -339,6 +339,9 @@ const ProjectManagement = () => {
   };
 
   const getStatusBadge = (status) => {
+    // Normalize status to lowercase for consistent comparison
+    const statusLower = status?.toLowerCase() || '';
+    
     const badges = {
       'quoted': <span className="status-badge-projectmanagement quoted">Quoted</span>,
       'approved': <span className="status-badge-projectmanagement approved">Approved</span>,
@@ -349,7 +352,8 @@ const ProjectManagement = () => {
       'completed': <span className="status-badge-projectmanagement completed">Completed</span>,
       'cancelled': <span className="status-badge-projectmanagement cancelled">Cancelled</span>
     };
-    return badges[status] || <span className="status-badge-projectmanagement">{status}</span>;
+    
+    return badges[statusLower] || <span className="status-badge-projectmanagement">{status}</span>;
   };
 
   const filteredProjects = projects.filter(project => {
@@ -366,37 +370,97 @@ const ProjectManagement = () => {
       {
         label: 'View Details',
         icon: <FaEye />,
-        action: () => { setSelectedProject(project); fetchProjectInvoices(project._id); setShowDetailModal(true); setOpenDropdownId(null); },
+        action: () => { 
+          setSelectedProject(project); 
+          fetchProjectInvoices(project._id); 
+          setShowDetailModal(true); 
+          setOpenDropdownId(null); 
+        },
         color: 'primary'
       }
     ];
 
+    // FIX: Add Approve action for quoted projects (case insensitive)
+    const statusLower = project.status?.toLowerCase() || '';
+    
+    if (statusLower === 'quoted') {
+      actions.push({
+        label: 'Approve Project',
+        icon: <FaCheck />,
+        action: () => { 
+          setSelectedProject(project); 
+          setFormData({ ...formData, newStatus: 'approved' }); 
+          setShowStatusModal(true); 
+          setOpenDropdownId(null); 
+        },
+        color: 'success'
+      });
+    }
+
     const hasAssignedEngineer = !!project.assignedEngineerId;
 
     if (
-      (project.status === 'approved' || project.status === 'initial_paid') &&
+      (statusLower === 'approved' || statusLower === 'initial_paid') &&
       !hasAssignedEngineer
     ) {
       actions.push(
-        { label: 'Assign Engineer', icon: <FaUserCog />, action: () => { setSelectedProject(project); setShowAssignModal(true); setOpenDropdownId(null); }, color: 'primary' }
+        { 
+          label: 'Assign Engineer', 
+          icon: <FaUserCog />, 
+          action: () => { 
+            setSelectedProject(project); 
+            setShowAssignModal(true); 
+            setOpenDropdownId(null); 
+          }, 
+          color: 'primary' 
+        }
       );
     }
 
-    if (project.status === 'initial_paid') {
+    if (statusLower === 'initial_paid') {
       actions.push(
-        { label: 'Record Progress Payment', icon: <FaMoneyBillWave />, action: () => { setSelectedProject(project); setShowPaymentModal(true); setOpenDropdownId(null); }, color: 'warning' }
+        { 
+          label: 'Record Progress Payment', 
+          icon: <FaMoneyBillWave />, 
+          action: () => { 
+            setSelectedProject(project); 
+            setShowPaymentModal(true); 
+            setOpenDropdownId(null); 
+          }, 
+          color: 'warning' 
+        }
       );
     }
 
-    if (project.status === 'in_progress') {
+    if (statusLower === 'in_progress') {
       actions.push(
-        { label: 'Mark as Completed', icon: <FaCheckCircle />, action: () => { setSelectedProject(project); setFormData({ ...formData, newStatus: 'completed' }); setShowStatusModal(true); setOpenDropdownId(null); }, color: 'success' }
+        { 
+          label: 'Mark as Completed', 
+          icon: <FaCheckCircle />, 
+          action: () => { 
+            setSelectedProject(project); 
+            setFormData({ ...formData, newStatus: 'completed' }); 
+            setShowStatusModal(true); 
+            setOpenDropdownId(null); 
+          }, 
+          color: 'success' 
+        }
       );
     }
 
-    if (project.status !== 'cancelled' && project.status !== 'completed') {
+    if (statusLower !== 'cancelled' && statusLower !== 'completed') {
       actions.push(
-        { label: 'Cancel Project', icon: <FaTimesCircle />, action: () => { setSelectedProject(project); setFormData({ ...formData, newStatus: 'cancelled' }); setShowStatusModal(true); setOpenDropdownId(null); }, color: 'danger' }
+        { 
+          label: 'Cancel Project', 
+          icon: <FaTimesCircle />, 
+          action: () => { 
+            setSelectedProject(project); 
+            setFormData({ ...formData, newStatus: 'cancelled' }); 
+            setShowStatusModal(true); 
+            setOpenDropdownId(null); 
+          }, 
+          color: 'danger' 
+        }
       );
     }
 
@@ -694,7 +758,14 @@ const ProjectManagement = () => {
                           <div className="project-name-projectmanagement">{project.projectName}</div>
                           <div className="project-ref-projectmanagement">{project.projectReference}</div>
                         </td>
-                        <td><div><strong>{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</strong></div><div><small>{project.clientId?.contactNumber}</small></div></td>
+                        <td>
+                          <div>
+                            <strong>{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</strong>
+                          </div>
+                          <div>
+                            <small>{project.clientId?.contactNumber}</small>
+                          </div>
+                        </td>
                         <td>{project.systemSize} kW</td>
                         <td className="amount-projectmanagement">{formatCurrency(project.totalCost)}</td>
                         <td className="amount-projectmanagement">{formatCurrency(project.amountPaid)}</td>
@@ -788,14 +859,37 @@ const ProjectManagement = () => {
         {showDetailModal && selectedProject && (
           <div className="modal-overlay-projectmanagement" onClick={() => setShowDetailModal(false)}>
             <div className="modal-projectmanagement detail-modal-projectmanagement" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-projectmanagement"><h3>Project Details</h3></div>
-              <div className="modal-body-projectmanagement">
-                <div className="detail-section-projectmanagement"><h4>Project</h4><p><strong>Name:</strong> {selectedProject.projectName}</p><p><strong>Ref:</strong> {selectedProject.projectReference}</p><p><strong>Status:</strong> {getStatusBadge(selectedProject.status)}</p></div>
-                <div className="detail-section-projectmanagement"><h4>Client</h4><p><strong>Name:</strong> {selectedProject.clientId?.contactFirstName} {selectedProject.clientId?.contactLastName}</p><p><strong>Contact:</strong> {selectedProject.clientId?.contactNumber}</p><p><strong>Email:</strong> {selectedProject.clientId?.userId?.email}</p></div>
-                <div className="detail-section-projectmanagement"><h4>System</h4><p><strong>Size:</strong> {selectedProject.systemSize} kWp</p><p><strong>Type:</strong> {selectedProject.systemType}</p></div>
-                <div className="detail-section-projectmanagement"><h4>Financial</h4><p><strong>Total:</strong> {formatCurrency(selectedProject.totalCost)}</p><p><strong>Paid:</strong> {formatCurrency(selectedProject.amountPaid)}</p><p><strong>Balance:</strong> {formatCurrency(selectedProject.balance)}</p></div>
+              <div className="modal-header-projectmanagement">
+                <h3>Project Details</h3>
               </div>
-              <div className="modal-actions-projectmanagement"><button className="cancel-btn-projectmanagement" onClick={() => setShowDetailModal(false)}>Close</button></div>
+              <div className="modal-body-projectmanagement">
+                <div className="detail-section-projectmanagement">
+                  <h4>Project</h4>
+                  <p><strong>Name:</strong> {selectedProject.projectName}</p>
+                  <p><strong>Ref:</strong> {selectedProject.projectReference}</p>
+                  <p><strong>Status:</strong> {getStatusBadge(selectedProject.status)}</p>
+                </div>
+                <div className="detail-section-projectmanagement">
+                  <h4>Client</h4>
+                  <p><strong>Name:</strong> {selectedProject.clientId?.contactFirstName} {selectedProject.clientId?.contactLastName}</p>
+                  <p><strong>Contact:</strong> {selectedProject.clientId?.contactNumber}</p>
+                  <p><strong>Email:</strong> {selectedProject.clientId?.userId?.email}</p>
+                </div>
+                <div className="detail-section-projectmanagement">
+                  <h4>System</h4>
+                  <p><strong>Size:</strong> {selectedProject.systemSize} kWp</p>
+                  <p><strong>Type:</strong> {selectedProject.systemType}</p>
+                </div>
+                <div className="detail-section-projectmanagement">
+                  <h4>Financial</h4>
+                  <p><strong>Total:</strong> {formatCurrency(selectedProject.totalCost)}</p>
+                  <p><strong>Paid:</strong> {formatCurrency(selectedProject.amountPaid)}</p>
+                  <p><strong>Balance:</strong> {formatCurrency(selectedProject.balance)}</p>
+                </div>
+              </div>
+              <div className="modal-actions-projectmanagement">
+                <button className="cancel-btn-projectmanagement" onClick={() => setShowDetailModal(false)}>Close</button>
+              </div>
             </div>
           </div>
         )}
@@ -804,9 +898,14 @@ const ProjectManagement = () => {
         {showAssignModal && selectedProject && (
           <div className="modal-overlay-projectmanagement" onClick={() => setShowAssignModal(false)}>
             <div className="modal-projectmanagement assign-engineer-modal-projectmanagement" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-projectmanagement"><h3>Assign Engineer</h3></div>
+              <div className="modal-header-projectmanagement">
+                <h3>Assign Engineer</h3>
+              </div>
               <div className="modal-body-projectmanagement">
-                <div className="detail-row-projectmanagement"><span>Project:</span><strong>{selectedProject.projectName}</strong></div>
+                <div className="detail-row-projectmanagement">
+                  <span>Project:</span>
+                  <strong>{selectedProject.projectName}</strong>
+                </div>
 
                 <div className="form-group-projectmanagement">
                   <label>Select Engineer</label>
@@ -850,7 +949,11 @@ const ProjectManagement = () => {
               </div>
               <div className="modal-actions-projectmanagement">
                 <button className="cancel-btn-projectmanagement" onClick={() => setShowAssignModal(false)}>Cancel</button>
-                <button className="assign-btn-projectmanagement" onClick={assignEngineer} disabled={!formData.engineerId || isSubmitting}>
+                <button 
+                  className="assign-btn-projectmanagement" 
+                  onClick={assignEngineer} 
+                  disabled={!formData.engineerId || isSubmitting}
+                >
                   {isSubmitting ? 'Assigning...' : 'Assign Engineer'}
                 </button>
               </div>
@@ -858,18 +961,59 @@ const ProjectManagement = () => {
           </div>
         )}
 
-        {/* Status Modal */}
+        {/* Status Modal - FIXED */}
         {showStatusModal && selectedProject && (
           <div className="modal-overlay-projectmanagement" onClick={() => setShowStatusModal(false)}>
             <div className="modal-projectmanagement" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-projectmanagement"><h3>Update Status</h3></div>
+              <div className="modal-header-projectmanagement">
+                <h3>Update Status</h3>
+              </div>
               <div className="modal-body-projectmanagement">
                 <p><strong>Project:</strong> {selectedProject.projectName}</p>
                 <p><strong>Current:</strong> {getStatusBadge(selectedProject.status)}</p>
-                <div className="form-group-projectmanagement"><label>New Status</label><select value={formData.newStatus} onChange={(e) => setFormData({ ...formData, newStatus: e.target.value })}><option value="">Select...</option>{selectedProject.status === 'quoted' && <option value="approved">Approve</option>}{selectedProject.status === 'in_progress' && <option value="completed">Complete</option>}<option value="cancelled">Cancel</option></select></div>
-                <div className="form-group-projectmanagement"><label>Notes</label><textarea rows="3" value={formData.statusNotes} onChange={(e) => setFormData({ ...formData, statusNotes: e.target.value })} /></div>
+                <div className="form-group-projectmanagement">
+                  <label>New Status</label>
+                  <select 
+                    value={formData.newStatus} 
+                    onChange={(e) => setFormData({ ...formData, newStatus: e.target.value })}
+                  >
+                    <option value="">Select...</option>
+                    
+                    {/* FIX: Check for 'quoted' (case insensitive) */}
+                    {selectedProject.status?.toLowerCase() === 'quoted' && (
+                      <option value="approved">Approve</option>
+                    )}
+                    
+                    {selectedProject.status?.toLowerCase() === 'in_progress' && (
+                      <option value="completed">Complete</option>
+                    )}
+                    
+                    {selectedProject.status?.toLowerCase() !== 'cancelled' && 
+                     selectedProject.status?.toLowerCase() !== 'completed' && (
+                      <option value="cancelled">Cancel</option>
+                    )}
+                  </select>
+                </div>
+                <div className="form-group-projectmanagement">
+                  <label>Notes</label>
+                  <textarea 
+                    rows="3" 
+                    value={formData.statusNotes} 
+                    onChange={(e) => setFormData({ ...formData, statusNotes: e.target.value })} 
+                    placeholder="Add notes about this status change..."
+                  />
+                </div>
               </div>
-              <div className="modal-actions-projectmanagement"><button className="cancel-btn-projectmanagement" onClick={() => setShowStatusModal(false)}>Cancel</button><button className="approve-btn-projectmanagement" onClick={updateProjectStatus} disabled={!formData.newStatus || isSubmitting}>{isSubmitting ? 'Updating...' : 'Update'}</button></div>
+              <div className="modal-actions-projectmanagement">
+                <button className="cancel-btn-projectmanagement" onClick={() => setShowStatusModal(false)}>Cancel</button>
+                <button 
+                  className="approve-btn-projectmanagement" 
+                  onClick={updateProjectStatus} 
+                  disabled={!formData.newStatus || isSubmitting}
+                >
+                  {isSubmitting ? 'Updating...' : 'Update Status'}
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -878,15 +1022,52 @@ const ProjectManagement = () => {
         {showPaymentModal && selectedProject && (
           <div className="modal-overlay-projectmanagement" onClick={() => setShowPaymentModal(false)}>
             <div className="modal-projectmanagement" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-projectmanagement"><h3>Record Payment</h3></div>
+              <div className="modal-header-projectmanagement">
+                <h3>Record Payment</h3>
+              </div>
               <div className="modal-body-projectmanagement">
                 <p><strong>Project:</strong> {selectedProject.projectName}</p>
                 <p><strong>Balance:</strong> {formatCurrency(selectedProject.balance)}</p>
-                <div className="form-group-projectmanagement"><label>Amount</label><input type="number" value={formData.paymentAmount} onChange={(e) => setFormData({ ...formData, paymentAmount: e.target.value })} /></div>
-                <div className="form-group-projectmanagement"><label>Type</label><select value={formData.paymentMethod} onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}><option value="initial">Initial (30%)</option><option value="progress">Progress (40%)</option><option value="final">Final (30%)</option></select></div>
-                <div className="form-group-projectmanagement"><label>Reference</label><input type="text" value={formData.paymentReference} onChange={(e) => setFormData({ ...formData, paymentReference: e.target.value })} /></div>
+                <div className="form-group-projectmanagement">
+                  <label>Amount</label>
+                  <input 
+                    type="number" 
+                    value={formData.paymentAmount} 
+                    onChange={(e) => setFormData({ ...formData, paymentAmount: e.target.value })}
+                    placeholder="Enter payment amount"
+                  />
+                </div>
+                <div className="form-group-projectmanagement">
+                  <label>Type</label>
+                  <select 
+                    value={formData.paymentMethod} 
+                    onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                  >
+                    <option value="initial">Initial (30%)</option>
+                    <option value="progress">Progress (40%)</option>
+                    <option value="final">Final (30%)</option>
+                  </select>
+                </div>
+                <div className="form-group-projectmanagement">
+                  <label>Reference</label>
+                  <input 
+                    type="text" 
+                    value={formData.paymentReference} 
+                    onChange={(e) => setFormData({ ...formData, paymentReference: e.target.value })}
+                    placeholder="Payment reference number"
+                  />
+                </div>
               </div>
-              <div className="modal-actions-projectmanagement"><button className="cancel-btn-projectmanagement" onClick={() => setShowPaymentModal(false)}>Cancel</button><button className="approve-btn-projectmanagement" onClick={recordPayment} disabled={!formData.paymentAmount || isSubmitting}>{isSubmitting ? 'Recording...' : 'Record'}</button></div>
+              <div className="modal-actions-projectmanagement">
+                <button className="cancel-btn-projectmanagement" onClick={() => setShowPaymentModal(false)}>Cancel</button>
+                <button 
+                  className="approve-btn-projectmanagement" 
+                  onClick={recordPayment} 
+                  disabled={!formData.paymentAmount || isSubmitting}
+                >
+                  {isSubmitting ? 'Recording...' : 'Record Payment'}
+                </button>
+              </div>
             </div>
           </div>
         )}

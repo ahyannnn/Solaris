@@ -2220,7 +2220,7 @@ const Quotation = () => {
                     <div className="billing-customer-cash-details">
                       <div className="billing-customer-info-box">
                         <strong>Office Address</strong>
-                        <p>Purok 2, Masaya, San Jose, Camarines Sur</p>
+                        <p> San Nicolas St. Bunsuran 3rd, Pandi, Bulacan</p>
                         <p>Mon-Fri, 8AM-5PM</p>
                       </div>
                       <button className="billing-customer-confirm-btn" onClick={handleFullPaymentSubmit} disabled={isSubmitting}>
@@ -2387,7 +2387,6 @@ const Quotation = () => {
                       <div className="billing-customer-details-section">
                         <h4>Assessment Details</h4>
                         <p><strong>Property Type:</strong> {detailsItem.propertyType || 'N/A'}</p>
-                        <p><strong>Desired Capacity:</strong> {detailsItem.desiredCapacity ? `${detailsItem.desiredCapacity} kW` : 'N/A'}</p>
                         <p><strong>Roof Type:</strong> {detailsItem.roofType || 'N/A'}</p>
                         <p><strong>Address:</strong> {formatAddress(detailsItem.address)}</p>
                       </div>

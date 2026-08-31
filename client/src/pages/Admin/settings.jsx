@@ -64,7 +64,7 @@ const Settings = () => {
     companyName: 'Salfer Engineering and Solar Technology Enterprise',
     registrationNumber: 'DTI-12345678',
     tin: '123-456-789-000',
-    address: 'Purok 2, Masaya, San Jose, Camarines Sur',
+    address: ' San Nicolas St. Bunsuran 3rd, Pandi, Bulacan',
     email: 'info@salfer.com',
     phone: '09171234567',
     website: 'www.salfer.com'

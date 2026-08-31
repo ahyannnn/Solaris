@@ -46,7 +46,8 @@ const EngineerDashboard = () => {
     myProjects: 0,
     myAssessments: 0,
     mySchedules: 0,
-    todaySchedules: 0
+    todaySchedules: 0,
+    pendingTasks: 0
   });
   const [myAssessments, setMyAssessments] = useState([]);
   const [mySchedules, setMySchedules] = useState([]);
@@ -56,6 +57,7 @@ const EngineerDashboard = () => {
   const [activeAssessment, setActiveAssessment] = useState(null);
   const [todaySchedules, setTodaySchedules] = useState([]);
   const [allActivities, setAllActivities] = useState([]);
+  const [pendingTasks, setPendingTasks] = useState([]);
 
   // Helper function to get full address
   const getFullAddress = (address) => {
@@ -125,6 +127,70 @@ const EngineerDashboard = () => {
       setTodaySchedules(todayScheds);
       setMySchedules(upcomingSchedules.slice(0, 5));
 
+      // ============================================================
+      // PENDING TASKS FOR ENGINEER
+      // ============================================================
+      const pending = [];
+
+      // 1. Assessments that need device deployment (device assigned but not deployed)
+      myAssessmentsList.forEach(a => {
+        const hasDeviceAssigned = a.assignedDeviceId || a.iotDeviceId || a.assignedDevice;
+        const isDeployed = a.deviceDeployedAt ? true : false;
+        
+        if (hasDeviceAssigned && !isDeployed && a.assessmentStatus === 'scheduled') {
+          pending.push({
+            id: a._id,
+            type: 'deploy_device',
+            title: 'Deploy Device',
+            reference: a.bookingReference || 'Assessment',
+            date: a.bookedAt || a.createdAt,
+            link: `/app/engineer/assessment/${a._id}`
+          });
+        }
+
+        // 2. Assessments that need final report submission (report_draft status)
+        if (a.assessmentStatus === 'report_draft' || a.assessmentStatus === 'report_drafted') {
+          pending.push({
+            id: a._id,
+            type: 'submit_report',
+            title: 'Submit Final Report',
+            reference: a.bookingReference || 'Assessment',
+            date: a.deviceDeployedAt || a.createdAt,
+            link: `/app/engineer/assessment/${a._id}`
+          });
+        }
+
+        // 3. Assessments that need data analysis
+        if (a.assessmentStatus === 'data_collecting' || a.assessmentStatus === 'data_analyzing') {
+          pending.push({
+            id: a._id,
+            type: 'analyze_data',
+            title: 'Analyze IoT Data',
+            reference: a.bookingReference || 'Assessment',
+            date: a.deviceDeployedAt || a.createdAt,
+            link: `/app/engineer/assessment/${a._id}`
+          });
+        }
+      });
+
+      // 4. Projects that need progress update (in_progress status)
+      myProjectsList.forEach(p => {
+        if (p.status === 'in_progress' || p.status === 'initial_paid' || p.status === 'full_paid') {
+          pending.push({
+            id: p._id,
+            type: 'update_project',
+            title: 'Update Project Progress',
+            reference: p.projectReference || p.projectName,
+            date: p.startDate || p.createdAt,
+            link: `/app/engineer/project/${p._id}`
+          });
+        }
+      });
+
+      // Sort by date (oldest first - priority)
+      pending.sort((a, b) => new Date(a.date) - new Date(b.date));
+      setPendingTasks(pending.slice(0, 5));
+
       // Get user name from session storage or localStorage
       const storedName = sessionStorage.getItem('userName') || localStorage.getItem('userName') || 'Engineer';
       setUserName(storedName);
@@ -133,7 +199,8 @@ const EngineerDashboard = () => {
         myProjects: activeProjects,
         myAssessments: pendingAssessments,
         mySchedules: upcomingSchedules.length,
-        todaySchedules: todayScheds.length
+        todaySchedules: todayScheds.length,
+        pendingTasks: pending.length
       });
 
       // Combine activities for timeline - ONLY 3 MOST RECENT
@@ -223,6 +290,11 @@ const EngineerDashboard = () => {
       'project': {
         'pending': <span className="status-badge-engdas pending-engdas">Pending</span>,
         'approved': <span className="status-badge-engdas approved-engdas">Approved</span>,
+        'in_progress': <span className="status-badge-engdas in-progress-engdas">In Progress</span>,
+        'completed': <span className="status-badge-engdas completed-engdas">Completed</span>
+      },
+      'task': {
+        'pending': <span className="status-badge-engdas pending-engdas">Pending</span>,
         'in_progress': <span className="status-badge-engdas in-progress-engdas">In Progress</span>,
         'completed': <span className="status-badge-engdas completed-engdas">Completed</span>
       }
@@ -328,6 +400,25 @@ const EngineerDashboard = () => {
           </div>
         )}
 
+        {/* Pending Tasks Alert */}
+        {pendingTasks.length > 0 && (
+          <div className="engdas-pending-alert">
+            <div className="alert-icon-engdas" style={{ background: 'rgba(243, 156, 18, 0.12)', color: '#F39C12' }}>
+              <FaExclamationTriangle />
+            </div>
+            <div className="alert-content-engdas">
+              <strong>You have {pendingTasks.length} pending task(s)</strong>
+              <p>Complete these tasks to move your projects forward.</p>
+            </div>
+            <Link to="#pending-tasks" className="alert-action-engdas" onClick={(e) => {
+              e.preventDefault();
+              document.querySelector('.engdas-pending-tasks-section')?.scrollIntoView({ behavior: 'smooth' });
+            }}>
+              View Tasks <FaArrowRight />
+            </Link>
+          </div>
+        )}
+
         {/* Quick Actions */}
         <div className="engdas-quick-actions">
           <h3 className="quick-actions-title-engdas">Quick Actions</h3>
@@ -363,7 +454,7 @@ const EngineerDashboard = () => {
           </div>
         </div>
 
-        {/* Stats Cards - Only 4 cards */}
+        {/* Stats Cards - 4 cards only - FIXED */}
         <div className="engdas-stats-grid">
           <div className="stat-card-engdas">
             <div className="stat-content-engdas">
@@ -381,9 +472,9 @@ const EngineerDashboard = () => {
           </div>
           <div className="stat-card-engdas">
             <div className="stat-content-engdas">
-              <span className="stat-label-engdas">Today's Tasks</span>
-              <span className="stat-value-engdas">{stats.todaySchedules}</span>
-              <span className="stat-trend-engdas">For today</span>
+              <span className="stat-label-engdas">Pending Tasks</span>
+              <span className="stat-value-engdas">{stats.pendingTasks}</span>
+              <span className="stat-trend-engdas">Require action</span>
             </div>
           </div>
           <div className="stat-card-engdas">
@@ -395,9 +486,9 @@ const EngineerDashboard = () => {
           </div>
         </div>
 
-        {/* Row Layout: Active Assessment + Recent Activity - FIXED HEIGHT */}
+        {/* Row Layout: Active Assessment + Recent Activity */}
         <div className="engdas-row-layout">
-          {/* Active Assessment - Fixed Height */}
+          {/* Active Assessment */}
           <div className="engdas-assessment-section">
             <div className="section-header-engdas">
               <h2 className="section-title-engdas">Active Assessment</h2>
@@ -449,7 +540,7 @@ const EngineerDashboard = () => {
             )}
           </div>
 
-          {/* Recent Activity - Fixed Height with 3 items max */}
+          {/* Recent Activity */}
           <div className="engdas-activities-section">
             <div className="section-header-engdas">
               <h2 className="section-title-engdas">Recent Activity</h2>

@@ -85,6 +85,10 @@
   --empty-desc-color: #98A2B3;
   --required-color: #EF4444;
   --error-color: #DC2626;
+  --pending-task-hover: rgba(243, 156, 18, 0.06);
+  --task-count-bg: rgba(243, 156, 18, 0.10);
+  --task-count-color: #D97706;
+  --task-item-border: #EEF0ED;
 }
 
 /* ============================================
@@ -168,6 +172,10 @@ body.dark-mode {
   --empty-desc-color: rgba(255, 255, 255, 0.4);
   --required-color: #EF4444;
   --error-color: #EF4444;
+  --pending-task-hover: rgba(243, 156, 18, 0.08);
+  --task-count-bg: rgba(243, 156, 18, 0.12);
+  --task-count-color: #F39C12;
+  --task-item-border: rgba(255, 255, 255, 0.06);
 }
 
 /* ============================================
@@ -175,7 +183,6 @@ body.dark-mode {
    ============================================ */
 .engdas-dashboard {
   padding-inline: 12px;
-  padding-top: 20px;
   padding-bottom: 40px;
   margin: 0 auto;
   background: var(--bg-primary);
@@ -185,18 +192,14 @@ body.dark-mode {
   transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* ============================================
-   WELCOME SECTION
-   ============================================ */
 .engdas-welcome-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 0 20px 0;
+
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 24px;
   flex-wrap: wrap;
-  gap: 16px;
   transition: border-color 0.3s ease;
 }
 
@@ -313,8 +316,26 @@ body.dark-mode {
   transition: background 0.3s ease, border-color 0.3s ease;
 }
 
+/* ============================================
+   PENDING ALERT - NEW
+   ============================================ */
+.engdas-pending-alert {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--bg-today-alert);
+  border: 1px solid var(--border-card);
+  border-radius: 14px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
 .alert-icon-engdas {
-  color: var(--icon-primary);
   font-size: 1.5rem;
   flex-shrink: 0;
   transition: color 0.3s ease;
@@ -440,7 +461,7 @@ body.dark-mode {
 }
 
 /* ============================================
-   STATS GRID - GLASS
+   STATS GRID - GLASS (FIXED: 4 columns)
    ============================================ */
 .engdas-stats-grid {
   display: grid;
@@ -452,12 +473,16 @@ body.dark-mode {
 .stat-card-engdas {
   background: var(--bg-card);
   border-radius: 14px;
-  padding: 20px 24px;
+  padding: 20px 20px 18px;
   border: 1px solid var(--border-card);
   transition: all 200ms ease;
   box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .stat-card-engdas:hover {
@@ -469,11 +494,11 @@ body.dark-mode {
 .stat-content-engdas {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .stat-label-engdas {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -482,7 +507,7 @@ body.dark-mode {
 }
 
 .stat-value-engdas {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.2;
@@ -490,9 +515,147 @@ body.dark-mode {
 }
 
 .stat-trend-engdas {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: var(--text-secondary);
   transition: color 0.3s ease;
+  margin-top: 2px;
+}
+
+/* ============================================
+   PENDING TASKS SECTION - NEW
+   ============================================ */
+.engdas-pending-tasks-section {
+  margin-bottom: 24px;
+}
+
+.section-header-engdas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  margin-bottom: 12px;
+}
+
+.section-title-engdas {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.3s ease;
+}
+
+.section-icon-engdas {
+  color: var(--icon-warning);
+  font-size: 1rem;
+}
+
+.task-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 12px;
+  background: var(--task-count-bg);
+  color: var(--task-count-color);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.pending-tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pending-task-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 200ms ease;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.pending-task-item:hover {
+  transform: translateX(4px);
+  border-color: rgba(243, 156, 18, 0.2);
+  box-shadow: var(--shadow-card-hover);
+  background: var(--pending-task-hover);
+}
+
+.task-item-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  background: rgba(243, 156, 18, 0.10);
+  color: var(--icon-warning);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.task-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-item-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.task-item-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+
+.task-item-status {
+  flex-shrink: 0;
+}
+
+.task-item-ref {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  transition: color 0.3s ease;
+}
+
+.task-item-date {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  transition: color 0.3s ease;
+}
+
+.task-item-arrow {
+  color: var(--quick-action-arrow-color);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  transition: transform 200ms ease, color 0.3s ease;
+}
+
+.pending-task-item:hover .task-item-arrow {
+  transform: translateX(4px);
+  color: var(--quick-action-arrow-hover);
 }
 
 /* ============================================
@@ -513,21 +676,6 @@ body.dark-mode {
   flex-direction: column;
   gap: 16px;
   min-height: 280px;
-}
-
-.section-header-engdas {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 4px;
-}
-
-.section-title-engdas {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-  transition: color 0.3s ease;
 }
 
 .view-all-link-engdas {
@@ -988,8 +1136,13 @@ body.dark-mode {
 }
 
 @keyframes shimmer-engdas {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .skeleton-title-engdas {
@@ -1057,6 +1210,7 @@ body.dark-mode {
   .engdas-dashboard {
     padding-inline: 20px;
   }
+
   .engdas-stats-grid {
     gap: 14px;
   }
@@ -1067,10 +1221,12 @@ body.dark-mode {
     grid-template-columns: 1fr;
     gap: 20px;
   }
+
   .engdas-stats-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 14px;
   }
+
   .engdas-action-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
@@ -1082,24 +1238,30 @@ body.dark-mode {
     padding-inline: 14px;
     padding-top: 12px;
   }
+
   .engdas-welcome-section {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
     padding: 0 0 16px 0;
   }
+
   .engdas-welcome-greeting {
     font-size: 20px;
   }
+
   .engdas-welcome-icon {
     font-size: 22px;
   }
+
   .engdas-welcome-subtitle {
     font-size: 13px;
   }
+
   .engdas-welcome-actions {
     width: 100%;
   }
+
   .engdas-welcome-actions .btn-primary-engdas,
   .engdas-welcome-actions .btn-secondary-engdas {
     flex: 1;
@@ -1107,105 +1269,154 @@ body.dark-mode {
     padding: 8px 16px;
     font-size: 13px;
   }
+
   .engdas-stats-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
+
   .stat-card-engdas {
-    padding: 14px 16px;
+    padding: 14px 14px 12px;
+    min-height: 90px;
     border-radius: 10px;
   }
+
   .stat-value-engdas {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
   }
+
+  .stat-label-engdas {
+    font-size: 0.65rem;
+  }
+
+  .stat-trend-engdas {
+    font-size: 0.6rem;
+  }
+
   .engdas-action-grid {
     grid-template-columns: 1fr 1fr;
     gap: 8px;
   }
+
   .quick-action-item-engdas {
     padding: 12px 14px;
     border-radius: 10px;
   }
+
   .quick-action-icon-engdas {
     width: 36px;
     height: 36px;
     font-size: 0.95rem;
   }
+
   .quick-action-label-engdas {
     font-size: 0.8rem;
   }
+
   .assessment-card-engdas {
     padding: 16px 18px;
     min-height: 180px;
   }
+
   .activities-card-engdas {
     padding: 14px 16px;
     min-height: 180px;
   }
+
   .assessment-name-engdas {
     font-size: 1rem;
   }
+
   .section-title-engdas {
     font-size: 1rem;
   }
+
   .view-all-link-engdas {
     font-size: 0.8rem;
   }
-  .engdas-today-alert {
+
+  .engdas-today-alert,
+  .engdas-pending-alert {
     flex-direction: column;
     text-align: center;
     padding: 14px 16px;
     gap: 10px;
   }
+
   .alert-action-engdas {
     width: 100%;
     justify-content: center;
   }
+
   .schedule-item-engdas {
     flex-wrap: wrap;
     gap: 8px;
     padding: 8px 12px;
   }
+
   .schedule-time-engdas {
     min-width: 40px;
     padding: 2px 6px;
   }
+
   .schedule-hour-engdas {
     font-size: 0.8rem;
   }
+
   .activity-item-engdas {
     flex-wrap: wrap;
     padding: 8px 10px;
     gap: 8px;
   }
+
   .activity-icon-wrapper-engdas {
     width: 34px;
     height: 34px;
     font-size: 0.85rem;
   }
+
   .activity-title-engdas {
     font-size: 0.8rem;
   }
+
   .activity-reference-engdas {
     font-size: 0.7rem;
   }
+
   .activity-date-engdas {
     font-size: 0.7rem;
   }
+
   .activity-status-engdas {
     margin-left: auto;
   }
+
   .engdas-assessment-section,
   .engdas-activities-section {
     min-height: 200px;
   }
+
   .empty-state-engdas {
     min-height: 180px;
     padding: 16px;
   }
+
   .today-schedules-section-engdas {
     margin-top: 8px;
     padding-top: 8px;
+  }
+
+  .pending-task-item {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+  }
+
+  .task-item-title {
+    font-size: 0.85rem;
+  }
+
+  .task-item-ref {
+    font-size: 0.75rem;
   }
 }
 
@@ -1213,56 +1424,72 @@ body.dark-mode {
   .engdas-dashboard {
     padding-inline: 10px;
   }
+
   .engdas-stats-grid {
     grid-template-columns: 1fr 1fr;
     gap: 8px;
   }
+
   .stat-card-engdas {
-    padding: 12px;
+    padding: 10px 10px 8px;
+    min-height: 75px;
     border-radius: 8px;
   }
+
   .stat-value-engdas {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
   }
+
   .stat-label-engdas {
-    font-size: 0.65rem;
+    font-size: 0.55rem;
   }
+
   .stat-trend-engdas {
-    font-size: 0.65rem;
+    font-size: 0.5rem;
   }
+
   .engdas-action-grid {
     grid-template-columns: 1fr 1fr;
     gap: 6px;
   }
+
   .quick-action-item-engdas {
     padding: 10px 12px;
     gap: 8px;
     border-radius: 8px;
   }
+
   .quick-action-icon-engdas {
     width: 30px;
     height: 30px;
     font-size: 0.8rem;
     border-radius: 8px;
   }
+
   .quick-action-label-engdas {
     font-size: 0.7rem;
   }
+
   .quick-action-arrow-engdas {
     font-size: 0.6rem;
   }
+
   .engdas-welcome-greeting {
     font-size: 18px;
   }
+
   .engdas-welcome-icon {
     font-size: 18px;
   }
+
   .engdas-welcome-subtitle {
     font-size: 12px;
   }
+
   .engdas-welcome-actions {
     flex-direction: column;
   }
+
   .engdas-welcome-actions .btn-primary-engdas,
   .engdas-welcome-actions .btn-secondary-engdas {
     width: 100%;
@@ -1270,75 +1497,123 @@ body.dark-mode {
     padding: 8px 12px;
     font-size: 12px;
   }
+
   .assessment-card-engdas {
     padding: 12px 14px;
     min-height: 150px;
     border-radius: 10px;
   }
+
   .activities-card-engdas {
     padding: 10px 12px;
     min-height: 150px;
     border-radius: 10px;
   }
+
   .assessment-name-engdas {
     font-size: 0.9rem;
   }
+
   .assessment-reference-engdas {
     font-size: 0.75rem;
   }
+
   .metric-label-engdas {
     font-size: 0.75rem;
   }
+
   .metric-value-engdas {
     font-size: 0.8rem;
   }
-  .engdas-today-alert {
+
+  .engdas-today-alert,
+  .engdas-pending-alert {
     padding: 10px 12px;
     border-radius: 10px;
   }
+
   .alert-content-engdas strong {
     font-size: 0.8rem;
   }
+
   .alert-content-engdas p {
     font-size: 0.75rem;
   }
+
   .alert-action-engdas {
     padding: 6px 12px;
     font-size: 0.75rem;
   }
+
   .schedule-item-engdas {
     padding: 6px 10px;
   }
+
   .schedule-title-engdas {
     font-size: 0.75rem;
   }
+
   .schedule-client-engdas {
     font-size: 0.65rem;
   }
+
   .activity-item-engdas {
     padding: 6px 8px;
   }
+
   .activity-title-engdas {
     font-size: 0.75rem;
   }
+
   .empty-state-title-engdas {
     font-size: 0.85rem;
   }
+
   .empty-state-description-engdas {
     font-size: 0.75rem;
   }
+
   .btn-primary-engdas,
   .btn-secondary-engdas {
     padding: 8px 16px;
     font-size: 12px;
     border-radius: 8px;
   }
+
   .empty-state-engdas {
     min-height: 150px;
   }
+
   .engdas-assessment-section,
   .engdas-activities-section {
     min-height: 160px;
+  }
+
+  .pending-task-item {
+    padding: 10px 12px;
+  }
+
+  .task-item-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+  }
+
+  .task-item-title {
+    font-size: 0.8rem;
+  }
+
+  .task-item-ref {
+    font-size: 0.7rem;
+  }
+
+  .task-item-date {
+    font-size: 0.65rem;
+  }
+
+  .task-count-badge {
+    font-size: 0.7rem;
+    padding: 1px 10px;
   }
 }
 
@@ -1346,36 +1621,68 @@ body.dark-mode {
   .engdas-dashboard {
     padding-inline: 6px;
   }
+
   .engdas-stats-grid {
     grid-template-columns: 1fr 1fr;
     gap: 6px;
   }
+
   .stat-card-engdas {
-    padding: 8px 10px;
+    padding: 8px 8px 6px;
+    min-height: 65px;
   }
+
   .stat-value-engdas {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
+
+  .stat-label-engdas {
+    font-size: 0.5rem;
+  }
+
+  .stat-trend-engdas {
+    font-size: 0.45rem;
+  }
+
   .engdas-action-grid {
     grid-template-columns: 1fr 1fr;
     gap: 4px;
   }
+
   .quick-action-item-engdas {
     padding: 6px 8px;
   }
+
   .quick-action-icon-engdas {
     width: 24px;
     height: 24px;
     font-size: 0.7rem;
   }
+
   .quick-action-label-engdas {
     font-size: 0.65rem;
   }
+
   .engdas-welcome-greeting {
     font-size: 16px;
   }
+
   .engdas-welcome-icon {
     font-size: 16px;
+  }
+
+  .pending-task-item {
+    padding: 8px 10px;
+  }
+
+  .task-item-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 0.7rem;
+  }
+
+  .task-item-title {
+    font-size: 0.7rem;
   }
 }
 
@@ -1388,26 +1695,36 @@ body.dark-mode {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
   .stat-card-engdas:hover,
   .quick-action-item-engdas:hover,
   .activity-item-engdas:hover,
-  .schedule-item-engdas:hover {
+  .schedule-item-engdas:hover,
+  .pending-task-item:hover {
     transform: none !important;
   }
+
   .skeleton-line-engdas {
     animation: none !important;
     background: var(--skeleton-bg) !important;
   }
+
   .btn-primary-engdas:hover,
   .btn-secondary-engdas:hover,
   .alert-action-engdas:hover,
   .view-all-link-engdas:hover {
     transform: none !important;
   }
+
   .quick-action-item-engdas:hover .quick-action-arrow-engdas {
     transform: none !important;
   }
+
   .view-all-link-engdas:hover .arrow-icon-engdas {
+    transform: none !important;
+  }
+
+  .pending-task-item:hover .task-item-arrow {
     transform: none !important;
   }
 }

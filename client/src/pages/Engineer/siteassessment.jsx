@@ -78,7 +78,7 @@ const MyAssessments = () => {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage] = useState(5);
+  const [rowsPerPage] = useState(6);
 
   const [laborCostPercentage, setLaborCostPercentage] = useState(20);
   const [overheadContingencyPercentage, setOverheadContingencyPercentage] = useState(15);

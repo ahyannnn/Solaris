@@ -538,11 +538,10 @@ exports.createScheduleFromPreAssessment = async (req, res) => {
       return res.status(400).json({ message: 'Schedule already exists for this assessment' });
     }
 
-    // Calculate end time (default 2 hours duration)
-    const duration = 2;
-    const endTime = new Date(`${siteVisitDate}T${siteVisitTime || '09:00'}`);
-    endTime.setHours(endTime.getHours() + duration);
-    const endTimeString = endTime.toTimeString().slice(0, 5);
+    // Fixed schedule: starts at 6:00 AM, ends at 11:00 AM (5 hours duration)
+    const startTime = '06:00';
+    const endTime = '11:00';
+    const duration = 5;
 
     const schedule = new Schedule({
       preAssessmentId: preAssessment._id,
@@ -550,9 +549,9 @@ exports.createScheduleFromPreAssessment = async (req, res) => {
       title: `Site Assessment - ${preAssessment.bookingReference}`,
       description: `Initial site assessment for solar installation at ${preAssessment.addressId?.houseOrBuilding}`,
       scheduledDate: new Date(siteVisitDate),
-      scheduledTime: siteVisitTime || '09:00',
+      scheduledTime: startTime,
       duration: duration,
-      endTime: endTimeString,
+      endTime: endTime,
       address: {
         houseOrBuilding: preAssessment.addressId?.houseOrBuilding,
         street: preAssessment.addressId?.street,

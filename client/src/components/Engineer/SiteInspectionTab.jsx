@@ -116,8 +116,8 @@ const SiteInspectionTab = ({
     monthlyConsumption: 0
   });
 
-  const activeAppliances = siteInspectionData.appliances?.length > 0 
-    ? siteInspectionData.appliances 
+  const activeAppliances = siteInspectionData.appliances?.length > 0
+    ? siteInspectionData.appliances
     : appliances;
 
   useEffect(() => {
@@ -244,9 +244,9 @@ const SiteInspectionTab = ({
   // ============ FIELD CHANGE HANDLERS WITH VALIDATION ============
   const handleSiteInspectionChange = (field, value) => {
     onSiteInspectionDataChange(field, value);
-    
+
     let error = '';
-    switch(field) {
+    switch (field) {
       case 'monthlyBill':
         error = validateMonthlyBill(value);
         break;
@@ -267,9 +267,9 @@ const SiteInspectionTab = ({
 
   const handleAssessmentFormChangeWithValidation = (field, value) => {
     onAssessmentFormChange(field, value);
-    
+
     let error = '';
-    switch(field) {
+    switch (field) {
       case 'roofCondition':
         error = validateRoofCondition(value);
         break;
@@ -415,12 +415,20 @@ const SiteInspectionTab = ({
         <button onClick={handleSave} disabled={isSubmitting} className="btn-secondary-enad">
           {isSubmitting ? 'Saving...' : 'Save All Changes'}
         </button>
-        {assessmentStatus !== 'device_deployed' &&
+
+        {/* Deploy Device Button - Only show if device is assigned AND not deployed yet */}
+        {deviceAssigned &&
+          !siteInspectionData.deviceDeployedAt &&  // ✅ Prevents re-deployment
+          assessmentStatus !== 'device_deployed' &&
           assessmentStatus !== 'data_collecting' &&
-          deviceAssigned && (
-            <button 
-              onClick={onDeploy} 
-              disabled={isSubmitting || !deployNotes || deployNotes.trim() === ''} 
+          assessmentStatus !== 'data_analyzing' &&
+          assessmentStatus !== 'report_draft' &&
+          assessmentStatus !== 'quotation_generated' &&
+          assessmentStatus !== 'quotation_accepted' &&
+          assessmentStatus !== 'completed' && (
+            <button
+              onClick={onDeploy}
+              disabled={isSubmitting || !deployNotes || deployNotes.trim() === ''}
               className="btn-success-enad"
             >
               {isSubmitting ? 'Deploying...' : 'Deploy Device (Start 7-day Monitoring)'}

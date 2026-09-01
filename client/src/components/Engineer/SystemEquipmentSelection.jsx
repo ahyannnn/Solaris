@@ -59,7 +59,7 @@ export const SystemEquipmentSelection = ({
   laborCostPercentage, setLaborCostPercentage,
   overheadContingencyPercentage, setOverheadContingencyPercentage,
   contractorProfitPercentage, setContractorProfitPercentage,
-  discountPercentage, setDiscountPercentage, // NEW: Discount percentage props
+  discountPercentage, setDiscountPercentage,
   freeQuoteCalculateTotalCosts,
   // Form
   freeQuoteForm,
@@ -79,9 +79,17 @@ export const SystemEquipmentSelection = ({
 }) => {
   // Validation state for error messages
   const [fieldErrors, setFieldErrors] = useState({});
+  
+  // ✅ NEW: Track which sections have been touched/validated
+  const [touchedFields, setTouchedFields] = useState({});
 
   // Use the toast hook
   const { toast, showToast, hideToast } = useToast();
+
+  // ✅ NEW: Mark field as touched when user interacts
+  const markTouched = (fieldName) => {
+    setTouchedFields(prev => ({ ...prev, [fieldName]: true }));
+  };
 
   // Validate all equipment selections and quantities
   const validateEquipment = () => {
@@ -146,7 +154,7 @@ export const SystemEquipmentSelection = ({
       fieldErrorMap.electrical = 'Please add at least one component';
     } else {
       let hasError = false;
-      freeQuoteSelectedElectricalComponents.forEach((item) => {
+      freeQuoteSelectedElectricalComponents.forEach((item, idx) => {
         if (!item.id) {
           fieldErrorMap.electrical = 'Please select a component for all items';
           hasError = true;
@@ -288,9 +296,19 @@ export const SystemEquipmentSelection = ({
       }
     });
 
-    // Check if total system cost is 0
+    // ✅ NEW: Check if total system cost is 0 or invalid
     if (freeQuoteCalculatedCosts.totalSystemCost === 0) {
       fieldErrorMap.totalCost = 'Total system cost is 0. Please ensure all equipment is properly configured.';
+    }
+
+    // ✅ NEW: Check if system size is valid
+    if (!freeQuoteForm.systemSize || parseFloat(freeQuoteForm.systemSize) <= 0) {
+      fieldErrorMap.systemSize = 'Please enter a valid system size (greater than 0)';
+    }
+
+    // ✅ NEW: Check if annual production is valid
+    if (!annualProduction || annualProduction <= 0) {
+      fieldErrorMap.annualProduction = 'Annual production data is missing. Please calculate system size first.';
     }
 
     setFieldErrors(fieldErrorMap);
@@ -298,18 +316,32 @@ export const SystemEquipmentSelection = ({
     // Return true if there are any errors
     return Object.values(fieldErrorMap).some(error => error && error.length > 0);
   };
+
+  // ✅ NEW: Get all error messages as a list
+  const getAllErrorMessages = () => {
+    const errors = [];
+    Object.keys(fieldErrors).forEach(key => {
+      if (fieldErrors[key] && fieldErrors[key].length > 0) {
+        errors.push(fieldErrors[key]);
+      }
+    });
+    return errors;
+  };
   
   // Handle PDF generation with validation
   const handleGeneratePDF = () => {
     const hasErrors = validateEquipment();
 
     if (hasErrors) {
-      // Find the first error message
-      const firstErrorKey = Object.keys(fieldErrors).find(key => fieldErrors[key] && fieldErrors[key].length > 0);
-      const errorMessage = firstErrorKey ? fieldErrors[firstErrorKey] : 'Please fix all validation errors';
-
-      // Show toast notification with the first error
-      showToast(errorMessage, 'error', 5000);
+      // Get all error messages
+      const errorMessages = getAllErrorMessages();
+      
+      // Show first error as toast
+      if (errorMessages.length > 0) {
+        showToast(errorMessages[0], 'error', 5000);
+      } else {
+        showToast('Please fix all validation errors before generating PDF', 'error', 5000);
+      }
 
       // Scroll to first error
       const firstErrorElement = document.querySelector('.error-border');
@@ -325,7 +357,14 @@ export const SystemEquipmentSelection = ({
 
   // Clear errors when user makes changes
   useEffect(() => {
-    setFieldErrors({});
+    // Only clear errors for fields that have been touched
+    const newErrors = { ...fieldErrors };
+    Object.keys(fieldErrors).forEach(key => {
+      if (touchedFields[key]) {
+        delete newErrors[key];
+      }
+    });
+    setFieldErrors(newErrors);
   }, [
     freeQuoteSelectedPanel,
     freeQuotePanelQuantity,
@@ -341,10 +380,17 @@ export const SystemEquipmentSelection = ({
     freeQuoteSelectedDisconnectSwitches,
     freeQuoteSelectedMeters,
     freeQuoteAdditionalEquipment,
+    freeQuoteForm.systemSize,
+    annualProduction,
   ]);
 
   // Check if button should be disabled
-  const isButtonDisabled = generatingPDF || !freeQuoteForm.systemSize || freeQuoteCalculatedCosts.totalSystemCost === 0;
+  const isButtonDisabled = generatingPDF || 
+    !freeQuoteForm.systemSize || 
+    parseFloat(freeQuoteForm.systemSize) <= 0 ||
+    freeQuoteCalculatedCosts.totalSystemCost === 0 ||
+    !annualProduction ||
+    annualProduction <= 0;
 
   // Helper function to check if a field has error
   const hasError = (fieldName) => {
@@ -358,6 +404,7 @@ export const SystemEquipmentSelection = ({
 
   // Calculate discounted total
   const { discountAmount, finalAmount } = freeQuoteCalculatedCosts;
+  
   // Calculate ROI whenever values change
   useEffect(() => {
     const totalCost = discountPercentage > 0 ? finalAmount : freeQuoteCalculatedCosts.totalSystemCost;
@@ -366,12 +413,10 @@ export const SystemEquipmentSelection = ({
     if (annualProd > 0 && totalCost > 0) {
       const calculatedROI = totalCost / annualProd;
       const roundedROI = Math.round(calculatedROI * 10) / 10;
-      // Call the callback with the calculated ROI
       if (onROICalculated) {
         onROICalculated(roundedROI);
       }
     } else if (annualProd === 0 && totalCost > 0) {
-      // No annual production data, use 0
       if (onROICalculated) {
         onROICalculated(0);
       }
@@ -383,6 +428,7 @@ export const SystemEquipmentSelection = ({
     annualProduction,
     onROICalculated
   ]);
+
   return (
     <>
       {/* Toast Notification Component */}
@@ -394,9 +440,11 @@ export const SystemEquipmentSelection = ({
         position="bottom-left"
       />
 
+      
+
       {/* Solar Panels */}
       <div className="quotation-section">
-        <h4>Solar Panels</h4>
+        <h4>Solar Panels <span className="required-star">*</span></h4>
         <div className="equipment-selection-row">
           <div className="form-group-enad">
             <select
@@ -406,6 +454,7 @@ export const SystemEquipmentSelection = ({
                 const panel = availablePanels.find(p => p._id === e.target.value);
                 setFreeQuoteSelectedPanel(panel);
                 if (panel && panel.unit === 'watt') setFreeQuotePanelQuantity(1);
+                markTouched('panels');
               }}
             >
               <option value="">-- Select Panel --</option>
@@ -423,7 +472,10 @@ export const SystemEquipmentSelection = ({
               max="999"
               className={`assessment-form-input-enad ${freeQuoteSelectedPanel?.unit !== 'watt' && hasError('panels') ? 'error-border' : ''}`}
               value={freeQuotePanelQuantity}
-              onChange={(e) => setFreeQuotePanelQuantity(parseInt(e.target.value) || 0)}
+              onChange={(e) => {
+                setFreeQuotePanelQuantity(parseInt(e.target.value) || 0);
+                markTouched('panels');
+              }}
               disabled={freeQuoteSelectedPanel?.unit === 'watt'}
             />
           </div>
@@ -441,7 +493,7 @@ export const SystemEquipmentSelection = ({
 
       {/* Inverters */}
       <div className="quotation-section">
-        <h4>Inverters</h4>
+        <h4>Inverters <span className="required-star">*</span></h4>
         <div className="equipment-selection-row">
           <div className="form-group-enad">
             <select
@@ -450,6 +502,7 @@ export const SystemEquipmentSelection = ({
               onChange={(e) => {
                 const inverter = availableInverters.find(i => i._id === e.target.value);
                 setFreeQuoteSelectedInverter(inverter);
+                markTouched('inverters');
               }}
             >
               <option value="">-- Select Inverter --</option>
@@ -467,7 +520,10 @@ export const SystemEquipmentSelection = ({
               max="50"
               className={`assessment-form-input-enad ${hasError('inverters') ? 'error-border' : ''}`}
               value={freeQuoteInverterQuantity}
-              onChange={(e) => setFreeQuoteInverterQuantity(parseInt(e.target.value) || 0)}
+              onChange={(e) => {
+                setFreeQuoteInverterQuantity(parseInt(e.target.value) || 0);
+                markTouched('inverters');
+              }}
             />
           </div>
           <div className="cost-display">
@@ -482,7 +538,7 @@ export const SystemEquipmentSelection = ({
       {/* Batteries - Show for Hybrid and Off-Grid */}
       {(systemType === 'hybrid' || systemType === 'off-grid') && (
         <div className="quotation-section">
-          <h4>Batteries (Required for {getSystemTypeLabel(systemType)})</h4>
+          <h4>Batteries <span className="required-star">*</span> <span className="system-required">(Required for {getSystemTypeLabel(systemType)})</span></h4>
           <div className="equipment-selection-row">
             <div className="form-group-enad">
               <select
@@ -491,6 +547,7 @@ export const SystemEquipmentSelection = ({
                 onChange={(e) => {
                   const battery = availableBatteries.find(b => b._id === e.target.value);
                   setFreeQuoteSelectedBattery(battery);
+                  markTouched('batteries');
                 }}
               >
                 <option value="">-- Select Battery --</option>
@@ -508,7 +565,10 @@ export const SystemEquipmentSelection = ({
                 max="100"
                 className={`assessment-form-input-enad ${hasError('batteries') ? 'error-border' : ''}`}
                 value={freeQuoteBatteryQuantity}
-                onChange={(e) => setFreeQuoteBatteryQuantity(parseInt(e.target.value) || 0)}
+                onChange={(e) => {
+                  setFreeQuoteBatteryQuantity(parseInt(e.target.value) || 0);
+                  markTouched('batteries');
+                }}
               />
             </div>
             <div className="cost-display">
@@ -523,7 +583,7 @@ export const SystemEquipmentSelection = ({
 
       {/* Mounting Structure */}
       <div className="quotation-section">
-        <h4>Mounting Structure</h4>
+        <h4>Mounting Structure <span className="required-star">*</span></h4>
         <div className="equipment-selection-row">
           <div className="form-group-enad">
             <select
@@ -532,6 +592,7 @@ export const SystemEquipmentSelection = ({
               onChange={(e) => {
                 const structure = availableMountingStructures.find(m => m._id === e.target.value);
                 setFreeQuoteSelectedMountingStructure(structure);
+                markTouched('mounting');
               }}
             >
               <option value="">-- Select Mounting Structure --</option>
@@ -549,7 +610,10 @@ export const SystemEquipmentSelection = ({
               max="999"
               className={`assessment-form-input-enad ${hasError('mounting') ? 'error-border' : ''}`}
               value={freeQuoteMountingStructureQuantity}
-              onChange={(e) => setFreeQuoteMountingStructureQuantity(parseInt(e.target.value) || 0)}
+              onChange={(e) => {
+                setFreeQuoteMountingStructureQuantity(parseInt(e.target.value) || 0);
+                markTouched('mounting');
+              }}
             />
           </div>
           <div className="cost-display">
@@ -563,14 +627,17 @@ export const SystemEquipmentSelection = ({
 
       {/* ===== ELECTRICAL COMPONENTS ===== */}
       <div className="quotation-section">
-        <h4>Electrical Components</h4>
+        <h4>Electrical Components <span className="required-star">*</span></h4>
         <button type="button" className="btn-add-item" onClick={freeQuoteAddElectricalComponent}>+ Add Component</button>
         {freeQuoteSelectedElectricalComponents.map((item, index) => (
           <div key={index} className="additional-item-row">
             <select
               className={`assessment-form-select-enad ${!item.id && hasError('electrical') ? 'error-border' : ''}`}
               value={item.id || ''}
-              onChange={(e) => freeQuoteUpdateElectricalComponent(index, 'id', e.target.value)}
+              onChange={(e) => {
+                freeQuoteUpdateElectricalComponent(index, 'id', e.target.value);
+                markTouched('electrical');
+              }}
             >
               <option value="">-- Select Component --</option>
               {availableElectricalComponents.filter(c => c.isActive).map(comp => (
@@ -584,7 +651,10 @@ export const SystemEquipmentSelection = ({
               max="999"
               className={`assessment-form-input-enad ${(item.quantity < 1 || item.quantity > 999) && hasError('electrical') ? 'error-border' : ''}`}
               value={item.quantity}
-              onChange={(e) => freeQuoteUpdateElectricalComponent(index, 'quantity', parseInt(e.target.value) || 0)}
+              onChange={(e) => {
+                freeQuoteUpdateElectricalComponent(index, 'quantity', parseInt(e.target.value) || 0);
+                markTouched('electrical');
+              }}
             />
             <span className="item-total">{formatCurrency(item.total || 0)}</span>
             <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveElectricalComponent(index)}>Remove</button>
@@ -597,14 +667,17 @@ export const SystemEquipmentSelection = ({
 
       {/* ===== CABLES ===== */}
       <div className="quotation-section">
-        <h4>Cables and Wiring</h4>
+        <h4>Cables and Wiring <span className="required-star">*</span></h4>
         <button type="button" className="btn-add-item" onClick={freeQuoteAddCable}>+ Add Cable</button>
         {freeQuoteSelectedCables.map((item, index) => (
           <div key={index} className="additional-item-row">
             <select
               className={`assessment-form-select-enad ${!item.id && hasError('cables') ? 'error-border' : ''}`}
               value={item.id || ''}
-              onChange={(e) => freeQuoteUpdateCable(index, 'id', e.target.value)}
+              onChange={(e) => {
+                freeQuoteUpdateCable(index, 'id', e.target.value);
+                markTouched('cables');
+              }}
             >
               <option value="">-- Select Cable Type --</option>
               {availableCables.filter(c => c.isActive).map(cable => (
@@ -619,7 +692,10 @@ export const SystemEquipmentSelection = ({
               step="0.5"
               className={`assessment-form-input-enad ${(item.length < 0.5 || item.length > 10000) && hasError('cables') ? 'error-border' : ''}`}
               value={item.length}
-              onChange={(e) => freeQuoteUpdateCable(index, 'length', parseFloat(e.target.value) || 0)}
+              onChange={(e) => {
+                freeQuoteUpdateCable(index, 'length', parseFloat(e.target.value) || 0);
+                markTouched('cables');
+              }}
             />
             <input
               type="number"
@@ -628,7 +704,10 @@ export const SystemEquipmentSelection = ({
               max="999"
               className={`assessment-form-input-enad ${(item.quantity < 1 || item.quantity > 999) && hasError('cables') ? 'error-border' : ''}`}
               value={item.quantity}
-              onChange={(e) => freeQuoteUpdateCable(index, 'quantity', parseInt(e.target.value) || 0)}
+              onChange={(e) => {
+                freeQuoteUpdateCable(index, 'quantity', parseInt(e.target.value) || 0);
+                markTouched('cables');
+              }}
             />
             <span className="item-total">{formatCurrency(item.total || 0)}</span>
             <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveCable(index)}>Remove</button>
@@ -641,14 +720,17 @@ export const SystemEquipmentSelection = ({
 
       {/* ===== JUNCTION BOXES ===== */}
       <div className="quotation-section">
-        <h4>Junction Boxes</h4>
+        <h4>Junction Boxes <span className="required-star">*</span></h4>
         <button type="button" className="btn-add-item" onClick={freeQuoteAddJunctionBox}>+ Add Junction Box</button>
         {freeQuoteSelectedJunctionBoxes.map((item, index) => (
           <div key={index} className="additional-item-row">
             <select
               className={`assessment-form-select-enad ${!item.id && hasError('junctionBoxes') ? 'error-border' : ''}`}
               value={item.id || ''}
-              onChange={(e) => freeQuoteUpdateJunctionBox(index, 'id', e.target.value)}
+              onChange={(e) => {
+                freeQuoteUpdateJunctionBox(index, 'id', e.target.value);
+                markTouched('junctionBoxes');
+              }}
             >
               <option value="">-- Select Junction Box --</option>
               {availableJunctionBoxes.filter(j => j.isActive).map(box => (
@@ -662,7 +744,10 @@ export const SystemEquipmentSelection = ({
               max="999"
               className={`assessment-form-input-enad ${(item.quantity < 1 || item.quantity > 999) && hasError('junctionBoxes') ? 'error-border' : ''}`}
               value={item.quantity}
-              onChange={(e) => freeQuoteUpdateJunctionBox(index, 'quantity', parseInt(e.target.value) || 0)}
+              onChange={(e) => {
+                freeQuoteUpdateJunctionBox(index, 'quantity', parseInt(e.target.value) || 0);
+                markTouched('junctionBoxes');
+              }}
             />
             <span className="item-total">{formatCurrency(item.total || 0)}</span>
             <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveJunctionBox(index)}>Remove</button>
@@ -675,14 +760,17 @@ export const SystemEquipmentSelection = ({
 
       {/* ===== DISCONNECT SWITCHES ===== */}
       <div className="quotation-section">
-        <h4>Disconnect Switches</h4>
+        <h4>Disconnect Switches <span className="required-star">*</span></h4>
         <button type="button" className="btn-add-item" onClick={freeQuoteAddDisconnectSwitch}>+ Add Switch</button>
         {freeQuoteSelectedDisconnectSwitches.map((item, index) => (
           <div key={index} className="additional-item-row">
             <select
               className={`assessment-form-select-enad ${!item.id && hasError('disconnectSwitches') ? 'error-border' : ''}`}
               value={item.id || ''}
-              onChange={(e) => freeQuoteUpdateDisconnectSwitch(index, 'id', e.target.value)}
+              onChange={(e) => {
+                freeQuoteUpdateDisconnectSwitch(index, 'id', e.target.value);
+                markTouched('disconnectSwitches');
+              }}
             >
               <option value="">-- Select Switch --</option>
               {availableDisconnectSwitches.filter(s => s.isActive).map(sw => (
@@ -696,7 +784,10 @@ export const SystemEquipmentSelection = ({
               max="999"
               className={`assessment-form-input-enad ${(item.quantity < 1 || item.quantity > 999) && hasError('disconnectSwitches') ? 'error-border' : ''}`}
               value={item.quantity}
-              onChange={(e) => freeQuoteUpdateDisconnectSwitch(index, 'quantity', parseInt(e.target.value) || 0)}
+              onChange={(e) => {
+                freeQuoteUpdateDisconnectSwitch(index, 'quantity', parseInt(e.target.value) || 0);
+                markTouched('disconnectSwitches');
+              }}
             />
             <span className="item-total">{formatCurrency(item.total || 0)}</span>
             <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveDisconnectSwitch(index)}>Remove</button>
@@ -709,14 +800,17 @@ export const SystemEquipmentSelection = ({
 
       {/* ===== METERS ===== */}
       <div className="quotation-section">
-        <h4>Meters</h4>
+        <h4>Meters <span className="required-star">*</span></h4>
         <button type="button" className="btn-add-item" onClick={freeQuoteAddMeter}>+ Add Meter</button>
         {freeQuoteSelectedMeters.map((item, index) => (
           <div key={index} className="additional-item-row">
             <select
               className={`assessment-form-select-enad ${!item.id && hasError('meters') ? 'error-border' : ''}`}
               value={item.id || ''}
-              onChange={(e) => freeQuoteUpdateMeter(index, 'id', e.target.value)}
+              onChange={(e) => {
+                freeQuoteUpdateMeter(index, 'id', e.target.value);
+                markTouched('meters');
+              }}
             >
               <option value="">-- Select Meter --</option>
               {availableMeters.filter(m => m.isActive).map(meter => (
@@ -730,7 +824,10 @@ export const SystemEquipmentSelection = ({
               max="999"
               className={`assessment-form-input-enad ${(item.quantity < 1 || item.quantity > 999) && hasError('meters') ? 'error-border' : ''}`}
               value={item.quantity}
-              onChange={(e) => freeQuoteUpdateMeter(index, 'quantity', parseInt(e.target.value) || 0)}
+              onChange={(e) => {
+                freeQuoteUpdateMeter(index, 'quantity', parseInt(e.target.value) || 0);
+                markTouched('meters');
+              }}
             />
             <span className="item-total">{formatCurrency(item.total || 0)}</span>
             <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveMeter(index)}>Remove</button>
@@ -752,7 +849,10 @@ export const SystemEquipmentSelection = ({
               placeholder="Item name"
               className={`assessment-form-input-enad ${item.name && !item.name.trim() && hasError('additional') ? 'error-border' : ''}`}
               value={item.name}
-              onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'name', e.target.value)}
+              onChange={(e) => {
+                freeQuoteUpdateAdditionalEquipment(index, 'name', e.target.value);
+                markTouched('additional');
+              }}
             />
             <input
               type="number"
@@ -761,7 +861,10 @@ export const SystemEquipmentSelection = ({
               max="999"
               className={`assessment-form-input-enad ${item.name && item.quantity < 1 && hasError('additional') ? 'error-border' : ''}`}
               value={item.quantity}
-              onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'quantity', parseInt(e.target.value) || 0)}
+              onChange={(e) => {
+                freeQuoteUpdateAdditionalEquipment(index, 'quantity', parseInt(e.target.value) || 0);
+                markTouched('additional');
+              }}
             />
             <input
               type="number"
@@ -770,7 +873,10 @@ export const SystemEquipmentSelection = ({
               step="0.01"
               className={`assessment-form-input-enad ${item.name && item.price < 0.01 && hasError('additional') ? 'error-border' : ''}`}
               value={item.price}
-              onChange={(e) => freeQuoteUpdateAdditionalEquipment(index, 'price', parseFloat(e.target.value) || 0)}
+              onChange={(e) => {
+                freeQuoteUpdateAdditionalEquipment(index, 'price', parseFloat(e.target.value) || 0);
+                markTouched('additional');
+              }}
             />
             <span className="item-total">{formatCurrency(item.total || 0)}</span>
             <button type="button" className="btn-remove" onClick={() => freeQuoteRemoveAdditionalEquipment(index)}>Remove</button>
@@ -889,7 +995,7 @@ export const SystemEquipmentSelection = ({
         </div>
       </div>
 
-      {/* ===== NEW: DISCOUNT SECTION ===== */}
+      {/* ===== DISCOUNT SECTION ===== */}
       <div className="quotation-section discount-section">
         <h4>Discount</h4>
         <div className="cost-percentage-control">
@@ -991,6 +1097,20 @@ export const SystemEquipmentSelection = ({
               </span>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ✅ NEW: System Size Validation Warning */}
+      {(!freeQuoteForm.systemSize || parseFloat(freeQuoteForm.systemSize) <= 0) && (
+        <div className="validation-warning">
+          <small className="form-hint-enad error-hint">⚠️ Please enter a valid system size (greater than 0) before generating PDF</small>
+        </div>
+      )}
+
+      {/* ✅ NEW: Annual Production Validation Warning */}
+      {(!annualProduction || annualProduction <= 0) && (
+        <div className="validation-warning">
+          <small className="form-hint-enad error-hint">⚠️ Annual production data is missing. Please calculate system size first.</small>
         </div>
       )}
 

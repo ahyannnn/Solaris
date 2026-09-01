@@ -783,8 +783,8 @@ const EngineerProject = () => {
         )}
 
         {/* ============================================================
-            Detail Modal
-            ============================================================ */}
+    Detail Modal
+    ============================================================ */}
         {showDetailModal && selectedProject && (
           <div className="modal-overlay-engineerproject" onClick={() => setShowDetailModal(false)}>
             <div className="modal-content-engineerproject detail-modal" onClick={e => e.stopPropagation()}>
@@ -872,6 +872,76 @@ const EngineerProject = () => {
                   <p><strong>Balance:</strong> {formatCurrency(selectedProject.balance)}</p>
                 </div>
 
+                {/* EQUIPMENT BREAKDOWN SECTION - Supports BOTH Pre-Assessment AND Free Quote */}
+                {(() => {
+                  // Check both sources for equipment breakdown
+                  const preAssessmentEquipment = selectedProject.preAssessmentId?.quotation?.systemDetails?.equipmentBreakdown;
+                  const freeQuoteEquipment = selectedProject.quotationDetails?.equipmentBreakdown
+                    || selectedProject.sourceId?.quotationDetails?.equipmentBreakdown;
+                  const equipment = preAssessmentEquipment || freeQuoteEquipment;
+
+                  if (!equipment) return null;
+
+                  return (
+                    <div className="detail-section">
+                      <h4>Equipment Breakdown</h4>
+                      <table className="payment-schedule-table">
+                        <thead>
+                          <tr>
+                            <th>Category</th>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(() => {
+                            const rows = [];
+
+                            Object.entries(equipment).forEach(([category, data]) => {
+                              if (!data) return;
+
+                              const categoryName = category.replace(/([A-Z])/g, ' $1').trim();
+
+                              // Categories with 'items' array (electricalComponents, cables, etc.)
+                              if (data.items && Array.isArray(data.items) && data.items.length > 0) {
+                                data.items.forEach((item, index) => {
+                                  if (item.quantity > 0) {
+                                    rows.push(
+                                      <tr key={`${category}-${index}`}>
+                                        <td className="payment-type-cell">{index === 0 ? categoryName : ''}</td>
+                                        <td>{item.name || 'Item'}</td>
+                                        <td>{item.quantity || 1}</td>
+                                      </tr>
+                                    );
+                                  }
+                                });
+                              }
+                              // Direct equipment items (panels, inverter, battery, mountingStructure)
+                              else if (data.name && data.quantity !== undefined && data.quantity > 0) {
+                                rows.push(
+                                  <tr key={category}>
+                                    <td className="payment-type-cell">{categoryName}</td>
+                                    <td>{data.name}</td>
+                                    <td>{data.quantity}</td>
+                                  </tr>
+                                );
+                              }
+                            });
+
+                            return rows.length > 0 ? rows : (
+                              <tr>
+                                <td colSpan="3" style={{ textAlign: 'center', color: '#6b7280', padding: '20px' }}>
+                                  No equipment items found
+                                </td>
+                              </tr>
+                            );
+                          })()}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
+
                 {selectedProject.paymentSchedule && selectedProject.paymentSchedule.length > 0 && (
                   <div className="detail-section">
                     <h4>Payment Schedule</h4>
@@ -940,7 +1010,7 @@ const EngineerProject = () => {
               <div className="modal-header-engineerproject">
                 <h3>
                   {getProjectAction(selectedProject).type === 'start' && 'Start Installation'}
-                  {getProjectAction(selectedProject).type === 'update' && 
+                  {getProjectAction(selectedProject).type === 'update' &&
                     (getProjectAction(selectedProject).isFinal ? 'Complete Project' : 'Update Project Progress')}
                 </h3>
                 <button className="modal-close" onClick={() => {
@@ -1015,8 +1085,8 @@ const EngineerProject = () => {
                     <p className="upload-hint">
                       {newPhotoFiles.length > 0
                         ? `${newPhotoFiles.length} new photo(s) selected`
-                        : isWaitingForPayment(selectedProject) 
-                          ? 'Upload disabled - payment required' 
+                        : isWaitingForPayment(selectedProject)
+                          ? 'Upload disabled - payment required'
                           : 'Select new photos to add to this project'}
                     </p>
                   </div>
@@ -1062,7 +1132,7 @@ const EngineerProject = () => {
                     {uploadingPhotos ? <FaSpinner className="spinning" /> : <FaUpload />}
                     {uploadingPhotos ? 'Uploading...' : 'Upload Photos'}
                   </button>
-                  
+
                   {(() => {
                     const action = getProjectAction(selectedProject);
                     const isFinal = action.isFinal || false;

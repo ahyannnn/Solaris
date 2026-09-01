@@ -13,7 +13,7 @@ const projectSchema = new mongoose.Schema({
 
   // Source tracking (which type created this project)
   sourceType: { type: String, enum: ['free-quote', 'pre-assessment', 'admin'], default: 'admin' },
-  sourceId: { type: mongoose.Schema.Types.ObjectId },
+  sourceId: { type: mongoose.Schema.Types.ObjectId, ref: 'FreeQuote' },
 
   // Project Details
   systemSize: { type: Number, required: true }, // in kW
@@ -96,7 +96,7 @@ const projectSchema = new mongoose.Schema({
     issuedAt: Date,
     paidAt: Date
   }],
-  
+
   paymongoPaymentIntentId: { type: String, index: true },
   currentPaymentId: { type: String },
 
@@ -143,10 +143,10 @@ projectSchema.methods.calculateBalance = function () {
 };
 
 // Method to record payment (for installment payments)
-projectSchema.methods.recordPayment = async function(amount, paymentType, invoiceId, paymentProof, paymentReference) {
+projectSchema.methods.recordPayment = async function (amount, paymentType, invoiceId, paymentProof, paymentReference) {
   this.amountPaid += amount;
   this.calculateBalance();
-  
+
   const scheduleItem = this.paymentSchedule.find(p => p.type === paymentType);
   if (scheduleItem) {
     scheduleItem.paidAt = new Date();
@@ -155,7 +155,7 @@ projectSchema.methods.recordPayment = async function(amount, paymentType, invoic
     if (paymentProof) scheduleItem.paymentProof = paymentProof;
     if (paymentReference) scheduleItem.paymentReference = paymentReference;
   }
-  
+
   if (this.amountPaid >= this.totalCost) {
     this.status = 'full_paid';
   } else if (this.amountPaid >= this.initialPayment && this.status === 'approved') {
@@ -163,7 +163,7 @@ projectSchema.methods.recordPayment = async function(amount, paymentType, invoic
   } else if (this.amountPaid >= this.initialPayment + this.progressPayment) {
     this.status = 'progress_paid';
   }
-  
+
   this.projectUpdates = this.projectUpdates || [];
   this.projectUpdates.push({
     title: `Payment Received - ${paymentType.toUpperCase()}`,
@@ -171,7 +171,7 @@ projectSchema.methods.recordPayment = async function(amount, paymentType, invoic
     status: this.status,
     updatedBy: this.clientId
   });
-  
+
   return this.save();
 };
 

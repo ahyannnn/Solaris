@@ -94,7 +94,7 @@ const ScheduleAssessment = () => {
     nightPercentage: 0,
     monthlyConsumption: 0
   });
-
+  const [hasPendingPreAssessment, setHasPendingPreAssessment] = useState(false);
   const SYSTEM_TYPES = [
     { value: 'grid-tie', label: 'Grid-Tie System', description: 'Connected to utility grid, no batteries' },
     { value: 'hybrid', label: 'Hybrid System', description: 'Grid-tie with battery backup' },
@@ -490,13 +490,28 @@ const ScheduleAssessment = () => {
       const assessments = preAssessmentsRes.data.assessments || [];
       const quotes = freeQuotesRes.data.quotes || [];
 
+      // ✅ Check for pending Free Quotes
       const hasPending = quotes.some(quote =>
         quote.status === 'pending' ||
         quote.status === 'assigned' ||
         quote.status === 'processing'
       );
-
       setHasPendingFreeQuote(hasPending);
+
+      // ✅ Check for pending Pre-Assessments
+      // A pre-assessment is considered "pending" if it's in any of these statuses:
+      // pending_review, pending_payment, scheduled, site_visit_ongoing, device_deployed, data_collecting, data_analyzing, report_draft
+      const hasPendingPreAss = assessments.some(assessment =>
+        assessment.assessmentStatus === 'pending_review' ||
+        assessment.assessmentStatus === 'pending_payment' ||
+        assessment.assessmentStatus === 'scheduled' ||
+        assessment.assessmentStatus === 'site_visit_ongoing' ||
+        assessment.assessmentStatus === 'device_deployed' ||
+        assessment.assessmentStatus === 'data_collecting' ||
+        assessment.assessmentStatus === 'data_analyzing'
+
+      );
+      setHasPendingPreAssessment(hasPendingPreAss);
 
       const assessmentsWithEngineer = assessments.map(assessment => ({
         ...assessment,
@@ -1757,9 +1772,15 @@ const ScheduleAssessment = () => {
                 <button
                   className="btn-paid-assessment-cusset"
                   onClick={() => setCurrentStep('pre-assessment-form')}
+                  disabled={hasPendingPreAssessment}
                 >
-                  Book Pre Assessment
+                  {hasPendingPreAssessment ? 'Already Booked' : 'Book Pre Assessment'}
                 </button>
+                {hasPendingPreAssessment && (
+                  <small style={{ display: 'block', marginTop: '8px', color: '#f59e0b', fontSize: '12px' }}>
+                    You have a pending pre-assessment request
+                  </small>
+                )}
               </div>
             </div>
           </div>
@@ -2402,7 +2423,16 @@ const ScheduleAssessment = () => {
             <h1 className="form-page-title-cusset">Book Pre Assessment</h1>
             <p className="form-page-subtitle-cusset">Complete the form below to schedule your professional pre-assessment (₱1,500)</p>
           </div>
-
+          {/* ✅ ADD THIS - Pending Pre-Assessment Warning (same as Free Quote) */}
+          {hasPendingPreAssessment && (
+            <div className="pending-warning-cusset">
+              <svg style={{ marginRight: '8px', width: '14px', height: '14px' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              You already have a pending pre-assessment request. Please wait for it to be processed before booking another.
+            </div>
+          )}
           <div className="form-main-card-cusset">
             <div className="form-section-cusset">
               <div className="form-section-header-cusset">
@@ -2751,9 +2781,9 @@ const ScheduleAssessment = () => {
                   <button
                     onClick={handleSubmitClick}
                     className="schedule-btn-submit-cusset"
-                    disabled={appliances.length === 0}
+                    disabled={appliances.length === 0 || hasPendingPreAssessment}
                   >
-                    Continue to Confirmation
+                    {hasPendingPreAssessment ? 'Pre-Assessment in Progress' : 'Continue to Confirmation'}
                   </button>
                 </div>
               </div>
@@ -2953,7 +2983,13 @@ const ScheduleAssessment = () => {
                 </div>
                 <div className="schedule-modal-actions-cusset">
                   <button onClick={() => setShowConfirmDialog(false)} className="schedule-btn-secondary-cusset">Cancel</button>
-                  <button onClick={handleConfirmBooking} disabled={!termsAccepted || isSubmitting} className="schedule-btn-success-cusset">{isSubmitting ? 'Processing...' : 'Confirm Booking'}</button>
+                  <button
+                    onClick={handleConfirmBooking}
+                    disabled={!termsAccepted || isSubmitting || hasPendingPreAssessment}
+                    className="schedule-btn-success-cusset"
+                  >
+                    {isSubmitting ? 'Processing...' : 'Confirm Booking'}
+                  </button>
                 </div>
               </div>
             </div>

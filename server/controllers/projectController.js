@@ -908,6 +908,7 @@ exports.getEngineerProjects = async (req, res) => {
     const query = { assignedEngineerId: engineerId };
     if (status && status !== 'all') query.status = status;
 
+    // Fetch projects with population
     const projects = await Project.find(query)
       .populate({
         path: 'clientId',
@@ -921,7 +922,18 @@ exports.getEngineerProjects = async (req, res) => {
       .populate('preAssessmentId')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .limit(parseInt(limit))
+      .lean(); // Convert to plain objects for manual population
+
+    // ✅ Manually populate sourceId for free-quote projects
+    const FreeQuote = mongoose.model('FreeQuote');
+    for (let i = 0; i < projects.length; i++) {
+      const project = projects[i];
+      if (project.sourceType === 'free-quote' && project.sourceId) {
+        const freeQuote = await FreeQuote.findById(project.sourceId).lean();
+        project.sourceId = freeQuote;
+      }
+    }
 
     const total = await Project.countDocuments(query);
 
@@ -934,8 +946,11 @@ exports.getEngineerProjects = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get engineer projects error:', error);
-    res.status(500).json({ message: 'Failed to fetch projects', error: error.message });
+    console.error('❌ Get engineer projects error:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch projects', 
+      error: error.message 
+    });
   }
 };
 
@@ -1084,10 +1099,15 @@ exports.getAllProjects = async (req, res) => {
       })
       .populate('addressId')
       .populate('assignedEngineerId', 'firstName lastName email')
-      .populate('preAssessmentId')
+      .populate({
+        path: 'preAssessmentId',
+      })
+      .populate('sourceId')  // ✅ Get ALL FreeQuote fields
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
+
+    
 
     const total = await Project.countDocuments(query);
 
@@ -1100,8 +1120,12 @@ exports.getAllProjects = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get all projects error:', error);
-    res.status(500).json({ message: 'Failed to fetch projects', error: error.message });
+    console.error('❌ Get all projects error:', error);
+    res.status(500).json({
+      message: 'Failed to fetch projects',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 

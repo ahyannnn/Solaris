@@ -2581,6 +2581,47 @@ exports.updatePaymentStatus = async (req, res) => {
 
     await assessment.save();
 
+    // ✅ SEND NOTIFICATION TO CUSTOMER
+    const userId = assessment.clientId?.userId?._id;
+    if (userId) {
+      let notificationTitle = '';
+      let notificationMessage = '';
+      let notificationType = 'info';
+      let link = `/pre-assessment/${assessment._id}`;
+
+      if (paymentStatus === 'paid') {
+        notificationTitle = 'Payment Confirmed! ✅';
+        notificationMessage = `Your payment for ${assessment.bookingReference} has been confirmed. Your site assessment is now scheduled.`;
+        notificationType = 'success';
+      } else if (paymentStatus === 'failed') {
+        notificationTitle = 'Payment Cancelled ❌';
+        notificationMessage = `Your payment for ${assessment.bookingReference} has been cancelled. Reason: ${notes || 'Please contact support'}`;
+        notificationType = 'error';
+        link = '/payment';
+      } else if (paymentStatus === 'pending') {
+        notificationTitle = 'Payment Status Updated';
+        notificationMessage = `Your payment for ${assessment.bookingReference} has been marked as pending. Please complete your payment to proceed.`;
+        notificationType = 'warning';
+        link = '/payment';
+      }
+
+      await sendNotification(
+        userId,
+        notificationTitle,
+        notificationMessage,
+        notificationType,
+        link,
+        {
+          metadata: {
+            bookingReference: assessment.bookingReference,
+            invoiceNumber: assessment.invoiceNumber,
+            paymentStatus: paymentStatus,
+            receiptNumber: assessment.receiptNumber
+          }
+        }
+      );
+    }
+
     // Save audit trail
     await AuditLog.create({
       user: adminId,

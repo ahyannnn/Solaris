@@ -2024,7 +2024,7 @@ const AdminBilling = () => {
                   <select value={editStatusData.paymentStatus} onChange={(e) => setEditStatusData({ ...editStatusData, paymentStatus: e.target.value })}>
                     <option value="">Select</option>
                     <option value="paid">Paid</option>
-                    <option value="failed">Cancel</option>
+                    <option value="failed">Reject</option>
                   </select>
                 </div>
                 <div className="verification-notes-adminbilling">

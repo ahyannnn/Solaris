@@ -2590,12 +2590,12 @@ exports.updatePaymentStatus = async (req, res) => {
       let link = `/pre-assessment/${assessment._id}`;
 
       if (paymentStatus === 'paid') {
-        notificationTitle = 'Payment Confirmed! ✅';
+        notificationTitle = 'Payment Confirmed! ';
         notificationMessage = `Your payment for ${assessment.bookingReference} has been confirmed. Your site assessment is now scheduled.`;
         notificationType = 'success';
       } else if (paymentStatus === 'failed') {
-        notificationTitle = 'Payment Cancelled ❌';
-        notificationMessage = `Your payment for ${assessment.bookingReference} has been cancelled. Reason: ${notes || 'Please contact support'}`;
+        notificationTitle = 'Payment Cancelled ';
+        notificationMessage = `Your payment for ${assessment.bookingReference} has been cancelled. Reason: ${notes || 'Please review your payment details and try again.'}`;
         notificationType = 'error';
         link = '/payment';
       } else if (paymentStatus === 'pending') {

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/quotation.css';
+import { FaUpload } from 'react-icons/fa';
 
 // =========================================
 // CARD INPUT FORMATTING HELPERS
@@ -84,7 +85,7 @@ const Quotation = () => {
   const [activeTab, setActiveTab] = useState('all');
 
   const companyBanks = [
-    { id: 'bpo', name: 'BPO', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
+    { id: 'bdo', name: 'BDO', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
     { id: 'bpi', name: 'BPI', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
     { id: 'metrobank', name: 'Metrobank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' },
     { id: 'security_bank', name: 'Security Bank', accountName: 'SALFER ENGINEERING CORP', accountNumber: '1234-5678-9012' }
@@ -1249,29 +1250,58 @@ const Quotation = () => {
 
           <div className="billing-customer-bank-selection-group">
             <label>Select Bank Account</label>
-            <div className="billing-customer-bank-grid">
-              {companyBanks.map((bank) => (
-                <div
-                  key={bank.id}
-                  className={`billing-customer-bank-card ${selectedBankId === bank.id ? 'selected' : ''}`}
-                  onClick={() => handleBankSelect(bank.id)}
-                >
-                  <div className="billing-customer-bank-card-header">
-                    <span className="billing-customer-bank-name">{bank.name}</span>
-                    {selectedBankId === bank.id && <span className="billing-customer-check-indicator">✓</span>}
-                  </div>
-                  <div className="billing-customer-bank-card-details">
-                    <div className="billing-customer-detail-item">
-                      <span>Account Name:</span>
-                      <strong>{bank.accountName}</strong>
-                    </div>
-                    <div className="billing-customer-detail-item">
-                      <span>Account Number:</span>
-                      <strong>{bank.accountNumber}</strong>
-                    </div>
-                  </div>
+            <div className="billing-customer-bank-list-vertical">
+              <div
+                className={`billing-customer-bank-row ${selectedBankId === 'bdo' ? 'selected' : ''}`}
+                onClick={() => handleBankSelect('bdo')}
+              >
+                <img src="/BDO.webp" alt="BDO" className="bank-logo-icon" />
+                <div className="bank-row-info">
+                  <span className="bank-name">BDO</span>
+                  <span className="bank-account-name">SALFER ENGINEERING CORP</span>
+                  <span className="bank-account-number">1234-5678-9012</span>
                 </div>
-              ))}
+                {selectedBankId === 'bdo' && <span className="bank-check-indicator">✓</span>}
+              </div>
+
+              <div
+                className={`billing-customer-bank-row ${selectedBankId === 'bpi' ? 'selected' : ''}`}
+                onClick={() => handleBankSelect('bpi')}
+              >
+                <img src="/BPI.jpg" alt="BPI" className="bank-logo-icon" />
+                <div className="bank-row-info">
+                  <span className="bank-name">BPI</span>
+                  <span className="bank-account-name">SALFER ENGINEERING CORP</span>
+                  <span className="bank-account-number">1234-5678-9012</span>
+                </div>
+                {selectedBankId === 'bpi' && <span className="bank-check-indicator">✓</span>}
+              </div>
+
+              <div
+                className={`billing-customer-bank-row ${selectedBankId === 'metrobank' ? 'selected' : ''}`}
+                onClick={() => handleBankSelect('metrobank')}
+              >
+                <img src="/Metrobank.jpg" alt="Metrobank" className="bank-logo-icon" />
+                <div className="bank-row-info">
+                  <span className="bank-name">Metrobank</span>
+                  <span className="bank-account-name">SALFER ENGINEERING CORP</span>
+                  <span className="bank-account-number">1234-5678-9012</span>
+                </div>
+                {selectedBankId === 'metrobank' && <span className="bank-check-indicator">✓</span>}
+              </div>
+
+              <div
+                className={`billing-customer-bank-row ${selectedBankId === 'security_bank' ? 'selected' : ''}`}
+                onClick={() => handleBankSelect('security_bank')}
+              >
+                <img src="/SecurityBank.jpg" alt="Security Bank" className="bank-logo-icon" />
+                <div className="bank-row-info">
+                  <span className="bank-name">Security Bank</span>
+                  <span className="bank-account-name">SALFER ENGINEERING CORP</span>
+                  <span className="bank-account-number">1234-5678-9012</span>
+                </div>
+                {selectedBankId === 'security_bank' && <span className="bank-check-indicator">✓</span>}
+              </div>
             </div>
             {validationErrors.bank && (
               <span className="billing-customer-error-message">{validationErrors.bank}</span>
@@ -1282,94 +1312,96 @@ const Quotation = () => {
             <div className="billing-customer-transfer-form">
               <h5>Payment Details</h5>
 
-              <div className="billing-customer-form-row">
-                <div className="billing-customer-form-group">
-                  <label>Account Name (Optional)</label>
-                  <input
-                    type="text"
-                    name="accountName"
-                    defaultValue={manualTransferForm.accountName}
-                    onBlur={handleManualTransferInputChange}
-                    placeholder="Your full name as shown in transfer"
-                    className={validationErrors.accountName ? 'error' : ''}
-                  />
-                  {validationErrors.accountName && (
-                    <small className="billing-customer-error-message">{validationErrors.accountName}</small>
-                  )}
-                </div>
-                <div className="billing-customer-form-group">
-                  <label>Reference / Transaction ID *</label>
-                  <input
-                    type="text"
-                    name="transactionReference"
-                    defaultValue={manualTransferForm.transactionReference}
-                    onBlur={handleManualTransferInputChange}
-                    placeholder="Enter transaction reference number"
-                    required
-                    className={validationErrors.transactionReference ? 'error' : ''}
-                  />
-                  {validationErrors.transactionReference && (
-                    <small className="billing-customer-hint-text">{validationErrors.transactionReference}</small>
-                  )}
-                </div>
+              {/* Account Name - Full Width */}
+              <div className="billing-customer-form-group-full">
+                <label>Account Name (Optional)</label>
+                <input
+                  type="text"
+                  name="accountName"
+                  defaultValue={manualTransferForm.accountName}
+                  onBlur={handleManualTransferInputChange}
+                  placeholder="Your full name as shown in transfer"
+                  className={validationErrors.accountName ? 'error' : ''}
+                />
+                {validationErrors.accountName && (
+                  <small className="billing-customer-error-message">{validationErrors.accountName}</small>
+                )}
               </div>
 
-              <div className="billing-customer-form-row">
-                <div className="billing-customer-form-group">
-                  <label>Amount Sent *</label>
-                  <input
-                    type="number"
-                    name="amount"
-                    defaultValue={manualTransferForm.amount}
-                    onBlur={handleManualTransferInputChange}
-                    placeholder="Enter exact amount sent"
-                    step="0.01"
-                    required
-                    className={validationErrors.amount ? 'error' : ''}
-                  />
-                  {validationErrors.amount && (
-                    <small className="billing-customer-error-message">{validationErrors.amount}</small>
-                  )}
-                </div>
+              {/* Reference / Transaction ID - Full Width */}
+              <div className="billing-customer-form-group-full">
+                <label>Reference / Transaction ID *</label>
+                <input
+                  type="text"
+                  name="transactionReference"
+                  defaultValue={manualTransferForm.transactionReference}
+                  onBlur={handleManualTransferInputChange}
+                  placeholder="Enter transaction reference number"
+                  required
+                  className={validationErrors.transactionReference ? 'error' : ''}
+                />
+                {validationErrors.transactionReference && (
+                  <small className="billing-customer-hint-text">{validationErrors.transactionReference}</small>
+                )}
               </div>
 
-              <div className="billing-customer-form-row">
-                <div className="billing-customer-form-group">
-                  <label>Transfer Date *</label>
-                  <input
-                    type="date"
-                    name="transferDate"
-                    defaultValue={manualTransferForm.transferDate}
-                    onBlur={handleManualTransferInputChange}
-                    required
-                    className={validationErrors.transferDate ? 'error' : ''}
-                    max={new Date().toISOString().split('T')[0]}
-                    min={selectedItem?.date ? new Date(selectedItem.date).toISOString().split('T')[0] : undefined}
-                  />
-                  {validationErrors.transferDate && (
-                    <span className="billing-customer-error-message">{validationErrors.transferDate}</span>
-                  )}
-                  <small className="billing-customer-hint-text">
-                    Must be between {selectedItem?.date || 'invoice date'} and today
-                  </small>
-                </div>
-                <div className="billing-customer-form-group">
-                  <label>Transfer Time *</label>
-                  <input
-                    type="time"
-                    name="transferTime"
-                    defaultValue={manualTransferForm.transferTime}
-                    onBlur={handleManualTransferInputChange}
-                    required
-                    className={validationErrors.transferTime ? 'error' : ''}
-                  />
-                  {validationErrors.transferTime && (
-                    <span className="billing-customer-error-message">{validationErrors.transferTime}</span>
-                  )}
-                </div>
+              {/* Amount Sent - Full Width */}
+              {/* Amount Sent - Full Width */}
+              <div className="billing-customer-form-group-full">
+                <label>Amount Sent *</label>
+                <input
+                  type="number"
+                  name="amount"
+                  value={selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount || ''}
+                  readOnly
+                  disabled
+                  className="billing-customer-form-input-readonly"
+                />
+                {validationErrors.amount && (
+                  <small className="billing-customer-error-message">{validationErrors.amount}</small>
+                )}
+                <small className="billing-customer-hint-text">This is the exact amount you need to pay</small>
               </div>
 
-              <div className="billing-customer-form-group">
+              {/* Transfer Date - Full Width */}
+              <div className="billing-customer-form-group-full">
+                <label>Transfer Date *</label>
+                <input
+                  type="date"
+                  name="transferDate"
+                  defaultValue={manualTransferForm.transferDate}
+                  onBlur={handleManualTransferInputChange}
+                  required
+                  className={validationErrors.transferDate ? 'error' : ''}
+                  max={new Date().toISOString().split('T')[0]}
+                  min={selectedItem?.date ? new Date(selectedItem.date).toISOString().split('T')[0] : undefined}
+                />
+                {validationErrors.transferDate && (
+                  <span className="billing-customer-error-message">{validationErrors.transferDate}</span>
+                )}
+                <small className="billing-customer-hint-text">
+                  Must be between {selectedItem?.date || 'invoice date'} and today
+                </small>
+              </div>
+
+              {/* Transfer Time - Full Width */}
+              <div className="billing-customer-form-group-full">
+                <label>Transfer Time *</label>
+                <input
+                  type="time"
+                  name="transferTime"
+                  defaultValue={manualTransferForm.transferTime}
+                  onBlur={handleManualTransferInputChange}
+                  required
+                  className={validationErrors.transferTime ? 'error' : ''}
+                />
+                {validationErrors.transferTime && (
+                  <span className="billing-customer-error-message">{validationErrors.transferTime}</span>
+                )}
+              </div>
+
+              {/* Upload Proof of Payment - Full Width */}
+              <div className="billing-customer-form-group-full">
                 <label>Upload Proof of Payment *</label>
                 <div className={`billing-customer-file-upload-area ${validationErrors.proofFile ? 'error' : ''}`}>
                   <input
@@ -1384,7 +1416,9 @@ const Quotation = () => {
                     </span>
                   ) : (
                     <>
-                      <span className="upload-icon">📤</span>
+                      <span className="upload-icon">
+                        <FaUpload size={32} />
+                      </span>
                       <small>Click or drag to upload</small>
                     </>
                   )}
@@ -1394,7 +1428,8 @@ const Quotation = () => {
                 )}
               </div>
 
-              <div className="billing-customer-form-group">
+              {/* Remarks - Full Width */}
+              <div className="billing-customer-form-group-full">
                 <label>Remarks (Optional)</label>
                 <textarea
                   name="remarks"
@@ -1414,6 +1449,9 @@ const Quotation = () => {
               </button>
             </div>
           )}
+
+
+
         </div>
       </div>
     );
@@ -2122,22 +2160,49 @@ const Quotation = () => {
 
                 <div className="billing-customer-payment-methods">
                   <h4>Payment Method</h4>
-                  <div className="billing-customer-method-options">
-                    <div className={`billing-customer-method-option ${paymentMethod === 'gcash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('gcash')}>
-                      <input type="radio" checked={paymentMethod === 'gcash'} readOnly />
-                      <div><strong>GCash</strong><small>Upload receipt</small></div>
+                  <div className="billing-customer-method-options-vertical">
+                    <div
+                      className={`billing-customer-method-option-row ${paymentMethod === 'gcash' ? 'selected' : ''}`}
+                      onClick={() => setPaymentMethod('gcash')}
+                    >
+                      <img src="/Gcash.png" alt="GCash" className="payment-method-icon" />
+                      <div className="payment-method-info">
+                        <span className="payment-method-name">GCash</span>
+                        <span className="payment-method-label">Upload receipt</span>
+                      </div>
                     </div>
-                    <div className={`billing-customer-method-option ${paymentMethod === 'paymongo_card' ? 'selected' : ''}`} onClick={() => setPaymentMethod('paymongo_card')}>
-                      <input type="radio" checked={paymentMethod === 'paymongo_card'} readOnly />
-                      <div><strong>Credit/Debit Card</strong><small>Instant payment</small></div>
+
+                    <div
+                      className={`billing-customer-method-option-row ${paymentMethod === 'paymongo_card' ? 'selected' : ''}`}
+                      onClick={() => setPaymentMethod('paymongo_card')}
+                    >
+                      <img src="/Card.png" alt="Card" className="payment-method-icon" />
+                      <div className="payment-method-info">
+                        <span className="payment-method-name">Card</span>
+                        <span className="payment-method-label">Instant payment</span>
+                      </div>
                     </div>
-                    <div className={`billing-customer-method-option ${paymentMethod === 'manual_bank_transfer' ? 'selected' : ''}`} onClick={() => setPaymentMethod('manual_bank_transfer')}>
-                      <input type="radio" checked={paymentMethod === 'manual_bank_transfer'} readOnly />
-                      <div><strong>Bank Transfer</strong><small>Manual transfer with proof</small></div>
+
+                    <div
+                      className={`billing-customer-method-option-row ${paymentMethod === 'manual_bank_transfer' ? 'selected' : ''}`}
+                      onClick={() => setPaymentMethod('manual_bank_transfer')}
+                    >
+                      <img src="/Bank.png" alt="Bank Transfer" className="payment-method-icon" />
+                      <div className="payment-method-info">
+                        <span className="payment-method-name">Bank Transfer</span>
+                        <span className="payment-method-label">Manual with proof</span>
+                      </div>
                     </div>
-                    <div className={`billing-customer-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
-                      <input type="radio" checked={paymentMethod === 'cash'} readOnly />
-                      <div><strong>Cash</strong><small>Pay at office</small></div>
+
+                    <div
+                      className={`billing-customer-method-option-row ${paymentMethod === 'cash' ? 'selected' : ''}`}
+                      onClick={() => setPaymentMethod('cash')}
+                    >
+                      <img src="/Cash.png" alt="Cash" className="payment-method-icon" />
+                      <div className="payment-method-info">
+                        <span className="payment-method-name">Cash</span>
+                        <span className="payment-method-label">Pay at office</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2252,22 +2317,49 @@ const Quotation = () => {
 
                 <div className="billing-customer-payment-methods">
                   <h4>Payment Method</h4>
-                  <div className="billing-customer-method-options">
-                    <div className={`billing-customer-method-option ${paymentMethod === 'gcash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('gcash')}>
-                      <input type="radio" checked={paymentMethod === 'gcash'} readOnly />
-                      <div><strong>GCash</strong><small>Upload receipt</small></div>
+                  <div className="billing-customer-method-options-vertical">
+                    <div
+                      className={`billing-customer-method-option-row ${paymentMethod === 'gcash' ? 'selected' : ''}`}
+                      onClick={() => setPaymentMethod('gcash')}
+                    >
+                      <img src="/Gcash.png" alt="GCash" className="payment-method-icon" />
+                      <div className="payment-method-info">
+                        <span className="payment-method-name">GCash</span>
+                        <span className="payment-method-label">Upload receipt</span>
+                      </div>
                     </div>
-                    <div className={`billing-customer-method-option ${paymentMethod === 'paymongo_card' ? 'selected' : ''}`} onClick={() => setPaymentMethod('paymongo_card')}>
-                      <input type="radio" checked={paymentMethod === 'paymongo_card'} readOnly />
-                      <div><strong>Card</strong><small>Instant</small></div>
+
+                    <div
+                      className={`billing-customer-method-option-row ${paymentMethod === 'paymongo_card' ? 'selected' : ''}`}
+                      onClick={() => setPaymentMethod('paymongo_card')}
+                    >
+                      <img src="/Card.png" alt="Card" className="payment-method-icon" />
+                      <div className="payment-method-info">
+                        <span className="payment-method-name">Card</span>
+                        <span className="payment-method-label">Instant</span>
+                      </div>
                     </div>
-                    <div className={`billing-customer-method-option ${paymentMethod === 'manual_bank_transfer' ? 'selected' : ''}`} onClick={() => setPaymentMethod('manual_bank_transfer')}>
-                      <input type="radio" checked={paymentMethod === 'manual_bank_transfer'} readOnly />
-                      <div><strong>Bank Transfer</strong><small>Manual with proof</small></div>
+
+                    <div
+                      className={`billing-customer-method-option-row ${paymentMethod === 'manual_bank_transfer' ? 'selected' : ''}`}
+                      onClick={() => setPaymentMethod('manual_bank_transfer')}
+                    >
+                      <img src="/Bank.png" alt="Bank Transfer" className="payment-method-icon" />
+                      <div className="payment-method-info">
+                        <span className="payment-method-name">Bank Transfer</span>
+                        <span className="payment-method-label">Manual with proof</span>
+                      </div>
                     </div>
-                    <div className={`billing-customer-method-option ${paymentMethod === 'cash' ? 'selected' : ''}`} onClick={() => setPaymentMethod('cash')}>
-                      <input type="radio" checked={paymentMethod === 'cash'} readOnly />
-                      <div><strong>Cash</strong><small>Office</small></div>
+
+                    <div
+                      className={`billing-customer-method-option-row ${paymentMethod === 'cash' ? 'selected' : ''}`}
+                      onClick={() => setPaymentMethod('cash')}
+                    >
+                      <img src="/Cash.png" alt="Cash" className="payment-method-icon" />
+                      <div className="payment-method-info">
+                        <span className="payment-method-name">Cash</span>
+                        <span className="payment-method-label">Office</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2349,7 +2441,7 @@ const Quotation = () => {
                     <div className="billing-customer-cash-details">
                       <div className="billing-customer-info-box">
                         <strong>Office Address</strong>
-                        <p>Purok 2, Masaya, San Jose, Camarines Sur</p>
+                        <p>San Nicolas St. Bunsuran 3rd, Pandi, Bulacan</p>
                       </div>
                       <button className="billing-customer-confirm-btn" onClick={handleCashPaymentSubmit} disabled={isSubmitting}>
                         Confirm

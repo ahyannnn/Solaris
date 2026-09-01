@@ -2594,3 +2594,23 @@ body.dark-mode {
     background: var(--skeleton-bg) !important;
   }
 }
+
+/* ============================================
+   READ-ONLY INPUT STYLES
+   ============================================ */
+.schedule-form-input-readonly,
+.schedule-form-input-cusset[readonly],
+.schedule-form-input-cusset:disabled {
+  background: var(--bg-section) !important;
+  color: var(--text-secondary) !important;
+  cursor: not-allowed !important;
+  opacity: 0.7 !important;
+  border-color: var(--border-color) !important;
+}
+
+.schedule-form-input-readonly:focus,
+.schedule-form-input-cusset[readonly]:focus,
+.schedule-form-input-cusset:disabled:focus {
+  box-shadow: none !important;
+  border-color: var(--border-color) !important;
+}

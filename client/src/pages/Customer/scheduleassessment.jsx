@@ -403,6 +403,15 @@ const ScheduleAssessment = () => {
     fetchProjects();
   }, []);
 
+  useEffect(() => {
+    if (showPreAssessmentSuccess) {
+      window.scrollTo({
+        top: 0,
+        behavior: 'instant'
+      });
+    }
+  }, [showPreAssessmentSuccess]);
+
   const fetchClientData = async () => {
     try {
       setLoading(true);
@@ -1073,6 +1082,12 @@ const ScheduleAssessment = () => {
   };
 
   const formatCurrency = (value) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value || 0);
+
+  const capitalizeFirstLetter = (string) => {
+    if (!string) return '';
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+
 
   const formatDate = (date) => {
     if (!date) return 'N/A';
@@ -1962,6 +1977,7 @@ const ScheduleAssessment = () => {
                 </div>
               </div>
               <div className="form-section-body-cusset">
+                {/* ROW 1: Monthly Bill | Property Type */}
                 <div className="schedule-form-grid-cusset">
                   <div className="schedule-form-group-cusset">
                     <label>Monthly Electricity Bill (₱) *</label>
@@ -1969,7 +1985,6 @@ const ScheduleAssessment = () => {
                       type="number"
                       step="0.01"
                       name="monthlyBill"
-
                       min="0.01"
                       max="1000000"
                       value={freeQuoteData.monthlyBill}
@@ -1988,15 +2003,20 @@ const ScheduleAssessment = () => {
                     <input
                       type="text"
                       name="propertyType"
-                      value={freeQuoteData.propertyType}
-                      className="schedule-form-input-cusset"
+                      value={capitalizeFirstLetter(formData.propertyType)}
+                      className="schedule-form-input-cusset schedule-form-input-readonly"
+                      readOnly
                       disabled
                     />
-                    {freeQuoteValidationErrors.propertyType && (
-                      <div className="error-message-cusset">{freeQuoteValidationErrors.propertyType}</div>
+                    {validationErrors.propertyType && (
+                      <div className="error-message-cusset">{validationErrors.propertyType}</div>
                     )}
+                    <small>Based on your account information</small>
                   </div>
+                </div>
 
+                {/* ROW 2: Rate per kWh | Preferred System Type */}
+                <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset">
                     <label>Rate per kWh (₱) *</label>
                     <input
@@ -2015,9 +2035,7 @@ const ScheduleAssessment = () => {
                     )}
                     <small>Check your electric bill for the rate</small>
                   </div>
-                </div>
 
-                <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset">
                     <label>Preferred System Type *</label>
                     <select
@@ -2033,7 +2051,10 @@ const ScheduleAssessment = () => {
                       <div className="error-message-cusset">{freeQuoteValidationErrors.systemType}</div>
                     )}
                   </div>
+                </div>
 
+                {/* ROW 3: Target Savings | Roof Type */}
+                <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset">
                     <label>Target Savings (%) *</label>
                     <select
@@ -2072,7 +2093,10 @@ const ScheduleAssessment = () => {
                       <div className="error-message-cusset">{freeQuoteValidationErrors.roofType}</div>
                     )}
                   </div>
+                </div>
 
+                {/* ROW 4: Roof Dimensions - Full Width */}
+                <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset" style={{ gridColumn: '1 / -1' }}>
                     <label>Roof Dimensions (meters) *</label>
                     <div className="dimension-row-cusset">
@@ -2108,6 +2132,7 @@ const ScheduleAssessment = () => {
                   </div>
                 </div>
 
+                {/* Fee Card - Full Width */}
                 <div className="schedule-fee-card-cusset">
                   <div className="fee-card-icon-cusset">
                     <FaFileInvoice />
@@ -2119,6 +2144,7 @@ const ScheduleAssessment = () => {
                   </div>
                 </div>
 
+                {/* Submit Button - Full Width */}
                 <div className="form-actions-cusset">
                   <button
                     onClick={handleFreeQuoteSubmit}
@@ -2553,6 +2579,7 @@ const ScheduleAssessment = () => {
                 </div>
               </div>
               <div className="form-section-body-cusset">
+                {/* ROW 1: Monthly Bill | Property Type */}
                 <div className="schedule-form-grid-cusset">
                   <div className="schedule-form-group-cusset">
                     <label>Monthly Electricity Bill (₱) *</label>
@@ -2560,7 +2587,6 @@ const ScheduleAssessment = () => {
                       type="number"
                       step="0.01"
                       name="monthlyBill"
-                      
                       min="1"
                       max="1000000"
                       value={electricBillInput.monthlyBill}
@@ -2579,15 +2605,20 @@ const ScheduleAssessment = () => {
                     <input
                       type="text"
                       name="propertyType"
-                      value={formData.propertyType}
-                      className="schedule-form-input-cusset"
+                      value={capitalizeFirstLetter(formData.propertyType)}
+                      className="schedule-form-input-cusset schedule-form-input-readonly"
+                      readOnly
                       disabled
                     />
                     {validationErrors.propertyType && (
                       <div className="error-message-cusset">{validationErrors.propertyType}</div>
                     )}
+                    <small>Based on your account information</small>
                   </div>
+                </div>
 
+                {/* ROW 2: Rate per kWh | Preferred System Type */}
+                <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset">
                     <label>Rate per kWh (₱) *</label>
                     <input
@@ -2606,9 +2637,7 @@ const ScheduleAssessment = () => {
                     )}
                     <small>Check your electric bill for the rate</small>
                   </div>
-                </div>
 
-                <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset">
                     <label>Preferred System Type *</label>
                     <select
@@ -2624,7 +2653,10 @@ const ScheduleAssessment = () => {
                       <div className="error-message-cusset">{validationErrors.systemType}</div>
                     )}
                   </div>
+                </div>
 
+                {/* ROW 3: Target Savings | Roof Type */}
+                <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset">
                     <label>Target Savings (%) *</label>
                     <select
@@ -2663,7 +2695,10 @@ const ScheduleAssessment = () => {
                       <div className="error-message-cusset">{validationErrors.roofType}</div>
                     )}
                   </div>
+                </div>
 
+                {/* ROW 4: Roof Dimensions - Full Width */}
+                <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset" style={{ gridColumn: '1 / -1' }}>
                     <label>Roof Dimensions (meters) *</label>
                     <div className="dimension-row-cusset">
@@ -2699,6 +2734,7 @@ const ScheduleAssessment = () => {
                   </div>
                 </div>
 
+                {/* Fee Card - Full Width */}
                 <div className="schedule-fee-card-cusset">
                   <div className="fee-card-icon-cusset">
                     <FaFileInvoice />
@@ -2710,6 +2746,7 @@ const ScheduleAssessment = () => {
                   </div>
                 </div>
 
+                {/* Submit Button - Full Width */}
                 <div className="form-actions-cusset">
                   <button
                     onClick={handleSubmitClick}

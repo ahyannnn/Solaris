@@ -2015,3 +2015,375 @@ body {
     opacity: 0.5 !important;
   }
 }
+
+/* ============================================
+   BANK TRANSFER - FULL WIDTH FIELDS
+   ============================================ */
+.billing-customer-transfer-form .billing-customer-form-group-full {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.billing-customer-transfer-form .billing-customer-form-group-full label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+}
+
+.billing-customer-transfer-form .billing-customer-form-group-full input,
+.billing-customer-transfer-form .billing-customer-form-group-full textarea {
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--text-primary);
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.billing-customer-transfer-form .billing-customer-form-group-full input:focus,
+.billing-customer-transfer-form .billing-customer-form-group-full textarea:focus {
+  outline: none;
+  border-color: #F39C12;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+}
+
+.billing-customer-transfer-form .billing-customer-form-group-full input.error,
+.billing-customer-transfer-form .billing-customer-form-group-full textarea.error {
+  border-color: #EF4444;
+}
+
+.billing-customer-transfer-form .billing-customer-form-group-full input.error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.billing-customer-transfer-form .billing-customer-form-group-full .billing-customer-error-message {
+  font-size: 12px;
+  color: #EF4444;
+}
+
+.billing-customer-transfer-form .billing-customer-form-group-full .billing-customer-hint-text {
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.billing-customer-transfer-form .billing-customer-form-group-full .billing-customer-file-upload-area {
+  border: 2px dashed var(--border-upload);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  background: var(--bg-file-upload);
+}
+
+.billing-customer-transfer-form .billing-customer-form-group-full .billing-customer-file-upload-area:hover {
+  border-color: var(--border-upload-hover);
+}
+
+.billing-customer-transfer-form .billing-customer-form-group-full .billing-customer-file-upload-area.error {
+  border-color: #EF4444;
+}
+
+.billing-customer-transfer-form .billing-customer-form-group-full .billing-customer-file-upload-area input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.billing-customer-transfer-form .billing-customer-form-group-full .upload-icon {
+  font-size: 24px;
+  display: block;
+}
+
+.billing-customer-transfer-form .billing-customer-form-group-full small {
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.billing-customer-transfer-form .billing-customer-form-group-full .billing-customer-file-name {
+  font-size: 13px;
+  color: #10B981;
+}
+
+/* Read-only field styling */
+.billing-customer-transfer-form .billing-customer-form-group-full input[readonly],
+.billing-customer-transfer-form .billing-customer-form-group-full input:disabled {
+  background: var(--bg-section);
+  color: var(--text-primary);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+
+/* ============================================
+   PAYMENT METHOD VERTICAL LIST
+   ============================================ */
+
+.billing-customer-method-options-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.billing-customer-method-option-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--bg-method-option);
+  border: 2px solid var(--border-method);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 64px;
+}
+
+.billing-customer-method-option-row:hover {
+  border-color: var(--border-method-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.billing-customer-method-option-row.selected {
+  border-color: #F39C12;
+  background: var(--bg-method-selected);
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.12);
+}
+
+.payment-method-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.payment-method-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.payment-method-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+
+.payment-method-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+/* Responsive - still vertical on all screen sizes */
+@media (max-width: 768px) {
+  .billing-customer-method-option-row {
+    padding: 12px 16px;
+    min-height: 56px;
+  }
+
+  .payment-method-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .payment-method-name {
+    font-size: 14px;
+  }
+
+  .payment-method-label {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .billing-customer-method-options-vertical {
+    gap: 8px;
+  }
+
+  .billing-customer-method-option-row {
+    padding: 10px 14px;
+    min-height: 48px;
+    gap: 12px;
+  }
+
+  .payment-method-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .payment-method-name {
+    font-size: 13px;
+  }
+
+  .payment-method-label {
+    font-size: 10px;
+  }
+}
+
+/* ============================================
+   BANK TRANSFER - VERTICAL LIST WITH LOGOS
+   ============================================ */
+
+.billing-customer-bank-list-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.billing-customer-bank-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--bg-bank-card);
+  border: 2px solid var(--border-bank);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 72px;
+  position: relative;
+}
+
+.billing-customer-bank-row:hover {
+  border-color: var(--border-bank-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.billing-customer-bank-row.selected {
+  border-color: #F39C12;
+  background: var(--bg-bank-card-selected);
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.12);
+}
+
+.bank-logo-icon {
+  width: 64px;
+  height: 40px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 2px;
+}
+
+.bank-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.bank-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+
+.bank-account-name {
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.bank-account-number {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-family: monospace;
+  letter-spacing: 0.5px;
+  transition: color 0.3s ease;
+}
+
+.bank-check-indicator {
+  color: #F39C12;
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+/* Remove old bank grid styles */
+.billing-customer-bank-grid {
+  display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .billing-customer-bank-row {
+    padding: 12px 16px;
+    min-height: 64px;
+    gap: 12px;
+  }
+
+  .bank-logo-icon {
+    width: 54px;
+    height: 34px;
+  }
+
+  .bank-name {
+    font-size: 14px;
+  }
+
+  .bank-account-name {
+    font-size: 11px;
+  }
+
+  .bank-account-number {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .billing-customer-bank-list-vertical {
+    gap: 8px;
+  }
+
+  .billing-customer-bank-row {
+    padding: 10px 14px;
+    min-height: 56px;
+    gap: 10px;
+  }
+
+  .bank-logo-icon {
+    width: 44px;
+    height: 28px;
+    padding: 2px;
+  }
+
+  .bank-name {
+    font-size: 13px;
+  }
+
+  .bank-account-name {
+    font-size: 10px;
+  }
+
+  .bank-account-number {
+    font-size: 11px;
+  }
+
+  .bank-check-indicator {
+    font-size: 16px;
+  }
+}

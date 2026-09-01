@@ -2025,3 +2025,147 @@ body.dark-mode {
     transform: none !important;
   }
 }
+
+/* ============================================
+   DARK MODE - FORM ELEMENTS FIX
+   ============================================ */
+
+/* Select dropdown options */
+body.dark-mode select option {
+  background: #1A2533 !important;
+  color: #FFFFFF !important;
+  padding: 8px !important;
+}
+
+body.dark-mode select option:hover,
+body.dark-mode select option:focus,
+body.dark-mode select option:active {
+  background: #2A3A4A !important;
+}
+
+/* Select element itself */
+body.dark-mode select {
+  background-color: #131C28 !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode select:focus {
+  border-color: #F39C12 !important;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.15) !important;
+}
+
+/* Textarea fields */
+body.dark-mode textarea {
+  background: #131C28 !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode textarea:focus {
+  border-color: #F39C12 !important;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.15) !important;
+}
+
+body.dark-mode textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Input fields */
+body.dark-mode input {
+  background: #131C28 !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode input:focus {
+  border-color: #F39C12 !important;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.15) !important;
+}
+
+body.dark-mode input::placeholder {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Labels */
+body.dark-mode label {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Verification notes textarea */
+body.dark-mode .verification-notes-adminbilling textarea {
+  background: #131C28 !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode .verification-notes-adminbilling textarea:focus {
+  border-color: #F39C12 !important;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.15) !important;
+}
+
+/* Modal body textarea */
+body.dark-mode .modal-body-adminbilling textarea {
+  background: #131C28 !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode .modal-body-adminbilling textarea:focus {
+  border-color: #F39C12 !important;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.15) !important;
+}
+
+/* ============================================
+   CASH MODAL - NOTE FIELD FIX
+   ============================================ */
+
+/* Light mode - note textarea */
+.modal-body-adminbilling .form-group-adminbilling textarea,
+.modal-body-adminbilling .verification-notes-adminbilling textarea {
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: var(--text-primary);
+  resize: vertical;
+  min-height: 80px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 200ms ease;
+}
+
+.modal-body-adminbilling .form-group-adminbilling textarea:focus,
+.modal-body-adminbilling .verification-notes-adminbilling textarea:focus {
+  border-color: #F39C12 !important;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1) !important;
+  outline: none;
+}
+
+/* Dark mode - note textarea */
+body.dark-mode .modal-body-adminbilling .form-group-adminbilling textarea,
+body.dark-mode .modal-body-adminbilling .verification-notes-adminbilling textarea {
+  background: #131C28 !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode .modal-body-adminbilling .form-group-adminbilling textarea:focus,
+body.dark-mode .modal-body-adminbilling .verification-notes-adminbilling textarea:focus {
+  border-color: #F39C12 !important;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.15) !important;
+  outline: none;
+}
+
+body.dark-mode .modal-body-adminbilling .form-group-adminbilling textarea::placeholder,
+body.dark-mode .modal-body-adminbilling .verification-notes-adminbilling textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Label styling for dark mode */
+body.dark-mode .modal-body-adminbilling .form-group-adminbilling label,
+body.dark-mode .modal-body-adminbilling .verification-notes-adminbilling label {
+  color: rgba(255, 255, 255, 0.7) !important;
+}

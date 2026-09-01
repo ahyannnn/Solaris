@@ -1345,7 +1345,7 @@ const AdminBilling = () => {
       <div className="admin-billing">
 
         {/* --- Minimalist Header (Empty) --- */}
-       
+
 
         {/* ============================================ */}
         {/* CHARTS ROW                                  */}
@@ -1994,7 +1994,12 @@ const AdminBilling = () => {
                 )}
                 <div className="verification-notes-adminbilling">
                   <label>Notes</label>
-                  <textarea rows="3" value={verificationNote} onChange={(e) => setVerificationNote(e.target.value)} />
+                  <textarea
+                    rows="3"
+                    value={verificationNote}
+                    onChange={(e) => setVerificationNote(e.target.value)}
+                    placeholder="Enter notes about this verification..."  // ← ADD THIS
+                  />
                 </div>
               </div>
               <div className="modal-actions-adminbilling">
@@ -2024,7 +2029,12 @@ const AdminBilling = () => {
                 </div>
                 <div className="verification-notes-adminbilling">
                   <label>Notes</label>
-                  <textarea rows="3" value={editStatusData.notes} onChange={(e) => setEditStatusData({ ...editStatusData, notes: e.target.value })} />
+                  <textarea
+                    rows="3"
+                    value={editStatusData.notes}
+                    onChange={(e) => setEditStatusData({ ...editStatusData, notes: e.target.value })}
+                    placeholder="Enter notes about this status update..."  // ← ADD THIS
+                  />
                 </div>
               </div>
               <div className="modal-actions-adminbilling">
@@ -2047,7 +2057,12 @@ const AdminBilling = () => {
                 <div className="detail-row-adminbilling"><span>Amount:</span><strong>{formatCurrency(selectedInvoice.totalAmount)}</strong></div>
                 <div className="verification-notes-adminbilling">
                   <label>Notes</label>
-                  <textarea rows="3" value={verificationNote} onChange={(e) => setVerificationNote(e.target.value)} />
+                  <textarea
+                    rows="3"
+                    value={verificationNote}
+                    onChange={(e) => setVerificationNote(e.target.value)}
+                    placeholder="Enter notes about this verification..."  // ← ADD THIS
+                  />
                 </div>
               </div>
               <div className="modal-actions-adminbilling">
@@ -2399,7 +2414,7 @@ const AdminBilling = () => {
                   <textarea
                     value={bankRejectionReason}
                     onChange={(e) => setBankRejectionReason(e.target.value)}
-                    placeholder="Please explain why this payment is being rejected..."
+                    placeholder="Please explain why this payment is being rejected..."  // ← ADD THIS
                     rows="4"
                     required
                   />

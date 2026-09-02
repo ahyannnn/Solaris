@@ -1349,12 +1349,16 @@ const Quotation = () => {
               <div className="billing-customer-form-group-full">
                 <label>Amount Sent *</label>
                 <input
-                  type="number"  
+                  type="number"
                   name="amount"
-                  value={FormatCurrency(selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount || '')}
+                  value={
+                    (selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount)
+                      ? Number(selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount).toFixed(2)
+                      : ''
+                  }
                   readOnly
                   disabled
-                  step="0.01"  
+                  step="0.01"
                   className="billing-customer-form-input-readonly"
                 />
                 {validationErrors.amount && (

@@ -1351,7 +1351,7 @@ const Quotation = () => {
                 <input
                   type="number"  
                   name="amount"
-                  value={selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount || ''}
+                  value={formatCurrency(dueAmount)}
                   readOnly
                   disabled
                   step="0.01"  

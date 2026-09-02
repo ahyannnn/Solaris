@@ -1540,7 +1540,18 @@ const Quotation = () => {
       setActiveDropdown(itemId);
     }
   };
-
+  // Add this useEffect after your other useEffects
+  useEffect(() => {
+    if (selectedItem) {
+      const dueAmount = selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount;
+      if (dueAmount) {
+        setManualTransferForm(prev => ({
+          ...prev,
+          amount: Number(dueAmount).toFixed(2)
+        }));
+      }
+    }
+  }, [selectedItem]);
   // Recalculate dropdown position on scroll when dropdown is open
   useEffect(() => {
     if (activeDropdown === null) return;

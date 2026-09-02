@@ -37,7 +37,7 @@ const LandingPage = () => {
   });
   const [advancedEstimationResult, setAdvancedEstimationResult] = useState(null);
   const [calculating, setCalculating] = useState(false);
-  
+
   // Validation states
   const [validationErrors, setValidationErrors] = useState({});
   const [touchedFields, setTouchedFields] = useState({});
@@ -135,7 +135,7 @@ const LandingPage = () => {
 
   const handleAdvancedEstimatorChange = (e) => {
     const { name, value } = e.target;
-    
+
     // For select inputs, no validation needed
     if (name === 'systemType' || name === 'usagePattern') {
       setAdvancedEstimatorData(prev => ({ ...prev, [name]: value }));
@@ -145,7 +145,7 @@ const LandingPage = () => {
     // For number inputs, allow empty string and numbers with decimals
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
       setAdvancedEstimatorData(prev => ({ ...prev, [name]: value }));
-      
+
       // Clear error while typing
       if (validationErrors[name]) {
         setValidationErrors(prev => ({ ...prev, [name]: '' }));
@@ -364,11 +364,11 @@ const LandingPage = () => {
   const animateValue = (id, start, end, duration) => {
     const element = document.getElementById(id);
     if (!element) return;
-    
+
     const range = end - start;
     const increment = range / (duration / 16);
     let current = start;
-    
+
     const timer = setInterval(() => {
       current += increment;
       if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
@@ -532,24 +532,24 @@ const LandingPage = () => {
                   Monthly Electricity Bill (₱)
                   <span className="required-star">*</span>
                 </label>
-                <input 
-                  type="text" 
-                  name="monthlyBill" 
+                <input
+                  type="text"
+                  name="monthlyBill"
                   min="50"
                   max="9999999"
-                  value={advancedEstimatorData.monthlyBill} 
+                  value={advancedEstimatorData.monthlyBill}
                   onChange={handleAdvancedEstimatorChange}
                   onBlur={() => handleFieldBlur('monthlyBill')}
-                  placeholder="e.g., 5000" 
+                  placeholder="e.g., 5000"
                   className={getInputClassName('monthlyBill')}
                 />
                 {touchedFields.monthlyBill && validationErrors.monthlyBill && (
                   <div className="error-message">
-                   <small>{validationErrors.monthlyBill}</small>
-                    
+                    <small>{validationErrors.monthlyBill}</small>
+
                   </div>
                 )}
-                
+
               </div>
 
               <div className="input-group-land">
@@ -557,23 +557,23 @@ const LandingPage = () => {
                   Electricity Rate (₱/kWh)
                   <span className="required-star">*</span>
                 </label>
-                <input 
-                  type="text" 
-                  name="electricityRate" 
-                  value={advancedEstimatorData.electricityRate} 
+                <input
+                  type="text"
+                  name="electricityRate"
+                  value={advancedEstimatorData.electricityRate}
                   onChange={handleAdvancedEstimatorChange}
                   onBlur={() => handleFieldBlur('electricityRate')}
-                  placeholder="e.g., 11.50" 
+                  placeholder="e.g., 11.50"
                   className={getInputClassName('electricityRate')}
                 />
                 {touchedFields.electricityRate && validationErrors.electricityRate && (
                   <div className="error-message">
                     <small>{validationErrors.electricityRate}</small>
-                    
-                    
+
+
                   </div>
                 )}
-                
+
               </div>
 
               <div className="input-group-land">
@@ -581,29 +581,29 @@ const LandingPage = () => {
                   Average Sun Hours
                   <span className="required-star">*</span>
                 </label>
-                <input 
-                  type="text" 
-                  name="averageSunHours" 
-                  value={advancedEstimatorData.averageSunHours} 
+                <input
+                  type="text"
+                  name="averageSunHours"
+                  value={advancedEstimatorData.averageSunHours}
                   onChange={handleAdvancedEstimatorChange}
                   onBlur={() => handleFieldBlur('averageSunHours')}
-                  placeholder="e.g., 3.5" 
+                  placeholder="e.g., 3.5"
                   className={getInputClassName('averageSunHours')}
                 />
                 {touchedFields.averageSunHours && validationErrors.averageSunHours && (
                   <div className="error-message">
-                      <small>{validationErrors.averageSunHours}</small>
-                    
+                    <small>{validationErrors.averageSunHours}</small>
+
                   </div>
                 )}
-                
+
               </div>
 
               <div className="input-group-land">
                 <label>System Type</label>
-                <select 
-                  name="systemType" 
-                  value={advancedEstimatorData.systemType} 
+                <select
+                  name="systemType"
+                  value={advancedEstimatorData.systemType}
                   onChange={handleAdvancedEstimatorChange}
                 >
                   <option value="grid-tie">Grid-tie (No battery)</option>
@@ -614,9 +614,9 @@ const LandingPage = () => {
 
               <div className="input-group-land">
                 <label>Usage Pattern</label>
-                <select 
-                  name="usagePattern" 
-                  value={advancedEstimatorData.usagePattern} 
+                <select
+                  name="usagePattern"
+                  value={advancedEstimatorData.usagePattern}
                   onChange={handleAdvancedEstimatorChange}
                 >
                   <option value="daytime">Mostly Daytime</option>
@@ -625,9 +625,9 @@ const LandingPage = () => {
                 </select>
               </div>
 
-              <button 
-                onClick={calculateAdvancedSavings} 
-                disabled={calculating} 
+              <button
+                onClick={calculateAdvancedSavings}
+                disabled={calculating}
                 className="btn-calculate-land"
               >
                 {calculating ? 'Calculating...' : 'Calculate Savings'}
@@ -636,7 +636,7 @@ const LandingPage = () => {
               {/* Show validation summary */}
               {Object.keys(validationErrors).length > 0 && Object.values(validationErrors).some(error => error) && (
                 <div className="validation-summary">
-                    
+
                   <span>Please fix the errors above before calculating</span>
                 </div>
               )}
@@ -803,29 +803,29 @@ const LandingPage = () => {
             <div className="estimate-form-land">
               <div className="input-group-land">
                 <span className="currency-land">₱</span>
-                <input 
-                  type="number" 
-                  value={monthlyBill} 
-                  onChange={(e) => setMonthlyBill(e.target.value)} 
-                  placeholder="e.g., 5000" 
+                <input
+                  type="number"
+                  value={monthlyBill}
+                  onChange={(e) => setMonthlyBill(e.target.value)}
+                  placeholder="e.g., 5000"
                 />
               </div>
-              <button 
-                className="btn-primary-land" 
-                onClick={() => { 
-                  const bill = parseFloat(monthlyBill) || 0; 
+              <button
+                className="btn-primary-land"
+                onClick={() => {
+                  const bill = parseFloat(monthlyBill) || 0;
                   if (bill < 50) {
                     alert('Please enter a valid monthly bill amount (minimum ₱50)');
                     return;
                   }
-                  const estimatedSavings = Math.round(bill * 0.3); 
-                  const estimatedSystemSize = Math.round((bill / 11.5 / 30) * 1.2); 
-                  setEstimateResult({ 
-                    monthlySavings: estimatedSavings, 
-                    systemSize: estimatedSystemSize, 
-                    paybackYears: (estimatedSystemSize * 70000 / (estimatedSavings * 12)).toFixed(1) 
-                  }); 
-                }} 
+                  const estimatedSavings = Math.round(bill * 0.3);
+                  const estimatedSystemSize = Math.round((bill / 11.5 / 30) * 1.2);
+                  setEstimateResult({
+                    monthlySavings: estimatedSavings,
+                    systemSize: estimatedSystemSize,
+                    paybackYears: (estimatedSystemSize * 70000 / (estimatedSavings * 12)).toFixed(1)
+                  });
+                }}
                 disabled={!monthlyBill}
               >
                 Calculate

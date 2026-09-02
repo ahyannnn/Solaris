@@ -2,6 +2,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { ToastProvider } from './context/ToastContext';
 
 import SolarisLandingPage from './pages/Auth/landingpage';
 import LoginPage from './pages/Auth/loginpage';
@@ -162,150 +163,152 @@ function App() {
 
   return (
     <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/maintenance" element={<MaintenancePage />} />
-        <Route path="/terms" element={<TermsPage />} />
+      <ToastProvider>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/maintenance" element={<MaintenancePage />} />
+          <Route path="/terms" element={<TermsPage />} />
 
-        <Route
-          path="/"
-          element={
-            <PublicRouteGuard>
-              <SolarisLandingPage />
-            </PublicRouteGuard>
-          }
-        />
-        <Route
-          path="/login"
-          element={
-            <PublicRouteGuard>
-              <LoginPage />
-            </PublicRouteGuard>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <PublicRouteGuard>
-              <RegisterPage />
-            </PublicRouteGuard>
-          }
-        />
-        <Route
-          path="/forgotpassword"
-          element={
-            <PublicRouteGuard>
-              <ForgotPage />
-            </PublicRouteGuard>
-          }
-        />
+          <Route
+            path="/"
+            element={
+              <PublicRouteGuard>
+                <SolarisLandingPage />
+              </PublicRouteGuard>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <PublicRouteGuard>
+                <LoginPage />
+              </PublicRouteGuard>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicRouteGuard>
+                <RegisterPage />
+              </PublicRouteGuard>
+            }
+          />
+          <Route
+            path="/forgotpassword"
+            element={
+              <PublicRouteGuard>
+                <ForgotPage />
+              </PublicRouteGuard>
+            }
+          />
 
-        {/* Guide Routes - Public access */}
-        <Route path="/guides/book-assessment" element={<BookAssessmentGuide />} />
-        <Route path="/guides/payment" element={<PaymentGuide />} />
-        <Route path="/guides/track-project" element={<TrackProjectGuide />} />
-        <Route path="/guides/view-data" element={<ViewDataGuide />} />
+          {/* Guide Routes - Public access */}
+          <Route path="/guides/book-assessment" element={<BookAssessmentGuide />} />
+          <Route path="/guides/payment" element={<PaymentGuide />} />
+          <Route path="/guides/track-project" element={<TrackProjectGuide />} />
+          <Route path="/guides/view-data" element={<ViewDataGuide />} />
 
-        {/* Setup Account */}
-        <Route
-          path="/setup"
-          element={
-            <SetupGuard>
-              <SetupAccount />
-            </SetupGuard>
-          }
-        />
+          {/* Setup Account */}
+          <Route
+            path="/setup"
+            element={
+              <SetupGuard>
+                <SetupAccount />
+              </SetupGuard>
+            }
+          />
 
-        {/* Admin Routes */}
-        <Route
-          path="/app/admin"
-          element={
-            <MaintenanceGuard>
-              <AccountSetupGuard>
-                <RoleRouteGuard allowedRoles={['admin']}>
-                  <DashboardLayout />
-                </RoleRouteGuard>
-              </AccountSetupGuard>
-            </MaintenanceGuard>
-          }
-        >
-          <Route index element={<AdminDashboard />} />
-          <Route path="freequotes" element={<FreeQuotes />} />
-          <Route path="preassessments" element={<PreAssessment />} />
-          <Route path="siteassessment" element={<SiteAssessment />} />
-          <Route path="project" element={<Project />} />
-          <Route path="billing" element={<AdminBilling />} />
-          <Route path="solarinvoices" element={<SolarInvoices />} />
-          <Route path="iotdevice" element={<IoTDevice />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="schedule" element={<Schedule />} />
-          <Route path="usermanagement" element={<UserManagement />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="maintenance" element={<Maintenance />} />
-          <Route path="system-config" element={<SystemConfig />} />
-          <Route path="notifications" element={<Notifications />} />
-        </Route>
+          {/* Admin Routes */}
+          <Route
+            path="/app/admin"
+            element={
+              <MaintenanceGuard>
+                <AccountSetupGuard>
+                  <RoleRouteGuard allowedRoles={['admin']}>
+                    <DashboardLayout />
+                  </RoleRouteGuard>
+                </AccountSetupGuard>
+              </MaintenanceGuard>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="freequotes" element={<FreeQuotes />} />
+            <Route path="preassessments" element={<PreAssessment />} />
+            <Route path="siteassessment" element={<SiteAssessment />} />
+            <Route path="project" element={<Project />} />
+            <Route path="billing" element={<AdminBilling />} />
+            <Route path="solarinvoices" element={<SolarInvoices />} />
+            <Route path="iotdevice" element={<IoTDevice />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="schedule" element={<Schedule />} />
+            <Route path="usermanagement" element={<UserManagement />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="maintenance" element={<Maintenance />} />
+            <Route path="system-config" element={<SystemConfig />} />
+            <Route path="notifications" element={<Notifications />} />
+          </Route>
 
-        {/* Engineer Routes */}
-        <Route
-          path="/app/engineer"
-          element={
-            <MaintenanceGuard>
-              <AccountSetupGuard>
-                <RoleRouteGuard allowedRoles={['engineer']}>
-                  <DashboardLayout />
-                </RoleRouteGuard>
-              </AccountSetupGuard>
-            </MaintenanceGuard>
-          }
-        >
-          <Route index element={<EngineerDashboard />} />
-          <Route path="assessment" element={<EngineerSiteAssessment />} />
-          <Route path="project" element={<EngineerProject />} />
-          <Route path="device" element={<EngineerIoTDevice />} />
-          <Route path="reports" element={<EngineerReports />} />
-          <Route path="quotation" element={<EngineerQuotation />} />
-          <Route path="schedule" element={<EngineerSchedule />} />
-          <Route path="profile" element={<EngineerProfile />} />
-          <Route path="notifications" element={<Notifications />} />
-        </Route>
+          {/* Engineer Routes */}
+          <Route
+            path="/app/engineer"
+            element={
+              <MaintenanceGuard>
+                <AccountSetupGuard>
+                  <RoleRouteGuard allowedRoles={['engineer']}>
+                    <DashboardLayout />
+                  </RoleRouteGuard>
+                </AccountSetupGuard>
+              </MaintenanceGuard>
+            }
+          >
+            <Route index element={<EngineerDashboard />} />
+            <Route path="assessment" element={<EngineerSiteAssessment />} />
+            <Route path="project" element={<EngineerProject />} />
+            <Route path="device" element={<EngineerIoTDevice />} />
+            <Route path="reports" element={<EngineerReports />} />
+            <Route path="quotation" element={<EngineerQuotation />} />
+            <Route path="schedule" element={<EngineerSchedule />} />
+            <Route path="profile" element={<EngineerProfile />} />
+            <Route path="notifications" element={<Notifications />} />
+          </Route>
 
-        {/* Customer Routes */}
-        <Route
-          path="/app/customer"
-          element={
-            <MaintenanceGuard>
-              <AccountSetupGuard>
-                <RoleRouteGuard allowedRoles={['user']}>
-                  <DashboardLayout />
-                </RoleRouteGuard>
-              </AccountSetupGuard>
-            </MaintenanceGuard>
-          }
-        >
-          <Route index element={<CustomerDashboard />} />
-          <Route path="project" element={<MyProject />} />
-          <Route path="book-assessment" element={<ScheduleAssessment />} />
-          <Route path="billing" element={<Quotation />} />
-          <Route path="support" element={<Supports />} />
-          <Route path="profile" element={<CustomerProfile />} />
-          <Route path="settings" element={<CustomerSettings />} />
-          <Route path="payment-success" element={<PaymentSuccess />} />
-          <Route path="payment-cancel" element={<PaymentCancel />} />
-          <Route path="notifications" element={<Notifications />} />
-        </Route>
+          {/* Customer Routes */}
+          <Route
+            path="/app/customer"
+            element={
+              <MaintenanceGuard>
+                <AccountSetupGuard>
+                  <RoleRouteGuard allowedRoles={['user']}>
+                    <DashboardLayout />
+                  </RoleRouteGuard>
+                </AccountSetupGuard>
+              </MaintenanceGuard>
+            }
+          >
+            <Route index element={<CustomerDashboard />} />
+            <Route path="project" element={<MyProject />} />
+            <Route path="book-assessment" element={<ScheduleAssessment />} />
+            <Route path="billing" element={<Quotation />} />
+            <Route path="support" element={<Supports />} />
+            <Route path="profile" element={<CustomerProfile />} />
+            <Route path="settings" element={<CustomerSettings />} />
+            <Route path="payment-success" element={<PaymentSuccess />} />
+            <Route path="payment-cancel" element={<PaymentCancel />} />
+            <Route path="notifications" element={<Notifications />} />
+          </Route>
 
-        {/* Catch all - redirect based on role */}
-        <Route
-          path="/app"
-          element={
-            <Navigate
-              to={`/app/${userRole === 'admin' ? 'admin' : userRole === 'engineer' ? 'engineer' : 'customer'}`}
-              replace
-            />
-          }
-        />
-      </Routes>
+          {/* Catch all - redirect based on role */}
+          <Route
+            path="/app"
+            element={
+              <Navigate
+                to={`/app/${userRole === 'admin' ? 'admin' : userRole === 'engineer' ? 'engineer' : 'customer'}`}
+                replace
+              />
+            }
+          />
+        </Routes>
+      </ToastProvider>
     </Router>
   );
 }

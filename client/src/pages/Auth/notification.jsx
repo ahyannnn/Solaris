@@ -21,6 +21,7 @@ import {
   FaEye
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
+import socketService from '../../services/socketService';
 import '../../styles/Auth/notification.css';
 
 const Notifications = () => {
@@ -50,6 +51,58 @@ const Notifications = () => {
   const getUserRole = () => {
     return localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
   };
+
+  // Real-time socket events
+  useEffect(() => {
+    const handleNewNotification = (data) => {
+      const notification = data?.notification || data;
+      if (!notification) return;
+
+      setNotifications((prev) => {
+        // Prevent duplicate entry in list
+        if (prev.some((n) => n._id === notification._id)) {
+          return prev;
+        }
+        return [notification, ...prev];
+      });
+      setUnreadCount((prev) => prev + 1);
+    };
+
+    const handleNotificationRead = (data) => {
+      const notifId = data?.notificationId;
+      if (!notifId) return;
+
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === notifId ? { ...n, read: true, isRead: true } : n))
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    };
+
+    const handleReadAll = () => {
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true, isRead: true })));
+      setUnreadCount(0);
+    };
+
+    const handleNotificationDeleted = (data) => {
+      const notifId = data?.notificationId;
+      if (!notifId) return;
+
+      setNotifications((prev) => prev.filter((n) => n._id !== notifId));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    };
+
+    socketService.on('notification:new', handleNewNotification);
+    socketService.on('notification:read', handleNotificationRead);
+    socketService.on('notifications:readAll', handleReadAll);
+    socketService.on('notification:deleted', handleNotificationDeleted);
+
+    return () => {
+      socketService.off('notification:new', handleNewNotification);
+      socketService.off('notification:read', handleNotificationRead);
+      socketService.off('notifications:readAll', handleReadAll);
+      socketService.off('notification:deleted', handleNotificationDeleted);
+    };
+  }, []);
 
   const fetchNotifications = async () => {
     try {

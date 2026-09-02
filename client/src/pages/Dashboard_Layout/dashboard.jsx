@@ -45,10 +45,44 @@ import {
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
 import '../../styles/Dashboard/dashboard.css';
+import socketService from '../../services/socketService';
+import { useToastContext } from '../../context/ToastContext';
+
+// Helper to reliably get current authenticated user ID
+const getAuthUserId = () => {
+  let userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+  if (userId) return userId;
+
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  if (token) {
+    try {
+      const base64Url = token.split('.')[1];
+      if (base64Url) {
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+          atob(base64)
+            .split('')
+            .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+            .join('')
+        );
+        const decoded = JSON.parse(jsonPayload);
+        if (decoded.id) {
+          userId = decoded.id;
+          sessionStorage.setItem('userId', userId);
+          return userId;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not decode token for userId', e);
+    }
+  }
+  return null;
+};
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { showNotificationToast } = useToastContext();
   const [initialized, setInitialized] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const [maintenanceStatus, setMaintenanceStatus] = useState({ isUnderMaintenance: false, title: '' });
@@ -754,7 +788,70 @@ const Dashboard = () => {
     }
   }, [navigate, location.pathname, initialized, isNavigating]);
 
-  // Poll for unread count
+  // Connect real-time socket and listen for notifications
+  useEffect(() => {
+    const userId = getAuthUserId();
+    if (!userId) return;
+
+    socketService.connect(userId);
+
+    const handleNewNotification = (data) => {
+      console.log('🔔 [DashboardLayout] Real-time notification received:', data);
+      const notification = data?.notification || data;
+      if (!notification) return;
+
+      // 1. Update unread count immediately in real time
+      setUnreadCount((prev) => prev + 1);
+
+      // 2. Update notifications list for popover
+      const processedNotif = {
+        ...notification,
+        isRead: false,
+        read: false,
+      };
+      setNotifications((prev) => [processedNotif, ...prev.slice(0, 2)]);
+
+      // 3. Show stackable toast immediately in real time
+      showNotificationToast(processedNotif);
+    };
+
+    const handleNotificationRead = (data) => {
+      const notifId = data?.notificationId;
+      if (!notifId) return;
+
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === notifId ? { ...n, isRead: true, read: true } : n))
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    };
+
+    const handleReadAll = () => {
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true, read: true })));
+      setUnreadCount(0);
+    };
+
+    const handleNotificationDeleted = (data) => {
+      const notifId = data?.notificationId;
+      if (!notifId) return;
+
+      setNotifications((prev) => prev.filter((n) => n._id !== notifId));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    };
+
+    socketService.on('notification:new', handleNewNotification);
+    socketService.on('notification:read', handleNotificationRead);
+    socketService.on('notifications:readAll', handleReadAll);
+    socketService.on('notification:deleted', handleNotificationDeleted);
+
+    return () => {
+      socketService.off('notification:new', handleNewNotification);
+      socketService.off('notification:read', handleNotificationRead);
+      socketService.off('notifications:readAll', handleReadAll);
+      socketService.off('notification:deleted', handleNotificationDeleted);
+    };
+  }, [showNotificationToast]);
+
+  // Poll for unread count as fallback
   useEffect(() => {
     if (!initialized) return;
 
@@ -828,6 +925,7 @@ const Dashboard = () => {
     if (isNavigating) return;
     setIsNavigating(true);
     setShowLogoutModal(false);
+    socketService.disconnect();
     localStorage.clear();
     sessionStorage.clear();
     setTimeout(() => {

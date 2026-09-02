@@ -53,6 +53,7 @@ const ProjectManagement = () => {
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 20 });
   const dropdownRef = useRef(null);
   const buttonRefs = useRef({});
+  const [autoOpenAssignModal, setAutoOpenAssignModal] = useState(false);
   const [stats, setStats] = useState({
     total: 0, quoted: 0, approved: 0, inProgress: 0, completed: 0, cancelled: 0, totalRevenue: 0
   });
@@ -250,9 +251,26 @@ const ProjectManagement = () => {
       );
       showToast(`Project status updated to ${formData.newStatus}`, 'success');
       setShowStatusModal(false);
+
+      // Store the project reference before clearing
+      const projectToAssign = selectedProject;
+
       setSelectedProject(null);
       setFormData({ ...formData, newStatus: '', statusNotes: '' });
       setOpenDropdownId(null);
+
+      // Check if we need to auto-open assign modal (for 'approved' status)
+      if (formData.newStatus === 'approved') {
+        // Fetch engineers first if not loaded
+        if (engineers.length === 0) {
+          await fetchEngineers();
+        }
+        // Set the selected project and open assign modal
+        setSelectedProject(projectToAssign);
+        setShowAssignModal(true);
+        setAutoOpenAssignModal(false); // Reset flag
+      }
+
       fetchProjects();
       fetchStats();
     } catch (error) {
@@ -390,6 +408,7 @@ const ProjectManagement = () => {
         action: () => {
           setSelectedProject(project);
           setFormData({ ...formData, newStatus: 'approved' });
+          setAutoOpenAssignModal(true); // Set flag to auto-open assign modal
           setShowStatusModal(true);
           setOpenDropdownId(null);
         },
@@ -1052,7 +1071,16 @@ const ProjectManagement = () => {
                 </div>
               </div>
               <div className="modal-actions-projectmanagement">
-                <button className="cancel-btn-projectmanagement" onClick={() => setShowAssignModal(false)}>Cancel</button>
+                <button
+                  className="cancel-btn-projectmanagement"
+                  onClick={() => {
+                    setShowAssignModal(false);
+                    setSelectedProject(null);
+                    setAutoOpenAssignModal(false);
+                  }}
+                >
+                  Cancel
+                </button>
                 <button
                   className="assign-btn-projectmanagement"
                   onClick={assignEngineer}

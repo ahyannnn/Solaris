@@ -659,9 +659,6 @@ body {
   background: rgba(243, 156, 18, 0.08);
 }
 
-.notif-item.broadcast {
-  border-left: 3px solid var(--border-item-broadcast);
-}
 
 .notif-item.broadcast.unread {
   background: var(--bg-item-broadcast);

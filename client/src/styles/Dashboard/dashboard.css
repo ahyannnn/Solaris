@@ -1248,7 +1248,6 @@ body.dark-mode {
 
 .notif-item.unread {
   background: rgba(243, 156, 18, 0.04);
-  border-left: 3px solid var(--sidebar-accent);
 }
 
 .notif-item.unread:hover {
@@ -1960,7 +1959,6 @@ body.dark-mode .notif-item:hover {
 
 body.dark-mode .notif-item.unread {
   background: rgba(243, 156, 18, 0.04);
-  border-left-color: #F39C12;
 }
 
 body.dark-mode .notif-item.unread:hover {

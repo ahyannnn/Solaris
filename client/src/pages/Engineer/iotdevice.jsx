@@ -98,10 +98,10 @@ const IoTDevice = () => {
   const formatAxisDate = (timestamp) => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   };
 
@@ -222,10 +222,10 @@ const IoTDevice = () => {
       });
       setGpsData(stats.gps || null);
       setLastUpdated(new Date());
-      
+
       const hasValidStats = stats.totalReadings > 0 && stats.peakSunHours > 0;
       setHasStats(hasValidStats);
-      
+
     } catch (error) {
       console.error('Error fetching sensor data:', error);
       showToast('Failed to fetch sensor data', 'error');
@@ -254,17 +254,17 @@ const IoTDevice = () => {
       showToast('No data available to retrieve. Please wait for data collection.', 'warning');
       return;
     }
-    
+
     if (!sensorStats.totalReadings || sensorStats.totalReadings === 0) {
       showToast('No readings available. Device may not have collected data yet.', 'warning');
       return;
     }
-    
+
     if (!sensorStats.peakSunHours && sensorStats.peakSunHours !== 0) {
       showToast('Peak sun hours data is missing. Please try again later.', 'warning');
       return;
     }
-    
+
     setShowConfirmModal(true);
   };
 
@@ -286,20 +286,20 @@ const IoTDevice = () => {
         totalReadings: sensorStats.totalReadings || 0,
         dataCollectionStart: sensorStats.dataCollectionStart || null,
         dataCollectionEnd: sensorStats.dataCollectionEnd || null,
-        
+
         averageIrradiance: sensorStats.averageIrradiance || 0,
         maxIrradiance: sensorStats.maxIrradiance || 0,
         minIrradiance: sensorStats.minIrradiance || 0,
         peakSunHours: sensorStats.peakSunHours || 0,
-        
+
         averageTemperature: sensorStats.averageTemperature || 0,
         maxTemperature: sensorStats.maxTemperature || 0,
         minTemperature: sensorStats.minTemperature || 0,
-        
+
         averageHumidity: sensorStats.averageHumidity || 0,
         maxHumidity: sensorStats.maxHumidity || 0,
         minHumidity: sensorStats.minHumidity || 0,
-        
+
         gps: sensorStats.gps || null
       };
 
@@ -529,7 +529,7 @@ const IoTDevice = () => {
                       <p>{selectedDevice.deviceId}</p>
                     </div>
                   </div>
-                  
+
                 </div>
 
                 {/* Stats Cards */}
@@ -587,19 +587,19 @@ const IoTDevice = () => {
                         <ResponsiveContainer width="100%" height={300}>
                           <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #EEF0ED)" />
-                            <XAxis 
-                              dataKey="timestamp" 
-                              tickFormatter={formatAxisDate} 
-                              domain={['auto', 'auto']} 
-                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }} 
+                            <XAxis
+                              dataKey="timestamp"
+                              tickFormatter={formatAxisDate}
+                              domain={['auto', 'auto']}
+                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }}
                             />
                             <YAxis
                               domain={[0, 'auto']}
-                              label={{ 
-                                value: 'Irradiance (W/m²)', 
-                                angle: -90, 
-                                position: 'insideLeft', 
-                                style: { fontSize: '11px', fill: 'var(--text-secondary, #64748b)' } 
+                              label={{
+                                value: 'Irradiance (W/m²)',
+                                angle: -90,
+                                position: 'insideLeft',
+                                style: { fontSize: '11px', fill: 'var(--text-secondary, #64748b)' }
                               }}
                               tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }}
                             />
@@ -617,20 +617,20 @@ const IoTDevice = () => {
                         <ResponsiveContainer width="100%" height={300}>
                           <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #EEF0ED)" />
-                            <XAxis 
-                              dataKey="timestamp" 
-                              tickFormatter={formatAxisDate} 
-                              domain={['auto', 'auto']} 
-                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }} 
+                            <XAxis
+                              dataKey="timestamp"
+                              tickFormatter={formatAxisDate}
+                              domain={['auto', 'auto']}
+                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }}
                             />
                             <YAxis
                               yAxisId="left"
                               domain={[0, 50]}
-                              label={{ 
-                                value: 'Temperature (°C)', 
-                                angle: -90, 
-                                position: 'insideLeft', 
-                                style: { fontSize: '11px', fill: 'var(--text-secondary, #64748b)' } 
+                              label={{
+                                value: 'Temperature (°C)',
+                                angle: -90,
+                                position: 'insideLeft',
+                                style: { fontSize: '11px', fill: 'var(--text-secondary, #64748b)' }
                               }}
                               tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }}
                             />
@@ -638,11 +638,11 @@ const IoTDevice = () => {
                               yAxisId="right"
                               orientation="right"
                               domain={[0, 100]}
-                              label={{ 
-                                value: 'Humidity (%)', 
-                                angle: 90, 
-                                position: 'insideRight', 
-                                style: { fontSize: '11px', fill: 'var(--text-secondary, #64748b)' } 
+                              label={{
+                                value: 'Humidity (%)',
+                                angle: 90,
+                                position: 'insideRight',
+                                style: { fontSize: '11px', fill: 'var(--text-secondary, #64748b)' }
                               }}
                               tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }}
                             />
@@ -690,14 +690,17 @@ const IoTDevice = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {sensorData.slice(0, 20).map((reading, idx) => (
-                            <tr key={idx}>
-                              <td>{formatPhilippineTime(reading.timestamp)}</td>
-                              <td>{reading.irradiance || 0}</td>
-                              <td>{reading.temperature?.toFixed(1) || 0}</td>
-                              <td>{reading.humidity?.toFixed(0) || 0}%</td>
-                            </tr>
-                          ))}
+                          {[...sensorData]
+                            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                            .slice(0, 20)
+                            .map((reading, idx) => (
+                              <tr key={idx}>
+                                <td>{formatPhilippineTime(reading.timestamp)}</td>
+                                <td>{reading.irradiance || 0}</td>
+                                <td>{reading.temperature?.toFixed(1) || 0}</td>
+                                <td>{reading.humidity?.toFixed(0) || 0}%</td>
+                              </tr>
+                            ))}
                         </tbody>
                       </table>
                     </div>
@@ -722,10 +725,10 @@ const IoTDevice = () => {
                     <p><strong>Longitude:</strong> {gpsData.longitude || 'N/A'}</p>
                   </div>
                   {gpsData.latitude && gpsData.longitude && (
-                    <a 
-                      href={`https://www.google.com/maps?q=${gpsData.latitude},${gpsData.longitude}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
+                    <a
+                      href={`https://www.google.com/maps?q=${gpsData.latitude},${gpsData.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="view-map-btn-iotdevicead"
                     >
                       View on Google Maps
@@ -737,9 +740,9 @@ const IoTDevice = () => {
               <div className="modal-actions-iotdevicead">
                 <button className="close-btn-iotdevicead" onClick={() => setShowDataModal(false)}>Close</button>
                 {(selectedDevice.assessmentStatus === 'data_collecting' || selectedDevice.status === 'deployed') && (
-                  <button 
-                    className="retrieve-btn-iotdevicead" 
-                    onClick={openConfirmModal} 
+                  <button
+                    className="retrieve-btn-iotdevicead"
+                    onClick={openConfirmModal}
                     disabled={retrieving || !hasStats}
                     title={!hasStats ? 'No data available to retrieve' : ''}
                   >

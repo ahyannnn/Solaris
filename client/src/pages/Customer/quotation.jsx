@@ -1346,15 +1346,19 @@ const Quotation = () => {
               </div>
 
               {/* Amount Sent - Full Width */}
-              {/* Amount Sent - Full Width */}
               <div className="billing-customer-form-group-full">
                 <label>Amount Sent *</label>
                 <input
                   type="number"
                   name="amount"
-                  value={selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount || ''}
+                  value={
+                    (selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount)
+                      ? Number(selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount).toFixed(2)
+                      : ''
+                  }
                   readOnly
                   disabled
+                  step="0.01"
                   className="billing-customer-form-input-readonly"
                 />
                 {validationErrors.amount && (
@@ -1536,7 +1540,18 @@ const Quotation = () => {
       setActiveDropdown(itemId);
     }
   };
-
+  // Add this useEffect after your other useEffects
+  useEffect(() => {
+    if (selectedItem) {
+      const dueAmount = selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount;
+      if (dueAmount) {
+        setManualTransferForm(prev => ({
+          ...prev,
+          amount: Number(dueAmount).toFixed(2)
+        }));
+      }
+    }
+  }, [selectedItem]);
   // Recalculate dropdown position on scroll when dropdown is open
   useEffect(() => {
     if (activeDropdown === null) return;

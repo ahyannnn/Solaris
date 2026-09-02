@@ -1346,15 +1346,15 @@ const Quotation = () => {
               </div>
 
               {/* Amount Sent - Full Width */}
-              {/* Amount Sent - Full Width */}
               <div className="billing-customer-form-group-full">
                 <label>Amount Sent *</label>
                 <input
-                  type="number"
+                  type="number"  
                   name="amount"
                   value={selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount || ''}
                   readOnly
                   disabled
+                  step="0.01"  
                   className="billing-customer-form-input-readonly"
                 />
                 {validationErrors.amount && (

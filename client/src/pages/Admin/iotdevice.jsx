@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import {
   FaEye,
   FaEdit,
@@ -94,6 +95,14 @@ const IoTDevice = () => {
     };
     return statusMap[status] || status;
   };
+
+  // Real-time table updates (no page refresh): refetch on socket event and
+  // render only the complete server response, so rows never flash partial
+  // (N/A) data from the raw payload. Cleaned up on unmount.
+  useRealtimeTable('devices', () => {
+    fetchDevices();
+    fetchStats();
+  });
 
   useEffect(() => {
     fetchDevices();

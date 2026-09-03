@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import { 
   FaSolarPanel, 
   FaEye, 
@@ -35,6 +36,14 @@ const AdminSolarInvoices = () => {
     partial: 0,
     totalRevenue: 0,
     pendingAmount: 0
+  });
+
+  // Real-time table updates (no page refresh): refetch on socket event and
+  // render only the complete server response, so rows never flash partial
+  // (N/A) data from the raw payload. Cleaned up on unmount.
+  useRealtimeTable('solar-invoices', () => {
+    fetchInvoices();
+    fetchStats();
   });
 
   useEffect(() => {

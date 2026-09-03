@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import {
   FaSearch,
   FaEye,
@@ -176,6 +177,23 @@ const AdminBilling = () => {
       applyTransactionFilters();
     }
   }, [allAssessments, allSolarInvoices, allBankTransfers, allTransactions, filter, debouncedSearchTerm, bankTransferFilter, debouncedBankSearch]);
+
+  // Real-time table updates (no page refresh): refetch on socket event and
+  // render only the complete server response, so rows never flash partial
+  // (N/A) data from the raw payload. Cleaned up on unmount.
+  useRealtimeTable(['pre-assessments', 'solar-invoices', 'bank-transfers', 'projects'], (payload) => {
+    if (payload.entity === 'pre-assessments') {
+      fetchPreAssessments();
+    } else if (payload.entity === 'solar-invoices') {
+      fetchSolarInvoices();
+    } else if (payload.entity === 'bank-transfers') {
+      fetchBankTransfers();
+    } else if (payload.entity === 'projects') {
+      fetchProjects();
+    }
+    fetchTransactions();
+    fetchStats();
+  });
 
   useEffect(() => {
     if (activeTab === 'pre-assessments') {

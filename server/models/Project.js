@@ -217,4 +217,8 @@ projectSchema.pre('save', function () {
   }
 });
 
+// Real-time table updates (reuses existing Socket.IO backend)
+const { attachRealtimeHooks } = require('../utils/realtimeHelper');
+attachRealtimeHooks(projectSchema, 'projects');
+
 module.exports = mongoose.model('Project', projectSchema);

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import {
   FaEye,
   FaCheckCircle,
@@ -114,6 +115,14 @@ const ProjectManagement = () => {
     if (value >= 1000) return `₱${(value / 1000).toFixed(0)}k`;
     return `₱${value}`;
   };
+
+  // Real-time table updates (no page refresh): refetch on socket event and
+  // render only the complete server response, so rows never flash partial
+  // (N/A) data from the raw payload. Cleaned up on unmount.
+  useRealtimeTable(['projects', 'solar-invoices'], () => {
+    fetchProjects();
+    fetchStats();
+  });
 
   useEffect(() => {
     fetchProjects();

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import {
   FaUsers,
   FaSearch,
@@ -265,6 +266,22 @@ const UserManagement = () => {
       setAuditLoading(false);
     }
   };
+
+  // ============================================
+  // REAL-TIME TABLE UPDATES (no page refresh)
+  // Reuses existing Socket.IO backend via useRealtimeTable.
+  // Refetch-only: the table renders the complete server response,
+  // so rows never flash partial (N/A) data from the raw payload.
+  // Listener is cleaned up automatically on unmount.
+  // ============================================
+  useRealtimeTable('users', () => {
+    if (activeTab === 'users') {
+      fetchUsers();
+      fetchStats();
+    } else if (activeTab === 'audit') {
+      fetchAuditLogs();
+    }
+  });
 
   // ============================================
   // EFFECTS

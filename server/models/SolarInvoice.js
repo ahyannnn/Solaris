@@ -124,4 +124,8 @@ solarInvoiceSchema.methods.addPayment = async function(paymentData) {
   return this.save();
 };
 
+// Real-time table updates (reuses existing Socket.IO backend)
+const { attachRealtimeHooks } = require('../utils/realtimeHelper');
+attachRealtimeHooks(solarInvoiceSchema, 'solar-invoices');
+
 module.exports = mongoose.model('SolarInvoice', solarInvoiceSchema);

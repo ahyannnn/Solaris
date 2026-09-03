@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import {
   FaSearch,
   FaEye,
@@ -82,6 +83,14 @@ const SiteAssessment = () => {
     { name: 'Nov', quotes: 0, assessments: 0 },
     { name: 'Dec', quotes: 0, assessments: 0 }
   ]);
+
+  // Real-time table updates (no page refresh): refetch on socket event and
+  // render only the complete server response, so rows never flash partial
+  // (N/A) data from the raw payload. Cleaned up on unmount.
+  useRealtimeTable(['free-quotes', 'pre-assessments', 'devices'], () => {
+    fetchData();
+    fetchStats();
+  });
 
   useEffect(() => {
     fetchData();

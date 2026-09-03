@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import {
   FaCalendarAlt,
   FaClock,
@@ -115,6 +116,13 @@ const AdminSchedule = () => {
   // ============================================================
   // EFFECTS
   // ============================================================
+  // Real-time table updates (no page refresh): refetch current tab +
+  // stats on any schedule/project/assessment change. Cleaned up on unmount.
+  useRealtimeTable(['schedules', 'projects', 'pre-assessments'], () => {
+    fetchDataForTab();
+    fetchStats();
+  });
+
   useEffect(() => {
     fetchAllData();
   }, []);

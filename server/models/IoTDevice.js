@@ -77,4 +77,8 @@ const iotDeviceSchema = new mongoose.Schema({
 // Indexes
 
 
+// Real-time table updates (reuses existing Socket.IO backend)
+const { attachRealtimeHooks } = require('../utils/realtimeHelper');
+attachRealtimeHooks(iotDeviceSchema, 'devices');
+
 module.exports = mongoose.model('IoTDevice', iotDeviceSchema);

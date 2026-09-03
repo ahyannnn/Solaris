@@ -268,4 +268,8 @@ preAssessmentSchema.index({ bookingReference: 1 }, { unique: true });
 preAssessmentSchema.index({ invoiceNumber: 1 }, { unique: true, sparse: true });
 preAssessmentSchema.index({ paymongoPaymentIntentId: 1 });
 
+// Real-time table updates (reuses existing Socket.IO backend)
+const { attachRealtimeHooks } = require('../utils/realtimeHelper');
+attachRealtimeHooks(preAssessmentSchema, 'pre-assessments');
+
 module.exports = mongoose.model('PreAssessment', preAssessmentSchema);

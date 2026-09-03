@@ -91,4 +91,8 @@ BankTransferPaymentSchema.index({ invoiceId: 1 });
 BankTransferPaymentSchema.index({ clientId: 1 });
 BankTransferPaymentSchema.index({ createdAt: -1 });
 
+// Real-time table updates (reuses existing Socket.IO backend)
+const { attachRealtimeHooks } = require('../utils/realtimeHelper');
+attachRealtimeHooks(BankTransferPaymentSchema, 'bank-transfers');
+
 module.exports = mongoose.model('BankTransferPayment', BankTransferPaymentSchema);

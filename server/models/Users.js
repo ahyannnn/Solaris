@@ -51,4 +51,8 @@ userSchema.methods.isLocked = function() {
   return this.lockUntil > new Date();
 };
 
+// Real-time table updates (reuses existing Socket.IO backend)
+const { attachRealtimeHooks } = require('../utils/realtimeHelper');
+attachRealtimeHooks(userSchema, 'users');
+
 module.exports = mongoose.model("User", userSchema);

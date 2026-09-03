@@ -340,7 +340,18 @@ io.on(
 
     socket.on(
       "joinUser",
-      (userId) => {
+      async (payload) => {
+        // Backward compatible: accepts string userId or { userId, role }
+        const userId =
+          typeof payload === "string"
+            ? payload
+            : payload?.userId || payload?.id;
+
+        const claimedRole =
+          typeof payload === "object" && payload !== null
+            ? payload?.role
+            : null;
+
         if (!userId) {
           console.log(
             "⚠️ joinUser called without userId"
@@ -357,6 +368,46 @@ io.on(
         console.log(
           `👤 User ${userId} joined ${room}`
         );
+
+        // --------------------------------------------------
+        // ADMIN ROOM FOR REAL-TIME TABLE UPDATES
+        // --------------------------------------------------
+        // Table events (table:changed) are emitted to the
+        // shared "admins" room so admin tables update live
+        // without polling or page refresh.
+
+        try {
+          let role = claimedRole;
+
+          if (!role) {
+            const User = require("./models/Users");
+            const user = await User.findById(userId)
+              .select("role")
+              .lean();
+
+            role = user?.role;
+          }
+
+          const adminRoles = [
+            "admin",
+            "super_admin",
+            "finance_admin",
+            "operations_admin",
+          ];
+
+          if (role && adminRoles.includes(role)) {
+            socket.join("admins");
+
+            console.log(
+              `👑 User ${userId} (${role}) joined admins room`
+            );
+          }
+        } catch (err) {
+          console.error(
+            "⚠️ joinUser admin-room lookup failed:",
+            err.message
+          );
+        }
       }
     );
 

@@ -177,4 +177,8 @@ scheduleSchema.methods.cancel = async function(cancelledBy, reason) {
   return this;
 };
 
+// Real-time table updates (reuses existing Socket.IO backend)
+const { attachRealtimeHooks } = require('../utils/realtimeHelper');
+attachRealtimeHooks(scheduleSchema, 'schedules');
+
 module.exports = mongoose.model('Schedule', scheduleSchema);

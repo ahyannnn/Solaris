@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import { FaSpinner, FaFilePdf, FaFileExcel, FaTimes } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/reports.css';
@@ -45,6 +46,11 @@ const Reports = () => {
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
   const [transactions, setTransactions] = useState([]);
+
+  // Real-time data updates (no page refresh). Cleaned up on unmount.
+  useRealtimeTable(['pre-assessments', 'projects', 'users'], () => {
+    fetchAllData();
+  });
 
   useEffect(() => {
     fetchAllData();

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import {
   FaFileInvoiceDollar,
   FaClipboardList,
@@ -67,6 +68,11 @@ const AdminDashboard = () => {
     freeQuotes: new Array(12).fill(0),
     assessments: new Array(12).fill(0),
     revenue: new Array(12).fill(0)
+  });
+
+  // Real-time data updates (no page refresh). Cleaned up on unmount.
+  useRealtimeTable(['free-quotes', 'pre-assessments', 'devices', 'projects', 'users'], () => {
+    fetchDashboardData();
   });
 
   useEffect(() => {

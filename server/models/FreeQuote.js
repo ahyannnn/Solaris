@@ -220,4 +220,8 @@ const freeQuoteSchema = new mongoose.Schema({
 // Compound index for faster queries on engineer's assigned quotes
 freeQuoteSchema.index({ assignedEngineerId: 1, status: 1 });
 
+// Real-time table updates (reuses existing Socket.IO backend)
+const { attachRealtimeHooks } = require('../utils/realtimeHelper');
+attachRealtimeHooks(freeQuoteSchema, 'free-quotes');
+
 module.exports = mongoose.model('FreeQuote', freeQuoteSchema);

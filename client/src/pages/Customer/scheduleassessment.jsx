@@ -56,8 +56,60 @@ const ScheduleAssessment = () => {
   const [showQuotationModal, setShowQuotationModal] = useState(false);
   const [selectedQuotation, setSelectedQuotation] = useState(null);
   const [acceptingQuotation, setAcceptingQuotation] = useState(null);
+  const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [selectedPaymentPreference, setSelectedPaymentPreference] = useState('fifty_fifty');
   const [acceptingLoading, setAcceptingLoading] = useState(false);
+
+  // Requests table: actions dropdown (fixed-position, same pattern as billing table)
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+
+  const toggleDropdown = (rowId, event) => {
+    if (activeDropdown === rowId) {
+      setActiveDropdown(null);
+    } else {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const dropdownHeight = 180;
+      const dropdownWidth = 220;
+      let top = rect.bottom + 4;
+      let left = rect.left;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+        top = rect.top - dropdownHeight - 4;
+      }
+      if (left + dropdownWidth > window.innerWidth) {
+        left = Math.max(10, window.innerWidth - dropdownWidth - 10);
+      }
+      if (top < 10) top = 10;
+      if (top + dropdownHeight > window.innerHeight - 10) {
+        top = window.innerHeight - dropdownHeight - 10;
+      }
+      setDropdownPosition({ top, left });
+      setActiveDropdown(rowId);
+    }
+  };
+
+  useEffect(() => {
+    if (activeDropdown === null) return;
+    const handleClickOutside = (event) => {
+      const dropdowns = document.querySelectorAll('.req-dropdown-menu-container');
+      let isOutside = true;
+      dropdowns.forEach(dropdown => {
+        if (dropdown.contains(event.target)) isOutside = false;
+      });
+      if (isOutside) setActiveDropdown(null);
+    };
+    const handleScroll = () => setActiveDropdown(null);
+    document.addEventListener('click', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('resize', handleScroll);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [activeDropdown]);
 
   // Photo Gallery States
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -648,7 +700,8 @@ const ScheduleAssessment = () => {
     });
 
     setSelectedPaymentPreference('fifty_fifty');
-    setCurrentStep('accept-quotation');
+    setActiveDropdown(null);
+    setShowAcceptModal(true);
   };
 
   // ============ ACCEPT QUOTATION (UNIFIED) ============
@@ -659,10 +712,23 @@ const ScheduleAssessment = () => {
       sourceType: 'pre-assessment',
       quotationReference: assessment.bookingReference,
       quotation: assessment.quotation,
-      assessmentFee: assessment.assessmentFee || 0
+      assessmentFee: assessment.assessmentFee || 0,
+      source: assessment
     });
     setSelectedPaymentPreference('fifty_fifty');
-    setCurrentStep('accept-quotation');
+    setActiveDropdown(null);
+    setShowAcceptModal(true);
+  };
+
+  // Quotation document URL for the review modal (existing URL/file handling)
+  const getAcceptQuotationUrl = () => {
+    if (!acceptingQuotation) return null;
+    if (acceptingQuotation.sourceType === 'free-quote') {
+      const q = acceptingQuotation.quote;
+      return q?.quotationFile || q?.quotationUrl || null;
+    }
+    const a = acceptingQuotation.source;
+    return a?.finalQuotation || a?.quotation?.quotationUrl || null;
   };
 
   const confirmAcceptQuotation = async () => {
@@ -685,6 +751,7 @@ const ScheduleAssessment = () => {
       );
 
       showToast('Quotation accepted successfully! Project created.', 'success');
+      setShowAcceptModal(false);
       setCurrentStep('my-requests');
       setAcceptingQuotation(null);
       fetchMyRequests();
@@ -1223,194 +1290,392 @@ const ScheduleAssessment = () => {
             </button>
           </div>
 
-          <div className="requests-list-page-cusset">
-            {!hasRequests ? (
-              <div className="empty-requests-page-cusset">
-                <FaFileInvoice className="empty-icon-cusset" />
-                <h3>No requests yet</h3>
-                <p>Start your solar journey by requesting a free quotation or booking a pre-assessment.</p>
-                <button
-                  className="schedule-btn-primary-cusset"
-                  onClick={() => setCurrentStep('service-selection')}
-                >
-                  Get Started
-                </button>
-              </div>
-            ) : (
-              <>
-                {filteredFreeQuotes.map(quote => {
-                  const hasQuotation = quote.quotationFile || quote.quotationUrl;
-                  const isAccepted = quote.status === 'accepted';
-                  const alreadyProjectCreated = projects.some(p => {
-                    if (p.sourceType === 'free-quote' && p.sourceId) {
-                      const projectSourceId = typeof p.sourceId === 'object' ?
-                        p.sourceId._id?.toString() : p.sourceId?.toString();
-                      return projectSourceId === quote._id?.toString();
-                    }
-                    return false;
-                  });
+          <div className="req-table-container-cusset">
+            <div className="req-table-wrapper-cusset">
+              {(filteredFreeQuotes.length === 0 && filteredPreAssessments.length === 0) ? (
+                <div className="empty-requests-page-cusset">
+                  <FaFileInvoice className="empty-icon-cusset" />
+                  <h3>No requests yet</h3>
+                  <p>Start your solar journey by requesting a free quotation or booking a pre-assessment.</p>
+                  <button
+                    className="schedule-btn-primary-cusset"
+                    onClick={() => setCurrentStep('service-selection')}
+                  >
+                    Get Started
+                  </button>
+                </div>
+              ) : (
+                <table className="req-table-cusset">
+                  <thead>
+                    <tr>
+                      <th>Reference</th>
+                      <th>Type</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                      <th>Summary</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredFreeQuotes.map(quote => {
+                      const hasQuotation = quote.quotationFile || quote.quotationUrl;
+                      const isAccepted = quote.status === 'accepted';
+                      const alreadyProjectCreated = projects.some(p => {
+                        if (p.sourceType === 'free-quote' && p.sourceId) {
+                          const projectSourceId = typeof p.sourceId === 'object' ?
+                            p.sourceId._id?.toString() : p.sourceId?.toString();
+                          return projectSourceId === quote._id?.toString();
+                        }
+                        return false;
+                      });
+                      const canAccept = hasQuotation && !isAccepted && !alreadyProjectCreated && quote.status !== 'cancelled';
+                      const rowId = `fq-${quote._id}`;
+                      const summaryParts = [
+                        quote.monthlyBill ? `${formatCurrency(quote.monthlyBill)}/mo` : null,
+                        quote.propertyType ? capitalizeFirstLetter(quote.propertyType) : null,
+                        quote.recommendedSystemSize ? `${quote.recommendedSystemSize} kW` : null
+                      ].filter(Boolean);
 
-                  return (
-                    <div key={quote._id} className="request-card-page-cusset">
-                      <div className="request-card-header-cusset">
-                        <div className="request-card-title-cusset">
-                          <span className="type-badge-page free-quote">Free Quote</span>
-                          <span className="request-reference-cusset">{quote.quotationReference}</span>
-                        </div>
-                        <div className="request-card-status-cusset">
-                          {getFreeQuoteStatusBadge(quote.status)}
-                        </div>
-                      </div>
-
-                      <div className="request-card-body-cusset">
-                        <div className="request-details-grid-cusset">
-                          <div><span>Monthly Bill:</span> <strong>{formatCurrency(quote.monthlyBill)}</strong></div>
-                          <div><span>Property Type:</span> <strong>{quote.propertyType}</strong></div>
-                          {quote.systemType && <div><span>System Type:</span> <strong>{getSystemTypeLabel(quote.systemType)}</strong></div>}
-                          {quote.targetSavings && <div><span>Target Savings:</span> <strong>{quote.targetSavings}%</strong></div>}
-                          {quote.recommendedSystemSize && <div><span>System Size:</span> <strong>{quote.recommendedSystemSize} kW</strong></div>}
-                          <div><span>Date:</span> <strong>{formatDate(quote.requestedAt)}</strong></div>
-                          <div><span>Engineer:</span> <strong>{quote.engineerName || 'Not assigned yet'}</strong></div>
-                          <div className="full-width"><span>Address:</span> <strong>{getRequestAddress(quote)}</strong></div>
-                        </div>
-
-                        {hasQuotation && (
-                          <div className="request-card-actions-cusset">
-                            <button
-                              className="btn-action-page view-quote"
-                              onClick={() => handleViewFreeQuoteQuotation(quote)}
-                            >
-                              <FaEye /> View Quote
-                            </button>
-                            <button
-                              className="btn-action-page download-quote"
-                              onClick={() => handleDownloadFreeQuoteQuotation(quote)}
-                            >
-                              <FaDownload /> Download
-                            </button>
-                            {!isAccepted && !alreadyProjectCreated && quote.status !== 'cancelled' && (
-                              <button
-                                className="btn-action-page accept-quote"
-                                onClick={() => handleAcceptFreeQuoteClick(quote)}
-                              >
-                                <FaCheckCircle /> Accept
-                              </button>
-                            )}
-                            {(isAccepted || alreadyProjectCreated) && (
-                              <span className="project-created-badge-page">
-                                <FaCheckCircle /> Project Created
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        {!hasQuotation && quote.status !== 'cancelled' && (
-                          <div className="request-card-actions-cusset">
-                            <span className="status-badge-schedule processing">Waiting for Quotation</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {filteredPreAssessments.map(assessment => {
-                  const hasPhotos = assessment.sitePhotos && assessment.sitePhotos.length > 0;
-                  const hasQuotation = assessment.finalQuotation || assessment.quotation?.quotationUrl;
-                  const alreadyProjectCreated = assessment.assessmentStatus === 'quotation_accepted' ||
-                    projects.some(p => {
-                      if (p.preAssessmentId) {
-                        const projectPreAssessmentId = typeof p.preAssessmentId === 'object' ?
-                          p.preAssessmentId._id?.toString() : p.preAssessmentId?.toString();
-                        return projectPreAssessmentId === assessment._id?.toString();
-                      }
-                      return false;
-                    });
-
-                  return (
-                    <div key={assessment._id} className="request-card-page-cusset">
-                      <div className="request-card-header-cusset">
-                        <div className="request-card-title-cusset">
-                          <span className="type-badge-page pre-assessment">Pre Assessment</span>
-                          <span className="request-reference-cusset">{assessment.bookingReference}</span>
-                        </div>
-                        <div className="request-card-status-cusset">
-                          {getAssessmentStatusBadge(assessment.assessmentStatus || assessment.paymentStatus)}
-                        </div>
-                      </div>
-
-                      <div className="request-card-body-cusset">
-                        <div className="request-details-grid-cusset">
-                          <div><span>Property Type:</span> <strong>{assessment.propertyType}</strong></div>
-                          <div><span>Monthly Bill:</span> <strong>{formatCurrency(assessment.monthlyBill)}</strong></div>
-                          <div><span>Fee:</span> <strong>{formatCurrency(assessment.assessmentFee)}</strong></div>
-                          {assessment.targetSavings && <div><span>Target Savings:</span> <strong>{assessment.targetSavings}%</strong></div>}
-                          <div><span>Engineer:</span> <strong>{assessment.engineerName || 'Not assigned yet'}</strong></div>
-                          <div className="full-width"><span>Address:</span> <strong>{getRequestAddress(assessment)}</strong></div>
-                        </div>
-
-                        {hasPhotos && (
-                          <div className="request-card-photos-cusset">
-                            <div className="photos-preview-cusset">
-                              {assessment.sitePhotos.slice(0, 4).map((photo, idx) => (
-                                <div
-                                  key={idx}
-                                  className="photo-preview-item-cusset"
-                                  onClick={() => openPhotoModal(assessment.sitePhotos, idx)}
+                      return (
+                        <tr key={quote._id} className="req-table-row-cusset">
+                          <td><span className="req-ref-cusset">{quote.quotationReference}</span></td>
+                          <td><span className="type-badge-page free-quote">Free Quote</span></td>
+                          <td>{formatDate(quote.requestedAt)}</td>
+                          <td>{getFreeQuoteStatusBadge(quote.status)}</td>
+                          <td><span className="req-summary-cusset">{summaryParts.length > 0 ? summaryParts.join(' • ') : '—'}</span></td>
+                          <td>
+                            <div className="req-action-cell-cusset">
+                              {canAccept ? (
+                                <button
+                                  className="req-accept-btn-cusset"
+                                  onClick={() => handleAcceptFreeQuoteClick(quote)}
                                 >
-                                  <img src={photo} alt={`Site photo ${idx + 1}`} />
-                                  <div className="photo-preview-overlay-cusset"><FaEye /></div>
-                                </div>
-                              ))}
-                              {assessment.sitePhotos.length > 4 && (
-                                <div
-                                  className="photo-preview-item-cusset more"
-                                  onClick={() => openPhotoModal(assessment.sitePhotos, 0)}
+                                  <FaCheckCircle /> Accept
+                                </button>
+                              ) : (
+                              <div className="req-dropdown-menu-container">
+                                <button
+                                  className="req-dropdown-trigger-btn"
+                                  onClick={(e) => toggleDropdown(rowId, e)}
                                 >
-                                  <FaImages />
-                                  <span>+{assessment.sitePhotos.length - 4}</span>
-                                </div>
+                                  Actions ▾
+                                </button>
+                                {activeDropdown === rowId && (
+                                  <div
+                                    className="req-dropdown-menu"
+                                    style={{
+                                      position: 'fixed',
+                                      top: dropdownPosition.top + 'px',
+                                      left: dropdownPosition.left + 'px',
+                                      zIndex: 99999
+                                    }}
+                                  >
+                                    <button
+                                      className="req-dropdown-item view-details"
+                                      onClick={() => {
+                                        setActiveDropdown(null);
+                                        setSelectedRequest({ kind: 'free-quote', data: quote });
+                                        setShowDetailsModal(true);
+                                      }}
+                                    >
+                                      <FaEye /> View Details
+                                    </button>
+                                    {hasQuotation && (
+                                      <button
+                                        className="req-dropdown-item view-quotation"
+                                        onClick={() => {
+                                          setActiveDropdown(null);
+                                          handleViewFreeQuoteQuotation(quote);
+                                        }}
+                                      >
+                                        <FaFileInvoice /> View Quotation
+                                      </button>
+                                    )}
+                                    {hasQuotation && (
+                                      <button
+                                        className="req-dropdown-item download-quotation"
+                                        onClick={() => {
+                                          setActiveDropdown(null);
+                                          handleDownloadFreeQuoteQuotation(quote);
+                                        }}
+                                      >
+                                        <FaDownload /> Download Quotation
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                               )}
                             </div>
-                          </div>
-                        )}
+                          </td>
+                        </tr>
+                      );
+                    })}
 
-                        {hasQuotation && (
-                          <div className="request-card-actions-cusset">
-                            <button
-                              className="btn-action-page view-quote"
-                              onClick={() => handleViewQuotation(assessment)}
-                            >
-                              <FaEye /> View Quote
-                            </button>
-                            <button
-                              className="btn-action-page download-quote"
-                              onClick={() => handleDownloadQuotation(assessment)}
-                            >
-                              <FaDownload /> Download
-                            </button>
-                            {!alreadyProjectCreated && assessment.assessmentStatus !== 'quotation_accepted' && (
-                              <button
-                                className="btn-action-page accept-quote"
-                                onClick={() => handleAcceptQuotationClick(assessment)}
-                              >
-                                <FaCheckCircle /> Accept
-                              </button>
-                            )}
-                            {alreadyProjectCreated && (
-                              <span className="project-created-badge-page">
-                                <FaCheckCircle /> Project Created
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </>
-            )}
+                    {filteredPreAssessments.map(assessment => {
+                      const hasPhotos = assessment.sitePhotos && assessment.sitePhotos.length > 0;
+                      const hasQuotation = assessment.finalQuotation || assessment.quotation?.quotationUrl;
+                      const alreadyProjectCreated = assessment.assessmentStatus === 'quotation_accepted' ||
+                        projects.some(p => {
+                          if (p.preAssessmentId) {
+                            const projectPreAssessmentId = typeof p.preAssessmentId === 'object' ?
+                              p.preAssessmentId._id?.toString() : p.preAssessmentId?.toString();
+                            return projectPreAssessmentId === assessment._id?.toString();
+                          }
+                          return false;
+                        });
+                      const canAccept = hasQuotation && !alreadyProjectCreated && assessment.assessmentStatus !== 'quotation_accepted';
+                      const rowId = `pa-${assessment._id}`;
+                      const summaryParts = [
+                        assessment.assessmentFee ? `Fee ${formatCurrency(assessment.assessmentFee)}` : null,
+                        assessment.monthlyBill ? `${formatCurrency(assessment.monthlyBill)}/mo` : null,
+                        assessment.propertyType ? capitalizeFirstLetter(assessment.propertyType) : null
+                      ].filter(Boolean);
+
+                      return (
+                        <tr key={assessment._id} className="req-table-row-cusset">
+                          <td><span className="req-ref-cusset">{assessment.bookingReference}</span></td>
+                          <td><span className="type-badge-page pre-assessment">Pre Assessment</span></td>
+                          <td>{formatDate(assessment.bookedAt || assessment.createdAt)}</td>
+                          <td>{getAssessmentStatusBadge(assessment.assessmentStatus || assessment.paymentStatus)}</td>
+                          <td><span className="req-summary-cusset">{summaryParts.length > 0 ? summaryParts.join(' • ') : '—'}</span></td>
+                          <td>
+                            <div className="req-action-cell-cusset">
+                              {canAccept ? (
+                                <button
+                                  className="req-accept-btn-cusset"
+                                  onClick={() => handleAcceptQuotationClick(assessment)}
+                                >
+                                  <FaCheckCircle /> Accept
+                                </button>
+                              ) : (
+                              <div className="req-dropdown-menu-container">
+                                <button
+                                  className="req-dropdown-trigger-btn"
+                                  onClick={(e) => toggleDropdown(rowId, e)}
+                                >
+                                  Actions ▾
+                                </button>
+                                {activeDropdown === rowId && (
+                                  <div
+                                    className="req-dropdown-menu"
+                                    style={{
+                                      position: 'fixed',
+                                      top: dropdownPosition.top + 'px',
+                                      left: dropdownPosition.left + 'px',
+                                      zIndex: 99999
+                                    }}
+                                  >
+                                    <button
+                                      className="req-dropdown-item view-details"
+                                      onClick={() => {
+                                        setActiveDropdown(null);
+                                        setSelectedRequest({ kind: 'pre-assessment', data: assessment });
+                                        setShowDetailsModal(true);
+                                      }}
+                                    >
+                                      <FaEye /> View Details
+                                    </button>
+                                    {hasQuotation && (
+                                      <button
+                                        className="req-dropdown-item view-quotation"
+                                        onClick={() => {
+                                          setActiveDropdown(null);
+                                          handleViewQuotation(assessment);
+                                        }}
+                                      >
+                                        <FaFileInvoice /> View Quotation
+                                      </button>
+                                    )}
+                                    {hasQuotation && (
+                                      <button
+                                        className="req-dropdown-item download-quotation"
+                                        onClick={() => {
+                                          setActiveDropdown(null);
+                                          handleDownloadQuotation(assessment);
+                                        }}
+                                      >
+                                        <FaDownload /> Download Quotation
+                                      </button>
+                                    )}
+                                    {hasPhotos && (
+                                      <button
+                                        className="req-dropdown-item view-photos"
+                                        onClick={() => {
+                                          setActiveDropdown(null);
+                                          openPhotoModal(assessment.sitePhotos, 0);
+                                        }}
+                                      >
+                                        <FaImages /> View Photos ({assessment.sitePhotos.length})
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
         </div>
+
+        {showDetailsModal && selectedRequest && (
+          <div className="req-modal-overlay-cusset" onClick={() => setShowDetailsModal(false)}>
+            <div className="req-modal-cusset" onClick={(e) => e.stopPropagation()}>
+              <button className="req-modal-close-cusset" onClick={() => setShowDetailsModal(false)}><FaTimes /></button>
+              <h3>Request Details</h3>
+              <div className="req-modal-scroll-cusset">
+                {selectedRequest.kind === 'free-quote' ? (
+                  <div className="req-details-content-cusset">
+                    <div className="req-details-section-cusset">
+                      <h4>Request Information</h4>
+                      <p><strong>Type:</strong> Free Quote</p>
+                      <p><strong>Reference:</strong> {selectedRequest.data.quotationReference || 'N/A'}</p>
+                      <p><strong>Date:</strong> {formatDate(selectedRequest.data.requestedAt)}</p>
+                      <p><strong>Status:</strong> {selectedRequest.data.status || 'N/A'}</p>
+                    </div>
+                    <div className="req-details-section-cusset">
+                      <h4>Property &amp; System</h4>
+                      <p><strong>Property Type:</strong> {selectedRequest.data.propertyType ? capitalizeFirstLetter(selectedRequest.data.propertyType) : 'N/A'}</p>
+                      <p><strong>System Type:</strong> {selectedRequest.data.systemType ? getSystemTypeLabel(selectedRequest.data.systemType) : 'Not specified'}</p>
+                      <p><strong>Address:</strong> {getRequestAddress(selectedRequest.data)}</p>
+                    </div>
+                    <div className="req-details-section-cusset">
+                      <h4>Requirements</h4>
+                      <p><strong>Monthly Bill:</strong> {formatCurrency(selectedRequest.data.monthlyBill)}</p>
+                      {selectedRequest.data.targetSavings && <p><strong>Target Savings:</strong> {selectedRequest.data.targetSavings}%</p>}
+                      {selectedRequest.data.recommendedSystemSize && <p><strong>Recommended Size:</strong> {selectedRequest.data.recommendedSystemSize} kW</p>}
+                      {selectedRequest.data.panelsNeeded && <p><strong>Panels Needed:</strong> {selectedRequest.data.panelsNeeded}</p>}
+                    </div>
+                    <div className="req-details-section-cusset">
+                      <h4>Assignment</h4>
+                      <p><strong>Engineer:</strong> {selectedRequest.data.engineerName || 'Not assigned yet'}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="req-details-content-cusset">
+                    <div className="req-details-section-cusset">
+                      <h4>Request Information</h4>
+                      <p><strong>Type:</strong> Pre-Assessment</p>
+                      <p><strong>Reference:</strong> {selectedRequest.data.bookingReference || 'N/A'}</p>
+                      <p><strong>Date:</strong> {formatDate(selectedRequest.data.bookedAt || selectedRequest.data.createdAt)}</p>
+                      <p><strong>Status:</strong> {selectedRequest.data.assessmentStatus || selectedRequest.data.paymentStatus || 'N/A'}</p>
+                      {selectedRequest.data.invoiceNumber && <p><strong>Invoice:</strong> {selectedRequest.data.invoiceNumber}</p>}
+                    </div>
+                    <div className="req-details-section-cusset">
+                      <h4>Property &amp; System</h4>
+                      <p><strong>Property Type:</strong> {selectedRequest.data.propertyType ? capitalizeFirstLetter(selectedRequest.data.propertyType) : 'N/A'}</p>
+                      {selectedRequest.data.systemType && <p><strong>System Type:</strong> {getSystemTypeLabel(selectedRequest.data.systemType)}</p>}
+                      <p><strong>Address:</strong> {getRequestAddress(selectedRequest.data)}</p>
+                    </div>
+                    <div className="req-details-section-cusset">
+                      <h4>Assessment Details</h4>
+                      <p><strong>Monthly Bill:</strong> {formatCurrency(selectedRequest.data.monthlyBill)}</p>
+                      {selectedRequest.data.assessmentFee != null && <p><strong>Assessment Fee:</strong> {formatCurrency(selectedRequest.data.assessmentFee)}</p>}
+                      {selectedRequest.data.targetSavings && <p><strong>Target Savings:</strong> {selectedRequest.data.targetSavings}%</p>}
+                    </div>
+                    <div className="req-details-section-cusset">
+                      <h4>Assignment</h4>
+                      <p><strong>Engineer:</strong> {selectedRequest.data.engineerName || 'Not assigned yet'}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="req-modal-actions-cusset">
+                  <button className="req-cancel-btn-cusset" onClick={() => setShowDetailsModal(false)}>Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showAcceptModal && acceptingQuotation && (
+          <div className="req-modal-overlay-cusset" onClick={() => { if (!acceptingLoading) { setShowAcceptModal(false); setAcceptingQuotation(null); } }}>
+            <div className="req-modal-cusset req-accept-modal-cusset" onClick={(e) => e.stopPropagation()}>
+              <button className="req-modal-close-cusset" onClick={() => { if (!acceptingLoading) { setShowAcceptModal(false); setAcceptingQuotation(null); } }}><FaTimes /></button>
+              <h3>Review &amp; Accept Quotation</h3>
+              <div className="req-modal-scroll-cusset">
+                <div className="req-details-content-cusset">
+                  <div className="req-details-section-cusset">
+                    <h4>Quotation Information</h4>
+                    <p><strong>Reference:</strong> {acceptingQuotation.quotationReference || 'N/A'}</p>
+                    <p><strong>Source:</strong> {acceptingQuotation.sourceType === 'free-quote' ? 'Free Quote' : 'Pre-Assessment'}</p>
+                    <p><strong>System Size:</strong> {acceptingQuotation.quotation?.systemDetails?.systemSize || 'TBD'} kWp</p>
+                    <p><strong>System Type:</strong> {acceptingQuotation.quotation?.systemDetails?.systemType || 'Not specified'}</p>
+                    <p><strong>Panels Needed:</strong> {acceptingQuotation.quotation?.systemDetails?.panelsNeeded || 'TBD'}</p>
+                    {acceptingQuotation.quotation?.systemDetails?.inverterType && (
+                      <p><strong>Inverter:</strong> {acceptingQuotation.quotation.systemDetails.inverterType}</p>
+                    )}
+                    {acceptingQuotation.quotation?.systemDetails?.batteryType && (
+                      <p><strong>Battery:</strong> {acceptingQuotation.quotation.systemDetails.batteryType}</p>
+                    )}
+                    <p className="req-total-line-cusset">
+                      <strong>Total Cost:</strong> {formatCurrency(acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee)}
+                      <span className="req-total-vat-cusset"> = {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 1.12)} (incl. 12% VAT)</span>
+                    </p>
+                  </div>
+                  <div className="req-details-section-cusset">
+                    <h4>Quotation Document</h4>
+                    {getAcceptQuotationUrl() ? (
+                      <button
+                        className="req-open-doc-btn-cusset"
+                        onClick={() => window.open(getAcceptQuotationUrl(), '_blank')}
+                      >
+                        <FaEye /> View Quotation
+                      </button>
+                    ) : (
+                      <p className="req-no-doc-cusset">No quotation document available yet.</p>
+                    )}
+                  </div>
+                  <div className="req-details-section-cusset">
+                    <h4>Choose Payment Option</h4>
+                    <div className="req-pay-options-cusset">
+                      {[
+                        { value: 'fifty_fifty', label: '50% - 50% Installment' },
+                        { value: 'thirty_sixty_ten', label: 'Installment with Retention (30% - 60% - 10%)' },
+                        { value: 'full', label: 'Full Payment' }
+                      ].map(opt => (
+                        <label
+                          key={opt.value}
+                          className={`req-pay-option-cusset ${selectedPaymentPreference === opt.value ? 'selected' : ''}`}
+                        >
+                          <input
+                            type="radio"
+                            name="req-payment-preference"
+                            checked={selectedPaymentPreference === opt.value}
+                            onChange={() => setSelectedPaymentPreference(opt.value)}
+                          />
+                          <span>{opt.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="req-modal-actions-cusset">
+                  <button
+                    className="req-cancel-btn-cusset"
+                    disabled={acceptingLoading}
+                    onClick={() => { setShowAcceptModal(false); setAcceptingQuotation(null); }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="req-confirm-btn-cusset"
+                    disabled={acceptingLoading}
+                    onClick={confirmAcceptQuotation}
+                  >
+                    {acceptingLoading ? <><FaSpinner className="spinning" /> Processing...</> : <><FaCheckCircle /> Accept Quotation</>}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {showPhotoModal && selectedPhotos.length > 0 && (
           <div className="photo-modal-overlay-cusset" onClick={closePhotoModal}>
@@ -1440,189 +1705,8 @@ const ScheduleAssessment = () => {
     );
   }
 
-  // ============ RENDER ACCEPT QUOTATION PAGE ============
-  if (currentStep === 'accept-quotation' && acceptingQuotation) {
-    return (
-      <>
-        <Helmet><title>Accept Quotation | Salfer Engineering</title></Helmet>
-        <div className="schedule-container-cusset">
-          <div className="back-button-container-cusset">
-            <button
-              onClick={() => {
-                setCurrentStep('my-requests');
-                setAcceptingQuotation(null);
-              }}
-              className="back-to-services-cusset"
-            >
-              <FaArrowLeft /> Back to My Requests
-            </button>
-          </div>
-
-          <div className="accept-quotation-page-cusset">
-            <div className="accept-quotation-header-cusset">
-              <h1>Accept Quotation</h1>
-              <p>Review the quotation details and choose your payment preference</p>
-              <span className="source-badge-page" style={{
-                background: acceptingQuotation.sourceType === 'free-quote' ? '#4CAF50' : '#2196F3',
-                color: '#fff',
-                padding: '4px 16px',
-                borderRadius: '20px',
-                fontSize: '13px',
-                display: 'inline-block',
-                marginTop: '8px'
-              }}>
-                {acceptingQuotation.sourceType === 'free-quote' ? 'Free Quote' : 'Pre-Assessment'}
-              </span>
-            </div>
-
-            <div className="accept-quotation-content-cusset">
-              <div className="quotation-summary-page-cusset">
-                <h3>Quotation Summary</h3>
-                <div className="summary-grid-cusset">
-                  <div className="summary-item-cusset">
-                    <span>Reference:</span>
-                    <strong>{acceptingQuotation.quotationReference || 'N/A'}</strong>
-                  </div>
-                  <div className="summary-item-cusset">
-                    <span>System Size:</span>
-                    <strong>{acceptingQuotation.quotation?.systemDetails?.systemSize || 'TBD'} kWp</strong>
-                  </div>
-                  <div className="summary-item-cusset">
-                    <span>Total Cost:</span>
-                    <strong>
-                      {formatCurrency(acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee)} + 12% VAT
-                    </strong>
-                    <strong className="total-cost-cusset">
-                      = {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 1.12)}
-                    </strong>
-                  </div>
-                  <div className="summary-item-cusset">
-                    <span>System Type:</span>
-                    <strong>{acceptingQuotation.quotation?.systemDetails?.systemType || 'Not specified'}</strong>
-                  </div>
-                  <div className="summary-item-cusset">
-                    <span>Panels Needed:</span>
-                    <strong>{acceptingQuotation.quotation?.systemDetails?.panelsNeeded || 'TBD'}</strong>
-                  </div>
-                  {acceptingQuotation.quotation?.systemDetails?.inverterType && (
-                    <div className="summary-item-cusset">
-                      <span>Inverter Type:</span>
-                      <strong>{acceptingQuotation.quotation.systemDetails.inverterType}</strong>
-                    </div>
-                  )}
-                  {acceptingQuotation.quotation?.systemDetails?.batteryType && (
-                    <div className="summary-item-cusset">
-                      <span>Battery Type:</span>
-                      <strong>{acceptingQuotation.quotation.systemDetails.batteryType}</strong>
-                    </div>
-                  )}
-                </div>
-
-                {acceptingQuotation.quotation?.systemDetails?.equipmentBreakdown && (
-                  <div className="equipment-breakdown-cusset">
-                    <h4>Equipment Breakdown</h4>
-                    <div className="equipment-grid-cusset">
-                      {acceptingQuotation.quotation.systemDetails.equipmentBreakdown.panels && (
-                        <div className="equipment-item-cusset">
-                          <span>Panels:</span>
-                          <strong>{acceptingQuotation.quotation.systemDetails.equipmentBreakdown.panels.quantity} × {acceptingQuotation.quotation.systemDetails.equipmentBreakdown.panels.wattage}W</strong>
-                        </div>
-                      )}
-                      {acceptingQuotation.quotation.systemDetails.equipmentBreakdown.inverter && (
-                        <div className="equipment-item-cusset">
-                          <span>Inverter:</span>
-                          <strong>{acceptingQuotation.quotation.systemDetails.equipmentBreakdown.inverter.name}</strong>
-                        </div>
-                      )}
-                      {acceptingQuotation.quotation.systemDetails.equipmentBreakdown.battery && (
-                        <div className="equipment-item-cusset">
-                          <span>Battery:</span>
-                          <strong>{acceptingQuotation.quotation.systemDetails.equipmentBreakdown.battery.name}</strong>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="payment-preference-page-cusset">
-                <h3>Choose Payment Option</h3>
-                <div className="preference-options-page-cusset">
-                  <div
-                    className={`preference-option-page ${selectedPaymentPreference === 'fifty_fifty' ? 'selected' : ''}`}
-                    onClick={() => setSelectedPaymentPreference('fifty_fifty')}
-                  >
-                    <input type="radio" checked={selectedPaymentPreference === 'fifty_fifty'} readOnly />
-                    <div className="preference-content-page">
-                      <strong>50% - 50% Installment</strong>
-                      <div className="preference-details-page">
-                        <span>Downpayment (50%): {formatCurrency(((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.5) * 1.12)}</span>
-                        <span>Final Payment (50%): {formatCurrency(((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.5) * 1.12)}</span>
-                        <span className="total-vat-note-page">Total (incl. VAT): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 1.12)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    className={`preference-option-page ${selectedPaymentPreference === 'thirty_sixty_ten' ? 'selected' : ''}`}
-                    onClick={() => setSelectedPaymentPreference('thirty_sixty_ten')}
-                  >
-                    <input type="radio" checked={selectedPaymentPreference === 'thirty_sixty_ten'} readOnly />
-                    <div className="preference-content-page">
-                      <strong>Installment with Retention (30% - 60% - 10%)</strong>
-                      <div className="preference-details-page">
-                        <span>Downpayment (30%): {formatCurrency(((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.3) * 1.12)}</span>
-                        <span>Progress Payment (60%): {formatCurrency(((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.6) * 1.12)}</span>
-                        <span className="retention-note-page">Retention Fee (10%): {formatCurrency(((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.1) * 1.12)}</span>
-                        <span className="total-vat-note-page">Total (incl. VAT): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 1.12)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    className={`preference-option-page ${selectedPaymentPreference === 'full' ? 'selected' : ''}`}
-                    onClick={() => setSelectedPaymentPreference('full')}
-                  >
-                    <input type="radio" checked={selectedPaymentPreference === 'full'} readOnly />
-                    <div className="preference-content-page">
-                      <strong>Full Payment</strong>
-                      <div className="preference-details-page full-payment-page">
-                        <span>Amount (excl. VAT): {formatCurrency(acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee)}</span>
-                        <span>VAT (12%): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 0.12)}</span>
-                        <span className="total-vat-note-page">Total (incl. VAT): {formatCurrency((acceptingQuotation.quotation?.systemDetails?.totalCost || acceptingQuotation.assessmentFee) * 1.12)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="accept-quotation-actions-cusset">
-                <button
-                  className="cancel-btn-page-cusset"
-                  onClick={() => {
-                    setCurrentStep('my-requests');
-                    setAcceptingQuotation(null);
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="confirm-btn-page-cusset"
-                  onClick={confirmAcceptQuotation}
-                  disabled={acceptingLoading}
-                >
-                  {acceptingLoading ? <FaSpinner className="spinning" /> : 'Accept Quotation'}
-                  {acceptingLoading ? ' Processing...' : ''}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} />
-      </>
-    );
-  }
+  // Quotation review + acceptance now happens in the Accept modal on the
+  // my-requests step (showAcceptModal). The old accept-quotation page was removed.
 
   // ============ LOADING, ERROR, SUBMITTED STATES ============
 

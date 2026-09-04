@@ -11,7 +11,11 @@ const { verifyToken } = authMiddleware;
 // Generate receipt for a payment
 router.post('/generate', verifyToken, admin, async (req, res) => {
   try {
-    const receipt = await receiptService.generateReceipt(req.body);
+    // Attribute issuance to the logged-in staff member (display only).
+    const receipt = await receiptService.generateReceipt({
+      ...req.body,
+      generatedBy: req.body.generatedBy || req.body.issuedBy || req.user.id
+    });
     res.json({ success: true, receipt });
   } catch (error) {
     console.error('Generate receipt error:', error);
